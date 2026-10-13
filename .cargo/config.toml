@@ -1,0 +1,32 @@
+# Shared by every Cargo workspace in the repository.
+
+# Share build artifacts across workspaces.
+[build]
+target-dir = "target"
+
+# macOS defaults to unpacked, whose object files rustc ≥ 1.88 never removes (rust-lang/rust#161824): packed
+# builds a .dSYM per binary instead. Overrides every workspace's Cargo.toml.
+[profile.dev]
+split-debuginfo = "packed"
+
+# Repository-relative paths available to crates and definition macros.
+[env]
+PROTOCOLS = { value = "protocols", relative = true, force = true }
+DUPLEX = { value = "duplex", relative = true, force = true }
+DUPLEX_TS = { value = "duplex/ts", relative = true, force = true }
+DUPLEX_DOTNET = { value = "duplex/dotnet", relative = true, force = true }
+GREYBEL_TS = { value = "greybel/ts", relative = true, force = true }
+APPS_TS = { value = "apps/ts", relative = true, force = true }
+GREYBEL_DOTNET = { value = "greybel/dotnet", relative = true, force = true }
+BENCH_CORPUS = { value = "greybel/benches/corpus", relative = true, force = true }
+MONO_REGEX_DIST = { value = "mono/dotnet/mono-regex/dist", relative = true, force = true }
+TEXT_MESH_REFERENCE = { value = "text-mesh/unity/text-mesh-reference", relative = true, force = true }
+TEXT_MESH_SHADERS = { value = "text-mesh/shaders", relative = true, force = true }
+
+# `cargo reman …` from the root: the release manager (tools/reman).
+[alias]
+reman = "run --quiet --manifest-path tools/reman/Cargo.toml --"
+
+# Runs wasm tests in Node; install the Cargo.lock version of wasm-bindgen-cli.
+[target.wasm32-unknown-unknown]
+runner = "wasm-bindgen-test-runner"

@@ -1,0 +1,15 @@
+use core 1.0;
+
+/// Makes editor-only operations available to pages hosted in editor webviews.
+protocol Workbench = "greybel-workbench" {
+    /// Editor that hosts the webview.
+    provider Editor {
+        /// Opens `content` in a new untitled GreyScript document next to the webview.
+        message OpenDocument {
+            content: string(..=60KiB),
+        }
+    }
+
+    /// Page hosted in the webview.
+    client Page {}
+}

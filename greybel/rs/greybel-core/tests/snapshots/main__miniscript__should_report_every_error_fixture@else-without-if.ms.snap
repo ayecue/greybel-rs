@@ -1,0 +1,13 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/errors/else-without-if.ms
+---
+--- strict
+1:5 - 1:5 UnmatchedEnd(4001): 'else' without matching block starter
+--- tree
+Chunk[1:1-3:1][
+	AssignmentStatement[2:1-2:6][Identifier[2:1-2:2][x] = Literal[2:5-2:6][1]]
+]
+--- errors
+1:5 - 1:5 UnmatchedEnd(4001): 'else' without matching block starter

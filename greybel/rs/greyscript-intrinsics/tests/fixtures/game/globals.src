@@ -1,0 +1,16 @@
+// Grey Hack registers every object method as a global too, so it can be
+// called as a free function with the object as an explicit first argument
+// (`Intrinsic.GetByName`). The type-map key and the global name can
+// differ: a computer's local_ip method is the global lan_ip, public_ip is
+// public_ip_pc.
+shell = get_shell
+comp = host_computer(shell)
+print typeof(comp)
+print get_name(comp)
+print lan_ip(comp) == comp.local_ip
+print public_ip_pc(comp) == comp.public_ip
+
+// A mail account's delete method is the global delete_mail; its type-map
+// key is plain delete.
+print @delete_mail != null
+print comp.hasIndex("get_name")

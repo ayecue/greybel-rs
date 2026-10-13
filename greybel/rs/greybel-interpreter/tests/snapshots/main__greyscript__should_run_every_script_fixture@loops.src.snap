@@ -1,0 +1,19 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/loops.src
+---
+[
+  "[\"test0\", 0, 0, 0]",
+  "\"before accepted\"",
+  "\"after accepted\"",
+  "\"before break\"",
+  "10",
+  "0",
+  "\"test\"",
+  "123",
+  "0",
+  "\"abc\"",
+  "456",
+  "1"
+]

@@ -1,0 +1,14 @@
+{
+  "name": "greybel-builder-web",
+  "version": "0.1.0",
+  "description": "greybel-builder as a browser worker script: new Worker('greybel-builder-web/dist/index.js'), hand it its WebAssembly (greybel-builder-web.wasm) with wasm-host's serveWasm, then a port as duplex-driver-worker's hosts do",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build"
+  }
+}

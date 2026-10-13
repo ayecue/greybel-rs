@@ -1,0 +1,13 @@
+use core 1.0;
+unsupported;
+
+/// Peers no longer support the first version of this protocol.
+protocol Legacy = "legacy" {
+    provider Server {
+        message Note {
+            text: string,
+        }
+    }
+
+    client Caller {}
+}

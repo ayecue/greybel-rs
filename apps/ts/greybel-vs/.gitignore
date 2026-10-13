@@ -1,0 +1,11 @@
+.DS_Store
+node_modules
+out
+dist
+test.src
+node_modules
+*.vsix
+.vscode-test-web
+system.pem
+.vscode/tmstate.json
+.vscode-test

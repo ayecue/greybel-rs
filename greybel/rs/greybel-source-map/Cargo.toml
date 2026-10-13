@@ -1,0 +1,30 @@
+[package]
+name = "greybel-source-map"
+description = "Source maps of built programs: which file and line each line of the built code came from"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[features]
+# Enables source map serialization (see src/storage.rs).
+serde = ["dep:serde"]
+
+[dependencies]
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+greybel-source-map = { path = ".", features = ["serde"] }
+serde_json.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

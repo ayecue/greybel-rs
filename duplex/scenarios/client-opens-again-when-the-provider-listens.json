@@ -1,0 +1,50 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client still opening opens again once the provider tells it listens.",
+  "peer": "client",
+  "requires": [],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Listen": {}
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

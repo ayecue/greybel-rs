@@ -1,0 +1,30 @@
+[package]
+name = "greybel-lsp-stdio"
+description = "Stdio `greybel-lsp` binary with LSP Content-Length framing and disk-backed documents"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[[bin]]
+name = "greybel-lsp"
+path = "src/main.rs"
+
+[dependencies]
+greybel-lsp.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+greybel-test-support = { workspace = true, features = ["lsp"] }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

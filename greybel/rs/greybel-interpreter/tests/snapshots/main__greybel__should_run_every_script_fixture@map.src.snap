@@ -1,0 +1,15 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/map.src
+---
+[
+  "{{\"myTest\": 0, 1: 2}: 1}",
+  "{[12, 14]: 1}",
+  "{{{\"myTest\": 0, 1: 2}: 1}: 234}",
+  "{1: \"foo\"}",
+  "{123: \"bar\"}",
+  "234",
+  "\"foo\"",
+  "\"bar\""
+]

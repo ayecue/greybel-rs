@@ -1,0 +1,32 @@
+[package]
+name = "duplex-driver-websocket"
+description = "Tokio WebSocket provider for duplex-core, with one transport per connection and one binary message per batch"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+duplex-tokio.workspace = true
+scheduler = { workspace = true, features = ["tokio"] }
+tokio = { workspace = true, features = ["rt", "net", "sync", "time"] }
+tokio-tungstenite.workspace = true
+futures-util = { workspace = true, features = ["sink"] }
+
+[dev-dependencies]
+duplex-test-support = { workspace = true, features = ["tokio"] }
+duplex-ts.workspace = true
+tokio = { workspace = true, features = ["rt", "net", "sync", "time", "io-util", "io-std"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

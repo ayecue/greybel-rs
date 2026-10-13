@@ -1,0 +1,39 @@
+[package]
+name = "greybel-type-analyzer"
+description = "Static type analysis of MiniScript, Greybel and GreyScript for the language server and the web"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greybel-documents.workspace = true
+greybel-core.workspace = true
+greybel-symbols.workspace = true
+meta-utils.workspace = true
+miniscript-meta.workspace = true
+greyscript-meta.workspace = true
+salsa.workspace = true
+indexmap.workspace = true
+rustc-hash.workspace = true
+
+[dev-dependencies]
+greybel-documents-memory-provider.workspace = true
+greybel-test-support = { workspace = true, features = ["node-depth"] }
+criterion.workspace = true
+
+[[bench]]
+name = "analyze"
+harness = false
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

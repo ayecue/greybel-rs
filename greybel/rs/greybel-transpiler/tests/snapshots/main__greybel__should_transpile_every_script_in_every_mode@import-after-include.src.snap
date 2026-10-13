@@ -1,0 +1,22 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/import-after-include.src
+---
+=== default
+#import first from "../dependencies/includes-shared.src";
+#import shared from "../dependencies/shared-module.src";
+print(shared)
+=== uglify
+globals.I=globals
+#import J from "../dependencies/includes-shared.src";
+#import K from "../dependencies/shared-module.src";
+print(K)
+=== beautify
+#import first from "../dependencies/includes-shared.src";
+#import shared from "../dependencies/shared-module.src";
+print shared
+=== beautify, dev mode, keep parentheses, 10 spaces
+#import first from "../dependencies/includes-shared.src";
+#import shared from "../dependencies/shared-module.src";
+print(shared)

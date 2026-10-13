@@ -1,0 +1,68 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client stays healthy while the provider responds to its pings.",
+  "peer": "client",
+  "requires": ["health-check"],
+  "connected": true,
+  "healthCheck": true,
+  "steps": [
+    {
+      "check": 1
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "health": "healthy",
+        "closed": null
+      }
+    }
+  ]
+}

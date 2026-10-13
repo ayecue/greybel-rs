@@ -1,0 +1,98 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/scripts/shorthand-loops.src
+---
+Chunk[1:1-54:13][
+	IfStatement[1:1-1:29][
+		IfShortcutClause[1:1-1:29][Literal[1:5-1:9][true]
+			CallExpression[1:16-1:29][Identifier[1:16-1:21][print](Literal[1:22-1:28][true])]
+		]
+	]
+	IfStatement[2:1-2:49][
+		IfShortcutClause[2:1-2:35][Literal[2:5-2:10][false]
+			CallExpression[2:17-2:30][Identifier[2:17-2:22][print](Literal[2:23-2:29][true])]
+		]
+		ElseShortcutClause[2:36-2:49][
+			CallExpression[2:36-2:49][Identifier[2:36-2:41][print](Literal[2:42-2:48][true])]
+		}]
+	]
+	CallExpression[3:1-3:13][Identifier[3:1-3:6][print](Literal[3:7-3:12][was])]
+	IfStatement[4:1-8:7][
+		IfClause[4:1-6:5][Literal[4:5-4:10][false]
+			CallExpression[5:2-5:14][Identifier[5:2-5:7][print](Literal[5:8-5:13][false])]
+		]
+		ElseClause[6:1-8:7][
+			CallExpression[7:2-7:13][Identifier[7:2-7:7][print](Literal[7:8-7:12][true])]
+		}]
+	]
+	IfStatement[9:1-14:7][
+		IfClause[9:1-11:5][Literal[9:5-9:10][false]
+			CallExpression[10:2-10:14][Identifier[10:2-10:7][print](Literal[10:8-10:13][false])]
+		]
+		ElseClause[11:1-14:7][
+			CallExpression[12:2-12:13][Identifier[12:2-12:7][print](Literal[12:8-12:12][true])]
+			IfStatement[13:2-13:50][
+				IfShortcutClause[13:2-13:36][Literal[13:6-13:11][false]
+					CallExpression[13:18-13:31][Identifier[13:18-13:23][print](Literal[13:24-13:30][true])]
+				]
+				ElseShortcutClause[13:37-13:50][
+					CallExpression[13:37-13:50][Identifier[13:37-13:42][print](Literal[13:43-13:49][true])]
+				}]
+			]
+		}]
+	]
+	For[16:1-16:21][Identifier[16:5-16:6][i] in ListConstructor[16:10-16:13][]
+		CallExpression[16:13-16:21][Identifier[16:13-16:18][print](Identifier[16:19-16:20][i])]
+	]
+	For[17:1-19:8][Identifier[17:5-17:6][b] in ListConstructor[17:10-17:12][]
+		CallExpression[18:2-18:10][Identifier[18:2-18:7][print](Identifier[18:8-18:9][b])]
+	]
+	WhileStatement[20:1-20:21][BinaryExpression[20:8-20:13][Identifier[20:8-20:9][i] < Identifier[20:12-20:13][b]]
+		AssignmentStatement[20:15-20:21][Identifier[20:15-20:16][i] = BinaryExpression[20:20-20:21][Identifier[20:15-20:16][i] + Literal[20:20-20:21][1]]]
+	]
+	WhileStatement[21:1-23:10][BinaryExpression[21:8-21:13][Identifier[21:8-21:9][b] < Identifier[21:12-21:13][i]]
+		AssignmentStatement[22:2-22:8][Identifier[22:2-22:3][b] = BinaryExpression[22:7-22:8][Identifier[22:2-22:3][b] + Literal[22:7-22:8][1]]]
+	]
+	AssignmentStatement[24:1-26:13][Identifier[24:1-24:11][myFunction] = Function[24:14-26:13][Identifier[24:23-24:24][v] =>
+		CallExpression[25:3-25:11][Identifier[25:3-25:8][print](Identifier[25:9-25:10][v])]
+	]]
+	AssignmentStatement[27:1-29:13][Identifier[27:1-27:14][otherFunction] = Function[27:17-29:13][Identifier[27:26-27:27][n] =>
+		CallExpression[28:2-28:10][Identifier[28:2-28:7][print](Identifier[28:8-28:9][n])]
+	]]
+	IfStatement[31:1-32:7][
+		IfClause[31:1-32:7][NegationExpression[31:4-31:12][not UnaryExpression[31:8-31:12][@ Identifier[31:9-31:12][ref]]]]
+	]
+	IfStatement[34:1-37:7][
+		IfClause[34:1-36:5][Literal[34:4-34:8][true]
+			AssignmentStatement[35:2-35:23][Identifier[35:2-35:15][elseSomething] = Literal[35:18-35:23][false]]
+		]
+		ElseClause[]
+	]
+	For[39:1-41:8][Identifier[39:5-39:6][c] in Identifier[39:10-39:15][clist]
+		CallExpression[40:2-40:14][Identifier[40:2-40:7][print](Literal[40:8-40:13][moo])]
+	]
+	WhileStatement[43:1-45:10][Literal[43:7-43:11][true]
+		CallExpression[44:2-44:14][Identifier[44:2-44:7][print](Literal[44:8-44:13][moo])]
+	]
+	IfStatement[47:1-49:7][
+		IfClause[47:1-49:7][Literal[47:4-47:8][true]
+			CallExpression[48:2-48:14][Identifier[48:2-48:7][print](Literal[48:8-48:13][moo])]
+		]
+	]
+	IfStatement[51:1-51:34][
+		IfShortcutClause[51:1-51:26][BinaryExpression[51:4-51:9][Identifier[51:4-51:5][x] < Literal[51:8-51:9][0]]
+			ReturnStatement[51:15-51:21][null]
+		]
+		ElseShortcutClause[51:27-51:34][
+			CallStatment[51:27-51:34][CallExpression[51:27-51:34][Identifier[51:27-51:32][print](Identifier[51:33-51:34][x])]]
+		}]
+	]
+	IfStatement[52:1-52:40][
+		IfShortcutClause[52:1-52:40][LogicalExpression[52:4-52:17][Literal[52:4-52:8][true] and Literal[52:13-52:17][true]]
+			AssignmentStatement[52:23-54:13][Identifier[52:23-52:27][item] = Function[52:30-54:13][ =>
+				CallStatment[53:5-53:18][CallExpression[53:5-53:18][Identifier[53:5-53:10][print](Literal[53:11-53:18][hello])]]
+			]]
+		]
+	]
+]

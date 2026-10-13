@@ -1,0 +1,19 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/scripts/slice.src
+---
+Chunk[1:1-15:59][
+	AssignmentStatement[1:1-13:13][Identifier[1:1-1:13][divideString] = Function[1:16-13:13][Identifier[1:25-1:28][str], Identifier[1:29-1:34][limit] =>
+		AssignmentStatement[2:2-2:12][Identifier[2:2-2:8][offset] = Literal[2:11-2:12][0]]
+		AssignmentStatement[3:2-3:18][Identifier[3:2-3:8][maxLen] = MemberExpression[3:11-3:18][Identifier[3:11-3:14][str].Identifier[3:15-3:18][len]]]
+		AssignmentStatement[4:2-4:12][Identifier[4:2-4:7][frags] = ListConstructor[4:10-4:12][]]
+		WhileStatement[6:2-10:11][BinaryExpression[6:8-6:23][Identifier[6:8-6:14][offset] < Identifier[6:17-6:23][maxLen]]
+			AssignmentStatement[7:3-7:24][Identifier[7:3-7:7][next] = BinaryExpression[7:10-7:24][Identifier[7:10-7:16][offset] + Identifier[7:19-7:24][limit]]]
+			CallExpression[8:3-8:31][MemberExpression[8:3-8:13][Identifier[8:3-8:8][frags].Identifier[8:9-8:13][push]](SliceExpression[8:14-8:30][Identifier[8:14-8:17][str][Identifier[8:18-8:24][offset]:Identifier[8:25-8:29][next]]])]
+			AssignmentStatement[9:3-9:16][Identifier[9:3-9:9][offset] = Identifier[9:12-9:16][next]]
+		]
+		ReturnStatement[12:2-12:14][Identifier[12:9-12:14][frags]]
+	]]
+	CallExpression[15:1-15:59][Identifier[15:1-15:6][print](CallExpression[15:7-15:58][Identifier[15:7-15:19][divideString](Literal[15:20-15:55][blahhblahhblahhblahhblahhblahhgad], Literal[15:56-15:57][5])])]
+]

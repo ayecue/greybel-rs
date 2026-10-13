@@ -1,0 +1,58 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider refuses a client of an older major it has no migration for, naming the majors it serves.",
+  "migrates": false,
+  "peer": "provider",
+  "requires": ["migration"],
+  "major": 2,
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Refuse": {
+                  "id": 0,
+                  "reason": "VersionMismatch",
+                  "protocol": "2.0",
+                  "majors": [
+                    2
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "connection": null
+      }
+    }
+  ]
+}

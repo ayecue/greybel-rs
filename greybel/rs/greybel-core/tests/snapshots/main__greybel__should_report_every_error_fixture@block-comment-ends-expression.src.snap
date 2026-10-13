@@ -1,0 +1,13 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/block-comment-ends-expression.src
+---
+--- strict
+1:20 - 1:21 ExpectedExpression(3002): got OpPlus where number, string, or identifier is required
+--- tree
+Chunk[1:1-2:1][
+	AssignmentStatement[1:1-1:6][Identifier[1:1-1:2][x] = Literal[1:5-1:6][1]]
+]
+--- errors
+1:20 - 1:21 ExpectedExpression(3002): got OpPlus where number, string, or identifier is required

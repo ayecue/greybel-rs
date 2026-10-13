@@ -1,0 +1,400 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - load
+  - net_use
+  - rshell_client
+  - rshell_server
+  - scan
+  - scan_address
+  - sniffer
+definitions:
+  load:
+    argStrings:
+      - - string
+    id: load
+    json:
+      arguments:
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+      description: "Loads a library binary as a `metaLib`, or `null` on failure. An empty path returns `\"load: Invalid arguments\"` instead of raising."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - "libFolder = get_shell.host_computer.File(\"/lib\")"
+        - for file in libFolder.get_files
+        - "   metaLib = metax.load(file.path)"
+        - "   print(\"Library: \" + metaLib.lib_name + \" - \" + metaLib.version)"
+        - end for
+      isProtected: false
+      returns:
+        - metaLib
+        - "null"
+        - string
+      type: function
+    origin: metaxploit
+    otherLanguageDescription: ~
+    returnStrings:
+      - metaLib
+      - "null"
+      - string
+    returnVariations:
+      ok:
+        - "load: Invalid arguments"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  net_use:
+    argStrings:
+      - - string
+      - - number
+    id: net_use
+    json:
+      arguments:
+        - default: ~
+          label: ipAddress
+          opt: false
+          types:
+            - string
+        - default:
+            type: number
+            value: 0
+          label: port
+          opt: false
+          types:
+            - number
+      description: "Returns a `netSession` for an IP address and port, or `null` on failure. Disabled internet returns `\"net_use: No internet connection\"`; invalid addresses print an error and return `null`. SSH encryption still raises."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - "ports = get_router(\"1.1.1.1\").used_ports"
+        - for port in ports
+        - "   netSession = metax.net_use(\"1.1.1.1\", port.port_number)"
+        - "   metaLib = netSession.dump_lib"
+        - "   print(\"Library: \" + metaLib.lib_name + \" - \" + metaLib.version + \" on port \" + port.port_number)"
+        - end for
+      isProtected: false
+      returns:
+        - netSession
+        - "null"
+        - string
+      type: function
+    origin: metaxploit
+    otherLanguageDescription: ~
+    returnStrings:
+      - netSession
+      - "null"
+      - string
+    returnVariations:
+      ok:
+        - "net_use: No internet connection"
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  rshell_client:
+    argStrings:
+      - - string
+      - - number
+      - - string
+    id: rshell_client
+    json:
+      arguments:
+        - default: ~
+          label: address
+          opt: false
+          types:
+            - string
+        - default:
+            type: number
+            value: 1222
+          label: port
+          opt: false
+          types:
+            - number
+        - default:
+            type: string
+            value: rshell_client
+          label: procName
+          opt: false
+          types:
+            - string
+      description: "Launches a process on the victim's `computer`, silently attempting to continuously connect in the background to the specified address and port. For the reverse shell to run successfully, the `rshell` service must be installed, and the port forward must be configured correctly on the machine where the server is waiting for the victim's connection. If the launch was successful, a `number` with the value one will be returned. In case of failure, a `string` with details will be returned."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - "metax.rshell_client(\"1.1.1.1\", 1222, \"bgprocess\")"
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: metaxploit
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "connection rejected: port forward removed by admin"
+        - "Error: ${programName} is a reserved process name"
+        - "Error: only alphanumeric allowed as proccess name."
+        - "Error: proccess name cannot exceed the limit of 28 characters."
+        - Invalid target service port configuration.
+        - No internet access.
+        - Remote host is down
+        - "rshell_client: Invalid IP address"
+        - "rshell_client: IP address not found: ${ip}"
+        - "rshell_client: unable to find remote server at port ${port}"
+        - "Unable to connect: invalid ${library}"
+        - "Unable to connect: missing ${library}"
+        - "Unable to find service ${service}"
+        - "Unexpected library found. Not a valid ${library} library."
+        - Unknown error
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  rshell_server:
+    argStrings: []
+    id: rshell_server
+    json:
+      arguments: []
+      description: "This method returns a `list` of `shell` objects that have been reverse shell connected to this computer. To manage the connections received, the `rshell` service must be installed on the machine that receives the victims' connections. In case of failure a `string` will be returned with details."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - shells = metax.rshell_server
+        - "firstShell = shells[0]"
+        - "firstShell.host_computer.File(\"/\").chmod(\"o-wrx\", true)"
+      isProtected: false
+      returns:
+        - string
+        - type: list
+          valueType: shell
+      type: function
+    origin: metaxploit
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - list<shell>
+    returnVariations:
+      ok:
+        - "error: rshell portforward is not configured correctly"
+        - "error: service rshelld is not running"
+        - "rshell_server: No internet connection"
+        - "rshell_server: The service cannot be started on this network."
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  scan:
+    argStrings:
+      - - metaLib
+    id: scan
+    json:
+      arguments:
+        - default: ~
+          label: metaLib
+          opt: false
+          types:
+            - metaLib
+      description: "Returns a `list` where each item is a `string` representing a memory area which has vulnerabilities related to the provided library. These memory areas can be used to make further scans via `scan_address`. In case of failure, this method returns `null` instead. An example of a memory area would be \"0x7BFC1EAA\". Using this method within a SSH encryption process will throw a runtime exception."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - "metaLib = metax.load(\"/lib/init.so\")"
+        - scanResult = metax.scan(metaLib)
+        - for area in scanResult
+        - "   print(\"Memory area containg vulnerability: \" + area)"
+        - end for
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+        - "null"
+      type: function
+    origin: metaxploit
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  scan_address:
+    argStrings:
+      - - metaLib
+      - - string
+    id: scan_address
+    json:
+      arguments:
+        - default: ~
+          label: metaLib
+          opt: false
+          types:
+            - metaLib
+        - default: ~
+          label: memAddress
+          opt: false
+          types:
+            - string
+      description: "Returns a `string` containing information about each vulnerability in the provided library and memory area. In case the scanning fails this method will return `null`. Using this method within a SSH encryption process will throw a runtime exception."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - "metaLib = metax.load(\"/lib/init.so\")"
+        - scanResult = metax.scan(metaLib)
+        - "scanAddress = metax.scan_address(metaLib, scanResult[0])"
+        - "segments = scanAddress.split(\"Unsafe check: \")[1:]"
+        - "exploits = []"
+        - for segment in segments
+        - "   labelStart = segment.indexOf(\"<b>\")"
+        - "   labelEnd = segment.indexOf(\"</b>\")"
+        - "   exploits.push(segment[labelStart + 3: labelEnd])"
+        - end for
+        - "print(\"Available vulnerabilities: \" + exploits.join(\", \"))"
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: metaxploit
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  sniffer:
+    argStrings:
+      - - number
+    id: sniffer
+    json:
+      arguments:
+        - default:
+            type: number
+            value: 0
+          label: encode_source
+          opt: false
+          types:
+            - number
+      description: "The terminal listens to the network packets of any connection that passes through the computer. When any connection information gets captured, it will print a `string` with the obtained data. In case saving of encryption source is enabled it will download the source code of the script responsible for encryption. In case the operation fails this method will return `null`. Using this method within a SSH encryption process will throw a runtime exception."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - result = metax.sniffer
+        - print(result)
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: metaxploit
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - load
+  - net_use
+  - rshell_client
+  - rshell_server
+  - scan
+  - scan_address
+  - sniffer
+descriptions:
+  $meta:
+    description: "A `metaxploit` object can be obtained by using [include_lib](#GENERAL_INCLUDE_LIB). The `classID` used for this object is `\"MetaxploitLib\"`."
+    example: ~
+  load:
+    description: "Loads a library binary as a `metaLib`, or `null` on failure. An empty path returns `\"load: Invalid arguments\"` instead of raising."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - "libFolder = get_shell.host_computer.File(\"/lib\")"
+      - for file in libFolder.get_files
+      - "   metaLib = metax.load(file.path)"
+      - "   print(\"Library: \" + metaLib.lib_name + \" - \" + metaLib.version)"
+      - end for
+  net_use:
+    description: "Returns a `netSession` for an IP address and port, or `null` on failure. Disabled internet returns `\"net_use: No internet connection\"`; invalid addresses print an error and return `null`. SSH encryption still raises."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - "ports = get_router(\"1.1.1.1\").used_ports"
+      - for port in ports
+      - "   netSession = metax.net_use(\"1.1.1.1\", port.port_number)"
+      - "   metaLib = netSession.dump_lib"
+      - "   print(\"Library: \" + metaLib.lib_name + \" - \" + metaLib.version + \" on port \" + port.port_number)"
+      - end for
+  rshell_client:
+    description: "Launches a process on the victim's `computer`, silently attempting to continuously connect in the background to the specified address and port. For the reverse shell to run successfully, the `rshell` service must be installed, and the port forward must be configured correctly on the machine where the server is waiting for the victim's connection. If the launch was successful, a `number` with the value one will be returned. In case of failure, a `string` with details will be returned."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - "metax.rshell_client(\"1.1.1.1\", 1222, \"bgprocess\")"
+  rshell_server:
+    description: "This method returns a `list` of `shell` objects that have been reverse shell connected to this computer. To manage the connections received, the `rshell` service must be installed on the machine that receives the victims' connections. In case of failure a `string` will be returned with details."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - shells = metax.rshell_server
+      - "firstShell = shells[0]"
+      - "firstShell.host_computer.File(\"/\").chmod(\"o-wrx\", true)"
+  scan:
+    description: "Returns a `list` where each item is a `string` representing a memory area which has vulnerabilities related to the provided library. These memory areas can be used to make further scans via `scan_address`. In case of failure, this method returns `null` instead. An example of a memory area would be \"0x7BFC1EAA\". Using this method within a SSH encryption process will throw a runtime exception."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - "metaLib = metax.load(\"/lib/init.so\")"
+      - scanResult = metax.scan(metaLib)
+      - for area in scanResult
+      - "   print(\"Memory area containg vulnerability: \" + area)"
+      - end for
+  scan_address:
+    description: "Returns a `string` containing information about each vulnerability in the provided library and memory area. In case the scanning fails this method will return `null`. Using this method within a SSH encryption process will throw a runtime exception."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - "metaLib = metax.load(\"/lib/init.so\")"
+      - scanResult = metax.scan(metaLib)
+      - "scanAddress = metax.scan_address(metaLib, scanResult[0])"
+      - "segments = scanAddress.split(\"Unsafe check: \")[1:]"
+      - "exploits = []"
+      - for segment in segments
+      - "   labelStart = segment.indexOf(\"<b>\")"
+      - "   labelEnd = segment.indexOf(\"</b>\")"
+      - "   exploits.push(segment[labelStart + 3: labelEnd])"
+      - end for
+      - "print(\"Available vulnerabilities: \" + exploits.join(\", \"))"
+  sniffer:
+    description: "The terminal listens to the network packets of any connection that passes through the computer. When any connection information gets captured, it will print a `string` with the obtained data. In case saving of encryption source is enabled it will download the source code of the script responsible for encryption. In case the operation fails this method will return `null`. Using this method within a SSH encryption process will throw a runtime exception."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - result = metax.sniffer
+      - print(result)
+extends: map
+hidden: false

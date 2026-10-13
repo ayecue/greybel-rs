@@ -1,0 +1,11 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/long-circular-import.src
+---
+[
+  "\"long circular 3\"",
+  "\"long circular 2\"",
+  "\"long circular 1\"",
+  "\"start long circular\""
+]

@@ -1,0 +1,34 @@
+[package]
+name = "greybel-api-reference"
+description = "GreyScript API reference generation, Markdown serialization, syntax highlighting, search, and duplex documentation service"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+futures-util.workspace = true
+greybel-core.workspace = true
+greyscript-meta.workspace = true
+meta-utils.workspace = true
+pulldown-cmark.workspace = true
+tokio = { workspace = true, features = ["sync"] }
+
+[dev-dependencies]
+duplex-test-support = { workspace = true, features = ["tokio"] }
+duplex-ts.workspace = true
+greybel-test-support.workspace = true
+serde_json.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

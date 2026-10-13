@@ -1,0 +1,44 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/cast.src
+---
+[
+  "{\"was\": 1, \"foo\": 0, \"bar\": \"xxx\"}",
+  "{\"was\": 1, \"foo\": 0, \"bar\": \"xxx\"}",
+  "[\"was\", 0, 4]",
+  "\"was\"",
+  "61.23",
+  "1",
+  "null",
+  "\"{\"test\": 2}[\"test\"]\"",
+  "[\"bar\", \"foo\", 0]",
+  "{\"foo\": 2, \"bar\": 123}",
+  "\"was321\"",
+  "\"wasfoo\"",
+  "1",
+  "null",
+  "null",
+  "null",
+  "\"was\"",
+  "\"te\"",
+  "1",
+  "[\"was\", \"foo\", \"was\", \"foo\", \"was\", \"foo\", \"was\", \"foo\", \"was\", \"foo\"]",
+  "\"abcabcabcabcabc\"",
+  "[1, 2, 3, 1]",
+  "[\"was\", \"foo\", 123]",
+  "[1, 2, 3, 4]",
+  "\"te\"",
+  "1",
+  "null",
+  "null",
+  "1",
+  "null",
+  "null",
+  "0",
+  "null",
+  "null",
+  "0",
+  "null",
+  "null"
+]

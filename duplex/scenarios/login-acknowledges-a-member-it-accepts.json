@@ -1,0 +1,60 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider accepts a client by what it opens with, and acknowledges it with what the protocol's handshake declares.",
+  "peer": "provider",
+  "requires": ["handshake"],
+  "protocol": "login",
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 0,
+              "payload": {
+                "user": "ada",
+                "token": "t0k"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Ack": {
+                  "id": 0,
+                  "connection": 1,
+                  "payload": {
+                    "greeting": "hello, ada"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "connection": 1
+      }
+    }
+  ]
+}

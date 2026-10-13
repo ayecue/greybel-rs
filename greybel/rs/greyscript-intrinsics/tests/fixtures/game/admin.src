@@ -1,0 +1,67 @@
+// admin.so builds networks the game would generate on its own.
+admin = include_lib("admin.so")
+print typeof(admin)
+print admin.seed
+print admin.networks
+print include_lib("/lib/admin.so") == admin
+print include_lib("/lib/crypto.so")
+
+router = admin.create_network({"public_ip": "8.8.8.8", "essid": "TestNet", "wifi_password": "hunter2", "computers": 0})
+print typeof(router) + " " + router.public_ip + " " + router.essid_name + " " + router.local_ip
+print router.devices_lan_ip
+print admin.create_network({"public_ip": "8.8.8.8"})
+print admin.create_network({"public_ip": "192.168.1.1"})
+
+pc = admin.network("8.8.8.8").add_computer({"name": "web", "lan_ip": router.local_ip[:-1] + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["ssh", "http"]})
+print router.local_ip
+print typeof(pc)
+print pc.get_name + " " + pc.local_ip + " " + pc.public_ip + " " + pc.is_network_active
+for port in pc.get_ports
+  print port.port_number + " " + port.get_lan_ip + " " + port.is_closed
+end for
+print admin.network("8.8.8.8").add_computer({"lan_ip": pc.local_ip})
+print admin.network("8.8.8.8").add_computer({"lan_ip": "10.0.0.2"})
+print admin.network("9.9.9.9").add_computer
+print admin.network("8.8.8.8").add_computer({"services": ["telnet"]})
+print router.devices_lan_ip
+
+shell = admin.network("8.8.8.8").computer(pc.local_ip).shell("bob")
+print typeof(shell) + " " + shell.host_computer.get_name
+print shell.host_computer.File("/home/bob").owner
+print admin.network("8.8.8.8").computer(pc.local_ip).shell("nobody")
+print admin.network("8.8.8.8").computer("10.0.0.99").shell
+print get_shell("bob", "pass") == null
+
+remote = get_router("8.8.8.8")
+print remote.public_ip + " " + remote.bssid_name.len
+print remote.used_ports.len
+for port in remote.used_ports
+  print remote.port_info(port)
+end for
+print remote.ping_port(22).port_number
+print remote.ping_port(23)
+print remote.device_ports(pc.local_ip).len
+print remote.device_ports("10.0.0.99")
+print remote.firewall_rules
+print remote.kernel_version.len >= 5
+print remote.net_speed
+print admin.network("8.8.8.8").set_net_speed(7)
+print admin.network("8.8.8.8").set_net_speed(20)
+print remote.net_speed
+print get_router.public_ip
+print get_router("192.168.0.1")
+print get_router("1.2.3.999")
+
+print admin.set_date("02/Feb/2001 - 12:00") + " " + current_date
+// A date in another format leaves the clock unchanged.
+print admin.set_date("tomorrow") + " " + current_date
+print admin.networks
+print admin.network("8.8.8.8").remove
+print admin.network("8.8.8.8").remove
+print admin.network(get_router.public_ip).remove
+print get_router("8.8.8.8")
+print pc.get_name
+print router.public_ip
+print shell.host_computer.get_name
+// snapshot saves the live world to the database and returns true.
+print admin.snapshot

@@ -1,0 +1,3 @@
+// The imported file has the multiline string, so this file defines __MSTR for it.
+import_code("../dependencies/multiline-import")
+print(banner)

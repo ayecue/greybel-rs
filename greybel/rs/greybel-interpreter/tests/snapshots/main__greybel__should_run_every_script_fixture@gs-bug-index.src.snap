@@ -1,0 +1,14 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/gs-bug-index.src
+---
+[
+  "\"test func start\"",
+  "\"test func start\"",
+  "\"called inner test func\"",
+  "\"Call start\"",
+  "\"test func start\"",
+  "\"Call end\"",
+  "\"function\""
+]

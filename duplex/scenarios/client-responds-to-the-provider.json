@@ -1,0 +1,41 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client handles the provider's messages.",
+  "peer": "client",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Confirm": {
+                "question": "continue?"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Confirm": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

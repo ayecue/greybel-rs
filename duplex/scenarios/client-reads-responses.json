@@ -1,0 +1,101 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client settles its messages with the responses to their ids.",
+  "peer": "client",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "send": {
+        "Divide": {
+          "dividend": 7,
+          "divisor": 3
+        }
+      },
+      "as": "quotient"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1,
+                    "b": 2
+                  }
+                }
+              },
+              {
+                "Message": {
+                  "id": 1,
+                  "Divide": {
+                    "dividend": 7,
+                    "divisor": 3
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "settled": {
+          "sum": "pending",
+          "quotient": "pending"
+        }
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseEnd": {
+              "id": 1,
+              "Divide": {
+                "WithRemainder": {
+                  "value": 2,
+                  "remainder": 1
+                }
+              }
+            }
+          },
+          {
+            "ResponseEnd": {
+              "id": 0,
+              "Add": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "settled": {
+          "sum": {
+            "response": 3
+          },
+          "quotient": {
+            "response": {
+              "WithRemainder": {
+                "value": 2,
+                "remainder": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

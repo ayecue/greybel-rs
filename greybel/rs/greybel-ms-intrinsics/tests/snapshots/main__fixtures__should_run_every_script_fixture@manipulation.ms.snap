@@ -1,0 +1,52 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/manipulation.ms
+---
+1
+0
+1
+0
+1
+0
+lore
+null
+1
+null
+4
+null
+["foo", "bar", "lore"]
+[0, 1, 2]
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+[123, 1, "moo"]
+["xxx", 123, "foo"]
+3
+3
+21
+abc lorem ipsum xxxav
+ABC LOREM IPSUM XXXAV
+[123, "foo"]
+["xxx", 123]
+ lorem ipsum XxXaV
+abc
+124
+123
+0
+foo
+foo
+{"bar": 1, "lore": "moo"}
+["xxx", 123]
+xxx
+{"bar": 1, "lore": "moo"}
+[123, "foo"]
+{"foo": 123, "bar": 1, "lore": "moo", "addition": 1}
+["xxx", 123, "foo", "addition"]
+{"foo": 123, "lore": "moo"}
+["xxx", "foo"]
+abc lorem  XxXaV
+{"foo": 123, "bar": 1, "lore": "moo"}
+["xxx", 123, "foo"]
+{"foo": 123, "bar": 1, "lore": "moo"}
+[123, "foo", "xxx"]
+{"foo": 123, "bar": 1, "lore": "moo"}
+["xxx", "foo", 123]

@@ -1,0 +1,103 @@
+<UserControl
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:GreyHackSetupWizard.Gui.ViewModels"
+  xmlns:res="using:GreyHackSetupWizard.Gui.Resources"
+  xmlns:views="using:GreyHackSetupWizard.Gui.Views"
+  x:Class="GreyHackSetupWizard.Gui.Views.WizardView"
+  x:DataType="vm:WizardViewModel"
+>
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="vm:BepInExPageViewModel">
+      <views:BepInExPageView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PluginPageViewModel">
+      <views:PluginPageView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PortPageViewModel">
+      <views:PortPageView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SummaryPageViewModel">
+      <views:SummaryPageView />
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <Grid ColumnDefinitions="180,*" RowDefinitions="*,Auto">
+    <!-- The steps, the current one highlighted. -->
+    <Border
+      Grid.RowSpan="2"
+      Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+      Padding="20,24"
+    >
+      <StackPanel Spacing="4">
+        <TextBlock
+          Text="{x:Static res:WindowText.WizardSteps}"
+          FontWeight="SemiBold"
+          Opacity="0.6"
+          Margin="0,0,0,8"
+        />
+        <ItemsControl ItemsSource="{Binding Pages}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:WizardPage">
+              <Border CornerRadius="4" Padding="10,6" Classes.current="{Binding IsCurrent}">
+                <TextBlock Text="{Binding Title}" />
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+          <ItemsControl.Styles>
+            <Style Selector="Border.current">
+              <Setter
+                Property="Background"
+                Value="{DynamicResource SystemControlHighlightListAccentLowBrush}"
+              />
+            </Style>
+            <Style Selector="Border.current > TextBlock">
+              <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+          </ItemsControl.Styles>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Column="1" Padding="28,24,28,12">
+      <ContentControl Content="{Binding CurrentPage}" />
+    </ScrollViewer>
+
+    <!-- What stops the wizard, and turning pages. -->
+    <Border
+      Grid.Column="1"
+      Grid.Row="1"
+      BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+      BorderThickness="0,1,0,0"
+      Padding="28,12"
+    >
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel VerticalAlignment="Center" Spacing="2">
+          <TextBlock Classes="note" Text="{Binding StepText}" />
+          <TextBlock
+            Name="problem"
+            Classes="problem"
+            Text="{Binding CurrentPage.Problem}"
+            IsVisible="{Binding CurrentPage.Problem, Converter={x:Static ObjectConverters.IsNotNull}}"
+          />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Name="close" Content="{Binding CloseText}" Command="{Binding CloseCommand}" />
+          <Button
+            Name="back"
+            Content="{x:Static res:WindowText.Back}"
+            Command="{Binding GoBackCommand}"
+            IsVisible="{Binding !Summary.IsDone}"
+          />
+          <Button
+            Name="next"
+            Content="{x:Static res:WindowText.Next}"
+            Classes="accent"
+            Command="{Binding GoNextCommand}"
+            IsVisible="{Binding !IsLastPage}"
+          />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

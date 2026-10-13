@@ -1,0 +1,20 @@
+// Grey Hack ends a string at a line break, so a string with line breaks becomes a call of __MSTR with its lines.
+banner = "first line
+second line"
+print "trailing
+"
+print "
+leading"
+print "a
+
+b".len
+print "say ""hi""
+ok"
+repeated = ["x
+y", "x
+y", "x
+y", "x
+y"]
+print "single line"
+crlf = "a
+b"

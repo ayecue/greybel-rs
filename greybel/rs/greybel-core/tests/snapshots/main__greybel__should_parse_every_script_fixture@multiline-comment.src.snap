@@ -1,0 +1,8 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/scripts/multiline-comment.src
+---
+Chunk[1:1-10:28][
+	CallExpression[6:8-6:21][Identifier[6:8-6:13][print](Literal[6:14-6:20][test])]
+]

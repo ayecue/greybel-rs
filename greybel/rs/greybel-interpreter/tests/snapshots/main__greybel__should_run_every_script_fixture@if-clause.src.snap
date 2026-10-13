@@ -1,0 +1,11 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/if-clause.src
+---
+[
+  "1",
+  "0",
+  "1",
+  "0"
+]

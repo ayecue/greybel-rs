@@ -1,0 +1,22 @@
+{
+  "name": "common-workspace",
+  "private": true,
+  "packageManager": "pnpm@11.5.2",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "format": "eslint --fix \"**/*.{ts,tsx,mts,cts}\" && prettier --write \"**/*.{ts,tsx,mts,cts}\"",
+    "format:check": "eslint \"**/*.{ts,tsx,mts,cts}\" && prettier --check \"**/*.{ts,tsx,mts,cts}\""
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "eslint": "^10.14.0",
+    "presets": "workspace:*",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.7",
+    "vitest": "^5.0.5"
+  },
+  "prettier": "presets/prettier"
+}

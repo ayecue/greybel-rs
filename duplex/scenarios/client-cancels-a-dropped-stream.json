@@ -1,0 +1,108 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client that drops a streamed response before it ends cancels the message, and drops what comes of it after.",
+  "peer": "client",
+  "requires": ["responses", "streams", "cancellation"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Count": {
+          "to": 3
+        }
+      },
+      "as": "count"
+    },
+    {
+      "drop": "count"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Count": {
+                    "to": 3
+                  }
+                }
+              },
+              {
+                "ResponseCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              },
+              {
+                "Cancel": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseStart": {
+              "id": 0,
+              "Count": "Active"
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 1
+            }
+          },
+          {
+            "Failure": {
+              "id": 0,
+              "rejected": "Cancellation"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Count": {
+          "to": 1
+        }
+      },
+      "as": "again"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Count": {
+                    "to": 1
+                  }
+                }
+              },
+              {
+                "ResponseCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

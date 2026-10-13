@@ -1,0 +1,45 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/binary-expressions.src
+---
+=== default
+a=a/(b)
+a=a*(b)
+a=a-(b)
+a=a+(b)
+bitwise("<<",a,b)
+bitwise(">>",a,b)
+w=bitwise(">>",bitwise(">>>",a,(bitwise("<<",b,c))),a)
+bitwise("|",a,b)
+bitwise("&",a,b)
+a^b
+a and b
+a or b
+=== uglify
+globals.I=globals
+J=J/(K)
+J=J*(K)
+J=J-(K)
+J=J+(K)
+bitwise("<<",J,K)
+bitwise(">>",J,K)
+L=bitwise(">>",bitwise(">>>",J,(bitwise("<<",K,M))),J)
+bitwise("|",J,K)
+bitwise("&",J,K)
+J^K
+J and K
+J or K
+=== beautify
+a = a / (b)
+a = a * (b)
+a = a - (b)
+a = a + (b)
+bitwise("<<", a, b)
+bitwise(">>", a, b)
+w = bitwise(">>", bitwise(">>>", a, (bitwise("<<", b, c))), a)
+bitwise("|", a, b)
+bitwise("&", a, b)
+a ^ b
+a and b
+a or b

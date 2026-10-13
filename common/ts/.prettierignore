@@ -1,0 +1,11 @@
+**/node_modules/
+**/dist/
+**/dist-test/
+**/out/
+**/.vscode-test/
+**/.vscode-test-web/
+**/*.generated.*
+**/src/crates/
+# Copies of axialcode's packages, kept as they are there.
+emitter/
+handle-error/

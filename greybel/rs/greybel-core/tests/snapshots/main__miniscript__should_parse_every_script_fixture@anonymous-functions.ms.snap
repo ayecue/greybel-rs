@@ -1,0 +1,28 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: "render_valid(&read(path), &options(Version::Latest))"
+input_file: greybel-core/tests/fixtures/miniscript/scripts/anonymous-functions.ms
+---
+Chunk[1:1-23:1][
+	CallStatment[1:1-1:23][CallExpression[1:1-1:23][Identifier[1:1-1:4][Foo](Function[1:5-3:13][ =>
+		ReturnStatement[2:3-2:11][Literal[2:10-2:11][1]]
+	], Literal[1:17-1:23][test])]]
+	CallStatment[5:1-5:23][CallExpression[5:1-5:23][Identifier[5:1-5:4][Foo](Literal[5:5-5:11][test], Function[5:13-7:13][ =>
+		ReturnStatement[6:3-6:11][Literal[6:10-6:11][1]]
+	])]]
+	AssignmentStatement[9:1-9:27][Identifier[9:1-9:4][Foo] = MapConstructor[9:7-9:27][
+		MapKeyString[9:8-11:13][Literal[9:8-9:14][test]: Function[9:16-11:13][ =>
+			ReturnStatement[10:2-10:10][Literal[10:9-10:10][1]]
+		]]
+	]]
+	AssignmentStatement[13:1-13:19][Identifier[13:1-13:4][Foo] = ListConstructor[13:7-13:19][
+		ListValue[13:8-15:13][Function[13:8-15:13][ =>
+			ReturnStatement[14:2-14:10][Literal[14:9-14:10][1]]
+		]]
+	]]
+	AssignmentStatement[17:1-21:13][Identifier[17:1-17:4][foo] = Function[17:7-21:13][ =>
+		ReturnStatement[18:5-20:17][Function[18:12-20:17][ =>
+			ReturnStatement[19:9-19:21][Literal[19:16-19:21][faa]]
+		]]
+	]]
+]

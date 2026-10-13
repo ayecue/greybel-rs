@@ -1,0 +1,5 @@
+[workspace]
+language = "duplex"
+
+[project]
+kind = "library"

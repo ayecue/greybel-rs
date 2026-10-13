@@ -1,0 +1,1203 @@
+---
+source: vscode-uri/tests/operations.rs
+expression: cases
+---
+- input: "file:///c%3A/win/path"
+  output:
+    scheme: file
+    authority: ""
+    path: "/c:/win/path"
+    query: ""
+    fragment: ""
+    string: "file:///c%3A/win/path"
+    unencoded: "file:///c:/win/path"
+    fsPath: "c:/win/path"
+- input: "file://%2Fhome%2Fticino%2Fdesktop%2Fcpluscplus%2Ftest.cpp"
+  output:
+    scheme: file
+    authority: /home/ticino/desktop/cpluscplus/test.cpp
+    path: /
+    query: ""
+    fragment: ""
+    string: "file://%2Fhome%2Fticino%2Fdesktop%2Fcpluscplus%2Ftest.cpp/"
+    unencoded: "file:///home/ticino/desktop/cpluscplus/test.cpp/"
+    fsPath: /
+- input: "file://shares/pröjects/c%23/#l12"
+  output:
+    scheme: file
+    authority: shares
+    path: "/pröjects/c#/"
+    query: ""
+    fragment: l12
+    string: "file://shares/pr%C3%B6jects/c%23/#l12"
+    unencoded: "file://shares/pröjects/c%23/#l12"
+    fsPath: "//shares/pröjects/c#/"
+- input: "file://shares/pr%C3%B6jects/c%23/#l12"
+  output:
+    scheme: file
+    authority: shares
+    path: "/pröjects/c#/"
+    query: ""
+    fragment: l12
+    string: "file://shares/pr%C3%B6jects/c%23/#l12"
+    unencoded: "file://shares/pröjects/c%23/#l12"
+    fsPath: "//shares/pröjects/c#/"
+- input: "foo:bar/path"
+  output:
+    scheme: foo
+    authority: ""
+    path: bar/path
+    query: ""
+    fragment: ""
+    string: "foo:bar/path"
+    unencoded: "foo:bar/path"
+    fsPath: bar/path
+- input: "before:some/file/path"
+  output:
+    scheme: before
+    authority: ""
+    path: some/file/path
+    query: ""
+    fragment: ""
+    string: "before:some/file/path"
+    unencoded: "before:some/file/path"
+    fsPath: some/file/path
+- input: "scheme://authority/path"
+  output:
+    scheme: scheme
+    authority: authority
+    path: /path
+    query: ""
+    fragment: ""
+    string: "scheme://authority/path"
+    unencoded: "scheme://authority/path"
+    fsPath: /path
+- input: "scheme:/path"
+  output:
+    scheme: scheme
+    authority: ""
+    path: /path
+    query: ""
+    fragment: ""
+    string: "scheme:/path"
+    unencoded: "scheme:/path"
+    fsPath: /path
+- input: "http:/api/files/test.me?t=1234"
+  output:
+    scheme: http
+    authority: ""
+    path: /api/files/test.me
+    query: t=1234
+    fragment: ""
+    string: "http:/api/files/test.me?t%3D1234"
+    unencoded: "http:/api/files/test.me?t=1234"
+    fsPath: /api/files/test.me
+- input: "http://api/files/test.me?t=1234"
+  output:
+    scheme: http
+    authority: api
+    path: /files/test.me
+    query: t=1234
+    fragment: ""
+    string: "http://api/files/test.me?t%3D1234"
+    unencoded: "http://api/files/test.me?t=1234"
+    fsPath: /files/test.me
+- input: "file:///c:/test/me"
+  output:
+    scheme: file
+    authority: ""
+    path: "/c:/test/me"
+    query: ""
+    fragment: ""
+    string: "file:///c%3A/test/me"
+    unencoded: "file:///c:/test/me"
+    fsPath: "c:/test/me"
+- input: "file://shares/files/c%23/p.cs"
+  output:
+    scheme: file
+    authority: shares
+    path: "/files/c#/p.cs"
+    query: ""
+    fragment: ""
+    string: "file://shares/files/c%23/p.cs"
+    unencoded: "file://shares/files/c%23/p.cs"
+    fsPath: "//shares/files/c#/p.cs"
+- input: "file:///c:/Source/Z%C3%BCrich%20or%20Zurich%20(%CB%88zj%CA%8A%C9%99r%C9%AAk,/Code/resources/app/plugins/c%23/plugin.json"
+  output:
+    scheme: file
+    authority: ""
+    path: "/c:/Source/Zürich or Zurich (ˈzjʊərɪk,/Code/resources/app/plugins/c#/plugin.json"
+    query: ""
+    fragment: ""
+    string: "file:///c%3A/Source/Z%C3%BCrich%20or%20Zurich%20%28%CB%88zj%CA%8A%C9%99r%C9%AAk%2C/Code/resources/app/plugins/c%23/plugin.json"
+    unencoded: "file:///c:/Source/Zürich or Zurich (ˈzjʊərɪk,/Code/resources/app/plugins/c%23/plugin.json"
+    fsPath: "c:/Source/Zürich or Zurich (ˈzjʊərɪk,/Code/resources/app/plugins/c#/plugin.json"
+- input: "file:///c:/test %25/path"
+  output:
+    scheme: file
+    authority: ""
+    path: "/c:/test %/path"
+    query: ""
+    fragment: ""
+    string: "file:///c%3A/test%20%25/path"
+    unencoded: "file:///c:/test %/path"
+    fsPath: "c:/test %/path"
+- input: "inmemory:"
+  output:
+    scheme: inmemory
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "inmemory:"
+    unencoded: "inmemory:"
+    fsPath: ""
+- input: "foo:api/files/test"
+  output:
+    scheme: foo
+    authority: ""
+    path: api/files/test
+    query: ""
+    fragment: ""
+    string: "foo:api/files/test"
+    unencoded: "foo:api/files/test"
+    fsPath: api/files/test
+- input: "file:?q"
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: q
+    fragment: ""
+    string: "file:///?q"
+    unencoded: "file:///?q"
+    fsPath: /
+- input: "file:#d"
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: ""
+    fragment: d
+    string: "file:///#d"
+    unencoded: "file:///#d"
+    fsPath: /
+- input: "f3ile:#d"
+  output:
+    scheme: f3ile
+    authority: ""
+    path: ""
+    query: ""
+    fragment: d
+    string: "f3ile:#d"
+    unencoded: "f3ile:#d"
+    fsPath: ""
+- input: "foo+bar:path"
+  output:
+    scheme: foo+bar
+    authority: ""
+    path: path
+    query: ""
+    fragment: ""
+    string: "foo+bar:path"
+    unencoded: "foo+bar:path"
+    fsPath: path
+- input: "foo-bar:path"
+  output:
+    scheme: foo-bar
+    authority: ""
+    path: path
+    query: ""
+    fragment: ""
+    string: "foo-bar:path"
+    unencoded: "foo-bar:path"
+    fsPath: path
+- input: "foo.bar:path"
+  output:
+    scheme: foo.bar
+    authority: ""
+    path: path
+    query: ""
+    fragment: ""
+    string: "foo.bar:path"
+    unencoded: "foo.bar:path"
+    fsPath: path
+- input: "file:////shares/files/p.cs"
+  output:
+    error: DoubleSlashPath
+- input: "file:///_:/path"
+  output:
+    scheme: file
+    authority: ""
+    path: "/_:/path"
+    query: ""
+    fragment: ""
+    string: "file:///_%3A/path"
+    unencoded: "file:///_:/path"
+    fsPath: "/_:/path"
+- input: "file:///a.file"
+  output:
+    scheme: file
+    authority: ""
+    path: /a.file
+    query: ""
+    fragment: ""
+    string: "file:///a.file"
+    unencoded: "file:///a.file"
+    fsPath: /a.file
+- input: "stuff:?qüery"
+  output:
+    scheme: stuff
+    authority: ""
+    path: ""
+    query: qüery
+    fragment: ""
+    string: "stuff:?q%C3%BCery"
+    unencoded: "stuff:?qüery"
+    fsPath: ""
+- input: "file://sh%c3%a4res/path"
+  output:
+    scheme: file
+    authority: shäres
+    path: /path
+    query: ""
+    fragment: ""
+    string: "file://sh%C3%A4res/path"
+    unencoded: "file://shäres/path"
+    fsPath: //shäres/path
+- input: "untitled:c:/Users/jrieken/Code/abc.txt"
+  output:
+    scheme: untitled
+    authority: ""
+    path: "c:/Users/jrieken/Code/abc.txt"
+    query: ""
+    fragment: ""
+    string: "untitled:c%3A/Users/jrieken/Code/abc.txt"
+    unencoded: "untitled:c:/Users/jrieken/Code/abc.txt"
+    fsPath: "c:/Users/jrieken/Code/abc.txt"
+- input: "untitled:C:/Users/jrieken/Code/abc.txt"
+  output:
+    scheme: untitled
+    authority: ""
+    path: "C:/Users/jrieken/Code/abc.txt"
+    query: ""
+    fragment: ""
+    string: "untitled:c%3A/Users/jrieken/Code/abc.txt"
+    unencoded: "untitled:c:/Users/jrieken/Code/abc.txt"
+    fsPath: "C:/Users/jrieken/Code/abc.txt"
+- input: "http://localhost:8080/far"
+  output:
+    scheme: http
+    authority: "localhost:8080"
+    path: /far
+    query: ""
+    fragment: ""
+    string: "http://localhost:8080/far"
+    unencoded: "http://localhost:8080/far"
+    fsPath: /far
+- input: "http://foo:bar@localhost/far"
+  output:
+    scheme: http
+    authority: "foo:bar@localhost"
+    path: /far
+    query: ""
+    fragment: ""
+    string: "http://foo:bar@localhost/far"
+    unencoded: "http://foo:bar@localhost/far"
+    fsPath: /far
+- input: "http://foo@localhost/far"
+  output:
+    scheme: http
+    authority: foo@localhost
+    path: /far
+    query: ""
+    fragment: ""
+    string: "http://foo@localhost/far"
+    unencoded: "http://foo@localhost/far"
+    fsPath: /far
+- input: "http://foo:bAr@localhost:8080/far"
+  output:
+    scheme: http
+    authority: "foo:bAr@localhost:8080"
+    path: /far
+    query: ""
+    fragment: ""
+    string: "http://foo:bAr@localhost:8080/far"
+    unencoded: "http://foo:bAr@localhost:8080/far"
+    fsPath: /far
+- input: "http://foo@localhost:8080/far"
+  output:
+    scheme: http
+    authority: "foo@localhost:8080"
+    path: /far
+    query: ""
+    fragment: ""
+    string: "http://foo@localhost:8080/far"
+    unencoded: "http://foo@localhost:8080/far"
+    fsPath: /far
+- input: "file:///c:/alex.txt"
+  output:
+    scheme: file
+    authority: ""
+    path: "/c:/alex.txt"
+    query: ""
+    fragment: ""
+    string: "file:///c%3A/alex.txt"
+    unencoded: "file:///c:/alex.txt"
+    fsPath: "c:/alex.txt"
+- input: "file://monacotools/folder/isi.txt"
+  output:
+    scheme: file
+    authority: monacotools
+    path: /folder/isi.txt
+    query: ""
+    fragment: ""
+    string: "file://monacotools/folder/isi.txt"
+    unencoded: "file://monacotools/folder/isi.txt"
+    fsPath: //monacotools/folder/isi.txt
+- input: "file://monacotools1/certificates/SSL/"
+  output:
+    scheme: file
+    authority: monacotools1
+    path: /certificates/SSL/
+    query: ""
+    fragment: ""
+    string: "file://monacotools1/certificates/SSL/"
+    unencoded: "file://monacotools1/certificates/SSL/"
+    fsPath: //monacotools1/certificates/SSL/
+- input: "https://go.microsoft.com/fwlink/?LinkId=518008"
+  output:
+    scheme: https
+    authority: go.microsoft.com
+    path: /fwlink/
+    query: LinkId=518008
+    fragment: ""
+    string: "https://go.microsoft.com/fwlink/?LinkId%3D518008"
+    unencoded: "https://go.microsoft.com/fwlink/?LinkId=518008"
+    fsPath: /fwlink/
+- input: "https://go.microsoft.com/fwlink/?LinkId=518008&foö&ké¥=üü"
+  output:
+    scheme: https
+    authority: go.microsoft.com
+    path: /fwlink/
+    query: LinkId=518008&foö&ké¥=üü
+    fragment: ""
+    string: "https://go.microsoft.com/fwlink/?LinkId%3D518008%26fo%C3%B6%26k%C3%A9%C2%A5%3D%C3%BC%C3%BC"
+    unencoded: "https://go.microsoft.com/fwlink/?LinkId=518008&foö&ké¥=üü"
+    fsPath: /fwlink/
+- input: "https://twitter.com/search?src=typd&q=%23tag"
+  output:
+    scheme: https
+    authority: twitter.com
+    path: /search
+    query: "src=typd&q=#tag"
+    fragment: ""
+    string: "https://twitter.com/search?src%3Dtypd%26q%3D%23tag"
+    unencoded: "https://twitter.com/search?src=typd&q=%23tag"
+    fsPath: /search
+- input: "file:foo/bar"
+  output:
+    scheme: file
+    authority: ""
+    path: /foo/bar
+    query: ""
+    fragment: ""
+    string: "file:///foo/bar"
+    unencoded: "file:///foo/bar"
+    fsPath: /foo/bar
+- input: "file:///foo/bar"
+  output:
+    scheme: file
+    authority: ""
+    path: /foo/bar
+    query: ""
+    fragment: ""
+    string: "file:///foo/bar"
+    unencoded: "file:///foo/bar"
+    fsPath: /foo/bar
+- input: "http://localhost:3000/#/foo?bar=baz"
+  output:
+    scheme: http
+    authority: "localhost:3000"
+    path: /
+    query: ""
+    fragment: /foo?bar=baz
+    string: "http://localhost:3000/#%2Ffoo%3Fbar%3Dbaz"
+    unencoded: "http://localhost:3000/#/foo?bar=baz"
+    fsPath: /
+- input: "http://localhost:3000/foo?bar=baz"
+  output:
+    scheme: http
+    authority: "localhost:3000"
+    path: /foo
+    query: bar=baz
+    fragment: ""
+    string: "http://localhost:3000/foo?bar%3Dbaz"
+    unencoded: "http://localhost:3000/foo?bar=baz"
+    fsPath: /foo
+- input: "file://some/%.txt"
+  output:
+    scheme: file
+    authority: some
+    path: /%.txt
+    query: ""
+    fragment: ""
+    string: "file://some/%25.txt"
+    unencoded: "file://some/%.txt"
+    fsPath: //some/%.txt
+- input: "file://some/%A0.txt"
+  output:
+    scheme: file
+    authority: some
+    path: /%A0.txt
+    query: ""
+    fragment: ""
+    string: "file://some/%25A0.txt"
+    unencoded: "file://some/%A0.txt"
+    fsPath: //some/%A0.txt
+- input: "file:///foo/%25A0.txt"
+  output:
+    scheme: file
+    authority: ""
+    path: /foo/%A0.txt
+    query: ""
+    fragment: ""
+    string: "file:///foo/%25A0.txt"
+    unencoded: "file:///foo/%A0.txt"
+    fsPath: /foo/%A0.txt
+- input: "file:///foo/%252e.txt"
+  output:
+    scheme: file
+    authority: ""
+    path: /foo/%2e.txt
+    query: ""
+    fragment: ""
+    string: "file:///foo/%252e.txt"
+    unencoded: "file:///foo/%2e.txt"
+    fsPath: /foo/%2e.txt
+- input: "https://myhost.com/Redirect?url=http%3A%2F%2Fwww.bing.com%3Fsearch%3Dtom"
+  output:
+    scheme: https
+    authority: myhost.com
+    path: /Redirect
+    query: "url=http://www.bing.com?search=tom"
+    fragment: ""
+    string: "https://myhost.com/Redirect?url%3Dhttp%3A%2F%2Fwww.bing.com%3Fsearch%3Dtom"
+    unencoded: "https://myhost.com/Redirect?url=http://www.bing.com%3Fsearch=tom"
+    fsPath: /Redirect
+- input: "foo://a/foo/bar"
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar"
+    unencoded: "foo://a/foo/bar"
+    fsPath: /foo/bar
+- input: "foo://a/foo/bar/"
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar/
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar/"
+    unencoded: "foo://a/foo/bar/"
+    fsPath: /foo/bar/
+- input: "untitled:untitled-1"
+  output:
+    scheme: untitled
+    authority: ""
+    path: untitled-1
+    query: ""
+    fragment: ""
+    string: "untitled:untitled-1"
+    unencoded: "untitled:untitled-1"
+    fsPath: untitled-1
+- input: "foo://a"
+  output:
+    scheme: foo
+    authority: a
+    path: ""
+    query: ""
+    fragment: ""
+    string: "foo://a"
+    unencoded: "foo://a"
+    fsPath: ""
+- input: "foo://a/b"
+  output:
+    scheme: foo
+    authority: a
+    path: /b
+    query: ""
+    fragment: ""
+    string: "foo://a/b"
+    unencoded: "foo://a/b"
+    fsPath: /b
+- input: "untitled:"
+  output:
+    scheme: untitled
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "untitled:"
+    unencoded: "untitled:"
+    fsPath: ""
+- input: "untitled:/"
+  output:
+    scheme: untitled
+    authority: ""
+    path: /
+    query: ""
+    fragment: ""
+    string: "untitled:/"
+    unencoded: "untitled:/"
+    fsPath: /
+- input: "foo://a/some/file/test.txt"
+  output:
+    scheme: foo
+    authority: a
+    path: /some/file/test.txt
+    query: ""
+    fragment: ""
+    string: "foo://a/some/file/test.txt"
+    unencoded: "foo://a/some/file/test.txt"
+    fsPath: /some/file/test.txt
+- input: "foo://a/some/file/"
+  output:
+    scheme: foo
+    authority: a
+    path: /some/file/
+    query: ""
+    fragment: ""
+    string: "foo://a/some/file/"
+    unencoded: "foo://a/some/file/"
+    fsPath: /some/file/
+- input: "foo://a/some/file///"
+  output:
+    scheme: foo
+    authority: a
+    path: /some/file///
+    query: ""
+    fragment: ""
+    string: "foo://a/some/file///"
+    unencoded: "foo://a/some/file///"
+    fsPath: /some/file///
+- input: "foo://a/some/file"
+  output:
+    scheme: foo
+    authority: a
+    path: /some/file
+    query: ""
+    fragment: ""
+    string: "foo://a/some/file"
+    unencoded: "foo://a/some/file"
+    fsPath: /some/file
+- input: "foo://a/some"
+  output:
+    scheme: foo
+    authority: a
+    path: /some
+    query: ""
+    fragment: ""
+    string: "foo://a/some"
+    unencoded: "foo://a/some"
+    fsPath: /some
+- input: "foo://a/"
+  output:
+    scheme: foo
+    authority: a
+    path: /
+    query: ""
+    fragment: ""
+    string: "foo://a/"
+    unencoded: "foo://a/"
+    fsPath: /
+- input: "foo://"
+  output:
+    scheme: foo
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "foo:"
+    unencoded: "foo:"
+    fsPath: ""
+- input: "foo://a/foo/bar.foo"
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar.foo
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar.foo"
+    unencoded: "foo://a/foo/bar.foo"
+    fsPath: /foo/bar.foo
+- input: "foo://a/foo/.foo"
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/.foo
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/.foo"
+    unencoded: "foo://a/foo/.foo"
+    fsPath: /foo/.foo
+- input: "foo://a/foo/a.foo/"
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/a.foo/
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/a.foo/"
+    unencoded: "foo://a/foo/a.foo/"
+    fsPath: /foo/a.foo/
+- input: "foo://a/foo/a.foo//"
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/a.foo//
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/a.foo//"
+    unencoded: "foo://a/foo/a.foo//"
+    fsPath: /foo/a.foo//
+- input: ""
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: ""
+    fragment: ""
+    string: "file:///"
+    unencoded: "file:///"
+    fsPath: /
+- input: /no/scheme
+  output:
+    scheme: file
+    authority: ""
+    path: /no/scheme
+    query: ""
+    fragment: ""
+    string: "file:///no/scheme"
+    unencoded: "file:///no/scheme"
+    fsPath: /no/scheme
+- input: no/scheme
+  output:
+    scheme: file
+    authority: ""
+    path: /no/scheme
+    query: ""
+    fragment: ""
+    string: "file:///no/scheme"
+    unencoded: "file:///no/scheme"
+    fsPath: /no/scheme
+- input: //host/path
+  output:
+    scheme: file
+    authority: host
+    path: /path
+    query: ""
+    fragment: ""
+    string: "file://host/path"
+    unencoded: "file://host/path"
+    fsPath: //host/path
+- input: "^bad:path"
+  output:
+    error: IllegalScheme
+- input: "1abc:path"
+  output:
+    scheme: 1abc
+    authority: ""
+    path: path
+    query: ""
+    fragment: ""
+    string: "1abc:path"
+    unencoded: "1abc:path"
+    fsPath: path
+- input: "_x:y"
+  output:
+    scheme: _x
+    authority: ""
+    path: y
+    query: ""
+    fragment: ""
+    string: "_x:y"
+    unencoded: "_x:y"
+    fsPath: y
+- input: "a b:c"
+  output:
+    error: IllegalScheme
+- input: "C:/Users/x"
+  output:
+    scheme: C
+    authority: ""
+    path: /Users/x
+    query: ""
+    fragment: ""
+    string: "C:/Users/x"
+    unencoded: "C:/Users/x"
+    fsPath: /Users/x
+- input: "c:\\win\\path"
+  output:
+    scheme: c
+    authority: ""
+    path: "\\win\\path"
+    query: ""
+    fragment: ""
+    string: "c:%5Cwin%5Cpath"
+    unencoded: "c:\\win\\path"
+    fsPath: "\\win\\path"
+- input: "file:///C:/Upper/Drive"
+  output:
+    scheme: file
+    authority: ""
+    path: "/C:/Upper/Drive"
+    query: ""
+    fragment: ""
+    string: "file:///c%3A/Upper/Drive"
+    unencoded: "file:///c:/Upper/Drive"
+    fsPath: "c:/Upper/Drive"
+- input: "FILE:///x"
+  output:
+    scheme: FILE
+    authority: ""
+    path: /x
+    query: ""
+    fragment: ""
+    string: "FILE:/x"
+    unencoded: "FILE:/x"
+    fsPath: /x
+- input: "HTTP:x"
+  output:
+    scheme: HTTP
+    authority: ""
+    path: x
+    query: ""
+    fragment: ""
+    string: "HTTP:x"
+    unencoded: "HTTP:x"
+    fsPath: x
+- input: "https:"
+  output:
+    scheme: https
+    authority: ""
+    path: /
+    query: ""
+    fragment: ""
+    string: "https:/"
+    unencoded: "https:/"
+    fsPath: /
+- input: "https:x"
+  output:
+    scheme: https
+    authority: ""
+    path: /x
+    query: ""
+    fragment: ""
+    string: "https:/x"
+    unencoded: "https:/x"
+    fsPath: /x
+- input: "mailto:a@b.c"
+  output:
+    scheme: mailto
+    authority: ""
+    path: a@b.c
+    query: ""
+    fragment: ""
+    string: "mailto:a%40b.c"
+    unencoded: "mailto:a@b.c"
+    fsPath: a@b.c
+- input: "vscode-vfs://github/owner/repo/main.src"
+  output:
+    scheme: vscode-vfs
+    authority: github
+    path: /owner/repo/main.src
+    query: ""
+    fragment: ""
+    string: "vscode-vfs://github/owner/repo/main.src"
+    unencoded: "vscode-vfs://github/owner/repo/main.src"
+    fsPath: /owner/repo/main.src
+- input: "file:///project/My%20File.src"
+  output:
+    scheme: file
+    authority: ""
+    path: /project/My File.src
+    query: ""
+    fragment: ""
+    string: "file:///project/My%20File.src"
+    unencoded: "file:///project/My File.src"
+    fsPath: /project/My File.src
+- input: "x://h/%zz%41%c3"
+  output:
+    scheme: x
+    authority: h
+    path: /%zz%41%c3
+    query: ""
+    fragment: ""
+    string: "x://h/%25zz%2541%25c3"
+    unencoded: "x://h/%zz%41%c3"
+    fsPath: /%zz%41%c3
+- input: "x://h/%zz%41"
+  output:
+    scheme: x
+    authority: h
+    path: /%zzA
+    query: ""
+    fragment: ""
+    string: "x://h/%25zzA"
+    unencoded: "x://h/%zzA"
+    fsPath: /%zzA
+- input: "x://h/%FF%C3%A9"
+  output:
+    scheme: x
+    authority: h
+    path: /%FFé
+    query: ""
+    fragment: ""
+    string: "x://h/%25FF%C3%A9"
+    unencoded: "x://h/%FFé"
+    fsPath: /%FFé
+- input: "x://h/%C3%41"
+  output:
+    scheme: x
+    authority: h
+    path: /%C3A
+    query: ""
+    fragment: ""
+    string: "x://h/%25C3A"
+    unencoded: "x://h/%C3A"
+    fsPath: /%C3A
+- input: "x://h/%C3%A9%FF"
+  output:
+    scheme: x
+    authority: h
+    path: /%C3%A9%FF
+    query: ""
+    fragment: ""
+    string: "x://h/%25C3%25A9%25FF"
+    unencoded: "x://h/%C3%A9%FF"
+    fsPath: /%C3%A9%FF
+- input: "x://h/%e2%82"
+  output:
+    scheme: x
+    authority: h
+    path: /%e2%82
+    query: ""
+    fragment: ""
+    string: "x://h/%25e2%2582"
+    unencoded: "x://h/%e2%82"
+    fsPath: /%e2%82
+- input: "x://h/%e2%82%ac%"
+  output:
+    scheme: x
+    authority: h
+    path: /€%
+    query: ""
+    fragment: ""
+    string: "x://h/%E2%82%AC%25"
+    unencoded: "x://h/€%"
+    fsPath: /€%
+- input: "x://h/%41%4"
+  output:
+    scheme: x
+    authority: h
+    path: /A%4
+    query: ""
+    fragment: ""
+    string: "x://h/A%254"
+    unencoded: "x://h/A%4"
+    fsPath: /A%4
+- input: "x://h/%%41"
+  output:
+    scheme: x
+    authority: h
+    path: /%A
+    query: ""
+    fragment: ""
+    string: "x://h/%25A"
+    unencoded: "x://h/%A"
+    fsPath: /%A
+- input: "x://h/%F0%9F%98%80"
+  output:
+    scheme: x
+    authority: h
+    path: /😀
+    query: ""
+    fragment: ""
+    string: "x://h/%F0%9F%98%80"
+    unencoded: "x://h/😀"
+    fsPath: /😀
+- input: "x://h/😀 ok"
+  output:
+    scheme: x
+    authority: h
+    path: /😀 ok
+    query: ""
+    fragment: ""
+    string: "x://h/%F0%9F%98%80%20ok"
+    unencoded: "x://h/😀 ok"
+    fsPath: /😀 ok
+- input: "x://h/p#frag\nlost"
+  output:
+    scheme: x
+    authority: h
+    path: /p
+    query: ""
+    fragment: frag
+    string: "x://h/p#frag"
+    unencoded: "x://h/p#frag"
+    fsPath: /p
+- input: "x://h/p#a b"
+  output:
+    scheme: x
+    authority: h
+    path: /p
+    query: ""
+    fragment: a
+    string: "x://h/p#a"
+    unencoded: "x://h/p#a"
+    fsPath: /p
+- input: "x://h/p?q\nr#f"
+  output:
+    scheme: x
+    authority: h
+    path: /p
+    query: "q\nr"
+    fragment: f
+    string: "x://h/p?q%0Ar#f"
+    unencoded: "x://h/p?q\nr#f"
+    fsPath: /p
+- input: "x://H%41ST:80/p"
+  output:
+    scheme: x
+    authority: "HAST:80"
+    path: /p
+    query: ""
+    fragment: ""
+    string: "x://hast:80/p"
+    unencoded: "x://hast:80/p"
+    fsPath: /p
+- input: "x://User:Pass@Host:8080/p"
+  output:
+    scheme: x
+    authority: "User:Pass@Host:8080"
+    path: /p
+    query: ""
+    fragment: ""
+    string: "x://User:Pass@host:8080/p"
+    unencoded: "x://User:Pass@host:8080/p"
+    fsPath: /p
+- input: "x://a:b:c@h:1/p"
+  output:
+    scheme: x
+    authority: "a:b:c@h:1"
+    path: /p
+    query: ""
+    fragment: ""
+    string: "x://a%3Ab:c@h:1/p"
+    unencoded: "x://a:b:c@h:1/p"
+    fsPath: /p
+- input: "x://[::1]:80/p"
+  output:
+    scheme: x
+    authority: "[::1]:80"
+    path: /p
+    query: ""
+    fragment: ""
+    string: "x://[::1]:80/p"
+    unencoded: "x://[::1]:80/p"
+    fsPath: /p
+- input: "x://h/[a]:b@c"
+  output:
+    scheme: x
+    authority: h
+    path: "/[a]:b@c"
+    query: ""
+    fragment: ""
+    string: "x://h/%5Ba%5D%3Ab%40c"
+    unencoded: "x://h/[a]:b@c"
+    fsPath: "/[a]:b@c"
+- input: "x:/!$&'()*+,;=@:/p"
+  output:
+    scheme: x
+    authority: ""
+    path: "/!$&'()*+,;=@:/p"
+    query: ""
+    fragment: ""
+    string: "x:/%21%24%26%27%28%29%2A%2B%2C%3B%3D%40%3A/p"
+    unencoded: "x:/!$&'()*+,;=@:/p"
+    fsPath: "/!$&'()*+,;=@:/p"
+- input: "x://h/a\\b"
+  output:
+    scheme: x
+    authority: h
+    path: "/a\\b"
+    query: ""
+    fragment: ""
+    string: "x://h/a%5Cb"
+    unencoded: "x://h/a\\b"
+    fsPath: "/a\\b"
+- input: "file://server"
+  output:
+    scheme: file
+    authority: server
+    path: /
+    query: ""
+    fragment: ""
+    string: "file://server/"
+    unencoded: "file://server/"
+    fsPath: /
+- input: "file://server/"
+  output:
+    scheme: file
+    authority: server
+    path: /
+    query: ""
+    fragment: ""
+    string: "file://server/"
+    unencoded: "file://server/"
+    fsPath: /
+- input: "file:///"
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: ""
+    fragment: ""
+    string: "file:///"
+    unencoded: "file:///"
+    fsPath: /
+- input: "file:"
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: ""
+    fragment: ""
+    string: "file:///"
+    unencoded: "file:///"
+    fsPath: /
+- input: "file:x?#"
+  output:
+    scheme: file
+    authority: ""
+    path: /x
+    query: ""
+    fragment: ""
+    string: "file:///x"
+    unencoded: "file:///x"
+    fsPath: /x
+- input: "x:?"
+  output:
+    scheme: x
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "x:"
+    unencoded: "x:"
+    fsPath: ""
+- input: "x:#"
+  output:
+    scheme: x
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "x:"
+    unencoded: "x:"
+    fsPath: ""
+- input: "x:?#"
+  output:
+    scheme: x
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "x:"
+    unencoded: "x:"
+    fsPath: ""
+- input: "x://"
+  output:
+    scheme: x
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "x:"
+    unencoded: "x:"
+    fsPath: ""
+- input: "x://?q"
+  output:
+    scheme: x
+    authority: ""
+    path: ""
+    query: q
+    fragment: ""
+    string: "x:?q"
+    unencoded: "x:?q"
+    fsPath: ""
+- input: "x://#f"
+  output:
+    scheme: x
+    authority: ""
+    path: ""
+    query: ""
+    fragment: f
+    string: "x:#f"
+    unencoded: "x:#f"
+    fsPath: ""
+- input: ":x"
+  output:
+    scheme: file
+    authority: ""
+    path: "/:x"
+    query: ""
+    fragment: ""
+    string: "file:///%3Ax"
+    unencoded: "file:///:x"
+    fsPath: "/:x"
+- input: ":"
+  output:
+    scheme: file
+    authority: ""
+    path: "/:"
+    query: ""
+    fragment: ""
+    string: "file:///%3A"
+    unencoded: "file:///:"
+    fsPath: "/:"
+- input: "?q"
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: q
+    fragment: ""
+    string: "file:///?q"
+    unencoded: "file:///?q"
+    fsPath: /
+- input: "#f"
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: ""
+    fragment: f
+    string: "file:///#f"
+    unencoded: "file:///#f"
+    fsPath: /
+- input: "x:path?a?b#c#d"
+  output:
+    scheme: x
+    authority: ""
+    path: path
+    query: a?b
+    fragment: "c#d"
+    string: "x:path?a%3Fb#c%23d"
+    unencoded: "x:path?a%3Fb#c#d"
+    fsPath: path

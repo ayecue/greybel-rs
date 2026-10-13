@@ -1,0 +1,192 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider stays connected and healthy past its close threshold while a client whose own checks don't run answers its pings, which it sends on every check that follows no pong.",
+  "peer": "provider",
+  "requires": ["health-check"],
+  "connected": true,
+  "healthCheck": true,
+  "steps": [
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Ping": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Ping": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Ping": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Ping": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Ping": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "expect": {
+        "health": "healthy",
+        "closed": null,
+        "connection": 1
+      }
+    }
+  ]
+}

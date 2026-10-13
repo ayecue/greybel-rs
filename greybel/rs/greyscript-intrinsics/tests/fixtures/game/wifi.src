@@ -1,0 +1,23 @@
+// Cracking a neighbouring network's Wi-Fi: monitor mode, capture, crack.
+crypto = include_lib("/lib/crypto.so")
+admin = include_lib("admin.so")
+
+r = admin.create_network({"public_ip": "9.9.9.9", "essid": "target_net", "domain": "t.com", "computers": 0})
+bssid = r.bssid_name
+essid = r.essid_name
+
+// Monitor mode: on for the wifi card, not for a missing interface.
+print crypto.airmon("start", "wlan0")
+print crypto.airmon("start", "eth9")
+
+// Capture enough ACKs, then crack out the password.
+print crypto.aireplay(bssid, essid)
+pw = crypto.aircrack(home_dir + "/file.cap")
+print pw isa string and pw.len > 0
+
+// Too few ACKs: aircrack can't recover the key.
+crypto.aireplay(bssid, essid, 1)
+print crypto.aircrack(home_dir + "/file.cap")
+
+// An unknown network.
+print crypto.aireplay("00:00:00:00:00:00", "nope")

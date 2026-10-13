@@ -1,0 +1,48 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+assertion_line: 39
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/files.src
+---
+test /home/test 1 drwxrwx--- test test 0
+/home/test/Desktop
+/home/test/Downloads
+/home/test/Config
+/home/test/.Trash
+[]
+/home
+/home/test/Desktop
+null
+1
+The file already exists
+Can't create file /root/x.txt. Permission denied
+Error: only alphanumeric allowed as file name.
+1
+hello
+0 0 0
+1 1 1 
+
+-rwxr-x---
+Wrong format.
+1
+hello
+
+/home/test/renamed.txt
+1
+/home/test/Downloads/moved.txt hello
+1
+1 /home/test/Downloads/moved.txt hello
+1
+Error: projects file exists
+permission denied
+
+null
+1 can't open /bin/ls. Binary file.
+root:098f6bcd4621d373cade4e832627b4f6
+test:098f6bcd4621d373cade4e832627b4f6
+[file, file]
+Permission denied
+Permission denied
+test test
+
+Deletion cancelled: permission denied: /. No files or folders were deleted.

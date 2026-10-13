@@ -1,0 +1,15 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/errors/unclosed-string.ms
+---
+--- strict
+1:5 - 1:9 UnexpectedStringEof(1002): missing closing quote (")
+    hint: Add a closing quote to terminate the string
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:5 - 1:9 ExpectedExpression(3002): got Unknown("abc) where number, string, or identifier is required
+--- lexer errors
+1:5 - 1:9 UnexpectedStringEof(1002): missing closing quote (")
+    hint: Add a closing quote to terminate the string

@@ -1,0 +1,54 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider refuses a client whose opening it can't read as malformed.",
+  "peer": "provider",
+  "requires": ["handshake"],
+  "protocol": "login",
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 0,
+              "payloadBytes": "05"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Refuse": {
+                  "id": 0,
+                  "reason": "MalformedMessage"
+                }
+              }
+            ]
+          }
+        ],
+        "connection": null
+      }
+    }
+  ]
+}

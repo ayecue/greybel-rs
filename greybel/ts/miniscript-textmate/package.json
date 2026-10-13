@@ -1,0 +1,28 @@
+{
+  "name": "miniscript-textmate",
+  "version": "2.0.0",
+  "description": "The MiniScript TextMate grammar, theme and language configuration",
+  "license": "MIT",
+  "author": "ayecue",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./miniscript.tmLanguage.json": "./src/miniscript.tmLanguage.json",
+    "./miniscript.theme.json": "./src/miniscript.theme.json",
+    "./miniscriptLanguageConfig.json": "./src/miniscriptLanguageConfig.json"
+  },
+  "files": [
+    "dist",
+    "src/*.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

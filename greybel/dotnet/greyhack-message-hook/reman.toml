@@ -1,0 +1,11 @@
+[project]
+kind = "app"
+# Named after its folder (its solution is GreyHackMessageHook).
+tag = "greyhack-message-hook/v{version}"
+# The setup wizard downloads the plugin from the repository's latest release (greyhack-setup-wizard's PluginRelease).
+latest = true
+
+# The plugin against the installed game's assemblies (GREY_HACK_PATH).
+[tasks.game]
+suite = "game"
+run = "dotnet test --solution GreyHackMessageHook.slnx"

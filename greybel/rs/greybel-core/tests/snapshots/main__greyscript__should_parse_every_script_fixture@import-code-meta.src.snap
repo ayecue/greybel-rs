@@ -1,0 +1,10 @@
+---
+source: greybel-core/tests/greyscript.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::GreyScript))"
+input_file: greybel-core/tests/fixtures/greyscript/scripts/import-code-meta.src
+---
+Chunk[1:1-4:1][
+	ImportCode[1:1-1:21][a.src;true;true]
+	ImportCode[2:1-2:21][b.src;false;false]
+	ImportCode[3:1-3:21][other.src;false;false]
+]

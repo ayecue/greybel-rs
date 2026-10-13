@@ -1,0 +1,10 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: "render_valid(&read(path), &options(Version::Latest))"
+input_file: greybel-core/tests/fixtures/miniscript/scripts/function.ms
+---
+Chunk[1:1-8:13][
+	AssignmentStatement[1:1-2:13][Identifier[1:1-1:2][a] = FunctionDeclaration[1:5-2:13][]]
+	AssignmentStatement[4:1-5:13][Identifier[4:1-4:2][b] = FunctionDeclaration[4:5-5:13][Identifier[4:14-4:15][a], AssignmentStatement[4:17-4:27][Identifier[4:17-4:18][b] = Literal[4:21-4:27][test]], Identifier[4:29-4:30][c]]]
+	AssignmentStatement[7:1-8:13][Identifier[7:1-7:2][c] = FunctionDeclaration[7:5-8:13][]]
+]

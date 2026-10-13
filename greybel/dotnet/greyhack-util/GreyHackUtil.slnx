@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/GreyHackUtil.csproj" />
+  <Project Path="tests/GreyHackUtil.Tests.csproj" />
+</Solution>

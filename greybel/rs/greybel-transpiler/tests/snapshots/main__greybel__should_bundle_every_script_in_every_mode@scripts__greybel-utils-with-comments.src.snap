@@ -1,0 +1,1102 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+assertion_line: 32
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/greybel-utils-with-comments.src
+---
+=== default
+MODULES={}
+EXPORTED={}
+__REQUIRE_EVAL=function(cb,ns)
+if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+result=cb(ns)
+if result==null then result={"exports":null}
+if not result.hasIndex("exports") then result.exports=null
+EXPORTED[ns]=result
+return result
+end function
+__REQUIRE=function(ns)
+if not MODULES.hasIndex(ns) then
+print("Module "+ns+" cannot be found...")
+return null
+end if
+return @__REQUIRE_EVAL(@MODULES[ns],ns).exports
+end function
+MODULES["B"]=function(r)
+module={}
+AsciiGen={}
+map={}
+map.a=["||¯|| ","||_|| ","|| || "]
+map.b=["||¯/ ","|| \ ","||_/ "]
+map.c=["||¯ ","||  ","||_ "]
+map.d=["||¯\\ ","|| // ","||//  "]
+map.e=["||¯ ","||- ","||_ "]
+map.f=["||¯ ","||_ ","||  "]
+map.g=["||¯¯  ","|| \\ ","||_|| "]
+map.h=["|| || ","||-|| ","|| || "]
+map.i=["|| ","|| ","|| "]
+map.j=[" ¯||¯ ","  ||  ","|_||  "]
+map.k=["||  / ","|| /  ","||¯\\ "]
+map.l=["||  ","||  ","||_ "]
+map.m=["||\\/|| ","||   || ","||   || "]
+map.n=["||\\ || ","|| \\|| ","||  \|| "]
+map.o=["||¯|| ","|| || ","||_|| "]
+map.p=["||¯|| ","||_|| ","||    "]
+map.q=["||¯||  ","|| ||  ","||_||¬ "]
+map.r=["||¯|| ","||¯\\ ","|| || "]
+map.s=["||¯¯ "," \\  ","__|| "]
+map.t=["¯||¯ "," ||  "," ||  "]
+map.u=["|| || ","|| || ","||_|| "]
+map.v=["\\ || "," \\|| ","  \\| "]
+map.w=["\\ |\\ | "," \\| \\| ","  \\  \\ "]
+map.x=["\\  / "," \\/  "," //\  "]
+map.y=["\\  // "," \\//  ","  ||   "]
+map.z=["¯// ","//  ","||_ "]
+map["0"]=["||¯|| ","||x|| ","||_|| "]
+map["1"]=["'|| "," || "," || "]
+map["2"]=["¯¯|| ","||¯  ","||_  "]
+map["3"]=["¯|| ","-|| ","_|| "]
+map["4"]=[" /|| ","/_|| ","  || "]
+map["5"]=["||¯¯ "," ¯|| "," _|| "]
+map["6"]=["||¯¯  ","||¯|| ","||_|| "]
+map["7"]=["¯¯// "," //  ","//   "]
+map["8"]=["||¯|| ","||-|| ","||_|| "]
+map["9"]=["||¯|| ","  ¯|| ","  //  "]
+map[" "]=["  ","  ","  "]
+AsciiGen.MAP=map
+AsciiGen.gen=function(str,colors)
+r=[[],[],[]]
+signs=self.MAP
+for char in str
+char=char.lower
+if (signs.hasIndex(char)) then
+r[0].push(signs[char][0])
+r[1].push(signs[char][1])
+r[2].push(signs[char][2])
+end if
+end for
+if (typeof(colors)=="string") then
+r[0]=["<color=#"+colors+">"]+r[0]+["</color>"]
+r[1]=["<color=#"+colors+">"]+r[1]+["</color>"]
+r[2]=["<color=#"+colors+">"]+r[2]+["</color>"]
+else if (typeof(colors)=="list") then
+r[0]=["<color=#"+colors[0]+">"]+r[0]+["</color>"]
+r[1]=["<color=#"+colors[1]+">"]+r[1]+["</color>"]
+r[2]=["<color=#"+colors[2]+">"]+r[2]+["</color>"]
+end if
+return [r[0].join(""),r[1].join(""),r[2].join("")].join("\n")
+end function
+print(AsciiGen.gen("Hallo"))
+return module
+end function
+foo = __REQUIRE("B")
+AsciiGen={}
+map={}
+map.a=["||¯|| ","||_|| ","|| || "]
+map.b=["||¯/ ","|| \ ","||_/ "]
+map.c=["||¯ ","||  ","||_ "]
+map.d=["||¯\\ ","|| // ","||//  "]
+map.e=["||¯ ","||- ","||_ "]
+map.f=["||¯ ","||_ ","||  "]
+map.g=["||¯¯  ","|| \\ ","||_|| "]
+map.h=["|| || ","||-|| ","|| || "]
+map.i=["|| ","|| ","|| "]
+map.j=[" ¯||¯ ","  ||  ","|_||  "]
+map.k=["||  / ","|| /  ","||¯\\ "]
+map.l=["||  ","||  ","||_ "]
+map.m=["||\\/|| ","||   || ","||   || "]
+map.n=["||\\ || ","|| \\|| ","||  \|| "]
+map.o=["||¯|| ","|| || ","||_|| "]
+map.p=["||¯|| ","||_|| ","||    "]
+map.q=["||¯||  ","|| ||  ","||_||¬ "]
+map.r=["||¯|| ","||¯\\ ","|| || "]
+map.s=["||¯¯ "," \\  ","__|| "]
+map.t=["¯||¯ "," ||  "," ||  "]
+map.u=["|| || ","|| || ","||_|| "]
+map.v=["\\ || "," \\|| ","  \\| "]
+map.w=["\\ |\\ | "," \\| \\| ","  \\  \\ "]
+map.x=["\\  / "," \\/  "," //\  "]
+map.y=["\\  // "," \\//  ","  ||   "]
+map.z=["¯// ","//  ","||_ "]
+map["0"]=["||¯|| ","||x|| ","||_|| "]
+map["1"]=["'|| "," || "," || "]
+map["2"]=["¯¯|| ","||¯  ","||_  "]
+map["3"]=["¯|| ","-|| ","_|| "]
+map["4"]=[" /|| ","/_|| ","  || "]
+map["5"]=["||¯¯ "," ¯|| "," _|| "]
+map["6"]=["||¯¯  ","||¯|| ","||_|| "]
+map["7"]=["¯¯// "," //  ","//   "]
+map["8"]=["||¯|| ","||-|| ","||_|| "]
+map["9"]=["||¯|| ","  ¯|| ","  //  "]
+map[" "]=["  ","  ","  "]
+AsciiGen.MAP=map
+AsciiGen.gen=function(str,colors)
+r=[[],[],[]]
+signs=self.MAP
+for char in str
+char=char.lower
+if (signs.hasIndex(char)) then
+r[0].push(signs[char][0])
+r[1].push(signs[char][1])
+r[2].push(signs[char][2])
+end if
+end for
+if (typeof(colors)=="string") then
+r[0]=["<color=#"+colors+">"]+r[0]+["</color>"]
+r[1]=["<color=#"+colors+">"]+r[1]+["</color>"]
+r[2]=["<color=#"+colors+">"]+r[2]+["</color>"]
+else if (typeof(colors)=="list") then
+r[0]=["<color=#"+colors[0]+">"]+r[0]+["</color>"]
+r[1]=["<color=#"+colors[1]+">"]+r[1]+["</color>"]
+r[2]=["<color=#"+colors[2]+">"]+r[2]+["</color>"]
+end if
+return [r[0].join(""),r[1].join(""),r[2].join("")].join("\n")
+end function
+print(AsciiGen.gen("Hallo"))
+
+myvar2="""foo"""
+
+myvar2="""foo"""
+
+lastimport="hi"
+
+test=123
+was=123
+x=123
+
+print(123)
+print(5)
+print("sub-import.src")
+
+"true"
+//debugger
+=== uglify
+globals.I=globals
+I.Aa="||¯|| "
+I.AZ="||_|| "
+I.AW="|| || "
+I.AU="||¯ "
+I.AY="||  "
+I.AV="||_ "
+I.Ab="||¯\\ "
+I.Ag="||¯¯  "
+I.Ah="||-|| "
+I.AX="|| "
+I.Ai="||   || "
+I.Aj="||¯¯ "
+I.Ak=" ||  "
+I.Al=" || "
+I.Ac="  "
+I.Ad="<color=#"
+I.Af=">"
+I.Ae="</color>"
+I.Am=""
+I.An=123
+C={}
+D={}
+F=function(cb,ns)
+if D.hasIndex(ns) then return D[ns]
+result=cb(ns)
+if result==null then result={"exports":null}
+if not result.hasIndex("exports") then result.exports=null
+D[ns]=result
+return result
+end function
+E=function(ns)
+if not C.hasIndex(ns) then
+print("Module "+ns+" cannot be found...")
+return null
+end if
+return @F(@C[ns],ns).exports
+end function
+C["B"]=function(AI)
+H={}
+K={}
+map={}
+map.a=[Aa,AZ,AW]
+map.b=["||¯/ ","|| \ ","||_/ "]
+map.c=[AU,AY,AV]
+map.d=[Ab,"|| // ","||//  "]
+map.e=[AU,"||- ",AV]
+map.f=[AU,AV,AY]
+map.g=[Ag,"|| \\ ",AZ]
+map.h=[AW,Ah,AW]
+map.i=[AX,AX,AX]
+map.j=[" ¯||¯ ","  ||  ","|_||  "]
+map.k=["||  / ","|| /  ",Ab]
+map.l=[AY,AY,AV]
+map.m=["||\\/|| ",Ai,Ai]
+map.n=["||\\ || ","|| \\|| ","||  \|| "]
+map.o=[Aa,AW,AZ]
+map.p=[Aa,AZ,"||    "]
+map.q=["||¯||  ","|| ||  ","||_||¬ "]
+map.r=[Aa,Ab,AW]
+map.s=[Aj," \\  ","__|| "]
+map.t=["¯||¯ ",Ak,Ak]
+map.u=[AW,AW,AZ]
+map.v=["\\ || "," \\|| ","  \\| "]
+map.w=["\\ |\\ | "," \\| \\| ","  \\  \\ "]
+map.x=["\\  / "," \\/  "," //\  "]
+map.y=["\\  // "," \\//  ","  ||   "]
+map.z=["¯// ","//  ",AV]
+map["0"]=[Aa,"||x|| ",AZ]
+map["1"]=["'|| ",Al,Al]
+map["2"]=["¯¯|| ","||¯  ","||_  "]
+map["3"]=["¯|| ","-|| ","_|| "]
+map["4"]=[" /|| ","/_|| ","  || "]
+map["5"]=[Aj," ¯|| "," _|| "]
+map["6"]=[Ag,Aa,AZ]
+map["7"]=["¯¯// "," //  ","//   "]
+map["8"]=[Aa,Ah,AZ]
+map["9"]=[Aa,"  ¯|| ","  //  "]
+map[" "]=[Ac,Ac,Ac]
+K.MAP=map
+K.gen=function(str,AN)
+AI=[[],[],[]]
+AO=self.MAP
+for char in str
+char=char.lower
+if (AO.hasIndex(char)) then
+AI[0].push(AO[char][0])
+AI[1].push(AO[char][1])
+AI[2].push(AO[char][2])
+end if
+end for
+if (AP(AN)=="string") then
+AI[0]=[Ad+AN+Af]+AI[0]+[Ae]
+AI[1]=[Ad+AN+Af]+AI[1]+[Ae]
+AI[2]=[Ad+AN+Af]+AI[2]+[Ae]
+else if (AP(AN)=="list") then
+AI[0]=[Ad+AN[0]+Af]+AI[0]+[Ae]
+AI[1]=[Ad+AN[1]+Af]+AI[1]+[Ae]
+AI[2]=[Ad+AN[2]+Af]+AI[2]+[Ae]
+end if
+return [AI[0].join(Am),AI[1].join(Am),AI[2].join(Am)].join("\n")
+end function
+print(K.gen("Hallo"))
+return H
+end function
+J=E("B")
+K={}
+map={}
+map.a=[Aa,AZ,AW]
+map.b=["||¯/ ","|| \ ","||_/ "]
+map.c=[AU,AY,AV]
+map.d=[Ab,"|| // ","||//  "]
+map.e=[AU,"||- ",AV]
+map.f=[AU,AV,AY]
+map.g=[Ag,"|| \\ ",AZ]
+map.h=[AW,Ah,AW]
+map.i=[AX,AX,AX]
+map.j=[" ¯||¯ ","  ||  ","|_||  "]
+map.k=["||  / ","|| /  ",Ab]
+map.l=[AY,AY,AV]
+map.m=["||\\/|| ",Ai,Ai]
+map.n=["||\\ || ","|| \\|| ","||  \|| "]
+map.o=[Aa,AW,AZ]
+map.p=[Aa,AZ,"||    "]
+map.q=["||¯||  ","|| ||  ","||_||¬ "]
+map.r=[Aa,Ab,AW]
+map.s=[Aj," \\  ","__|| "]
+map.t=["¯||¯ ",Ak,Ak]
+map.u=[AW,AW,AZ]
+map.v=["\\ || "," \\|| ","  \\| "]
+map.w=["\\ |\\ | "," \\| \\| ","  \\  \\ "]
+map.x=["\\  / "," \\/  "," //\  "]
+map.y=["\\  // "," \\//  ","  ||   "]
+map.z=["¯// ","//  ",AV]
+map["0"]=[Aa,"||x|| ",AZ]
+map["1"]=["'|| ",Al,Al]
+map["2"]=["¯¯|| ","||¯  ","||_  "]
+map["3"]=["¯|| ","-|| ","_|| "]
+map["4"]=[" /|| ","/_|| ","  || "]
+map["5"]=[Aj," ¯|| "," _|| "]
+map["6"]=[Ag,Aa,AZ]
+map["7"]=["¯¯// "," //  ","//   "]
+map["8"]=[Aa,Ah,AZ]
+map["9"]=[Aa,"  ¯|| ","  //  "]
+map[" "]=[Ac,Ac,Ac]
+K.MAP=map
+K.gen=function(str,AN)
+AI=[[],[],[]]
+AO=self.MAP
+for char in str
+char=char.lower
+if (AO.hasIndex(char)) then
+AI[0].push(AO[char][0])
+AI[1].push(AO[char][1])
+AI[2].push(AO[char][2])
+end if
+end for
+if (AP(AN)=="string") then
+AI[0]=[Ad+AN+Af]+AI[0]+[Ae]
+AI[1]=[Ad+AN+Af]+AI[1]+[Ae]
+AI[2]=[Ad+AN+Af]+AI[2]+[Ae]
+else if (AP(AN)=="list") then
+AI[0]=[Ad+AN[0]+Af]+AI[0]+[Ae]
+AI[1]=[Ad+AN[1]+Af]+AI[1]+[Ae]
+AI[2]=[Ad+AN[2]+Af]+AI[2]+[Ae]
+end if
+return [AI[0].join(Am),AI[1].join(Am),AI[2].join(Am)].join("\n")
+end function
+print(K.gen("Hallo"))
+AQ="""foo"""
+AQ="""foo"""
+AT="hi"
+AR=An
+AS=An
+AF=An
+print(An)
+print(5)
+print("sub-import.src")
+"true"
+//debugger
+=== beautify
+MODULES = {}
+EXPORTED = {}
+__REQUIRE_EVAL = function(cb, ns)
+	if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+	result = cb(ns)
+	if result == null then result = { "exports": null }
+	if not result.hasIndex("exports") then result.exports = null
+	EXPORTED[ns] = result
+	return result
+end function
+__REQUIRE = function(ns)
+	if not MODULES.hasIndex(ns) then
+		print "Module " + ns + " cannot be found..."
+		return null
+	end if
+	return @__REQUIRE_EVAL(@MODULES[ns], ns).exports
+end function
+MODULES["B"] = function(r)
+	module = {}
+	AsciiGen = {}
+
+map = {}
+
+map.a = [
+	"||¯|| ",
+	"||_|| ",
+	"|| || ",
+]
+map.b = [
+	"||¯/ ",
+	"|| \ ",
+	"||_/ ",
+]
+map.c = [
+	"||¯ ",
+	"||  ",
+	"||_ ",
+]
+map.d = [
+	"||¯\\ ",
+	"|| // ",
+	"||//  ",
+]
+map.e = [
+	"||¯ ",
+	"||- ",
+	"||_ ",
+]
+map.f = [
+	"||¯ ",
+	"||_ ",
+	"||  ",
+]
+map.g = [
+	"||¯¯  ",
+	"|| \\ ",
+	"||_|| ",
+]
+map.h = [
+	"|| || ",
+	"||-|| ",
+	"|| || ",
+]
+map.i = [
+	"|| ",
+	"|| ",
+	"|| ",
+]
+map.j = [
+	" ¯||¯ ",
+	"  ||  ",
+	"|_||  ",
+]
+map.k = [
+	"||  / ",
+	"|| /  ",
+	"||¯\\ ",
+]
+map.l = [
+	"||  ",
+	"||  ",
+	"||_ ",
+]
+map.m = [
+	"||\\/|| ",
+	"||   || ",
+	"||   || ",
+]
+map.n = [
+	"||\\ || ",
+	"|| \\|| ",
+	"||  \|| ",
+]
+map.o = [
+	"||¯|| ",
+	"|| || ",
+	"||_|| ",
+]
+map.p = [
+	"||¯|| ",
+	"||_|| ",
+	"||    ",
+]
+map.q = [
+	"||¯||  ",
+	"|| ||  ",
+	"||_||¬ ",
+]
+map.r = [
+	"||¯|| ",
+	"||¯\\ ",
+	"|| || ",
+]
+map.s = [
+	"||¯¯ ",
+	" \\  ",
+	"__|| ",
+]
+map.t = [
+	"¯||¯ ",
+	" ||  ",
+	" ||  ",
+]
+map.u = [
+	"|| || ",
+	"|| || ",
+	"||_|| ",
+]
+map.v = [
+	"\\ || ",
+	" \\|| ",
+	"  \\| ",
+]
+map.w = [
+	"\\ |\\ | ",
+	" \\| \\| ",
+	"  \\  \\ ",
+]
+map.x = [
+	"\\  / ",
+	" \\/  ",
+	" //\  ",
+]
+map.y = [
+	"\\  // ",
+	" \\//  ",
+	"  ||   ",
+]
+map.z = [
+	"¯// ",
+	"//  ",
+	"||_ ",
+]
+map["0"] = [
+	"||¯|| ",
+	"||x|| ",
+	"||_|| ",
+]
+map["1"] = [
+	"'|| ",
+	" || ",
+	" || ",
+]
+map["2"] = [
+	"¯¯|| ",
+	"||¯  ",
+	"||_  ",
+]
+map["3"] = [
+	"¯|| ",
+	"-|| ",
+	"_|| ",
+]
+map["4"] = [
+	" /|| ",
+	"/_|| ",
+	"  || ",
+]
+map["5"] = [
+	"||¯¯ ",
+	" ¯|| ",
+	" _|| ",
+]
+map["6"] = [
+	"||¯¯  ",
+	"||¯|| ",
+	"||_|| ",
+]
+map["7"] = [
+	"¯¯// ",
+	" //  ",
+	"//   ",
+]
+map["8"] = [
+	"||¯|| ",
+	"||-|| ",
+	"||_|| ",
+]
+map["9"] = [
+	"||¯|| ",
+	"  ¯|| ",
+	"  //  ",
+]
+map[" "] = [
+	"  ",
+	"  ",
+	"  ",
+]
+
+AsciiGen.MAP = map
+
+AsciiGen.gen = function(str, colors)
+	r = [
+		[],
+		[],
+		[],
+	]
+	signs = self.MAP
+
+	for char in str
+		char = char.lower
+		if signs.hasIndex(char) then
+			r[0].push signs[char][0]
+			r[1].push signs[char][1]
+			r[2].push signs[char][2]
+		end if
+	end for
+
+	if typeof(colors) == "string" then
+		r[0] = [ "<color=#" + colors + ">" ] + r[0] + [ "</color>" ]
+		r[1] = [ "<color=#" + colors + ">" ] + r[1] + [ "</color>" ]
+		r[2] = [ "<color=#" + colors + ">" ] + r[2] + [ "</color>" ]
+	else if typeof(colors) == "list" then
+		r[0] = [ "<color=#" + colors[0] + ">" ] + r[0] + [ "</color>" ]
+		r[1] = [ "<color=#" + colors[1] + ">" ] + r[1] + [ "</color>" ]
+		r[2] = [ "<color=#" + colors[2] + ">" ] + r[2] + [ "</color>" ]
+	end if
+
+	return [
+		r[0].join(""),
+		r[1].join(""),
+		r[2].join(""),
+	].join("\n")
+end function
+
+print AsciiGen.gen("Hallo")
+	return module
+end function
+foo = __REQUIRE("B")
+AsciiGen = {}
+
+map = {}
+
+map.a = [
+	"||¯|| ",
+	"||_|| ",
+	"|| || ",
+]
+map.b = [
+	"||¯/ ",
+	"|| \ ",
+	"||_/ ",
+]
+map.c = [
+	"||¯ ",
+	"||  ",
+	"||_ ",
+]
+map.d = [
+	"||¯\\ ",
+	"|| // ",
+	"||//  ",
+]
+map.e = [
+	"||¯ ",
+	"||- ",
+	"||_ ",
+]
+map.f = [
+	"||¯ ",
+	"||_ ",
+	"||  ",
+]
+map.g = [
+	"||¯¯  ",
+	"|| \\ ",
+	"||_|| ",
+]
+map.h = [
+	"|| || ",
+	"||-|| ",
+	"|| || ",
+]
+map.i = [
+	"|| ",
+	"|| ",
+	"|| ",
+]
+map.j = [
+	" ¯||¯ ",
+	"  ||  ",
+	"|_||  ",
+]
+map.k = [
+	"||  / ",
+	"|| /  ",
+	"||¯\\ ",
+]
+map.l = [
+	"||  ",
+	"||  ",
+	"||_ ",
+]
+map.m = [
+	"||\\/|| ",
+	"||   || ",
+	"||   || ",
+]
+map.n = [
+	"||\\ || ",
+	"|| \\|| ",
+	"||  \|| ",
+]
+map.o = [
+	"||¯|| ",
+	"|| || ",
+	"||_|| ",
+]
+map.p = [
+	"||¯|| ",
+	"||_|| ",
+	"||    ",
+]
+map.q = [
+	"||¯||  ",
+	"|| ||  ",
+	"||_||¬ ",
+]
+map.r = [
+	"||¯|| ",
+	"||¯\\ ",
+	"|| || ",
+]
+map.s = [
+	"||¯¯ ",
+	" \\  ",
+	"__|| ",
+]
+map.t = [
+	"¯||¯ ",
+	" ||  ",
+	" ||  ",
+]
+map.u = [
+	"|| || ",
+	"|| || ",
+	"||_|| ",
+]
+map.v = [
+	"\\ || ",
+	" \\|| ",
+	"  \\| ",
+]
+map.w = [
+	"\\ |\\ | ",
+	" \\| \\| ",
+	"  \\  \\ ",
+]
+map.x = [
+	"\\  / ",
+	" \\/  ",
+	" //\  ",
+]
+map.y = [
+	"\\  // ",
+	" \\//  ",
+	"  ||   ",
+]
+map.z = [
+	"¯// ",
+	"//  ",
+	"||_ ",
+]
+map["0"] = [
+	"||¯|| ",
+	"||x|| ",
+	"||_|| ",
+]
+map["1"] = [
+	"'|| ",
+	" || ",
+	" || ",
+]
+map["2"] = [
+	"¯¯|| ",
+	"||¯  ",
+	"||_  ",
+]
+map["3"] = [
+	"¯|| ",
+	"-|| ",
+	"_|| ",
+]
+map["4"] = [
+	" /|| ",
+	"/_|| ",
+	"  || ",
+]
+map["5"] = [
+	"||¯¯ ",
+	" ¯|| ",
+	" _|| ",
+]
+map["6"] = [
+	"||¯¯  ",
+	"||¯|| ",
+	"||_|| ",
+]
+map["7"] = [
+	"¯¯// ",
+	" //  ",
+	"//   ",
+]
+map["8"] = [
+	"||¯|| ",
+	"||-|| ",
+	"||_|| ",
+]
+map["9"] = [
+	"||¯|| ",
+	"  ¯|| ",
+	"  //  ",
+]
+map[" "] = [
+	"  ",
+	"  ",
+	"  ",
+]
+
+AsciiGen.MAP = map
+
+AsciiGen.gen = function(str, colors)
+	r = [
+		[],
+		[],
+		[],
+	]
+	signs = self.MAP
+
+	for char in str
+		char = char.lower
+		if signs.hasIndex(char) then
+			r[0].push signs[char][0]
+			r[1].push signs[char][1]
+			r[2].push signs[char][2]
+		end if
+	end for
+
+	if typeof(colors) == "string" then
+		r[0] = [ "<color=#" + colors + ">" ] + r[0] + [ "</color>" ]
+		r[1] = [ "<color=#" + colors + ">" ] + r[1] + [ "</color>" ]
+		r[2] = [ "<color=#" + colors + ">" ] + r[2] + [ "</color>" ]
+	else if typeof(colors) == "list" then
+		r[0] = [ "<color=#" + colors[0] + ">" ] + r[0] + [ "</color>" ]
+		r[1] = [ "<color=#" + colors[1] + ">" ] + r[1] + [ "</color>" ]
+		r[2] = [ "<color=#" + colors[2] + ">" ] + r[2] + [ "</color>" ]
+	end if
+
+	return [
+		r[0].join(""),
+		r[1].join(""),
+		r[2].join(""),
+	].join("\n")
+end function
+
+print AsciiGen.gen("Hallo")
+
+myvar2 = """foo"""
+
+myvar2 = """foo"""
+
+lastimport = "hi"
+
+test = 123
+was = 123
+x = 123
+
+print 123
+
+print 5
+print "sub-import.src"
+
+"true"
+//debugger
+=== beautify, dev mode, keep parentheses, 10 spaces
+MODULES = {}
+EXPORTED = {}
+__REQUIRE_EVAL = function(cb, ns)
+          if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+          result = cb(ns)
+          if result == null then result = { "exports": null }
+          if not result.hasIndex("exports") then result.exports = null
+          EXPORTED[ns] = result
+          return result
+end function
+__REQUIRE = function(ns)
+          if not MODULES.hasIndex(ns) then
+                    print("Module " + ns + " cannot be found...")
+                    return null
+          end if
+          return @__REQUIRE_EVAL(@MODULES[ns], ns).exports
+end function
+MODULES["B"] = function(r)
+          module = {}
+          AsciiGen = {}
+
+map = {}
+
+map.a = [
+          "||¯|| ",
+          "||_|| ",
+          "|| || ",
+]
+map.b = [
+          "||¯/ ",
+          "|| \ ",
+          "||_/ ",
+]
+map.c = [
+          "||¯ ",
+          "||  ",
+          "||_ ",
+]
+map.d = [
+          "||¯\\ ",
+          "|| // ",
+          "||//  ",
+]
+map.e = [
+          "||¯ ",
+          "||- ",
+          "||_ ",
+]
+map.f = [
+          "||¯ ",
+          "||_ ",
+          "||  ",
+]
+map.g = [
+          "||¯¯  ",
+          "|| \\ ",
+          "||_|| ",
+]
+map.h = [
+          "|| || ",
+          "||-|| ",
+          "|| || ",
+]
+map.i = [
+          "|| ",
+          "|| ",
+          "|| ",
+]
+map.j = [
+          " ¯||¯ ",
+          "  ||  ",
+          "|_||  ",
+]
+map.k = [
+          "||  / ",
+          "|| /  ",
+          "||¯\\ ",
+]
+map.l = [
+          "||  ",
+          "||  ",
+          "||_ ",
+]
+map.m = [
+          "||\\/|| ",
+          "||   || ",
+          "||   || ",
+]
+map.n = [
+          "||\\ || ",
+          "|| \\|| ",
+          "||  \|| ",
+]
+map.o = [
+          "||¯|| ",
+          "|| || ",
+          "||_|| ",
+]
+map.p = [
+          "||¯|| ",
+          "||_|| ",
+          "||    ",
+]
+map.q = [
+          "||¯||  ",
+          "|| ||  ",
+          "||_||¬ ",
+]
+map.r = [
+          "||¯|| ",
+          "||¯\\ ",
+          "|| || ",
+]
+map.s = [
+          "||¯¯ ",
+          " \\  ",
+          "__|| ",
+]
+map.t = [
+          "¯||¯ ",
+          " ||  ",
+          " ||  ",
+]
+map.u = [
+          "|| || ",
+          "|| || ",
+          "||_|| ",
+]
+map.v = [
+          "\\ || ",
+          " \\|| ",
+          "  \\| ",
+]
+map.w = [
+          "\\ |\\ | ",
+          " \\| \\| ",
+          "  \\  \\ ",
+]
+map.x = [
+          "\\  / ",
+          " \\/  ",
+          " //\  ",
+]
+map.y = [
+          "\\  // ",
+          " \\//  ",
+          "  ||   ",
+]
+map.z = [
+          "¯// ",
+          "//  ",
+          "||_ ",
+]
+map["0"] = [
+          "||¯|| ",
+          "||x|| ",
+          "||_|| ",
+]
+map["1"] = [
+          "'|| ",
+          " || ",
+          " || ",
+]
+map["2"] = [
+          "¯¯|| ",
+          "||¯  ",
+          "||_  ",
+]
+map["3"] = [
+          "¯|| ",
+          "-|| ",
+          "_|| ",
+]
+map["4"] = [
+          " /|| ",
+          "/_|| ",
+          "  || ",
+]
+map["5"] = [
+          "||¯¯ ",
+          " ¯|| ",
+          " _|| ",
+]
+map["6"] = [
+          "||¯¯  ",
+          "||¯|| ",
+          "||_|| ",
+]
+map["7"] = [
+          "¯¯// ",
+          " //  ",
+          "//   ",
+]
+map["8"] = [
+          "||¯|| ",
+          "||-|| ",
+          "||_|| ",
+]
+map["9"] = [
+          "||¯|| ",
+          "  ¯|| ",
+          "  //  ",
+]
+map[" "] = [
+          "  ",
+          "  ",
+          "  ",
+]
+
+AsciiGen.MAP = map
+
+AsciiGen.gen = function(str, colors)
+          r = [
+                    [],
+                    [],
+                    [],
+          ]
+          signs = self.MAP
+
+          for char in str
+                    char = char.lower
+                    if signs.hasIndex(char) then
+                              r[0].push(signs[char][0])
+                              r[1].push(signs[char][1])
+                              r[2].push(signs[char][2])
+                    end if
+          end for
+
+          if typeof(colors) == "string" then
+                    r[0] = [ "<color=#" + colors + ">" ] + r[0] + [ "</color>" ]
+                    r[1] = [ "<color=#" + colors + ">" ] + r[1] + [ "</color>" ]
+                    r[2] = [ "<color=#" + colors + ">" ] + r[2] + [ "</color>" ]
+          else if typeof(colors) == "list" then
+                    r[0] = [ "<color=#" + colors[0] + ">" ] + r[0] + [ "</color>" ]
+                    r[1] = [ "<color=#" + colors[1] + ">" ] + r[1] + [ "</color>" ]
+                    r[2] = [ "<color=#" + colors[2] + ">" ] + r[2] + [ "</color>" ]
+          end if
+
+          return [
+                    r[0].join(""),
+                    r[1].join(""),
+                    r[2].join(""),
+          ].join("\n")
+end function
+
+print(AsciiGen.gen("Hallo"))
+          return module
+end function
+#import foo from "./ascii.src";
+#include "./ascii.src";
+#include "../dependencies/sub-import.src";
+#envar TEST_ENV
+debugger

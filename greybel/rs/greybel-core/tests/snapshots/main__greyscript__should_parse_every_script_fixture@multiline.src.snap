@@ -1,0 +1,33 @@
+---
+source: greybel-core/tests/greyscript.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::GreyScript))"
+input_file: greybel-core/tests/fixtures/greyscript/scripts/multiline.src
+---
+Chunk[1:1-29:12][
+	CallExpression[1:1-6:3][Identifier[1:1-1:6][print](Literal[1:7-6:2][
+	
+	was
+	print("was")
+	foo["xxxx"].test
+	])]
+	CallExpression[8:1-15:3][Identifier[8:1-8:6][print](BinaryExpression[8:7-15:2][BinaryExpression[8:7-11:2][Literal[8:7-9:17][
+	print("was") ] + Literal[9:20-11:2][
+	foo["xxxx"].test
+	]] + Literal[11:5-15:2][
+	
+	
+	was
+	]])]
+	CallExpression[17:1-22:3][Identifier[17:1-17:6][print](Literal[17:7-22:2][
+	
+	    if (typeof(@item.value) == "function") then
+	
+	    end if
+	])]
+	CallExpression[24:1-29:12][Identifier[24:1-24:6][print](BinaryExpression[24:7-29:5][BinaryExpression[24:7-28:12][BinaryExpression[24:7-28:5][BinaryExpression[24:7-27:12][BinaryExpression[24:7-27:5][BinaryExpression[24:7-26:12][BinaryExpression[24:7-26:5][BinaryExpression[24:7-25:12][Literal[24:7-25:5][
+	   ] + Identifier[25:8-25:12][test]] + Literal[25:15-26:5][
+	   ]] + Identifier[26:8-26:12][test]] + Literal[26:15-27:5][
+	   ]] + Identifier[27:8-27:12][test]] + Literal[27:15-28:5][
+	   ]] + Identifier[28:8-28:12][test]] + Literal[28:15-29:5][
+	   ]], Literal[29:7-29:11][true])]
+]

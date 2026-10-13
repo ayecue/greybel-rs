@@ -1,0 +1,16 @@
+// A computer reached over FTP exposes only File, create_folder and get_name
+// (`GreyInterpreter.FtpComputerType`), not the full computer surface.
+admin = include_lib("admin.so")
+router = admin.create_network({"public_ip": "8.8.8.8", "domain": "target.com", "computers": 0})
+lan = router.local_ip[:-1]
+web = admin.network("8.8.8.8").add_computer({"name": "web", "lan_ip": lan + "10", "root_password": "toor", "services": ["ftp"]})
+shell = get_shell
+ftp = shell.connect_service("8.8.8.8", 21, "root", "toor", "ftp")
+print typeof(ftp)
+comp = ftp.host_computer
+print typeof(comp)
+print comp.get_name
+print comp.File("/etc") != null
+print comp.create_folder("/etc", "made")
+// public_ip is no longer on an FTP computer, so reading it errors.
+print comp.public_ip

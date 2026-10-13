@@ -1,0 +1,26 @@
+// Users and groups, as root and as a normal user.
+user = get_shell.host_computer
+print user.create_user("alice", "secret")
+root = get_shell("root", "test").host_computer
+print root.create_user("alice", "secret")
+print root.create_user("alice", "secret")
+print root.create_user("root", "x")
+print root.create_user("guest", "x")
+print root.create_user("bad name", "x")
+print root.groups("alice")
+print root.create_group("alice", "staff")
+print root.groups("alice")
+print root.delete_group("alice", "staff")
+print root.delete_group("alice", "staff")
+print root.groups("nobody")
+print root.change_password("alice", "other")
+print root.change_password("nobody", "other")
+print root.change_password("alice", "no way")
+print get_shell("alice", "other") != null
+print root.File("/home/alice").get_folders.len
+print root.File("/etc/passwd").get_content
+print root.delete_user("root")
+print root.delete_user("test")
+print root.delete_user("alice", 1)
+print root.File("/home/alice")
+print root.delete_user("alice")

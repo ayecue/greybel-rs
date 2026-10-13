@@ -1,0 +1,52 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "What a channel writes in one task goes out in one batch, after the task.",
+  "peer": "client",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Log": {
+          "text": "adding"
+        }
+      }
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "Log": {
+                    "text": "adding"
+                  }
+                }
+              },
+              {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1,
+                    "b": 2
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

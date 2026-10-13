@@ -1,0 +1,3 @@
+#import first from "../dependencies/includes-shared.src"
+#import shared from "../dependencies/shared-module.src"
+print shared

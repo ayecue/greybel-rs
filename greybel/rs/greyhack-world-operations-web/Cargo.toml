@@ -1,0 +1,26 @@
+[package]
+name = "greyhack-world-operations-web"
+description = "Browser-worker world server accepting runtime connections over message ports (wasm-bindgen)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+duplex-driver-web.workspace = true
+futures-util.workspace = true
+greyhack-world.workspace = true
+greyhack-world-operations.workspace = true
+js-sys.workspace = true
+scheduler = { workspace = true, features = ["web"] }
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys = { workspace = true, features = ["Url", "UrlSearchParams", "WorkerGlobalScope", "WorkerLocation"] }
+
+[lints]
+workspace = true

@@ -1,0 +1,31 @@
+[package]
+name = "text-mesh-canvas"
+description = "TextMesh Pro text as 2D canvas drawing commands: every glyph, sprite, underline and highlight where text-mesh-layout places it"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+serde = { workspace = true, optional = true }
+text-mesh-core.workspace = true
+text-mesh-font.workspace = true
+text-mesh-layout.workspace = true
+
+[features]
+serde = ["dep:serde"]
+
+[dev-dependencies]
+text-mesh-test-support.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

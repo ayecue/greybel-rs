@@ -1,0 +1,29 @@
+[package]
+name = "duplex-driver-memory"
+description = "In-memory duplex-core transport pairs for same-thread peers, with unchanged batch delivery and scheduler-driven tasks, timers, and time"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+fastrand.workspace = true
+scheduler.workspace = true
+
+[dev-dependencies]
+duplex-test-support = { workspace = true, features = ["tokio"] }
+scheduler = { workspace = true, features = ["tokio"] }
+tokio = { workspace = true, features = ["rt", "time"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

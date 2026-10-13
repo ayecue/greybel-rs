@@ -1,0 +1,143 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/import-after-include.src
+---
+=== default
+MODULES={}
+EXPORTED={}
+__REQUIRE_EVAL=function(cb,ns)
+if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+result=cb(ns)
+if result==null then result={"exports":null}
+if not result.hasIndex("exports") then result.exports=null
+EXPORTED[ns]=result
+return result
+end function
+__REQUIRE=function(ns)
+if not MODULES.hasIndex(ns) then
+print("Module "+ns+" cannot be found...")
+return null
+end if
+return @__REQUIRE_EVAL(@MODULES[ns],ns).exports
+end function
+MODULES["B"]=function(r)
+module={}
+print("shared")
+module.exports=1
+
+module.exports=2
+return module
+end function
+MODULES["C"]=function(r)
+module={}
+print("shared")
+module.exports=1
+return module
+end function
+first = __REQUIRE("B")
+shared = __REQUIRE("C")
+print(shared)
+=== uglify
+globals.I=globals
+C={}
+D={}
+F=function(cb,ns)
+if D.hasIndex(ns) then return D[ns]
+result=cb(ns)
+if result==null then result={"exports":null}
+if not result.hasIndex("exports") then result.exports=null
+D[ns]=result
+return result
+end function
+E=function(ns)
+if not C.hasIndex(ns) then
+print("Module "+ns+" cannot be found...")
+return null
+end if
+return @F(@C[ns],ns).exports
+end function
+C["B"]=function(r)
+H={}
+print("shared")
+H.exports=1
+H.exports=2
+return H
+end function
+C["C"]=function(r)
+H={}
+print("shared")
+H.exports=1
+return H
+end function
+J=E("B")
+K=E("C")
+print(K)
+=== beautify
+MODULES = {}
+EXPORTED = {}
+__REQUIRE_EVAL = function(cb, ns)
+	if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+	result = cb(ns)
+	if result == null then result = { "exports": null }
+	if not result.hasIndex("exports") then result.exports = null
+	EXPORTED[ns] = result
+	return result
+end function
+__REQUIRE = function(ns)
+	if not MODULES.hasIndex(ns) then
+		print "Module " + ns + " cannot be found..."
+		return null
+	end if
+	return @__REQUIRE_EVAL(@MODULES[ns], ns).exports
+end function
+MODULES["B"] = function(r)
+	module = {}
+	print "shared"
+module.exports = 1
+
+module.exports = 2
+	return module
+end function
+MODULES["C"] = function(r)
+	module = {}
+	print "shared"
+module.exports = 1
+	return module
+end function
+first = __REQUIRE("B")
+shared = __REQUIRE("C")
+print shared
+=== beautify, dev mode, keep parentheses, 10 spaces
+MODULES = {}
+EXPORTED = {}
+__REQUIRE_EVAL = function(cb, ns)
+          if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+          result = cb(ns)
+          if result == null then result = { "exports": null }
+          if not result.hasIndex("exports") then result.exports = null
+          EXPORTED[ns] = result
+          return result
+end function
+__REQUIRE = function(ns)
+          if not MODULES.hasIndex(ns) then
+                    print("Module " + ns + " cannot be found...")
+                    return null
+          end if
+          return @__REQUIRE_EVAL(@MODULES[ns], ns).exports
+end function
+MODULES["B"] = function(r)
+          module = {}
+          #include "shared-module.src";
+module.exports = 2
+          return module
+end function
+MODULES["C"] = function(r)
+          module = {}
+          print("shared")
+module.exports = 1
+          return module
+end function
+#import first from "../dependencies/includes-shared.src";
+#import shared from "../dependencies/shared-module.src";
+print(shared)

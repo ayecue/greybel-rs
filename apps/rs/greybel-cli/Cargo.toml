@@ -1,0 +1,45 @@
+[package]
+name = "greybel-cli"
+description = "GreyScript command-line tools for builds, Grey Hack imports, execution and debugging, REPL, web editor, and MCP"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[[bin]]
+name = "greybel"
+path = "src/main.rs"
+
+[dependencies]
+scheduler = { workspace = true, features = ["tokio"] }
+greybel-builder = { workspace = true, features = ["game"] }
+greybel-core.workspace = true
+greybel-documents.workspace = true
+greybel-documents-fs-provider.workspace = true
+greybel-io.workspace = true
+greybel-io-terminal.workspace = true
+greybel-mcp.workspace = true
+greybel-project = { workspace = true, features = ["builder", "runtime"] }
+greybel-runtime = { workspace = true, features = ["game"] }
+greyhack-message-hook-client.workspace = true
+greyhack-terminal-text.workspace = true
+greyhack-world-operations.workspace = true
+greyscript-intrinsics.workspace = true
+clap.workspace = true
+crossterm.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt", "macros", "sync"] }
+
+[dev-dependencies]
+duplex-driver-stdio.workspace = true
+greyhack-world.workspace = true
+tokio = { workspace = true, features = ["net"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

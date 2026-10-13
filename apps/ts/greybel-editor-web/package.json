@@ -1,0 +1,43 @@
+{
+  "name": "greybel-editor-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A light GreyScript editor on a web page: CodeMirror with greybel-lsp-web's language server (highlighting, hovers, completions, diagnostics), programs run and debugged in greybel-runtime-web, their output drawn by greyhack-terminal-web, code transformed by greybel-builder-web, the API reference of greybel-api-reference-web, and code shared by URL or saved to the editor service",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vite build --mode test && vitest run"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/language": "^6.13.1",
+    "@codemirror/lsp-client": "^6.3.0",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.15",
+    "codemirror": "^6.0.2",
+    "duplex-core": "^0.1.0",
+    "duplex-driver-worker": "^0.1.0",
+    "greybel-api-reference-web": "^0.1.0",
+    "greybel-builder": "^0.1.0",
+    "greybel-builder-web": "^0.1.0",
+    "greybel-documents-host-provider": "^0.1.0",
+    "greybel-io-web": "^0.1.0",
+    "greybel-lsp-web": "^0.1.0",
+    "greybel-runtime": "^0.1.0",
+    "greybel-runtime-web": "^0.1.0",
+    "greyhack-terminal-web": "^0.1.0",
+    "greyhack-world-operations": "^0.1.0",
+    "greyhack-world-operations-web": "^0.1.0",
+    "picomatch": "^4.0.3",
+    "preact": "^11.1.1",
+    "wasm-host": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/picomatch": "^4.0.2",
+    "playwright": "1.64.1"
+  }
+}

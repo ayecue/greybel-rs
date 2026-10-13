@@ -1,0 +1,37 @@
+[package]
+name = "duplex-driver-stdio"
+description = "Tokio duplex-core drivers for stdin/stdout, TCP, custom byte streams, and spawned-channel ports"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[features]
+# Enables Noise-secured stream transports.
+security = ["duplex-core/security"]
+
+[dependencies]
+duplex-core.workspace = true
+tokio = { workspace = true, features = ["rt", "io-util", "io-std", "net", "sync", "time"] }
+duplex-tokio.workspace = true
+scheduler = { workspace = true, features = ["tokio"] }
+
+[target.'cfg(unix)'.dependencies]
+rustix = { workspace = true, features = ["fs"] }
+
+[dev-dependencies]
+duplex-test-support = { workspace = true, features = ["tokio"] }
+duplex-ts.workspace = true
+tokio = { workspace = true, features = ["rt", "io-util", "io-std", "net", "sync", "time", "macros"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

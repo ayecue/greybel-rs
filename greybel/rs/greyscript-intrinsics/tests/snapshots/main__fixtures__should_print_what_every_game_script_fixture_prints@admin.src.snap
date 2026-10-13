@@ -1,0 +1,57 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/admin.src
+---
+admin
+0
+["1.1.1.1"]
+1
+cryptoLib
+router 8.8.8.8 TestNet 192.168.1.1
+["192.168.1.1"]
+Error: 8.8.8.8 is already in use
+Error: 192.168.1.1 is not a public address
+192.168.1.1
+computer
+web 192.168.1.10 8.8.8.8 1
+22 192.168.1.10 0
+80 192.168.1.10 0
+Error: that LAN address is taken or not in the network
+Error: that LAN address is taken or not in the network
+Error: no network at 9.9.9.9
+Error: unknown service telnet
+["192.168.1.10", "192.168.1.1"]
+shell web
+bob
+null
+null
+1
+8.8.8.8 17
+2
+ssh 1.2.0
+http 1.1.0
+22
+null
+2
+null
+[]
+1
+6
+0
+1
+20
+1.1.1.1
+router
+null
+1 02/Feb/2001 - 12:00
+0 02/Feb/2001 - 12:00
+["1.1.1.1", "8.8.8.8"]
+1
+0
+0
+router
+Unknown
+null
+Unknown
+1

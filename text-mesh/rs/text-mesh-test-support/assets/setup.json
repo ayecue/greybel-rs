@@ -1,0 +1,89 @@
+{
+  "text": {
+    "fontSize": 18,
+    "fontWeight": 400,
+    "HorizontalAlignment": 1,
+    "VerticalAlignment": 512,
+    "characterSpacing": 0,
+    "wordSpacing": 0,
+    "lineSpacing": 2,
+    "lineSpacingMax": 0,
+    "paragraphSpacing": 0,
+    "charWidthMaxAdj": 0,
+    "enableWordWrapping": 1,
+    "wordWrappingRatios": 0.4,
+    "enableKerning": 1,
+    "enableExtraPadding": 0,
+    "isRichText": 1,
+    "parseCtrlCharacters": 0,
+    "isOrthographic": 1,
+    "tintAllSprites": 0,
+    "overrideHtmlColors": 0,
+    "margin": [0, 0, 0, 0]
+  },
+  "frame": {
+    "padding": 8,
+    "itemGap": 0,
+    "itemMinHeight": 20
+  },
+  "theme": {
+    "text": { "r": 230, "g": 230, "b": 230, "a": 255 },
+    "background": { "r": 16, "g": 16, "b": 24, "a": 255 }
+  },
+  "sprites": {
+    "name": "shapes",
+    "sheet": "shapes.png",
+    "sheetWidth": 192,
+    "sheetHeight": 64,
+    "glyphs": [
+      { "index": 0, "x": 0, "y": 0, "rectWidth": 64, "rectHeight": 64, "advance": 0, "bearingX": 0, "bearingY": 52, "width": 64, "height": 64, "scale": 1 },
+      { "index": 1, "x": 64, "y": 0, "rectWidth": 64, "rectHeight": 64, "advance": 64, "bearingX": 0, "bearingY": 52, "width": 64, "height": 64, "scale": 1 },
+      { "index": 2, "x": 128, "y": 0, "rectWidth": 64, "rectHeight": 64, "advance": 64, "bearingX": 4, "bearingY": 56, "width": 64, "height": 64, "scale": 0.8 }
+    ],
+    "characters": [
+      { "name": "bar", "unicode": 65534, "glyph": 0, "scale": 1.2 },
+      { "name": "circle", "unicode": 65534, "glyph": 1, "scale": 1 },
+      { "name": "triangle", "unicode": 65534, "glyph": 2, "scale": 1.1 }
+    ]
+  },
+  "terminal": "FiraMono-Regular SDF",
+  "globalFallbacks": ["LiberationSans SDF"],
+  "missingGlyphCharacter": 63,
+  "fonts": [
+    {
+      "name": "FiraMono-Regular SDF",
+      "source": "FiraMono-Regular.ttf",
+      "pointSize": 40,
+      "padding": 5,
+      "atlasWidth": 512,
+      "atlasHeight": 512,
+      "renderMode": 4165,
+      "characterRanges": "20-7E,A0-FF,400-45F,2030,20AC,2122,2500-257F,25B2,25BC",
+      "fallbacks": ["Sarabun-Regular SDF"]
+    },
+    {
+      "name": "Sarabun-Regular SDF",
+      "source": "Sarabun-Regular.ttf",
+      "pointSize": 36,
+      "padding": 5,
+      "atlasWidth": 256,
+      "atlasHeight": 256,
+      "renderMode": 16422,
+      "characterRanges": "E01-E3A,E3F-E5B",
+      "fallbacks": []
+    }
+  ],
+  "bundled": [
+    {
+      "name": "LiberationSans SDF",
+      "source": "LiberationSans-Regular.ttf",
+      "pointSize": 86,
+      "padding": 9,
+      "atlasWidth": 1024,
+      "atlasHeight": 1024,
+      "renderMode": 32806,
+      "characterRanges": "20-7E,A0-FF",
+      "fallbacks": []
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+[project]
+kind = "library"
+
+# The runtime in the game, headless.
+[tasks.game]
+suite = "game"
+run = "cargo nextest run -p greybel-runtime --features game-tests -E 'test(/^game::/)'"

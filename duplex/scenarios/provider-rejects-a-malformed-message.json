@@ -1,0 +1,40 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider rejects a message whose body doesn't read, without handling it.",
+  "peer": "provider",
+  "requires": [],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "message": "Add",
+              "body": "80"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "MalformedMessage"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

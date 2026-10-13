@@ -1,0 +1,45 @@
+---
+source: greybel-core/tests/miniscript.rs
+assertion_line: 73
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/rules/functions.ms
+---
+=== "f = function(a, b = 1)\nend function"
+1.6, latest: ok
+Chunk[1:1-2:13][
+	AssignmentStatement[1:1-2:13][Identifier[1:1-1:2][f] = FunctionDeclaration[1:5-2:13][Identifier[1:14-1:15][a], AssignmentStatement[1:17-1:22][Identifier[1:17-1:18][b] = Literal[1:21-1:22][1]]]]
+]
+=== "f = function(a = \"s\", b = null, c = -1)\nend function"
+1.6, latest: ok
+Chunk[1:1-2:13][
+	AssignmentStatement[1:1-2:13][Identifier[1:1-1:2][f] = FunctionDeclaration[1:5-2:13][AssignmentStatement[1:14-1:21][Identifier[1:14-1:15][a] = Literal[1:18-1:21][s]], AssignmentStatement[1:23-1:31][Identifier[1:23-1:24][b] = Literal[1:27-1:31][null]], AssignmentStatement[1:33-1:39][Identifier[1:33-1:34][c] = Literal[1:38-1:39][-1]]]]
+]
+=== "f = function(a = 1 + 1)\nend function"
+1.6, latest: --- error
+1:14 - 1:24 InvalidDefaultValue(5003): parameter default value must be a literal value
+    hint: Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member
+=== "f = function(a = b)\nend function"
+1.6, latest: --- error
+1:14 - 1:20 InvalidDefaultValue(5003): parameter default value must be a literal value
+    hint: Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member
+=== "f = function(a = [1])\nend function"
+1.6, latest: --- error
+1:14 - 1:22 InvalidDefaultValue(5003): parameter default value must be a literal value
+    hint: Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member
+=== "f = function(a = {})\nend function"
+1.6, latest: --- error
+1:14 - 1:21 InvalidDefaultValue(5003): parameter default value must be a literal value
+    hint: Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member
+=== "f = function\nend function"
+1.6, latest: ok
+Chunk[1:1-2:13][
+	AssignmentStatement[1:1-2:13][Identifier[1:1-1:2][f] = FunctionDeclaration[1:5-2:13][]]
+]
+=== "f = function(a,)\nend function"
+1.6, latest: ok
+Chunk[1:1-2:13][
+	AssignmentStatement[1:1-2:13][Identifier[1:1-1:2][f] = FunctionDeclaration[1:5-2:13][Identifier[1:14-1:15][a]]]
+]
+=== "f = function(1)\nend function"
+1.6, latest: --- error
+1:14 - 1:15 ExpectedToken(3001): got Number(1) where an identifier is required

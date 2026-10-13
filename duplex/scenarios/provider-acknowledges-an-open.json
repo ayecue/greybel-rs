@@ -1,0 +1,52 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A listening provider acknowledges an open, making the connection.",
+  "peer": "provider",
+  "requires": [],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Ack": {
+                  "id": 0,
+                  "connection": 1
+                }
+              }
+            ]
+          }
+        ],
+        "connection": 1
+      }
+    }
+  ]
+}

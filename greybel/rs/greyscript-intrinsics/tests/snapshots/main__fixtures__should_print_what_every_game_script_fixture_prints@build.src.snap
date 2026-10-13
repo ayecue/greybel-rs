@@ -1,0 +1,15 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: "run_in(path, true)"
+input_file: greyscript-intrinsics/tests/fixtures/game/build.src
+---
+build: []
+1
+built hello world
+1
+1
+1
+Can't find /home/test/missing.src
+Can't build noext. Invalid extension.
+Can't compile. Source code is empty
+pathSource and pathBinary can't be empty

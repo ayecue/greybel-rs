@@ -1,0 +1,7 @@
+<Solution>
+  <!-- The plugin builds only in its own configurations (Release-/Debug-BepInEx5/6); the tests build its Debug-BepInEx5. -->
+  <Project Path="src/GreyHackMessageHook.csproj">
+    <Build Project="false" />
+  </Project>
+  <Project Path="tests/GreyHackMessageHook.Tests.csproj" />
+</Solution>

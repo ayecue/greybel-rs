@@ -1,0 +1,22 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/super-call-origin.src
+---
+[
+  "null",
+  "\"ClassD.Init\"",
+  "FUNCTION(messageForClassC)",
+  "\"hello class d\"",
+  "null",
+  "\"ClassC.Init\"",
+  "FUNCTION(messageForClassB)",
+  "\"hello class c\"",
+  "null",
+  "\"ClassB.Init\"",
+  "FUNCTION(messageForClassA)",
+  "\"hello class b\"",
+  "null",
+  "\"ClassA.Init\"",
+  "\"hello class a\""
+]

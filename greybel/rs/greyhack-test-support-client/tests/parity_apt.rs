@@ -1,0 +1,100 @@
+//! apt: the official and a custom repository.
+
+use greybel_test_support::game::Game;
+use greyhack_behaviour::{Reward, ServiceId};
+use greyhack_test_support_client::protocol::test_support::LanNodeKind;
+
+use crate::support::game::{join_network, join_network_of_kind_where, setup_player, test_client};
+use crate::support::parity::{assert_succeeded, compare_in};
+use crate::support::remote::{find_service, service};
+
+/// Repository listing, search, source editing, update, upgrade checks and package installation.
+#[tokio::test]
+async fn should_match_intrinsics_for_apt_repositories() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+
+    client
+        .install_library(
+            "",
+            "aptclient.so",
+            u8::try_from(Reward::Shell.code()).unwrap(),
+        )
+        .await
+        .unwrap();
+    client
+        .install_library(
+            "",
+            "blockchain.so",
+            u8::try_from(Reward::Shell.code()).unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+    let scripts = vec![
+        "apt = include_lib(\"/lib/aptclient.so\"); print typeof(apt); print apt.update; print apt.show(\"official_server\"); print apt.show(\"unknown.org\"); print apt.search(\"blockchain\"); print apt.search(\"nope\"); print apt.add_repo(\"\"); print apt.add_repo(\"hackshop.org\"); print apt.add_repo(\"ghost.org\"); home = get_shell.host_computer; print apt.install(\"nmap\", home_dir); print home.File(home_dir + \"/nmap\") == null; print apt.install(\"blockchain.so\", home_dir); f = home.File(home_dir + \"/blockchain.so\"); print f != null; print f.is_binary; print apt.check_upgrade(home_dir + \"/blockchain.so\"); print apt.install(\"ghostpkg\"); print apt.del_repo(\"hackshop.org\"); print apt.del_repo(\"missing.org\"); print apt.search(\"blockchain\"); print apt.add_repo(\"45.45.45.45\", 9999); print apt.update"
+            .to_owned(),
+    ];
+
+    compare_in(&client, &user, &snapshot, &scripts).await;
+    client.shutdown();
+}
+
+/// A repository service's own catalog, packages and upgrade comparisons through a custom source. The repository is the
+/// HackShop's: `Router.PostGenComputer` replaces its catalog with the files of `/Public/htdocs/downloads`, so the
+/// `helloworld` package `Service_repod.ConfigService` gives a repository a player installs is not there, and
+/// `AptClientIntrinsics.install` answers "not found in the server" and installs nothing. The script installs what the
+/// shop serves: a program (`scanlib`) and a library (`metaxploit.so`).
+#[tokio::test]
+async fn should_match_intrinsics_for_a_custom_apt_repository() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+
+    client
+        .install_library(
+            "",
+            "aptclient.so",
+            u8::try_from(Reward::Shell.code()).unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let shop = client.find_network("HackShop", "").await.unwrap();
+
+    join_network(&client, &shop.public_ip).await;
+
+    let snapshot = join_network_of_kind_where(&client, &["HackShop"], "repository", |snapshot| {
+        find_service(snapshot, "repository").is_some()
+    })
+    .await;
+    let (address, port) = service(&snapshot, "repository");
+    let catalog = snapshot
+        .nodes
+        .iter()
+        .filter(|node| node.local_ip == address)
+        .find_map(|node| match &node.node {
+            LanNodeKind::Computer(computer) => computer
+                .files
+                .iter()
+                .find(|file| file.path == ServiceId::Repository.config_path()),
+            _ => None,
+        })
+        .expect("the repository computer has its catalog")
+        .content
+        .to_string();
+
+    assert!(
+        catalog.contains("\"scanlib\"") && catalog.contains("\"metaxploit.so\""),
+        "the shop's catalog lacks the packages the script installs: {catalog}"
+    );
+
+    let script = format!(
+        "apt = include_lib(\"/lib/aptclient.so\"); pc = get_shell.host_computer; print apt.add_repo(\"{address}\", {port}); print apt.update; print apt.show(\"{address}\"); print apt.search(\"scan\"); print apt.install(\"scanlib\", home_dir); file = pc.File(home_dir + \"/scanlib\"); print [file != null, file.is_binary, file.get_content]; print apt.check_upgrade(file.path); print file.set_content(\"older\"); print apt.check_upgrade(file.path); print apt.install(\"metaxploit.so\", home_dir); lib = pc.File(home_dir + \"/metaxploit.so\"); print [lib != null, lib.is_binary]; print apt.check_upgrade(lib.path); print apt.install(\"blockchain.so\", home_dir); print pc.File(home_dir + \"/blockchain.so\") != null; print apt.check_upgrade(home_dir + \"/blockchain.so\")"
+    );
+
+    assert_succeeded(&compare_in(&client, &user, &snapshot, &[script]).await);
+    client.shutdown();
+}

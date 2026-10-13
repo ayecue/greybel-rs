@@ -1,0 +1,21 @@
+[package]
+name = "thin-str"
+description = "Immutable reference-counted UTF-8 string with a custom header stored in one allocation behind a thin pointer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[lib]
+doctest = false
+
+[dependencies]
+
+# This crate's single-allocation layout requires unsafe code.
+# Check it with `cargo +nightly miri test -p thin-str`.
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }

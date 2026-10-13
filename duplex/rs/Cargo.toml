@@ -1,0 +1,94 @@
+[workspace]
+resolver = "3"
+members = ["duplex-*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.93"
+repository = "https://github.com/ayecue/greybel-rs"
+
+[workspace.dependencies]
+duplex-core = { path = "duplex-core" }
+duplex-cs = { path = "duplex-cs" }
+duplex-driver-http = { path = "duplex-driver-http" }
+duplex-driver-memory = { path = "duplex-driver-memory" }
+duplex-driver-stdio = { path = "duplex-driver-stdio" }
+duplex-driver-web = { path = "duplex-driver-web" }
+duplex-driver-websocket = { path = "duplex-driver-websocket" }
+duplex-macros = { path = "duplex-macros" }
+duplex-protocol = { path = "duplex-protocol" }
+duplex-test-support = { path = "duplex-test-support" }
+duplex-tokio = { path = "duplex-tokio" }
+duplex-ts = { path = "duplex-ts" }
+scheduler = { path = "../../common/rs/scheduler" }
+
+base64 = "0.22"
+bytes = "1"
+chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"] }
+criterion = { version = "0.7", default-features = false, features = ["cargo_bench_support"] }
+ed25519-dalek = { version = "2", default-features = false }
+fastrand = "2"
+futures-channel = { version = "0.3", default-features = false, features = ["alloc"] }
+futures-core = { version = "0.3", default-features = false }
+futures-util = { version = "0.3", default-features = false }
+getrandom = { version = "0.4", features = ["wasm_js"] }
+hmac = "0.12"
+http-body-util = "0.1"
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+js-sys = "0.3"
+oxc_allocator = "0.155"
+oxc_ast = "0.155"
+oxc_codegen = { version = "0.155", default-features = false }
+oxc_span = "0.155"
+proc-macro2 = "1"
+quote = "1"
+regex-automata = { version = "0.4", default-features = false, features = ["std", "syntax", "dfa-build", "unicode"] }
+rustc-hash = "2"
+rustix = "1"
+serde_json = "1"
+sha2 = { version = "0.10", default-features = false }
+slotmap = "1.1"
+smallvec = { version = "1.13", features = ["const_generics", "union"] }
+snow = { version = "0.10", default-features = false, features = ["default-resolver", "std", "use-chacha20poly1305", "use-sha2", "use-curve25519", "use-getrandom"] }
+syn = "2"
+thiserror = "2"
+tokio = "1"
+tokio-tungstenite = { version = "0.30", default-features = false, features = ["handshake"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = "0.3"
+x25519-dalek = { version = "2", default-features = false, features = ["static_secrets"] }
+
+# Keep local line tables, omitting other debug info and all dependency debug info.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+# Binaries choose their own panic behavior.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# BinaryReader/BinaryWriter fail alike; their types document it instead of each method.
+missing_errors_doc = "allow"
+# Panics are documented where callers can cause them; internal invariants and test failures aren't.
+missing_panics_doc = "allow"
+# `#[must_use]` goes where dropping the result loses something, not on every getter.
+must_use_candidate = "allow"
+single_match_else = "allow"
+# Generators emit one declaration per function.
+too_many_lines = "allow"
+# Builders name the lifetime their methods return.
+elidable_lifetime_names = "allow"
+similar_names = "allow"

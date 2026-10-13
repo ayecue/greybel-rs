@@ -1,0 +1,46 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/scripts/strings.src
+---
+["a", "b", "c", ""]
+["a", "-", "b", "+", "c"]
+["a", "b"]
+<color=yellow>Warning: to split using the dot character you must use split("\.")</color>
+["", "", "", "", "", "", "", ""]
+["one", "two"]
+Hell0 W0rld
+Smith, John
+a[a|b|c]c
+a$c
+a<b>c
+bbb
+
+1
+0
+1
+0
+{2: "😀", 4: "b", 5: "😀"}
+{1: "1", 3: "2"}
+padded|
+4
+-1
+2
+43
+-7
+1.5
+99999999999
+1000
+-5
+1000
+abc
+5
+0
+5d41402abc4b2a76b9719d911017c592
+d41d8cd98f00b204e9800998ecf8427e
+A1
+65
+0
+["a", "b", "c"]
+[]
+split: Invalid regex option

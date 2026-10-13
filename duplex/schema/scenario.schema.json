@@ -1,0 +1,889 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ayecue/greybel-rs/duplex/schema/scenario.schema.json",
+  "title": "Duplex scenario",
+  "description": "A run of one channel of the calculator protocol (duplex/conformance/calculator) against a scripted remote peer, which every duplex core must pass. The channel's driver gives it random bytes that are all 0, so the client opens with the id 0 and the provider's connection is 1.",
+  "type": "object",
+  "required": ["description", "peer", "requires", "steps"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "description": { "type": "string", "description": "What the scenario shows." },
+    "peer": {
+      "description": "The channel run: the client `User` or the provider `Calculator`; the steps play the other.",
+      "enum": ["client", "provider"]
+    },
+    "requires": {
+      "description": "What of duplex the scenario needs besides connecting, notifications in both directions, rejecting what is unhandled, malformed or invalid, pinging, closing and versions: a core that leaves one of these out skips it. `responses`: the channel responds to messages or sends messages it waits for the responses of; `streams`: messages or responses with streams; `cancellation`: cancelling messages; `timeouts`: messages or streams timing out; `migration`: serving an older major by a migration; `handshake`: what an open carries and its handler accepting or denying it; `security`: a secured transport; `limits`: limits other than the core's defaults; `health-check`: the health check; `fragments`: frames split into fragments. The Rust core's tests check it against what the scenario's options, steps and frames use.",
+      "type": "array",
+      "items": {
+        "enum": ["responses", "streams", "cancellation", "timeouts", "migration", "handshake", "security", "limits", "health-check", "fragments"]
+      },
+      "uniqueItems": true
+    },
+    "protocol": {
+      "description": "The protocol of the channel run: the calculator's (`duplex/conformance/calculator`), by default; the login protocol's (`duplex/conformance/login`), whose handshake declares what a client opens with, what a provider acknowledges it with, and what it denies it with; or the vault's (`duplex/conformance/vault`), which needs a transport whose ends prove who they are, and whose keeper reveals a secret named `key` as `the key`.",
+      "enum": ["calculator", "login", "vault"]
+    },
+    "major": {
+      "description": "The calculator's major the channel run speaks, 1 by default. A provider of 2 serves its remote client of 1.x by a migration, which adds the two terms of 1.x's `Add` as 2.x's list; frames are still written in 1.x's layouts.",
+      "enum": [1, 2]
+    },
+    "migrates": {
+      "description": "Whether a provider of the calculator's 2 has the migration from 1.x, true by default.",
+      "type": "boolean"
+    },
+    "open": {
+      "description": "What a client of the login protocol opens with.",
+      "$ref": "#/$defs/credentials"
+    },
+    "connected": {
+      "description": "Starts once the client opened and the provider acknowledged, with nothing left to send.",
+      "type": "boolean",
+      "default": false
+    },
+    "healthCheck": {
+      "description": "Runs the default health check (two missed checks turn the connection unhealthy, the third closes it), whose checks only `check` steps run.",
+      "type": "boolean",
+      "default": false
+    },
+    "unhandled": {
+      "description": "Requests, notifications and opens the channel has no handler for. The others are handled: `Add` replies with the sum, `Divide` with the quotient or fails with `ByZero`, `Confirm` replies whether the question ends with `?`, `Log` and `Progress` are received; of the login protocol, `Whoami` replies `ada`, and `Open` accepts `ada` with the token `t0k`, greeting her `hello, ada`, denies `ada` with another token as `WrongToken`, and other users as `UnknownUser`.",
+      "type": "array",
+      "items": { "anyOf": [{ "$ref": "#/$defs/messageName" }, { "const": "Open" }] },
+      "uniqueItems": true
+    },
+    "unvalidated": {
+      "description": "Whether the channel sends without checking what it sends against its requirements.",
+      "type": "boolean"
+    },
+    "streamWindow": {
+      "description": "How many items of a stream its sender sends before its receiver asks for more; the core's default otherwise.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "limits": {
+      "description": "What the channel holds at once, past which it fails or rejects messages as `Overload`; the core's defaults otherwise.",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "queued": {
+          "description": "Messages sent before there is a connection.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "pending": {
+          "description": "Messages sent that wait for their responses.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "responding": {
+          "description": "Messages of the remote peer its handlers respond to.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "waiting": {
+          "description": "Messages of the remote peer waiting for a handler to take them.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "message": {
+          "description": "The bytes a frame of a message takes at most: one sent past it fails, one received past it is rejected.",
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "security": {
+      "description": "Secures the transport by the Noise handshake, from keys that are all 0. The steps then play no batches but a channel of the other role, of the same protocol and handlers, on the transport's other end, and pass the batches of both ends between them until neither sends more; what a channel sends can't be expected, as it is encrypted.",
+      "type": "object",
+      "required": ["channel", "remote"],
+      "additionalProperties": false,
+      "properties": {
+        "channel": { "$ref": "#/$defs/securedEnd" },
+        "remote": { "$ref": "#/$defs/securedEnd" }
+      }
+    },
+    "steps": { "type": "array", "items": { "$ref": "#/$defs/step" } }
+  },
+  "$defs": {
+    "step": {
+      "oneOf": [
+        {
+          "description": "The remote peer sends a batch.",
+          "type": "object",
+          "required": ["receive"],
+          "additionalProperties": false,
+          "properties": { "receive": { "$ref": "#/$defs/batch" } }
+        },
+        {
+          "description": "The channel sends a message; one that has a response is kept as `as`, and fails with `fails` when given.",
+          "type": "object",
+          "required": ["send"],
+          "additionalProperties": false,
+          "properties": {
+            "send": { "$ref": "#/$defs/message" },
+            "as": { "type": "string" },
+            "fails": { "$ref": "#/$defs/outcome" }
+          }
+        },
+        {
+          "description": "The channel takes this many items of the streamed response kept as `of`, asking for more as its window says.",
+          "type": "object",
+          "required": ["take", "of"],
+          "additionalProperties": false,
+          "properties": { "take": { "type": "integer", "minimum": 1 }, "of": { "type": "string" } }
+        },
+        {
+          "description": "The channel drops the response kept as `drop` before it settles, cancelling the message.",
+          "type": "object",
+          "required": ["drop"],
+          "additionalProperties": false,
+          "properties": { "drop": { "type": "string" } }
+        },
+        {
+          "description": "The channel sends an item of the stream of the message kept as `into`, keyed by the message's name.",
+          "type": "object",
+          "required": ["item", "into"],
+          "additionalProperties": false,
+          "properties": {
+            "item": {
+              "type": "object",
+              "minProperties": 1,
+              "maxProperties": 1,
+              "additionalProperties": false,
+              "properties": { "Sum": { "type": "integer" } }
+            },
+            "into": { "type": "string" }
+          }
+        },
+        {
+          "description": "The channel ends the stream of the message kept as `end`.",
+          "type": "object",
+          "required": ["end"],
+          "additionalProperties": false,
+          "properties": { "end": { "type": "string" } }
+        },
+        {
+          "description": "The channel's health check runs this many times.",
+          "type": "object",
+          "required": ["check"],
+          "additionalProperties": false,
+          "properties": { "check": { "type": "integer", "minimum": 1 } }
+        },
+        {
+          "description": "This many milliseconds pass on the driver's clock, running what is due on the way.",
+          "type": "object",
+          "required": ["wait"],
+          "additionalProperties": false,
+          "properties": { "wait": { "type": "integer", "minimum": 1 } }
+        },
+        {
+          "description": "The channel closes for the reason.",
+          "type": "object",
+          "required": ["close"],
+          "additionalProperties": false,
+          "properties": { "close": { "$ref": "#/$defs/errorCode" } }
+        },
+        {
+          "description": "Over a secure transport, the next batch the remote channel's end sends arrives damaged: its last byte flipped.",
+          "type": "object",
+          "required": ["forge"],
+          "additionalProperties": false,
+          "properties": { "forge": { "const": true } }
+        },
+        {
+          "description": "The driver tells the channel the way to the remote peer is gone.",
+          "type": "object",
+          "required": ["disconnect"],
+          "additionalProperties": false,
+          "properties": { "disconnect": { "const": true } }
+        },
+        {
+          "description": "Once the tasks the channel deferred ran.",
+          "type": "object",
+          "required": ["expect"],
+          "additionalProperties": false,
+          "properties": { "expect": { "$ref": "#/$defs/expectation" } }
+        }
+      ]
+    },
+    "expectation": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "sent": {
+          "description": "The batches the channel sent since the last `sent`, in order.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/batch" }
+        },
+        "received": {
+          "description": "The notifications the channel's handlers got since the last `received`.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/message" }
+        },
+        "settled": {
+          "description": "How the requests kept by these names settled.",
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/outcome" }
+        },
+        "health": { "enum": ["healthy", "unhealthy"] },
+        "connection": {
+          "description": "The current connection, null for none.",
+          "type": ["integer", "null"]
+        },
+        "closed": {
+          "description": "Why the channel closed, null while it is open.",
+          "oneOf": [{ "$ref": "#/$defs/errorCode" }, { "type": "null" }]
+        },
+        "deprecated": {
+          "description": "The deprecations the channel learned of since the last `deprecated`: its own version's, as a client, its client's, as a provider.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["version", "note"],
+            "additionalProperties": false,
+            "properties": { "version": { "$ref": "#/$defs/version" }, "note": { "type": "string" } }
+          }
+        },
+        "version": {
+          "description": "The version of the protocol both peers speak, null before there is a connection.",
+          "oneOf": [{ "$ref": "#/$defs/version" }, { "type": "null" }]
+        },
+        "ack": {
+          "description": "What the provider acknowledged a client of the login protocol with, null before.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["greeting"],
+              "additionalProperties": false,
+              "properties": { "greeting": { "type": "string" } }
+            },
+            { "type": "null" }
+          ]
+        },
+        "refusal": {
+          "description": "What the provider denied a client of the login protocol with, null unless denied.",
+          "oneOf": [{ "enum": ["UnknownUser", "WrongToken"] }, { "type": "null" }]
+        }
+      }
+    },
+    "outcome": {
+      "oneOf": [
+        { "const": "pending" },
+        {
+          "description": "The connection's version is older than the minor that added what was sent.",
+          "const": "unsupported"
+        },
+        {
+          "type": "object",
+          "required": ["response"],
+          "additionalProperties": false,
+          "properties": { "response": { "$ref": "#/$defs/value" } }
+        },
+        {
+          "description": "The message's declared failure.",
+          "type": "object",
+          "required": ["failed"],
+          "additionalProperties": false,
+          "properties": { "failed": { "$ref": "#/$defs/value" } }
+        },
+        {
+          "type": "object",
+          "required": ["rejected"],
+          "additionalProperties": false,
+          "properties": { "rejected": { "$ref": "#/$defs/errorCode" } }
+        },
+        {
+          "description": "A value of the message didn't meet its requirement, or a frame of it its limit.",
+          "type": "object",
+          "required": ["invalid"],
+          "additionalProperties": false,
+          "properties": { "invalid": { "$ref": "#/$defs/violation" } }
+        },
+        {
+          "type": "object",
+          "required": ["closed"],
+          "additionalProperties": false,
+          "properties": { "closed": { "$ref": "#/$defs/errorCode" } }
+        },
+        {
+          "description": "A streamed response: what it started with, the items taken, and what it ended with, or its failure.",
+          "type": "object",
+          "required": ["items"],
+          "additionalProperties": false,
+          "properties": {
+            "start": { "$ref": "#/$defs/value" },
+            "items": { "type": "array", "items": { "$ref": "#/$defs/value" } },
+            "end": { "$ref": "#/$defs/value" },
+            "failed": { "$ref": "#/$defs/value" },
+            "rejected": { "$ref": "#/$defs/errorCode" },
+            "closed": { "$ref": "#/$defs/errorCode" }
+          }
+        }
+      ]
+    },
+    "batch": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["connection", "frames"],
+          "additionalProperties": false,
+          "properties": {
+            "connection": { "description": "0 for none.", "type": "integer", "minimum": 0 },
+            "frames": { "type": "array", "items": { "$ref": "#/$defs/frame" } },
+            "channel": {
+              "description": "The channel id, the protocol's by default.",
+              "type": "integer",
+              "minimum": 0
+            },
+            "from": {
+              "description": "The sender's role: the remote peer's for `receive`, the channel's for `sent`.",
+              "enum": ["client", "provider"]
+            },
+            "core": {
+              "description": "The major of the core the batch is written in, this core's by default; a channel reads only `Listen`, `Open` and `Refuse` of another.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            },
+            "truncate": { "description": "Bytes cut off the end.", "type": "integer", "minimum": 1 },
+            "minor": {
+              "description": "The minor the frames' bodies are written for, the newest by default.",
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        {
+          "description": "Bytes that may be no batch at all.",
+          "type": "object",
+          "required": ["bytes"],
+          "additionalProperties": false,
+          "properties": { "bytes": { "$ref": "#/$defs/hex" } }
+        }
+      ]
+    },
+    "frame": {
+      "oneOf": [
+        {
+          "description": "A message: its id when it has a response, and the message, or the message's name and a body of hex.",
+          "type": "object",
+          "required": ["Message"],
+          "additionalProperties": false,
+          "properties": {
+            "Message": {
+              "type": "object",
+              "minProperties": 1,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "message": { "$ref": "#/$defs/messageName" },
+                "body": { "$ref": "#/$defs/hex" }
+              },
+              "propertyNames": {
+                "enum": [
+                  "id",
+                  "message",
+                  "body",
+                  "Log",
+                  "Add",
+                  "Divide",
+                  "Reset",
+                  "Confirm",
+                  "Progress",
+                  "Whoami",
+                  "Count",
+                  "Sum"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "description": "The response to the message of the id, keyed by its message; of a streamed one, what it ends with.",
+          "type": "object",
+          "required": ["ResponseEnd"],
+          "additionalProperties": false,
+          "properties": {
+            "ResponseEnd": {
+              "type": "object",
+              "required": ["id"],
+              "minProperties": 1,
+              "maxProperties": 2,
+              "properties": { "id": { "type": "integer", "minimum": 0 } },
+              "propertyNames": {
+                "enum": ["id", "Add", "Divide", "Confirm", "Whoami", "Count", "Sum"]
+              }
+            }
+          }
+        },
+        {
+          "description": "A message failed: with its declared failure, keyed by its message, or `rejected` for a reason.",
+          "type": "object",
+          "required": ["Failure"],
+          "additionalProperties": false,
+          "properties": {
+            "Failure": {
+              "type": "object",
+              "required": ["id"],
+              "minProperties": 2,
+              "maxProperties": 3,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "rejected": { "$ref": "#/$defs/errorCode" },
+                "violation": { "$ref": "#/$defs/violation" },
+                "Divide": { "$ref": "#/$defs/value" }
+              }
+            }
+          }
+        },
+        {
+          "description": "What the streamed response to the message of the id starts with.",
+          "type": "object",
+          "required": ["ResponseStart"],
+          "additionalProperties": false,
+          "properties": {
+            "ResponseStart": {
+              "type": "object",
+              "required": ["id"],
+              "minProperties": 1,
+              "maxProperties": 2,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "Count": { "$ref": "#/$defs/value" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        {
+          "description": "An item of the streamed response to the message of the id.",
+          "type": "object",
+          "required": ["ResponseItem"],
+          "additionalProperties": false,
+          "properties": {
+            "ResponseItem": {
+              "type": "object",
+              "required": ["id"],
+              "minProperties": 1,
+              "maxProperties": 2,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "Count": { "$ref": "#/$defs/value" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        {
+          "description": "The message's sender takes this many more items of its response.",
+          "type": "object",
+          "required": ["ResponseCredit"],
+          "additionalProperties": false,
+          "properties": {
+            "ResponseCredit": {
+              "type": "object",
+              "required": ["id", "count"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "count": { "type": "integer", "minimum": 1 }
+              }
+            }
+          }
+        },
+        {
+          "description": "An item of the stream of the message of the id.",
+          "type": "object",
+          "required": ["MessageItem"],
+          "additionalProperties": false,
+          "properties": {
+            "MessageItem": {
+              "type": "object",
+              "required": ["id"],
+              "minProperties": 1,
+              "maxProperties": 2,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "Sum": { "$ref": "#/$defs/value" },
+                "body": { "$ref": "#/$defs/hex", "description": "The item's bytes as they are, which may not be an item at all." }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        {
+          "description": "What the stream of the message of the id ends with; nothing for a stream that ends with no value.",
+          "type": "object",
+          "required": ["MessageEnd"],
+          "additionalProperties": false,
+          "properties": {
+            "MessageEnd": {
+              "type": "object",
+              "required": ["id"],
+              "minProperties": 1,
+              "maxProperties": 2,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "Sum": { "$ref": "#/$defs/value" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        {
+          "description": "The message's receiver takes this many more items of its stream.",
+          "type": "object",
+          "required": ["MessageCredit"],
+          "additionalProperties": false,
+          "properties": {
+            "MessageCredit": {
+              "type": "object",
+              "required": ["id", "count"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "count": { "type": "integer", "minimum": 1 }
+              }
+            }
+          }
+        },
+        { "$ref": "#/$defs/emptyControl" },
+        {
+          "type": "object",
+          "required": ["Open"],
+          "additionalProperties": false,
+          "properties": {
+            "Open": {
+              "type": "object",
+              "required": ["id"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "fingerprint": {
+                  "description": "The fingerprint of that version, the calculator's of it by default.",
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "core": {
+                  "$ref": "#/$defs/version",
+                  "description": "The client's core, this core's by default."
+                },
+                "protocol": {
+                  "$ref": "#/$defs/version",
+                  "description": "The version of the protocol the client speaks, the calculator's newest by default."
+                },
+                "payload": {
+                  "$ref": "#/$defs/credentials",
+                  "description": "What a client of the login protocol opens with."
+                },
+                "payloadBytes": {
+                  "$ref": "#/$defs/hex",
+                  "description": "What the frame carries after its own fields, as bytes."
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["Ack"],
+          "additionalProperties": false,
+          "properties": {
+            "Ack": {
+              "type": "object",
+              "required": ["id", "connection"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "connection": { "type": "integer", "minimum": 1 },
+                "core": {
+                  "$ref": "#/$defs/version",
+                  "description": "The core both peers speak, this core's by default."
+                },
+                "protocol": {
+                  "$ref": "#/$defs/version",
+                  "description": "The version of the protocol both peers speak, the calculator's newest by default."
+                },
+                "fingerprint": {
+                  "description": "The fingerprint of that version, the calculator's of it by default.",
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "deprecation": {
+                  "description": "Why the client's version is going away.",
+                  "type": "string"
+                },
+                "payload": {
+                  "description": "What the login protocol's provider acknowledges a client with.",
+                  "type": "object",
+                  "required": ["greeting"],
+                  "additionalProperties": false,
+                  "properties": { "greeting": { "type": "string" } }
+                },
+                "payloadBytes": {
+                  "$ref": "#/$defs/hex",
+                  "description": "What the frame carries after its own fields, as bytes."
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["Refuse"],
+          "additionalProperties": false,
+          "properties": {
+            "Refuse": {
+              "type": "object",
+              "required": ["id", "reason"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "integer", "minimum": 0 },
+                "reason": { "$ref": "#/$defs/errorCode" },
+                "core": {
+                  "$ref": "#/$defs/version",
+                  "description": "The provider's core, this core's by default."
+                },
+                "protocol": {
+                  "$ref": "#/$defs/version",
+                  "description": "The newest version of the protocol the provider speaks, the calculator's by default."
+                },
+                "majors": {
+                  "description": "The protocol's majors the provider serves, the calculator's by default.",
+                  "type": "array",
+                  "items": { "type": "integer", "minimum": 0 }
+                },
+                "payload": {
+                  "description": "What the login protocol's provider denies a client with.",
+                  "enum": ["UnknownUser", "WrongToken"]
+                },
+                "payloadBytes": {
+                  "$ref": "#/$defs/hex",
+                  "description": "What the frame carries after its own fields, as bytes."
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["Close"],
+          "additionalProperties": false,
+          "properties": {
+            "Close": {
+              "type": "object",
+              "required": ["reason"],
+              "additionalProperties": false,
+              "properties": { "reason": { "$ref": "#/$defs/errorCode" } }
+            }
+          }
+        },
+        {
+          "description": "A frame of a kind no core knows.",
+          "type": "object",
+          "required": ["Unknown"],
+          "additionalProperties": false,
+          "properties": {
+            "Unknown": {
+              "type": "object",
+              "required": ["kind", "payload"],
+              "additionalProperties": false,
+              "properties": {
+                "kind": { "type": "integer", "minimum": 11, "maximum": 255 },
+                "payload": { "$ref": "#/$defs/hex" }
+              }
+            }
+          }
+        },
+        {
+          "description": "The message's sender no longer waits for its response.",
+          "type": "object",
+          "required": ["Cancel"],
+          "additionalProperties": false,
+          "properties": {
+            "Cancel": {
+              "type": "object",
+              "required": ["id"],
+              "additionalProperties": false,
+              "properties": { "id": { "type": "integer", "minimum": 0 } }
+            }
+          }
+        },
+        {
+          "description": "The bytes `from` to `to` of the frame `of` as its sender holds it, kind and length first; the last piece when `to` is its end.",
+          "type": "object",
+          "required": ["Fragment"],
+          "additionalProperties": false,
+          "properties": {
+            "Fragment": {
+              "type": "object",
+              "required": ["of"],
+              "additionalProperties": false,
+              "properties": {
+                "of": { "$ref": "#/$defs/frame" },
+                "from": { "type": "integer", "minimum": 0 },
+                "to": { "type": "integer", "minimum": 0 }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "emptyControl": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "Listen": { "$ref": "#/$defs/empty" },
+        "Ping": { "$ref": "#/$defs/empty" },
+        "Pong": { "$ref": "#/$defs/empty" }
+      }
+    },
+    "empty": { "type": "object", "maxProperties": 0 },
+    "message": {
+      "description": "A message of the calculator, login or vault protocol by its name, and its fields.",
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "Log": {
+          "type": "object",
+          "required": ["text"],
+          "additionalProperties": false,
+          "properties": { "text": { "type": "string" } }
+        },
+        "Add": {
+          "type": "object",
+          "required": ["a", "b"],
+          "additionalProperties": false,
+          "properties": { "a": { "type": "integer" }, "b": { "type": "integer" } }
+        },
+        "Divide": {
+          "type": "object",
+          "required": ["dividend", "divisor"],
+          "additionalProperties": false,
+          "properties": {
+            "dividend": { "type": "integer" },
+            "divisor": { "type": "integer" },
+            "precision": {
+              "description": "Added by 1.1.",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          }
+        },
+        "Confirm": {
+          "type": "object",
+          "required": ["question"],
+          "additionalProperties": false,
+          "properties": { "question": { "type": "string" } }
+        },
+        "Reset": { "description": "Added by 1.1.", "type": "object", "maxProperties": 0 },
+        "Progress": {
+          "description": "The phase, and the seconds left, added by 1.1; the other fields are empty.",
+          "type": "object",
+          "required": ["phase"],
+          "additionalProperties": false,
+          "properties": {
+            "phase": {
+              "enum": ["Pending", "Active", "Final"],
+              "description": "`Final` is added by 1.1."
+            },
+            "eta": { "type": "number" }
+          }
+        },
+        "Whoami": { "description": "Of the login protocol.", "type": "object", "maxProperties": 0 },
+        "Count": {
+          "description": "Added by 1.1: the numbers up to `to`, streamed after the phase, then their sum.",
+          "type": "object",
+          "required": ["to"],
+          "additionalProperties": false,
+          "properties": { "to": { "type": "integer", "minimum": 0 } }
+        },
+        "Sum": {
+          "description": "Added by 1.1: adds the terms streamed after it.",
+          "type": "object",
+          "maxProperties": 0
+        },
+        "Reveal": {
+          "description": "The vault's.",
+          "type": "object",
+          "required": ["name"],
+          "additionalProperties": false,
+          "properties": { "name": { "type": "string" } }
+        }
+      }
+    },
+    "messageName": { "enum": ["Log", "Add", "Divide", "Reset", "Confirm", "Progress", "Whoami"] },
+    "value": {
+      "description": "A reply or a failure: `Add` an integer, `Divide` a `Quotient` like {\"Exact\": {\"value\": 2}} or the `DivisionFailure` member's name, `Confirm` a boolean, `Whoami` and `Reveal` a string."
+    },
+    "errorCode": {
+      "enum": [
+        "ClosedChannel",
+        "Timeout",
+        "VersionMismatch",
+        "Busy",
+        "ConnectionLoss",
+        "Panic",
+        "UnhandledMessage",
+        "DroppedMessage",
+        "HandlerFailure",
+        "MalformedMessage",
+        "UnsupportedVersion",
+        "Denial",
+        "Cancellation",
+        "Insecure",
+        "Overload",
+        "Invalid"
+      ]
+    },
+    "violation": {
+      "description": "What a value failed to meet, and where it is.",
+      "type": "object",
+      "required": ["path", "requirement"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "requirement": { "enum": ["MinLength", "MaxLength", "Minimum", "Maximum", "Pattern", "Limit"] }
+      }
+    },
+    "hex": { "type": "string", "pattern": "^([0-9a-f]{2})*$" },
+    "version": {
+      "description": "A version as major.minor.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "credentials": {
+      "type": "object",
+      "required": ["user", "token"],
+      "additionalProperties": false,
+      "properties": { "user": { "type": "string" }, "token": { "type": "string" } }
+    },
+    "securedEnd": {
+      "description": "The security of one end of the transport: its client's end initiates the handshake.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "identity": {
+          "description": "The identity it proves: the Ed25519 secret key of 32 bytes of this number.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "trusts": {
+          "description": "The only identities it trusts, by their numbers; any, when not given.",
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+        },
+        "signsBatches": { "description": "Both ends sign every batch.", "type": "boolean" }
+      }
+    }
+  }
+}

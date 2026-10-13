@@ -1,0 +1,24 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/commands.src
+---
+1 1 2472628
+/home/test
+1
+test
+1
+guest  
+test
+<b>Usage: ls [opt:-l, -a, -la] [opt: path]</b>
+It can be called without parameters.
+
+<b>Usage: ls [opt:-l, -a, -la] [opt: path]</b>
+It can be called without parameters.
+1
+NO_SUCH_KEY
+null
+test
+1
+drwxrwxrwx
+1

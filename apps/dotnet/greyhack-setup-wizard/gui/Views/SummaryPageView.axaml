@@ -1,0 +1,69 @@
+<UserControl
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:GreyHackSetupWizard.Gui.ViewModels"
+  xmlns:res="using:GreyHackSetupWizard.Gui.Resources"
+  x:Class="GreyHackSetupWizard.Gui.Views.SummaryPageView"
+  x:DataType="vm:SummaryPageViewModel"
+>
+  <StackPanel Spacing="16">
+    <TextBlock Classes="heading" Text="{x:Static res:WindowText.SummaryPageTitle}" />
+
+    <StackPanel Spacing="6" IsVisible="{Binding HasChanges}">
+      <TextBlock Classes="note" Text="{x:Static res:WindowText.SummaryIntro}" />
+      <ItemsControl ItemsSource="{Binding Changes}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="x:String">
+            <TextBlock
+              Text="{Binding StringFormat={x:Static res:WindowText.SummaryBullet}}"
+              TextWrapping="Wrap"
+              Margin="0,2"
+            />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+    <TextBlock
+      Classes="note"
+      Text="{x:Static res:WindowText.SummaryNothing}"
+      IsVisible="{Binding !HasChanges}"
+    />
+
+    <Button
+      Name="apply"
+      Content="{x:Static res:WindowText.Apply}"
+      Classes="accent"
+      Command="{Binding ApplyCommand}"
+      IsVisible="{Binding !IsDone}"
+    />
+    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsRunning}" />
+
+    <Border
+      IsVisible="{Binding !!Log.Count}"
+      CornerRadius="4"
+      Padding="12"
+      Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+    >
+      <ItemsControl ItemsSource="{Binding Log}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="x:String">
+            <SelectableTextBlock
+              Text="{Binding}"
+              TextWrapping="Wrap"
+              FontFamily="{StaticResource MonospaceFont}"
+            />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+
+    <TextBlock
+      Name="outcome"
+      Text="{Binding Outcome}"
+      FontWeight="SemiBold"
+      TextWrapping="Wrap"
+      Classes.problem="{Binding IsFailure}"
+      IsVisible="{Binding Outcome, Converter={x:Static ObjectConverters.IsNotNull}}"
+    />
+  </StackPanel>
+</UserControl>

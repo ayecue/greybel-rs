@@ -1,0 +1,42 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A channel of a protocol that needs an authenticated transport connects over one whose ends prove identities the other trusts.",
+  "peer": "client",
+  "requires": ["responses", "security"],
+  "connected": true,
+  "protocol": "vault",
+  "security": {
+    "channel": {
+      "identity": 1,
+      "trusts": [
+        2
+      ]
+    },
+    "remote": {
+      "identity": 2,
+      "trusts": [
+        1
+      ]
+    }
+  },
+  "steps": [
+    {
+      "send": {
+        "Reveal": {
+          "name": "key"
+        }
+      },
+      "as": "secret"
+    },
+    {
+      "expect": {
+        "settled": {
+          "secret": {
+            "response": "the key"
+          }
+        },
+        "closed": null
+      }
+    }
+  ]
+}

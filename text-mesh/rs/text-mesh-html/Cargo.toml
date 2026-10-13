@@ -1,0 +1,26 @@
+[package]
+name = "text-mesh-html"
+description = "Grey Hack's TextMesh Pro rich text as HTML spans with inline styles"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+text-mesh-core.workspace = true
+
+[dev-dependencies]
+base64.workspace = true
+text-mesh-test-support.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

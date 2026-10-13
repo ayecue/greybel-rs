@@ -1,0 +1,27 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A connected provider pings on a check that follows nothing from the client.",
+  "peer": "provider",
+  "requires": ["health-check"],
+  "connected": true,
+  "healthCheck": true,
+  "steps": [
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Ping": {}
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

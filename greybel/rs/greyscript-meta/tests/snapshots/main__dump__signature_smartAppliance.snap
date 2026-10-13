@@ -1,0 +1,179 @@
+---
+source: greyscript-meta/tests/dump.rs
+assertion_line: 10
+expression: part
+---
+definitionOrder:
+  - model
+  - override_settings
+  - set_alarm
+definitions:
+  model:
+    argStrings: []
+    id: model
+    json:
+      arguments: []
+      description: "Returns a `string` with the appliance model ID."
+      example:
+        - "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")"
+        - modelResult = libSmartapp.model
+        - "if modelResult.matches(\"^[A-Z]+$\") then"
+        - "    print(\"Model is: \" + modelResult)"
+        - else
+        - "    print(\"Model couldn't be determined due to: \" + modelResult)"
+        - end if
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: smartAppliance
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok:
+        - "error: Device hardware malfunction"
+        - "error: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  override_settings:
+    argStrings:
+      - - number
+      - - number
+    id: override_settings
+    json:
+      arguments:
+        - default: ~
+          label: power
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: temperature
+          opt: false
+          types:
+            - number
+      description: "Applies the exact power and temperature required by the appliance model. Other values return `\"override_settings: invalid power or temperature for this model. Check the device manual.\"`. With the alarm enabled, returns `\"override_settings: warning: Unsafe settings applied. The safety alarm will shut down the appliance if these values are reached.\"`; the accident is triggered only after the alarm is disabled, including by a later `set_alarm(0)` call."
+      example:
+        - "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")"
+        - "overrideResult = libSmartapp.override_settings(1000, 20)"
+        - if overrideResult == 1 then
+        - "    print(\"Override was successful!\")"
+        - else
+        - "    print(\"Override failed due to: \" + overrideResult)"
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: smartAppliance
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "error: Device hardware malfunction"
+        - "error: No internet access."
+        - "override_settings: denied: The settings are locked for security reasons."
+        - "override_settings: invalid power or temperature for this model. Check the device manual."
+        - "override_settings: warning: Unsafe settings applied. The safety alarm will shut down the appliance if these values are reached."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  set_alarm:
+    argStrings:
+      - - number
+    id: set_alarm
+    json:
+      arguments:
+        - default: ~
+          label: enable
+          opt: false
+          types:
+            - number
+      description: "Activates or deactivates the sound alarm indicating any appliance malfunction. If the operation is successful, a `number` with the value one is returned; otherwise, a `string` containing error details is returned. If the `enable` argument deviates from the defined signature, the method will return `null`. Disabling the alarm with `set_alarm(0)` can trigger an accident when unsafe override values are active."
+      example:
+        - "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")"
+        - setAlarmResult = libSmartapp.set_alarm(false)
+        - if setAlarmResult == 1 then
+        - "    print(\"Alarm was disabled successfully!\")"
+        - else
+        - "    print(\"Disabling alarm failed due to: \" + setAlarmResult)"
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: smartAppliance
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "error: Device hardware malfunction"
+        - "error: No internet access."
+        - "set_alarm: denied: The alarm settings are locked for security reasons."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - model
+  - override_settings
+  - set_alarm
+descriptions:
+  $meta:
+    description: "A `smartAppliance` object can be obtained by using [include_lib](#GENERAL_INCLUDE_LIB). The `classID` used for this object is `\"SmartAppliance\"`."
+    example: ~
+  model:
+    description: "Returns a `string` with the appliance model ID."
+    example:
+      - "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")"
+      - modelResult = libSmartapp.model
+      - "if modelResult.matches(\"^[A-Z]+$\") then"
+      - "    print(\"Model is: \" + modelResult)"
+      - else
+      - "    print(\"Model couldn't be determined due to: \" + modelResult)"
+      - end if
+  override_settings:
+    description: "Applies the exact power and temperature required by the appliance model. Other values return `\"override_settings: invalid power or temperature for this model. Check the device manual.\"`. With the alarm enabled, returns `\"override_settings: warning: Unsafe settings applied. The safety alarm will shut down the appliance if these values are reached.\"`; the accident is triggered only after the alarm is disabled, including by a later `set_alarm(0)` call."
+    example:
+      - "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")"
+      - "overrideResult = libSmartapp.override_settings(1000, 20)"
+      - if overrideResult == 1 then
+      - "    print(\"Override was successful!\")"
+      - else
+      - "    print(\"Override failed due to: \" + overrideResult)"
+      - end if
+  set_alarm:
+    description: "Activates or deactivates the sound alarm indicating any appliance malfunction. If the operation is successful, a `number` with the value one is returned; otherwise, a `string` containing error details is returned. If the `enable` argument deviates from the defined signature, the method will return `null`. Disabling the alarm with `set_alarm(0)` can trigger an accident when unsafe override values are active."
+    example:
+      - "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")"
+      - setAlarmResult = libSmartapp.set_alarm(false)
+      - if setAlarmResult == 1 then
+      - "    print(\"Alarm was disabled successfully!\")"
+      - else
+      - "    print(\"Disabling alarm failed due to: \" + setAlarmResult)"
+      - end if
+extends: map
+hidden: false

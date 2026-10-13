@@ -1,0 +1,23 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/has-index.src
+---
+[
+  "\"1234\"",
+  "\"was\"",
+  "\"moo\"",
+  "1",
+  "1",
+  "\"bar\"",
+  "1",
+  "\"987\"",
+  "\"987\"",
+  "\"987\"",
+  "\"inner-bar\"",
+  "\"inner-bar\"",
+  "\"inner-bar\"",
+  "\"was\"",
+  "1",
+  "0"
+]

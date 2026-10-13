@@ -1,0 +1,66 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider migrates each part of its streamed response to a client of an older major down by default, when both majors lay it out alike.",
+  "peer": "provider",
+  "requires": ["responses", "streams", "migration"],
+  "major": 2,
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Count": {
+                "to": 2
+              }
+            }
+          },
+          {
+            "ResponseCredit": {
+              "id": 0,
+              "count": 4095
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseStart": {
+                  "id": 0,
+                  "Count": "Active"
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 1
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 2
+                }
+              },
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Count": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: out
+input_file: greybel-core/tests/fixtures/miniscript/rules/return-for-and-string-forms.ms
+---
+=== "return"
+1.6, latest: ok
+Chunk[1:1-1:7][
+	ReturnStatement[1:1-1:7][null]
+]
+=== "x = 1\nreturn"
+1.6, latest: ok
+Chunk[1:1-2:7][
+	AssignmentStatement[1:1-1:6][Identifier[1:1-1:2][x] = Literal[1:5-1:6][1]]
+	ReturnStatement[2:1-2:7][null]
+]
+=== "f = function\nreturn\nend function"
+1.6, latest: ok
+Chunk[1:1-3:13][
+	AssignmentStatement[1:1-3:13][Identifier[1:1-1:2][f] = Function[1:5-3:13][ =>
+		ReturnStatement[2:1-2:7][null]
+	]]
+]
+=== "if a then return 1"
+1.6, latest: ok
+Chunk[1:1-1:19][
+	IfStatement[1:1-1:19][
+		IfShortcutClause[1:1-1:19][Identifier[1:4-1:5][a]
+			ReturnStatement[1:11-1:19][Literal[1:18-1:19][1]]
+		]
+	]
+]
+=== "for i in (null)\nend for"
+1.6, latest: --- error
+1:10 - 1:16 ExpectedExpression(3002): sequence expression expected for 'for' loop
+=== "for i in @(null)\nend for"
+1.6, latest: --- error
+1:10 - 1:17 ExpectedExpression(3002): sequence expression expected for 'for' loop
+=== "for i in -null\nend for"
+1.6, latest: ok
+Chunk[1:1-2:8][
+	ForGenericStatement[1:1-2:8][Identifier[1:5-1:6][i] in BinaryNegatedExpression[1:10-1:15][- Literal[1:11-1:15][null]]]
+]
+=== "for i in a\nend for"
+1.6, latest: ok
+Chunk[1:1-2:8][
+	ForGenericStatement[1:1-2:8][Identifier[1:5-1:6][i] in Identifier[1:10-1:11][a]]
+]
+=== "for i in \"s\"\nend for"
+1.6, latest: ok
+Chunk[1:1-2:8][
+	ForGenericStatement[1:1-2:8][Identifier[1:5-1:6][i] in Literal[1:10-1:13][s]]
+]
+=== "for i in 1\nend for"
+1.6, latest: ok
+Chunk[1:1-2:8][
+	ForGenericStatement[1:1-2:8][Identifier[1:5-1:6][i] in Literal[1:10-1:11][1]]
+]
+=== "for i in true\nend for"
+1.6, latest: ok
+Chunk[1:1-2:8][
+	ForGenericStatement[1:1-2:8][Identifier[1:5-1:6][i] in Literal[1:10-1:14][true]]
+]
+=== "print \"a\nb\""
+1.6: ok
+Chunk[1:1-2:3][
+	CallStatment[1:1-2:3][CallExpression[1:1-2:3][Identifier[1:1-1:6][print](Literal[1:7-2:3][a
+	b])]]
+]
+latest: --- error
+1:7 - 1:9 UnexpectedStringEof(1002): missing closing quote (")
+    hint: Add a closing quote to terminate the string
+=== "x = \"a\r\nb\""
+1.6: ok
+Chunk[1:1-2:3][
+	AssignmentStatement[1:1-2:3][Identifier[1:1-1:2][x] = Literal[1:5-2:3][a
+	b]]
+]
+latest: --- error
+1:5 - 1:7 UnexpectedStringEof(1002): missing closing quote (")
+    hint: Add a closing quote to terminate the string
+=== "x = \"a\"\"\nb\""
+1.6: ok
+Chunk[1:1-2:3][
+	AssignmentStatement[1:1-2:3][Identifier[1:1-1:2][x] = Literal[1:5-2:3][a"
+	b]]
+]
+latest: --- error
+1:5 - 1:9 UnexpectedStringEof(1002): missing closing quote (")
+    hint: Add a closing quote to terminate the string

@@ -1,0 +1,63 @@
+[package]
+name = "greybel-runtime"
+description = "GreyScript runtime and debugger with editor duplex protocols and simulated or game-hosted execution"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+scheduler.workspace = true
+duplex-core.workspace = true
+greybel-core.workspace = true
+greybel-documents.workspace = true
+greybel-documents-host-provider.workspace = true
+greybel-interpreter.workspace = true
+greybel-io.workspace = true
+greybel-io-web.workspace = true
+greybel-transpiler.workspace = true
+greyscript-intrinsics.workspace = true
+greyhack-behaviour.workspace = true
+greyhack-world.workspace = true
+greyhack-world-operations.workspace = true
+futures-util.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["sync"] }
+greyhack-message-hook-client = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+duplex-driver-stdio.workspace = true
+tokio = { workspace = true, features = ["net", "time"] }
+
+[features]
+# Runs programs in Grey Hack, through its message hook plugin: native only.
+game = ["dep:greyhack-message-hook-client", "dep:serde_json", "tokio/time"]
+# Tests against Grey Hack itself, run headless by greybel/dotnet/greyhack-test-support: they need the game installed
+# (GREY_HACK_PATH), the .NET SDK and Steam logged in. A feature of its own, as other crates of the workspace turn on `game`.
+game-tests = ["game"]
+
+[dev-dependencies]
+scheduler = { workspace = true, features = ["tokio"] }
+duplex-test-support = { workspace = true, features = ["tokio"] }
+duplex-ts.workspace = true
+greybel-documents-memory-provider.workspace = true
+greybel-test-support = { workspace = true, features = ["file-editor", "game", "terminal"] }
+tokio = { workspace = true, features = ["rt", "time"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+# Built and spawned by the TypeScript `greybel-runtime` package's tests.
+[[example]]
+name = "stdio-runtime"
+path = "examples/stdio-runtime.rs"
+
+[lints]
+workspace = true

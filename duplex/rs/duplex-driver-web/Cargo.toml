@@ -1,0 +1,29 @@
+[package]
+name = "duplex-driver-web"
+description = "Browser duplex-core driver over postMessage, with worker and relayed MessagePort transports, health checks, panic-triggered shutdown, and event-loop yielding"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[lib]
+doctest = false
+
+[features]
+# Secures hubs with Noise handshakes over the transport.
+security = ["duplex-core/security"]
+
+[dependencies]
+duplex-core.workspace = true
+wasm-bindgen.workspace = true
+fastrand.workspace = true
+futures-channel.workspace = true
+futures-core.workspace = true
+js-sys.workspace = true
+scheduler = { workspace = true, features = ["web"] }
+wasm-bindgen-futures.workspace = true
+web-sys = { workspace = true, features = ["EventTarget", "MessageChannel", "MessageEvent", "MessagePort", "console"] }
+
+[lints]
+workspace = true

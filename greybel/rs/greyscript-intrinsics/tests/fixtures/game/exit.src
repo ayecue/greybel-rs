@@ -1,0 +1,3 @@
+print "before"
+exit("bye")
+print "after"

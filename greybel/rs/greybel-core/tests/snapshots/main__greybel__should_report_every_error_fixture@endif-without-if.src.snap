@@ -1,0 +1,11 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/endif-without-if.src
+---
+--- strict
+1:1 - 1:7 UnmatchedEnd(4001): '#endif' without matching '#if'
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:1 - 1:7 UnmatchedEnd(4001): '#endif' without matching '#if'

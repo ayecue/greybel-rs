@@ -1,0 +1,33 @@
+{
+  "name": "emitter",
+  "version": "0.1.0",
+  "description": "Callbacks emitted in the order they were added, with disposables to remove them: copied from axialcode's emitter",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "bench": "node --expose-gc --conditions=source --import tsx bench/run.ts"
+  },
+  "dependencies": {
+    "handle-error": "workspace:*"
+  },
+  "devDependencies": {
+    "mitata": "^1.0.34",
+    "rxjs": "^7.8.2",
+    "tsx": "^4.23.0"
+  }
+}

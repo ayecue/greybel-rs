@@ -1,0 +1,49 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider rejects a message a field of which doesn't meet its requirement, telling where and what.",
+  "peer": "provider",
+  "requires": [],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Divide": {
+                "dividend": 6,
+                "divisor": 3,
+                "precision": 13
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "Invalid",
+                  "violation": {
+                    "path": [
+                      2
+                    ],
+                    "requirement": "Maximum"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

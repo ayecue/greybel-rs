@@ -1,0 +1,102 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider speaks the older minor of its own and its client's: it acknowledges the client's, tells it the version is deprecated, leaves out what newer minors added, and can't send what they alone know.",
+  "peer": "provider",
+  "requires": [],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 0,
+              "protocol": "1.0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Ack": {
+                  "id": 0,
+                  "connection": 1,
+                  "protocol": "1.0",
+                  "deprecation": "1.1 tells how long a calculation takes"
+                }
+              }
+            ]
+          }
+        ],
+        "connection": 1,
+        "version": "1.0",
+        "deprecated": [
+          {
+            "version": "1.0",
+            "note": "1.1 tells how long a calculation takes"
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Progress": {
+          "phase": "Active",
+          "eta": 3.5
+        }
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "minor": 0,
+            "frames": [
+              {
+                "Message": {
+                  "Progress": {
+                    "phase": "Active"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Progress": {
+          "phase": "Final"
+        }
+      },
+      "fails": "unsupported"
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    }
+  ]
+}

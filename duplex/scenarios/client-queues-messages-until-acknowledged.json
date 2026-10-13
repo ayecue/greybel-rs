@@ -1,0 +1,88 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client sends nothing but its open until the provider acknowledges; then what it queued in one batch.",
+  "peer": "client",
+  "requires": ["responses"],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Log": {
+          "text": "early"
+        }
+      }
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Ack": {
+              "id": 0,
+              "connection": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "Log": {
+                    "text": "early"
+                  }
+                }
+              },
+              {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1,
+                    "b": 2
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "settled": {
+          "sum": "pending"
+        }
+      }
+    }
+  ]
+}

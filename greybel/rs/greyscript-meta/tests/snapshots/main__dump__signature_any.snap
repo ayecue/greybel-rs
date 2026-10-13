@@ -1,0 +1,454 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - insert
+  - indexOf
+  - hasIndex
+  - remove
+  - push
+  - pull
+  - pop
+  - shuffle
+  - sum
+  - indexes
+  - len
+  - values
+definitions:
+  hasIndex:
+    argStrings:
+      - - any
+    id: hasIndex
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - any
+      description: "Verifies if an index is available within an object. In case of success this method will return a `number` with the value one. In case of failure the value will be a zero. This method supports `map`s, `list`s and `string`s. Each passed type may result in different behavior therefore it is advisable to take a look at each of their specific signatures."
+      example:
+        - "print(\"List has index: \" + [1, 2, 3].hasIndex(2)"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok:
+        - 0
+        - 1
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexOf:
+    argStrings:
+      - - any
+      - - any
+    id: indexOf
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - any
+        - default: ~
+          label: after
+          opt: true
+          types:
+            - any
+      description: "Lookups index of value within `map`s, `list`s, or `string`s. For `list`s and `string`s, the behavior is very similar. On success, you'll receive a `number` representing the found index. On failure, it will return `null`. For `map`s, it's a bit different since the returned value could be of any type. On failure, it will return `null` as well."
+      example:
+        - "index = \"test\".indexOf(\"e\")"
+        - "print(\"e is at: \" + index)"
+      isProtected: false
+      returns:
+        - any
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - any
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexes:
+    argStrings: []
+    id: indexes
+    json:
+      arguments: []
+      description: "Returns a `list` containing all indexes or keys of the passed object. This method supports `map`s, `list`s, and `string`s. The type of each item may vary when using this method on a `map` since keys could be any type. The other types will return a `list` where each item is a `number`."
+      example:
+        - "indexesOfStr = \"test\".indexes"
+        - "print(\"Following indexes are available: \" + indexesOfStr.join(\", \"))"
+      isProtected: false
+      returns:
+        - type: list
+          valueType: any
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<any>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  insert:
+    argStrings:
+      - - number
+      - - any
+    id: insert
+    json:
+      arguments:
+        - default: ~
+          label: index
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - any
+      description: "Inserts a value into either a `list` or a `string`. If the passed index is not a `number`, this method throws an error, preventing further script execution."
+      example:
+        - "list = [2, 3, 4]"
+        - "list.insert(2, 42)"
+        - "print(\"List with inserted item: \" + list.join(\", \"))"
+      isProtected: false
+      returns:
+        - type: list
+          valueType: any
+        - string
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<any>
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  len:
+    argStrings: []
+    id: len
+    json:
+      arguments: []
+      description: "Returns `number` indicating what size the object is."
+      example:
+        - "length = \"test\".len"
+        - "print(\"Length of string is: \" + length)"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  pop:
+    argStrings: []
+    id: pop
+    json:
+      arguments: []
+      description: "When passing a `list` to this method, it will return the value at the last index and remove it from the `list`. Additionally, if a `map` is passed, it will always return the value corresponding to the first matching key and mutate the `map` object accordingly. However, passing a map-like object such as `file` or `computer` will result in an error, interrupting further script execution."
+      example:
+        - "list = [0, 1, 2, 3, 4, 5]"
+        - "print(\"The last item is: \" + list.pop)"
+      isProtected: false
+      returns:
+        - any
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - any
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  pull:
+    argStrings: []
+    id: pull
+    json:
+      arguments: []
+      description: "When passing a `list` to this method, it will return the value at the first index and remove it from the `list`. Additionally, if a `map` is passed, it will always return the value corresponding to the first matching key and mutate the `map` object accordingly. However, passing a map-like object such as `file` or `computer` will result in an error, interrupting further script execution."
+      example:
+        - "myList = [42, 1, 3]"
+        - answer = myList.pull
+        - "print(\"Answer to everything: \" + answer)"
+      isProtected: false
+      returns:
+        - any
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - any
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  push:
+    argStrings:
+      - - any
+    id: push
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - any
+      description: "Allows pushing a value into an object, supporting `map`s and `list`s. However, it throws an error if you attempt to push a value into itself or into a map-like object such as a `file`, halting further script execution."
+      example:
+        - "list = [0, 1, 2, 3, 4, 5]"
+        - list.push(42)
+        - "print(\"The answer to everything is: \" + list.pop)"
+      isProtected: false
+      returns:
+        - type: list
+          valueType: any
+        - keyType: any
+          type: map
+          valueType: any
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<any>
+      - "map<any,any>"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  remove:
+    argStrings:
+      - - any
+    id: remove
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - any
+      description: "Depending on the data type, this function will remove a value in the provided object, potentially mutating the object. This method works with `map`s, `list`s, and `string`s. Each passed type may support different types for the `key` argument. For example, using this method on a string would treat the key as a character index. Therefore, it is advised to review the signatures of each type. Passing a key with the type `null` may cause an error to be thrown, preventing further script execution."
+      example:
+        - "list = [9, 3, 5, 7]"
+        - list.remove(5)
+        - "print(\"List after removal: \" + list.join(\", \"))"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+        - string
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+      - string
+    returnVariations:
+      ok:
+        - 0
+        - 1
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  shuffle:
+    argStrings: []
+    id: shuffle
+    json:
+      arguments: []
+      description: "Randomizes content of an object. Valid data types for this method are `list` and `map`. In case a map-like object such as a `file` or `computer` a runtime exception will be thrown."
+      example:
+        - "list = [0, 1, 2, 3, 4, 5]"
+        - list.shuffle
+        - "print(\"And the winner is: \" + list[0])"
+      isProtected: false
+      returns:
+        - "null"
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  sum:
+    argStrings: []
+    id: sum
+    json:
+      arguments: []
+      description: "Returns a `number` representing the sum of all items within a `map` or a `list`."
+      example:
+        - "list = [0, 1, 2, 3, 4, 5]"
+        - "print(\"Sum of all items is: \" + list.sum)"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  values:
+    argStrings: []
+    id: values
+    json:
+      arguments: []
+      description: "Returns a `list` containing all values of an object."
+      example:
+        - "indexesOfStr = \"test\".values"
+        - "print(\"Following values are available: \" + indexesOfStr.join(\", \"))"
+      isProtected: false
+      returns:
+        - type: list
+          valueType: any
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<any>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - insert
+  - indexOf
+  - hasIndex
+  - remove
+  - push
+  - pull
+  - pop
+  - shuffle
+  - sum
+  - indexes
+  - len
+  - values
+descriptions:
+  $meta:
+    description: unknown
+    example: ~
+  hasIndex:
+    description: "Verifies if an index is available within an object. In case of success this method will return a `number` with the value one. In case of failure the value will be a zero. This method supports `map`s, `list`s and `string`s. Each passed type may result in different behavior therefore it is advisable to take a look at each of their specific signatures."
+    example:
+      - "print(\"List has index: \" + [1, 2, 3].hasIndex(2)"
+  indexOf:
+    description: "Lookups index of value within `map`s, `list`s, or `string`s. For `list`s and `string`s, the behavior is very similar. On success, you'll receive a `number` representing the found index. On failure, it will return `null`. For `map`s, it's a bit different since the returned value could be of any type. On failure, it will return `null` as well."
+    example:
+      - "index = \"test\".indexOf(\"e\")"
+      - "print(\"e is at: \" + index)"
+  indexes:
+    description: "Returns a `list` containing all indexes or keys of the passed object. This method supports `map`s, `list`s, and `string`s. The type of each item may vary when using this method on a `map` since keys could be any type. The other types will return a `list` where each item is a `number`."
+    example:
+      - "indexesOfStr = \"test\".indexes"
+      - "print(\"Following indexes are available: \" + indexesOfStr.join(\", \"))"
+  insert:
+    description: "Inserts a value into either a `list` or a `string`. If the passed index is not a `number`, this method throws an error, preventing further script execution."
+    example:
+      - "list = [2, 3, 4]"
+      - "list.insert(2, 42)"
+      - "print(\"List with inserted item: \" + list.join(\", \"))"
+  len:
+    description: "Returns `number` indicating what size the object is."
+    example:
+      - "length = \"test\".len"
+      - "print(\"Length of string is: \" + length)"
+  pop:
+    description: "When passing a `list` to this method, it will return the value at the last index and remove it from the `list`. Additionally, if a `map` is passed, it will always return the value corresponding to the first matching key and mutate the `map` object accordingly. However, passing a map-like object such as `file` or `computer` will result in an error, interrupting further script execution."
+    example:
+      - "list = [0, 1, 2, 3, 4, 5]"
+      - "print(\"The last item is: \" + list.pop)"
+  pull:
+    description: "When passing a `list` to this method, it will return the value at the first index and remove it from the `list`. Additionally, if a `map` is passed, it will always return the value corresponding to the first matching key and mutate the `map` object accordingly. However, passing a map-like object such as `file` or `computer` will result in an error, interrupting further script execution."
+    example:
+      - "myList = [42, 1, 3]"
+      - answer = myList.pull
+      - "print(\"Answer to everything: \" + answer)"
+  push:
+    description: "Allows pushing a value into an object, supporting `map`s and `list`s. However, it throws an error if you attempt to push a value into itself or into a map-like object such as a `file`, halting further script execution."
+    example:
+      - "list = [0, 1, 2, 3, 4, 5]"
+      - list.push(42)
+      - "print(\"The answer to everything is: \" + list.pop)"
+  remove:
+    description: "Depending on the data type, this function will remove a value in the provided object, potentially mutating the object. This method works with `map`s, `list`s, and `string`s. Each passed type may support different types for the `key` argument. For example, using this method on a string would treat the key as a character index. Therefore, it is advised to review the signatures of each type. Passing a key with the type `null` may cause an error to be thrown, preventing further script execution."
+    example:
+      - "list = [9, 3, 5, 7]"
+      - list.remove(5)
+      - "print(\"List after removal: \" + list.join(\", \"))"
+  shuffle:
+    description: "Randomizes content of an object. Valid data types for this method are `list` and `map`. In case a map-like object such as a `file` or `computer` a runtime exception will be thrown."
+    example:
+      - "list = [0, 1, 2, 3, 4, 5]"
+      - list.shuffle
+      - "print(\"And the winner is: \" + list[0])"
+  sum:
+    description: "Returns a `number` representing the sum of all items within a `map` or a `list`."
+    example:
+      - "list = [0, 1, 2, 3, 4, 5]"
+      - "print(\"Sum of all items is: \" + list.sum)"
+  values:
+    description: "Returns a `list` containing all values of an object."
+    example:
+      - "indexesOfStr = \"test\".values"
+      - "print(\"Following values are available: \" + indexesOfStr.join(\", \"))"
+extends: ~
+hidden: false

@@ -1,0 +1,45 @@
+---
+source: meta-utils/tests/cases.rs
+expression: part
+---
+definitionOrder:
+  - hasIndex
+definitions:
+  hasIndex:
+    argStrings:
+      - - any
+      - - any
+    id: hasIndex
+    json:
+      arguments:
+        - default: ~
+          label: foo
+          opt: false
+          types:
+            - any
+        - default: ~
+          label: bar
+          opt: false
+          types:
+            - any
+      description: ~
+      example: ~
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: any
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder: []
+descriptions: {}
+extends: ~
+hidden: false

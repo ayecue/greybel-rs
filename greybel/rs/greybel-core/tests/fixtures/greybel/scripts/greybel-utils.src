@@ -1,0 +1,12 @@
+#import foo from "test/bar";
+#include "test/bar";
+test = #envar TEST_ENV;
+debugger;
+from = "test"
+
+//import foo from "test/bar";
+//include "test/bar";
+
+test = #inject "test/bar";
+
+#include ./test/bar;

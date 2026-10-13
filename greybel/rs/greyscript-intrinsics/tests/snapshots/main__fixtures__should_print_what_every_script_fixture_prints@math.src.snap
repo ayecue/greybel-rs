@@ -1,0 +1,20 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/scripts/math.src
+---
+8
+14
+6
+-6
+1099511627776
+-4
+15
+2
+null
+null
+0
+1
+-5
+-5
+2

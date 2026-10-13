@@ -1,0 +1,98 @@
+// Types covering every layout for binary codec tests.
+
+struct Example {
+    text: string,
+    count: u16,
+    flag: bool,
+}
+
+struct NumberLayout {
+    u8: u8,
+    u16: u16,
+    u32: u32,
+    u64: u64,
+    i8: i8,
+    i16: i16,
+    i32: i32,
+    i64: i64,
+    f32: f32,
+    f64: f64,
+}
+
+struct Flags {
+    first: bool,
+    maybe?: bool,
+    nullable: bool?,
+    either?: bool?,
+    text?: string?,
+    second: bool,
+    third: bool,
+    fourth: bool,
+}
+
+struct CharacterLayout {
+    letter: char,
+    letters: list<char?>,
+}
+
+struct PrintLayout {
+    text: string,
+    flatten options: Options,
+}
+
+struct Options {
+    new_line: bool,
+    replace: bool,
+}
+
+union Shape {
+    Point,
+    Circle(f64),
+    Rectangle { width: u32, height: u32, filled: bool },
+}
+
+enum Keyword {
+    Type,
+    Match,
+}
+
+struct KeywordLayout {
+    type: Keyword,
+    match: list<Keyword>,
+}
+
+/// Fixed-width values and byte sequences.
+struct Raw {
+    hash: fixed32,
+    seed: fixed64,
+    data: bytes,
+    chunks: list<bytes>,
+}
+
+/// Enumeration with explicit numeric values.
+enum Signal {
+    Hang = 1,
+    Interrupt = 2,
+    Kill = 9,
+}
+
+struct SignalLayout {
+    first: Signal,
+    all: list<Signal>,
+}
+
+/// Precision used by `DefaultLayout` when omitted.
+const PRECISION: u8 = 2;
+const GREETING: string = "hello";
+
+/// Fields whose defaults are supplied by constructors.
+struct DefaultLayout {
+    precision: u8 = PRECISION,
+    greeting: string = GREETING,
+    signal: Signal = Kill,
+    ratio: f64 = 0.5,
+    offset: i32 = -3,
+    note: string? = null,
+    initial: char = "a",
+    loud: bool = true,
+}

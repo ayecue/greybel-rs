@@ -1,0 +1,25 @@
+[package]
+name = "mono-string"
+description = "UTF-16 positions, ordinal comparison, case mapping and hashing as Grey Hack's Mono runtime does them"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+str_indices.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

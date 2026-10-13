@@ -1,0 +1,22 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/implicit-properties.src
+---
+[
+  "0",
+  "0",
+  "0",
+  "0",
+  "0",
+  "1",
+  "0",
+  "0",
+  "0",
+  "1",
+  "0",
+  "0",
+  "0",
+  "0",
+  "0"
+]

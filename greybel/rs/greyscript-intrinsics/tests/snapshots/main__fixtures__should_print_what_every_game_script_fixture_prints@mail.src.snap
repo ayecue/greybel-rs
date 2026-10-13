@@ -1,0 +1,14 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/mail.src
+---
+mail_login: Invalid account name.
+Unable to login into account. Wrong user or password.
+MetaMail
+1
+1
+MetaMail: Wait 2 seconds before using mail again.
+MetaMail: Wait 2 seconds before using mail again.
+MetaMail: Wait 2 seconds before using mail again.
+MetaMail: Wait 2 seconds before using mail again.

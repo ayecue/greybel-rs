@@ -1,0 +1,24 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/ssh-encryption.src
+---
+Encryption enabled...
+shell
+8.8.8.8
+Encryption enabled...
+<color=red>Runtime Error: Undefined Identifier: 'Encode' is unknown in this context [/ line 3]</color>
+Encryption failed: broken
+null
+Encryption enabled...
+<color=red>Runtime Error: Undefined Identifier: 'Encode' is unknown in this context [/ line 3]</color>
+Encryption failed: guest /server/conf /
+null
+Encryption enabled...
+<color=red>Runtime Error: get_shell: unable to use this method in encryption configuration [/ line 1]</color>
+Encryption failed: 
+null
+Encryption enabled...
+<color=red>Runtime Error: md5: unable to use this method in encryption configuration [/ line 1]</color>
+Encryption failed: 
+null

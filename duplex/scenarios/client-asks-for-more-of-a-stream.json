@@ -1,0 +1,255 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client grants as many more items of a streamed response as it took, once it took half its window.",
+  "peer": "client",
+  "requires": ["responses", "streams"],
+  "connected": true,
+  "streamWindow": 32,
+  "steps": [
+    {
+      "send": {
+        "Count": {
+          "to": 20
+        }
+      },
+      "as": "count"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Count": {
+                    "to": 20
+                  }
+                }
+              },
+              {
+                "ResponseCredit": {
+                  "id": 0,
+                  "count": 31
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseStart": {
+              "id": 0,
+              "Count": "Active"
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 1
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 2
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 3
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 4
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 5
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 6
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 7
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 8
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 9
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 10
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 11
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 12
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 13
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 14
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 15
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 16
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 17
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 18
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 19
+            }
+          },
+          {
+            "ResponseItem": {
+              "id": 0,
+              "Count": 20
+            }
+          }
+        ]
+      }
+    },
+    {
+      "take": 15,
+      "of": "count"
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "take": 1,
+      "of": "count"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseCredit": {
+                  "id": 0,
+                  "count": 16
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseEnd": {
+              "id": 0,
+              "Count": 210
+            }
+          }
+        ]
+      }
+    },
+    {
+      "take": 5,
+      "of": "count"
+    },
+    {
+      "expect": {
+        "settled": {
+          "count": {
+            "start": "Active",
+            "items": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20
+            ],
+            "end": 210
+          }
+        }
+      }
+    }
+  ]
+}

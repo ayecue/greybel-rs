@@ -1,0 +1,63 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/obj-init.src
+---
+=== default
+valueOfIdentifier="foo"
+myObject={"test":{"another":"123"},"value":"123","idtf":valueOfIdentifier}
+print([myObject.test.another,myObject.value,myObject.idtf])
+myList=[{"another":"123"},"123",valueOfIdentifier]
+print(myList)
+=== uglify
+globals.I=globals
+I.Q="123"
+J="foo"
+K={"test":{"another":Q},"value":Q,"idtf":J}
+print([K.test.another,K.value,K.idtf])
+P=[{"another":Q},Q,J]
+print(P)
+=== beautify
+valueOfIdentifier = "foo"
+
+myObject = {
+	"test": { "another": "123" },
+	"value": "123",
+	"idtf": valueOfIdentifier,
+}
+
+print [
+	myObject.test.another,
+	myObject.value,
+	myObject.idtf,
+]
+
+myList = [
+	{ "another": "123" },
+	"123",
+	valueOfIdentifier,
+]
+
+print myList
+=== beautify, dev mode, keep parentheses, 10 spaces
+valueOfIdentifier = "foo"
+
+myObject = {
+          "test": { "another": "123" },
+          "value": "123",
+          "idtf": valueOfIdentifier,
+}
+
+print([
+          myObject.test.another,
+          myObject.value,
+          myObject.idtf,
+])
+
+myList = [
+          { "another": "123" },
+          "123",
+          valueOfIdentifier,
+]
+
+print(myList)

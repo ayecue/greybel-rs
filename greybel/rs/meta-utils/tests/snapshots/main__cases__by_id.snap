@@ -1,0 +1,44 @@
+---
+source: meta-utils/tests/cases.rs
+expression: part
+---
+code:
+  - string
+hasIndex:
+  - any
+  - general
+  - string
+  - list
+  - map
+hello:
+  - not-searchable
+indexOf:
+  - string
+indexes:
+  - string
+insert:
+  - string
+len:
+  - string
+lower:
+  - string
+nested:
+  - general
+print:
+  - general
+remove:
+  - string
+  - sub-string
+replace:
+  - string
+split:
+  - string
+  - sub-string
+trim:
+  - string
+upper:
+  - string
+val:
+  - string
+values:
+  - string

@@ -1,0 +1,10 @@
+{
+  "extends": "presets/tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  },
+  "files": ["../vitest.context.d.ts"],
+  "include": ["src", "test"]
+}

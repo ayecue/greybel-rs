@@ -1,0 +1,9 @@
+// `print(s, replace_text)` and `wait` within its range.
+print "first"
+print "second", 1
+print "third", 0
+print
+print null
+wait 0.01
+wait 300
+print "done"

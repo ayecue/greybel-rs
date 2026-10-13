@@ -1,0 +1,484 @@
+---
+source: miniscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - remove
+  - push
+  - pull
+  - pop
+  - shuffle
+  - sum
+  - hasIndex
+  - indexOf
+  - indexes
+  - len
+  - values
+  - replace
+definitions:
+  hasIndex:
+    argStrings:
+      - - string
+    id: hasIndex
+    json:
+      arguments:
+        - default: ~
+          label: key
+          opt: false
+          types:
+            - string
+      description: "Returns `true` if the provided key is available in the `map`. Otherwise, this method will return `false`."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - "containsIndex = myList.hasIndex(\"answer\")"
+        - if containsIndex then
+        - "   print(\"Map contains the answer.\")"
+        - else
+        - "   print(\"Map does not contain the answer.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexOf:
+    argStrings:
+      - - any
+      - - number
+    id: indexOf
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - any
+        - default: ~
+          label: offset
+          opt: true
+          types:
+            - number
+      description: "Returns `string` which indicates the key of the provided value inside the `map`. In case the value does not exist inside the `map` a `null` gets returned."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - key = myList.indexOf(42)
+        - if key != null then
+        - "   print(\"Map contains the answer.\")"
+        - else
+        - "   print(\"Map does not contain the answer.\")"
+        - end if
+      isProtected: false
+      returns:
+        - K
+        - "null"
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - K
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexes:
+    argStrings: []
+    id: indexes
+    json:
+      arguments: []
+      description: "Returns a `list` containing all available keys."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - for key in myMap.indexes
+        - "   print(myMap[key])"
+        - end for
+      isProtected: false
+      returns:
+        - type: list
+          valueType: K
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<K>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  len:
+    argStrings: []
+    id: len
+    json:
+      arguments: []
+      description: "Returns a `number` representing the count of items inside the `map`."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - "print(\"myMap contains \" + myMap.len + \" items\")"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  pop:
+    argStrings: []
+    id: pop
+    json:
+      arguments: []
+      description: "Returns and removes the last item in the `map`. This operation will mutate the `map`."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - print(myMap.pop)
+      isProtected: false
+      returns:
+        - K
+        - "null"
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - K
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  pull:
+    argStrings: []
+    id: pull
+    json:
+      arguments: []
+      description: "Returns and removes the first item in the `map`.  This operation will mutate the `map`."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - print(myMap.pull)
+      isProtected: false
+      returns:
+        - K
+        - "null"
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - K
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  push:
+    argStrings:
+      - - K
+    id: push
+    json:
+      arguments:
+        - default: ~
+          label: key
+          opt: false
+          types:
+            - K
+      description: "Adds the value 1 to the provided key. This operation will mutate the `map`. Additionally, this method will return the updated `map`."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - "myMap.push(\"answer\")"
+        - print(myMap.answer)
+      isProtected: false
+      returns:
+        - self
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - self
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  remove:
+    argStrings:
+      - - string
+    id: remove
+    json:
+      arguments:
+        - default: ~
+          label: key
+          opt: false
+          types:
+            - string
+      description: "Removes an item from the `map` with the provided key. Due to the removal the `map` will get mutated."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - "myMap.remove(\"answer\")"
+        - print(myMap)
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  replace:
+    argStrings:
+      - - any
+      - - V
+      - - number
+    id: replace
+    json:
+      arguments:
+        - default: ~
+          label: oldVal
+          opt: false
+          types:
+            - any
+        - default: ~
+          label: newVal
+          opt: false
+          types:
+            - V
+        - default: ~
+          label: maxCount
+          opt: true
+          types:
+            - number
+      description: "Returns updated `map` where each value matching with the provided replace argument gets replaced. This operation will mutate the `map`."
+      example:
+        - "myObject = { \"answer\": 45 }"
+        - "myObject.replace(45, 42)"
+        - print(myObject.answer)
+      isProtected: false
+      returns:
+        - self
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - self
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  shuffle:
+    argStrings: []
+    id: shuffle
+    json:
+      arguments: []
+      description: "Shuffles all values in the `map`. This operation will mutate the `map`."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - myMap.shuffle
+        - print(myMap)
+      isProtected: false
+      returns:
+        - "null"
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  sum:
+    argStrings: []
+    id: sum
+    json:
+      arguments: []
+      description: "Returns sum of all values inside the `map`. Any non-numeric values will be considered a zero."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - sum = myMap.sum
+        - "print(\"Sum of all items in map: \" + sum)"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  values:
+    argStrings: []
+    id: values
+    json:
+      arguments: []
+      description: "Returns a `list` containing all available values."
+      example:
+        - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+        - for value in myMap.values
+        - "   print(value)"
+        - end for
+      isProtected: false
+      returns:
+        - type: list
+          valueType: V
+      type: function
+    origin: map
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<V>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - remove
+  - push
+  - pull
+  - pop
+  - shuffle
+  - sum
+  - hasIndex
+  - indexOf
+  - indexes
+  - len
+  - values
+  - replace
+descriptions:
+  $meta:
+    description: "A `map` is a set of values associated with unique keys. Create a `map` with curly braces; get or set a single value with square brackets. Keys and values may be any type."
+    example:
+      - "x = { \"test\": 123 }"
+      - x.foo = 42 // set property foo to 42
+      - print(x.foo) // get value of property foo
+      - "print(x + { \"bar\": 2 }) // concatenate two maps"
+  hasIndex:
+    description: "Returns `true` if the provided key is available in the `map`. Otherwise, this method will return `false`."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - "containsIndex = myList.hasIndex(\"answer\")"
+      - if containsIndex then
+      - "   print(\"Map contains the answer.\")"
+      - else
+      - "   print(\"Map does not contain the answer.\")"
+      - end if
+  indexOf:
+    description: "Returns `string` which indicates the key of the provided value inside the `map`. In case the value does not exist inside the `map` a `null` gets returned."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - key = myList.indexOf(42)
+      - if key != null then
+      - "   print(\"Map contains the answer.\")"
+      - else
+      - "   print(\"Map does not contain the answer.\")"
+      - end if
+  indexes:
+    description: "Returns a `list` containing all available keys."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - for key in myMap.indexes
+      - "   print(myMap[key])"
+      - end for
+  len:
+    description: "Returns a `number` representing the count of items inside the `map`."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - "print(\"myMap contains \" + myMap.len + \" items\")"
+  pop:
+    description: "Returns and removes the last item in the `map`. This operation will mutate the `map`."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - print(myMap.pop)
+  pull:
+    description: "Returns and removes the first item in the `map`.  This operation will mutate the `map`."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - print(myMap.pull)
+  push:
+    description: "Adds the value 1 to the provided key. This operation will mutate the `map`. Additionally, this method will return the updated `map`."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - "myMap.push(\"answer\")"
+      - print(myMap.answer)
+  remove:
+    description: "Removes an item from the `map` with the provided key. Due to the removal the `map` will get mutated."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - "myMap.remove(\"answer\")"
+      - print(myMap)
+  replace:
+    description: "Returns updated `map` where each value matching with the provided replace argument gets replaced. This operation will mutate the `map`."
+    example:
+      - "myObject = { \"answer\": 45 }"
+      - "myObject.replace(45, 42)"
+      - print(myObject.answer)
+  shuffle:
+    description: "Shuffles all values in the `map`. This operation will mutate the `map`."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - myMap.shuffle
+      - print(myMap)
+  sum:
+    description: "Returns sum of all values inside the `map`. Any non-numeric values will be considered a zero."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - sum = myMap.sum
+      - "print(\"Sum of all items in map: \" + sum)"
+  values:
+    description: "Returns a `list` containing all available values."
+    example:
+      - "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }"
+      - for value in myMap.values
+      - "   print(value)"
+      - end for
+extends: ~
+hidden: false

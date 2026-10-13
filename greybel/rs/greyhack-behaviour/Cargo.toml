@@ -1,0 +1,32 @@
+[package]
+name = "greyhack-behaviour"
+description = "Grey Hack's rules both a program's runtime and the game server follow: paths, addresses, credentials and limits"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greybel-source-map.workspace = true
+greyhack-world-assets.workspace = true
+md-5.workspace = true
+mono-random.workspace = true
+mono-string.workspace = true
+rand_core.workspace = true
+rand_xoshiro.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

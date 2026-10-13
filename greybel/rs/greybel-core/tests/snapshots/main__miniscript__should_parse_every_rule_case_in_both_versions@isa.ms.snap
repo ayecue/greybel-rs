@@ -1,0 +1,23 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/rules/isa.ms
+---
+=== "x = a isa b isa c"
+1.6, latest: --- error
+1:13 - 1:16 ExpectedToken(3001): got Keyword(isa) where EOL is required
+=== "x = (a isa b) isa c"
+1.6, latest: ok
+Chunk[1:1-1:20][
+	AssignmentStatement[1:1-1:20][Identifier[1:1-1:2][x] = IsaExpression[1:5-1:20][IsaExpression[1:6-1:13][Identifier[1:6-1:7][a] isa Identifier[1:12-1:13][b]] isa Identifier[1:19-1:20][c]]]
+]
+=== "x = a isa b < c"
+1.6, latest: ok
+Chunk[1:1-1:16][
+	AssignmentStatement[1:1-1:16][Identifier[1:1-1:2][x] = IsaExpression[1:5-1:16][Identifier[1:5-1:6][a] isa BinaryExpression[1:11-1:16][Identifier[1:11-1:12][b] < Identifier[1:15-1:16][c]]]]
+]
+=== "x = 1 < 2 < 3"
+1.6, latest: ok
+Chunk[1:1-1:14][
+	AssignmentStatement[1:1-1:14][Identifier[1:1-1:2][x] = ComparisonGroupExpression[1:5-1:14][Literal[1:5-1:6][1] < Literal[1:9-1:10][2] < Literal[1:13-1:14][3]]]
+]

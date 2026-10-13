@@ -1,0 +1,30 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/map.src
+---
+=== default
+test={{"myTest":0,1:2}:1}
+test2={[12,14]:1}
+test3={test:234}
+test4={1:"foo"}
+test5={123:"bar"}
+=== uglify
+globals.I=globals
+J={{"myTest":0,1:2}:1}
+K={[12,14]:1}
+L={J:234}
+M={1:"foo"}
+N={123:"bar"}
+=== beautify
+test = { {
+	"myTest": 0,
+	1: 2,
+}: true }
+test2 = { [
+	12,
+	14,
+]: true }
+test3 = { test: 234 }
+test4 = { true: "foo" }
+test5 = { 123: "bar" }

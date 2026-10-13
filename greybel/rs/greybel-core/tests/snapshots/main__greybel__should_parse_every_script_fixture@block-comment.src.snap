@@ -1,0 +1,8 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/scripts/block-comment.src
+---
+Chunk[1:1-4:1][
+	AssignmentStatement[3:1-3:23][Identifier[3:1-3:2][x] = BinaryExpression[3:5-3:23][Literal[3:5-3:6][1] + Literal[3:22-3:23][2]]]
+]

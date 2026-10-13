@@ -1,0 +1,14 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/extend-intrinsics.src
+---
+[
+  "\"was2\"",
+  "\"test\"",
+  "10",
+  "\"something\"",
+  "\"foo\"",
+  "[\"bar\", \"moo\"]",
+  "[\"bar\", \"moo\", \"another\"]"
+]

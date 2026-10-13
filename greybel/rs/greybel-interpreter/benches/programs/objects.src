@@ -1,0 +1,28 @@
+Shape = {}
+Shape.area = function()
+  return 0
+end function
+Shape.describe = function()
+  return self.area * 2
+end function
+Rect = new Shape
+Rect.init = function(w, h)
+  self.w = w
+  self.h = h
+  return self
+end function
+Rect.area = function()
+  return self.w * self.h
+end function
+Square = new Rect
+Square.area = function()
+  return super.area + 1
+end function
+total = 0
+i = 0
+while i < 5000
+  s = (new Square).init(i, 2)
+  if s isa Shape then total = total + s.describe
+  i = i + 1
+end while
+print total

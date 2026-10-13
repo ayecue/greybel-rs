@@ -1,0 +1,17 @@
+// Path helpers and the current folder.
+print get_abs_path("docs")
+print get_abs_path("../x", "/var/log")
+print get_abs_path("~/Desktop")
+print parent_path("/home/test/notes.txt")
+print parent_path("/home")
+print cd("/nope")
+print cd("/root")
+print cd("/etc")
+print current_path
+print cd("/home/test/Desktop")
+print current_path
+print get_abs_path("x")
+print is_lan_ip("192.168.0.2") + " " + is_lan_ip("8.8.8.8") + " " + is_lan_ip("nope")
+print is_valid_ip("8.8.8.8") + " " + is_valid_ip("8.8.8") + " " + is_valid_ip(1)
+print format_columns("NAME SIZE\nkernel.img 12\na b")
+print format_columns("")

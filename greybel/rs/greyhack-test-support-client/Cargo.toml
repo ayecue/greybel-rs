@@ -1,0 +1,41 @@
+[package]
+name = "greyhack-test-support-client"
+description = "Rust client for the test-only Grey Hack setup/query bridge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+autotests = false
+
+[features]
+game = []
+
+[dependencies]
+duplex-core.workspace = true
+duplex-driver-stdio.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["net", "io-util", "sync", "time", "rt", "macros"] }
+
+[dev-dependencies]
+duplex-cs.workspace = true
+duplex-test-support.workspace = true
+greybel-interpreter.workspace = true
+greybel-test-support = { workspace = true, features = ["game", "greyhack"] }
+greyhack-behaviour.workspace = true
+greyscript-intrinsics.workspace = true
+greyhack-world.workspace = true
+greyhack-world-assets.workspace = true
+greyhack-world-operations.workspace = true
+scheduler = { workspace = true, features = ["tokio"] }
+serde_json.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

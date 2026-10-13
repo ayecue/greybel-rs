@@ -1,0 +1,190 @@
+---
+source: meta-utils/tests/cases.rs
+expression: cases
+---
+- input: ""
+  output:
+    error: expected a type name at 0
+- input: test
+  output:
+    json: test
+    string: test
+- input: string
+  output:
+    json: string
+    string: string
+- input: number
+  output:
+    json: number
+    string: number
+- input: list
+  output:
+    json:
+      type: list
+      valueType: any
+    string: list<any>
+- input: map
+  output:
+    json:
+      keyType: any
+      type: map
+      valueType: any
+    string: "map<any,any>"
+- input: any
+  output:
+    json: any
+    string: any
+- input: list<string>
+  output:
+    json:
+      type: list
+      valueType: string
+    string: list<string>
+- input: list<>
+  output:
+    error: expected a type name at 5
+- input: list<string
+  output:
+    error: "expected `>` at 11"
+- input: "list<string,number>"
+  output:
+    error: "expected `>` at 11"
+- input: "map<string,number>"
+  output:
+    json:
+      keyType: string
+      type: map
+      valueType: number
+    string: "map<string,number>"
+- input: map<string>
+  output:
+    error: "expected `,` at 10"
+- input: "map<string,>"
+  output:
+    error: expected a type name at 11
+- input: "map<string,string,string>"
+  output:
+    error: "expected `>` at 17"
+- input: "map<,>"
+  output:
+    error: expected a type name at 4
+- input: "map<list<string>,map<number,list>>"
+  output:
+    json:
+      keyType:
+        type: list
+        valueType: string
+      type: map
+      valueType:
+        keyType: number
+        type: map
+        valueType:
+          type: list
+          valueType: any
+    string: "map<list<string>,map<number,list<any>>>"
+- input: "list<map<string,map<string,list<list<string>>>>>"
+  output:
+    json:
+      type: list
+      valueType:
+        keyType: string
+        type: map
+        valueType:
+          keyType: string
+          type: map
+          valueType:
+            type: list
+            valueType:
+              type: list
+              valueType: string
+    string: "list<map<string,map<string,list<list<string>>>>>"
+- input: list<list<
+  output:
+    error: expected a type name at 10
+- input: "map<a,"
+  output:
+    error: expected a type name at 6
+- input: sub-string
+  output:
+    json: sub-string
+    string: sub-string
+- input: list<sub-string>
+  output:
+    json:
+      type: list
+      valueType: sub-string
+    string: list<sub-string>
+- input: ">"
+  output:
+    error: expected a type name at 0
+- input: ","
+  output:
+    error: expected a type name at 0
+- input: "<"
+  output:
+    error: expected a type name at 0
+- input: "map<string,list<string>>"
+  output:
+    json:
+      keyType: string
+      type: map
+      valueType:
+        type: list
+        valueType: string
+    string: "map<string,list<string>>"
+- input: list<list<number>>
+  output:
+    json:
+      type: list
+      valueType:
+        type: list
+        valueType: number
+    string: list<list<number>>
+- input: "  list < number >  "
+  output:
+    json:
+      type: list
+      valueType: number
+    string: list<number>
+- input: list>
+  output:
+    error: unexpected text after the type at 4
+- input: list<x>>
+  output:
+    error: unexpected text after the type at 7
+- input: "map<x,list<y>"
+  output:
+    error: "expected `>` at 13"
+- input: list<map>
+  output:
+    json:
+      type: list
+      valueType:
+        keyType: any
+        type: map
+        valueType: any
+    string: "list<map<any,any>>"
+- input: "list<map<x,y>"
+  output:
+    error: "expected `>` at 13"
+- input: "map<list<x>,y"
+  output:
+    error: "expected `>` at 13"
+- input: foo<bar>
+  output:
+    error: unexpected text after the type at 3
+- input: list<foo<bar>>
+  output:
+    error: "expected `>` at 8"
+- input: list<string>|number
+  output:
+    error: unexpected text after the type at 12
+- input: äöü
+  output:
+    error: expected a type name at 0
+- input: list<äöü>
+  output:
+    error: expected a type name at 5
+- input: "list<map<,>>"
+  output:
+    error: expected a type name at 9

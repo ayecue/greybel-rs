@@ -1,0 +1,11 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/errors/unclosed-call.ms
+---
+--- strict
+2:1 - 2:1 ExpectedExpression(3002): got EOL where number, string, or identifier is required
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+2:1 - 2:1 ExpectedExpression(3002): got EOL where number, string, or identifier is required

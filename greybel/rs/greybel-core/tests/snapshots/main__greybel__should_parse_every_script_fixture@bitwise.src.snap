@@ -1,0 +1,10 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/scripts/bitwise.src
+---
+Chunk[1:1-4:1][
+	AssignmentStatement[1:1-1:14][Identifier[1:1-1:2][x] = BinaryExpression[1:5-1:14][Identifier[1:5-1:6][a] | BinaryExpression[1:9-1:14][Identifier[1:9-1:10][b] & Identifier[1:13-1:14][c]]]]
+	AssignmentStatement[2:1-2:22][Identifier[2:1-2:2][y] = BinaryExpression[2:5-2:22][BinaryExpression[2:5-2:16][BinaryExpression[2:5-2:11][Identifier[2:5-2:6][a] << Literal[2:10-2:11][2]] >> Literal[2:15-2:16][1]] >>> Literal[2:21-2:22][3]]]
+	AssignmentStatement[3:1-3:16][Identifier[3:1-3:2][z] = BinaryExpression[3:5-3:16][BinaryExpression[3:6-3:11][Identifier[3:6-3:7][a] | Identifier[3:10-3:11][b]] & Literal[3:15-3:16][0]]]
+]

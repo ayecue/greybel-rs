@@ -1,0 +1,1044 @@
+use core 1.0;
+
+/// Test-only operations for fixture setup, script execution, and state queries on a headless Grey Hack instance.
+protocol TestSupport = "greyhack_test_support" {
+    limit 16MiB;
+
+    /// Test-support plugin that handles Rust client commands.
+    provider TestSupportPlugin {
+        /// Gets the fixture created by the game's initial player-creation RPC.
+        message SetupPlayerRpc {
+            request: u32,
+        }
+        /// Connects the fixture computer to the specified router using Wi-Fi.
+        message ConnectNetworkRpc {
+            request: u32,
+            public_ip: string,
+        }
+        /// Stores a text file on the player computer.
+        message WriteFileRpc {
+            request: u32,
+            path: string,
+            content: string,
+        }
+        /// Creates a public network with the game's network generator.
+        message CreateNetworkRpc {
+            request: u32,
+            public_ip: string,
+        }
+        /// Creates debug credentials through the game zero-day system and exposes the player metaxploit library as a
+        /// debug challenge (`ZeroDaySystem.GetNpcPassword`, `ChallengeGenerator.GenerateChallenge`). Later scripts
+        /// run as root so `MetaLibIntrinsics.debug_tools` uses its local-success path.
+        message SetupDebugRpc {
+            request: u32,
+        }
+        /// After the bank and mail fixtures, creates and accepts a CTF event with the game mission functions. Uses a
+        /// fresh rental network (`MissionsHelperServer.CreateCTFServerRpc`, `CTF_Event.AddPlayer`).
+        message SetupCtfRpc {
+            request: u32,
+            event_name: string,
+        }
+        /// Compiles and runs a script in a new game context.
+        message ExecuteRpc {
+            request: u32,
+            source: string,
+            filepath: string,
+            basepath: string,
+            program_name: string,
+        }
+        /// Compiles a script and enters queued input through `GreyScriptHelperServer.InputUserServerRpc` when the
+        /// game requests line/key input or enables polling, then returns its normal execution result.
+        message ExecuteInteractiveRpc {
+            request: u32,
+            source: string,
+            filepath: string,
+            basepath: string,
+            program_name: string,
+            inputs: list<string>,
+        }
+        /// Compiles and runs a script until it requests input (`Reply.InputRequested`) or exits
+        /// (`Reply.ExecutionResult`). Other requests may change the world while it waits; `TypeInputRpc` resumes it.
+        message ExecuteUntilInputRpc {
+            request: u32,
+            source: string,
+            filepath: string,
+            basepath: string,
+            program_name: string,
+        }
+        /// Enters `input` into the script started by `ExecuteUntilInputRpc`, which is waiting for input. Replies when
+        /// the script next requests input (`Reply.InputRequested`) or exits (`Reply.ExecutionResult`).
+        message TypeInputRpc {
+            request: u32,
+            input: string,
+        }
+        /// Compiles and runs two scripts in independent game contexts and reports their results in input order.
+        message ExecutePairRpc {
+            request: u32,
+            first_source: string,
+            second_source: string,
+            filepath: string,
+            basepath: string,
+            program_name: string,
+        }
+        /// Gets player-computer identity and resource usage.
+        message QueryPlayerRpc {
+            request: u32,
+        }
+        /// Gets file state from the player computer.
+        message QueryFileRpc {
+            request: u32,
+            path: string,
+        }
+        /// Replaces a router kernel with a game-generated version that has a weakness with `requirement`. Replies
+        /// with `Reply.KernelReplaced` containing the original. The next `SetupPlayerRpc` restores the original,
+        /// including after a game restart.
+        message SetRouterKernelRequirementRpc {
+            request: u32,
+            local_ip: string,
+            requirement: u8,
+        }
+        /// Reinstates a router kernel's game JSON content.
+        message WriteRouterKernelRpc {
+            request: u32,
+            local_ip: string,
+            content: string,
+        }
+        /// Gets the player computer and its current network from game state, generating any network devices not yet
+        /// generated.
+        message QueryNetworkRpc {
+            request: u32,
+        }
+        /// Installs a game-generated version of library `name` in `/lib` on the computer at `local_ip` in the player
+        /// network, or the player computer when `local_ip` is empty. Selects a version with a weakness that has
+        /// `reward` (`Library.Vulnerabilidad.HackResult`) and the fewest requirements.
+        message InstallLibraryRpc {
+            request: u32,
+            local_ip: string,
+            name: string,
+            reward: u8,
+        }
+        /// Uses game economy operations to create the player bank account, a custom coin, and a funded counterparty
+        /// with standing offers. The first mining round for the coin is due.
+        message SetupBlockchainRpc {
+            request: u32,
+            coin_name: string,
+            wallet_user: string,
+        }
+        /// Registers the player mail account on the current network SMTP server using game mail registration
+        /// (`Database.WaitFileMailRegister`).
+        message SetupMailRpc {
+            request: u32,
+            user: string,
+            password: string,
+        }
+        /// Uses game wallet registration (`BlockchainSystem.AddWallet`) to create a player-owned wallet whose first
+        /// password reset is already available.
+        message SetupWalletRpc {
+            request: u32,
+            user: string,
+            password: string,
+        }
+        /// Sets up a coin owned by a fixture counterparty, with creator credentials a script can use but not reset.
+        message SetupForeignCoinRpc {
+            request: u32,
+            coin_name: string,
+            user: string,
+            password: string,
+        }
+        /// Forwards a public port on the player's current main router to a LAN service using the router port table.
+        message ForwardServiceRpc {
+            request: u32,
+            local_ip: string,
+            public_port: u16,
+            internal_port: u16,
+            /// Service ID (`ServicioID`) to forward; the SMTP fixture uses `smtp`.
+            service: string,
+        }
+        /// Re-locks the game-generated override settings of the smart appliance at `local_ip` in the player's
+        /// network.
+        message LockApplianceRpc {
+            request: u32,
+            local_ip: string,
+        }
+        /// Initializes the target flood counter with distinct fixture origins so exactly one flood remains before the
+        /// reboot threshold (`FloodSystem.AddFlood`).
+        message PrimeFloodRpc {
+            request: u32,
+            local_ip: string,
+        }
+        /// Stops the game clock at its current minute for a `current_date` comparison. The next player setup restores
+        /// the normal game rate (`Clock.multTiempo`).
+        message FreezeClockRpc {
+            request: u32,
+        }
+        /// Gets the first address in a fixed series of public networks of `kind` (`ServerMap.TipoRed`) whose LAN
+        /// contains `device` (`NetworkLan.TypeDevice`), or any device when empty. Generates networks as needed.
+        message FindNetworkRpc {
+            request: u32,
+            kind: string,
+            device: string,
+        }
+        /// Generates networks of `kind` (`ServerMap.TipoRed`) at unused random public addresses until a main router
+        /// forwards a port to `service` (`ServicioID`). Returns that network, which no test has changed.
+        message FindNewNetworkRpc {
+            request: u32,
+            kind: string,
+            service: string,
+        }
+        /// Marks the network at `public_ip` disabled for non-payment or re-enables it (`NetworkLan.disabledNetwork`,
+        /// as set by `BankSubs.DisableNetwork`).
+        message DisableNetworkRpc {
+            request: u32,
+            public_ip: string,
+            disabled: bool,
+        }
+        /// Promotes the administrator of the network at `public_ip` to super administrator (`NpcInfo.IsSuperAdmin`)
+        /// with the best intelligence, computer experience, and work performance.
+        message PromoteAdminRpc {
+            request: u32,
+            public_ip: string,
+        }
+        /// Dismisses NPC `user` of the network at `public_ip` (`NetworkLan.FireNpc`), as its company's owner does.
+        message FireNpcRpc {
+            request: u32,
+            public_ip: string,
+            user: string,
+        }
+        /// Has NPC `user`'s workstation refresh its account of the NPC and save it, as the game does the next time
+        /// a player connects to the workstation (`Computer.NpcActions`, `Persona.NextCita`, `Database.SyncConfigOS`).
+        message RefreshNpcAccountRpc {
+            request: u32,
+            public_ip: string,
+            user: string,
+        }
+        /// Gives NPCs of the network at `public_ip` a company stance and a zero-day contact with
+        /// `NetworkLan.ConfigZeroDayInfo`, as the game does when it spawns the zero-day rumor network.
+        message ConfigZeroDayInfoRpc {
+            request: u32,
+            public_ip: string,
+        }
+        /// Updates the alarm on NPC `user`'s smartphone using the game alarm and lateness methods
+        /// (`AlarmConfig.SetAlarmConfig`, `NpcInfo.SetLateToWork`).
+        message SetPhoneAlarmRpc {
+            request: u32,
+            public_ip: string,
+            user: string,
+            hour: i64,
+            minute: i64,
+            delete_alarm: bool,
+        }
+        /// Stops the current police network clock during the plate owner's commute and unlocks its traffic override
+        /// (`NPCSchedule.GetActivityTimeStart`, `Computer.UnlockOverrideSetting`).
+        message SetupTrafficRpc {
+            request: u32,
+        }
+        /// Records the located driver with `PlayerHelperServer.SetNpcInfoCar`, then invokes its accident RPC. The
+        /// synthetic context does not deliver the intrinsic's static `GreyInterpreter.Singleton` process message to
+        /// the launcher.
+        message TrafficAccidentRpc {
+            request: u32,
+            user: string,
+            public_ip: string,
+            police_ip: string,
+        }
+        /// Expires the real-time traffic cooldown and advances the game clock two days while retaining the used
+        /// override and dead driver (`PlayerHelperServer.cooldownTraffic`, `Database.SyncTLCooldown`).
+        message ResetTrafficCooldownRpc {
+            request: u32,
+        }
+        /// Sets every firewall rule on the router or switch at `local_ip` in the player's network to allow, matching
+        /// the firewall-disable reward (`ScriptsUtil.DisableFirewall`).
+        message AllowFirewallRpc {
+            request: u32,
+            local_ip: string,
+        }
+        /// Creates a network of `kind` (`ServerMap.TipoRed`) as the game does when no address has been generated,
+        /// such as for a rented server (`ServerMap.SpawnRouter`).
+        message SpawnNetworkRpc {
+            request: u32,
+            kind: string,
+        }
+        /// Hires an administrator for the network at `public_ip` using `BankHelperServer.HireAdminRentalServerRpc`,
+        /// without charging its payment.
+        message HireRentalAdminRpc {
+            request: u32,
+            public_ip: string,
+        }
+        /// Signs in the administrator of the network at `public_ip` for one hour, matching social-engineering mail
+        /// (`Persona.ForceLogin`).
+        message ForceAdminLoginRpc {
+            request: u32,
+            public_ip: string,
+        }
+        /// Advances the game clock `seconds` forward (`Clock.currentTime`); a frozen clock stays frozen.
+        message AdvanceClockRpc {
+            request: u32,
+            seconds: u64,
+        }
+        /// Gets the exploits the game's exploit database holds for the library file `library` at `version`, in the
+        /// order the hack shop lists them (`VersionsControl.FindExploits`). Replies with `Reply.Exploits`.
+        message QueryExploitsRpc {
+            request: u32,
+            library: string,
+            version: string,
+        }
+        /// Buys exploit `exploit` into `folder` of the player computer as the hack shop's window does, then ends the
+        /// download (`BankHelperServer.BuyItemServerRpc`, `DownloadsHelperServer.EndDownloadServerRpc`). The file is
+        /// named `<exploit>.src` as source text, or `<exploit>` as a program when `compile` is set. Replies with
+        /// `Reply.ExploitBought`.
+        message BuyExploitRpc {
+            request: u32,
+            library: string,
+            version: string,
+            exploit: string,
+            folder: string,
+            compile: bool,
+        }
+        /// Restarts the player's computer from a terminal connected to it, as `ComputerIntrinsics.reboot` does, with
+        /// the client starting it again (`Terminal.RebootingSystem`, `PlayerHelperServer.CheckIniErrorServerRpc`,
+        /// `BootUp.MostrarDesktopIcons`). Replies `Reply.Applied` once the desktop has loaded, or with `safe_mode` once
+        /// the server has started the safe-mode terminal.
+        message RebootPlayerRpc {
+            request: u32,
+            safe_mode: bool,
+        }
+        /// Has the administrator of the network at `public_ip` report the newest library file `library` as its
+        /// network's update, as replying to the update-libraries mail does (`Persona.UpdateReportedNetworks`). Replies
+        /// with `Reply.LibraryReported`.
+        message ReportLibraryUpdateRpc {
+            request: u32,
+            public_ip: string,
+            library: string,
+        }
+        /// Makes the network at `public_ip` one the player rents, as renting a server does
+        /// (`BankHelperServer.RentServer`): the player owns it (`NetworkLan.playerOwnerID`,
+        /// `PlayerHelperServer.rentalIPs`), and the player's rental charge (`BankSubs.AddPayment` for
+        /// `BankSubs.PaymentID.RENTED`) adds `amount` and lists its address. The player needs a bank account.
+        message RentNetworkRpc {
+            request: u32,
+            public_ip: string,
+            amount: i64,
+        }
+        /// Hires (`hire`) or removes the administrator of the rented network at `public_ip` through the bank's page,
+        /// which pays the first month and registers the monthly charge, or takes the charge off
+        /// (`BankHelperServer.HireAdminRentalServerRpc`, `BankHelperServer.FireAdminRentalServerRpc`).
+        message RentalAdminServiceRpc {
+            request: u32,
+            public_ip: string,
+            hire: bool,
+        }
+        /// Runs each of the player's monthly payments now, bank fees first, then rentals, then admins, as the game
+        /// does when a payment's date comes (`BankSubs.Payment.RunPayment`).
+        message RunPaymentsRpc {
+            request: u32,
+        }
+        /// Sets the money of the player's bank account (`BankAccount.SetMoney`).
+        message SetPlayerMoneyRpc {
+            request: u32,
+            money: f64,
+        }
+        /// Draws a group of addresses for procedural mission `index` of the hack shop (`police` unset) or police
+        /// source (`IPGroupManager.GetRandomGroupForMission`), builds its mission as the game does
+        /// (`MissionGen.GetProceduralMission`) and generates the networks of its group (`ServerMap.GetRouter`).
+        /// Replies with `Reply.ProceduralMission`.
+        message ProceduralMissionRpc {
+            request: u32,
+            police: bool,
+            index: u32,
+        }
+        /// Makes guild `name` with the game's guild types: it holds company shares under `bank_account`, which must be
+        /// a bank account of the game, has `total_exp` experience and `investment_perks` investment licences, has the
+        /// player as its owner when `join` is set, and owns the company behind `company_ip` (`StocksCompany.BuyStocksCompany`,
+        /// `Guild.RegisterInvestedCompany`). With `crown` it holds the Crown, as after fifteen days leading the ranking
+        /// (`Guilds.EvaluateCrownRanking`). With a non-empty `shield_ip` its CrownShield protects that network
+        /// (`Database.AddCrownShieldNetwork`); the network does not restart. It has `admin_restore_perks` Admin Restore
+        /// perks, and with `admin_restore_off` Admin Restore is turned off for its company (`Guild.SetAdminRestoreEnabled`).
+        message SetupGuildRpc {
+            request: u32,
+            name: string,
+            bank_account: string,
+            total_exp: u32,
+            investment_perks: u32,
+            join: bool,
+            company_ip: string,
+            crown: bool,
+            shield_ip: string,
+            admin_restore_perks: u32,
+            admin_restore_off: bool,
+        }
+        /// Reads the guilds of the game, the share holders and market seed of the companies behind `company_ips`, and the
+        /// networks CrownShield protects (`Guilds.guilds`, `StocksCompany`, `NetworkLan.seed`,
+        /// `Database.IsCrownShieldProtected`). Replies with `Reply.Guilds`.
+        message QueryGuildsRpc {
+            request: u32,
+            company_ips: list<string>,
+        }
+        /// Reads the traces of the player: the active traces, the computers the passive trace has queued and the
+        /// strikes (`ActiveTraceSystem.activeTraces`, `PassiveTrace.nextRemoteNetID`, `PlayerHelperServer.gameOverCont`).
+        /// Replies with `Reply.Traces`.
+        message QueryTracesRpc {
+            request: u32,
+        }
+        /// Gets the texts of the game's name lists (`WordGenerator`: first names, surnames, usernames, corporations,
+        /// passwords, library variables, exploit names), whose order decides every seeded draw from them. Replies with
+        /// `Reply.WordLists`.
+        message QueryWordListsRpc {
+            request: u32,
+        }
+    }
+
+    /// Rust test client that receives plugin replies.
+    client TestClient {
+        /// Reply for the request with matching `request`. Each request has exactly one reply on its originating
+        /// connection, except `ExecuteUntilInputRpc` and `TypeInputRpc`, which reply when the script next waits for
+        /// input or exits.
+        message ReplyRpc {
+            request: u32,
+            reply: Reply,
+        }
+    }
+}
+
+/// Plugin reply payload carried by `ReplyRpc`.
+union Reply {
+    NetworkConnection(NetworkConnectionReply),
+    PlayerReady(PlayerReadyReply),
+    DebugReady(DebugReadyReply),
+    FileWritten(FileWrittenReply),
+    NetworkCreated(NetworkCreatedReply),
+    ExecutionResult(ExecutionResultReply),
+    /// Script started by `ExecuteUntilInputRpc` is waiting for input (`GreyScriptHelperServer.InputSentClientRpc`).
+    InputRequested,
+    PairExecutionResult(PairExecutionResultReply),
+    PlayerState(PlayerStateReply),
+    FileState(FileStateReply),
+    TestFailure(TestFailureReply),
+    NetworkState(NetworkStateReply),
+    BlockchainReady(BlockchainReadyReply),
+    /// Fixture without result data completed its setup.
+    Applied,
+    TrafficReady(TrafficReadyReply),
+    KernelReplaced(KernelReplacedReply),
+    Exploits(ExploitsReply),
+    ExploitBought(ExploitBoughtReply),
+    LibraryReported(LibraryReportedReply),
+    ProceduralMission(ProceduralMissionReply),
+    Guilds(GuildsReply),
+    Traces(TracesReply),
+    WordLists(WordListsReply),
+}
+
+/// Provides the fixture computer's network connection result.
+struct NetworkConnectionReply {
+    connected: bool,
+    public_ip: string,
+    local_ip: string,
+    error: string,
+}
+
+/// Indicates that the new player computer is ready.
+struct PlayerReadyReply {
+    id: string,
+    user: string,
+    machine: string,
+}
+
+/// Gets the game-generated debug credentials for the current player.
+struct DebugReadyReply {
+    user: string,
+    password: string,
+}
+
+/// Acknowledges that a file was written.
+struct FileWrittenReply {
+    path: string,
+}
+
+/// Gets the generated network addresses.
+struct NetworkCreatedReply {
+    public_ip: string,
+    local_ip: string,
+}
+
+/// Gets script output and completion status.
+struct ExecutionResultReply {
+    output: string,
+    failed: bool,
+}
+
+/// Gets two concurrent scripts' output and completion status in input order.
+struct PairExecutionResultReply {
+    first_output: string,
+    first_failed: bool,
+    second_output: string,
+    second_failed: bool,
+}
+
+/// Gets player-computer identity, users, and resource usage.
+struct PlayerStateReply {
+    id: string,
+    public_ip: string,
+    local_ip: string,
+    users: list<string>,
+    ram: u32,
+    processes: u32,
+}
+
+/// Police network is ready for its plate owner's commute, with the owner's licence plate.
+struct TrafficReadyReply {
+    plate: string,
+}
+
+/// Original router kernel replaced by `SetRouterKernelRequirementRpc`; `WriteRouterKernelRpc` restores it.
+struct KernelReplacedReply {
+    original: string,
+}
+
+/// Exploits of one library version in the game's exploit database.
+struct ExploitsReply {
+    exploits: list<ExploitSnapshot>,
+}
+
+/// Exploit of the game's exploit database (`Exploit`).
+struct ExploitSnapshot {
+    name: string,
+    /// Made from a hidden memory zone of a replaced version (`Exploit.onlyHide`).
+    hidden: bool,
+    /// The weakness was patched in the next version, which `VersionsControl.UpdateExploitDesc` records by rewriting the
+    /// description to target the version only (` = v`).
+    patched: bool,
+    zone_address: string,
+    unsec_value: string,
+    /// Lowercase `Exploit.SliceExp` name of the part the script is made from (`Exploit.partSelected`).
+    part: string,
+    description: string,
+    price: i32,
+    /// The script (`Exploit.GetSourceCode`).
+    source: string,
+}
+
+/// Outcome of a purchase: the text the game closed the shop window with, empty when the file was made, and the
+/// player's coupons afterwards (`PlayerConfigOS.cupones`).
+struct ExploitBoughtReply {
+    error: string,
+    coupons: u32,
+}
+
+/// The library the game reported as a network's update: its game JSON content (`Library`), which the network's
+/// computers take (`NetworkLan.ReportedLibUpdate`). Empty when the administrator skipped the update because the guild
+/// owning the company turned Admin Restore off (`Guilds.IsAdminRestoreDisabledForCompany`).
+struct LibraryReportedReply {
+    content: string,
+}
+
+/// The traces of the player.
+struct TracesReply {
+    active: list<TraceComputer>,
+    /// In the order the passive trace goes through them.
+    passive: list<TraceComputer>,
+    strikes: u32,
+}
+
+/// A computer a trace is about, by its public and LAN addresses.
+struct TraceComputer {
+    public_ip: string,
+    local_ip: string,
+}
+
+/// The guilds of the game, the companies asked for and the networks CrownShield protects.
+struct GuildsReply {
+    guilds: list<GuildSnapshot>,
+    companies: list<CompanySnapshot>,
+    shields: list<ShieldSnapshot>,
+}
+
+/// A guild (`Guilds.Guild`).
+struct GuildSnapshot {
+    name: string,
+    bank_account: string,
+    total_exp: u32,
+    investment_perks: u32,
+    has_crown: bool,
+    crown_shield_public_ip: string,
+    /// Whether the player is one of its members (`Guild.GetMemberByPlayerID`).
+    player_member: bool,
+    /// Admin Restore perks it bought (`Guild.purchasedAdminRestorePerks`).
+    admin_restore_perks: u32,
+    /// Companies it turned Admin Restore off for (`Guild.adminRestoreDisabledCompanies`).
+    admin_restore_disabled: list<string>,
+}
+
+/// A company's shareholders in the order they first bought, and the seed of its share price (`NetworkLan.seed`).
+struct CompanySnapshot {
+    public_ip: string,
+    seed: i32,
+    holders: list<HolderSnapshot>,
+}
+
+/// Shares one bank account holds of a company (`StocksCompany.stocks`).
+struct HolderSnapshot {
+    bank_account: string,
+    shares: u32,
+}
+
+/// A network a guild's CrownShield protects (`Database.CrownShieldNetworks`).
+struct ShieldSnapshot {
+    public_ip: string,
+    guild_name: string,
+}
+
+/// Gets file existence, content, and binary status.
+struct FileStateReply {
+    path: string,
+    exists: bool,
+    content: string,
+    binary: bool,
+}
+
+/// Provides a test command failure.
+struct TestFailureReply {
+    message: string,
+}
+
+/// Gets the player's network.
+struct NetworkStateReply {
+    network: NetworkSnapshot,
+}
+
+/// Provides the bank account created for blockchain comparisons.
+struct BlockchainReadyReply {
+    bank_number: string,
+}
+
+/// Debug account and the challenge and patch state of its library (`Challenge`, `Library`).
+struct DebugSnapshot {
+    user: string,
+    password: string,
+    path: string,
+    seed: i64,
+    auto_patch_at: string?,
+    description: string,
+    additional_descriptions: string,
+    code: string,
+    correct_code: string,
+    error_lines: list<i64>,
+    patched: bool,
+    /// Memory address of the zero-day `Library.GenerateZeroDayVulnerability` draws from `seed`.
+    memory_zone: string,
+}
+
+/// CTF event, its creator credentials and the current player's completion (`CTF_Event`).
+struct CtfSnapshot {
+    name: string,
+    user: string,
+    password: string,
+    description: string,
+    public_address: string,
+    creator_name: string,
+    mail_content: string,
+    completed: bool,
+}
+
+/// Game network (`NetworkLan`) containing the devices and computers on a public-address LAN. Network administrator
+/// job statistics (`NpcInfo`).
+struct AdminSnapshot {
+    intelligence: u8,
+    pc_experience: u8,
+    /// `NpcInfo.WorkStatus` number.
+    work_performance: u8,
+    dead_or_fired: bool,
+    /// Account name of the NPC (`NpcInfo.GetSurname`).
+    user: string,
+}
+
+/// NPC whose job, car and schedule the traffic camera can read (`NpcInfo`, `NPCSchedule`).
+struct NpcSnapshot {
+    /// LAN address of the NPC workstation (`NpcInfo.GetLocalIP`).
+    local_ip: string,
+    /// The NPC's account name (`NpcInfo.GetSurname`).
+    user: string,
+    name: string,
+    /// `JobRole` number.
+    job_role: u8,
+    /// Empty if they have no car.
+    license_plate: string,
+    /// True if they work the day shift (`NPCSchedule.dayTime`).
+    day_shift: bool,
+    /// Number of seconds from midnight at which their first work block starts (`GetActivityTimeStart(Trabajando)`).
+    schedule_work1_start: u64,
+    /// Number of seconds from midnight at which their second work block starts (`GetActivityTimeStart(ViajeCasa) -
+    /// 4h`).
+    schedule_work2_start: u64,
+    /// Number of seconds from midnight at which they walk to the appliance (`GetTimeWalkToAppliance`).
+    walk_to_appliance: u64,
+    /// True if they are traveling to or from work when the snapshot is read (`GetCurrentActivity`).
+    commuting: bool,
+    /// True if `NpcInfo.deadTime` is set.
+    dead: bool,
+    /// True if they are logged in when the snapshot is read (`Persona.IsLogged`): at work, or forced to log in.
+    logged: bool,
+    /// Remaining forced-login duration in seconds (`NpcInfo.dateForceLogin`), or none when the NPC is not forced to
+    /// log in.
+    forced_login_seconds: u64?,
+    alarm_hour: u8,
+    alarm_minute: u8,
+    alarm_modified: bool,
+    alarm_deleted: bool,
+    /// Number of seconds from midnight when the NPC stops being late (`NpcInfo.wakeUpTime`).
+    wake_up_time: u64?,
+    day_alarm: u32,
+    late_strikes: u8,
+    fired: bool,
+    /// `NpcInfo.WorkStatus` number.
+    work_performance: u8,
+    /// `NpcInfo.CompanyAlign` number: 0 for none, 1 good, 2 bad.
+    company_align: u8,
+    /// Mail address of the zero-day contact (`NpcInfo.GetDayZeroContact`), empty if none.
+    day_zero_contact: string,
+    /// The NPC's mail account as stored, read without generating its mails (`Database.GetMailAccount` with
+    /// `generateMailContents: false`).
+    mail: MailAccountSnapshot?,
+}
+
+/// Police network's traffic account and override (`NetworkLan.trafficCredentials`, `ConfigOS`).
+struct TrafficSnapshot {
+    credentials_user: string,
+    override_enabled: bool,
+    override_used: bool,
+    /// Frozen game date when the accident ran, allowing the mirror to expire its world-time cooldown identically.
+    accident_at: string?,
+}
+
+struct NetworkSnapshot {
+    public_ip: string,
+    /// Network kind string used by the game (`ServerMap.TipoRed`).
+    kind: string,
+    domain: string,
+    /// LAN devices and computers in game search order (`NetworkLan.FindDevice`): main router first, each device
+    /// followed by its computers, then hubs, switches, and routers with their descendants.
+    nodes: list<LanNodeSnapshot>,
+    /// Network's administrator (`NetworkLan.adminInfo`), if it has one.
+    admin?: AdminSnapshot,
+    /// All NPCs and their exact schedules read by the traffic intrinsics (`NetworkLan.npcInfos`).
+    npcs: list<NpcSnapshot>,
+    /// Police traffic-camera credentials and override state, present only for a police network.
+    traffic: TrafficSnapshot?,
+    /// Player's registered bank account number, when one exists.
+    player_bank: string?,
+    /// Player's registered mail account and its inbox, when one exists.
+    player_mail: MailAccountSnapshot?,
+    /// Fixture recipient's account and its inbox, when the mail fixture created it.
+    recipient_mail: MailAccountSnapshot?,
+    /// Game clock when the snapshot was read, in `current_date` format.
+    current_date: string,
+    /// Player's debug challenge after `SetupDebugRpc`, as the game's generator and library currently have it.
+    debug: DebugSnapshot?,
+    /// CTF event and the current player's participation after `SetupCtfRpc`.
+    ctf: CtfSnapshot?,
+    /// Bank accounts required by the player and mirrored wallets.
+    banks: list<BankSnapshot>,
+    /// All coins ordered by creation time in the game.
+    coins: list<CoinSnapshot>,
+    /// Wallets that own the mirrored coin sub-wallets.
+    wallets: list<WalletSnapshot>,
+    /// All standing orders in creation order, with buys before sells for each coin in game listing order.
+    offers: list<OfferSnapshot>,
+    /// True if the network is disabled for not having been paid for (`NetworkLan.disabledNetwork`).
+    disabled: bool,
+    /// Whether the hired administrator of a rented server is alive and not fired (`NetworkLan.IsSuperAdminRental`).
+    rental_admin: bool,
+    /// Network's connection speed (`NetworkLan.netSpeed`).
+    net_speed: u8,
+    /// Secret from which every derived value is generated (`InfoGen.WorldSecret`).
+    world_secret: bytes,
+    /// The player's monthly bank payments (`BankSubs.Payment`), bank fees first, then rentals, then admins.
+    subscriptions: list<SubscriptionSnapshot>,
+}
+
+/// Monthly bank payment of the player (`BankSubs.Payment`).
+struct SubscriptionSnapshot {
+    /// `BankSubs.PaymentID` name: `BANK`, `RENTED` or `ADMIN`.
+    kind: string,
+    /// Bank account the payment is charged to (`Payment.bankAccount`).
+    bank: string,
+    /// Monthly amount (`Payment.nextMoney`).
+    amount: i64,
+    /// Date of the next payment (`Payment.nextDate`), in `current_date` format.
+    next_date: string,
+    /// Addresses of the rented networks it charges for (`Payment.publicIps`).
+    public_ips: list<string>,
+}
+
+/// Player mail account in game state (`UserMail`).
+struct MailAccountSnapshot {
+    address: string,
+    password: string,
+    /// Inbox messages in game order, newest first.
+    emails: list<MailSnapshot>,
+    /// True if the NPC's mails were generated (`UserMail.npcContentsGenerated`).
+    generated: bool,
+}
+
+/// Inbox message, including the first message of its thread (`UserMail.Mail`).
+struct MailSnapshot {
+    id: string,
+    from: string,
+    subject: string,
+    body: string,
+    /// The messages after the first (`UserMail.Mail.messages`).
+    replies: list<string>,
+}
+
+/// Bank account in game state.
+struct BankSnapshot {
+    number: string,
+    password: string,
+    money: f64,
+}
+
+/// Coin and its price history (`BlockchainSystem.Coin`).
+struct CoinSnapshot {
+    name: string,
+    creator_user: string,
+    creator_password: string,
+    address: string,
+    mining_cycle: f64,
+    reward: f64,
+    mined_coins: f64,
+    /// Supply cap applied by `BlockchainSystem.CheckBlocks`.
+    max_supply: f64,
+    price: f64,
+    prices: list<CoinPriceSnapshot>,
+}
+
+/// Recorded coin price.
+struct CoinPriceSnapshot {
+    price: f64,
+    date: string,
+}
+
+/// Wallet and all its sub-wallets (`BlockchainSystem.Wallet`).
+struct WalletSnapshot {
+    user: string,
+    password: string,
+    pin: string,
+    bank: string,
+    subwallets: list<SubWalletSnapshot>,
+}
+
+/// Wallet's deposit account within one coin.
+struct SubWalletSnapshot {
+    coin: string,
+    user: string,
+    password: string,
+    balance: f64,
+    info: string,
+}
+
+/// Standing buy or sell offer (`BlockchainSystem.HelperOffer`).
+struct OfferSnapshot {
+    coin: string,
+    wallet_user: string,
+    side: string,
+    price: f64,
+    amount: f64,
+    /// Sub-wallet the offer pays into or out of (`HelperOffer.subwalletID`).
+    subwallet: string,
+}
+
+/// Device or computer of a LAN (`NetworkLan.Device`, `LanPcInfo`).
+struct LanNodeSnapshot {
+    /// Parent device index in the network nodes; null for the main router.
+    parent: u32?,
+    /// Empty string for a hub without an address.
+    local_ip: string,
+    /// Computer's gateway (`LanPcInfo.gateway`); empty for a device.
+    gateway: string,
+    /// True if the computer cannot be reached now (`LanPcInfo.IsHidden`).
+    hidden: bool,
+    node: LanNodeKind,
+}
+
+/// Kind of LAN node.
+union LanNodeKind {
+    /// Router or switch.
+    Router(RouterSnapshot),
+    /// Hub that serves only as a LAN branch (`HubNet`).
+    Hub,
+    Computer(ComputerSnapshot),
+}
+
+/// Router or switch (`Router`, `LanRouter`).
+struct RouterSnapshot {
+    /// Game `NetworkLan.TypeDevice` value: `ROUTER` or `SWITCH`.
+    kind: string,
+    /// Null if Wi-Fi is unavailable.
+    bssid: string?,
+    essid: string?,
+    wifi_password: string,
+    /// Version of its `kernel_router.so`.
+    kernel_version: string,
+    /// Game JSON content of its `kernel_router.so` (`Library`).
+    kernel_content: string,
+    /// Router firewall rules in router order.
+    firewall_rules: list<FirewallRuleSnapshot>,
+    /// Router port table (`RouterConfigOS.puertos`) in router order: local ports and forwards.
+    ports: list<TablePortSnapshot>,
+    users: list<UserSnapshot>,
+    /// Every file and folder except root, each after its parent folder.
+    files: list<FileSnapshot>,
+}
+
+/// Firewall rule, each field `Any` or its value (`HwFirewallRule`).
+struct FirewallRuleSnapshot {
+    action: string,
+    port: string,
+    source: string,
+    destination: string,
+}
+
+/// Port of a router's table (`Puerto`): its public number, leading to port `port` of the device at `local_ip`, with
+/// the service and version there as `Router.GetPortVersion` names them.
+struct TablePortSnapshot {
+    number: u16,
+    local_ip: string,
+    port: u16,
+    service: string,
+    version: string,
+    closed: bool,
+    visible: bool,
+}
+
+/// Computer of a LAN.
+struct ComputerSnapshot {
+    /// Game `NetworkLan.TypeDevice` value: `COMPUTER`, `CAMERA`, `SMARTPHONE`, `FRIDGE` or `MICROWAVE`.
+    kind: string,
+    name: string,
+    /// True if it is the player's computer.
+    player: bool,
+    users: list<UserSnapshot>,
+    /// Computer processes in game order (`Computer.Proceso`).
+    processes: list<ProcessSnapshot>,
+    /// Logged-in users of the computer NPCs (`Computer.IsAnyActiveUser`). The network administrator counts on every
+    /// computer in the network and appears in `NetworkSnapshot.npcs`.
+    active_users: list<string>,
+    ports: list<PortSnapshot>,
+    /// Every file and folder except root, each after its parent folder.
+    files: list<FileSnapshot>,
+    /// Computer network cards (`Hardware.networkDevices`).
+    net_cards: list<NetCardSnapshot>,
+    /// Active card kind (`ConfigOS.ActiveNetCard`): `NONE`, `ETHERNET` or `WIFI`.
+    active_net_card: string,
+    /// Wi-Fi networks it connected to, the most recent last (`ConfigOS.savedNetworks`).
+    saved_networks: list<SavedNetworkSnapshot>,
+    /// `ServerMap.TipoRed` name of the network it was made for (`Computer.GetTipoRed`), which stays when it joins
+    /// another network.
+    network_kind: string,
+    /// Settings for a fridge or microwave (`SmartAppliance`).
+    smart?: SmartApplianceSnapshot,
+}
+
+/// Smart appliance's model and settings (`SmartAppliance.Model`, `SmartAppConfigOS`).
+struct SmartApplianceSnapshot {
+    model: string,
+    required_power: i32,
+    required_temperature: i32,
+    power: i32,
+    temperature: i32,
+    alarm: bool,
+    override_enabled: bool,
+    /// Hardware recovery time after an accident, in `current_date` format while broken
+    /// (`SmartAppConfigOS.brokenUntil`).
+    broken_until: string?,
+}
+
+/// Wi-Fi network a computer connected to (`ConfigOS.SavedNetwork`).
+struct SavedNetworkSnapshot {
+    bssid: string,
+    essid: string,
+    password: string,
+    public_ip: string,
+}
+
+/// Network card (`Hardware.NetworkDevice`).
+struct NetCardSnapshot {
+    name: string,
+    wifi: bool,
+    monitor_support: bool,
+    monitor_enabled: bool,
+}
+
+/// Running process (`Computer.Proceso`).
+struct ProcessSnapshot {
+    name: string,
+    user: string,
+}
+
+/// User account (`Computer.User`).
+struct UserSnapshot {
+    name: string,
+    password: string,
+    groups: list<string>,
+}
+
+/// Port a device listens on (`Puerto`), with the version of its service's library.
+struct PortSnapshot {
+    number: u16,
+    /// Service name assigned by `ServicioID`.
+    service: string,
+    version: string,
+    closed: bool,
+    visible: bool,
+}
+
+/// File or folder (`FileSystem.Fichero`).
+struct FileSnapshot {
+    path: string,
+    folder: bool,
+    owner: string,
+    group: string,
+    permissions: string,
+    /// Game's `Fichero.TypeFile` number.
+    type_file: u8,
+    binary: bool,
+    content: string,
+    size: u64,
+    /// Program launched by a binary (`Fichero.comando`).
+    command: string,
+    symlink: string,
+    /// The file's date, in seconds since 1970-01-01 (`Fichero.GetTimestamp`): for the active system log, that of its
+    /// last entry.
+    timestamp: u64,
+}
+
+/// A procedural mission of the game: its group of addresses, the mission as JSON (the parts
+/// `MissionGen.GetProceduralMission` returns with their computers' items, runtime tags and NPCs) and the computers
+/// of the networks it was generated in.
+struct ProceduralMissionReply {
+    group: list<string>,
+    mission: string,
+    networks: list<MissionNetworkSnapshot>,
+}
+
+/// Network of a mission group after its generation.
+struct MissionNetworkSnapshot {
+    public_ip: string,
+    computers: list<MissionComputerSnapshot>,
+}
+
+/// Computer of a mission network with all its files.
+struct MissionComputerSnapshot {
+    local_ip: string,
+    files: list<FileSnapshot>,
+}
+
+/// The name lists of `WordGenerator`.
+struct WordListsReply {
+    lists: list<WordListSnapshot>,
+}
+
+/// A name list as the game loads it from `Resources` (`TextFiles/Names/<name>`).
+struct WordListSnapshot {
+    name: string,
+    text: string,
+}

@@ -1,0 +1,11 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/errors/single-line-if-function.ms
+---
+--- strict
+1:26 - 1:26 UnmatchedEnd(4001): 'end if' without matching 'if'
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:26 - 1:26 UnmatchedEnd(4001): 'end if' without matching 'if'

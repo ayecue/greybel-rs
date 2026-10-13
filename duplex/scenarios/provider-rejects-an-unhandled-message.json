@@ -1,0 +1,45 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider rejects a message no handler takes.",
+  "peer": "provider",
+  "requires": [],
+  "connected": true,
+  "unhandled": [
+    "Add"
+  ],
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Add": {
+                "a": 1,
+                "b": 2
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "UnhandledMessage"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

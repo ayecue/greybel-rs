@@ -1,0 +1,79 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/scripts/random.src
+---
+Chunk[1:1-62:39][
+	AssignmentStatement[1:1-1:12][Identifier[1:1-1:7][Random] = MapConstructor[1:10-1:12][]]
+	AssignmentStatement[3:1-3:17][MemberExpression[3:1-3:12][Identifier[3:1-3:7][Random].Identifier[3:8-3:12][pool]] = MapConstructor[3:15-3:17][]]
+	AssignmentStatement[4:1-4:30][MemberExpression[4:1-4:19][Identifier[4:1-4:7][Random].Identifier[4:8-4:19][defaultSeed]] = Literal[4:22-4:30][random]]
+	AssignmentStatement[6:1-8:13][MemberExpression[6:1-6:18][Identifier[6:1-6:7][Random].Identifier[6:8-6:18][createPool]] = Function[6:21-8:13][Identifier[6:30-6:34][seed], Identifier[6:36-6:39][val] =>
+		ReturnStatement[7:2-7:56][MapConstructor[7:9-7:56][
+			MapKeyString[7:11-7:23][Literal[7:11-7:17][seed]: Identifier[7:19-7:23][seed]]
+			MapKeyString[7:25-7:37][Literal[7:25-7:32][value]: Identifier[7:34-7:37][val]]
+			MapKeyString[7:39-7:54][Literal[7:39-7:51][generation]: Literal[7:53-7:54][0]]
+		]]
+	]]
+	AssignmentStatement[10:1-20:13][MemberExpression[10:1-10:16][Identifier[10:1-10:7][Random].Identifier[10:8-10:16][calcSeed]] = Function[10:19-20:13][Identifier[10:28-10:32][seed] =>
+		AssignmentStatement[11:2-11:13][Identifier[11:2-11:9][seedVal] = Literal[11:12-11:13][0]]
+		AssignmentStatement[12:2-12:16][Identifier[12:2-12:5][pos] = MemberExpression[12:8-12:16][Identifier[12:8-12:12][seed].Identifier[12:13-12:16][len]]]
+		For[14:2-17:9][Identifier[14:6-14:10][char] in Identifier[14:14-14:18][seed]
+			AssignmentStatement[15:3-15:38][Identifier[15:3-15:10][seedVal] = BinaryExpression[15:13-15:38][BinaryExpression[15:13-15:32][Identifier[15:13-15:20][seedVal] + MemberExpression[15:23-15:32][Identifier[15:23-15:27][char].Identifier[15:28-15:32][code]]] + Identifier[15:35-15:38][pos]]]
+			AssignmentStatement[16:3-16:16][Identifier[16:3-16:6][pos] = BinaryExpression[16:9-16:16][Identifier[16:9-16:12][pos] - Literal[16:15-16:16][1]]]
+		]
+		ReturnStatement[19:2-19:16][Identifier[19:9-19:16][seedVal]]
+	]]
+	AssignmentStatement[22:1-42:13][MemberExpression[22:1-22:11][Identifier[22:1-22:7][Random].Identifier[22:8-22:11][gen]] = Function[22:14-42:13][Identifier[22:23-22:26][min], Identifier[22:28-22:31][max], Identifier[22:33-22:37][seed], Identifier[22:39-22:42][inc] =>
+		AssignmentStatement[23:2-23:11][Identifier[23:2-23:4][me] = Identifier[23:7-23:11][self]]
+		AssignmentStatement[24:2-24:16][Identifier[24:2-24:6][pool] = MemberExpression[24:9-24:16][Identifier[24:9-24:11][me].Identifier[24:12-24:16][pool]]]
+		IfStatement[25:2-25:34][
+			IfShortcutClause[25:2-25:34][BinaryExpression[25:6-25:17][Identifier[25:6-25:9][inc] == Literal[25:13-25:17][null]]
+				AssignmentStatement[25:24-25:34][Identifier[25:24-25:27][inc] = Literal[25:30-25:34][true]]
+			]
+		]
+		IfStatement[26:2-26:46][
+			IfShortcutClause[26:2-26:46][BinaryExpression[26:6-26:18][Identifier[26:6-26:10][seed] == Literal[26:14-26:18][null]]
+				AssignmentStatement[26:25-26:46][Identifier[26:25-26:29][seed] = MemberExpression[26:32-26:46][Identifier[26:32-26:34][me].Identifier[26:35-26:46][defaultSeed]]]
+			]
+		]
+		IfStatement[27:2-34:8][
+			IfClause[27:2-34:8][CallExpression[27:6-27:25][MemberExpression[27:6-27:19][Identifier[27:6-27:10][pool].Identifier[27:11-27:19][hasIndex]](Identifier[27:20-27:24][seed])]
+				AssignmentStatement[28:3-28:18][Identifier[28:3-28:5][ps] = IndexExpression[28:8-28:18][Identifier[28:8-28:12][pool][Identifier[28:13-28:17][seed]]]]
+				IfStatement[29:3-29:36][
+					IfShortcutClause[29:3-29:36][NegationExpression[29:7-29:14][not Identifier[29:11-29:14][inc]]
+						ReturnStatement[29:21-29:36][MemberExpression[29:28-29:36][Identifier[29:28-29:30][ps].Identifier[29:31-29:36][value]]]
+					]
+				]
+				AssignmentStatement[30:3-30:36][MemberExpression[30:3-30:16][Identifier[30:3-30:5][ps].Identifier[30:6-30:16][generation]] = BinaryExpression[30:19-30:36][MemberExpression[30:19-30:32][Identifier[30:19-30:21][ps].Identifier[30:22-30:32][generation]] + Literal[30:35-30:36][1]]]
+				AssignmentStatement[31:3-31:67][Identifier[31:3-31:6][val] = CallExpression[31:9-31:67][Identifier[31:9-31:14][floor](BinaryExpression[31:15-31:66][BinaryExpression[31:16-31:59][CallExpression[31:16-31:45][Identifier[31:16-31:19][rnd](BinaryExpression[31:20-31:44][MemberExpression[31:20-31:28][Identifier[31:20-31:22][ps].Identifier[31:23-31:28][value]] + MemberExpression[31:31-31:44][Identifier[31:31-31:33][ps].Identifier[31:34-31:44][generation]]])] * BinaryExpression[31:49-31:58][Identifier[31:49-31:52][max] - Identifier[31:55-31:58][min]]] + Identifier[31:63-31:66][min]])]]
+				AssignmentStatement[32:3-32:17][MemberExpression[32:3-32:11][Identifier[32:3-32:5][ps].Identifier[32:6-32:11][value]] = Identifier[32:14-32:17][val]]
+				ReturnStatement[33:3-33:13][Identifier[33:10-33:13][val]]
+			]
+		]
+		AssignmentStatement[36:2-36:29][Identifier[36:2-36:9][seedVal] = CallExpression[36:12-36:29][MemberExpression[36:12-36:23][Identifier[36:12-36:14][me].Identifier[36:15-36:23][calcSeed]](Identifier[36:24-36:28][seed])]]
+		AssignmentStatement[38:2-38:49][Identifier[38:2-38:5][val] = CallExpression[38:8-38:49][Identifier[38:8-38:13][floor](BinaryExpression[38:14-38:48][BinaryExpression[38:15-38:41][CallExpression[38:15-38:27][Identifier[38:15-38:18][rnd](Identifier[38:19-38:26][seedVal])] * BinaryExpression[38:31-38:40][Identifier[38:31-38:34][max] - Identifier[38:37-38:40][min]]] + Identifier[38:45-38:48][min]])]]
+		AssignmentStatement[39:2-39:42][IndexExpression[39:2-39:12][isStatementStart][Identifier[39:2-39:6][pool][Identifier[39:7-39:11][seed]]] = CallExpression[39:15-39:42][MemberExpression[39:15-39:28][Identifier[39:15-39:17][me].Identifier[39:18-39:28][createPool]](Identifier[39:29-39:36][seedVal], Identifier[39:38-39:41][val])]]
+		ReturnStatement[41:2-41:12][Identifier[41:9-41:12][val]]
+	]]
+	AssignmentStatement[44:1-55:13][MemberExpression[44:1-44:11][Identifier[44:1-44:7][Random].Identifier[44:8-44:11][seq]] = Function[44:14-55:13][Identifier[44:23-44:26][min], Identifier[44:28-44:31][max], Identifier[44:33-44:37][seed], Identifier[44:39-44:45][amount], Identifier[44:47-44:55][keepPool] =>
+		AssignmentStatement[45:2-45:11][Identifier[45:2-45:4][me] = Identifier[45:7-45:11][self]]
+		AssignmentStatement[46:2-46:11][Identifier[46:2-46:7][index] = Literal[46:10-46:11][0]]
+		AssignmentStatement[47:2-47:13][Identifier[47:2-47:8][result] = ListConstructor[47:11-47:13][]]
+		WhileStatement[48:2-52:11][BinaryExpression[48:8-48:22][Identifier[48:8-48:13][index] < Identifier[48:16-48:22][amount]]
+			AssignmentStatement[49:3-49:32][Identifier[49:3-49:7][temp] = CallExpression[49:10-49:32][MemberExpression[49:10-49:16][Identifier[49:10-49:12][me].Identifier[49:13-49:16][gen]](Identifier[49:17-49:20][min], Identifier[49:22-49:25][max], Identifier[49:27-49:31][seed])]]
+			CallExpression[50:3-50:21][MemberExpression[50:3-50:14][Identifier[50:3-50:9][result].Identifier[50:10-50:14][push]](Identifier[50:15-50:19][temp])]
+			AssignmentStatement[51:3-51:20][Identifier[51:3-51:8][index] = BinaryExpression[51:11-51:20][Identifier[51:11-51:16][index] + Literal[51:19-51:20][1]]]
+		]
+		IfStatement[53:2-53:49][
+			IfShortcutClause[53:2-53:49][BinaryExpression[53:6-53:22][Identifier[53:6-53:14][keepPool] != Literal[53:18-53:22][true]]
+				CallExpression[53:29-53:49][MemberExpression[53:29-53:43][MemberExpression[53:29-53:36][Identifier[53:29-53:31][me].Identifier[53:32-53:36][pool]].Identifier[53:37-53:43][remove]](Identifier[53:44-53:48][seed])]
+			]
+		]
+		ReturnStatement[54:2-54:15][Identifier[54:9-54:15][result]]
+	]]
+	AssignmentStatement[57:1-59:13][MemberExpression[57:1-57:11][Identifier[57:1-57:7][Random].Identifier[57:8-57:11][get]] = Function[57:14-59:13][Identifier[57:23-57:26][min], Identifier[57:28-57:31][max] =>
+		ReturnStatement[58:2-58:27][CallExpression[58:9-58:27][MemberExpression[58:9-58:17][Identifier[58:9-58:13][self].Identifier[58:14-58:17][gen]](Identifier[58:18-58:21][min], Identifier[58:23-58:26][max])]]
+	]]
+	CallExpression[61:1-61:27][Identifier[61:1-61:6][print](CallExpression[61:7-61:26][MemberExpression[61:7-61:17][Identifier[61:7-61:13][Random].Identifier[61:14-61:17][get]](Literal[61:18-61:21][100], Literal[61:22-61:25][500])])]
+	CallExpression[62:1-62:39][Identifier[62:1-62:6][print](CallExpression[62:7-62:38][MemberExpression[62:7-62:17][Identifier[62:7-62:13][Random].Identifier[62:14-62:17][seq]](Literal[62:18-62:21][100], Literal[62:22-62:25][500], Literal[62:27-62:33][test], Literal[62:35-62:37][10])])]
+]

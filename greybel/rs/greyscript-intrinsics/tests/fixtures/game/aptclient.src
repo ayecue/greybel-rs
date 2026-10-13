@@ -1,0 +1,28 @@
+// The official package server: update builds the cache used by every other operation.
+apt = include_lib("/lib/aptclient.so")
+print typeof(apt)
+print apt.update
+print apt.show("official_server")
+print apt.show("unknown.org")
+print apt.search("blockchain")
+print apt.search("nope")
+print apt.add_repo("")
+print apt.add_repo("hackshop.org")
+print apt.add_repo("ghost.org")
+
+home = get_shell.host_computer
+print apt.install("nmap", home_dir)
+print home.File(home_dir + "/nmap") == null
+print apt.install("blockchain.so", home_dir)
+f = home.File(home_dir + "/blockchain.so")
+print f != null
+print f.is_binary
+print apt.check_upgrade(home_dir + "/blockchain.so")
+print apt.install("ghostpkg")
+print apt.del_repo("hackshop.org")
+print apt.del_repo("missing.org")
+print apt.search("blockchain")
+
+// A source is only an IP and port; update is where its connection fails.
+print apt.add_repo("45.45.45.45", 9999)
+print apt.update

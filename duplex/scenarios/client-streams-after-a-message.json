@@ -1,0 +1,110 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client sends one item of the stream after a message before the provider grants more, then the rest, ends the stream, and settles the response.",
+  "peer": "client",
+  "requires": ["responses", "streams"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Sum": {}
+      },
+      "as": "sum"
+    },
+    {
+      "item": {
+        "Sum": 1
+      },
+      "into": "sum"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Sum": {}
+                }
+              },
+              {
+                "MessageItem": {
+                  "id": 0,
+                  "Sum": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "MessageCredit": {
+              "id": 0,
+              "count": 4095
+            }
+          }
+        ]
+      }
+    },
+    {
+      "item": {
+        "Sum": 2
+      },
+      "into": "sum"
+    },
+    {
+      "end": "sum"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageItem": {
+                  "id": 0,
+                  "Sum": 2
+                }
+              },
+              {
+                "MessageEnd": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseEnd": {
+              "id": 0,
+              "Sum": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "settled": {
+          "sum": {
+            "response": 3
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider tells it listens as it starts.",
+  "peer": "provider",
+  "requires": [],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ],
+        "connection": null
+      }
+    }
+  ]
+}

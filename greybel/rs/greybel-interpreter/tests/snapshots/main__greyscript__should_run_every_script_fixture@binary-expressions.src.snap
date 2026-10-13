@@ -1,0 +1,19 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/binary-expressions.src
+---
+[
+  "1.5",
+  "600",
+  "10",
+  "50",
+  "31457280",
+  "0",
+  "30",
+  "30",
+  "20",
+  "348678440100000000000000000000",
+  "1",
+  "1"
+]

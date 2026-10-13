@@ -1,0 +1,24 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/negative-numeric.src
+---
+=== default
+x=test[:-1]
+y=test[-2:-1]
+print(test[-1:])
+z=test[-1]
+w=1--1
+=== uglify
+globals.I=globals
+J=K[:-1]
+L=K[-2:-1]
+print(K[-1:])
+M=K[-1]
+N=1--1
+=== beautify
+x = test[ : -1]
+y = test[-2 : -1]
+print test[-1 : ]
+z = test[-1]
+w = 1 - -1

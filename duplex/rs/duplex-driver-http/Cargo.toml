@@ -1,0 +1,36 @@
+[package]
+name = "duplex-driver-http"
+description = "Tokio HTTP provider for duplex-core with long polling, server-sent events, and streaming binary responses"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+tokio = { workspace = true, features = ["rt", "net", "sync", "time"] }
+hyper.workspace = true
+hyper-util.workspace = true
+http-body-util.workspace = true
+bytes.workspace = true
+base64.workspace = true
+duplex-tokio.workspace = true
+scheduler = { workspace = true, features = ["tokio"] }
+getrandom.workspace = true
+
+[dev-dependencies]
+duplex-test-support = { workspace = true, features = ["tokio"] }
+duplex-ts.workspace = true
+tokio = { workspace = true, features = ["rt", "net", "sync", "time", "macros", "io-util", "io-std"] }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

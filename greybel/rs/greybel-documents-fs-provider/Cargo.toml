@@ -1,0 +1,26 @@
+[package]
+name = "greybel-documents-fs-provider"
+description = "Serves greybel-documents from the file system"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greybel-documents.workspace = true
+globset.workspace = true
+
+[dev-dependencies]
+greybel-test-support.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

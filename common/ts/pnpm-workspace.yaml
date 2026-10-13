@@ -1,0 +1,9 @@
+packages:
+  - '*'
+
+allowBuilds:
+  '@playwright/browser-chromium': true
+  '@vscode/vsce-sign': true
+  core-js-pure: false
+  esbuild: true
+  keytar: false

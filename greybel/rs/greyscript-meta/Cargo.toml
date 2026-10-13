@@ -1,0 +1,32 @@
+[package]
+name = "greyscript-meta"
+description = "GreyScript API metadata"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+asset-bundle.workspace = true
+meta-utils.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[build-dependencies]
+asset-bundle.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+greybel-test-support = { workspace = true, features = ["meta", "textmate"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

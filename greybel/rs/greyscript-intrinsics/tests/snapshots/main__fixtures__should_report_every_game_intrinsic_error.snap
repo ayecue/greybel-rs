@@ -1,0 +1,86 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: snapshot
+---
+command_info("")
+  returns command_info: Invalid arguments
+command_info(1)
+  returns command_info: Invalid arguments
+get_shell(1)
+  returns get_shell: Invalid arguments
+get_shell.x = 1
+  raises can't set an indexed element in this type
+get_shell.__isa.x = 1
+  raises can't set an indexed element in this type
+s = get_shell; s["x"] = 1
+  raises can't set an indexed element in this type
+get_shell.pop
+  raises pop: This object does not allow the use of this method
+get_shell.push(1)
+  raises push: This object does not allow the use of this method
+get_shell.remove("classID")
+  raises remove: This object does not allow the use of this method
+get_shell.shuffle
+  raises shuffle: This object does not allow the use of this method
+get_shell.host_computer.File("")
+  returns File: Invalid arguments
+get_shell.host_computer.create_folder(1)
+  returns create_folder: Invalid arguments
+get_shell.host_computer.create_user("", "x")
+  returns create_user: Invalid arguments
+get_shell.host_computer.create_user("a" * 16, "x")
+  returns username cannot exceed the 15 character limit.
+get_shell.host_computer.groups("")
+  returns groups: Invalid arguments
+get_shell.host_computer.File("/home").chmod("u+r", "x")
+  returns chmod: Invalid arguments
+get_shell.host_computer.File("/home").set_owner("bad name")
+  returns Only alphanumeric characters are allowed for owner names.
+get_shell.host_computer.File("/home").set_group("a" * 16)
+  returns Group name cannot exceed the 15 character limit.
+get_shell.host_computer.File("/home").copy(1)
+  returns copy: Invalid arguments
+get_shell.host_computer.File("/home").copy("/tmp", "a" * 129)
+  returns copy: name cannot exceed the 128 character limit.
+get_abs_path(1)
+  returns get_abs_path: Invalid arguments
+get_abs_path("a" * 1025)
+  returns get_abs_path: path too large
+cd(1)
+  returns cd: Invalid arguments
+parent_path("")
+  returns parent_path: Invalid arguments
+clear_screen; clear_screen
+  raises You must wait 0.1 seconds before you can launch clear_screen again
+include_lib("")
+  returns include_lib: Invalid arguments
+include_lib("admin.so").create_network(1)
+  returns create_network: Invalid arguments
+include_lib("admin.so").create_network({"essid": 1})
+  returns create_network: Invalid arguments
+include_lib("admin.so").network(1)
+  returns network: Invalid arguments
+include_lib("admin.so").network(get_router.public_ip).add_computer(1)
+  returns add_computer: Invalid arguments
+include_lib("admin.so").network(get_router.public_ip).add_computer({"users": [1]})
+  returns add_computer: Invalid arguments
+include_lib("admin.so").network(get_router.public_ip).computer(1)
+  returns computer: Invalid arguments
+include_lib("admin.so").network(get_router.public_ip).computer(get_shell.host_computer.local_ip).shell(1)
+  returns shell: Invalid arguments
+include_lib("admin.so").set_date(1)
+  returns set_date: Invalid arguments
+get_router.device_ports("")
+  returns device_ports: Invalid arguments
+nslookup("")
+  returns nslookup: Invalid arguments
+whois(1)
+  returns whois: Invalid arguments
+get_shell.ping(1)
+  returns ping: Invalid arguments
+get_shell.connect_service("", 22, "a", "b")
+  returns connect_service: Invalid arguments
+get_shell.connect_service("1.1.1.1", "22", "a", "b")
+  returns connect_service: Invalid arguments
+get_shell.scp("", "/")
+  returns scp: Invalid arguments

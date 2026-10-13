@@ -1,0 +1,33 @@
+// A service runs as a process that binds a port; start/stop and launch.
+// Service control needs root, so take a root session on our own computer.
+include_lib("admin.so").sudo
+shell = get_shell
+computer = shell.host_computer
+print computer.get_ports.len
+
+// the ssh library gives a service object; start it
+svc = include_lib("/lib/libssh.so")
+print typeof(svc)
+print svc.start_service
+ports = computer.get_ports
+print ports.len
+opened = ports[ports.len - 1]
+print opened.port_number
+
+// its daemon now shows in the process list
+procs = computer.show_procs
+print procs.indexOf("sshd") != null
+
+// starting again does nothing
+print svc.start_service
+
+// stop it: port and daemon go away
+print svc.stop_service
+print computer.get_ports.len
+print computer.show_procs.indexOf("sshd")
+
+// launch spawns a process; missing and non-executable paths fail
+print shell.launch("/usr/bin/Terminal.exe")
+print computer.show_procs.indexOf("Terminal.exe") != null
+print shell.launch("/usr/bin/missing")
+print shell.launch("/etc/passwd")

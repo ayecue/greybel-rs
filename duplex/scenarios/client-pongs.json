@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client responds to a ping with a pong.",
+  "peer": "client",
+  "requires": [],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Ping": {}
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Pong": {}
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

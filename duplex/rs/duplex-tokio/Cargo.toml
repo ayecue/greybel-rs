@@ -1,0 +1,21 @@
+[package]
+name = "duplex-tokio"
+description = "Shared Tokio utilities for duplex-core drivers, including worker-thread hubs, accept retries, read backpressure, and random IDs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[lib]
+doctest = false
+
+[dependencies]
+tokio = { workspace = true, features = ["rt", "sync", "time", "net"] }
+fastrand.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "sync", "time", "net", "macros"] }
+
+[lints]
+workspace = true

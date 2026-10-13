@@ -1,0 +1,65 @@
+use core 1.0;
+
+/// Definition metadata unrelated to item layout, used by tag tests.
+tag origin: string on protocol, message;
+/// External numeric identifier for a message.
+tag number: u32 on message;
+/// External names for a field or variant; multiple names are allowed.
+tag alias: string on field, variant, member repeated;
+/// Field identifying the message recipient.
+tag recipient on field;
+tag kind: Kind on struct, union, enum;
+tag weight: f64 on field;
+tag sorted: bool on field;
+tag marker: char on member;
+tag offset: i64 on field;
+
+/// Sensor that reports readings, with a tag at every supported location.
+@origin("lab")
+protocol Sensor = "sensor" {
+    /// Station that collects readings.
+    provider Station {
+        /// Reading reported by a sensor.
+        @origin("probe") @number(34)
+        message Reading {
+            @alias("value") @alias("measurement") @weight(0.5) value: f64,
+            @recipient @offset(-3) station: u32,
+            @sorted(true) labels: list<string>,
+            position: Position,
+            shape: Shape,
+            unit: Unit,
+            note?: string,
+        }
+        message Silence {}
+    }
+
+    /// Sensor client.
+    client Probe {
+        @number(1000)
+        message Calibrate { @recipient probe: u32 }
+    }
+}
+
+@kind(Plain)
+struct Position {
+    @alias("x") across: f32,
+    @alias("y") down: f32,
+}
+
+@kind(Sum)
+union Shape {
+    @alias("dot") Point,
+    Circle(f64),
+    Box { @recipient width: u32, height: u32 },
+}
+
+@kind(Plain)
+enum Unit {
+    @alias("celsius") @marker("C") Celsius = 1,
+    Kelvin = 7,
+}
+
+enum Kind {
+    Plain,
+    Sum,
+}

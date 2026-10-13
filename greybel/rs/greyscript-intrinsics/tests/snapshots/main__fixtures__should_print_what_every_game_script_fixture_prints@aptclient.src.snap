@@ -1,0 +1,81 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/aptclient.src
+---
+aptclientLib
+
+<b>libssh.so</b>
+Missing description
+
+<b>libftp.so</b>
+Missing description
+
+<b>libhttp.so</b>
+Missing description
+
+<b>libsql.so</b>
+Missing description
+
+<b>libsmtp.so</b>
+Missing description
+
+<b>libcam.so</b>
+Missing description
+
+<b>librepository.so</b>
+Missing description
+
+<b>blockchain.so</b>
+Missing description
+
+<b>libadb.so</b>
+Missing description
+
+<b>libsmartappliance.so</b>
+Missing description
+
+<b>kernel_router.so</b>
+Missing description
+
+<b>aptclient.so</b>
+Missing description
+
+<b>kernel_module.so</b>
+Missing description
+
+<b>init.so</b>
+Missing description
+
+<b>net.so</b>
+Missing description
+
+<b>libtrafficnet.so</b>
+Missing description
+
+
+unknown.org repository not found
+<b>blockchain.so</b>
+Missing description
+
+
+nope not found in any repository
+ is not a valid IP
+hackshop.org is not a valid IP
+ghost.org is not a valid IP
+nmap not found in the server
+1
+1
+1
+1
+0
+ghostpkg not found in the server
+hackshop.org not found in sources.txt
+missing.org not found in sources.txt
+<b>blockchain.so</b>
+Missing description
+
+
+
+Updating: 45.45.45.45
+can't connect: port 9999 not found

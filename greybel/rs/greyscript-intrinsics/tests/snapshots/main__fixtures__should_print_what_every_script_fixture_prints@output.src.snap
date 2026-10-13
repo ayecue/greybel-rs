@@ -1,0 +1,11 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greyscript-intrinsics/tests/fixtures/scripts/output.src
+---
+first
+(replace) second
+third
+
+null
+done

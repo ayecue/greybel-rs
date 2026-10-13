@@ -1,0 +1,17 @@
+// mail_login validation
+print mail_login("bad", "x")
+print mail_login("test@test.com", "wrong")
+
+mail = mail_login("test@test.com", "test")
+print typeof(mail)
+
+// the welcome message is waiting
+inbox = mail.fetch
+print inbox.len
+print inbox[0].indexOf("From: welcome@greyhack.com") != null
+
+// every MetaMail method waits 2 seconds after the last, which this run's clock never passes
+print mail.read(["x"])
+print mail.send("a@b.com", "x", "y")
+print mail.delete(["x"])
+print mail.delete_all

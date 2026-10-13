@@ -1,0 +1,229 @@
+{
+  "type": "crypto",
+  "extends": "map",
+  "definitions": {
+    "aircrack": {
+      "id": "aircrack",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "pathFile",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "aircrack: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "airmon": {
+      "id": "airmon",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "option",
+          "type": "string"
+        },
+        {
+          "label": "device",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "airmon: monitor mode can only be activated on wifi cards",
+        "airmon: monitor mode is not supported by the chipset of this network card.",
+        "Error: wifi card is disabled",
+        "wifi_networks: wifi card is disabled"
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "aireplay": {
+      "id": "aireplay",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "bssid",
+          "type": "string"
+        },
+        {
+          "label": "essid",
+          "type": "string"
+        },
+        {
+          "label": "maxAcks",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": -1
+          }
+        }
+      ],
+      "returnVariations": [
+        "aireplay: Invalid arguments",
+        "aireplay: no wifi card found with monitor mode enabled",
+        "Can't connect. Target is out of reach.",
+        "Error: wifi card is disabled",
+        "router not found!",
+        "wifi_networks: wifi card is disabled"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "decipher": {
+      "id": "decipher",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "encryptPass",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "smtp_user_list": {
+      "id": "smtp_user_list",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "ipAddress",
+          "type": "string"
+        },
+        {
+          "label": "port",
+          "type": "number"
+        }
+      ],
+      "returnVariations": [
+        "!PlayerUtils.GetSmtpServer",
+        "Error: Invalid ip address"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "string",
+        "null"
+      ]
+    },
+    "encrypt": {
+      "id": "encrypt",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "filePath",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "encrypt: File not found",
+        "encrypt: Invalid file path",
+        "error: file already encrypted",
+        "Error: only alphanumeric allowed as password.",
+        "Error: the password cannot exceed the limit of 15 characters.",
+        "permission denied",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "decrypt": {
+      "id": "decrypt",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "filePath",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "decrypt: File not found",
+        "decrypt: Incorrect password",
+        "decrypt: Invalid file path",
+        "decrypt: The file is not encrypted.",
+        "Error: only alphanumeric allowed as password.",
+        "Error: the password cannot exceed the limit of 15 characters.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "is_encrypted": {
+      "id": "is_encrypted",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "filePath",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "is_encrypted: File not found",
+        "is_encrypted: Invalid file path",
+        "permission denied",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    }
+  }
+}

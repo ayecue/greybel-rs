@@ -1,0 +1,67 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/strict-mode.src
+---
+=== direct, default
+a=1
+a=a+1
+b=10
+b=b-3
+c="hello"
+c=c+" world"
+obj={}
+obj.x=obj.x*2
+print(a+b+c)
+=== bundle, default
+a=1
+a=a+1
+b=10
+b=b-3
+c="hello"
+c=c+" world"
+obj={}
+obj.x=obj.x*2
+print(a+b+c)
+=== direct, uglify
+globals.I=globals
+J=1
+J=J+1
+K=10
+K=K-3
+L="hello"
+L=L+" world"
+M={}
+M.x=M.x*2
+print(J+K+L)
+=== bundle, uglify
+globals.I=globals
+J=1
+J=J+1
+K=10
+K=K-3
+L="hello"
+L=L+" world"
+M={}
+M.x=M.x*2
+print(J+K+L)
+=== direct, beautify
+a = 1
+a = a + 1
+b = 10
+b = b - 3
+c = "hello"
+c = c + " world"
+obj = {}
+obj.x = obj.x * 2
+print a + b + c
+=== bundle, beautify
+a = 1
+a = a + 1
+b = 10
+b = b - 3
+c = "hello"
+c = c + " world"
+obj = {}
+obj.x = obj.x * 2
+print a + b + c

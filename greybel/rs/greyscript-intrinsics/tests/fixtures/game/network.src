@@ -1,0 +1,71 @@
+// Connecting to other computers, from a network made with admin.so.
+admin = include_lib("admin.so")
+router = admin.create_network({"public_ip": "8.8.8.8", "domain": "target.com", "computers": 0})
+lan = router.local_ip[:-1]
+web = admin.network("8.8.8.8").add_computer({"name": "web", "lan_ip": lan + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["ssh", "ftp"]})
+db = admin.network("8.8.8.8").add_computer({"name": "db", "lan_ip": lan + "11", "root_password": "toor", "services": ["http"]})
+shell = get_shell
+
+print nslookup("target.com")
+print nslookup("TARGET.COM")
+print nslookup("nowhere.org")
+print whois("8.8.8.8").split(char(10))[0]
+print whois("8.8.8.8").split(char(10)).len
+print whois(get_router.public_ip)
+print whois("9.9.9.9")
+print whois("192.168.0.1")
+print whois("nope")
+
+print shell.ping("8.8.8.8")
+print shell.ping("9.9.9.9")
+print shell.ping(get_router.local_ip)
+print shell.ping("192.168.0.99")
+print shell.ping("nope")
+
+print shell.connect_service("8.8.8.8", 22, "bob", "wrong")
+print shell.connect_service("8.8.8.8", 23, "bob", "pass")
+print shell.connect_service("9.9.9.9", 22, "bob", "pass")
+print shell.connect_service("8.8.8.8", 22, "bob", "pass", "http")
+print shell.connect_service("8.8.8.8", 80, "root", "toor")
+print shell.connect_service("8.8.8.8", 22, "bob", "pa(ss")
+remote = shell.connect_service("8.8.8.8", 22, "bob", "pass")
+print typeof(remote)
+pc = remote.host_computer
+print pc.get_name + " " + pc.local_ip + " " + active_user
+print pc.File("/home/bob").owner
+print remote.ping(lan + "11")
+print remote.ping(lan + "99")
+print remote.connect_service(lan + "11", 80, "root", "toor")
+print remote.connect_service(lan + "11", 22, "root", "toor")
+inner = remote.connect_service(lan + "10", 22, "root", "toor")
+print typeof(inner) + " " + inner.host_computer.get_name
+
+ftp = shell.connect_service("8.8.8.8", 21, "bob", "pass", "ftp")
+print typeof(ftp)
+fpc = ftp.host_computer
+print typeof(fpc) + " " + fpc.get_name
+f = fpc.File("/home/bob")
+print typeof(f) + " " + f.owner
+print f.__isa.hasIndex("get_content") + " " + fpc.__isa.hasIndex("show_procs") + " " + ftp.__isa.hasIndex("connect_service")
+
+// scp in both directions.
+home = get_shell.host_computer
+home.touch(home_dir, "loot.txt")
+home.File(home_dir + "/loot.txt").set_content("secret")
+print remote.scp(home_dir + "/loot.txt", "/home/bob", get_shell, 1)
+print pc.File("/home/bob/loot.txt").get_content
+// Any non-zero is_upload uploads, as the game's BoolValue reads it.
+home.touch(home_dir, "half.txt")
+print remote.scp(home_dir + "/half.txt", "/home/bob", get_shell, 0.5)
+print pc.File("/home/bob/half.txt") != null
+pc.touch("/home/bob", "back.txt")
+print remote.scp("/home/bob/back.txt", home_dir)
+print home.File(home_dir + "/back.txt") != null
+print remote.scp("/home/bob/missing", home_dir)
+print remote.scp("/home/bob/back.txt", "/nowhere")
+print remote.scp("/home/bob/back.txt", home_dir + "/loot.txt")
+print remote.scp("/etc/passwd", home_dir)
+print remote.scp("/home/bob/back.txt", "/root", get_shell)
+print remote.scp("/", home_dir)
+print ftp.scp("/home/bob/back.txt", home_dir + "/Desktop")
+print home.File(home_dir + "/Desktop/back.txt") != null

@@ -1,0 +1,52 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client fails a message whose frame would take more bytes than its limit as `Overload` and sends nothing of it.",
+  "peer": "client",
+  "requires": ["limits"],
+  "connected": true,
+  "limits": {
+    "message": 10
+  },
+  "steps": [
+    {
+      "send": {
+        "Log": {
+          "text": "longer than ten bytes"
+        }
+      },
+      "fails": {
+        "rejected": "Overload"
+      }
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "send": {
+        "Log": {
+          "text": "short"
+        }
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "Log": {
+                    "text": "short"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

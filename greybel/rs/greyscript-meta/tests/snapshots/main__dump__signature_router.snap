@@ -1,0 +1,500 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - device_ports
+  - devices_lan_ip
+  - bssid_name
+  - essid_name
+  - firewall_rules
+  - kernel_version
+  - local_ip
+  - public_ip
+  - used_ports
+  - ping_port
+  - port_info
+  - net_speed
+definitions:
+  bssid_name:
+    argStrings: []
+    id: bssid_name
+    json:
+      arguments: []
+      description: "Returns a `string` with the BSSID value of the router."
+      example:
+        - router = get_router
+        - bssid = router.bssid_name
+        - "print(\"BSSID: \" + bssid)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  device_ports:
+    argStrings:
+      - - string
+    id: device_ports
+    json:
+      arguments:
+        - default: ~
+          label: address
+          opt: false
+          types:
+            - string
+      description: "Returns the open `port` objects for a LAN device, or `null` on failure. Empty or invalid addresses return error strings, including `\"device_ports: Invalid arguments\"`, instead of raising."
+      example:
+        - router = get_router
+        - devices = router.devices_lan_ip
+        - for ip in devices
+        - "   ports = router.device_ports(ip)"
+        - "   openPorts = []"
+        - "   for port in ports"
+        - "      if port.is_closed then continue"
+        - "      openPorts.push(port)"
+        - "   end for"
+        - ""
+        - "   if (openPorts.len == 0) then"
+        - "      print(ip + \" has no open ports\")"
+        - "   else"
+        - "      print(ip + \" contains following open ports:\")"
+        - "      for port in openPorts"
+        - "         print(\"|-\" +  port.port_number)"
+        - "      end for"
+        - "   end if"
+        - end for
+      isProtected: false
+      returns:
+        - string
+        - type: list
+          valueType: port
+        - "null"
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - list<port>
+      - "null"
+    returnVariations:
+      ok:
+        - "device_ports: Invalid arguments"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  devices_lan_ip:
+    argStrings: []
+    id: devices_lan_ip
+    json:
+      arguments: []
+      description: "Returns a `list` where each item is a `string` representing a LAN IP address. All devices are within the network of the router and can be reached by using the `ping` method. Some of the devices might be behind a firewall."
+      example:
+        - router = get_router
+        - devices = router.devices_lan_ip
+        - for ip in devices
+        - "   print(ip + \" found!\")"
+        - end for
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  essid_name:
+    argStrings: []
+    id: essid_name
+    json:
+      arguments: []
+      description: "Returns a `string` with the ESSID value of the router."
+      example:
+        - router = get_router
+        - essid = router.essid_name
+        - "print(\"ESSID: \" + essid)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  firewall_rules:
+    argStrings: []
+    id: firewall_rules
+    json:
+      arguments: []
+      description: "Returns a `list` where each item is a `string` containing a firewall rule."
+      example:
+        - router = get_router
+        - rules = router.firewall_rules
+        - "print(\"Firewall rules: \" + rules.join(\", \"))"
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  kernel_version:
+    argStrings: []
+    id: kernel_version
+    json:
+      arguments: []
+      description: "Returns a `string` with the version of the `kernel_router.so` library."
+      example:
+        - router = get_router
+        - version = router.kernel_version
+        - "print(\"Kernel router version: \" + version)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  local_ip:
+    argStrings: []
+    id: local_ip
+    json:
+      arguments: []
+      description: "Returns a `string` with the local IP address of the router."
+      example:
+        - router = get_router
+        - localIp = router.local_ip
+        - "print(\"Local IP: \" + localIp)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  net_speed:
+    argStrings: []
+    id: net_speed
+    json:
+      arguments: []
+      description: "Returns the network connection-speed pack number: `3`, `6`, `12`, `20`, or `25` (`ISPPanel.PackID`). Returns `null` when the router cannot be resolved."
+      example:
+        - router = get_router
+        - print(router.net_speed)
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - 3
+        - 6
+        - 12
+        - 20
+        - 25
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  ping_port:
+    argStrings:
+      - - number
+    id: ping_port
+    json:
+      arguments:
+        - default: ~
+          label: port
+          opt: false
+          types:
+            - number
+      description: "Returns a `port` that is behind the port `number` provided. In case the `port` does not exist `null` gets returned."
+      example:
+        - router = get_router
+        - ports = router.used_ports
+        - for port in ports
+        - "   pingedPort = router.ping_port(port.port_number)"
+        - "   if (pingedPort == null) then continue"
+        - "   print(\"Pinged \" + pingedPort.port_number)"
+        - end for
+      isProtected: false
+      returns:
+        - port
+        - "null"
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - port
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  port_info:
+    argStrings:
+      - - port
+    id: port_info
+    json:
+      arguments:
+        - default: ~
+          label: port
+          opt: false
+          types:
+            - port
+      description: "Returns a `string` with information about the provided port, including details about the running service and its version. For example, the output could be `\"http 1.0.0\"`. If the operation fails, `null` will be returned."
+      example:
+        - router = get_router
+        - ports = router.used_ports
+        - for port in ports
+        - "   info = router.port_info(port)"
+        - "   print(info)"
+        - end for
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  public_ip:
+    argStrings: []
+    id: public_ip
+    json:
+      arguments: []
+      description: "Returns a `string` with the public IP address of the router."
+      example:
+        - router = get_router
+        - publicIp = router.public_ip
+        - "print(\"Public IP: \" + publicIp)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  used_ports:
+    argStrings: []
+    id: used_ports
+    json:
+      arguments: []
+      description: "Returns a `list` where each item is a `port` used inside the router."
+      example:
+        - router = get_router
+        - ports = router.used_ports
+        - for port in ports
+        - "   print(\"Port \" + port.port_number + \" is available!\")"
+        - end for
+      isProtected: false
+      returns:
+        - type: list
+          valueType: port
+      type: function
+    origin: router
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<port>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - device_ports
+  - devices_lan_ip
+  - bssid_name
+  - essid_name
+  - firewall_rules
+  - kernel_version
+  - local_ip
+  - public_ip
+  - used_ports
+  - ping_port
+  - port_info
+  - net_speed
+descriptions:
+  $meta:
+    description: "A `router` object can be obtained by either using [get_router](#GENERAL_GET_ROUTER) or [get_switch](#GENERAL_GET_SWITCH). The `classID` used for this object is `\"router\"`."
+    example: ~
+  bssid_name:
+    description: "Returns a `string` with the BSSID value of the router."
+    example:
+      - router = get_router
+      - bssid = router.bssid_name
+      - "print(\"BSSID: \" + bssid)"
+  device_ports:
+    description: "Returns the open `port` objects for a LAN device, or `null` on failure. Empty or invalid addresses return error strings, including `\"device_ports: Invalid arguments\"`, instead of raising."
+    example:
+      - router = get_router
+      - devices = router.devices_lan_ip
+      - for ip in devices
+      - "   ports = router.device_ports(ip)"
+      - "   openPorts = []"
+      - "   for port in ports"
+      - "      if port.is_closed then continue"
+      - "      openPorts.push(port)"
+      - "   end for"
+      - ""
+      - "   if (openPorts.len == 0) then"
+      - "      print(ip + \" has no open ports\")"
+      - "   else"
+      - "      print(ip + \" contains following open ports:\")"
+      - "      for port in openPorts"
+      - "         print(\"|-\" +  port.port_number)"
+      - "      end for"
+      - "   end if"
+      - end for
+  devices_lan_ip:
+    description: "Returns a `list` where each item is a `string` representing a LAN IP address. All devices are within the network of the router and can be reached by using the `ping` method. Some of the devices might be behind a firewall."
+    example:
+      - router = get_router
+      - devices = router.devices_lan_ip
+      - for ip in devices
+      - "   print(ip + \" found!\")"
+      - end for
+  essid_name:
+    description: "Returns a `string` with the ESSID value of the router."
+    example:
+      - router = get_router
+      - essid = router.essid_name
+      - "print(\"ESSID: \" + essid)"
+  firewall_rules:
+    description: "Returns a `list` where each item is a `string` containing a firewall rule."
+    example:
+      - router = get_router
+      - rules = router.firewall_rules
+      - "print(\"Firewall rules: \" + rules.join(\", \"))"
+  kernel_version:
+    description: "Returns a `string` with the version of the `kernel_router.so` library."
+    example:
+      - router = get_router
+      - version = router.kernel_version
+      - "print(\"Kernel router version: \" + version)"
+  local_ip:
+    description: "Returns a `string` with the local IP address of the router."
+    example:
+      - router = get_router
+      - localIp = router.local_ip
+      - "print(\"Local IP: \" + localIp)"
+  net_speed:
+    description: "Returns the network connection-speed pack number: `3`, `6`, `12`, `20`, or `25` (`ISPPanel.PackID`). Returns `null` when the router cannot be resolved."
+    example:
+      - router = get_router
+      - print(router.net_speed)
+  ping_port:
+    description: "Returns a `port` that is behind the port `number` provided. In case the `port` does not exist `null` gets returned."
+    example:
+      - router = get_router
+      - ports = router.used_ports
+      - for port in ports
+      - "   pingedPort = router.ping_port(port.port_number)"
+      - "   if (pingedPort == null) then continue"
+      - "   print(\"Pinged \" + pingedPort.port_number)"
+      - end for
+  port_info:
+    description: "Returns a `string` with information about the provided port, including details about the running service and its version. For example, the output could be `\"http 1.0.0\"`. If the operation fails, `null` will be returned."
+    example:
+      - router = get_router
+      - ports = router.used_ports
+      - for port in ports
+      - "   info = router.port_info(port)"
+      - "   print(info)"
+      - end for
+  public_ip:
+    description: "Returns a `string` with the public IP address of the router."
+    example:
+      - router = get_router
+      - publicIp = router.public_ip
+      - "print(\"Public IP: \" + publicIp)"
+  used_ports:
+    description: "Returns a `list` where each item is a `port` used inside the router."
+    example:
+      - router = get_router
+      - ports = router.used_ports
+      - for port in ports
+      - "   print(\"Port \" + port.port_number + \" is available!\")"
+      - end for
+extends: map
+hidden: false

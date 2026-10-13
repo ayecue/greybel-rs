@@ -1,0 +1,12 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/slice.src
+---
+[
+  "[\"blahh\", \"blahh\", \"blahh\", \"blahh\", \"blahh\", \"blahh\", \"gad\"]",
+  "[\"b\", \"c\"]",
+  "[\"a\"]",
+  "\"bc\"",
+  "\"a\""
+]

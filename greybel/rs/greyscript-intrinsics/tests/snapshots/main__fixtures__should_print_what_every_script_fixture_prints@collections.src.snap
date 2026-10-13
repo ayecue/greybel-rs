@@ -1,0 +1,27 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/scripts/collections.src
+---
+null
+[3, 2, 1]
+null
+1--a
+{"k": 1}
+[1, 2, 3]
+0
+1
+0
+0
+1
+[9, 2, 9]
+{"a": 0, "b": 2}
+1
+0
+1
+0
+1
+0
+null
+[3, 2, 1, 0]
+[1, 1.5, 2]

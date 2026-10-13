@@ -1,0 +1,35 @@
+{
+  "name": "greybel-io-web",
+  "version": "0.1.0",
+  "description": "The page side of the greybel-io-web crate: its protocol, and routers showing a program's output and reading its input",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./program": {
+      "source": "./src/program.generated.ts",
+      "types": "./dist/program.generated.d.ts",
+      "default": "./dist/program.generated.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "duplex-core": "^0.1.0"
+  },
+  "devDependencies": {
+    "duplex-driver-worker": "^0.1.0"
+  }
+}

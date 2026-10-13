@@ -1,0 +1,10 @@
+---
+source: miniscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder: []
+definitions: {}
+descriptionOrder: []
+descriptions: {}
+extends: ~
+hidden: false

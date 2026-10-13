@@ -1,0 +1,143 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/anonymous-functions.src
+---
+=== default
+Foo(function,"test")
+return 1
+end function
+Foo("test",function)
+return 1
+end function
+Foo={"test":function}
+return 1
+end function
+Foo=[function]
+return 1
+end function
+foo=function
+return function
+return "faa"
+end function
+end function
+Foo(function,"test",function)
+return 1
+end function
+return 2
+end function
+Foo(function,"test",function)
+Foo=[function]
+return 3
+end function
+return 1
+end function
+return 2
+end function
+=== uglify
+globals.I=globals
+I.L="test"
+J(function,L)
+return 1
+end function
+J(L,function)
+return 1
+end function
+J={L:function}
+return 1
+end function
+J=[function]
+return 1
+end function
+K=function
+return function
+return "faa"
+end function
+end function
+J(function,L,function)
+return 1
+end function
+return 2
+end function
+J(function,L,function)
+J=[function]
+return 3
+end function
+return 1
+end function
+return 2
+end function
+=== beautify
+Foo function, "test"
+	return 1
+end function
+
+Foo "test", function
+	return 1
+end function
+
+Foo = { "test": function }
+	return 1
+end function
+
+Foo = [ function ]
+	return 1
+end function
+
+foo = function
+	return function
+		return "faa"
+	end function
+end function
+
+Foo function, "test", function
+	return 1
+end function
+	return 2
+end function
+
+Foo function, "test", function
+	Foo = [ function ]
+		return 3
+	end function
+	return 1
+end function
+	return 2
+end function
+=== beautify, dev mode, keep parentheses, 10 spaces
+Foo(function, "test")
+          return 1
+end function
+
+Foo("test", function)
+          return 1
+end function
+
+Foo = { "test": function }
+          return 1
+end function
+
+Foo = [ function ]
+          return 1
+end function
+
+foo = function
+          return function
+                    return "faa"
+          end function
+end function
+
+Foo(function, "test", function)
+          return 1
+end function
+          return 2
+end function
+
+Foo(function, "test", function)
+          Foo = [ function ]
+                    return 3
+          end function
+          return 1
+end function
+          return 2
+end function

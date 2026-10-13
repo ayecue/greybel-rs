@@ -1,0 +1,25 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/versions/return-before-else.ms
+---
+=== 1.6
+--- strict
+1:18 - 1:22 ExpectedExpression(3002): got Keyword(else) where number, string, or identifier is required
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:18 - 1:22 ExpectedExpression(3002): got Keyword(else) where number, string, or identifier is required
+=== latest
+--- strict: ok
+--- tree
+Chunk[1:1-2:1][
+	IfStatement[1:1-1:31][
+		IfShortcutClause[1:1-1:22][Identifier[1:4-1:5][a]
+			ReturnStatement[1:11-1:17][null]
+		]
+		ElseShortcutClause[1:23-1:31][
+			ReturnStatement[1:23-1:31][Literal[1:30-1:31][1]]
+		}]
+	]
+]

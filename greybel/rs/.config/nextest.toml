@@ -1,0 +1,19 @@
+# The game tests (greyhack-message-hook-client's feature `game`) each run the game itself: one at a time, as their
+# harness (greybel-test-support's `game`) runs one game at a time anyway.
+[test-groups]
+game = { max-threads = 4 }
+
+[[profile.default.overrides]]
+filter = 'package(greyhack-message-hook-client) and test(/^game::/)'
+test-group = 'game'
+slow-timeout = { period = "60s", terminate-after = 4 }
+
+[[profile.default.overrides]]
+filter = 'package(greybel-runtime) and test(/^game::/)'
+test-group = 'game'
+slow-timeout = { period = "60s", terminate-after = 4 }
+
+[[profile.default.overrides]]
+filter = 'package(greyhack-test-support-client) and test(/^(game|parity_[a-z_]+)::/)'
+test-group = 'game'
+slow-timeout = { period = "60s", terminate-after = 4 }

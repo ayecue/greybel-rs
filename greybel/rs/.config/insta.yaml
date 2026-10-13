@@ -1,0 +1,3 @@
+# cargo insta test runs the tests with cargo-nextest (insta's "auto" picks cargo test).
+test:
+  runner: nextest

@@ -1,0 +1,31 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A channel whose driver lost the way to the other peer closes for good without telling it, failing its messages.",
+  "peer": "client",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "disconnect": true
+    },
+    {
+      "expect": {
+        "closed": "ConnectionLoss",
+        "settled": {
+          "sum": {
+            "closed": "ConnectionLoss"
+          }
+        }
+      }
+    }
+  ]
+}

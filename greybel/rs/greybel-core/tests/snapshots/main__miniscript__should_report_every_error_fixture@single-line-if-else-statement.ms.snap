@@ -1,0 +1,11 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/errors/single-line-if-else-statement.ms
+---
+--- strict
+1:20 - 1:25 ExpectedToken(3001): got Identifier(print) where Keyword(else) or EOL is required
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:20 - 1:25 ExpectedToken(3001): got Identifier(print) where Keyword(else) or EOL is required

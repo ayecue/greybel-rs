@@ -1,0 +1,27 @@
+use core 1.0;
+
+/// Converts Grey Hack rich text to ANSI output with the game terminal layout and colors.
+protocol TerminalText = "greybel-terminal-text" {
+    /// Renderer for rich text.
+    provider Renderer {
+        /// Renders rich texts in sequence, typically from one io `OutputBatch`. Uses the same message-size limit and
+        /// blends non-text colors over the game terminal background.
+        message Render {
+            texts: list<RichText>,
+        } -> AnsiOutput limit 16MiB
+    }
+
+    /// Text terminal that consumes ANSI output.
+    client Terminal {}
+}
+
+/// Rich text wrapped to `columns` game-font cells; `columns` 0 disables wrapping.
+struct RichText {
+    text: string,
+    columns: u16,
+}
+
+/// ANSI strings ordered as in `Render`, with `\n` between lines.
+struct AnsiOutput {
+    texts: list<string>,
+}

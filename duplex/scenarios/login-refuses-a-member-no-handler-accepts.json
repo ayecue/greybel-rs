@@ -1,0 +1,60 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider of a protocol whose handshake declares what a client opens with refuses every client as unhandled when nothing accepts or denies them.",
+  "peer": "provider",
+  "requires": ["handshake"],
+  "unhandled": [
+    "Open"
+  ],
+  "protocol": "login",
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 0,
+              "payload": {
+                "user": "ada",
+                "token": "t0k"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Refuse": {
+                  "id": 0,
+                  "reason": "UnhandledMessage"
+                }
+              }
+            ]
+          }
+        ],
+        "connection": null
+      }
+    }
+  ]
+}

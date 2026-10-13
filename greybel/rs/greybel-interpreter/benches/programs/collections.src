@@ -1,0 +1,17 @@
+items = range(0, 4999)
+squares = [0] * 5000
+for n in items
+  squares[n] = n * n
+end for
+counts = {}
+for n in items
+  counts[n % 64] = n
+end for
+total = 0
+for entry in counts
+  total = total + entry.value
+end for
+for s in squares
+  total = total + s % 7
+end for
+print total

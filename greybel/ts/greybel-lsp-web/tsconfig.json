@@ -1,0 +1,9 @@
+{
+  "extends": "presets/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "WebWorker"],
+    "types": ["node"]
+  },
+  "files": ["../vitest.context.d.ts"],
+  "include": ["src", "test"]
+}

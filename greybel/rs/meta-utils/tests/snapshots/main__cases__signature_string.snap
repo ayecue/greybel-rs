@@ -1,0 +1,551 @@
+---
+source: meta-utils/tests/cases.rs
+expression: part
+---
+definitionOrder:
+  - remove
+  - hasIndex
+  - insert
+  - indexOf
+  - split
+  - replace
+  - trim
+  - indexes
+  - code
+  - len
+  - lower
+  - upper
+  - val
+  - values
+definitions:
+  code:
+    argStrings: []
+    id: code
+    json:
+      arguments: []
+      description: "Returns a `number` representing the Unicode code of the first character of the `string`."
+      example:
+        - "myString = \"HELLO WORLD\""
+        - print(myString.code)
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  hasIndex:
+    argStrings:
+      - - number
+    id: hasIndex
+    json:
+      arguments:
+        - default: ~
+          label: index
+          opt: false
+          types:
+            - number
+      description: "Returns `true` if the provided index is available in the `string`. Otherwise, this method will return `false`."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - containsIndex = myString.hasIndex(1)
+        - if containsIndex then
+        - "   print(\"String contains index of 1.\")"
+        - else
+        - "   print(\"String does not contain index of 1.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexOf:
+    argStrings:
+      - - string
+      - - number
+    id: indexOf
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: offset
+          opt: true
+          types:
+            - number
+      description: "Returns a `number` which indicates the first matching index of the provided value inside the `list`. Optionally a start index can be provided. In case the value does not exist inside the `string` a `null` gets returned."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "index = myString.indexOf(\"wrong\")"
+        - if index != null then
+        - "   print(\"Invalid information spotted at: \" + index)"
+        - else
+        - "   print(\"Information seems valid.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexes:
+    argStrings: []
+    id: indexes
+    json:
+      arguments: []
+      description: "Returns a `list` where each item is a `number` representing all available indexes in the `string`."
+      example:
+        - "myString = \"42\""
+        - print(myString.indexes)
+      isProtected: false
+      returns:
+        - type: list
+          valueType: number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<number>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  insert:
+    argStrings:
+      - - number
+      - - string
+    id: insert
+    json:
+      arguments:
+        - default: ~
+          label: index
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - string
+      description: "Returns a `string` with the newly inserted `string` at the provided index."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "index = myString.lastIndexOf(\"w\") - 1"
+        - "newString = myString.insert(index, \"not \")"
+        - print(newString)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  len:
+    argStrings: []
+    id: len
+    json:
+      arguments: []
+      description: "Returns a `number` representing the length of the `string`."
+      example:
+        - "myString = \"HELLO WORLD\""
+        - "print(\"Size of string is: \" + myString.len)"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  lower:
+    argStrings: []
+    id: lower
+    json:
+      arguments: []
+      description: "Returns a new `string` in which all characters are transformed into lowercase."
+      example:
+        - "myString = \"HELLO WORLD\""
+        - print(myString.lower)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  remove:
+    argStrings:
+      - - string
+    id: remove
+    json:
+      arguments:
+        - default: ~
+          label: toDelete
+          opt: false
+          types:
+            - string
+      description: "Returns a new `string` where the provided `string` got removed."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "newString = myString.remove(\"wrong\")"
+        - "print(newString + \"right\")"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  replace:
+    argStrings:
+      - - string
+      - - string
+    id: replace
+    json:
+      arguments:
+        - default: ~
+          label: toReplace
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: newString
+          opt: false
+          types:
+            - string
+      description: "Returns a new `string` where the provided `string` got replaced by the second provided `string`."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "newString = myString.replace(\"wrong\", \"right\")"
+        - print(newString)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  split:
+    argStrings:
+      - - string
+    id: split
+    json:
+      arguments:
+        - default: ~
+          label: delimiter
+          opt: false
+          types:
+            - string
+      description: "Returns a `list` where each item is a segment of the `string`. The separation depends on the provided separator `string`. Keep in mind that for some odd reason, this method is using regular expressions for matching."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "segments = myString.split(\" \")"
+        - "if segments[0] != \"42\" then"
+        - "   print(\"Invalid information spotted!\")"
+        - else
+        - "   print(\"Information seems valid!\")"
+        - end if
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  trim:
+    argStrings: []
+    id: trim
+    json:
+      arguments: []
+      description: "Returns a new `string` stripped of any spacing at the beginning or ending."
+      example:
+        - "myString = \"    42   \""
+        - print(myString.trim)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  upper:
+    argStrings: []
+    id: upper
+    json:
+      arguments: []
+      description: "Returns a new `string` in which all characters are transformed into uppercase."
+      example:
+        - "myString = \"hello world\""
+        - print(myString.upper)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  val:
+    argStrings: []
+    id: val
+    json:
+      arguments: []
+      description: "Returns a `number` which is parsed from the `string`. In case the `string` is not numeric it will return a zero."
+      example:
+        - "myString = \"1.25\""
+        - print(myString.val + 40.75)
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  values:
+    argStrings: []
+    id: values
+    json:
+      arguments: []
+      description: "Returns a `list` where each item is a `string` representing all available characters in the `string`. Could be compared to using `split` but without any separator."
+      example:
+        - "myString = \"hello world\""
+        - print(myString.values)
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - remove
+  - hasIndex
+  - insert
+  - indexOf
+  - split
+  - replace
+  - trim
+  - indexes
+  - code
+  - len
+  - lower
+  - upper
+  - val
+  - values
+descriptions:
+  $meta:
+    description: "Text is stored in strings of Unicode characters. Write strings by surrounding them with quotes. If you need to include a quotation mark in the string, write it twice."
+    example:
+      - "a = \"hello\""
+      - "b = \"world\""
+      - print(a + b) // concatinate a and b
+      - print(a * 10) // repeat hello ten times
+      - "print(a[0]) // prints h"
+      - "print(a[1:3]) // prints ell"
+  code:
+    description: "Returns a `number` representing the Unicode code of the first character of the `string`."
+    example:
+      - "myString = \"HELLO WORLD\""
+      - print(myString.code)
+  hasIndex:
+    description: "Returns `true` if the provided index is available in the `string`. Otherwise, this method will return `false`."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - containsIndex = myString.hasIndex(1)
+      - if containsIndex then
+      - "   print(\"String contains index of 1.\")"
+      - else
+      - "   print(\"String does not contain index of 1.\")"
+      - end if
+  indexOf:
+    description: "Returns a `number` which indicates the first matching index of the provided value inside the `list`. Optionally a start index can be provided. In case the value does not exist inside the `string` a `null` gets returned."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "index = myString.indexOf(\"wrong\")"
+      - if index != null then
+      - "   print(\"Invalid information spotted at: \" + index)"
+      - else
+      - "   print(\"Information seems valid.\")"
+      - end if
+  indexes:
+    description: "Returns a `list` where each item is a `number` representing all available indexes in the `string`."
+    example:
+      - "myString = \"42\""
+      - print(myString.indexes)
+  insert:
+    description: "Returns a `string` with the newly inserted `string` at the provided index."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "index = myString.lastIndexOf(\"w\") - 1"
+      - "newString = myString.insert(index, \"not \")"
+      - print(newString)
+  len:
+    description: "Returns a `number` representing the length of the `string`."
+    example:
+      - "myString = \"HELLO WORLD\""
+      - "print(\"Size of string is: \" + myString.len)"
+  lower:
+    description: "Returns a new `string` in which all characters are transformed into lowercase."
+    example:
+      - "myString = \"HELLO WORLD\""
+      - print(myString.lower)
+  remove:
+    description: "Returns a new `string` where the provided `string` got removed."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "newString = myString.remove(\"wrong\")"
+      - "print(newString + \"right\")"
+  replace:
+    description: "Returns a new `string` where the provided `string` got replaced by the second provided `string`."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "newString = myString.replace(\"wrong\", \"right\")"
+      - print(newString)
+  split:
+    description: "Returns a `list` where each item is a segment of the `string`. The separation depends on the provided separator `string`. Keep in mind that for some odd reason, this method is using regular expressions for matching."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "segments = myString.split(\" \")"
+      - "if segments[0] != \"42\" then"
+      - "   print(\"Invalid information spotted!\")"
+      - else
+      - "   print(\"Information seems valid!\")"
+      - end if
+  trim:
+    description: "Returns a new `string` stripped of any spacing at the beginning or ending."
+    example:
+      - "myString = \"    42   \""
+      - print(myString.trim)
+  upper:
+    description: "Returns a new `string` in which all characters are transformed into uppercase."
+    example:
+      - "myString = \"hello world\""
+      - print(myString.upper)
+  val:
+    description: "Returns a `number` which is parsed from the `string`. In case the `string` is not numeric it will return a zero."
+    example:
+      - "myString = \"1.25\""
+      - print(myString.val + 40.75)
+  values:
+    description: "Returns a `list` where each item is a `string` representing all available characters in the `string`. Could be compared to using `split` but without any separator."
+    example:
+      - "myString = \"hello world\""
+      - print(myString.values)
+extends: ~
+hidden: false

@@ -1,0 +1,42 @@
+use core 1.0;
+
+/// Member login protocol. The service accepts or denies the connection using its open payload.
+protocol Login = "login" {
+    open Credentials;
+    ack Session;
+    refuse Denial;
+
+    /// Streams can take time to detect a disconnected peer.
+    flavour stdio {
+        health_check = { interval = 1000, close_threshold = 7 };
+    }
+    flavour port {
+        health_check = off;
+    }
+
+    /// Service available to members.
+    provider Service {
+        /// Name of the signed-in member.
+        message Whoami {} -> string
+    }
+
+    /// Member using the service.
+    client Member {}
+}
+
+/// Identity and token supplied when opening a connection.
+struct Credentials {
+    user: string,
+    token: string,
+}
+
+/// Information sent by the service to an accepted member.
+struct Session {
+    greeting: string,
+}
+
+/// Reason the service rejects a member.
+enum Denial {
+    UnknownUser,
+    WrongToken,
+}

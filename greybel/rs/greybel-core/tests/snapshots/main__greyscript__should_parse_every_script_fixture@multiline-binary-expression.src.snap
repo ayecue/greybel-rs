@@ -1,0 +1,15 @@
+---
+source: greybel-core/tests/greyscript.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::GreyScript))"
+input_file: greybel-core/tests/fixtures/greyscript/scripts/multiline-binary-expression.src
+---
+Chunk[1:1-8:7][
+	IfStatement[1:1-8:7][
+		IfClause[1:1-8:7][BinaryExpression[1:5-6:21][CallExpression[1:5-6:13][MemberExpression[1:5-6:10][ListConstructor[1:5-6:2][
+			ListValue[2:3-2:4][Literal[2:3-2:4][1]]
+			ListValue[3:3-3:4][Literal[3:3-3:4][2]]
+			ListValue[4:3-4:4][Literal[4:3-4:4][3]]
+			ListValue[5:3-5:4][Literal[5:3-5:4][4]]
+		].Identifier[6:3-6:10][indexOf]](Literal[6:11-6:12][2])] != Literal[6:17-6:21][null]]]
+	]
+]

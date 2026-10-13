@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A channel of a protocol that needs an authenticated transport closes as insecure on one that is only encrypted, its ends proving no identity.",
+  "peer": "client",
+  "requires": ["security"],
+  "protocol": "vault",
+  "security": {
+    "channel": {},
+    "remote": {}
+  },
+  "steps": [
+    {
+      "expect": {
+        "closed": "Insecure",
+        "connection": null
+      }
+    }
+  ]
+}

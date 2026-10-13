@@ -1,0 +1,7 @@
+[project]
+kind = "library"
+
+# Deployments and imports into the game, headless.
+[tasks.game]
+suite = "game"
+run = "cargo nextest run -p greybel-builder --features game-tests -E 'test(/^game::/)'"

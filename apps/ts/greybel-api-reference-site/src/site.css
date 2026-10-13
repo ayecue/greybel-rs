@@ -1,0 +1,6 @@
+/* The page around the reference, in the reference's own dark theme. */
+html,
+body {
+  margin: 0;
+  background: #1e1e1e;
+}

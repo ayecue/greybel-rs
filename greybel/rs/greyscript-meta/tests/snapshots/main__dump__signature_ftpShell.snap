@@ -1,0 +1,136 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - host_computer
+  - scp
+definitions:
+  host_computer:
+    argStrings: []
+    id: host_computer
+    json:
+      arguments: []
+      description: "Returns a `computer` related to the `shell`."
+      example:
+        - shell = get_shell
+        - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+        - ftpComputer = ftpShell.host_computer
+        - "print(\"FTP public ip: \" + ftpComputer.public_ip)"
+      isProtected: false
+      returns:
+        - ftpComputer
+      type: function
+    origin: ftpShell
+    otherLanguageDescription: ~
+    returnStrings:
+      - ftpComputer
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  scp:
+    argStrings:
+      - - string
+      - - string
+      - - shell
+      - - number
+    id: scp
+    json:
+      arguments:
+        - default: ~
+          label: path_orig
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: path_dest
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: remote_shell
+          opt: false
+          types:
+            - shell
+        - default:
+            type: number
+            value: 0
+          label: is_upload
+          opt: false
+          types:
+            - number
+      description: "Copies files between shells and returns one on complete success. Invalid arguments return `\"scp: Invalid arguments\"`. If nested items are skipped, returns `\"Warning: one or more files or folders cannot be copied.\"`; SSH encryption still raises."
+      example:
+        - shell = get_shell
+        - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+        - "putResult = ftpShell.scp(\"/bin/ls\", \"/etc/\", shell)"
+        - "if typeof(putResult) == \"string\" then"
+        - "   print(\"There was an error while sending file: \" + putResult)"
+        - else
+        - "   print(\"File got sent successfully.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: ftpShell
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "${destinationFolder} it's not a folder"
+        - "${destinationFolder} not found"
+        - "${filepath} not found"
+        - "${sourceFile} not found"
+        - Invalid path
+        - permission denied
+        - "permission denied. ${filename} is protected"
+        - "scp: Invalid arguments"
+        - The copy can not be made. Reached maximum limit
+        - The copy can not be made. Reached maximum number of files in a folder
+        - unknown error
+        - "Warning: one or more files or folders cannot be copied."
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - host_computer
+  - scp
+descriptions:
+  $meta:
+    description: "The FTP `ftpShell` behaves just like the ssh `shell` and can be acquired by using [connect_service](#SHELL_CONNECT_SERVICE) and using the service type `\"ftp\"`. The `classID` used for this object is `\"ftpshell\"`. The port used for FTP is usually `21`."
+    example: ~
+  host_computer:
+    description: "Returns a `computer` related to the `shell`."
+    example:
+      - shell = get_shell
+      - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+      - ftpComputer = ftpShell.host_computer
+      - "print(\"FTP public ip: \" + ftpComputer.public_ip)"
+  scp:
+    description: "Copies files between shells and returns one on complete success. Invalid arguments return `\"scp: Invalid arguments\"`. If nested items are skipped, returns `\"Warning: one or more files or folders cannot be copied.\"`; SSH encryption still raises."
+    example:
+      - shell = get_shell
+      - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+      - "putResult = ftpShell.scp(\"/bin/ls\", \"/etc/\", shell)"
+      - "if typeof(putResult) == \"string\" then"
+      - "   print(\"There was an error while sending file: \" + putResult)"
+      - else
+      - "   print(\"File got sent successfully.\")"
+      - end if
+extends: map
+hidden: false

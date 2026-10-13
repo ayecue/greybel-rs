@@ -1,0 +1,7 @@
+globals.test = "was"
+locals.foo = "moo"
+
+print(globals.hasIndex("test"))
+print(locals.hasIndex("foo"))
+print(globals.hasIndex("doesNotExist"))
+print(locals.hasIndex("doesNotExist"))

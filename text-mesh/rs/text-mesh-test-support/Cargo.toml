@@ -1,0 +1,33 @@
+[package]
+name = "text-mesh-test-support"
+description = "What the text-mesh crates test with: example fonts (SIL OFL), a sprite sheet, and the terminal setup the reference project baked from them"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+autotests = false
+
+[lib]
+doctest = false
+
+[features]
+# The meshes TMP drew the cases with, compared with the WebGL meshes.
+meshes = ["dep:text-mesh-webgl"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+text-mesh-core.workspace = true
+text-mesh-font.workspace = true
+text-mesh-layout.workspace = true
+text-mesh-setup.workspace = true
+text-mesh-unity.workspace = true
+text-mesh-webgl = { workspace = true, optional = true }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

@@ -1,0 +1,127 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/rules/unary-operators-and-power.ms
+---
+=== "x = new new a"
+1.6, latest: --- error
+1:9 - 1:12 ExpectedExpression(3002): got Keyword(new) where number, string, or identifier is required
+=== "x = new @a"
+1.6, latest: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:11][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:11][new UnaryExpression[1:9-1:11][@ Identifier[1:10-1:11][a]]]]
+]
+=== "x = @ new a"
+1.6, latest: --- error
+1:7 - 1:10 ExpectedExpression(3002): got Keyword(new) where number, string, or identifier is required
+=== "x = - - a"
+1.6, latest: --- error
+1:7 - 1:8 ExpectedExpression(3002): got OpMinus where number, string, or identifier is required
+=== "x = @@a"
+1.6, latest: --- error
+1:6 - 1:7 ExpectedExpression(3002): got AddressOf where number, string, or identifier is required
+=== "x = not not a"
+1.6, latest: --- error
+1:9 - 1:12 ExpectedExpression(3002): got Keyword(not) where number, string, or identifier is required
+=== "x = - new a"
+1.6, latest: ok
+Chunk[1:1-1:12][
+	AssignmentStatement[1:1-1:12][Identifier[1:1-1:2][x] = BinaryNegatedExpression[1:5-1:12][- UnaryExpression[1:7-1:12][new Identifier[1:11-1:12][a]]]]
+]
+=== "x = new - a"
+1.6, latest: --- error
+1:9 - 1:10 ExpectedExpression(3002): got OpMinus where number, string, or identifier is required
+=== "x = a + not b"
+1.6, latest: --- error
+1:9 - 1:12 ExpectedExpression(3002): got Keyword(not) where number, string, or identifier is required
+=== "x = a and not b"
+1.6, latest: ok
+Chunk[1:1-1:16][
+	AssignmentStatement[1:1-1:16][Identifier[1:1-1:2][x] = LogicalExpression[1:5-1:16][Identifier[1:5-1:6][a] and NegationExpression[1:11-1:16][not Identifier[1:15-1:16][b]]]]
+]
+=== "x = a ^ b ^ c"
+1.6, latest: ok
+Chunk[1:1-1:14][
+	AssignmentStatement[1:1-1:14][Identifier[1:1-1:2][x] = BinaryExpression[1:5-1:14][BinaryExpression[1:5-1:10][Identifier[1:5-1:6][a] ^ Identifier[1:9-1:10][b]] ^ Identifier[1:13-1:14][c]]]
+]
+=== "x = a ^ @b"
+1.6: --- error
+1:9 - 1:10 ExpectedExpression(3002): got AddressOf where number, string, or identifier is required
+latest: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:11][Identifier[1:1-1:2][x] = BinaryExpression[1:5-1:11][Identifier[1:5-1:6][a] ^ UnaryExpression[1:9-1:11][@ Identifier[1:10-1:11][b]]]]
+]
+=== "x = @a ^ b"
+1.6: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:11][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:11][@ BinaryExpression[1:6-1:11][Identifier[1:6-1:7][a] ^ Identifier[1:10-1:11][b]]]]
+]
+latest: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:11][Identifier[1:1-1:2][x] = BinaryExpression[1:5-1:11][UnaryExpression[1:5-1:7][@ Identifier[1:6-1:7][a]] ^ Identifier[1:10-1:11][b]]]
+]
+=== "x = -a ^ b"
+1.6, latest: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:11][Identifier[1:1-1:2][x] = BinaryNegatedExpression[1:5-1:11][- BinaryExpression[1:6-1:11][Identifier[1:6-1:7][a] ^ Identifier[1:10-1:11][b]]]]
+]
+=== "x = a ^ -b"
+1.6, latest: --- error
+1:9 - 1:10 ExpectedExpression(3002): got OpMinus where number, string, or identifier is required
+=== "x = new a ^ b"
+1.6, latest: ok
+Chunk[1:1-1:14][
+	AssignmentStatement[1:1-1:14][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:14][new BinaryExpression[1:9-1:14][Identifier[1:9-1:10][a] ^ Identifier[1:13-1:14][b]]]]
+]
+=== "x = @a.b"
+1.6, latest: ok
+Chunk[1:1-1:9][
+	AssignmentStatement[1:1-1:9][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:9][@ MemberExpression[1:6-1:9][Identifier[1:6-1:7][a].Identifier[1:8-1:9][b]]]]
+]
+=== "x = @a(1)"
+1.6, latest: ok
+Chunk[1:1-1:10][
+	AssignmentStatement[1:1-1:10][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:10][@ CallExpression[1:6-1:10][Identifier[1:6-1:7][a](Literal[1:8-1:9][1])]]]
+]
+=== "x = (@a.b)"
+1.6, latest: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:11][Identifier[1:1-1:2][x] = UnaryExpression[1:6-1:10][@ MemberExpression[1:7-1:10][Identifier[1:7-1:8][a].Identifier[1:9-1:10][b]]]]
+]
+=== "x = new a.b"
+1.6, latest: ok
+Chunk[1:1-1:12][
+	AssignmentStatement[1:1-1:12][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:12][new MemberExpression[1:9-1:12][Identifier[1:9-1:10][a].Identifier[1:11-1:12][b]]]]
+]
+=== "x = new (a)"
+1.6, latest: ok
+Chunk[1:1-1:12][
+	AssignmentStatement[1:1-1:12][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:12][new Identifier[1:10-1:11][a]]]
+]
+=== "x = new 1"
+1.6, latest: ok
+Chunk[1:1-1:10][
+	AssignmentStatement[1:1-1:10][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:10][new Literal[1:9-1:10][1]]]
+]
+=== "x = new \"s\""
+1.6, latest: ok
+Chunk[1:1-1:12][
+	AssignmentStatement[1:1-1:12][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:12][new Literal[1:9-1:12][s]]]
+]
+=== "x = new [1]"
+1.6, latest: ok
+Chunk[1:1-1:12][
+	AssignmentStatement[1:1-1:12][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:12][new ListConstructor[1:9-1:12][
+		ListValue[1:10-1:11][Literal[1:10-1:11][1]]
+	]]]
+]
+=== "x = new {}"
+1.6, latest: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:11][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:11][new MapConstructor[1:9-1:11][]]]
+]
+=== "x = new a(1)"
+1.6, latest: ok
+Chunk[1:1-1:13][
+	AssignmentStatement[1:1-1:13][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:13][new CallExpression[1:9-1:13][Identifier[1:9-1:10][a](Literal[1:11-1:12][1])]]]
+]

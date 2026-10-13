@@ -1,0 +1,37 @@
+[package]
+name = "greybel-lsp"
+description = "MiniScript, Greybel, and GreyScript language server with LSP messaging and client-hosted or native filesystem providers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greybel-core.workspace = true
+greybel-documents.workspace = true
+greybel-project.workspace = true
+greybel-type-analyzer.workspace = true
+greybel-transpiler.workspace = true
+gen-lsp-types.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rustc-hash.workspace = true
+thiserror.workspace = true
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+greybel-documents-fs-provider.workspace = true
+
+[dev-dependencies]
+greybel-test-support = { workspace = true, features = ["lsp"] }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

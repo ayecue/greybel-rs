@@ -1,0 +1,69 @@
+{
+  "$meta": {
+    "description": "A `metaLib` object can be obtained by either using [load](#METAXPLOIT_LOAD) or [dump_lib](#NETSESSION_DUMP_LIB). The `classID` used for this object is `\"MetaLib\"`."
+  },
+  "overflow": {
+    "description": "Exploits a library vulnerability and returns the exploit result. Invalid argument types return `\"overflow: Invalid arguments\"`. For remote router exploits, firewall status is checked when the attack runs: `\"Connection refused. Address unreachable\"` or `\"Connection refused. The target is behind a firewall.\"` is printed and the method returns `null`. Other failed requirements also return `null`; disabled networks return an error `string`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = metax.load(\"/lib/init.so\")",
+      "scanResult = metax.scan(metaLib)",
+      "target = scanResult[0]",
+      "scanAddress = metax.scan_address(metaLib, target)",
+      "segments = scanAddress.split(\"Unsafe check: \")",
+      "exploit = null",
+      " for segment in segments",
+      "   hasRequirement = segment.indexOf(\"*\") != null",
+      "   if (not hasRequirement) then",
+      "      labelStart = segment.indexOf(\"<b>\")",
+      "      labelEnd = segment.indexOf(\"</b>\")",
+      "      exploit = segment[labelStart + 3: labelEnd]",
+      "   end if",
+      "end for",
+      "if (exploit) then",
+      "   print(\"Exploiting... \" + target + \":\" + exploit)",
+      "   print(metaLib.overflow(target, exploit))",
+      "else",
+      "   print(\"No exploit found with zero requirements\")",
+      "end if"
+    ]
+  },
+  "version": {
+    "description": "Returns a `string` containing the version number of the library. An example of a version number would be `\"1.0.0\"`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = metax.load(\"/lib/init.so\")",
+      "print(\"Init.so version: \" + metaLib.version)"
+    ]
+  },
+  "lib_name": {
+    "description": "Returns a `string` containing the name of the library. An example of a name would be `\"init.so\"`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = metax.load(\"/lib/init.so\")",
+      "print(\"Name for library is: \" + metaLib.lib_name)"
+    ]
+  },
+  "debug_tools": {
+    "description": "Returns a library in debug mode as a `debugLibrary` object. A valid Neurobox engineer's username and password are required to access this mode. If successful, the `debugLibrary` object is returned; in case of an error, a `string` with details is provided. Passing values that deviate from the defined signature will result in `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = metax.load(\"/lib/init.so\")",
+      "debugLib = metaLib.debug_tools(\"test\", \"test\")",
+      "if typeof(debugLib) == \"debugLibrary\" then",
+      "   print(\"Received debug libary object!\")",
+      "end if"
+    ]
+  },
+  "is_patched": {
+    "description": "Returns by default a number indicating whether the library has been patched. A value of one indicates that the library has been patched, while zero indicates that it has not. If the getdate parameter is set to `true`, the function will return a `string` containing the date of the last patch. The data format is as follows: `\"dd/MM/yyyy\"`. Additionally if there is any error the return value will be a `string`. Providing values that deviate from the defined signature will cause `null` to be returned.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = metax.load(\"/lib/init.so\")",
+      "isPatchedResult = metaLib.is_patched",
+      "if isPatchedResult == 1 then",
+      "   print(\"init.so has been patched!\")",
+      "end if"
+    ]
+  }
+}

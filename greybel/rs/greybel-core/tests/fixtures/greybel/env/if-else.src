@@ -1,0 +1,13 @@
+#if ENABLED
+x = 1
+#else
+x = 2
+#endif
+#if DISABLED
+y = 1
+#else
+y = 2
+#endif
+#if ZERO
+z = 1
+#endif

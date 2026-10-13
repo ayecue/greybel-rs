@@ -1,0 +1,29 @@
+[package]
+name = "text-mesh-layout"
+description = "TextMesh Pro's text layout (TMP 3.0's GenerateTextMesh): where every glyph and sprite of parsed rich text goes, from a font set's own metrics"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+text-mesh-core.workspace = true
+text-mesh-font.workspace = true
+unicode-general-category.workspace = true
+
+[dev-dependencies]
+text-mesh-test-support.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

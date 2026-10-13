@@ -1,0 +1,25 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+assertion_line: 32
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/envar.src
+---
+=== default
+myvar2="""foo"""
+
+myvar="""foo"""
+print("0.2")
+=== uglify
+globals.I=globals
+K="""foo"""
+J="""foo"""
+print("0.2")
+=== beautify
+myvar2 = """foo"""
+
+myvar = """foo"""
+print "0.2"
+=== beautify, dev mode, keep parentheses, 10 spaces
+#include "../dependencies/envar-include.src";
+myvar = #envar test
+print(#envar test2)

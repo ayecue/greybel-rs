@@ -1,0 +1,318 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider sends as many items of a streamed response as the window holds, then waits until the message's sender takes more.",
+  "peer": "provider",
+  "requires": ["responses", "streams"],
+  "connected": true,
+  "streamWindow": 32,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Count": {
+                "to": 40
+              }
+            }
+          },
+          {
+            "ResponseCredit": {
+              "id": 0,
+              "count": 31
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseStart": {
+                  "id": 0,
+                  "Count": "Active"
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 1
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 2
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 3
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 4
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 5
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 6
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 7
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 8
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 9
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 10
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 11
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 12
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 13
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 14
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 15
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 16
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 17
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 18
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 19
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 20
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 21
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 22
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 23
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 24
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 25
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 26
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 27
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 28
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 29
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 30
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 31
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 32
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseCredit": {
+              "id": 0,
+              "count": 16
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 33
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 34
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 35
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 36
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 37
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 38
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 39
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 40
+                }
+              },
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Count": 820
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

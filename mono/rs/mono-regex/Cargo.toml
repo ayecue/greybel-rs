@@ -1,0 +1,38 @@
+[package]
+name = "mono-regex"
+description = "The .NET regular expressions behind Grey Hack's string intrinsics"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+links = "MonoRegex"
+build = "build.rs"
+autotests = false
+
+[lib]
+doctest = false
+
+[features]
+# Uses Grey Hack's .NET regex engine from the Native AOT library by default.
+dotnet = []
+
+[dependencies]
+bitflags.workspace = true
+fancy-regex.workspace = true
+rustc-hash.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+
+# Native AOT calls require unsafe code, confined to `src/dotnet/ffi/`.
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

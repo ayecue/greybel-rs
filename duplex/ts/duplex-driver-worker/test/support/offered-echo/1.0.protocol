@@ -1,0 +1,14 @@
+use core 1.0;
+
+/// Page offers a channel for the worker to connect to, then asks the worker to echo.
+protocol OfferedEcho = "offered-echo" {
+    /// Page that listens for the worker.
+    provider Page {}
+
+    /// Worker that connects to the page.
+    client Worker {
+        message Shout {
+            text: string,
+        } -> string
+    }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "duplex-driver-worker",
+  "version": "0.1.0",
+  "description": "The host of a worker speaking duplex protocols, opening the channels it declares, relaying channels of other transports to it and closing them when the worker fails or is terminated; and the worker's scope, taking the ports its host hands it",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "duplex-core": "workspace:*"
+  }
+}

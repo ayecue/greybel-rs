@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="cli/GreyHackSetupWizard.Cli.csproj" />
+  <Project Path="gui/GreyHackSetupWizard.Gui.csproj" />
+  <Project Path="tests/GreyHackSetupWizard.Gui.Tests.csproj" />
+</Solution>

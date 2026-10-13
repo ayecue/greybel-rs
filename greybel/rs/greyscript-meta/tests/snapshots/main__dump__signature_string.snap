@@ -1,0 +1,761 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - remove
+  - hasIndex
+  - insert
+  - indexOf
+  - lastIndexOf
+  - split
+  - replace
+  - trim
+  - indexes
+  - code
+  - len
+  - lower
+  - upper
+  - val
+  - values
+  - to_int
+  - is_match
+  - matches
+definitions:
+  code:
+    argStrings: []
+    id: code
+    json:
+      arguments: []
+      description: "Returns a `number` representing the Unicode code of the first character of the `string`."
+      example:
+        - "myString = \"HELLO WORLD\""
+        - print(myString.code)
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  hasIndex:
+    argStrings:
+      - - number
+    id: hasIndex
+    json:
+      arguments:
+        - default: ~
+          label: index
+          opt: false
+          types:
+            - number
+      description: "Returns one when the numeric index exists in the `string`, otherwise zero. A non-number index also returns zero."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - containsIndex = myString.hasIndex(1)
+        - if containsIndex then
+        - "   print(\"String contains index of 1.\")"
+        - else
+        - "   print(\"String does not contain index of 1.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok:
+        - 0
+        - 1
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexOf:
+    argStrings:
+      - - string
+      - - number
+    id: indexOf
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: after
+          opt: true
+          types:
+            - number
+      description: "Returns a `number` which indicates the first matching index of the provided value inside the `list`. Optionally a start index can be provided. In case the value does not exist inside the `string` a `null` gets returned."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "index = myString.indexOf(\"wrong\")"
+        - if index != null then
+        - "   print(\"Invalid information spotted at: \" + index)"
+        - else
+        - "   print(\"Information seems valid.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexes:
+    argStrings: []
+    id: indexes
+    json:
+      arguments: []
+      description: "Returns a `list` where each item is a `number` representing all available indexes in the `string`."
+      example:
+        - "myString = \"42\""
+        - print(myString.indexes)
+      isProtected: false
+      returns:
+        - type: list
+          valueType: number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<number>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  insert:
+    argStrings:
+      - - number
+      - - string
+    id: insert
+    json:
+      arguments:
+        - default: ~
+          label: index
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - string
+      description: "Returns a `string` with the newly inserted `string` at the provided index. If the passed index is not a `number`, this method throws an error, preventing further script execution."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "index = myString.lastIndexOf(\"w\") - 1"
+        - "newString = myString.insert(index, \"not \")"
+        - print(newString)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  is_match:
+    argStrings:
+      - - string
+      - - string
+    id: is_match
+    json:
+      arguments:
+        - default: ~
+          label: pattern
+          opt: false
+          types:
+            - string
+        - default:
+            type: string
+            value: none
+          label: regexOptions
+          opt: false
+          types:
+            - string
+      description: "Uses regular expression to check if a string matches a certain pattern. If it matches, it will return a `number` with the value one. If it does not match, the value of the `number` will be zero. If any provided arguments deviate from the method signature types, if the pattern is empty, if the provided [regexOptions](https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-options) are invalid, or if the regular expression times out, an error will be thrown, preventing further script execution."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "hasWordAtTheEnd = myString.is_match(\"\\w+$\")"
+        - print(hasWordAtTheEnd)
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok:
+        - 0
+        - 1
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  lastIndexOf:
+    argStrings:
+      - - string
+    id: lastIndexOf
+    json:
+      arguments:
+        - default: ~
+          label: searchStr
+          opt: false
+          types:
+            - string
+      description: "Returns a `number` which indicates the last matching index of the provided value inside the `list`. In case the value does not exist inside the `string` a `-1` gets returned. If the provided searchStr is not a `string`, this method will return `null`."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "index = myString.lastIndexOf(\"wrong\")"
+        - if index != -1 then
+        - "   print(\"Invalid information spotted at: \" + index)"
+        - else
+        - "   print(\"Information seems valid.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  len:
+    argStrings: []
+    id: len
+    json:
+      arguments: []
+      description: "Returns a `number` representing the length of the `string`."
+      example:
+        - "myString = \"HELLO WORLD\""
+        - "print(\"Size of string is: \" + myString.len)"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  lower:
+    argStrings: []
+    id: lower
+    json:
+      arguments: []
+      description: "Returns a new `string` in which all characters are transformed into lowercase."
+      example:
+        - "myString = \"HELLO WORLD\""
+        - print(myString.lower)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  matches:
+    argStrings:
+      - - string
+      - - string
+    id: matches
+    json:
+      arguments:
+        - default: ~
+          label: pattern
+          opt: false
+          types:
+            - string
+        - default:
+            type: string
+            value: none
+          label: regexOptions
+          opt: false
+          types:
+            - string
+      description: "Returns a `map` whose numeric keys are match positions and whose values are the matching strings. Invalid regex options return `\"matches: Invalid regex option\"`; an invalid .NET regex pattern returns its error message as a `string`. Empty patterns, invalid argument types, and regex timeouts still raise runtime errors. `is_match` continues to raise for invalid regex options."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "result = myString.matches(\"w\")"
+        - print(result)
+      isProtected: false
+      returns:
+        - keyType: number
+          type: map
+          valueType: string
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - "map<number,string>"
+      - string
+    returnVariations:
+      ok:
+        - "${regexErrorMessage}"
+        - "matches: Invalid regex option"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  remove:
+    argStrings:
+      - - string
+    id: remove
+    json:
+      arguments:
+        - default: ~
+          label: k
+          opt: false
+          types:
+            - string
+      description: "Returns a new `string` with the provided value removed. Any value other than `null` can be passed, but note that it will be cast to a string. If `null` is passed, this method will throw an error, preventing further script execution."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "newString = myString.remove(\"wrong\")"
+        - "print(newString + \"right\")"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  replace:
+    argStrings:
+      - - string
+      - - string
+      - - string
+    id: replace_regex
+    json:
+      arguments:
+        - default: ~
+          label: pattern
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: newval
+          opt: false
+          types:
+            - string
+        - default:
+            type: string
+            value: none
+          label: regexOptions
+          opt: false
+          types:
+            - string
+      description: "Returns a `string` with regular-expression matches replaced. Invalid regex options return `\"replace: Invalid regex option\"`; an invalid .NET regex pattern returns its error message as a `string`. Empty patterns, invalid argument types, and regex timeouts still raise runtime errors."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "newString = myString.replace(\"wrong\", \"right\")"
+        - print(newString)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok:
+        - "${regexErrorMessage}"
+        - "replace: Invalid regex option"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  split:
+    argStrings:
+      - - string
+      - - string
+    id: split
+    json:
+      arguments:
+        - default: ~
+          label: pattern
+          opt: false
+          types:
+            - string
+        - default:
+            type: string
+            value: none
+          label: regexOptions
+          opt: false
+          types:
+            - string
+      description: "Splits a `string` with a regular expression and returns a `list` of strings. An empty separator returns one character per list item. Invalid regex options return `\"split: Invalid regex option\"`; an invalid .NET regex pattern returns its error message as a `string`. Invalid argument types return `null`; regex timeouts still raise a runtime error."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "segments = myString.split(\" \")"
+        - "if segments[0] != \"42\" then"
+        - "   print(\"Invalid information spotted!\")"
+        - else
+        - "   print(\"Information seems valid!\")"
+        - end if
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+        - "null"
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+      - "null"
+      - string
+    returnVariations:
+      ok:
+        - "${regexErrorMessage}"
+        - "split: Invalid regex option"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  to_int:
+    argStrings: []
+    id: to_int
+    json:
+      arguments: []
+      description: "Parses a `string` as an invariant-culture double and returns the resulting `number`, accepting forms such as `\"1.5\"`, `\" 1e3 \"`, `\"1,000\"`, and `\"(5)\"`. Non-numeric text is returned unchanged, a `number` is returned as-is, and other types return `null`. The global function defaults `self` to zero."
+      example:
+        - "myString = \"1\""
+        - print(myString.to_int + 41)
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  trim:
+    argStrings: []
+    id: trim
+    json:
+      arguments: []
+      description: "Returns a new `string` stripped of any spacing at the beginning and ending."
+      example:
+        - "myString = \"    42   \""
+        - print(myString.trim)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  upper:
+    argStrings: []
+    id: upper
+    json:
+      arguments: []
+      description: "Returns a new `string` in which all characters are transformed into uppercase."
+      example:
+        - "myString = \"hello world\""
+        - print(myString.upper)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  val:
+    argStrings: []
+    id: val
+    json:
+      arguments: []
+      description: "Returns a `number` which is parsed from the `string`. In case the `string` is not numeric it will return a zero."
+      example:
+        - "myString = \"1.25\""
+        - print(myString.val + 40.75)
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  values:
+    argStrings: []
+    id: values
+    json:
+      arguments: []
+      description: "Returns a `list` where each item is a `string` representing all available characters in the `string`. Could be compared to using `split` but without any separator."
+      example:
+        - "myString = \"hello world\""
+        - print(myString.values)
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+      type: function
+    origin: string
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - remove
+  - hasIndex
+  - insert
+  - indexOf
+  - lastIndexOf
+  - split
+  - replace
+  - trim
+  - indexes
+  - code
+  - len
+  - lower
+  - upper
+  - val
+  - values
+  - to_int
+  - is_match
+  - matches
+descriptions:
+  $meta:
+    description: "Text is stored in strings of Unicode characters. Write strings by surrounding them with quotes. If you need to include a quotation mark in the string, write it twice."
+    example:
+      - "a = \"hello\""
+      - "b = \"world\""
+      - print(a + b) // concatinate a and b
+      - print(a * 10) // repeat hello ten times
+      - "print(a[0]) // prints h"
+      - "print(a[1:3]) // prints ell"
+  code:
+    description: "Returns a `number` representing the Unicode code of the first character of the `string`."
+    example:
+      - "myString = \"HELLO WORLD\""
+      - print(myString.code)
+  hasIndex:
+    description: "Returns one when the numeric index exists in the `string`, otherwise zero. A non-number index also returns zero."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - containsIndex = myString.hasIndex(1)
+      - if containsIndex then
+      - "   print(\"String contains index of 1.\")"
+      - else
+      - "   print(\"String does not contain index of 1.\")"
+      - end if
+  indexOf:
+    description: "Returns a `number` which indicates the first matching index of the provided value inside the `list`. Optionally a start index can be provided. In case the value does not exist inside the `string` a `null` gets returned."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "index = myString.indexOf(\"wrong\")"
+      - if index != null then
+      - "   print(\"Invalid information spotted at: \" + index)"
+      - else
+      - "   print(\"Information seems valid.\")"
+      - end if
+  indexes:
+    description: "Returns a `list` where each item is a `number` representing all available indexes in the `string`."
+    example:
+      - "myString = \"42\""
+      - print(myString.indexes)
+  insert:
+    description: "Returns a `string` with the newly inserted `string` at the provided index. If the passed index is not a `number`, this method throws an error, preventing further script execution."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "index = myString.lastIndexOf(\"w\") - 1"
+      - "newString = myString.insert(index, \"not \")"
+      - print(newString)
+  is_match:
+    description: "Uses regular expression to check if a string matches a certain pattern. If it matches, it will return a `number` with the value one. If it does not match, the value of the `number` will be zero. If any provided arguments deviate from the method signature types, if the pattern is empty, if the provided [regexOptions](https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-options) are invalid, or if the regular expression times out, an error will be thrown, preventing further script execution."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "hasWordAtTheEnd = myString.is_match(\"\\w+$\")"
+      - print(hasWordAtTheEnd)
+  lastIndexOf:
+    description: "Returns a `number` which indicates the last matching index of the provided value inside the `list`. In case the value does not exist inside the `string` a `-1` gets returned. If the provided searchStr is not a `string`, this method will return `null`."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "index = myString.lastIndexOf(\"wrong\")"
+      - if index != -1 then
+      - "   print(\"Invalid information spotted at: \" + index)"
+      - else
+      - "   print(\"Information seems valid.\")"
+      - end if
+  len:
+    description: "Returns a `number` representing the length of the `string`."
+    example:
+      - "myString = \"HELLO WORLD\""
+      - "print(\"Size of string is: \" + myString.len)"
+  lower:
+    description: "Returns a new `string` in which all characters are transformed into lowercase."
+    example:
+      - "myString = \"HELLO WORLD\""
+      - print(myString.lower)
+  matches:
+    description: "Returns a `map` whose numeric keys are match positions and whose values are the matching strings. Invalid regex options return `\"matches: Invalid regex option\"`; an invalid .NET regex pattern returns its error message as a `string`. Empty patterns, invalid argument types, and regex timeouts still raise runtime errors. `is_match` continues to raise for invalid regex options."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "result = myString.matches(\"w\")"
+      - print(result)
+  remove:
+    description: "Returns a new `string` with the provided value removed. Any value other than `null` can be passed, but note that it will be cast to a string. If `null` is passed, this method will throw an error, preventing further script execution."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "newString = myString.remove(\"wrong\")"
+      - "print(newString + \"right\")"
+  replace:
+    description: "Returns a `string` with regular-expression matches replaced. Invalid regex options return `\"replace: Invalid regex option\"`; an invalid .NET regex pattern returns its error message as a `string`. Empty patterns, invalid argument types, and regex timeouts still raise runtime errors."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "newString = myString.replace(\"wrong\", \"right\")"
+      - print(newString)
+  split:
+    description: "Splits a `string` with a regular expression and returns a `list` of strings. An empty separator returns one character per list item. Invalid regex options return `\"split: Invalid regex option\"`; an invalid .NET regex pattern returns its error message as a `string`. Invalid argument types return `null`; regex timeouts still raise a runtime error."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "segments = myString.split(\" \")"
+      - "if segments[0] != \"42\" then"
+      - "   print(\"Invalid information spotted!\")"
+      - else
+      - "   print(\"Information seems valid!\")"
+      - end if
+  to_int:
+    description: "Parses a `string` as an invariant-culture double and returns the resulting `number`, accepting forms such as `\"1.5\"`, `\" 1e3 \"`, `\"1,000\"`, and `\"(5)\"`. Non-numeric text is returned unchanged, a `number` is returned as-is, and other types return `null`. The global function defaults `self` to zero."
+    example:
+      - "myString = \"1\""
+      - print(myString.to_int + 41)
+  trim:
+    description: "Returns a new `string` stripped of any spacing at the beginning and ending."
+    example:
+      - "myString = \"    42   \""
+      - print(myString.trim)
+  upper:
+    description: "Returns a new `string` in which all characters are transformed into uppercase."
+    example:
+      - "myString = \"hello world\""
+      - print(myString.upper)
+  val:
+    description: "Returns a `number` which is parsed from the `string`. In case the `string` is not numeric it will return a zero."
+    example:
+      - "myString = \"1.25\""
+      - print(myString.val + 40.75)
+  values:
+    description: "Returns a `list` where each item is a `string` representing all available characters in the `string`. Could be compared to using `split` but without any separator."
+    example:
+      - "myString = \"hello world\""
+      - print(myString.values)
+extends: ~
+hidden: false

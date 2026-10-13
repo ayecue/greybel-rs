@@ -1,0 +1,14 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/unclosed-block-comment.src
+---
+--- strict
+1:7 - 2:1 UnclosedBlockComment(1005): Unexpected end of file in multiline comment.
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:7 - 2:1 ExpectedToken(3001): got Unknown(/* never closed
+) where EOL is required
+--- lexer errors
+1:7 - 2:1 UnclosedBlockComment(1005): Unexpected end of file in multiline comment.

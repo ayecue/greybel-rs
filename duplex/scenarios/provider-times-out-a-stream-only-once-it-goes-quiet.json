@@ -1,0 +1,78 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "Each item of a message's stream gives its handler the message's timeout again: the provider rejects the message as `Timeout` only once the stream went quiet for as long.",
+  "peer": "provider",
+  "requires": ["streams", "timeouts"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Sum": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "wait": 800
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "wait": 800
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "wait": 200
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "Timeout"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

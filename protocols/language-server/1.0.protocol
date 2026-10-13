@@ -1,0 +1,21 @@
+use core 1.0;
+
+/// Carries JSON-RPC requests, responses, and notifications between an editor language client and a worker-based
+/// language server. Each payload holds one JSON-RPC message.
+protocol LanguageServer = "greybel-language-server" {
+    /// Language server that receives client JSON-RPC messages.
+    provider Server {
+        /// Sends one JSON-RPC message from the client to the server.
+        message ClientMessage {
+            json: string,
+        } limit 16MiB
+    }
+
+    /// Editor language client that receives server JSON-RPC messages.
+    client Client {
+        /// Sends one JSON-RPC message from the server to the client.
+        message ServerMessage {
+            json: string,
+        }
+    }
+}

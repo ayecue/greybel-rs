@@ -1,0 +1,86 @@
+# The repository's release manager (tools/reman, README.md): every folder with a reman.toml is considered. This
+# file declares the repository, its tasks and each language's defaults; a [workspace] file declares a language
+# workspace, a [project] file a project (one that is versioned, has a changelog, and is released when it is an app).
+# Packages without a file are for development and tests only.
+
+[repository]
+github = "ayecue/greybel-rs"
+tag = "{name}/v{version}"
+changes = ".changes"
+
+# Defaults of every project. Files matching `skip` (relative to the project) change nothing a release ships.
+[repository.project]
+changelog = "CHANGELOG.md"
+skip = ["tests/**", "test/**", "benches/**", "examples/**", "README.md"]
+
+# Names, the structure of the projects and the blank lines rustfmt doesn't add: op-lint, run from its checkout
+# (OP_LINT_ROOT, default ../op-lint), whose lint/repositories/greybel-rs/ has this repository's settings.
+[tasks.op-lint]
+suite = "lint"
+run = "cargo run --quiet --manifest-path \"${OP_LINT_ROOT:-../op-lint}/Cargo.toml\" -p op-lint --"
+
+# op-lint's blank lines, once rustfmt has run.
+[tasks.padding]
+suite = "lint"
+language = "rust"
+fix = "cargo run --quiet --manifest-path \"${OP_LINT_ROOT:-../op-lint}/Cargo.toml\" -p op-lint -- padding --fix"
+after = ["rustfmt"]
+
+# CSharpier, for every C# file but .csharpierignore's.
+[tasks.csharpier]
+suite = "lint"
+language = "dotnet"
+run = "dotnet csharpier check ."
+fix = "dotnet csharpier format ."
+
+[tasks.dotnet-tools]
+suite = "install"
+language = "dotnet"
+run = "dotnet tool restore"
+
+[languages.rust]
+select = { all = "--workspace", each = "-p {name}" }
+
+# rustfmt on nightly, for rustfmt.toml's import options.
+[languages.rust.tasks.rustfmt]
+suite = "lint"
+run = "cargo +nightly fmt {packages} --check"
+fix = "cargo +nightly fmt {packages}"
+select = { all = "--all", each = "-p {name}" }
+
+[languages.rust.tasks.clippy]
+suite = "lint"
+run = "cargo clippy {packages} --all-targets -- -D warnings"
+
+# The tests of every crate's `src/`, and the doc tests (nextest runs none).
+[languages.rust.tasks.unit]
+suite = "unit"
+run = "cargo nextest run {packages} --no-tests=warn --lib --bins"
+
+[languages.rust.tasks.doc]
+suite = "unit"
+run = "cargo test {packages} --doc"
+packages = "library"
+
+# Every crate's `tests/`.
+[languages.rust.tasks.integration]
+suite = "integration"
+run = "cargo nextest run {packages} --no-tests=warn --test '*'"
+
+[languages.typescript]
+select = { all = "-r", each = "--filter {name}" }
+
+[languages.typescript.tasks.install]
+suite = "install"
+run = "pnpm install"
+
+# ESLint and Prettier.
+[languages.typescript.tasks.format]
+suite = "lint"
+run = "pnpm format:check"
+fix = "pnpm format"
+
+# Each package's vitest suite.
+[languages.typescript.tasks.unit]
+suite = "unit"
+run = "pnpm {packages} run --if-present test"

@@ -1,0 +1,48 @@
+[package]
+name = "greyhack-terminal-web"
+description = "Browser-worker Grey Hack terminal with program io, game-style layout, WebGL meshes, and font atlases"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+greybel-io.workspace = true
+greyhack-text-mesh-assets.workspace = true
+text-mesh-core.workspace = true
+text-mesh-font.workspace = true
+text-mesh-layout.workspace = true
+text-mesh-webgl.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+duplex-driver-web.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+
+[dev-dependencies]
+duplex-test-support.workspace = true
+duplex-ts.workspace = true
+greybel-io-web.workspace = true
+greybel-test-support.workspace = true
+base64.workspace = true
+png.workspace = true
+serde_json.workspace = true
+text-mesh-canvas = { workspace = true, features = ["serde"] }
+text-mesh-font-builder.workspace = true
+text-mesh-html.workspace = true
+text-mesh-test-support = { workspace = true, features = ["meshes"] }
+text-mesh-unity.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

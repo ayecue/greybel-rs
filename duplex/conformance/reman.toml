@@ -1,0 +1,4 @@
+# Definitions the conformance tests of every language read and write (fixtures.json): never released.
+[workspace]
+language = "duplex"
+development = true

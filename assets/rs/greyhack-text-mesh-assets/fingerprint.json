@@ -1,0 +1,21 @@
+{
+  "game": "0.9.7373 Nightly",
+  "files": {
+    "atlases/GreyHackNull SDF.0.alpha": "ba82666c1e837748051a5409745c37ca956eea9a643324ec0b3da2d3cfdd47cb",
+    "atlases/JetBrainsMono-Regular SDF_RUUK.0.alpha": "5d5ff2230f149dc9cec9d8bdcd01bce32fc3ed6430c458c996060ed80f8224fd",
+    "atlases/LiberationSans SDF.0.alpha": "b9093b952f276db23aef714218108ba694930c98e0a8cfa25033f93c609c91af",
+    "atlases/Mplus1Code-Regular SDF_JP.0.alpha": "e243c2e75bb66d3def03c88ad9e707596d609a622f5252da215cedc80f065cac",
+    "atlases/SourceCodePro-Regular SDF.0.alpha": "fb2e4bb53be337743cc0253c0af7260adb652ab2fca7a8d1e7e1a7578298dba1",
+    "atlases/SourceCodePro-Regular SDF_turco.0.alpha": "68434700231b06b4251b777c98dc9c0cbde83ea4bbadfda12997f7c9232c515e",
+    "atlases/SourceCodePro-Regular-PL SDF.0.alpha": "16972630b6f9fa7debf4fe42cbc4cb01b0b1760df547c452eec7dffdb9674aab",
+    "atlases/SourceCodePro-Regular-SDF_draw.0.alpha": "a53246e574f6766df2dbeec086f50fdc43528ccd2e8e4e65c2e9f7ea3668cc79",
+    "atlases/Taviraj-Medium SDF.0.alpha": "d44e92349356cf0a63b63bf4a052460f7ad990391e9d04bcd48dbfa4c7f802a9",
+    "fonts/JetBrainsMono-Regular.ttf": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f",
+    "fonts/LiberationSans-Regular.ttf": "76d04c18ea243f426b7de1f3ad208e927008f961dc5945e5aad352d0dfde8ee8",
+    "fonts/MPLUS1Code-Regular.ttf": "fb1b53f18056938e6bc178ae5c147aba26e65dcae27ab737a6bff6a04fb03a06",
+    "fonts/SourceCodePro-Regular.ttf": "74bd80d3e42a08517cd7e1108ba3d86f2da29ac0f3065be95e0357956ab9db37",
+    "fonts/Taviraj-Medium.ttf": "126a0ed061ff96c499b314bdcdacfa1c2ccd153fcd78e4fbb3575c88e98dae3d",
+    "sprites/caret.rgba": "452175a9b932963b239aa2e85e5c069875dc86e66561af66cb1af8e59ab82471",
+    "text-mesh.json": "0b439130d3837fb7a33539468c15430fd7aa88828551b480df1f1a109ca1e6d8"
+  }
+}

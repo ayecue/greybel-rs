@@ -1,0 +1,21 @@
+{
+  "name": "greybel-api-reference-site",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The GreyScript API reference with its scripting guide as a site of its own: greybel-api-reference-web on the whole page, its tab and filter in the address, built to dist/ for Netlify",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vite build --mode test && vitest run"
+  },
+  "dependencies": {
+    "greybel-api-reference-web": "^0.1.0"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}

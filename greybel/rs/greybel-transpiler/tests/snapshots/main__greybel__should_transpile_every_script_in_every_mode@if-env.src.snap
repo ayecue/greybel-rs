@@ -1,0 +1,38 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/if-env.src
+---
+=== default
+a=1
+b=2
+c=5
+d=6
+print(a+b+c+d)
+=== uglify
+globals.I=globals
+J=1
+K=2
+L=5
+M=6
+print(J+K+L+M)
+=== beautify
+a = 1
+
+b = 2
+
+c = 5
+
+d = 6
+
+print a + b + c + d
+=== beautify, dev mode, keep parentheses, 10 spaces
+a = 1
+
+b = 2
+
+c = 5
+
+d = 6
+
+print(a + b + c + d)

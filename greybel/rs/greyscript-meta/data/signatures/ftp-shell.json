@@ -1,0 +1,60 @@
+{
+  "type": "ftpShell",
+  "extends": "map",
+  "definitions": {
+    "host_computer": {
+      "id": "host_computer",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "ftpComputer"
+      ]
+    },
+    "scp": {
+      "id": "scp",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "path_orig",
+          "type": "string"
+        },
+        {
+          "label": "path_dest",
+          "type": "string"
+        },
+        {
+          "label": "remote_shell",
+          "type": "shell"
+        },
+        {
+          "label": "is_upload",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!GreyInterpreter.CheckScpUpload",
+        "${destinationFolder} it's not a folder",
+        "${destinationFolder} not found",
+        "${sourceFile} not found",
+        "scp: Invalid arguments",
+        "Warning: one or more files or folders cannot be copied."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    }
+  }
+}

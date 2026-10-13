@@ -1,0 +1,31 @@
+[package]
+name = "text-mesh-webgl"
+description = "TextMesh Pro text drawn the way TMP draws it: its quad meshes over SDF font atlases, the GLSL port of its Distance Field and Sprite shaders (text-mesh/shaders) and what they read, for a WebGL2 renderer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+text-mesh-core.workspace = true
+text-mesh-font.workspace = true
+text-mesh-layout.workspace = true
+unicode-general-category.workspace = true
+
+[dev-dependencies]
+serde.workspace = true
+serde_json.workspace = true
+text-mesh-test-support = { workspace = true, features = ["meshes"] }
+text-mesh-unity.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

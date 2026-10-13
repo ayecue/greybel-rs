@@ -1,0 +1,42 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider's handler fails a message with the failure it declares.",
+  "peer": "provider",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Divide": {
+                "dividend": 1,
+                "divisor": 0
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "Divide": "ByZero"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1257 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - get_ports
+  - get_name
+  - local_ip
+  - public_ip
+  - File
+  - create_folder
+  - is_network_active
+  - touch
+  - show_procs
+  - network_devices
+  - change_password
+  - create_user
+  - delete_user
+  - create_group
+  - delete_group
+  - groups
+  - close_program
+  - wifi_networks
+  - connect_wifi
+  - connect_ethernet
+  - network_gateway
+  - active_net_card
+  - reboot
+definitions:
+  File:
+    argStrings:
+      - - string
+    id: File
+    json:
+      arguments:
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+      description: "Returns the file or folder at an absolute or relative path. Returns `\"File: Invalid arguments\"` for an empty or non-string path, and `null` when the path or computer is invalid or the shell user no longer exists."
+      example:
+        - "filePath = \"/etc/passwd\""
+        - file = get_shell.host_computer.File(filePath)
+        - if file != null then
+        - "   print(file.get_content)"
+        - else
+        - "   print(\"File at given path \" + filePath + \" does not exist.\")"
+        - end if
+      isProtected: false
+      returns:
+        - file
+        - "null"
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - file
+      - "null"
+      - string
+    returnVariations:
+      ok:
+        - "File: Invalid arguments"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  active_net_card:
+    argStrings: []
+    id: active_net_card
+    json:
+      arguments: []
+      description: "Returns a `string` which contains either the keyword `\"WIFI\"` or `\"ETHERNET\"` depending on the connection type your computer is currently using."
+      example:
+        - hostComputer = get_shell.host_computer
+        - netCard = hostComputer.active_net_card
+        - "print(\"Connected by: \" + netCard)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  change_password:
+    argStrings:
+      - - string
+      - - string
+    id: change_password
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Changes an existing user password as root. Empty usernames return `\"change_password: Invalid arguments\"`; non-alphanumeric passwords and passwords over 15 characters also return error strings. Other signature mismatches return `null`."
+      example:
+        - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+        - "changeResult = hostComputer.change_password(\"test\", \"newPassword\")"
+        - "if typeof(changeResult) == \"string\" then"
+        - "   print(\"There was an error when changing the password: \" + changeResult)"
+        - else
+        - "   print(\"Password got successfully changed.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "change_password: Invalid arguments"
+        - Denied. Only root user can execute this command.
+        - "Error: only alphanumeric allowed as password."
+        - "Error: the password cannot exceed the limit of 15 characters."
+        - "user ${username} does not exist"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  close_program:
+    argStrings:
+      - - number
+    id: close_program
+    json:
+      arguments:
+        - default: ~
+          label: PID
+          opt: false
+          types:
+            - number
+      description: "Closes a program associated with the provided PID. You can see the `list` of active programs by either using `show_procs` or typing ps into your terminal. To close a program, you need to either be the owner of the running process or root. If closing the program fails, this method will return a `string` containing details. On success, it will return a `number` with the value one. If there is no process with the provided PID, this method will return a `number` with the value zero. If the provided PID is anything other than a `number`, this method will return `null`. On the player's own computer, the process of the script itself can't be closed. A program that a terminal runs as a command may close its own process: the program stops, and the terminal continues."
+      example:
+        - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+        - "processes = hostComputer.show_procs.split(char(10))[1:]"
+        - "pid = processes[1].split(\" \")[1]"
+        - closeResult = hostComputer.close_program(pid.to_int)
+        - "if typeof(closeResult) == \"string\" then"
+        - "   print(\"There was an error when closing a program: \" + closeResult)"
+        - else
+        - "   print(\"Program with pid \" + pid + \" got successfully closed.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 0
+        - 1
+        - "Permission denied. PID ${pid} belongs to user <b>${username}</b>"
+        - Permission denied. Process protected.
+        - Unable to close this process. The process belongs to this script.
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  connect_ethernet:
+    argStrings:
+      - - string
+      - - string
+      - - string
+    id: connect_ethernet
+    json:
+      arguments:
+        - default: ~
+          label: net_device
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: address
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: gateway
+          opt: false
+          types:
+            - string
+      description: "Configures an ethernet address. Success returns an empty `string`; invalid arguments, missing internet, and connection failures return error strings instead of raising."
+      example:
+        - hostComputer = get_shell.host_computer
+        - "connectionResult = hostComputer.connect_ethernet(\"eth0\", \"192.168.0.4\", get_router.local_ip)"
+        - "if typeof(connectionResult) == \"string\" then"
+        - "   print(\"There was an error while connecting: \" + connectionResult)"
+        - else
+        - "   print(\"Connected successfully.\")"
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "can't connect: the home network has been temporarily disabled due to non-payment"
+        - "connect_ethernet: Invalid arguments"
+        - "connect_ethernet: Network device not found"
+        - "connect_ethernet: No internet connection"
+        - "connect_ethernet: Only ethernet cards are supported"
+        - "connect_ethernet: permission denied. Guest users can not execute this method"
+        - "connect_ethernet: unknown error: unable to retrieve current computer"
+        - "Error: address ${address} is already in use."
+        - "Error: Ethernet card not connected to the network"
+        - "Error: gateway ${gateway} does not exist in the network"
+        - "Error: invalid gateway"
+        - "Error: Invalid IP address"
+        - "Error: the gateway cannot be the same device to connect"
+        - "Error: the IP address and the gateway must belong to the same subnet"
+        - "Error: unable to run command on routers/switches"
+        - Unable to find ISP network to connect using Ethernet card
+        - "Unknown error: The current IP ${localIp} does not exist in this network"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  connect_wifi:
+    argStrings:
+      - - string
+      - - string
+      - - string
+      - - string
+    id: connect_wifi
+    json:
+      arguments:
+        - default: ~
+          label: net_device
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: bssid
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: essid
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Connects to a Wi-Fi network and returns one on success or an error `string` on failure. A rented computer cannot join another network and returns `\"connect_wifi: rented computers cannot connect to another network.\"`."
+      example:
+        - hostComputer = get_shell.host_computer
+        - networks = hostComputer.wifi_networks
+        - "firstNetwork = networks[0].split(\" \")"
+        - "BSSID = firstNetwork[0]"
+        - "ESSID = firstNetwork[2]"
+        - "connectionResult = hostComputer.connect_wifi(\"wlan0\", BSSID, ESSID, \"wifi-password\")"
+        - "if typeof(connectionResult) == \"string\" then"
+        - "   print(\"There was an error while connecting to new Wifi: \" + connectionResult)"
+        - else
+        - "   print(\"Connected to new Wifi successfully.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "Can't connect. Incorrect password."
+        - "Can't connect. Router not found."
+        - "Can't connect. Target is out of reach."
+        - "can't connect: the remote server has been temporarily disabled due to non-payment"
+        - "connect_wifi: Network device not found"
+        - "connect_wifi: Only wifi cards are supported"
+        - "connect_wifi: permission denied. Guest users can not execute this method"
+        - "connect_wifi: rented computers cannot connect to another network."
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  create_folder:
+    argStrings:
+      - - string
+      - - string
+    id: create_folder
+    json:
+      arguments:
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+        - default:
+            type: string
+            value: newFolder
+          label: nameFolder
+          opt: false
+          types:
+            - string
+      description: "Creates a folder and returns one on success or an error `string` on failure. Invalid argument types return `\"create_folder: Invalid arguments\"`; use during SSH encryption still raises a runtime error."
+      example:
+        - "path = \"/home/\" + active_user + \"/Desktop\""
+        - hostComputer = get_shell.host_computer
+        - "createResult = hostComputer.create_folder(path, \"myfolder\")"
+        - "if typeof(createResult) == \"string\" then"
+        - "   print(\"There was an error when creating the folder: \" + createResult)"
+        - else
+        - "   print(\"Folder got created at given path \" + path)"
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - number
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+    returnVariations:
+      ok:
+        - 1
+        - "${filename} file exists"
+        - "Can't create folder. Reached maximum limit"
+        - "create_folder: Invalid arguments"
+        - "create_folder: path too large"
+        - "Error: empty destination path"
+        - "Error: invalid path"
+        - "Error: name cannot exceed the limit of 128 characters."
+        - "Error: only alphanumeric allowed as folder name."
+        - permission denied
+        - The copy can not be made. Reached maximum number of files in a folder
+        - The maximum number of subfolders has been exceeded
+        - Unknown error.
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  create_group:
+    argStrings:
+      - - string
+      - - string
+    id: create_group
+    json:
+      arguments:
+        - default: ~
+          label: username
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: groupname
+          opt: false
+          types:
+            - string
+      description: "Adds a group to an existing user as root, and also returns one if the user already has that group. Empty arguments, group names over 15 characters, and other validation failures return error strings instead of raising."
+      example:
+        - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+        - "creationResult = hostComputer.create_group(\"test\", \"staff\")"
+        - "if typeof(creationResult) == \"string\" then"
+        - "   print(\"There was an error when creating a group: \" + creationResult)"
+        - else
+        - "   print(\"Group got successfully created.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "create_group: Invalid arguments"
+        - Denied. Only root user can execute this command.
+        - "Error: only alphanumeric allowed as user and group names."
+        - "Error: user ${username} does not exist."
+        - groupname cannot exceed the 15 character limit.
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  create_user:
+    argStrings:
+      - - string
+      - - string
+    id: create_user
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Creates an alphanumeric user as root. Empty usernames and user names or passwords over 15 characters return error strings instead of raising. Success returns one; other signature mismatches return `null`."
+      example:
+        - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+        - "creationResult = hostComputer.create_user(\"newUser\", \"123\")"
+        - "if typeof(creationResult) == \"string\" then"
+        - "   print(\"There was an error when creating an user: \" + creationResult)"
+        - else
+        - "   print(\"User got successfully created.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "create_user: Invalid arguments"
+        - Denied. Maximum number of registered users reached.
+        - Denied. Only root user can execute this command.
+        - "Error: can't create guest user. Reserved user."
+        - "Error: can't create user. ${username} already exists."
+        - "Error: only alphanumeric allowed as user name and password."
+        - "Error: root user already exists."
+        - password cannot exceed the 15 character limit.
+        - username cannot exceed the 15 character limit.
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  delete_group:
+    argStrings:
+      - - string
+      - - string
+    id: delete_group
+    json:
+      arguments:
+        - default: ~
+          label: username
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: groupname
+          opt: false
+          types:
+            - string
+      description: "Removes a group from a user as root. Empty arguments return `\"delete_group: Invalid arguments\"`; other failures return error strings and success returns one."
+      example:
+        - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+        - "deletionResult = hostComputer.delete_group(\"test\", \"staff\")"
+        - "if typeof(deletionResult) == \"string\" then"
+        - "   print(\"There was an error when deleting a group: \" + deletionResult)"
+        - else
+        - "   print(\"Group got successfully deleted.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "delete_group: Invalid arguments"
+        - Denied. Only root user can execute this command.
+        - "Error: group ${group} not found in user ${username}"
+        - "Error: user ${username} does not exist."
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  delete_user:
+    argStrings:
+      - - string
+      - - number
+    id: delete_user
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default:
+            type: number
+            value: 0
+          label: removeHome
+          opt: false
+          types:
+            - number
+      description: "Deletes a user as root, optionally removing the home folder. An empty username returns `\"delete_user: Invalid arguments\"`; other failures return error strings and success returns one."
+      example:
+        - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+        - "deletionResult = hostComputer.delete_user(\"test\", true)"
+        - "if typeof(deletionResult) == \"string\" then"
+        - "   print(\"There was an error when deleting an user: \" + deletionResult)"
+        - else
+        - "   print(\"User got successfully deleted.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "can't delete user. ${username} does not exist"
+        - "delete_user: Invalid arguments"
+        - Denied. Only root user can execute this command.
+        - "sorry, at the moment that account can't be deleted."
+        - "the root user can't be deleted."
+        - "user ${username} not found."
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_name:
+    argStrings: []
+    id: get_name
+    json:
+      arguments: []
+      description: Returns the hostname of the machine.
+      example:
+        - computerName = get_shell.host_computer.get_name
+        - "print(\"The name of your machine is \" + computerName)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_ports:
+    argStrings: []
+    id: get_ports
+    json:
+      arguments: []
+      description: "Returns a `list` of `port`s on the `computer` that are active."
+      example:
+        - router = get_router
+        - ports = get_shell.host_computer.get_ports
+        - for port in ports
+        - "    print(\"Info: \" + router.port_info(port))"
+        - end for
+      isProtected: false
+      returns:
+        - type: list
+          valueType: port
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<port>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  groups:
+    argStrings:
+      - - string
+    id: groups
+    json:
+      arguments:
+        - default: ~
+          label: username
+          opt: false
+          types:
+            - string
+      description: "Returns the groups of an existing user, one per line. Empty usernames return `\"groups: Invalid arguments\"`; unknown users return an error `string`, and other signature mismatches return `null`."
+      example:
+        - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+        - "hostComputer.create_group(\"root\", \"staff\")"
+        - "groups = hostComputer.groups(\"root\")"
+        - listOfGroups = groups.split(char(10))
+        - print(listOfGroups)
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "Error: user ${username} does not exist."
+        - "groups: Invalid arguments"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  is_network_active:
+    argStrings: []
+    id: is_network_active
+    json:
+      arguments: []
+      description: "Returns a `number` with either the value one or zero. If the `computer` has internet access, the value will be one. If there is no internet access, it will return zero instead."
+      example:
+        - hostComputer = get_shell.host_computer
+        - if hostComputer.is_network_active then
+        - "   print(\"You're connected.\")"
+        - else
+        - "   print(\"You're not connected.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok:
+        - 0
+        - 1
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  local_ip:
+    argStrings: []
+    id: lan_ip
+    json:
+      arguments: []
+      description: "Returns a `string` with the local IP address of the `computer`."
+      example:
+        - localIp = get_shell.host_computer.local_ip
+        - "print(\"Local ip:\" + localIp)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  network_devices:
+    argStrings: []
+    id: network_devices
+    json:
+      arguments: []
+      description: "Returns a `string` containing information about all network devices available on the `computer`. Each item includes details about the interface name, chipset, and whether monitoring support is enabled."
+      example:
+        - hostComputer = get_shell.host_computer
+        - devices = hostComputer.network_devices
+        - deviceList = devices.split(char(10))
+        - for item in deviceList
+        - "   print(item)"
+        - end for
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  network_gateway:
+    argStrings: []
+    id: network_gateway
+    json:
+      arguments: []
+      description: "Returns a `string` with the gateway IP address configured on the computer."
+      example:
+        - hostComputer = get_shell.host_computer
+        - gatewayIp = hostComputer.network_gateway
+        - "print(\"Gateway IP: \" + gatewayIp)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  public_ip:
+    argStrings: []
+    id: public_ip_pc
+    json:
+      arguments: []
+      description: "Returns a `string` with the public IP address of the `computer`."
+      example:
+        - publicIp = get_shell.host_computer.public_ip
+        - "print(\"Public ip:\" + publicIp)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  reboot:
+    argStrings:
+      - - number
+    id: reboot
+    json:
+      arguments:
+        - default:
+            type: number
+            value: 0
+          label: safeMode
+          opt: false
+          types:
+            - number
+      description: "Reboots the computer. By default, it reboots in standard mode. If the optional safeMode parameter is provided and evaluates to a truthy value, the system will reboot in safe mode instead. On success, the method returns a `number` with the value one. If the reboot fails, a descriptive error message is returned as a `string`. If the argument type deviates from the expected signature, the method returns `null`. Calling this method in an SSH encryption process will trigger an error, halting further script execution."
+      example:
+        - hostComputer = get_shell.host_computer
+        - signal = hostComputer.reboot(true)
+        - if signal == 1 then
+        - "   print(\"Reboot signal emitted successfully.\")"
+        - else
+        - "   print(\"There was an error when rebooting the computer: \" + signal)"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "Error: unable to call reboot from a Terminal started automatically from /etc/init.d"
+        - "Error: unable to restart in safe mode on remote computers."
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  show_procs:
+    argStrings: []
+    id: show_procs
+    json:
+      arguments: []
+      description: "Returns a `string` with an overview of all active processes on the `computer`, including information about the user, PID, CPU, memory, and command. Using this method in an SSH encryption process will cause an error to be thrown, preventing any further script execution."
+      example:
+        - hostComputer = get_shell.host_computer
+        - procs = hostComputer.show_procs
+        - "list = procs.split(char(10))[1:]"
+        - "processes = []"
+        - for item in list
+        - "   parsedItem = item.split(\" \")"
+        - "   process = {}"
+        - "   process.user = parsedItem[0]"
+        - "   process.pid = parsedItem[1]"
+        - "   process.cpu = parsedItem[2]"
+        - "   process.mem = parsedItem[3]"
+        - "   process.command = parsedItem[4]"
+        - "   processes.push(process)"
+        - end for
+        - print(processes)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  touch:
+    argStrings:
+      - - string
+      - - string
+    id: touch
+    json:
+      arguments:
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: nameFile
+          opt: false
+          types:
+            - string
+      description: "Creates an empty text `file` at the provided path. Certain limitations apply to file creation: the `file` name must be alphanumeric and below 128 characters. Creation will fail if there is already a `file` in place or if permissions are lacking. Additionally, there is a file limit of about 250 in each folder and 3125 files in the computer overall. In case of success, it returns a `number` with the value one. In case of failure, it returns a `string` with details. Using this method in an SSH encryption process will cause an error to be thrown, preventing any further script execution."
+      example:
+        - "path = \"/home/\" + active_user + \"/Desktop\""
+        - hostComputer = get_shell.host_computer
+        - "createResult = hostComputer.touch(path, \"myFile.txt\")"
+        - "if typeof(createResult) == \"string\" then"
+        - "   print(\"There was an error when creating the file: \" + createResult)"
+        - else
+        - "   print(\"File got created at given path \" + path)"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+    returnVariations:
+      ok:
+        - 1
+        - "Can't create file ${pathFolderDest}/${filename}. Permission denied"
+        - "Can't create file. Reached maximum limit"
+        - "Can't create file. Unknown error"
+        - "Error: invalid path"
+        - "Error: name cannot exceed the limit of 128 characters."
+        - "Error: nameFile must be string"
+        - "Error: only alphanumeric allowed as file name."
+        - Invalid path
+        - The copy can not be made. Reached maximum number of files in a folder
+        - The file already exists
+        - There is not enough free space on the hard disk.
+        - "touch: path too large"
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  wifi_networks:
+    argStrings:
+      - - string
+    id: wifi_networks
+    json:
+      arguments:
+        - default: ~
+          label: net_device
+          opt: false
+          types:
+            - string
+      description: "Returns a `list` of visible Wi-Fi network descriptions. Unknown devices and invalid objects return `null`; device and disabled-card failures, including `\"wifi_networks: wifi card is disabled\"`, are returned as strings."
+      example:
+        - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+        - "networks = hostComputer.wifi_networks(\"wlan0\")"
+        - "result = []"
+        - for network in networks
+        - "   parsedItem = network.split(\" \")"
+        - "   item = {}"
+        - "   item.BSSID = parsedItem[0]"
+        - "   item.PWR = parsedItem[1]"
+        - "   item.ESSID = parsedItem[2]"
+        - "   result.push(item)"
+        - end for
+        - print(result)
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+        - "null"
+        - string
+      type: function
+    origin: computer
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+      - "null"
+      - string
+    returnVariations:
+      ok:
+        - "wifi_networks: wifi card is disabled"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - get_ports
+  - get_name
+  - local_ip
+  - public_ip
+  - File
+  - create_folder
+  - is_network_active
+  - touch
+  - show_procs
+  - network_devices
+  - change_password
+  - create_user
+  - delete_user
+  - create_group
+  - delete_group
+  - groups
+  - close_program
+  - wifi_networks
+  - connect_wifi
+  - connect_ethernet
+  - network_gateway
+  - active_net_card
+  - reboot
+descriptions:
+  $meta:
+    description: "A `computer` object can be obtained by either using [host_computer](#SHELL_HOST_COMPUTER) or [overflow](#METALIB_OVERFLOW). The `classID` used for this object is `\"computer\"`."
+    example: ~
+  File:
+    description: "Returns the file or folder at an absolute or relative path. Returns `\"File: Invalid arguments\"` for an empty or non-string path, and `null` when the path or computer is invalid or the shell user no longer exists."
+    example:
+      - "filePath = \"/etc/passwd\""
+      - file = get_shell.host_computer.File(filePath)
+      - if file != null then
+      - "   print(file.get_content)"
+      - else
+      - "   print(\"File at given path \" + filePath + \" does not exist.\")"
+      - end if
+  active_net_card:
+    description: "Returns a `string` which contains either the keyword `\"WIFI\"` or `\"ETHERNET\"` depending on the connection type your computer is currently using."
+    example:
+      - hostComputer = get_shell.host_computer
+      - netCard = hostComputer.active_net_card
+      - "print(\"Connected by: \" + netCard)"
+  change_password:
+    description: "Changes an existing user password as root. Empty usernames return `\"change_password: Invalid arguments\"`; non-alphanumeric passwords and passwords over 15 characters also return error strings. Other signature mismatches return `null`."
+    example:
+      - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+      - "changeResult = hostComputer.change_password(\"test\", \"newPassword\")"
+      - "if typeof(changeResult) == \"string\" then"
+      - "   print(\"There was an error when changing the password: \" + changeResult)"
+      - else
+      - "   print(\"Password got successfully changed.\")"
+      - end if
+  close_program:
+    description: "Closes a program associated with the provided PID. You can see the `list` of active programs by either using `show_procs` or typing ps into your terminal. To close a program, you need to either be the owner of the running process or root. If closing the program fails, this method will return a `string` containing details. On success, it will return a `number` with the value one. If there is no process with the provided PID, this method will return a `number` with the value zero. If the provided PID is anything other than a `number`, this method will return `null`. On the player's own computer, the process of the script itself can't be closed. A program that a terminal runs as a command may close its own process: the program stops, and the terminal continues."
+    example:
+      - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+      - "processes = hostComputer.show_procs.split(char(10))[1:]"
+      - "pid = processes[1].split(\" \")[1]"
+      - closeResult = hostComputer.close_program(pid.to_int)
+      - "if typeof(closeResult) == \"string\" then"
+      - "   print(\"There was an error when closing a program: \" + closeResult)"
+      - else
+      - "   print(\"Program with pid \" + pid + \" got successfully closed.\")"
+      - end if
+  connect_ethernet:
+    description: "Configures an ethernet address. Success returns an empty `string`; invalid arguments, missing internet, and connection failures return error strings instead of raising."
+    example:
+      - hostComputer = get_shell.host_computer
+      - "connectionResult = hostComputer.connect_ethernet(\"eth0\", \"192.168.0.4\", get_router.local_ip)"
+      - "if typeof(connectionResult) == \"string\" then"
+      - "   print(\"There was an error while connecting: \" + connectionResult)"
+      - else
+      - "   print(\"Connected successfully.\")"
+      - end if
+  connect_wifi:
+    description: "Connects to a Wi-Fi network and returns one on success or an error `string` on failure. A rented computer cannot join another network and returns `\"connect_wifi: rented computers cannot connect to another network.\"`."
+    example:
+      - hostComputer = get_shell.host_computer
+      - networks = hostComputer.wifi_networks
+      - "firstNetwork = networks[0].split(\" \")"
+      - "BSSID = firstNetwork[0]"
+      - "ESSID = firstNetwork[2]"
+      - "connectionResult = hostComputer.connect_wifi(\"wlan0\", BSSID, ESSID, \"wifi-password\")"
+      - "if typeof(connectionResult) == \"string\" then"
+      - "   print(\"There was an error while connecting to new Wifi: \" + connectionResult)"
+      - else
+      - "   print(\"Connected to new Wifi successfully.\")"
+      - end if
+  create_folder:
+    description: "Creates a folder and returns one on success or an error `string` on failure. Invalid argument types return `\"create_folder: Invalid arguments\"`; use during SSH encryption still raises a runtime error."
+    example:
+      - "path = \"/home/\" + active_user + \"/Desktop\""
+      - hostComputer = get_shell.host_computer
+      - "createResult = hostComputer.create_folder(path, \"myfolder\")"
+      - "if typeof(createResult) == \"string\" then"
+      - "   print(\"There was an error when creating the folder: \" + createResult)"
+      - else
+      - "   print(\"Folder got created at given path \" + path)"
+      - end if
+  create_group:
+    description: "Adds a group to an existing user as root, and also returns one if the user already has that group. Empty arguments, group names over 15 characters, and other validation failures return error strings instead of raising."
+    example:
+      - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+      - "creationResult = hostComputer.create_group(\"test\", \"staff\")"
+      - "if typeof(creationResult) == \"string\" then"
+      - "   print(\"There was an error when creating a group: \" + creationResult)"
+      - else
+      - "   print(\"Group got successfully created.\")"
+      - end if
+  create_user:
+    description: "Creates an alphanumeric user as root. Empty usernames and user names or passwords over 15 characters return error strings instead of raising. Success returns one; other signature mismatches return `null`."
+    example:
+      - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+      - "creationResult = hostComputer.create_user(\"newUser\", \"123\")"
+      - "if typeof(creationResult) == \"string\" then"
+      - "   print(\"There was an error when creating an user: \" + creationResult)"
+      - else
+      - "   print(\"User got successfully created.\")"
+      - end if
+  delete_group:
+    description: "Removes a group from a user as root. Empty arguments return `\"delete_group: Invalid arguments\"`; other failures return error strings and success returns one."
+    example:
+      - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+      - "deletionResult = hostComputer.delete_group(\"test\", \"staff\")"
+      - "if typeof(deletionResult) == \"string\" then"
+      - "   print(\"There was an error when deleting a group: \" + deletionResult)"
+      - else
+      - "   print(\"Group got successfully deleted.\")"
+      - end if
+  delete_user:
+    description: "Deletes a user as root, optionally removing the home folder. An empty username returns `\"delete_user: Invalid arguments\"`; other failures return error strings and success returns one."
+    example:
+      - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+      - "deletionResult = hostComputer.delete_user(\"test\", true)"
+      - "if typeof(deletionResult) == \"string\" then"
+      - "   print(\"There was an error when deleting an user: \" + deletionResult)"
+      - else
+      - "   print(\"User got successfully deleted.\")"
+      - end if
+  get_name:
+    description: Returns the hostname of the machine.
+    example:
+      - computerName = get_shell.host_computer.get_name
+      - "print(\"The name of your machine is \" + computerName)"
+  get_ports:
+    description: "Returns a `list` of `port`s on the `computer` that are active."
+    example:
+      - router = get_router
+      - ports = get_shell.host_computer.get_ports
+      - for port in ports
+      - "    print(\"Info: \" + router.port_info(port))"
+      - end for
+  groups:
+    description: "Returns the groups of an existing user, one per line. Empty usernames return `\"groups: Invalid arguments\"`; unknown users return an error `string`, and other signature mismatches return `null`."
+    example:
+      - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+      - "hostComputer.create_group(\"root\", \"staff\")"
+      - "groups = hostComputer.groups(\"root\")"
+      - listOfGroups = groups.split(char(10))
+      - print(listOfGroups)
+  is_network_active:
+    description: "Returns a `number` with either the value one or zero. If the `computer` has internet access, the value will be one. If there is no internet access, it will return zero instead."
+    example:
+      - hostComputer = get_shell.host_computer
+      - if hostComputer.is_network_active then
+      - "   print(\"You're connected.\")"
+      - else
+      - "   print(\"You're not connected.\")"
+      - end if
+  local_ip:
+    description: "Returns a `string` with the local IP address of the `computer`."
+    example:
+      - localIp = get_shell.host_computer.local_ip
+      - "print(\"Local ip:\" + localIp)"
+  network_devices:
+    description: "Returns a `string` containing information about all network devices available on the `computer`. Each item includes details about the interface name, chipset, and whether monitoring support is enabled."
+    example:
+      - hostComputer = get_shell.host_computer
+      - devices = hostComputer.network_devices
+      - deviceList = devices.split(char(10))
+      - for item in deviceList
+      - "   print(item)"
+      - end for
+  network_gateway:
+    description: "Returns a `string` with the gateway IP address configured on the computer."
+    example:
+      - hostComputer = get_shell.host_computer
+      - gatewayIp = hostComputer.network_gateway
+      - "print(\"Gateway IP: \" + gatewayIp)"
+  public_ip:
+    description: "Returns a `string` with the public IP address of the `computer`."
+    example:
+      - publicIp = get_shell.host_computer.public_ip
+      - "print(\"Public ip:\" + publicIp)"
+  reboot:
+    description: "Reboots the computer. By default, it reboots in standard mode. If the optional safeMode parameter is provided and evaluates to a truthy value, the system will reboot in safe mode instead. On success, the method returns a `number` with the value one. If the reboot fails, a descriptive error message is returned as a `string`. If the argument type deviates from the expected signature, the method returns `null`. Calling this method in an SSH encryption process will trigger an error, halting further script execution."
+    example:
+      - hostComputer = get_shell.host_computer
+      - signal = hostComputer.reboot(true)
+      - if signal == 1 then
+      - "   print(\"Reboot signal emitted successfully.\")"
+      - else
+      - "   print(\"There was an error when rebooting the computer: \" + signal)"
+      - end if
+  show_procs:
+    description: "Returns a `string` with an overview of all active processes on the `computer`, including information about the user, PID, CPU, memory, and command. Using this method in an SSH encryption process will cause an error to be thrown, preventing any further script execution."
+    example:
+      - hostComputer = get_shell.host_computer
+      - procs = hostComputer.show_procs
+      - "list = procs.split(char(10))[1:]"
+      - "processes = []"
+      - for item in list
+      - "   parsedItem = item.split(\" \")"
+      - "   process = {}"
+      - "   process.user = parsedItem[0]"
+      - "   process.pid = parsedItem[1]"
+      - "   process.cpu = parsedItem[2]"
+      - "   process.mem = parsedItem[3]"
+      - "   process.command = parsedItem[4]"
+      - "   processes.push(process)"
+      - end for
+      - print(processes)
+  touch:
+    description: "Creates an empty text `file` at the provided path. Certain limitations apply to file creation: the `file` name must be alphanumeric and below 128 characters. Creation will fail if there is already a `file` in place or if permissions are lacking. Additionally, there is a file limit of about 250 in each folder and 3125 files in the computer overall. In case of success, it returns a `number` with the value one. In case of failure, it returns a `string` with details. Using this method in an SSH encryption process will cause an error to be thrown, preventing any further script execution."
+    example:
+      - "path = \"/home/\" + active_user + \"/Desktop\""
+      - hostComputer = get_shell.host_computer
+      - "createResult = hostComputer.touch(path, \"myFile.txt\")"
+      - "if typeof(createResult) == \"string\" then"
+      - "   print(\"There was an error when creating the file: \" + createResult)"
+      - else
+      - "   print(\"File got created at given path \" + path)"
+      - end if
+  wifi_networks:
+    description: "Returns a `list` of visible Wi-Fi network descriptions. Unknown devices and invalid objects return `null`; device and disabled-card failures, including `\"wifi_networks: wifi card is disabled\"`, are returned as strings."
+    example:
+      - "hostComputer = get_shell(\"root\", \"test\").host_computer"
+      - "networks = hostComputer.wifi_networks(\"wlan0\")"
+      - "result = []"
+      - for network in networks
+      - "   parsedItem = network.split(\" \")"
+      - "   item = {}"
+      - "   item.BSSID = parsedItem[0]"
+      - "   item.PWR = parsedItem[1]"
+      - "   item.ESSID = parsedItem[2]"
+      - "   result.push(item)"
+      - end for
+      - print(result)
+extends: map
+hidden: false

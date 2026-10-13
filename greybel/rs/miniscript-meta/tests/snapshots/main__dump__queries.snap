@@ -1,0 +1,1142 @@
+---
+source: miniscript-meta/tests/dump.rs
+expression: part
+---
+abs:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+acos:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+asin:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+atan:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+bitAnd:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+bitOr:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+bitXor:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+buildDate:
+  all:
+    origin: version
+    search:
+      - version
+  any:
+    origin: version
+    search:
+      - version
+  each:
+    any:
+      origin: version
+      search:
+        - version
+    version:
+      origin: version
+      search:
+        - version
+ceil:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+char:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+code:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+cos:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+floor:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+funcRef:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+hasIndex:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    version:
+      origin: map
+      search:
+        - map
+hash:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+host:
+  all:
+    origin: version
+    search:
+      - version
+  any:
+    origin: version
+    search:
+      - version
+  each:
+    any:
+      origin: version
+      search:
+        - version
+    version:
+      origin: version
+      search:
+        - version
+hostInfo:
+  all:
+    origin: version
+    search:
+      - version
+  any:
+    origin: version
+    search:
+      - version
+  each:
+    any:
+      origin: version
+      search:
+        - version
+    version:
+      origin: version
+      search:
+        - version
+hostName:
+  all:
+    origin: version
+    search:
+      - version
+  any:
+    origin: version
+    search:
+      - version
+  each:
+    any:
+      origin: version
+      search:
+        - version
+    version:
+      origin: version
+      search:
+        - version
+indexOf:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    version:
+      origin: map
+      search:
+        - map
+indexes:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    version:
+      origin: map
+      search:
+        - map
+insert:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+  any:
+    origin: any
+    search:
+      - string
+      - list
+  each:
+    any:
+      origin: any
+      search:
+        - string
+        - list
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    string:
+      origin: string
+      search:
+        - string
+join:
+  all:
+    origin: list
+    search:
+      - list
+  any:
+    origin: list
+    search:
+      - list
+  each:
+    any:
+      origin: list
+      search:
+        - list
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+len:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    version:
+      origin: map
+      search:
+        - map
+list:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+log:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+lower:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+map:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+miniscript:
+  all:
+    origin: version
+    search:
+      - version
+  any:
+    origin: version
+    search:
+      - version
+  each:
+    any:
+      origin: version
+      search:
+        - version
+    version:
+      origin: version
+      search:
+        - version
+number:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+pi:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+pop:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    version:
+      origin: map
+      search:
+        - map
+print:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+pull:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    version:
+      origin: map
+      search:
+        - map
+push:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    version:
+      origin: map
+      search:
+        - map
+range:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+refEquals:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+remove:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    version:
+      origin: map
+      search:
+        - map
+replace:
+  all:
+    origin: string
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: string
+    search:
+      - string
+      - list
+      - map
+  each:
+    any:
+      origin: string
+      search:
+        - string
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    version:
+      origin: map
+      search:
+        - map
+rnd:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+round:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+shuffle:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    version:
+      origin: map
+      search:
+        - map
+sign:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+sin:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+slice:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+sort:
+  all:
+    origin: list
+    search:
+      - list
+  any:
+    origin: list
+    search:
+      - list
+  each:
+    any:
+      origin: list
+      search:
+        - list
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+split:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+sqrt:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+stackTrace:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+str:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+string:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+sum:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    version:
+      origin: map
+      search:
+        - map
+tan:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+time:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+upper:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+val:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+values:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    version:
+      origin: map
+      search:
+        - map
+version:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+wait:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+yield:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general

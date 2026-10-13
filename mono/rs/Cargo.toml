@@ -1,0 +1,49 @@
+[workspace]
+resolver = "3"
+members = ["mono-*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.93"
+repository = "https://github.com/ayecue/greybel-rs"
+
+[workspace.dependencies]
+mono-dictionary = { path = "mono-dictionary" }
+mono-number = { path = "mono-number" }
+mono-random = { path = "mono-random" }
+mono-regex = { path = "mono-regex" }
+mono-string = { path = "mono-string" }
+
+bitflags = "2"
+criterion = { version = "0.7", default-features = false, features = ["cargo_bench_support"] }
+fancy-regex = "0.18"
+hashbrown = { version = "0.17", default-features = false }
+indexmap = { version = "2", features = ["serde"] }
+insta = { version = "1.48", features = ["glob"] }
+rapidhash = { version = "4", default-features = false }
+rustc-hash = "2"
+ryu = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+str_indices = "0.4"
+thiserror = "2"
+
+# Keep local line tables, omitting other debug info and all dependency debug info.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+# Binaries choose their own panic behavior.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

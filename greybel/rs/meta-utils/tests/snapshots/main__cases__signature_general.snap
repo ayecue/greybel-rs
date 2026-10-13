@@ -1,0 +1,146 @@
+---
+source: meta-utils/tests/cases.rs
+expression: part
+---
+definitionOrder:
+  - hasIndex
+  - print
+  - nested
+definitions:
+  hasIndex:
+    argStrings:
+      - - "map<any,any>"
+        - string
+      - - any
+    id: hasIndex
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - keyType: any
+              type: map
+              valueType: any
+            - string
+        - default:
+            type: number
+            value: 0
+          label: index
+          opt: false
+          types:
+            - any
+      description: "Depending on data type this function checks if the provided index is available inside the value. To get a better idea about the behaviour look into the `hasIndex` methods related to `string`, `list` and `map`."
+      example:
+        - "print(\"List has index: \" + hasIndex([1, 2, 3], 2)"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: general
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - function
+    typeString: function
+    variations:
+      ok: []
+  nested:
+    argStrings:
+      - - "map<string,list<string>>"
+    id: nested
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - keyType: string
+              type: map
+              valueType:
+                type: list
+                valueType: string
+      description: ~
+      example: ~
+      isProtected: false
+      returns:
+        - type: list
+          valueType:
+            type: list
+            valueType: number
+      type: function
+    origin: general
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<list<number>>
+    returnVariations:
+      ok: []
+    tags:
+      - function
+    typeString: function
+    variations:
+      ok: []
+  print:
+    argStrings:
+      - - any
+      - - string
+    id: print
+    json:
+      arguments:
+        - default:
+            type: string
+            value: ""
+          label: value
+          opt: false
+          types:
+            - any
+        - default: ~
+          label: delimiter
+          opt: true
+          types:
+            - string
+      description: Print a message on the Terminal. Optionally replacing can be enabled which will replace the previous print. This can be useful for creating a loading bar for example. There is also the possibility of styling output by using TextMeshPro rich-text tags.
+      example:
+        - for i in range(9)
+        - "   print((\"#\" * (9 - i)) + (\"-\" * i) , true)"
+        - "   wait(0.2)"
+        - end for
+      isProtected: false
+      returns:
+        - "null"
+      type: function
+    origin: general
+    otherLanguageDescription: ~
+    returnStrings:
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - function
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - hasIndex
+  - print
+descriptions:
+  $meta:
+    description: unknown
+    example: ~
+  hasIndex:
+    description: "Depending on data type this function checks if the provided index is available inside the value. To get a better idea about the behaviour look into the `hasIndex` methods related to `string`, `list` and `map`."
+    example:
+      - "print(\"List has index: \" + hasIndex([1, 2, 3], 2)"
+  print:
+    description: Print a message on the Terminal. Optionally replacing can be enabled which will replace the previous print. This can be useful for creating a loading bar for example. There is also the possibility of styling output by using TextMeshPro rich-text tags.
+    example:
+      - for i in range(9)
+      - "   print((\"#\" * (9 - i)) + (\"-\" * i) , true)"
+      - "   wait(0.2)"
+      - end for
+extends: ~
+hidden: false

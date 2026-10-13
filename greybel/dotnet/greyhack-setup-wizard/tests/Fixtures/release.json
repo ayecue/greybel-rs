@@ -1,0 +1,15 @@
+{
+  "tag_name": "v0.1.0",
+  "assets": [
+    {
+      "name": "GreyHackMessageHook5.dll",
+      "browser_download_url": "https://github.com/ayecue/greybel-rs/releases/download/v0.1.0/GreyHackMessageHook5.dll",
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "name": "GreyHackMessageHook.dll",
+      "browser_download_url": "https://github.com/ayecue/greybel-rs/releases/download/v0.1.0/GreyHackMessageHook.dll",
+      "digest": null
+    }
+  ]
+}

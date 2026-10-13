@@ -1,0 +1,45 @@
+[package]
+name = "greyhack-message-hook-client"
+description = "Client for the Grey Hack message hook plugin"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[features]
+# Provider-side protocol bindings used by mock plugin servers.
+provider = []
+# Proxy integration tests using greyhack-test-support; requires the .NET SDK.
+dotnet = []
+# Headless Grey Hack integration tests; requires GREY_HACK_PATH, BepInEx 5, the .NET SDK, and a logged-in Steam client.
+game = []
+
+[dependencies]
+duplex-core.workspace = true
+duplex-driver-stdio.workspace = true
+greybel-source-map = { workspace = true, features = ["serde"] }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+flate2.workspace = true
+futures-core.workspace = true
+tokio = { workspace = true, features = ["net", "io-util", "sync", "time", "rt", "macros"] }
+
+[dev-dependencies]
+base64.workspace = true
+duplex-core.workspace = true
+duplex-cs.workspace = true
+duplex-driver-stdio.workspace = true
+duplex-test-support = { workspace = true, features = ["tokio"] }
+greybel-test-support = { workspace = true, features = ["game"] }
+greyhack-message-hook-client = { path = ".", features = ["provider"] }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

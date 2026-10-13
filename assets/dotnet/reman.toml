@@ -1,0 +1,7 @@
+[workspace]
+language = "dotnet"
+
+[tasks.asset-bundle]
+suite = "unit"
+cwd = "asset-bundle"
+run = "dotnet test --solution AssetBundle.slnx"

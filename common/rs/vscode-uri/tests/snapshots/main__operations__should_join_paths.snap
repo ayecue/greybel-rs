@@ -1,0 +1,210 @@
+---
+source: vscode-uri/tests/operations.rs
+expression: cases
+---
+- input:
+    base: "foo://a/foo/bar"
+    paths:
+      - x
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar/x
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar/x"
+    unencoded: "foo://a/foo/bar/x"
+    fsPath: /foo/bar/x
+- input:
+    base: "foo://a/foo/bar/"
+    paths:
+      - x
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar/x
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar/x"
+    unencoded: "foo://a/foo/bar/x"
+    fsPath: /foo/bar/x
+- input:
+    base: "foo://a/foo/bar/"
+    paths:
+      - /x
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar/x
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar/x"
+    unencoded: "foo://a/foo/bar/x"
+    fsPath: /foo/bar/x
+- input:
+    base: "foo://a/foo/bar/"
+    paths:
+      - x/
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar/x/
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar/x/"
+    unencoded: "foo://a/foo/bar/x/"
+    fsPath: /foo/bar/x/
+- input:
+    base: "foo://a/foo/bar/"
+    paths:
+      - x
+      - y
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar/x/y
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar/x/y"
+    unencoded: "foo://a/foo/bar/x/y"
+    fsPath: /foo/bar/x/y
+- input:
+    base: "foo://a/foo/bar/"
+    paths:
+      - x/
+      - /y
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar/x/y
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar/x/y"
+    unencoded: "foo://a/foo/bar/x/y"
+    fsPath: /foo/bar/x/y
+- input:
+    base: "foo://a/foo/bar/"
+    paths:
+      - "."
+      - /y
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar/y
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar/y"
+    unencoded: "foo://a/foo/bar/y"
+    fsPath: /foo/bar/y
+- input:
+    base: "foo://a/foo/bar/"
+    paths:
+      - x/y/z
+      - ".."
+  output:
+    scheme: foo
+    authority: a
+    path: /foo/bar/x/y
+    query: ""
+    fragment: ""
+    string: "foo://a/foo/bar/x/y"
+    unencoded: "foo://a/foo/bar/x/y"
+    fsPath: /foo/bar/x/y
+- input:
+    base: "untitled:untitled-1"
+    paths:
+      - ".."
+      - untitled-2
+  output:
+    scheme: untitled
+    authority: ""
+    path: untitled-2
+    query: ""
+    fragment: ""
+    string: "untitled:untitled-2"
+    unencoded: "untitled:untitled-2"
+    fsPath: untitled-2
+- input:
+    base: "foo://a"
+    paths:
+      - x
+  output:
+    error: RelativePath
+- input:
+    base: "foo:"
+    paths: []
+  output:
+    scheme: foo
+    authority: ""
+    path: "."
+    query: ""
+    fragment: ""
+    string: "foo:."
+    unencoded: "foo:."
+    fsPath: "."
+- input:
+    base: "foo://a/b"
+    paths: []
+  output:
+    scheme: foo
+    authority: a
+    path: /b
+    query: ""
+    fragment: ""
+    string: "foo://a/b"
+    unencoded: "foo://a/b"
+    fsPath: /b
+- input:
+    base: "file:///project/main.src"
+    paths:
+      - ".."
+      - lib
+      - a.src
+  output:
+    scheme: file
+    authority: ""
+    path: /project/lib/a.src
+    query: ""
+    fragment: ""
+    string: "file:///project/lib/a.src"
+    unencoded: "file:///project/lib/a.src"
+    fsPath: /project/lib/a.src
+- input:
+    base: "foo://a/b"
+    paths:
+      - "../../.."
+  output:
+    scheme: foo
+    authority: a
+    path: /
+    query: ""
+    fragment: ""
+    string: "foo://a/"
+    unencoded: "foo://a/"
+    fsPath: /
+- input:
+    base: "untitled:a"
+    paths:
+      - "../../b"
+  output:
+    scheme: untitled
+    authority: ""
+    path: "../b"
+    query: ""
+    fragment: ""
+    string: "untitled:../b"
+    unencoded: "untitled:../b"
+    fsPath: "../b"
+- input:
+    base: "foo://a/b"
+    paths:
+      - ""
+  output:
+    scheme: foo
+    authority: a
+    path: /b
+    query: ""
+    fragment: ""
+    string: "foo://a/b"
+    unencoded: "foo://a/b"
+    fsPath: /b

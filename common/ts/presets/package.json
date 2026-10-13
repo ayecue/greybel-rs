@@ -1,0 +1,32 @@
+{
+  "name": "presets",
+  "version": "0.1.0",
+  "description": "What the repository's TypeScript workspaces share: the base tsconfig, the Prettier and ESLint configurations `pnpm format` lays code out with, and the Vitest configuration",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./prettier": "./prettier.json",
+    "./eslint": "./eslint.config.js",
+    "./vitest": "./src/vitest.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "eslint": "^10.14.0",
+    "vite": "^7.3.7",
+    "vitest": "^5.0.5"
+  },
+  "dependencies": {
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.72.1"
+  },
+  "devDependencies": {
+    "@types/estree": "^1.0.10",
+    "eslint": "^10.14.0"
+  }
+}

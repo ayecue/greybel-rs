@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "An unhealthy client turns healthy again on anything of the provider.",
+  "peer": "client",
+  "requires": ["health-check"],
+  "connected": true,
+  "healthCheck": true,
+  "steps": [
+    {
+      "check": 3
+    },
+    {
+      "expect": {
+        "health": "unhealthy"
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Pong": {}
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "health": "healthy"
+      }
+    }
+  ]
+}

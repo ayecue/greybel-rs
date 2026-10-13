@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": false,
+    "declaration": true
+  },
+  "include": [],
+  "files": ["src/workbench.generated.ts", "src/workbench-editor.generated.ts"]
+}

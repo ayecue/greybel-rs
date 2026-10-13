@@ -1,0 +1,250 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/random.src
+---
+=== default
+Random={}
+Random.pool={}
+Random.defaultSeed="random"
+Random.createPool=function(seed,val)
+return {"seed":seed,"value":val,"generation":0}
+end function
+Random.calcSeed=function(seed)
+seedVal=0
+pos=seed.len
+for char in seed
+seedVal=seedVal+char.code+pos
+pos=pos-1
+end for
+return seedVal
+end function
+Random.gen=function(min,max,seed,inc)
+me=self
+pool=me.pool
+if (inc==null) then inc=1
+if (seed==null) then seed=me.defaultSeed
+if (pool.hasIndex(seed)) then
+ps=pool[seed]
+if (not inc) then return ps.value
+ps.generation=ps.generation+1
+val=floor((rnd(ps.value+ps.generation)*(max-min))+min)
+ps.value=val
+return val
+end if
+seedVal=me.calcSeed(seed)
+val=floor((rnd(seedVal)*(max-min))+min)
+pool[seed]=me.createPool(seedVal,val)
+return val
+end function
+Random.seq=function(min,max,seed,amount,keepPool)
+me=self
+index=0
+result=[]
+while index<amount
+temp=me.gen(min,max,seed)
+result.push(temp)
+index=index+1
+end while
+if (keepPool!=1) then me.pool.remove(seed)
+return result
+end function
+Random.get=function(min,max)
+return self.gen(min,max)
+end function
+print(Random.get(100,500))
+print(Random.seq(100,500,"test",10))
+=== uglify
+globals.I=globals
+J={}
+J.pool={}
+J.defaultSeed="random"
+J.createPool=function(R,val)
+return {"seed":R,"value":val,"generation":0}
+end function
+J.calcSeed=function(R)
+S=0
+T=R.len
+for char in R
+S=S+char.code+T
+T=T-1
+end for
+return S
+end function
+J.gen=function(U,V,R,W)
+X=self
+K=X.pool
+if (W==null) then W=1
+if (R==null) then R=X.defaultSeed
+if (K.hasIndex(R)) then
+Y=K[R]
+if (not W) then return Y.value
+Y.generation=Y.generation+1
+val=floor((rnd(Y.value+Y.generation)*(V-U))+U)
+Y.value=val
+return val
+end if
+S=X.calcSeed(R)
+val=floor((rnd(S)*(V-U))+U)
+K[R]=X.createPool(S,val)
+return val
+end function
+J.seq=function(U,V,R,b,c)
+X=self
+d=0
+e=[]
+while d<b
+f=X.gen(U,V,R)
+e.push(f)
+d=d+1
+end while
+if (c!=1) then X.pool.remove(R)
+return e
+end function
+J.get=function(U,V)
+return self.gen(U,V)
+end function
+print(J.get(100,500))
+print(J.seq(100,500,"test",10))
+=== beautify
+Random = {}
+
+Random.pool = {}
+Random.defaultSeed = "random"
+
+Random.createPool = function(seed, val)
+	return {
+		"seed": seed,
+		"value": val,
+		"generation": 0,
+	}
+end function
+
+Random.calcSeed = function(seed)
+	seedVal = 0
+	pos = seed.len
+
+	for char in seed
+		seedVal = seedVal + char.code + pos
+		pos -= 1
+	end for
+
+	return seedVal
+end function
+
+Random.gen = function(min, max, seed, inc)
+	me = self
+	pool = me.pool
+	if inc == null then inc = true
+	if seed == null then seed = me.defaultSeed
+	if pool.hasIndex(seed) then
+		ps = pool[seed]
+		if not inc then return ps.value
+		ps.generation += 1
+		val = floor((rnd(ps.value + ps.generation) * (max - min)) + min)
+		ps.value = val
+		return val
+	end if
+
+	seedVal = me.calcSeed(seed)
+
+	val = floor((rnd(seedVal) * (max - min)) + min)
+	pool[seed] = me.createPool(seedVal, val)
+
+	return val
+end function
+
+Random.seq = function(min, max, seed, amount, keepPool)
+	me = self
+	index = 0
+	result = []
+	while index < amount
+		temp = me.gen(min, max, seed)
+		result.push temp
+		index += 1
+	end while
+	if keepPool != true then me.pool.remove(seed)
+	return result
+end function
+
+Random.get = function(min, max)
+	return self.gen(min, max)
+end function
+
+print Random.get(100, 500)
+print Random.seq(
+	100,
+	500,
+	"test",
+	10)
+=== beautify, dev mode, keep parentheses, 10 spaces
+Random = {}
+
+Random.pool = {}
+Random.defaultSeed = "random"
+
+Random.createPool = function(seed, val)
+          return {
+                    "seed": seed,
+                    "value": val,
+                    "generation": 0,
+          }
+end function
+
+Random.calcSeed = function(seed)
+          seedVal = 0
+          pos = seed.len
+
+          for char in seed
+                    seedVal = seedVal + char.code + pos
+                    pos -= 1
+          end for
+
+          return seedVal
+end function
+
+Random.gen = function(min, max, seed, inc)
+          me = self
+          pool = me.pool
+          if inc == null then inc = true
+          if seed == null then seed = me.defaultSeed
+          if pool.hasIndex(seed) then
+                    ps = pool[seed]
+                    if not inc then return ps.value
+                    ps.generation += 1
+                    val = floor((rnd(ps.value + ps.generation) * (max - min)) + min)
+                    ps.value = val
+                    return val
+          end if
+
+          seedVal = me.calcSeed(seed)
+
+          val = floor((rnd(seedVal) * (max - min)) + min)
+          pool[seed] = me.createPool(seedVal, val)
+
+          return val
+end function
+
+Random.seq = function(min, max, seed, amount, keepPool)
+          me = self
+          index = 0
+          result = []
+          while index < amount
+                    temp = me.gen(min, max, seed)
+                    result.push(temp)
+                    index += 1
+          end while
+          if keepPool != true then me.pool.remove(seed)
+          return result
+end function
+
+Random.get = function(min, max)
+          return self.gen(min, max)
+end function
+
+print(Random.get(100, 500))
+print(Random.seq(
+          100,
+          500,
+          "test",
+          10))

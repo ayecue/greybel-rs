@@ -1,0 +1,51 @@
+[package]
+name = "greybel-interpreter"
+description = "Bytecode VM for MiniScript/Greybel"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+scheduler.workspace = true
+rustc-hash.workspace = true
+rapidhash.workspace = true
+mono-dictionary.workspace = true
+mono-number.workspace = true
+mono-string.workspace = true
+itoa.workspace = true
+thin-str.workspace = true
+greybel-interpreter-macros.workspace = true
+greybel-core.workspace = true
+greybel-symbols.workspace = true
+greybel-documents.workspace = true
+greybel-io.workspace = true
+indexmap.workspace = true
+thiserror.workspace = true
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+greybel-io-terminal.workspace = true
+
+[dev-dependencies]
+scheduler = { workspace = true, features = ["manual"] }
+criterion.workspace = true
+greybel-documents-memory-provider.workspace = true
+greybel-test-support = { workspace = true, features = ["interpreter", "node-depth"] }
+insta.workspace = true
+serde_json.workspace = true
+
+[[bench]]
+name = "run"
+harness = false
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

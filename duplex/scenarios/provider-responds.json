@@ -1,0 +1,42 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider responds to a message with its id.",
+  "peer": "provider",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 4,
+              "Add": {
+                "a": 1,
+                "b": 2
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseEnd": {
+                  "id": 4,
+                  "Add": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

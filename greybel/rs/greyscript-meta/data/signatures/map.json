@@ -1,0 +1,194 @@
+{
+  "type": "map",
+  "typeParameters": [
+    "K",
+    "V"
+  ],
+  "definitions": {
+    "remove": {
+      "id": "remove",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "k",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "push": {
+      "id": "push",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "K"
+        }
+      ],
+      "returns": [
+        "self"
+      ],
+      "mutates": {
+        "V": "number"
+      }
+    },
+    "pull": {
+      "id": "pull",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "K",
+        "null"
+      ]
+    },
+    "pop": {
+      "id": "pop",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "K",
+        "null"
+      ]
+    },
+    "shuffle": {
+      "id": "shuffle",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "sum": {
+      "id": "sum",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "hasIndex": {
+      "id": "hasIndex",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "index",
+          "type": "any"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "indexOf": {
+      "id": "indexOf",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "any"
+        },
+        {
+          "label": "after",
+          "type": "any",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "K",
+        "null"
+      ]
+    },
+    "indexes": {
+      "id": "indexes",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "K"
+        }
+      ]
+    },
+    "len": {
+      "id": "len",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "values": {
+      "id": "values",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "V"
+        }
+      ]
+    },
+    "replace": {
+      "id": "replace",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "oldval",
+          "type": "any"
+        },
+        {
+          "label": "newval",
+          "type": "V"
+        },
+        {
+          "label": "maxCount",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "self"
+      ],
+      "mutates": true
+    }
+  }
+}

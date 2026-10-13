@@ -1,0 +1,83 @@
+use core 1.0;
+
+/// Exposes worker-program stdin and stdout through the host page.
+protocol Io = "greybel-io" {
+    /// Host page that displays output and provides input.
+    provider Page {
+        /// Displays output entries in sequence.
+        message OutputBatch {
+            entries: list<Output>,
+        } limit 16MiB
+        /// Shows `prompt` and accepts one input line.
+        message ReadLine {
+            prompt: string,
+            /// Display mode for typed characters.
+            echo: Echo,
+        } -> Result<string, ReadFailure>
+        /// Shows `prompt` and accepts one key press.
+        message ReadKey {
+            prompt: string,
+        } -> Result<Key, ReadFailure>
+    }
+
+    client Program {}
+}
+
+/// Display mode for typed line input (`TerminalListAdapter.GetPasswordBuildLine`).
+enum Echo {
+    /// Shows characters as typed.
+    Visible,
+    /// Shows one `*` per character, as for a password.
+    Masked,
+    /// Hides typed characters.
+    Hidden,
+}
+
+/// Failure of an input request.
+enum ReadFailure {
+    /// Input request was cancelled before input arrived.
+    Cancellation,
+}
+
+union Output {
+    Print {
+        text: string,
+        flatten options: PrintOptions,
+    },
+    Clear,
+}
+
+/// Options for text output.
+struct PrintOptions {
+    /// Adds a newline after the text.
+    new_line: bool,
+    /// Overwrites the previous output line.
+    replace: bool,
+}
+
+union Key {
+    Char(char),
+    Enter,
+    Escape,
+    Tab,
+    Backspace,
+    Delete,
+    Insert,
+    Home,
+    End,
+    PageUp,
+    PageDown,
+    Up,
+    Down,
+    Left,
+    Right,
+    F(u8),
+    Shift(Side),
+    Control(Side),
+    Alt(Side),
+}
+
+enum Side {
+    Left,
+    Right,
+}

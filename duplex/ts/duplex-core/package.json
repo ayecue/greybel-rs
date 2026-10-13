@@ -1,0 +1,38 @@
+{
+  "name": "duplex-core",
+  "version": "0.1.0",
+  "description": "Typed messages between the client and the provider of a protocol over any driver: the TypeScript side of the duplex-core crate",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "bench": "node --expose-gc --conditions=source --import tsx bench/run.ts",
+    "profile": "node --expose-gc --conditions=source --import tsx bench/profile.ts"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "mitata": "^1.0.34",
+    "tsx": "^4.23.0"
+  },
+  "dependencies": {
+    "@noble/ciphers": "^2.4.0",
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
+    "emitter": "^0.1.0",
+    "handle-error": "^0.1.0"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider whose handler still waits for the stream of a message rejects the message as cancelled when its sender cancels it, ends the stream for the handler, and ignores what more of the stream comes.",
+  "peer": "provider",
+  "requires": ["streams", "cancellation"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Sum": {}
+            }
+          },
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Cancel": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "Cancellation"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 3
+            }
+          },
+          {
+            "MessageEnd": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    }
+  ]
+}

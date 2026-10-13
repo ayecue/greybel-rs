@@ -1,0 +1,16 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/literal-special-chars.src
+---
+=== default
+test="$$1 $$$$'2   $`$`$` $23"
+=== uglify
+globals.I=globals
+J="$$1 $$$$'2   $`$`$` $23"
+=== beautify
+test = "$$1 $$$$'2   $`$`$` $23"
+=== beautify, dev mode
+test = "$$1 $$$$'2   $`$`$` $23"
+=== beautify, dev mode, keep parentheses, 10 spaces
+test = "$$1 $$$$'2   $`$`$` $23"

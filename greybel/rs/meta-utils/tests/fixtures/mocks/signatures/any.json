@@ -1,0 +1,25 @@
+{
+  "type": "any",
+  "definitions": {
+    "hasIndex": {
+      "id": "hasIndex",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "foo",
+          "type": "any"
+        },
+        {
+          "label": "bar",
+          "type": "any"
+        }
+      ],
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    }
+  }
+}

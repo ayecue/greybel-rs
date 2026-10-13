@@ -1,0 +1,84 @@
+<UserControl
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:GreyHackSetupWizard.Gui.ViewModels"
+  xmlns:res="using:GreyHackSetupWizard.Gui.Resources"
+  xmlns:bepinex="using:GreyHackSetupWizard.BepInEx"
+  x:Class="GreyHackSetupWizard.Gui.Views.BepInExPageView"
+  x:DataType="vm:BepInExPageViewModel"
+>
+  <StackPanel Spacing="16">
+    <TextBlock Classes="heading" Text="{x:Static res:WindowText.BepInExPageTitle}" />
+    <TextBlock Classes="note" Text="{Binding CurrentText}" />
+
+    <StackPanel Spacing="4">
+      <RadioButton
+        GroupName="bepinexAction"
+        Content="{x:Static res:WindowText.BepInExInstall}"
+        IsChecked="{Binding Action, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SetupAction.Install}}"
+      />
+      <RadioButton
+        GroupName="bepinexAction"
+        Content="{x:Static res:WindowText.BepInExRemove}"
+        IsEnabled="{Binding IsRemovable}"
+        IsChecked="{Binding Action, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SetupAction.Remove}}"
+      />
+      <RadioButton
+        GroupName="bepinexAction"
+        Content="{x:Static res:WindowText.NothingToChange}"
+        IsChecked="{Binding Action, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SetupAction.Skip}}"
+      />
+    </StackPanel>
+
+    <StackPanel Spacing="16" IsVisible="{Binding IsInstallMode}" Margin="24,0,0,0">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{x:Static res:WindowText.VersionLabel}" FontWeight="SemiBold" />
+        <RadioButton
+          GroupName="bepinexMajor"
+          Content="{x:Static res:WindowText.BepInExStable}"
+          IsChecked="{Binding Major, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static bepinex:BepInExMajor.Stable}}"
+        />
+        <RadioButton
+          GroupName="bepinexMajor"
+          Content="{x:Static res:WindowText.BepInExBeta}"
+          IsChecked="{Binding Major, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static bepinex:BepInExMajor.Beta}}"
+        />
+        <TextBlock
+          Classes="note"
+          IsVisible="{Binding IsRosettaNoteVisible}"
+          Text="{x:Static res:WindowText.RosettaNote}"
+        />
+      </StackPanel>
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="{x:Static res:WindowText.SourceLabel}" FontWeight="SemiBold" />
+        <RadioButton
+          GroupName="bepinexSource"
+          IsChecked="{Binding Source, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SourceKind.Download}}"
+        >
+          <StackPanel>
+            <TextBlock Text="{x:Static res:WindowText.BepInExSourceDownload}" />
+            <TextBlock Classes="note" Text="{Binding ReleaseText}" />
+          </StackPanel>
+        </RadioButton>
+        <RadioButton
+          GroupName="bepinexSource"
+          IsChecked="{Binding Source, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SourceKind.File}}"
+        >
+          <StackPanel>
+            <TextBlock Text="{x:Static res:WindowText.BepInExSourceZip}" />
+            <TextBlock
+              Classes="note"
+              Text="{Binding ArchivePath, TargetNullValue={x:Static res:WindowText.NoFileChosen}}"
+            />
+          </StackPanel>
+        </RadioButton>
+        <Button
+          Content="{x:Static res:WindowText.ChooseFile}"
+          Command="{Binding ChooseArchiveCommand}"
+          Margin="28,4,0,0"
+        />
+      </StackPanel>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

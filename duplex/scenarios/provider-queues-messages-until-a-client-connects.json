@@ -1,0 +1,77 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider sends what it queued once a client connects.",
+  "peer": "provider",
+  "requires": ["responses"],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Confirm": {
+          "question": "ready?"
+        }
+      },
+      "as": "confirmed"
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Ack": {
+                  "id": 0,
+                  "connection": 1
+                }
+              }
+            ]
+          },
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Confirm": {
+                    "question": "ready?"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

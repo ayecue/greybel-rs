@@ -1,0 +1,747 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/beautify-cases.src
+---
+=== default
+test=1+2+3+4+5+6 and (2+3+4+5+6+(2+3+4+5+6+7))
+printAlign("dieFace[1] - dieFace[6]",[dieFace[1],dieFace[2],dieFace[3],dieFace[4],dieFace[5],dieFace[6],{"foo":123,"was":"wo"}].join,123,123)
+printAlign(1,2,3,4)
+test={}
+test={"was":123}
+test={"foo":123,"was":["abc",1,234],"xx":{"foo":123,"ooo":{"foo":123,"was":"wo"},"was":"wo"},"123":"3"}
+test=[]
+test=["was"]
+test=["abc",1,["abc",1,234],["abc",["abc",1,234],1,234],234]
+test=test+5
+test=test+4+5
+test.abc=test.abc+5
+test.abc=test.abc+4+5
+if (1) then print("test")
+if (1) then print("test") else print("xd")
+if (1) then test=[1,2,3,4,5]
+if (1) then test=[1,2,3,4,5] else test=[5,4,3,2,1]
+if (1) then
+print("test")
+else
+print("xd")
+end if
+if (1) then
+print("test")
+else if (0) then
+print("xa")
+else
+print("xd")
+end if
+test=function
+return [1,2,3,4,5]
+end function
+test=test+5
+test=[1,2,3,4]
+test=function
+return 123
+end function
+for test in [123]
+print("test")
+end for
+test={"was":123}
+test={"was":123,"foo":13,"bar":45}
+while 1
+if 1 then print("test") else print("xd")
+end while
+if 1 then stacktrace=function
+print("test")
+end function
+if 0 then stacktrace=function
+print("abc")
+end function
+print("abc">[42])
+test[25]
+test[25]
+test[123][25]
+test[25](11)
+test(11)[25]
+while 1
+end while
+if x.remove(@key) then return "foo:"+@key+"!"
+foo.bar=function(key=0,val=0,nil=0,nul=0)
+if 1 then return function
+print("test")
+end function
+end function
+test=function
+end function
+if test==null then
+print("foo")
+else if test==null then
+print("bar")
+else
+print("nil")
+end if
+IV=IV+([floor(rnd(byte)*256)])
+IV=IV+({"was":floor(rnd(byte))})
+=== uglify
+globals.I=globals
+I.Y="foo"
+I.W=123
+I.X="was"
+I.Z="wo"
+I.a="abc"
+I.b=234
+I.c="test"
+I.d="xd"
+J=1+2+3+4+5+6 and (2+3+4+5+6+(2+3+4+5+6+7))
+K("dieFace[1] - dieFace[6]",[L[1],L[2],L[3],L[4],L[5],L[6],{Y:W,X:Z}].join,W,W)
+K(1,2,3,4)
+J={}
+J={X:W}
+J={Y:W,X:[a,1,b],"xx":{Y:W,"ooo":{Y:W,X:Z},X:Z},"123":"3"}
+J=[]
+J=[X]
+J=[a,1,[a,1,b],[a,[a,1,b],1,b],b]
+J=J+5
+J=J+4+5
+J.abc=J.abc+5
+J.abc=J.abc+4+5
+if (1) then print(c)
+if (1) then print(c) else print(d)
+if (1) then J=[1,2,3,4,5]
+if (1) then J=[1,2,3,4,5] else J=[5,4,3,2,1]
+if (1) then
+print(c)
+else
+print(d)
+end if
+if (1) then
+print(c)
+else if (0) then
+print("xa")
+else
+print(d)
+end if
+J=function
+return [1,2,3,4,5]
+end function
+J=J+5
+J=[1,2,3,4]
+J=function
+return W
+end function
+for J in [W]
+print(c)
+end for
+J={X:W}
+J={X:W,Y:13,"bar":45}
+while 1
+if 1 then print(c) else print(d)
+end while
+if 1 then N=function
+print(c)
+end function
+if 0 then N=function
+print(a)
+end function
+print(a>[42])
+J[25]
+J[25]
+J[W][25]
+J[25](11)
+J(11)[25]
+while 1
+end while
+if O.remove(@P) then return "foo:"+@P+"!"
+Q.bar=function(P=0,val=0,U=0,V=0)
+if 1 then return function
+print(c)
+end function
+end function
+J=function
+end function
+if J==null then
+print(Y)
+else if J==null then
+print("bar")
+else
+print("nil")
+end if
+S=S+([floor(rnd(T)*256)])
+S=S+({X:floor(rnd(T))})
+=== beautify
+// binary + logical
+test = 1 + 2 + 3 + 4 + 5 + 6 and 
+	(2 + 3 + 4 + 5 + 6 + (2 + 3 + 4 + 5 + 6 + 7))
+
+// call expression
+printAlign(
+	"dieFace[1] - dieFace[6]",
+	[
+		dieFace[1],
+		dieFace[2],
+		dieFace[3],
+		dieFace[4],
+		dieFace[5],
+		dieFace[6],
+		{
+			"foo": 123,
+			"was": "wo",
+		},
+	].join,
+	123,
+	123)
+printAlign(
+	1,
+	2,
+	3,
+	4)
+
+// object
+test = {}
+test = { "was": 123 }
+test = {
+	"foo": 123,
+	"was": [
+		"abc",
+		1,
+		234,
+	],
+	"xx": {
+		"foo": 123,
+		"ooo": {
+			"foo": 123,
+			"was": "wo",
+		},
+		"was": "wo",
+	},
+	"123": "3",
+}
+
+// list
+test = []
+test = [ "was" ]
+test = [
+	"abc",
+	1,
+	[
+		"abc",
+		1,
+		234,
+	],
+	[
+		"abc",
+		[
+			"abc",
+			1,
+			234,
+		],
+		1,
+		234,
+	],
+	234,
+]
+
+// shorthand binary
+test = test + 5
+test = test + 4 + 5
+test.abc = test.abc + 5
+test.abc = test.abc + 4 + 5
+
+// if
+if true then print("test")
+if true then print("test") else print("xd")
+if true then test = [
+	1,
+	2,
+	3,
+	4,
+	5,
+]
+if true then test = [
+	1,
+	2,
+	3,
+	4,
+	5,
+] else test = [
+	5,
+	4,
+	3,
+	2,
+	1,
+]
+if true then
+	print "test"
+else
+	print "xd"
+end if
+if true then
+	print "test"
+else if false then
+	print "xa"
+else
+	print "xd"
+end if
+
+test = function
+	return [
+		1,
+		2,
+		3,
+		4,
+		5,
+	]
+end function
+
+
+// comments
+test = test + 5 // test
+test = [
+	1,
+	2, // :D
+	3,
+	4,
+] // its a list
+test = function // its a function
+	return 123 // it a return
+end function // its function end
+for test in [ 123 ] // my for loop
+	print "test" // some print
+end for // end for loop
+
+test = { "was": 123 } // was
+test = {
+	"was": 123, // was
+	"foo": 13,
+	"bar": 45,
+}
+
+// while block with shorthand if else
+while true
+	if true then print("test") else print("xd")
+end while
+
+
+if true then stacktrace = function
+	print "test"
+end function
+if false then stacktrace = function
+	print "abc"
+end function
+
+print "abc" > [ 42 ] // foo
+
+test[25] // foo
+test[25] // bar
+test[123][25] // foo
+test[25] 11 // bar
+test(11)[25] // foo
+
+while true // bar
+end while
+
+if x.remove(@key) then return "foo:" + @key + "!" // foo
+
+foo.bar = function(key = 0, val = 0, nil = 0, nul = 0)
+	if true then return function // bar
+		print "test"
+	end function
+end function
+
+test = function
+end function
+
+if test == null then // foo
+	print "foo"
+else if test == null then // bar
+	print "bar"
+else // nil
+	print "nil"
+end if
+
+IV = IV + ([ floor(rnd(byte) * 256) ]) // Warning: rnd is not cryptographically secure
+IV = IV + ({ "was": floor(rnd(byte)) }) // Warning: rnd is not cryptographically secure
+=== beautify, dev mode
+// binary + logical
+test = 1 + 2 + 3 + 4 + 5 + 6 and 
+	(2 + 3 + 4 + 5 + 6 + (2 + 3 + 4 + 5 + 6 + 7))
+
+// call expression
+printAlign(
+	"dieFace[1] - dieFace[6]",
+	[
+		dieFace[1],
+		dieFace[2],
+		dieFace[3],
+		dieFace[4],
+		dieFace[5],
+		dieFace[6],
+		{
+			"foo": 123,
+			"was": "wo",
+		},
+	].join,
+	123,
+	123)
+printAlign(
+	1,
+	2,
+	3,
+	4)
+
+// object
+test = {}
+test = { "was": 123 }
+test = {
+	"foo": 123,
+	"was": [
+		"abc",
+		1,
+		234,
+	],
+	"xx": {
+		"foo": 123,
+		"ooo": {
+			"foo": 123,
+			"was": "wo",
+		},
+		"was": "wo",
+	},
+	"123": "3",
+}
+
+// list
+test = []
+test = [ "was" ]
+test = [
+	"abc",
+	1,
+	[
+		"abc",
+		1,
+		234,
+	],
+	[
+		"abc",
+		[
+			"abc",
+			1,
+			234,
+		],
+		1,
+		234,
+	],
+	234,
+]
+
+// shorthand binary
+test += 5
+test = test + 4 + 5
+test.abc += 5
+test.abc = test.abc + 4 + 5
+
+// if
+if true then print("test")
+if true then print("test") else print("xd")
+if true then test = [
+	1,
+	2,
+	3,
+	4,
+	5,
+]
+if true then test = [
+	1,
+	2,
+	3,
+	4,
+	5,
+] else test = [
+	5,
+	4,
+	3,
+	2,
+	1,
+]
+if true then
+	print "test"
+else
+	print "xd"
+end if
+if true then
+	print "test"
+else if false then
+	print "xa"
+else
+	print "xd"
+end if
+
+test = function
+	return [
+		1,
+		2,
+		3,
+		4,
+		5,
+	]
+end function
+
+
+// comments
+test += 5 // test
+test = [
+	1,
+	2, // :D
+	3,
+	4,
+] // its a list
+test = function // its a function
+	return 123 // it a return
+end function // its function end
+for test in [ 123 ] // my for loop
+	print "test" // some print
+end for // end for loop
+
+test = { "was": 123 } // was
+test = {
+	"was": 123, // was
+	"foo": 13,
+	"bar": 45,
+}
+
+// while block with shorthand if else
+while true
+	if true then print("test") else print("xd")
+end while
+
+
+if true then stacktrace = function
+	print "test"
+end function
+if false then stacktrace = function
+	print "abc"
+end function
+
+print "abc" > [ 42 ] // foo
+
+test[25] // foo
+test[25] // bar
+test[123][25] // foo
+test[25] 11 // bar
+test(11)[25] // foo
+
+while true // bar
+end while
+
+if x.remove(@key) then return "foo:" + @key + "!" // foo
+
+foo.bar = function(key = 0, val = 0, nil = 0, nul = 0)
+	if true then return function // bar
+		print "test"
+	end function
+end function
+
+test = function
+end function
+
+if test == null then // foo
+	print "foo"
+else if test == null then // bar
+	print "bar"
+else // nil
+	print "nil"
+end if
+
+IV += [ floor(rnd(byte) * 256) ] // Warning: rnd is not cryptographically secure
+IV += { "was": floor(rnd(byte)) } // Warning: rnd is not cryptographically secure
+=== beautify, dev mode, keep parentheses, 10 spaces
+// binary + logical
+test = 1 + 2 + 3 + 4 + 5 + 6 and 
+          (2 + 3 + 4 + 5 + 6 + (2 + 3 + 4 + 5 + 6 + 7))
+
+// call expression
+printAlign(
+          "dieFace[1] - dieFace[6]",
+          [
+                    dieFace[1],
+                    dieFace[2],
+                    dieFace[3],
+                    dieFace[4],
+                    dieFace[5],
+                    dieFace[6],
+                    {
+                              "foo": 123,
+                              "was": "wo",
+                    },
+          ].join,
+          123,
+          123)
+printAlign(
+          1,
+          2,
+          3,
+          4)
+
+// object
+test = {}
+test = { "was": 123 }
+test = {
+          "foo": 123,
+          "was": [
+                    "abc",
+                    1,
+                    234,
+          ],
+          "xx": {
+                    "foo": 123,
+                    "ooo": {
+                              "foo": 123,
+                              "was": "wo",
+                    },
+                    "was": "wo",
+          },
+          "123": "3",
+}
+
+// list
+test = []
+test = [ "was" ]
+test = [
+          "abc",
+          1,
+          [
+                    "abc",
+                    1,
+                    234,
+          ],
+          [
+                    "abc",
+                    [
+                              "abc",
+                              1,
+                              234,
+                    ],
+                    1,
+                    234,
+          ],
+          234,
+]
+
+// shorthand binary
+test += 5
+test = test + 4 + 5
+test.abc += 5
+test.abc = test.abc + 4 + 5
+
+// if
+if true then print("test")
+if true then print("test") else print("xd")
+if true then test = [
+          1,
+          2,
+          3,
+          4,
+          5,
+]
+if true then test = [
+          1,
+          2,
+          3,
+          4,
+          5,
+] else test = [
+          5,
+          4,
+          3,
+          2,
+          1,
+]
+if true then
+          print("test")
+else
+          print("xd")
+end if
+if true then
+          print("test")
+else if false then
+          print("xa")
+else
+          print("xd")
+end if
+
+test = function
+          return [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+          ]
+end function
+
+
+// comments
+test += 5 // test
+test = [
+          1,
+          2, // :D
+          3,
+          4,
+] // its a list
+test = function // its a function
+          return 123 // it a return
+end function // its function end
+for test in [ 123 ] // my for loop
+          print("test") // some print
+end for // end for loop
+
+test = { "was": 123 } // was
+test = {
+          "was": 123, // was
+          "foo": 13,
+          "bar": 45,
+}
+
+// while block with shorthand if else
+while true
+          if true then print("test") else print("xd")
+end while
+
+
+if true then stacktrace = function
+          print("test")
+end function
+if false then stacktrace = function
+          print("abc")
+end function
+
+print("abc" > [ 42 ]) // foo
+
+test[25] // foo
+test[25] // bar
+test[123][25] // foo
+test[25](11) // bar
+test(11)[25] // foo
+
+while true // bar
+end while
+
+if x.remove(@key) then return "foo:" + @key + "!" // foo
+
+foo.bar = function(key = 0, val = 0, nil = 0, nul = 0)
+          if true then return function // bar
+                    print("test")
+          end function
+end function
+
+test = function
+end function
+
+if test == null then // foo
+          print("foo")
+else if test == null then // bar
+          print("bar")
+else // nil
+          print("nil")
+end if
+
+IV += [ floor(rnd(byte) * 256) ] // Warning: rnd is not cryptographically secure
+IV += { "was": floor(rnd(byte)) } // Warning: rnd is not cryptographically secure

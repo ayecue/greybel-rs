@@ -1,0 +1,13 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: "render_invalid(&read(path), &options(Version::Latest))"
+input_file: greybel-core/tests/fixtures/miniscript/errors/assign-to-call.ms
+---
+--- strict
+1:1 - 1:4 InvalidAssignmentTarget(5005): invalid assignment (not an lvalue)
+    hint: Assign to a variable, a member (a.b) or an element (a[1])
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:1 - 1:4 InvalidAssignmentTarget(5005): invalid assignment (not an lvalue)
+    hint: Assign to a variable, a member (a.b) or an element (a[1])

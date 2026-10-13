@@ -1,0 +1,11 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/intrinsics.src
+---
+[
+  "[\"s\", \"t\", \"r\", \"i\", \"n\", \"g\"]",
+  "[\"s\", \"t\", \"r\", \"i\", \"n\", \"g\"]",
+  "[\"s\", \"t\", \"r\", \"i\", \"n\", \"g\"]",
+  "0"
+]

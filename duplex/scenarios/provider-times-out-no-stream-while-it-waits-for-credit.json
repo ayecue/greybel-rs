@@ -1,0 +1,104 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider's time waiting for credit for its streamed response doesn't count toward the message's timeout.",
+  "peer": "provider",
+  "requires": ["responses", "streams", "timeouts"],
+  "connected": true,
+  "streamWindow": 2,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Count": {
+                "to": 3
+              }
+            }
+          },
+          {
+            "ResponseCredit": {
+              "id": 0,
+              "count": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseStart": {
+                  "id": 0,
+                  "Count": "Active"
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 1
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 2
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "wait": 5000
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseCredit": {
+              "id": 0,
+              "count": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 3
+                }
+              },
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Count": 6
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

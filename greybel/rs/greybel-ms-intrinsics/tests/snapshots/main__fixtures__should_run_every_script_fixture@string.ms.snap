@@ -1,0 +1,27 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/string.ms
+---
+1
+0
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+["x", "x", "x", " ", "l", "o", "r", "e", "m", " ", "i", "p", "s", "u", "m", " ", "b", "a", "r", " ", "f", "o", "r"]
+16
+null
+120
+23
+xxx was ccccccc
+1.23
+0
+XXX  CCCCCCC
+XXX WAS CCCCCCC
+["123", "was", "false"]
+xxx replaced ipsum bar for
+1213373456
+["a", "b", "c", "e", "d"]
+["abced", "ca", "xa"]
+foo \"bar\" foo
+foo "bar" foo
+["ab.ce.d"]
+xxx lrem ipsum bar fr

@@ -1,0 +1,11 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/reassign-super.src
+---
+[
+  "\"test\"",
+  "\"test2\"",
+  "\"test2\"",
+  "\"was\""
+]

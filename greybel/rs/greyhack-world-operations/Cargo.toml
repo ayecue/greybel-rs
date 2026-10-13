@@ -1,0 +1,42 @@
+[package]
+name = "greyhack-world-operations"
+description = "Sequential Grey Hack world operations and duplex server for shared-world runtimes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+duplex-driver-memory.workspace = true
+scheduler.workspace = true
+greyhack-behaviour.workspace = true
+greybel-source-map.workspace = true
+greyhack-world.workspace = true
+greyhack-world-assets.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["sync"] }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+scheduler = { workspace = true, features = ["tokio"] }
+
+[dev-dependencies]
+futures-util.workspace = true
+duplex-ts.workspace = true
+greybel-test-support.workspace = true
+duplex-test-support = { workspace = true, features = ["tokio"] }
+scheduler = { workspace = true, features = ["manual", "tokio"] }
+tokio = { workspace = true, features = ["rt"] }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

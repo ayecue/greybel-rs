@@ -1,0 +1,13 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_invalid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/errors/unclosed-env-if.src
+---
+--- strict
+1:1 - 1:1 UnclosedBlock(4002): '#if' without matching 'end #if'
+    hint: Add 'end #if' to close this block
+--- tree
+Chunk[1:1-3:1][]
+--- errors
+1:1 - 1:1 UnclosedBlock(4002): '#if' without matching 'end #if'
+    hint: Add 'end #if' to close this block

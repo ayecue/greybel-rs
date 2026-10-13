@@ -1,0 +1,95 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/rules/assignment-forms.ms
+---
+=== "x += 1"
+1.6, latest: ok
+Chunk[1:1-1:7][
+	AssignmentStatement[1:1-1:7][Identifier[1:1-1:2][x] = BinaryExpression[1:6-1:7][Identifier[1:1-1:2][x] + Literal[1:6-1:7][1]]]
+]
+=== "x -= 1"
+1.6, latest: ok
+Chunk[1:1-1:7][
+	AssignmentStatement[1:1-1:7][Identifier[1:1-1:2][x] = BinaryExpression[1:6-1:7][Identifier[1:1-1:2][x] - Literal[1:6-1:7][1]]]
+]
+=== "x *= 2"
+1.6, latest: ok
+Chunk[1:1-1:7][
+	AssignmentStatement[1:1-1:7][Identifier[1:1-1:2][x] = BinaryExpression[1:6-1:7][Identifier[1:1-1:2][x] * Literal[1:6-1:7][2]]]
+]
+=== "x /= 2"
+1.6, latest: ok
+Chunk[1:1-1:7][
+	AssignmentStatement[1:1-1:7][Identifier[1:1-1:2][x] = BinaryExpression[1:6-1:7][Identifier[1:1-1:2][x] / Literal[1:6-1:7][2]]]
+]
+=== "x %= 2"
+1.6, latest: ok
+Chunk[1:1-1:7][
+	AssignmentStatement[1:1-1:7][Identifier[1:1-1:2][x] = BinaryExpression[1:6-1:7][Identifier[1:1-1:2][x] % Literal[1:6-1:7][2]]]
+]
+=== "x ^= 2"
+1.6, latest: ok
+Chunk[1:1-1:7][
+	AssignmentStatement[1:1-1:7][Identifier[1:1-1:2][x] = BinaryExpression[1:6-1:7][Identifier[1:1-1:2][x] ^ Literal[1:6-1:7][2]]]
+]
+=== "a.b += 1"
+1.6, latest: ok
+Chunk[1:1-1:9][
+	AssignmentStatement[1:1-1:9][MemberExpression[1:1-1:4][Identifier[1:1-1:2][a].Identifier[1:3-1:4][b]] = BinaryExpression[1:8-1:9][MemberExpression[1:1-1:4][Identifier[1:1-1:2][a].Identifier[1:3-1:4][b]] + Literal[1:8-1:9][1]]]
+]
+=== "a[0] += 1"
+1.6, latest: ok
+Chunk[1:1-1:10][
+	AssignmentStatement[1:1-1:10][IndexExpression[1:1-1:5][isStatementStart][Identifier[1:1-1:2][a][Literal[1:3-1:4][0]]] = BinaryExpression[1:9-1:10][IndexExpression[1:1-1:5][isStatementStart][Identifier[1:1-1:2][a][Literal[1:3-1:4][0]]] + Literal[1:9-1:10][1]]]
+]
+=== "a[1:3] = 42"
+1.6, latest: --- error
+1:1 - 1:7 InvalidAssignmentTarget(5005): invalid assignment (not an lvalue)
+    hint: Assign to a variable, a member (a.b) or an element (a[1])
+=== "a[:3] = 42"
+1.6, latest: --- error
+1:1 - 1:6 InvalidAssignmentTarget(5005): invalid assignment (not an lvalue)
+    hint: Assign to a variable, a member (a.b) or an element (a[1])
+=== "a[1] = 42"
+1.6, latest: ok
+Chunk[1:1-1:10][
+	AssignmentStatement[1:1-1:10][IndexExpression[1:1-1:5][isStatementStart][Identifier[1:1-1:2][a][Literal[1:3-1:4][1]]] = Literal[1:8-1:10][42]]
+]
+=== "a.b = 42"
+1.6, latest: ok
+Chunk[1:1-1:9][
+	AssignmentStatement[1:1-1:9][MemberExpression[1:1-1:4][Identifier[1:1-1:2][a].Identifier[1:3-1:4][b]] = Literal[1:7-1:9][42]]
+]
+=== "(a) = 1"
+1.6, latest: --- error
+1:1 - 1:4 InvalidAssignmentTarget(5005): invalid assignment (not an lvalue)
+    hint: Assign to a variable, a member (a.b) or an element (a[1])
+=== "a() = 1"
+1.6, latest: --- error
+1:1 - 1:4 InvalidAssignmentTarget(5005): invalid assignment (not an lvalue)
+    hint: Assign to a variable, a member (a.b) or an element (a[1])
+=== "1 = 1"
+1.6, latest: ok
+Chunk[1:1-1:6][
+	AssignmentStatement[1:1-1:6][Literal[1:1-1:2][1] = Literal[1:5-1:6][1]]
+]
+=== "a + 1 = 2"
+1.6, latest: --- error
+1:1 - 1:6 InvalidAssignmentTarget(5005): invalid assignment (not an lvalue)
+    hint: Assign to a variable, a member (a.b) or an element (a[1])
+=== "if x = 1 then y = 2"
+1.6: --- error
+1:1 - 1:7 ExpectedToken(3001): got OpAssign where Keyword(then) is required
+latest: --- error
+1:6 - 1:7 UnexpectedKeyword(2002): found = instead of == in if condition
+    hint: Compare with '==' instead
+=== "if x == 1 then y = 2"
+1.6, latest: ok
+Chunk[1:1-1:21][
+	IfStatement[1:1-1:21][
+		IfShortcutClause[1:1-1:21][BinaryExpression[1:4-1:10][Identifier[1:4-1:5][x] == Literal[1:9-1:10][1]]
+			AssignmentStatement[1:16-1:21][Identifier[1:16-1:17][y] = Literal[1:20-1:21][2]]
+		]
+	]
+]

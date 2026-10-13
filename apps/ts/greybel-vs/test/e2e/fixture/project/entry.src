@@ -1,0 +1,2 @@
+import_code("/project/lib.src")
+print(double(4))

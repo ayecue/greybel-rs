@@ -1,0 +1,61 @@
+[package]
+name = "greybel-test-support"
+description = "Shared greybel test fixtures for interpreter execution, worlds, I/O, protocols, metadata, grammars, and headless Grey Hack"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+doctest = false
+
+[features]
+# Interpreter harnesses, the reference test API, and `#[native]` examples.
+interpreter = ["io", "dep:scheduler", "dep:greybel-core", "dep:greybel-documents", "dep:greybel-documents-fs-provider", "dep:greybel-documents-memory-provider", "dep:greybel-interpreter", "dep:indexmap"]
+# Program execution through the Grey Hack host.
+greyhack = ["interpreter", "world", "dep:greyscript-intrinsics", "dep:greyhack-world-operations", "dep:duplex-core", "duplex-test-support/tokio"]
+# Test-world generation, persistence, and inspection.
+world = ["dep:greyhack-world"]
+# Headless Grey Hack launched by greybel/dotnet/greyhack-test-support.
+game = ["dep:greyhack-message-hook-client", "dep:serde_json", "dep:tokio", "tokio/time"]
+# In-memory documents protocol editor.
+file-editor = ["dep:duplex-core", "dep:greybel-documents-host-provider"]
+# JSON language-client parameter builders.
+lsp = ["dep:serde_json"]
+# In-memory io protocol terminal.
+terminal = ["io", "dep:duplex-core", "dep:greybel-io-web"]
+# Recorded and scripted standard I/O plus output fixtures.
+io = ["dep:greybel-io"]
+# Metadata snapshots and consistency checks.
+meta = ["dep:meta-utils", "dep:serde_json"]
+# TextMate grammar generation from API metadata.
+textmate = ["dep:meta-utils", "dep:serde_json"]
+# Recording resource providers and graph outlines.
+documents = ["dep:greybel-documents"]
+# Parser node-depth fixtures.
+node-depth = ["dep:greybel-core"]
+
+[dependencies]
+duplex-core = { workspace = true, optional = true }
+duplex-test-support.workspace = true
+greybel-core = { workspace = true, optional = true }
+greybel-documents = { workspace = true, optional = true }
+greybel-documents-fs-provider = { workspace = true, optional = true }
+greybel-documents-host-provider = { workspace = true, optional = true }
+greybel-documents-memory-provider = { workspace = true, optional = true }
+greybel-interpreter = { workspace = true, optional = true }
+greybel-io = { workspace = true, optional = true }
+greybel-io-web = { workspace = true, optional = true }
+greyhack-message-hook-client = { workspace = true, optional = true }
+greyscript-intrinsics = { workspace = true, optional = true }
+greyhack-world = { workspace = true, optional = true }
+greyhack-world-operations = { workspace = true, optional = true }
+scheduler = { workspace = true, optional = true, features = ["manual"] }
+indexmap = { workspace = true, optional = true }
+meta-utils = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,21 @@
+[package]
+name = "greybel-symbols"
+description = "The symbols of MiniScript and its Greybel and GreyScript dialects: keywords, punctuators, reserved names, type names and delimiters"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

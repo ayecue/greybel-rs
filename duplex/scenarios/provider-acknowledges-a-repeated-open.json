@@ -1,0 +1,39 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A connected provider acknowledges its client's open again.",
+  "peer": "provider",
+  "requires": [],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Ack": {
+                  "id": 0,
+                  "connection": 1
+                }
+              }
+            ]
+          }
+        ],
+        "connection": 1
+      }
+    }
+  ]
+}

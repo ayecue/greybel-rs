@@ -1,0 +1,66 @@
+[package]
+name = "greyscript-intrinsics"
+description = "Grey Hack's GreyScript intrinsics for greybel-interpreter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+greybel-interpreter.workspace = true
+greybel-documents.workspace = true
+greybel-core.workspace = true
+greybel-symbols.workspace = true
+greyhack-world-assets.workspace = true
+greybel-ms-intrinsics.workspace = true
+greyhack-behaviour.workspace = true
+greybel-source-map.workspace = true
+mono-regex.workspace = true
+mono-number.workspace = true
+mono-string.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt", "sync", "macros"] }
+futures-util.workspace = true
+unicode-general-category.workspace = true
+
+[features]
+# Regex intrinsics on the .NET engine Grey Hack ships (see mono-regex).
+dotnet-regex = ["mono-regex/dotnet"]
+
+[dev-dependencies]
+serde_json.workspace = true
+greyhack-world.workspace = true
+greyhack-world-operations.workspace = true
+greybel-documents-memory-provider.workspace = true
+greyscript-meta.workspace = true
+meta-utils.workspace = true
+
+# The native test suite; the web test runs without Tokio.
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+duplex-test-support = { workspace = true, features = ["tokio"] }
+duplex-driver-memory.workspace = true
+mono-random.workspace = true
+greybel-test-support = { workspace = true, features = ["greyhack"] }
+insta.workspace = true
+scheduler = { workspace = true, features = ["manual", "tokio"] }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
+wasm-bindgen-test.workspace = true
+scheduler = { workspace = true, features = ["manual", "web"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[[test]]
+name = "web"
+path = "tests/web.rs"
+
+[lints]
+workspace = true

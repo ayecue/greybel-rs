@@ -1,0 +1,24 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/comments.src
+---
+=== default
+myVariable
+test=2
+=== uglify
+globals.I=globals
+J
+K=2
+=== beautify
+// comment
+myVariable // comment2
+test = 2 // comment3
+=== beautify, dev mode
+// comment
+myVariable // comment2
+test = 2 // comment3
+=== beautify, dev mode, keep parentheses, 10 spaces
+// comment
+myVariable // comment2
+test = 2 // comment3

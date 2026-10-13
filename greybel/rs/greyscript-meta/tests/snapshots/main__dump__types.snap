@@ -1,0 +1,78 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+availableTags:
+  - method
+  - function
+  - general
+  - ssh incompatible
+  - detached
+  - greybel only
+primitives:
+  - any
+  - general
+  - string
+  - function
+  - number
+  - list
+  - map
+types:
+  - admin
+  - adminComputer
+  - adminNetwork
+  - aptClient
+  - blockchain
+  - ctfEvent
+  - class
+  - coin
+  - computer
+  - crypto
+  - file
+  - ftpComputer
+  - ftpFile
+  - ftpShell
+  - metaLib
+  - metaMail
+  - metaxploit
+  - netSession
+  - port
+  - router
+  - service
+  - shell
+  - subWallet
+  - wallet
+  - debugLibrary
+  - trafficNet
+  - smartAppliance
+visibleTypes:
+  - string
+  - number
+  - list
+  - map
+  - admin
+  - adminComputer
+  - adminNetwork
+  - aptClient
+  - blockchain
+  - ctfEvent
+  - coin
+  - computer
+  - crypto
+  - file
+  - ftpComputer
+  - ftpFile
+  - ftpShell
+  - metaLib
+  - metaMail
+  - metaxploit
+  - netSession
+  - port
+  - router
+  - service
+  - shell
+  - subWallet
+  - wallet
+  - debugLibrary
+  - trafficNet
+  - smartAppliance

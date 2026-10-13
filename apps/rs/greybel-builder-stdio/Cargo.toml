@@ -1,0 +1,20 @@
+[package]
+name = "greybel-builder-stdio"
+description = "Stdio binary `greybel-builder` for one editor-driven GreyScript build session"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "greybel-builder"
+path = "src/main.rs"
+
+[dependencies]
+duplex-driver-stdio.workspace = true
+greybel-builder = { workspace = true, features = ["game"] }
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[lints]
+workspace = true

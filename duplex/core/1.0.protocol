@@ -1,0 +1,193 @@
+// Core duplex wire layouts; SPEC.md defines their behavior.
+//
+// Batch headers, frame headers, routes, and the opening handshake must remain wire-compatible across all core
+// versions.
+
+/// Peer role: the client opens the connection and the provider listens for it.
+enum Role {
+    /// Initiates the connection.
+    Client = 0,
+    /// Accepts the client connection.
+    Provider = 1,
+}
+
+/// Header of one driver message batch. Each following slice contains frames for one connection on one channel.
+struct BatchHeader {
+    /// Core major version used to write the batch.
+    core: u8,
+    /// Number of following slices; must be at least one.
+    slices: u32,
+}
+
+/// Destination route for a slice's frames. The full route is written unless the slice sender assigned it an alias.
+struct Route {
+    /// Sender role.
+    from: Role,
+    /// FNV-1a hash of the protocol channel.
+    channel: fixed32,
+    /// Connection ID, or 0 before a connection exists.
+    connection: fixed32,
+}
+
+/// Frame payload type: a message, part of its response or stream, or a control operation. Message IDs are assigned by
+/// the message sender.
+enum FrameKind {
+    /// Message payload: its key; when it has a response, its sender ID times 2 plus 1; the original sender-assigned
+    /// ID; then its fields.
+    Message = 0,
+    /// Message response that ends the receiver's output.
+    ResponseEnd = 1,
+    /// Message failure: an error code, or 0 followed by its declared failure.
+    Failure = 2,
+    /// Sender no longer awaits the response. The receiver rejects the message as `Cancellation` unless it already
+    /// responded.
+    Cancel = 3,
+    /// Provider listens for its client.
+    Listen = 4,
+    /// Client opens a connection.
+    Open = 5,
+    /// Provider acknowledges a connection.
+    Ack = 6,
+    /// Provider refuses a connection.
+    Refuse = 7,
+    /// Health check.
+    Ping = 8,
+    /// Health-check response.
+    Pong = 9,
+    /// Peer closes the connection.
+    Close = 10,
+    /// Start of a streamed response.
+    ResponseStart = 11,
+    /// Item in a streamed response.
+    ResponseItem = 12,
+    /// Number of additional response items accepted by the message sender.
+    ResponseCredit = 13,
+    /// Item in the stream sent by the message sender after the message.
+    MessageItem = 14,
+    /// End of a message stream.
+    MessageEnd = 15,
+    /// Number of additional message-stream items accepted by the receiver.
+    MessageCredit = 16,
+    /// Part of a frame too large for one batch: a byte set to 1 on the last part, followed by the part bytes. Parts
+    /// are consecutive on the frame route and combine into the frame with its declared length.
+    Fragment = 17,
+}
+
+/// Core or protocol version.
+struct Version {
+    /// Different major versions cannot read each other.
+    major: u16,
+    /// Each minor version extends the preceding minor version.
+    minor: u16,
+}
+
+/// `Open` frame payload, followed by the protocol-declared client open payload.
+struct Open {
+    /// Attempt ID, repeated in the provider response.
+    id: fixed32,
+    /// Client core version.
+    core: Version,
+    /// Client protocol version.
+    protocol: Version,
+    /// Fingerprint of that protocol version.
+    fingerprint: fixed32,
+}
+
+/// `Ack` frame payload, followed by the protocol-declared provider acknowledgement payload.
+struct Ack {
+    /// ID of the acknowledged attempt.
+    id: fixed32,
+    /// Connection ID; never 0.
+    connection: fixed32,
+    /// Negotiated core version: the client major and older minor.
+    core: Version,
+    /// Negotiated protocol version: the client major and older minor.
+    protocol: Version,
+    /// Fingerprint of that protocol version.
+    fingerprint: fixed32,
+    /// Reason the client version is being deprecated, when applicable.
+    deprecation: string?,
+}
+
+/// `Refuse` frame payload. If the provider denied the client, the protocol-declared refusal payload follows.
+struct Refuse {
+    /// ID of the refused attempt.
+    id: fixed32,
+    /// Numeric `ErrorCode`; its layout is retained for later codes. An unknown code is read as `VersionMismatch`.
+    reason: u32,
+    /// Provider core version.
+    core: Version,
+    /// Newest protocol version supported by the provider.
+    protocol: Version,
+    /// Protocol major versions served by the provider.
+    majors: list<u16>,
+}
+
+/// `Close` frame payload.
+struct Close {
+    reason: ErrorCode,
+}
+
+/// Reason for closing a channel, refusing a client, or rejecting a message.
+enum ErrorCode {
+    /// Channel was closed.
+    ClosedChannel = 1,
+    /// Other peer missed too many health checks.
+    Timeout = 2,
+    /// Peers use incompatible core or protocol major versions or layouts.
+    VersionMismatch = 3,
+    /// Provider already serves another client.
+    Busy = 4,
+    /// Connection to the other peer was lost.
+    ConnectionLoss = 5,
+    /// Peer failed and closed its channels.
+    Panic = 6,
+    /// No handler accepted the message.
+    UnhandledMessage = 7,
+    /// Handler dropped the message without responding.
+    DroppedMessage = 8,
+    /// Handler failed with an error other than the message's declared failure.
+    HandlerFailure = 9,
+    /// Message could not be encoded or decoded.
+    MalformedMessage = 10,
+    /// Peer version is no longer supported, or the message is newer than the negotiated version.
+    UnsupportedVersion = 11,
+    /// Provider denied the client open payload.
+    Denial = 12,
+    /// Message sender cancelled the message.
+    Cancellation = 13,
+    /// Transport security does not meet protocol requirements or failed: a peer identity was not trusted or a batch
+    /// was forged.
+    Insecure = 14,
+    /// Peer reached its limit for unsent messages, sent messages awaiting responses, or received messages awaiting
+    /// responses.
+    Overload = 15,
+    /// Message value violates its definition, or one of its frames exceeds the message limit. The rejection includes
+    /// its `Violation`.
+    Invalid = 16,
+}
+
+/// Failed value requirement and its location.
+struct Violation {
+    /// Value location: each field index within its holder, list item index, or record entry index, ordered from
+    /// outermost to innermost. Empty for the frame itself.
+    path: list<u32>,
+    /// Failed requirement.
+    requirement: Requirement,
+}
+
+/// Requirement that a value violated.
+enum Requirement {
+    /// Fewer bytes, items, or entries than required.
+    MinLength = 1,
+    /// More bytes, items, or entries than allowed.
+    MaxLength = 2,
+    /// Value is below its minimum or is not a number.
+    Minimum = 3,
+    /// Value is above its maximum.
+    Maximum = 4,
+    /// Value does not match its pattern.
+    Pattern = 5,
+    /// Frame exceeds the message byte limit.
+    Limit = 6,
+}

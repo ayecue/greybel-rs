@@ -1,0 +1,40 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A channel skips frames of kinds it doesn't know.",
+  "peer": "provider",
+  "requires": [],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Unknown": {
+              "kind": 99,
+              "payload": "010203"
+            }
+          },
+          {
+            "Message": {
+              "Log": {
+                "text": "after"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "received": [
+          {
+            "Log": {
+              "text": "after"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

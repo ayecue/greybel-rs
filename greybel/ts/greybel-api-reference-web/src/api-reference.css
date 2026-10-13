@@ -1,0 +1,511 @@
+/* The reference's page; VS Code's theme variables where a webview has them, a dark theme elsewhere. */
+.api-reference {
+  --reference-foreground: var(--vscode-foreground, #d4d4d4);
+  --reference-background: var(--vscode-editor-background, #1e1e1e);
+  --reference-muted: var(--vscode-descriptionForeground, #9d9d9d);
+  --reference-border: var(--vscode-panel-border, #3c3c3c);
+  --reference-link: var(--vscode-textLink-foreground, #3794ff);
+  --reference-accent: var(--vscode-focusBorder, #3794ff);
+  --reference-hover: var(--vscode-list-hoverBackground, #2a2d2e);
+  --reference-code-background: var(--vscode-textCodeBlock-background, #2a2a2a);
+  --reference-input-background: var(--vscode-input-background, #313131);
+  --reference-input-foreground: var(--vscode-input-foreground, #cccccc);
+  --reference-button-background: var(--vscode-button-secondaryBackground, #3a3d41);
+  --reference-button-foreground: var(--vscode-button-secondaryForeground, #cccccc);
+  /* The sticky toolbar's height, which the app measures; scrolled-to headings stay below it. */
+  --reference-toolbar-height: 6em;
+  --reference-scroll-margin: calc(var(--reference-toolbar-height) + 0.75em);
+
+  color: var(--reference-foreground);
+  background: var(--reference-background);
+  font-family: var(--vscode-font-family, system-ui, sans-serif);
+  font-size: var(--vscode-font-size, 14px);
+  line-height: 1.55;
+}
+
+.api-reference [hidden] {
+  display: none !important;
+}
+
+.api-reference a {
+  color: var(--reference-link);
+  text-decoration: none;
+}
+
+.api-reference a:hover {
+  text-decoration: underline;
+}
+
+.api-reference code,
+.api-reference pre {
+  font-family: var(--vscode-editor-font-family, ui-monospace, monospace);
+  font-size: 0.95em;
+}
+
+/* Inline code only: code blocks have their own box. */
+.api-reference .description :not(pre) > code {
+  padding: 0.05em 0.3em;
+  border-radius: 3px;
+  background: var(--reference-code-background);
+}
+
+.api-reference button {
+  padding: 0.2em 0.7em;
+  border: 1px solid var(--reference-border);
+  border-radius: 4px;
+  color: var(--reference-button-foreground);
+  background: var(--reference-button-background);
+  font: inherit;
+  cursor: pointer;
+}
+
+.api-reference button:focus-visible,
+.api-reference input:focus-visible {
+  outline: 1px solid var(--reference-accent);
+  outline-offset: 1px;
+}
+
+/* The title, the tabs and the API's filter. */
+
+.api-reference .overview {
+  padding: 0.75em 1.25em 0;
+}
+
+.api-reference .overview h1 {
+  margin: 0;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.api-reference .toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0 1.25em;
+  border-bottom: 1px solid var(--reference-border);
+  background: var(--reference-background);
+}
+
+.api-reference .tabs {
+  display: flex;
+  gap: 1.25em;
+}
+
+.api-reference .tab {
+  padding: 0.6em 0 0.45em;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--reference-muted);
+  background: none;
+  font-weight: 600;
+}
+
+.api-reference .tab:hover {
+  color: var(--reference-foreground);
+}
+
+.api-reference .tab[aria-selected='true'] {
+  border-bottom-color: var(--reference-accent);
+  color: var(--reference-foreground);
+}
+
+.api-reference .filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em 1em;
+  align-items: center;
+  padding: 0.6em 0;
+}
+
+.api-reference .search-box {
+  position: relative;
+  display: flex;
+  flex: 1 1 16em;
+}
+
+.api-reference .search {
+  flex: 1 1 auto;
+  padding: 0.35em 2em 0.35em 0.6em;
+  border: 1px solid var(--reference-border);
+  border-radius: 4px;
+  color: var(--reference-input-foreground);
+  background: var(--reference-input-background);
+  font: inherit;
+}
+
+.api-reference .tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+}
+
+.api-reference .tag-filter .tag {
+  padding: 0.1em 0.65em;
+  border-radius: 999px;
+  font-size: 0.9em;
+}
+
+.api-reference .tag-filter .tag.excluded {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+/* A tab's sidebar and its content. */
+
+.api-reference .layout {
+  display: flex;
+  gap: 2em;
+  padding: 0 1.25em;
+}
+
+.api-reference .contents {
+  flex: 0 0 15em;
+  box-sizing: border-box;
+  max-height: calc(100vh - var(--reference-toolbar-height));
+  position: sticky;
+  top: var(--reference-toolbar-height);
+  padding: 0.75em 0.5em 1.5em 0;
+  overflow: auto;
+  font-size: 0.9em;
+}
+
+.api-reference .contents ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.api-reference .contents > ul > li + li {
+  margin-top: 0.35em;
+}
+
+.api-reference .contents ul ul {
+  margin: 0.1em 0 0 0.35em;
+  padding-left: 0.65em;
+  border-left: 1px solid var(--reference-border);
+}
+
+.api-reference .contents a {
+  display: block;
+  padding: 0.05em 0.4em;
+  border-radius: 3px;
+  overflow: hidden;
+  color: var(--reference-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.api-reference .contents a:hover {
+  color: var(--reference-foreground);
+  background: var(--reference-hover);
+  text-decoration: none;
+}
+
+.api-reference .contents a.entry {
+  color: var(--reference-foreground);
+  font-weight: 600;
+}
+
+/* A narrow page, such as a webview beside an editor, leaves the sidebar out for the content. */
+@media (max-width: 720px) {
+  .api-reference .contents {
+    display: none;
+  }
+}
+
+.api-reference .sections {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-bottom: 3em;
+}
+
+.api-reference .section,
+.api-reference .member,
+.api-reference .chapter h2,
+.api-reference .chapter h3 {
+  scroll-margin-top: var(--reference-scroll-margin);
+}
+
+/* The API's types and members. */
+
+.api-reference .section {
+  padding-top: 0.75em;
+}
+
+.api-reference .section + .section {
+  margin-top: 1.5em;
+  border-top: 1px solid var(--reference-border);
+}
+
+.api-reference .section h2 {
+  margin: 0.25em 0 0.5em;
+  font-size: 1.35em;
+  font-family: var(--vscode-editor-font-family, ui-monospace, monospace);
+}
+
+.api-reference .section h2 .extends {
+  color: var(--reference-muted);
+  font-size: 0.7em;
+  font-weight: normal;
+}
+
+.api-reference .member {
+  margin: 1.25em 0;
+  padding: 0.1em 0 0.1em 1em;
+  border-left: 2px solid var(--reference-border);
+}
+
+.api-reference .member:hover {
+  border-left-color: var(--reference-accent);
+}
+
+.api-reference .member header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em 0.6em;
+  align-items: baseline;
+}
+
+.api-reference .member h3 {
+  margin: 0;
+  font-size: 1.05em;
+  font-family: var(--vscode-editor-font-family, ui-monospace, monospace);
+  font-weight: normal;
+}
+
+.api-reference .member h3 .name {
+  font-weight: bold;
+}
+
+.api-reference .tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
+}
+
+.api-reference .tags .tag {
+  padding: 0 0.5em;
+  border-radius: 999px;
+  color: var(--reference-muted);
+  background: var(--reference-code-background);
+  font-size: 0.8em;
+}
+
+.api-reference .member header .action {
+  margin-left: auto;
+  padding: 0.05em 0.5em;
+  border-color: transparent;
+  color: var(--reference-muted);
+  background: none;
+  font-size: 0.85em;
+}
+
+.api-reference .member header .action:hover {
+  border-color: var(--reference-border);
+  color: var(--reference-foreground);
+}
+
+.api-reference .type,
+.api-reference .or {
+  color: var(--vscode-symbolIcon-classForeground, #4ec9b0);
+}
+
+.api-reference .or {
+  color: var(--reference-muted);
+}
+
+.api-reference .variations summary {
+  color: var(--reference-muted);
+  cursor: pointer;
+}
+
+/* Code blocks, with their "Open in editor" in their corner. */
+
+.api-reference .example-box {
+  position: relative;
+  margin: 0.75em 0;
+}
+
+.api-reference .example-box .action {
+  position: absolute;
+  top: 0.45em;
+  right: 0.45em;
+  padding: 0.05em 0.5em;
+  font-size: 0.8em;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.api-reference .example-box:hover .action,
+.api-reference .example-box .action:focus-visible {
+  opacity: 1;
+}
+
+.api-reference .example {
+  margin: 0;
+  padding: 0.7em 0.9em;
+  overflow: auto;
+  border: 1px solid var(--reference-border);
+  border-radius: 6px;
+  background: var(--reference-code-background);
+  line-height: 1.5;
+}
+
+.api-reference .token.keyword {
+  color: var(--vscode-debugTokenExpression-name, #c586c0);
+}
+
+.api-reference .token.string {
+  color: var(--vscode-debugTokenExpression-string, #ce9178);
+}
+
+.api-reference .token.number {
+  color: var(--vscode-debugTokenExpression-number, #b5cea8);
+}
+
+.api-reference .token.constant {
+  color: var(--vscode-debugTokenExpression-boolean, #569cd6);
+}
+
+.api-reference .token.comment {
+  color: var(--vscode-descriptionForeground, #6a9955);
+  font-style: italic;
+}
+
+.api-reference .token.name {
+  color: var(--vscode-symbolIcon-variableForeground, #9cdcfe);
+}
+
+.api-reference .token.operator {
+  color: var(--reference-foreground);
+}
+
+/* The guide: its introduction and chapters, at a width that reads well. */
+
+.api-reference .guide > * {
+  max-width: 52em;
+}
+
+.api-reference .introduction {
+  padding: 1em 0 0.5em;
+  color: var(--reference-muted);
+}
+
+.api-reference .chapter {
+  padding-top: 0.75em;
+}
+
+.api-reference .introduction + .chapter,
+.api-reference .chapter + .chapter {
+  margin-top: 1.5em;
+  border-top: 1px solid var(--reference-border);
+}
+
+.api-reference .chapter h2 {
+  margin: 0.4em 0 0.6em;
+  font-size: 1.5em;
+}
+
+.api-reference .chapter h3 {
+  margin: 1.6em 0 0.5em;
+  font-size: 1.15em;
+}
+
+.api-reference .description p,
+.api-reference .description ul {
+  margin: 0.6em 0;
+}
+
+.api-reference .description li + li {
+  margin-top: 0.25em;
+}
+
+/* The `#` after a part's heading, which links to it. */
+
+.api-reference .heading-link::after {
+  content: '#';
+}
+
+.api-reference .heading-link {
+  margin-left: 0.4em;
+  color: var(--reference-muted);
+  font-weight: normal;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.api-reference h2:hover .heading-link,
+.api-reference h3:hover .heading-link,
+.api-reference .heading-link:focus-visible {
+  opacity: 1;
+}
+
+.api-reference .heading-link:hover {
+  color: var(--reference-link);
+  text-decoration: none;
+}
+
+/* Tables, scrolled sideways where the page is narrower. */
+
+.api-reference .description .table {
+  margin: 0.75em 0;
+  overflow-x: auto;
+}
+
+.api-reference .description table {
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+.api-reference .description th,
+.api-reference .description td {
+  padding: 0.4em 0.75em;
+  border: 1px solid var(--reference-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.api-reference .description th {
+  background: var(--reference-code-background);
+  font-weight: 600;
+}
+
+.api-reference .description td code {
+  white-space: nowrap;
+}
+
+/* The search's own clear button, shown whenever it has text; the browser's shows only while it is focused. */
+
+.api-reference .search::-webkit-search-cancel-button {
+  display: none;
+}
+
+.api-reference .search-box .clear {
+  position: absolute;
+  top: 50%;
+  right: 0.3em;
+  width: 1.5em;
+  height: 1.5em;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  color: var(--reference-muted);
+  background: none;
+  transform: translateY(-50%);
+}
+
+.api-reference .search-box .clear::before {
+  content: '\00d7';
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.api-reference .search-box .clear:hover {
+  color: var(--reference-foreground);
+  background: var(--reference-button-background);
+}
+
+.api-reference .no-results {
+  color: var(--reference-muted);
+}

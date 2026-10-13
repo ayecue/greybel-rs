@@ -1,0 +1,49 @@
+[package]
+name = "greyhack-world"
+description = "Seed-generated, SQLite-persisted Grey Hack world independent of the interpreter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+indexmap.workspace = true
+greyhack-behaviour.workspace = true
+greyhack-world-assets.workspace = true
+mono-random.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+greybel-source-map = { workspace = true, features = ["serde"] }
+thiserror.workspace = true
+turso.workspace = true
+tokio = { workspace = true, features = ["rt", "sync", "macros"] }
+
+# Enable browser randomness for each getrandom version used by turso and uuid.
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom-v02 = { package = "getrandom", version = "0.2", features = ["js"] }
+getrandom-v03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
+getrandom-v04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
+scheduler = { workspace = true, features = ["web"] }
+uuid = { workspace = true, features = ["js"] }
+
+[dev-dependencies]
+greybel-test-support = { workspace = true, features = ["world"] }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
+wasm-bindgen-test.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[[test]]
+name = "web"
+path = "tests/web.rs"

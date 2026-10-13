@@ -1,0 +1,54 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider handles a message once the batch it came in has been read. Once its handler responded, the response goes out even if a cancel of the message comes before it was sent: the cancel finds no message under its id.",
+  "peer": "provider",
+  "requires": ["responses", "cancellation"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Add": {
+                "a": 1,
+                "b": 2
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Cancel": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Add": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

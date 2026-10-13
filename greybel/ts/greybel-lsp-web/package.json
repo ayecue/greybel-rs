@@ -1,0 +1,36 @@
+{
+  "name": "greybel-lsp-web",
+  "version": "0.1.0",
+  "description": "greybel-lsp as a browser worker script (dist/worker.js), and the language server protocol's client a language client connects to it with",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./worker.js": "./dist/worker.js",
+    "./greybel-lsp-web.wasm": "./dist/greybel-lsp-web.wasm"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vite build --mode test && vitest run"
+  },
+  "dependencies": {
+    "duplex-core": "^0.1.0",
+    "vscode-jsonrpc": "8.2.0"
+  },
+  "devDependencies": {
+    "duplex-driver-worker": "^0.1.0",
+    "esbuild": "0.21.0",
+    "playwright": "1.64.1",
+    "wasm-host": "^0.1.0"
+  }
+}

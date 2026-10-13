@@ -1,0 +1,30 @@
+[package]
+name = "asset-bundle"
+description = "Embeddable deflate-compressed file bundle with lazy decompression and optional SHA-256 fingerprints"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[features]
+## Enables `Bundle::fingerprint` and `Fingerprint` for SHA-256 hashes of decompressed file contents.
+fingerprint = ["dep:serde", "dep:serde_json", "dep:sha2"]
+
+[dependencies]
+flate2.workspace = true
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+thiserror.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

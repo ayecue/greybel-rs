@@ -1,0 +1,7 @@
+<Project>
+  <!-- Folders outside a project that it reads or writes. A project embeds one
+       with <AssemblyMetadata Include="MonoRust" Value="$(MonoRust)" />. -->
+  <PropertyGroup>
+    <MonoRust>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../rs'))</MonoRust>
+  </PropertyGroup>
+</Project>

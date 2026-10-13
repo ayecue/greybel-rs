@@ -1,0 +1,4 @@
+file = get_shell.host_computer.File(home_dir + "/shared.txt")
+content = null
+if file then content = file.get_content
+print(content)

@@ -1,0 +1,20 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/return-in-global-frame.src
+---
+[
+  "\"test\"",
+  "1",
+  "2",
+  "3",
+  "4",
+  "\"test\"",
+  "1",
+  "\"test\"",
+  "2",
+  "\"test\"",
+  "3",
+  "\"test\"",
+  "4"
+]

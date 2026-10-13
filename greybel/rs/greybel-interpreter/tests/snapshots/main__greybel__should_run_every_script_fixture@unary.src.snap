@@ -1,0 +1,16 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/unary.src
+---
+[
+  "1",
+  "0",
+  "1",
+  "1",
+  "1",
+  "-3",
+  "\"function\"",
+  "\"inner-function\"",
+  "\"function\""
+]

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ayecue/greybel-rs/duplex/schema/fixtures.schema.json",
+  "title": "Duplex byte fixtures",
+  "description": "The bytes, as lowercase hex, of values of the conformance definitions (duplex/conformance/*/*.protocol) and of batches, by a name the cores' tests write and read them under.",
+  "type": "object",
+  "minProperties": 1,
+  "additionalProperties": { "type": "string", "pattern": "^([0-9a-f]{2})*$" }
+}

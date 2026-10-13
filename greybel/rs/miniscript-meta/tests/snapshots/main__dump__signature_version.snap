@@ -1,0 +1,75 @@
+---
+source: miniscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - miniscript
+  - buildDate
+  - host
+  - hostName
+  - hostInfo
+definitions:
+  buildDate:
+    json:
+      description: ~
+      example: ~
+      isProtected: false
+      type: string
+    origin: version
+    otherLanguageDescription: ~
+    tags: []
+    typeString: string
+    variations:
+      ok: []
+  host:
+    json:
+      description: ~
+      example: ~
+      isProtected: false
+      type: number
+    origin: version
+    otherLanguageDescription: ~
+    tags: []
+    typeString: number
+    variations:
+      ok: []
+  hostInfo:
+    json:
+      description: ~
+      example: ~
+      isProtected: false
+      type: string
+    origin: version
+    otherLanguageDescription: ~
+    tags: []
+    typeString: string
+    variations:
+      ok: []
+  hostName:
+    json:
+      description: ~
+      example: ~
+      isProtected: false
+      type: string
+    origin: version
+    otherLanguageDescription: ~
+    tags: []
+    typeString: string
+    variations:
+      ok: []
+  miniscript:
+    json:
+      description: ~
+      example: ~
+      isProtected: false
+      type: string
+    origin: version
+    otherLanguageDescription: ~
+    tags: []
+    typeString: string
+    variations:
+      ok: []
+descriptionOrder: []
+descriptions: {}
+extends: map
+hidden: false

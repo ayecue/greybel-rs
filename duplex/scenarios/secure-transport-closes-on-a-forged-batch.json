@@ -1,0 +1,35 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A channel whose secure transport receives a batch that was damaged or forged closes as insecure, failing what waits for a response.",
+  "peer": "client",
+  "requires": ["responses", "security"],
+  "connected": true,
+  "security": {
+    "channel": {},
+    "remote": {}
+  },
+  "steps": [
+    {
+      "forge": true
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 2,
+          "b": 3
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "expect": {
+        "closed": "Insecure",
+        "settled": {
+          "sum": {
+            "closed": "Insecure"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/crypto.src
+---
+cryptoLib
+0
+1
+1
+error: file already encrypted
+decrypt: Incorrect password
+1
+0
+Error: only alphanumeric allowed as password.
+Error: the password cannot exceed the limit of 15 characters.
+encrypt: Invalid file path
+encrypt: File not found
+is_encrypted: File not found
+toor
+pass
+null
+["root", "bob"]
+port 22 not found
+Error: Invalid ip address

@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client opens a connection as it starts.",
+  "peer": "client",
+  "requires": [],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ],
+        "connection": null
+      }
+    }
+  ]
+}

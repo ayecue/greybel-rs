@@ -1,0 +1,37 @@
+---
+source: greybel-core/tests/greyscript.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::GreyScript))"
+input_file: greybel-core/tests/fixtures/greyscript/scripts/slice.src
+---
+Chunk[1:1-27:21][
+	AssignmentStatement[1:1-13:13][Identifier[1:1-1:13][divideString] = Function[1:16-13:13][Identifier[1:25-1:28][str], Identifier[1:29-1:34][limit] =>
+		AssignmentStatement[2:2-2:12][Identifier[2:2-2:8][offset] = Literal[2:11-2:12][0]]
+		AssignmentStatement[3:2-3:18][Identifier[3:2-3:8][maxLen] = MemberExpression[3:11-3:18][Identifier[3:11-3:14][str].Identifier[3:15-3:18][len]]]
+		AssignmentStatement[4:2-4:12][Identifier[4:2-4:7][frags] = ListConstructor[4:10-4:12][]]
+		WhileStatement[6:2-10:11][BinaryExpression[6:8-6:23][Identifier[6:8-6:14][offset] < Identifier[6:17-6:23][maxLen]]
+			AssignmentStatement[7:3-7:24][Identifier[7:3-7:7][next] = BinaryExpression[7:10-7:24][Identifier[7:10-7:16][offset] + Identifier[7:19-7:24][limit]]]
+			CallExpression[8:3-8:31][MemberExpression[8:3-8:13][Identifier[8:3-8:8][frags].Identifier[8:9-8:13][push]](SliceExpression[8:14-8:30][Identifier[8:14-8:17][str][Identifier[8:18-8:24][offset]:Identifier[8:25-8:29][next]]])]
+			AssignmentStatement[9:3-9:16][Identifier[9:3-9:9][offset] = Identifier[9:12-9:16][next]]
+		]
+		ReturnStatement[12:2-12:14][Identifier[12:9-12:14][frags]]
+	]]
+	CallExpression[15:1-15:59][Identifier[15:1-15:6][print](CallExpression[15:7-15:58][Identifier[15:7-15:19][divideString](Literal[15:20-15:55][blahhblahhblahhblahhblahhblahhgad], Literal[15:56-15:57][5])])]
+	AssignmentStatement[17:1-17:81][MemberExpression[17:1-17:18][Identifier[17:1-17:5][test].Identifier[17:6-17:18][current_path]] = BinaryExpression[17:21-17:81][Literal[17:21-17:29][/home/] + SliceExpression[17:30-17:81][MemberExpression[17:30-17:47][IndexExpression[17:30-17:42][MemberExpression[17:30-17:38][Identifier[17:30-17:34][test].Identifier[17:35-17:38][moo]][Literal[17:40-17:41][-1]]].Identifier[17:43-17:47][user]][BinaryExpression[17:48-17:79][CallExpression[17:48-17:77][MemberExpression[17:48-17:72][MemberExpression[17:48-17:64][IndexExpression[17:48-17:60][MemberExpression[17:48-17:56][Identifier[17:48-17:52][test].Identifier[17:53-17:56][bar]][Literal[17:58-17:59][-1]]].Identifier[17:61-17:64][foo]].Identifier[17:65-17:72][indexOf]](Literal[17:73-17:76][@])] + Literal[17:78-17:79][1]]:EmptyExpression[17:79-17:80][]]]]]
+	For[19:1-21:8][Identifier[19:5-19:6][i] in CallExpression[19:10-19:26][Identifier[19:10-19:15][range](Literal[19:16-19:17][0], BinaryExpression[19:18-19:25][MemberExpression[19:18-19:23][Identifier[19:18-19:19][s].Identifier[19:20-19:23][len]] - Literal[19:24-19:25][4]])]
+		IfStatement[20:2-20:78][
+			IfShortcutClause[20:2-20:56][CallExpression[20:5-20:25][MemberExpression[20:5-20:15][Identifier[20:5-20:6][f].Identifier[20:7-20:15][hasIndex]](SliceExpression[20:16-20:24][Identifier[20:16-20:17][s][Identifier[20:18-20:19][i]:BinaryExpression[20:20-20:23][Identifier[20:20-20:21][i] + Literal[20:22-20:23][3]]]])]
+				AssignmentStatement[20:31-20:51][IndexExpression[20:31-20:49][isStatementStart][IndexExpression[20:31-20:42][isStatementStart][Identifier[20:31-20:32][f][SliceExpression[20:33-20:41][Identifier[20:33-20:34][s][Identifier[20:35-20:36][i]:BinaryExpression[20:37-20:40][Identifier[20:37-20:38][i] + Literal[20:39-20:40][3]]]]]][MemberExpression[20:43-20:48][Identifier[20:43-20:44][s].Identifier[20:45-20:48][len]]]] = Literal[20:50-20:51][1]]
+			]
+			ElseShortcutClause[20:57-20:78][
+				AssignmentStatement[20:57-20:78][IndexExpression[20:57-20:68][isStatementStart][Identifier[20:57-20:58][f][SliceExpression[20:59-20:67][Identifier[20:59-20:60][s][Identifier[20:61-20:62][i]:BinaryExpression[20:63-20:66][Identifier[20:63-20:64][i] + Literal[20:65-20:66][3]]]]]] = MapConstructor[20:69-20:78][
+					MapKeyString[20:70-20:77][MemberExpression[20:70-20:75][Identifier[20:70-20:71][s].Identifier[20:72-20:75][len]]: Literal[20:76-20:77][1]]
+				]]
+			}]
+		]
+	]
+	SliceExpression[23:1-23:8][Identifier[23:1-23:4][foo][Literal[23:5-23:6][1]:EmptyExpression[23:6-23:7][]]]
+	SliceExpression[24:1-24:8][Identifier[24:1-24:4][foo][EmptyExpression[24:4-24:5][]:Literal[24:6-24:7][1]]]
+	SliceExpression[25:1-25:14][Identifier[25:1-25:4][foo][SliceExpression[25:5-25:12][Identifier[25:5-25:8][foo][Literal[25:9-25:10][1]:EmptyExpression[25:10-25:11][]]]:EmptyExpression[25:12-25:13][]]]
+	SliceExpression[26:1-26:14][Identifier[26:1-26:4][foo][EmptyExpression[26:4-26:5][]:SliceExpression[26:6-26:13][Identifier[26:6-26:9][foo][EmptyExpression[26:9-26:10][]:Literal[26:11-26:12][1]]]]]
+	SliceExpression[27:1-27:21][Identifier[27:1-27:4][foo][SliceExpression[27:5-27:12][Identifier[27:5-27:8][foo][Literal[27:9-27:10][1]:EmptyExpression[27:10-27:11][]]]:SliceExpression[27:13-27:20][Identifier[27:13-27:16][foo][EmptyExpression[27:16-27:17][]:Literal[27:18-27:19][1]]]]]
+]

@@ -1,0 +1,40 @@
+---
+source: vscode-uri/tests/operations.rs
+expression: cases
+---
+- input:
+    - /
+  output: /
+- input:
+    - /a
+    - b
+  output: /a/b
+- input:
+    - /a
+    - /b
+  output: /b
+- input:
+    - /a
+    - "../.."
+  output: /
+- input:
+    - /a/b
+    - "./c/../d"
+  output: /a/b/d
+- input:
+    - /
+    - ""
+  output: /
+- input:
+    - /x
+    - ""
+    - y
+  output: /x/y
+- input:
+    - /a/
+    - b/
+  output: /a/b
+- input:
+    - /ä
+    - ö/..
+  output: /ä

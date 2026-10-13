@@ -1,0 +1,13 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/default-args.src
+---
+[
+  "0",
+  "\"test\"",
+  "0",
+  "\"foo\"",
+  "0",
+  "0"
+]

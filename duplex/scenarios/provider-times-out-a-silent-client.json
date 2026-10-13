@@ -1,0 +1,80 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider pings a client silent for three checks and ends the connection on the fourth, telling it why and that it listens again in one batch, and fails its messages.",
+  "peer": "provider",
+  "requires": ["responses", "health-check"],
+  "connected": true,
+  "healthCheck": true,
+  "steps": [
+    {
+      "send": {
+        "Confirm": {
+          "question": "continue?"
+        }
+      },
+      "as": "confirmed"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Confirm": {
+                    "question": "continue?"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "check": 4
+    },
+    {
+      "expect": {
+        "connection": null,
+        "closed": null,
+        "settled": {
+          "confirmed": {
+            "closed": "Timeout"
+          }
+        },
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Ping": {}
+              },
+              {
+                "Ping": {}
+              },
+              {
+                "Ping": {}
+              },
+              {
+                "Close": {
+                  "reason": "Timeout"
+                }
+              }
+            ]
+          },
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

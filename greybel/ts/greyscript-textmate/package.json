@@ -1,0 +1,28 @@
+{
+  "name": "greyscript-textmate",
+  "version": "3.0.0",
+  "description": "The GreyScript TextMate grammar, theme and language configuration",
+  "license": "MIT",
+  "author": "ayecue",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./greyscript.tmLanguage.json": "./src/greyscript.tmLanguage.json",
+    "./greyscript.theme.json": "./src/greyscript.theme.json",
+    "./greyscriptLanguageConfig.json": "./src/greyscriptLanguageConfig.json"
+  },
+  "files": [
+    "dist",
+    "src/*.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

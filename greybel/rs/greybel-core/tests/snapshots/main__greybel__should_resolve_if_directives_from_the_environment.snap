@@ -1,0 +1,11 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render(&read(path), &options)"
+input_file: greybel-core/tests/fixtures/greybel/env/if-else.src
+---
+--- strict: ok
+--- tree
+Chunk[1:1-14:1][
+	AssignmentStatement[2:1-2:6][Identifier[2:1-2:2][x] = Literal[2:5-2:6][1]]
+	AssignmentStatement[9:1-9:6][Identifier[9:1-9:2][y] = Literal[9:5-9:6][2]]
+]

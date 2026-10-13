@@ -1,0 +1,10 @@
+Base = {"label": "base"}
+Base.describe = function
+  return self.label
+end function
+Child = new Base
+Child.run = function
+  self = null
+  return super.describe
+end function
+print (new Child).run

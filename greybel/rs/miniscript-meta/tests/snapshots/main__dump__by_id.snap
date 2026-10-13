@@ -1,0 +1,166 @@
+---
+source: miniscript-meta/tests/dump.rs
+expression: part
+---
+abs:
+  - general
+acos:
+  - general
+asin:
+  - general
+atan:
+  - general
+bitAnd:
+  - general
+bitOr:
+  - general
+bitXor:
+  - general
+ceil:
+  - general
+char:
+  - general
+code:
+  - general
+  - string
+cos:
+  - general
+floor:
+  - general
+funcRef:
+  - general
+hasIndex:
+  - any
+  - general
+  - string
+  - list
+  - map
+hash:
+  - general
+indexOf:
+  - any
+  - general
+  - string
+  - list
+  - map
+indexes:
+  - any
+  - general
+  - string
+  - list
+  - map
+insert:
+  - any
+  - general
+  - string
+  - list
+join:
+  - general
+  - list
+len:
+  - any
+  - general
+  - string
+  - list
+  - map
+list:
+  - general
+log:
+  - general
+lower:
+  - general
+  - string
+map:
+  - general
+number:
+  - general
+pi:
+  - general
+pop:
+  - any
+  - general
+  - list
+  - map
+print:
+  - general
+pull:
+  - any
+  - general
+  - list
+  - map
+push:
+  - any
+  - general
+  - list
+  - map
+range:
+  - general
+refEquals:
+  - general
+remove:
+  - any
+  - general
+  - string
+  - list
+  - map
+replace:
+  - general
+  - string
+  - list
+  - map
+rnd:
+  - general
+round:
+  - general
+shuffle:
+  - any
+  - general
+  - list
+  - map
+sign:
+  - general
+sin:
+  - general
+slice:
+  - general
+sort:
+  - general
+  - list
+split:
+  - general
+  - string
+sqrt:
+  - general
+stackTrace:
+  - general
+str:
+  - general
+string:
+  - general
+sum:
+  - any
+  - general
+  - list
+  - map
+tan:
+  - general
+time:
+  - general
+upper:
+  - general
+  - string
+val:
+  - general
+  - string
+values:
+  - any
+  - general
+  - string
+  - list
+  - map
+version:
+  - general
+wait:
+  - general
+yield:
+  - general

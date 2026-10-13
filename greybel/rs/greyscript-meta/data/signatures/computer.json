@@ -1,0 +1,525 @@
+{
+  "type": "computer",
+  "extends": "map",
+  "definitions": {
+    "get_ports": {
+      "id": "get_ports",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "port"
+        }
+      ]
+    },
+    "get_name": {
+      "id": "get_name",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "local_ip": {
+      "id": "lan_ip",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "public_ip": {
+      "id": "public_ip_pc",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "File": {
+      "id": "File",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "File: Invalid arguments"
+      ],
+      "returns": [
+        "file",
+        "null",
+        "string"
+      ]
+    },
+    "create_folder": {
+      "id": "create_folder",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string"
+        },
+        {
+          "label": "nameFolder",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "newFolder"
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.CrearCarpeta",
+        "create_folder: Invalid arguments",
+        "create_folder: path too large",
+        "Error: invalid path",
+        "Error: name cannot exceed the limit of 128 characters.",
+        "Error: only alphanumeric allowed as folder name."
+      ],
+      "returns": [
+        "string",
+        "number"
+      ]
+    },
+    "is_network_active": {
+      "id": "is_network_active",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "touch": {
+      "id": "touch",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string"
+        },
+        {
+          "label": "nameFile",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.CrearArchivo",
+        "Error: invalid path",
+        "Error: name cannot exceed the limit of 128 characters.",
+        "Error: nameFile must be string",
+        "Error: only alphanumeric allowed as file name.",
+        "The file already exists",
+        "touch: path too large"
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "show_procs": {
+      "id": "show_procs",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "network_devices": {
+      "id": "network_devices",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "change_password": {
+      "id": "change_password",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "change_password: Invalid arguments",
+        "Denied. Only root user can execute this command.",
+        "Error: only alphanumeric allowed as password.",
+        "Error: the password cannot exceed the limit of 15 characters.",
+        "user ${username} does not exist"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "create_user": {
+      "id": "create_user",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!Computer.ValidateNewUser",
+        "create_user: Invalid arguments",
+        "Denied. Maximum number of registered users reached.",
+        "Denied. Only root user can execute this command.",
+        "Error: only alphanumeric allowed as user name and password.",
+        "password cannot exceed the 15 character limit.",
+        "username cannot exceed the 15 character limit."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "delete_user": {
+      "id": "delete_user",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "removeHome",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "can't delete user. ${username} does not exist",
+        "delete_user: Invalid arguments",
+        "Denied. Only root user can execute this command.",
+        "sorry, at the moment that account can't be deleted.",
+        "the root user can't be deleted.",
+        "user ${username} not found."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "create_group": {
+      "id": "create_group",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "username",
+          "type": "string"
+        },
+        {
+          "label": "groupname",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "create_group: Invalid arguments",
+        "Denied. Only root user can execute this command.",
+        "Error: only alphanumeric allowed as user and group names.",
+        "Error: user ${username} does not exist.",
+        "groupname cannot exceed the 15 character limit."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "delete_group": {
+      "id": "delete_group",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "username",
+          "type": "string"
+        },
+        {
+          "label": "groupname",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "delete_group: Invalid arguments",
+        "Denied. Only root user can execute this command.",
+        "Error: group ${group} not found in user ${username}",
+        "Error: user ${username} does not exist."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "groups": {
+      "id": "groups",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "username",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "Error: user ${username} does not exist.",
+        "groups: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "close_program": {
+      "id": "close_program",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "PID",
+          "type": "number"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "Permission denied. PID ${pid} belongs to user <b>${username}</b>",
+        "Permission denied. Process protected.",
+        "Unable to close this process. The process belongs to this script."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "wifi_networks": {
+      "id": "wifi_networks",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "net_device",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "wifi_networks: wifi card is disabled"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "null",
+        "string"
+      ]
+    },
+    "connect_wifi": {
+      "id": "connect_wifi",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "net_device",
+          "type": "string"
+        },
+        {
+          "label": "bssid",
+          "type": "string"
+        },
+        {
+          "label": "essid",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "Can't connect. Incorrect password.",
+        "Can't connect. Incorrect password.",
+        "Can't connect. Router not found.",
+        "Can't connect. Target is out of reach.",
+        "can't connect: the remote server has been temporarily disabled due to non-payment",
+        "connect_wifi: Network device not found",
+        "connect_wifi: Only wifi cards are supported",
+        "connect_wifi: permission denied. Guest users can not execute this method",
+        "connect_wifi: rented computers cannot connect to another network."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "connect_ethernet": {
+      "id": "connect_ethernet",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "net_device",
+          "type": "string"
+        },
+        {
+          "label": "address",
+          "type": "string"
+        },
+        {
+          "label": "gateway",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "!NetworkLan.ConnectEthernet",
+        "connect_ethernet: Invalid arguments",
+        "connect_ethernet: Network device not found",
+        "connect_ethernet: No internet connection",
+        "connect_ethernet: Only ethernet cards are supported",
+        "connect_ethernet: permission denied. Guest users can not execute this method",
+        "connect_ethernet: unknown error: unable to retrieve current computer",
+        "Error: invalid gateway",
+        "Error: Invalid IP address",
+        "Error: the IP address and the gateway must belong to the same subnet"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "network_gateway": {
+      "id": "network_gateway",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "active_net_card": {
+      "id": "active_net_card",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "reboot": {
+      "id": "reboot",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "safeMode",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "Error: unable to call reboot from a Terminal started automatically from /etc/init.d",
+        "Error: unable to restart in safe mode on remote computers."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    }
+  }
+}

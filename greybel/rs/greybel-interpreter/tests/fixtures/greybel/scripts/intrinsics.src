@@ -1,0 +1,7 @@
+print(typeof("test").split(""))
+print(returnString.split(""))
+var = returnString.split("")
+print(var)
+print(returnNil != null)
+print(@len == @[].len)
+print(@len != @[].len)

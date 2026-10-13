@@ -1,0 +1,8 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/directive-like-comments.src
+---
+Chunk[1:1-4:1][
+	CallStatment[2:1-2:8][CallExpression[2:1-2:8][Identifier[2:1-2:6][print](Literal[2:7-2:8][1])]]
+]

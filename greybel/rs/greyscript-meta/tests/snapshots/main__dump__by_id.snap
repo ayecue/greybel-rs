@@ -1,0 +1,865 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+File:
+  - general
+  - computer
+  - ftpComputer
+abs:
+  - general
+accept_mission:
+  - admin
+access_cctv:
+  - adminComputer
+acos:
+  - general
+active_net_card:
+  - general
+  - computer
+active_user:
+  - general
+add_computer:
+  - adminNetwork
+add_net_card:
+  - adminComputer
+add_npc:
+  - adminComputer
+add_repo:
+  - general
+  - aptClient
+add_smart_appliance:
+  - adminComputer
+aircrack:
+  - general
+  - crypto
+aireplay:
+  - general
+  - crypto
+airmon:
+  - general
+  - crypto
+allow_import:
+  - general
+  - file
+amount_mined:
+  - general
+  - blockchain
+apply_patch:
+  - general
+  - debugLibrary
+asin:
+  - general
+atan:
+  - general
+bitAnd:
+  - general
+bitOr:
+  - general
+bitXor:
+  - general
+bitwise:
+  - general
+bssid_name:
+  - general
+  - router
+build:
+  - general
+  - shell
+buy_coin:
+  - general
+  - wallet
+buy_exploit:
+  - admin
+camera_link_system:
+  - general
+  - trafficNet
+cancel_pending_trade:
+  - general
+  - wallet
+cd:
+  - general
+ceil:
+  - general
+change_password:
+  - general
+  - computer
+char:
+  - general
+check_password:
+  - general
+  - subWallet
+check_upgrade:
+  - general
+  - aptClient
+chmod:
+  - general
+  - file
+clear_screen:
+  - general
+close_program:
+  - general
+  - computer
+code:
+  - general
+  - string
+coin_price:
+  - general
+  - blockchain
+command_info:
+  - general
+computer:
+  - adminNetwork
+connect_ethernet:
+  - general
+  - computer
+connect_service:
+  - general
+  - shell
+connect_wifi:
+  - general
+  - computer
+copy:
+  - general
+  - file
+  - ftpFile
+cos:
+  - general
+create_ctf_account:
+  - admin
+create_ctf_event:
+  - admin
+create_debug_account:
+  - admin
+create_folder:
+  - general
+  - computer
+  - ftpComputer
+create_group:
+  - general
+  - computer
+create_guild:
+  - admin
+create_mail_account:
+  - admin
+create_network:
+  - admin
+create_program:
+  - admin
+create_subwallet:
+  - general
+  - coin
+create_user:
+  - general
+  - computer
+create_wallet:
+  - general
+  - blockchain
+current_date:
+  - general
+current_path:
+  - general
+date:
+  - general
+  - file
+  - ftpFile
+debug_tools:
+  - general
+  - metaLib
+decipher:
+  - general
+  - crypto
+decrypt:
+  - general
+  - crypto
+del_repo:
+  - general
+  - aptClient
+delete:
+  - general
+  - file
+  - ftpFile
+delete_all:
+  - general
+  - metaMail
+delete_coin:
+  - general
+  - blockchain
+delete_group:
+  - general
+  - computer
+delete_mail:
+  - general
+  - metaMail
+delete_subwallet:
+  - general
+  - subWallet
+delete_user:
+  - general
+  - computer
+deposit:
+  - admin
+device_ports:
+  - general
+  - router
+devices_lan_ip:
+  - general
+  - router
+dump_lib:
+  - general
+  - netSession
+encrypt:
+  - general
+  - crypto
+essid_name:
+  - general
+  - router
+exit:
+  - general
+exploit_shop:
+  - admin
+fetch:
+  - general
+  - metaMail
+fire_admin:
+  - adminNetwork
+fire_npc:
+  - adminNetwork
+firewall_rules:
+  - general
+  - router
+flood_connection:
+  - general
+  - netSession
+floor:
+  - general
+format_columns:
+  - general
+funcRef:
+  - general
+get_abs_path:
+  - general
+get_address:
+  - general
+  - coin
+get_balance:
+  - general
+  - wallet
+get_balance_subwallet:
+  - general
+  - subWallet
+get_coin:
+  - general
+  - blockchain
+get_coin_name:
+  - general
+  - blockchain
+get_content:
+  - general
+  - file
+get_creator_name:
+  - general
+  - ctfEvent
+get_credentials_info:
+  - general
+  - trafficNet
+get_ctf:
+  - general
+get_custom_object:
+  - general
+get_cycle_mining:
+  - general
+  - coin
+get_description:
+  - general
+  - ctfEvent
+get_files:
+  - general
+  - file
+  - ftpFile
+get_folders:
+  - general
+  - file
+  - ftpFile
+get_global_offers:
+  - general
+  - wallet
+get_info:
+  - general
+  - subWallet
+get_lan_ip:
+  - general
+  - port
+get_mail_content:
+  - general
+  - ctfEvent
+get_mined_coins:
+  - general
+  - coin
+get_name:
+  - general
+  - computer
+  - ftpComputer
+get_num_conn_gateway:
+  - general
+  - netSession
+get_num_portforward:
+  - general
+  - netSession
+get_num_users:
+  - general
+  - netSession
+get_pending_trade:
+  - general
+  - wallet
+get_pin:
+  - general
+  - wallet
+get_ports:
+  - general
+  - computer
+get_reward:
+  - general
+  - coin
+get_router:
+  - general
+get_shell:
+  - general
+get_subwallet:
+  - general
+  - coin
+get_subwallets:
+  - general
+  - coin
+get_switch:
+  - general
+get_template:
+  - general
+  - ctfEvent
+get_user:
+  - general
+  - subWallet
+grant_coins:
+  - admin
+group:
+  - general
+  - file
+  - ftpFile
+groups:
+  - general
+  - computer
+hasIndex:
+  - any
+  - general
+  - string
+  - list
+  - map
+has_permission:
+  - general
+  - file
+  - ftpFile
+hash:
+  - general
+hire_admin:
+  - adminNetwork
+hire_crown_shield:
+  - adminNetwork
+hire_npc:
+  - adminNetwork
+home_dir:
+  - general
+host_computer:
+  - general
+  - ftpShell
+  - shell
+import_code:
+  - general
+include_lib:
+  - general
+indexOf:
+  - any
+  - general
+  - string
+  - list
+  - map
+indexes:
+  - any
+  - general
+  - string
+  - list
+  - map
+insert:
+  - any
+  - general
+  - string
+  - list
+install:
+  - general
+  - aptClient
+install_service:
+  - general
+  - service
+install_smartphone_adb:
+  - adminComputer
+is_any_active_user:
+  - general
+  - netSession
+is_binary:
+  - general
+  - file
+  - ftpFile
+is_closed:
+  - general
+  - port
+is_encrypted:
+  - general
+  - crypto
+is_folder:
+  - general
+  - file
+  - ftpFile
+is_lan_ip:
+  - general
+is_match:
+  - general
+  - string
+is_network_active:
+  - general
+  - computer
+is_patched:
+  - general
+  - metaLib
+is_root_active_user:
+  - general
+  - netSession
+is_symlink:
+  - general
+  - file
+  - ftpFile
+is_valid_ip:
+  - general
+join:
+  - general
+  - list
+kernel_version:
+  - general
+  - router
+lan_ip:
+  - general
+  - computer
+lastIndexOf:
+  - general
+  - string
+last_transaction:
+  - general
+  - subWallet
+launch:
+  - general
+  - shell
+launch_path:
+  - general
+len:
+  - any
+  - general
+  - string
+  - list
+  - map
+lib_name:
+  - general
+  - metaLib
+list:
+  - general
+list_coins:
+  - general
+  - wallet
+list_global_coins:
+  - general
+  - wallet
+load:
+  - general
+  - metaxploit
+local_ip:
+  - general
+  - router
+locate_vehicle:
+  - general
+  - trafficNet
+log:
+  - general
+login:
+  - adminComputer
+login_wallet:
+  - general
+  - blockchain
+lower:
+  - general
+  - string
+mail_login:
+  - general
+map:
+  - general
+matches:
+  - general
+  - string
+md5:
+  - general
+mining:
+  - general
+  - subWallet
+model:
+  - general
+  - smartAppliance
+move:
+  - general
+  - file
+  - ftpFile
+name:
+  - general
+  - file
+  - ftpFile
+net_speed:
+  - general
+  - router
+net_use:
+  - general
+  - metaxploit
+network:
+  - admin
+network_devices:
+  - general
+  - computer
+network_gateway:
+  - general
+  - computer
+networks:
+  - admin
+npc_login:
+  - adminComputer
+nslookup:
+  - general
+number:
+  - general
+overflow:
+  - general
+  - metaLib
+override_settings:
+  - general
+  - smartAppliance
+owner:
+  - general
+  - file
+  - ftpFile
+parent:
+  - general
+  - file
+  - ftpFile
+parent_path:
+  - general
+path:
+  - general
+  - file
+  - ftpFile
+payload:
+  - general
+  - debugLibrary
+permissions:
+  - general
+  - file
+  - ftpFile
+phone_alarm:
+  - adminNetwork
+pi:
+  - general
+ping:
+  - general
+  - shell
+ping_port:
+  - general
+  - router
+player_success:
+  - general
+  - ctfEvent
+poll_input:
+  - general
+pop:
+  - any
+  - general
+  - list
+  - map
+port_info:
+  - general
+  - router
+port_number:
+  - general
+  - port
+print:
+  - general
+program_path:
+  - general
+public_ip:
+  - general
+  - router
+public_ip_pc:
+  - general
+  - computer
+pull:
+  - any
+  - general
+  - list
+  - map
+push:
+  - any
+  - general
+  - list
+  - map
+range:
+  - general
+rate_ctf_event:
+  - admin
+read:
+  - general
+  - metaMail
+reboot:
+  - general
+  - computer
+register_password:
+  - admin
+remove:
+  - any
+  - general
+  - string
+  - list
+  - map
+  - adminNetwork
+rename:
+  - general
+  - file
+  - ftpFile
+replace:
+  - general
+  - list
+  - map
+replace_regex:
+  - general
+  - string
+report_library_update:
+  - adminNetwork
+reset_ctf_password:
+  - general
+reset_password:
+  - general
+  - wallet
+reset_password_coin:
+  - general
+  - coin
+reverse:
+  - general
+  - list
+rnd:
+  - general
+round:
+  - general
+rshell_client:
+  - general
+  - metaxploit
+rshell_server:
+  - general
+  - metaxploit
+scan:
+  - general
+  - metaxploit
+scan_address:
+  - general
+  - metaxploit
+scan_debuglib:
+  - general
+  - debugLibrary
+scp:
+  - general
+  - ftpShell
+  - shell
+search:
+  - general
+  - aptClient
+seed:
+  - admin
+sell_coin:
+  - general
+  - wallet
+send:
+  - general
+  - metaMail
+service_records:
+  - adminComputer
+set_address:
+  - general
+  - coin
+set_admin_restore:
+  - adminNetwork
+set_alarm:
+  - general
+  - smartAppliance
+set_company_shares:
+  - adminNetwork
+set_content:
+  - general
+  - file
+set_cycle_mining:
+  - general
+  - coin
+set_date:
+  - admin
+set_group:
+  - general
+  - file
+set_info:
+  - general
+  - subWallet
+set_library_version:
+  - adminComputer
+set_net_speed:
+  - adminNetwork
+set_owner:
+  - general
+  - file
+set_phone_alarm:
+  - adminNetwork
+set_port_library_version:
+  - adminComputer
+set_reward:
+  - general
+  - coin
+shell:
+  - adminComputer
+show:
+  - general
+  - aptClient
+show_history:
+  - general
+  - blockchain
+show_nodes:
+  - general
+  - wallet
+show_procs:
+  - general
+  - computer
+shuffle:
+  - any
+  - general
+  - list
+  - map
+sign:
+  - general
+sin:
+  - general
+size:
+  - general
+  - file
+  - ftpFile
+slice:
+  - general
+smtp_user_list:
+  - general
+  - crypto
+snapshot:
+  - admin
+sniffer:
+  - general
+  - metaxploit
+sort:
+  - general
+  - list
+split:
+  - general
+  - string
+sqrt:
+  - general
+start_service:
+  - general
+  - service
+start_terminal:
+  - general
+  - shell
+stop_service:
+  - general
+  - service
+str:
+  - general
+string:
+  - general
+sudo:
+  - admin
+sum:
+  - any
+  - general
+  - list
+  - map
+symlink:
+  - general
+  - file
+tan:
+  - general
+tick:
+  - admin
+time:
+  - general
+to_int:
+  - general
+  - string
+touch:
+  - general
+  - computer
+traffic_accident:
+  - admin
+transaction:
+  - general
+  - coin
+trim:
+  - general
+  - string
+typeof:
+  - general
+unit_testing:
+  - general
+  - debugLibrary
+update:
+  - general
+  - aptClient
+update_service_record:
+  - adminComputer
+upper:
+  - general
+  - string
+used_ports:
+  - general
+  - router
+user_bank_number:
+  - general
+user_input:
+  - general
+user_mail_address:
+  - general
+val:
+  - general
+  - string
+values:
+  - any
+  - general
+  - string
+  - list
+  - map
+version:
+  - general
+  - metaLib
+wait:
+  - general
+wallet_username:
+  - general
+  - subWallet
+whois:
+  - general
+wifi_networks:
+  - general
+  - computer
+yield:
+  - general

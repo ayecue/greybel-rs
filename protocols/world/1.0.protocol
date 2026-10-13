@@ -1,0 +1,2719 @@
+use core 1.0;
+
+/// One game server owns the shared Grey Hack world. Runtime clients execute operations sequentially, so programs
+/// observe only completed changes, never partial operations.
+///
+/// Operation names combine the script object class and method (`FileGetContent` for `get_content`). Every operation
+/// identifies its source program. Ended programs fail with [`ScriptFailure::ProgramEnded`]. Operations without an
+/// explicit object use the program session: the shell, computer, and user running the script.
+///
+/// The server owns script objects and assigns connection-local [`ObjectId`] handles. Programs send handles with
+/// operations and release them with [`ReleaseObjects`]. Closing a connection releases its remaining objects; ending
+/// one program does not. Each operation resolves its handle again. Deleted targets return `null`; unknown or
+/// wrong-class handles cause the message to be dropped.
+///
+/// Operations return a result or [`ScriptFailure`]. Long-running operations wait for world routines, such as mining
+/// completing a block. Stopping the program cancels its operations.
+///
+/// Configurable world ticks advance time and execute a bounded number of complete routines, including service
+/// restarts, NPC sessions, and mining rounds. Ticks and operations never interleave. [`ProgramEnd`] notifications
+/// caused by an operation follow that operation response.
+protocol World = "greyhack-world" {
+    /// Game server that owns the shared world and executes program operations.
+    provider GameServer {
+        /// Launches `user`'s program as a process on the player computer and returns its session. Programs launched by
+        /// other programs use [`ShellLaunch`].
+        message StartProgram {
+            /// Account that runs the program.
+            user: string,
+            /// Program file path, or `script` in the user home when the program has no world file.
+            path?: string,
+        } -> Result<ProgramSession, ScriptFailure>
+        /// Acknowledges that the runtime ended `program` for `reason` and removes its process and children. Repeated
+        /// calls are safe, including after [`ProgramEnd`]. For the runtime's last program, waits for the world save and
+        /// returns whether it succeeded; otherwise returns false. Also returns false without a database or after a
+        /// failed write.
+        message EndProgram {
+            program: ProgramId,
+            reason: ClientEnd,
+        } -> Result<bool, ScriptFailure>
+        /// Frees object handles no longer used by the program.
+        message ReleaseObjects {
+            objects: list<ObjectId>,
+        }
+
+        // File operation messages
+
+        /// Gets the file path, or a symlink target when `original` is set.
+        message FilePath { program: ProgramId, file: ObjectId, original: bool } -> Result<string?, ScriptFailure>
+        /// Gets the file's parent folder.
+        message FileParent { program: ProgramId, file: ObjectId } -> Result<ObjectId?, ScriptFailure>
+        message FileName { program: ProgramId, file: ObjectId } -> Result<string?, ScriptFailure>
+        message FileIsFolder { program: ProgramId, file: ObjectId } -> Result<bool?, ScriptFailure>
+        message FileIsSymlink { program: ProgramId, file: ObjectId } -> Result<bool?, ScriptFailure>
+        /// Gets the file size in bytes as a string.
+        message FileSize { program: ProgramId, file: ObjectId } -> Result<string?, ScriptFailure>
+        /// Gets the file timestamp as `dd/MMM/yyyy HH:mm`, without following a symlink.
+        message FileDate { program: ProgramId, file: ObjectId } -> Result<string?, ScriptFailure>
+        /// Gets the folder's subfolders.
+        message FileGetFolders { program: ProgramId, file: ObjectId } -> Result<FileEntries, ScriptFailure>
+        /// Gets the folder's files.
+        message FileGetFiles { program: ProgramId, file: ObjectId } -> Result<FileEntries, ScriptFailure>
+        /// Gets the file's text, or why it cannot be read.
+        message FileGetContent { program: ProgramId, file: ObjectId } -> Result<FileContent, ScriptFailure>
+        /// Overwrites the file's text. Content is up to 160,000 UTF-16 units, at most three UTF-8 bytes each.
+        message FileSetContent { program: ProgramId, file: ObjectId, content: string } -> Result<Outcome, ScriptFailure> limit 512KiB
+        message FileIsBinary { program: ProgramId, file: ObjectId } -> Result<bool?, ScriptFailure>
+        message FileAllowImport { program: ProgramId, file: ObjectId } -> Result<bool, ScriptFailure>
+        /// Duplicates the file into `folder` as `name`.
+        message FileCopy { program: ProgramId, file: ObjectId, folder: string, name: string } -> Result<Outcome, ScriptFailure>
+        /// Relocates the file into `folder` as `name` and updates the file object's path.
+        message FileMove { program: ProgramId, file: ObjectId, folder: string, name: string } -> Result<Outcome, ScriptFailure>
+        /// Adds symlink `name` in `folder` targeting the file.
+        message FileSymlink { program: ProgramId, file: ObjectId, folder: string, name: string } -> Result<Outcome, ScriptFailure>
+        /// Changes the name of the file and updates the file object's path.
+        message FileRename { program: ProgramId, file: ObjectId, name: string } -> Result<FileChange, ScriptFailure>
+        /// Removes the file.
+        message FileDelete { program: ProgramId, file: ObjectId } -> Result<FileChange, ScriptFailure>
+        /// Applies a `chmod` operation such as `"u+rwx"`.
+        message FileChmod { program: ProgramId, file: ObjectId, change: string, recursive: bool } -> Result<FileChange, ScriptFailure>
+        message FilePermissions { program: ProgramId, file: ObjectId } -> Result<string?, ScriptFailure>
+        message FileOwner { program: ProgramId, file: ObjectId } -> Result<string?, ScriptFailure>
+        message FileGroup { program: ProgramId, file: ObjectId } -> Result<string?, ScriptFailure>
+        /// Updates the file owner.
+        message FileSetOwner { program: ProgramId, file: ObjectId, owner: string, recursive: bool } -> Result<FileChange, ScriptFailure>
+        /// Updates the file group.
+        message FileSetGroup { program: ProgramId, file: ObjectId, group: string, recursive: bool } -> Result<FileChange, ScriptFailure>
+        /// Tests the file user's read, write, or execute permission. Returns null for any other mode letter.
+        message FileHasPermission { program: ProgramId, file: ObjectId, permission: string } -> Result<bool?, ScriptFailure>
+
+        // Computer operation messages
+
+        /// Gets the computer's externally visible ports.
+        message ComputerGetPorts { program: ProgramId, computer: ObjectId } -> Result<list<Port>?, ScriptFailure>
+        /// Gets `path` without following its final symlink.
+        message ComputerFile { program: ProgramId, computer: ObjectId, path: string } -> Result<ObjectId?, ScriptFailure>
+        /// Adds empty text file `name` in `folder`.
+        message ComputerTouch { program: ProgramId, computer: ObjectId, folder: string, name: string } -> Result<Outcome, ScriptFailure>
+        /// Adds folder `name` in `folder`.
+        message ComputerCreateFolder { program: ProgramId, computer: ObjectId, folder: string, name: string } -> Result<Outcome, ScriptFailure>
+        message ComputerIsNetworkActive { program: ProgramId, computer: ObjectId } -> Result<bool, ScriptFailure>
+        /// Gets the computer name, or null when it is gone.
+        message ComputerGetName { program: ProgramId, computer: ObjectId } -> Result<string?, ScriptFailure>
+        /// Gets the kind of the active network card, or null when the computer is gone.
+        message ComputerActiveNetCard { program: ProgramId, computer: ObjectId } -> Result<ActiveCard?, ScriptFailure>
+        /// Gets the gateway address, or null when the computer is gone.
+        message ComputerNetworkGateway { program: ProgramId, computer: ObjectId } -> Result<string?, ScriptFailure>
+        message ComputerLocalIp { program: ProgramId, computer: ObjectId } -> Result<string?, ScriptFailure>
+        message ComputerPublicIp { program: ProgramId, computer: ObjectId } -> Result<string, ScriptFailure>
+        /// Gets the network cards, or null when the computer is gone.
+        message ComputerNetworkDevices { program: ProgramId, computer: ObjectId } -> Result<list<NetworkDevice>?, ScriptFailure>
+        /// Gets processes in `ps` format.
+        message ComputerShowProcs { program: ProgramId, computer: ObjectId } -> Result<list<ProcessUsage>?, ScriptFailure>
+        /// Terminates process `pid` as the object's user.
+        message ComputerCloseProgram { program: ProgramId, computer: ObjectId, pid: i32 } -> Result<ProgramClose, ScriptFailure>
+        message ComputerChangePassword { program: ProgramId, computer: ObjectId, user: string, password: string } -> Result<Outcome, ScriptFailure>
+        /// Gets `user`'s groups, or why not.
+        message ComputerGroups { program: ProgramId, computer: ObjectId, user: string } -> Result<UserGroups, ScriptFailure>
+        message ComputerCreateGroup { program: ProgramId, computer: ObjectId, user: string, group: string } -> Result<Outcome, ScriptFailure>
+        message ComputerDeleteGroup { program: ProgramId, computer: ObjectId, user: string, group: string } -> Result<Outcome, ScriptFailure>
+        message ComputerCreateUser { program: ProgramId, computer: ObjectId, user: string, password: string } -> Result<Outcome, ScriptFailure>
+        /// Removes `user`, also removing the home folder when `remove_home` is set.
+        message ComputerDeleteUser { program: ProgramId, computer: ObjectId, user: string, remove_home: bool } -> Result<Outcome, ScriptFailure>
+        /// Restarts the computer. Safe mode permits only the player's computer.
+        message ComputerReboot { program: ProgramId, computer: ObjectId, safe_mode: bool } -> Result<Outcome, ScriptFailure>
+        /// Enumerates Wi-Fi networks reachable by `device`, or why none can be listed.
+        message ComputerWifiNetworks {
+            program: ProgramId,
+            computer: ObjectId,
+            device: string,
+        } -> Result<WifiScan?, ScriptFailure>
+        /// Connects `device` to Wi-Fi `bssid`/`essid` using `password`. Rejects guests and returns null for
+        /// non-string script arguments after user validation. `wait` indicates that another switch is not yet
+        /// allowed.
+        message ComputerConnectWifi {
+            program: ProgramId,
+            computer: ObjectId,
+            device: string?,
+            bssid: string?,
+            essid: string?,
+            password: string?,
+            wait: bool,
+        } -> Result<NetworkSwitch, ScriptFailure>
+        /// Connects Ethernet using `settings` and returns an empty string or the game error. Null settings represent
+        /// non-string script arguments. `wait` indicates that another switch is not yet allowed.
+        message ComputerConnectEthernet {
+            program: ProgramId,
+            computer: ObjectId,
+            settings: EthernetSettings?,
+            wait: bool,
+        } -> Result<NetworkSwitch, ScriptFailure>
+
+        // Router operation messages
+
+        message RouterPublicIp { program: ProgramId, router: ObjectId } -> Result<string?, ScriptFailure>
+        message RouterLocalIp { program: ProgramId, router: ObjectId } -> Result<string?, ScriptFailure>
+        message RouterEssidName { program: ProgramId, router: ObjectId } -> Result<string?, ScriptFailure>
+        message RouterBssidName { program: ProgramId, router: ObjectId } -> Result<string?, ScriptFailure>
+        message RouterKernelVersion { program: ProgramId, router: ObjectId } -> Result<string?, ScriptFailure>
+        /// Gets the connection speed of the router's network (`NetworkLan.netSpeed`); null when the router is gone.
+        message RouterNetSpeed { program: ProgramId, router: ObjectId } -> Result<u8?, ScriptFailure>
+        /// Gets the service and its library's version behind a port, as the router finds them now
+        /// (`Router.GetPortVersion`); null when it finds none.
+        message RouterPortInfo {
+            program: ProgramId,
+            router: ObjectId,
+            lan_ip: string,
+            internal_port: u16,
+        } -> Result<PortService?, ScriptFailure>
+        /// Gets the firewall rules in the order the router applies them.
+        message RouterFirewallRules { program: ProgramId, router: ObjectId } -> Result<list<FirewallEntry>?, ScriptFailure>
+        /// Gets LAN addresses of devices behind the router.
+        message RouterDevicesLanIp { program: ProgramId, router: ObjectId } -> Result<list<string>?, ScriptFailure>
+        /// Gets forwarded ports visible from outside the router.
+        message RouterUsedPorts { program: ProgramId, router: ObjectId } -> Result<list<Port>?, ScriptFailure>
+        /// Gets forwarded `port` when present.
+        message RouterPingPort { program: ProgramId, router: ObjectId, port: i32 } -> Result<Port?, ScriptFailure>
+        /// Gets ports for device `address` behind the router as seen from the script computer.
+        message RouterDevicePorts { program: ProgramId, router: ObjectId, address: string } -> Result<DevicePortList, ScriptFailure>
+
+        // Port operation messages
+
+        // Service operation messages
+
+        /// Installs the service at its client library version and returns true, false, or the non-root error.
+        message ServiceInstallService { program: ProgramId, service: ObjectId } -> Result<Outcome, ScriptFailure>
+        /// Opens the service port and starts its daemon at the client library version. Root only.
+        message ServiceStartService { program: ProgramId, service: ObjectId } -> Result<Outcome, ScriptFailure>
+        /// Closes the service port and stops its daemon. Root only.
+        message ServiceStopService { program: ProgramId, service: ObjectId } -> Result<Outcome, ScriptFailure>
+
+        // NetSession operation messages
+
+        /// Gets the session library's `metaLib` when present.
+        message NetSessionDumpLib { program: ProgramId, net_session: ObjectId } -> Result<ObjectId?, ScriptFailure>
+        message NetSessionGetNumUsers { program: ProgramId, net_session: ObjectId } -> Result<u32?, ScriptFailure>
+        message NetSessionGetNumPortforward { program: ProgramId, net_session: ObjectId } -> Result<u32?, ScriptFailure>
+        message NetSessionGetNumConnGateway { program: ProgramId, net_session: ObjectId } -> Result<u32?, ScriptFailure>
+        message NetSessionIsAnyActiveUser { program: ProgramId, net_session: ObjectId } -> Result<bool?, ScriptFailure>
+        message NetSessionIsRootActiveUser { program: ProgramId, net_session: ObjectId } -> Result<bool?, ScriptFailure>
+        /// Floods the session computer from the address of the computer that opened the session. Enough concurrent source addresses reboot the computer; otherwise flooding continues until the
+        /// program stops.
+        message NetSessionFloodConnection { program: ProgramId, net_session: ObjectId } -> Result<FloodResult, ScriptFailure>
+
+        // Metaxploit operation messages
+
+        /// Reads the `metaLib` at `path`, following a final symlink. Returns null for non-library files.
+        message MetaxploitLoad { program: ProgramId, metaxploit: ObjectId, path: string } -> Result<ObjectId?, ScriptFailure>
+        /// Gets weak addresses in `library` and whether unscanned zones remain. Returns null when the library is gone.
+        message MetaxploitScan { program: ProgramId, metaxploit: ObjectId, library: ObjectId } -> Result<LibraryScan?, ScriptFailure>
+        /// Gets the weaknesses at `address` in `library`. `metaxploit` is absent when the script `self` is a game
+        /// object of another class. The game reads it only for an address with weaknesses and then crashes the
+        /// script.
+        message MetaxploitScanAddress {
+            program: ProgramId,
+            metaxploit?: ObjectId,
+            library: ObjectId,
+            address: string,
+        } -> Result<ZoneScan?, ScriptFailure>
+        /// Opens a `netSession` to the service at `address:port`, or to the router at `address` for port 0.
+        /// `metaxploit` is absent when the script `self` is a game object of another class. The game reads it only
+        /// after connection and address checks and then crashes the script.
+        message MetaxploitNetUse {
+            program: ProgramId,
+            metaxploit?: ObjectId,
+            address: string,
+            port: u16,
+        } -> Result<NetUseTarget, ScriptFailure>
+        /// Launches `process_name` as the metaxploit user and connects it to rshell server `address:port`.
+        message MetaxploitRshellClient {
+            program: ProgramId,
+            metaxploit: ObjectId,
+            address: string,
+            port: u16,
+            process_name: string,
+        } -> Result<RshellClientOutcome, ScriptFailure>
+        /// Gets reverse shells connected to the metaxploit computer's rshell server.
+        message MetaxploitRshellServer { program: ProgramId, metaxploit: ObjectId } -> Result<RshellServerResponse, ScriptFailure>
+        /// Launches the metaxploit computer's sniffer and returns the next service-connection packet as text. If
+        /// `encode_source` is set, writes its encoder as `encode.src` beside `program_path` using the script user.
+        message MetaxploitSniffer {
+            program: ProgramId,
+            metaxploit: ObjectId,
+            encode_source: bool,
+            program_path: string,
+        } -> Result<SniffedPacket?, ScriptFailure>
+
+        // MetaLib operation messages
+
+        message MetaLibLibName { program: ProgramId, library: ObjectId } -> Result<string?, ScriptFailure>
+        message MetaLibVersion { program: ProgramId, library: ObjectId } -> Result<string?, ScriptFailure>
+        /// Opens debug tools for `user`/`password` and returns the debug object or the game error.
+        message MetaLibDebugTools { program: ProgramId, library: ObjectId, user: string, password: string } -> Result<ObjectOutcome, ScriptFailure>
+        /// Reports whether the library is patched, or its self-patch date when `date` is set; false without a date.
+        message MetaLibIsPatched { program: ProgramId, library: ObjectId, date: bool } -> Result<PatchState, ScriptFailure>
+        /// Attacks weakness `address` with `unsec_value`. `args` contains a new password or null for non-string
+        /// input. Null is invalid for file libraries but accepted for routers. Router subnet checks use the script
+        /// computer.
+        message MetaLibOverflow {
+            program: ProgramId,
+            library: ObjectId,
+            address: string,
+            unsec_value: string,
+            args: string?,
+        } -> Result<Exploit, ScriptFailure>
+
+        // DebugLibrary operation messages
+
+        /// Gets the flawed library code or the game's error.
+        message DebugLibraryScanDebuglib { program: ProgramId, library: ObjectId } -> Result<DebugScan, ScriptFailure>
+        /// Updates the library from `path` and returns the game's result message.
+        message DebugLibraryApplyPatch { program: ProgramId, library: ObjectId, path: string } -> Result<bool, ScriptFailure>
+        /// Checks flawed lines against `error_lines` as the script user and returns the zero-day they reveal or the
+        /// game's error.
+        message DebugLibraryUnitTesting { program: ProgramId, library: ObjectId, error_lines: list<i64> } -> Result<UnitTestReport, ScriptFailure>
+        /// Executes the library zero-day at `mem_zone` on `path`, defaulting to the library itself when empty.
+        message DebugLibraryPayload {
+            program: ProgramId,
+            library: ObjectId,
+            mem_zone: string,
+            path: string,
+        } -> Result<ZeroDayPayload, ScriptFailure>
+
+        // MetaMail operation messages
+
+        /// Gets the account's inbox, read again (`MetaMailIntrinsics.fetch`).
+        message MetaMailFetch { program: ProgramId, mail: ObjectId } -> Result<InboxContent, ScriptFailure>
+        /// Gets mails `mail_ids` from a refreshed inbox in ID order (`MetaMailIntrinsics.read`). `mail_ids` is none
+        /// when an ID is not text, which reads null.
+        message MetaMailRead { program: ProgramId, mail: ObjectId, mail_ids?: list<string> } -> Result<MailReads, ScriptFailure>
+        /// Sends `draft` using the account.
+        message MetaMailSend { program: ProgramId, mail: ObjectId, draft: MailDraft } -> Result<Outcome, ScriptFailure>
+        /// Removes mails `mail_ids` from a refreshed inbox and returns true when one existed
+        /// (`MetaMailIntrinsics.delete_mail`). `mail_ids` is none when an ID is not text, which returns null.
+        message MetaMailDelete { program: ProgramId, mail: ObjectId, mail_ids?: list<string> } -> Result<Outcome, ScriptFailure>
+        /// Removes every mail of the inbox (`MetaMailIntrinsics.delete_all`).
+        message MetaMailDeleteAll { program: ProgramId, mail: ObjectId } -> Result<Outcome, ScriptFailure>
+
+        // Crypto operation messages
+
+        /// Locates a world user's plaintext password matching `hash`.
+        message CryptoDecipher { program: ProgramId, hash: string } -> Result<string?, ScriptFailure>
+        /// Encrypts `path` using `password` and returns true or the game error.
+        message CryptoEncrypt { program: ProgramId, crypto: ObjectId, path: string, password: string } -> Result<Outcome, ScriptFailure>
+        /// Decrypts `path` if `password` matches and returns true or the game error.
+        message CryptoDecrypt { program: ProgramId, crypto: ObjectId, path: string, password: string } -> Result<Outcome, ScriptFailure>
+        /// Reports whether `path` is encrypted, or the game's error.
+        message CryptoIsEncrypted { program: ProgramId, crypto: ObjectId, path: string } -> Result<Outcome, ScriptFailure>
+        /// Gets users of the SMTP server at `address:port`.
+        message CryptoSmtpUserList { program: ProgramId, crypto: ObjectId, address: string, port: u16 } -> Result<SmtpUserList, ScriptFailure>
+        /// Activates or deactivates monitor mode on `device`, returning true, false, or the game's error.
+        message CryptoAirmon { program: ProgramId, crypto: ObjectId, start: bool, device: string } -> Result<Outcome, ScriptFailure>
+        /// Captures Wi-Fi ACKs for `bssid`/`essid` into `file.cap` under `folder` and prints the log. A negative
+        /// `max_acks` captures the number required for cracking.
+        message CryptoAireplay {
+            program: ProgramId,
+            crypto: ObjectId,
+            bssid: string,
+            essid: string,
+            max_acks: i32,
+            folder: string,
+        } -> Result<Capture, ScriptFailure>
+        /// Recovers the Wi-Fi password from capture `path`, or returns the failure reason.
+        message CryptoAircrack { program: ProgramId, crypto: ObjectId, path: string } -> Result<KeyRecovery, ScriptFailure>
+
+        // AptClient operation messages
+
+        /// Registers existing `repository` in `sources.txt`, or returns the failure reason.
+        message AptClientAddRepo { program: ProgramId, apt_client: ObjectId, repository: string, port: u16 } -> Result<Outcome, ScriptFailure>
+        /// Removes `repository` from `sources.txt`, or returns the failure reason.
+        message AptClientDelRepo { program: ProgramId, apt_client: ObjectId, repository: string } -> Result<Outcome, ScriptFailure>
+        /// Installs `package` in `folder`, using its default folder when empty, or returns the failure reason.
+        message AptClientInstall { program: ProgramId, apt_client: ObjectId, package: string, folder: string } -> Result<Outcome, ScriptFailure>
+        /// Gets packages from the computer's sources containing `term`, or why there are none.
+        message AptClientSearch { program: ProgramId, apt_client: ObjectId, term: string } -> Result<PackageList, ScriptFailure>
+        /// Gets every package in `repository`, or why not.
+        message AptClientShow { program: ProgramId, apt_client: ObjectId, repository: string } -> Result<PackageList, ScriptFailure>
+        /// Refreshes package lists, prints one line per source, and returns an empty string.
+        message AptClientUpdate { program: ProgramId, apt_client: ObjectId } -> Result<AptUpdate, ScriptFailure>
+        /// Reports whether library `path` has a newer version available from the computer's sources.
+        message AptClientCheckUpgrade { program: ProgramId, apt_client: ObjectId, path: string } -> Result<Outcome, ScriptFailure>
+
+        // SmartAppliance operation messages
+
+        /// Gets the appliance model or the game's error.
+        message SmartApplianceModel { program: ProgramId, appliance: ObjectId } -> Result<ApplianceModel, ScriptFailure>
+        /// Overwrites power and temperature, breaking the appliance. Returns true or the game's error.
+        message SmartApplianceOverrideSettings { program: ProgramId, appliance: ObjectId, power: f64, temperature: f64 } -> Result<Outcome, ScriptFailure>
+        /// Activates or deactivates the appliance alarm, returning true or the game's error.
+        message SmartApplianceSetAlarm { program: ProgramId, appliance: ObjectId, enable: bool } -> Result<Outcome, ScriptFailure>
+
+        // TrafficNet operation messages
+
+        /// Reports whether the global camera system is reachable, or the game's error.
+        message TrafficNetCameraLinkSystem { program: ProgramId, traffic: ObjectId } -> Result<Outcome, ScriptFailure>
+        /// Gets police-network credentials in `get_credentials_info` format.
+        message TrafficNetGetCredentialsInfo { program: ProgramId, traffic: ObjectId } -> Result<CredentialsInfo, ScriptFailure>
+        /// Reports whether vehicle `license_plate` is moving, or returns the camera-system error. Finds a car on the
+        /// cameras. A car found while not `throttled` (the intrinsic call rate) becomes the accident target.
+        message TrafficNetLocateVehicle {
+            program: ProgramId,
+            traffic: ObjectId,
+            license_plate: string,
+            password: string,
+            throttled: bool,
+        } -> Result<Outcome, ScriptFailure>
+
+        // Ctf operation messages
+
+        message CtfGetDescription { program: ProgramId, ctf: ObjectId } -> Result<string?, ScriptFailure>
+        /// Gets the CTF event's public address.
+        message CtfGetTemplate { program: ProgramId, ctf: ObjectId } -> Result<string?, ScriptFailure>
+        /// Marks the event complete for the computer player and returns whether it was previously incomplete.
+        message CtfPlayerSuccess { program: ProgramId, ctf: ObjectId } -> Result<bool, ScriptFailure>
+        message CtfGetCreatorName { program: ProgramId, ctf: ObjectId } -> Result<string?, ScriptFailure>
+        message CtfGetMailContent { program: ProgramId, ctf: ObjectId } -> Result<string?, ScriptFailure>
+
+        // Blockchain operation messages
+
+        /// Gets the current price of `coin`. Requires the library computer to be online.
+        message BlockchainCoinPrice { program: ProgramId, blockchain: ObjectId, coin: string } -> Result<Figure, ScriptFailure>
+        /// Gets prices of `coin` oldest first.
+        message BlockchainShowHistory { program: ProgramId, blockchain: ObjectId, coin: string } -> Result<PriceHistory, ScriptFailure>
+        /// Gets the mined amount of `coin`.
+        message BlockchainAmountMined { program: ProgramId, blockchain: ObjectId, coin: string } -> Result<Figure, ScriptFailure>
+        /// Gets `coin` when `user`/`password` match its creator credentials. Non-string script arguments become null
+        /// after the online check.
+        message BlockchainGetCoin {
+            program: ProgramId,
+            blockchain: ObjectId,
+            user: string?,
+            password: string?,
+            coin: string?,
+        } -> Result<CoinLogin, ScriptFailure>
+        /// Adds a wallet for `user`/`password` using the script computer's bank account for payment.
+        message BlockchainCreateWallet {
+            program: ProgramId,
+            blockchain: ObjectId,
+            user: string?,
+            password: string?,
+        } -> Result<WalletLogin, ScriptFailure>
+        /// Accesses the wallet matching `user`/`password`.
+        message BlockchainLoginWallet {
+            program: ProgramId,
+            blockchain: ObjectId,
+            user: string?,
+            password: string?,
+        } -> Result<WalletLogin, ScriptFailure>
+        /// Removes `coin` when `user`/`password` match its creator credentials.
+        message BlockchainDeleteCoin {
+            program: ProgramId,
+            blockchain: ObjectId,
+            coin: string?,
+            user: string?,
+            password: string?,
+        } -> Result<Outcome, ScriptFailure>
+        /// Gets the script user's coin name when creator credentials match, or returns the failure reason.
+        message BlockchainGetCoinName {
+            program: ProgramId,
+            blockchain: ObjectId,
+            user: string?,
+            password: string?,
+        } -> Result<CoinName, ScriptFailure>
+
+        // Coin operation messages
+
+        message CoinGetAddress { program: ProgramId, coin: ObjectId } -> Result<string?, ScriptFailure>
+        message CoinSetAddress { program: ProgramId, coin: ObjectId, address: string } -> Result<bool?, ScriptFailure>
+        message CoinGetMinedCoins { program: ProgramId, coin: ObjectId } -> Result<f64?, ScriptFailure>
+        message CoinGetReward { program: ProgramId, coin: ObjectId } -> Result<f64?, ScriptFailure>
+        message CoinSetReward { program: ProgramId, coin: ObjectId, reward: f64 } -> Result<bool?, ScriptFailure>
+        message CoinGetCycleMining { program: ProgramId, coin: ObjectId } -> Result<f64?, ScriptFailure>
+        message CoinSetCycleMining { program: ProgramId, coin: ObjectId, cycle_mining: f64 } -> Result<bool?, ScriptFailure>
+        /// Adds sub-wallet `user`/`password` for wallet `wallet` after verifying `pin`.
+        message CoinCreateSubwallet {
+            program: ProgramId,
+            coin: ObjectId,
+            wallet: string,
+            pin: string,
+            user: string,
+            password: string,
+        } -> Result<Outcome, ScriptFailure>
+        /// Gets the coin's sub-wallet for `user` when present.
+        message CoinGetSubwallet { program: ProgramId, coin: ObjectId, user: string } -> Result<ObjectId?, ScriptFailure>
+        /// Gets the coin's sub-wallets.
+        message CoinGetSubwallets { program: ProgramId, coin: ObjectId } -> Result<list<ObjectId>, ScriptFailure>
+        /// Moves `amount` from sub-wallet `origin` to sub-wallet `destination`.
+        message CoinTransaction { program: ProgramId, coin: ObjectId, origin: string, destination: string, amount: i64 } -> Result<Outcome, ScriptFailure>
+        /// Updates the creator password, permitted only when the script user is the creator.
+        message CoinResetPasswordCoin { program: ProgramId, coin: ObjectId, password: string } -> Result<Outcome, ScriptFailure>
+
+        // SubWallet operation messages
+
+        message SubWalletGetBalance { program: ProgramId, sub_wallet: ObjectId } -> Result<Figure, ScriptFailure>
+        message SubWalletGetUser { program: ProgramId, sub_wallet: ObjectId } -> Result<string?, ScriptFailure>
+        /// Reports whether `password` matches the sub-wallet password.
+        message SubWalletCheckPassword { program: ProgramId, sub_wallet: ObjectId, password: string } -> Result<bool?, ScriptFailure>
+        message SubWalletGetInfo { program: ProgramId, sub_wallet: ObjectId } -> Result<string?, ScriptFailure>
+        message SubWalletSetInfo { program: ProgramId, sub_wallet: ObjectId, info: string } -> Result<bool?, ScriptFailure>
+        /// Gets the user of the wallet that created the sub-wallet.
+        message SubWalletWalletUsername { program: ProgramId, sub_wallet: ObjectId } -> Result<string?, ScriptFailure>
+        message SubWalletLastTransaction { program: ProgramId, sub_wallet: ObjectId } -> Result<Transaction?, ScriptFailure>
+        /// Launches a mining job from the script computer and completes when it wins a mining round or returns the
+        /// game refusal. Stopping the program or closing its connection cancels the job.
+        message SubWalletMining { program: ProgramId, sub_wallet: ObjectId } -> Result<Outcome, ScriptFailure>
+        message SubWalletDeleteSubwallet { program: ProgramId, sub_wallet: ObjectId } -> Result<bool, ScriptFailure>
+
+        // Wallet operation messages
+
+        /// Gets names of coins with wallet balances.
+        message WalletListCoins { program: ProgramId, wallet: ObjectId } -> Result<list<string>, ScriptFailure>
+        /// Gets the balance for `coin`, or the total across coins when `coin` is empty.
+        message WalletGetBalance { program: ProgramId, wallet: ObjectId, coin: string } -> Result<Figure, ScriptFailure>
+        /// Gets every coin name in the world.
+        message WalletListGlobalCoins { program: ProgramId, wallet: ObjectId } -> Result<list<string>, ScriptFailure>
+        /// Gets the wallet's pending mining-job count for `coin`.
+        message WalletShowNodes { program: ProgramId, wallet: ObjectId, coin: string } -> Result<Figure, ScriptFailure>
+        message WalletGetPin { program: ProgramId, wallet: ObjectId } -> Result<string?, ScriptFailure>
+        /// Submits a buy order for `amount` of `coin` at `price`.
+        message WalletBuyCoin { program: ProgramId, wallet: ObjectId, amount: f64, coin: string, price: f64, subwallet: string } -> Result<TradeOutcome, ScriptFailure>
+        /// Submits a sell order for `amount` of `coin` at `price`.
+        message WalletSellCoin { program: ProgramId, wallet: ObjectId, amount: f64, coin: string, price: f64, subwallet: string } -> Result<TradeOutcome, ScriptFailure>
+        /// Gets the wallet's open order for `coin`.
+        message WalletGetPendingTrade { program: ProgramId, wallet: ObjectId, coin: string } -> Result<PendingTrade, ScriptFailure>
+        /// Aborts the wallet's open order for `coin`.
+        message WalletCancelPendingTrade { program: ProgramId, wallet: ObjectId, coin: string } -> Result<CancelTrade, ScriptFailure>
+        /// Gets every standing offer for `coin`, keyed by wallet user.
+        message WalletGetGlobalOffers { program: ProgramId, wallet: ObjectId, coin: string } -> Result<GlobalOffers, ScriptFailure>
+        /// Updates the wallet password once per day, permitted only when the script user owns the wallet.
+        message WalletResetPassword { program: ProgramId, wallet: ObjectId, password: string } -> Result<Outcome, ScriptFailure>
+
+        // Shell operation messages
+
+        /// Reports whether `address` responds from the shell computer's network.
+        message ShellPing { program: ProgramId, shell: ObjectId, address: string } -> Result<bool, ScriptFailure>
+        /// Copies `source` between shell computers into `destination`, from `from` to `to` or in reverse for
+        /// `upload`. Without `to`, uses the player computer as its first user.
+        message ShellScp {
+            program: ProgramId,
+            from: ObjectId,
+            to?: ObjectId,
+            source: string,
+            destination: string,
+            upload: bool,
+        } -> Result<Outcome, ScriptFailure>
+        /// Opens a shell as `user` on the computer serving `service` at `address:port`. Validates raw script
+        /// arguments after checking the player connection.
+        message ShellConnectService {
+            program: ProgramId,
+            shell: ObjectId,
+            address?: string,
+            port?: i32,
+            user?: string,
+            password?: string,
+            service?: string,
+        } -> Result<ServiceConnection, ScriptFailure>
+        /// Completes an encrypted SSH or FTP login after the client runs both scripts. `target` is the guest shell
+        /// returned by [`ShellConnectService`]. If `decoded_password` differs from `password`, rechecks the login
+        /// with it. Records non-empty `encoded_password` even on failure, then returns the shell or failure
+        /// (`ShellIntrinsics.connect_service`, `PlayerUtils.ConnectService`).
+        message ShellCompleteEncryptedLogin {
+            program: ProgramId,
+            shell: ObjectId,
+            target: ObjectId,
+            address: string,
+            port: u16,
+            user: string,
+            password: string,
+            service: string,
+            failure: LoginFailure?,
+            encoded_password: string,
+            decoded_password: string,
+        } -> Result<ServiceLoginResult, ScriptFailure>
+        /// Validates a build of `source` into `folder` and returns code whose imports were resolved through the
+        /// script session.
+        message ShellBuild {
+            program: ProgramId,
+            shell: ObjectId,
+            source: string,
+            folder: string,
+        } -> Result<BuildSource, ScriptFailure>
+        /// Stores compiled `source` as binary `name` in `folder` with its line source map, or returns the failure
+        /// reason.
+        message ShellWriteBinary {
+            program: ProgramId,
+            shell: ObjectId,
+            folder: string,
+            name: string,
+            source: string,
+            allow_import: bool,
+            source_map: SourceMap,
+        } -> Result<Outcome, ScriptFailure>
+        /// Launches executable `path` as a child process of `program`, with at most 32 nested launches. The child
+        /// ends through [`EndProgram`] or when its parent ends.
+        message ShellLaunch {
+            program: ProgramId,
+            shell: ObjectId,
+            path: string,
+            params: list<string>,
+            /// Caller's current folder, retained for a launch on its own computer.
+            current: string,
+        } -> Result<LaunchOutcome, ScriptFailure>
+        /// Starts the shell terminal as a child of `program` (`ShellIntrinsics.start_terminal`). Runs the shell
+        /// computer `/bin/bash` code when it is a program, otherwise the game bash, as the shell user from their home
+        /// folder without a separate process. A launched `program` loses its process. The terminal ends through
+        /// [`EndProgram`] or when its parent ends.
+        message ShellStartTerminal {
+            program: ProgramId,
+            shell: ObjectId,
+        } -> Result<LaunchOutcome, ScriptFailure>
+
+        // Player operation messages
+
+        /// Gets the script computer's router when `address` is empty, otherwise the network router at `address`.
+        message PlayerGetRouter { program: ProgramId, address: string } -> Result<ObjectId?, ScriptFailure>
+        /// Gets the router for switch `address` on the script computer's network.
+        message PlayerGetSwitch { program: ProgramId, address: string } -> Result<ObjectId?, ScriptFailure>
+        /// Maps web `address` to its network's public IP, or `null` when it does not resolve.
+        message PlayerNslookup { program: ProgramId, address: string } -> Result<string?, ScriptFailure>
+        /// Gets the owner of the network at public `address`.
+        message PlayerWhois { program: ProgramId, address: string } -> Result<Whois, ScriptFailure>
+        /// Resolves `path` as the script user for `cd`, starting at root even for relative paths. Returns null when
+        /// the computer is gone.
+        message PlayerCd { program: ProgramId, current: string, path: string } -> Result<FolderChange?, ScriptFailure>
+        /// Gets the world date in `current_date` format.
+        message PlayerCurrentDate { program: ProgramId } -> Result<string, ScriptFailure>
+        /// Gets an includable library object for `path` on the script computer using the class implied by its
+        /// filename. Returns null for other files.
+        message PlayerIncludeLib { program: ProgramId, path: string } -> Result<IncludedLibrary, ScriptFailure>
+        /// Gets a shell as `user` on the script computer when `password` matches.
+        message PlayerGetShell { program: ProgramId, user: string, password: string } -> Result<ShellLogin, ScriptFailure>
+        /// Gets the player's mail address when running on the player computer.
+        message PlayerUserMailAddress { program: ProgramId } -> Result<string?, ScriptFailure>
+        /// Gets the player's bank account number when running on the player computer.
+        message PlayerUserBankNumber { program: ProgramId } -> Result<string?, ScriptFailure>
+        /// Signs in to mail account `address` from the script computer, returning `metaMail` or the game's error.
+        message PlayerMailLogin { program: ProgramId, address: string, password: string } -> Result<ObjectOutcome, ScriptFailure>
+        /// Gets CTF `event` on the script computer when `user`/`password` match its credentials.
+        message PlayerGetCtf { program: ProgramId, event: string, user: string, password: string } -> Result<ObjectId?, ScriptFailure>
+        /// Updates the script computer's CTF password, returning success or the missing-account error.
+        message PlayerResetCtfPassword { program: ProgramId, password: string } -> Result<Outcome, ScriptFailure>
+
+        // Admin operation messages
+
+        /// Gets the world-generation seed.
+        message AdminSeed { program: ProgramId } -> Result<u64, ScriptFailure>
+        /// Gets every network's public address.
+        message AdminNetworks { program: ProgramId } -> Result<list<string>, ScriptFailure>
+        /// Creates a network unless its public address or domain is already used.
+        message AdminCreateNetwork { program: ProgramId, network: NetworkOptions } -> Result<NetworkCreation, ScriptFailure>
+        /// Creates a computer in the network at `public_ip`.
+        message AdminAddComputer { program: ProgramId, public_ip: string, computer: ComputerOptions } -> Result<ComputerCreation, ScriptFailure>
+        /// Runs an accident with the car last found by `locate_vehicle`
+        /// (`PlayerHelperServer.EnableCarAccidentServerRpc`) and returns whether its driver died.
+        message AdminTrafficAccident { program: ProgramId } -> Result<bool, ScriptFailure>
+        /// Dismisses NPC `user` of the network behind `public_ip` (`NetworkLan.FireNpc`).
+        message AdminFireNpc { program: ProgramId, public_ip: string, user: string } -> Result<Outcome, ScriptFailure>
+        /// Hires an NPC for `job_role` (`JobRole` name) into an open position in the network behind `public_ip`
+        /// (`NetworkLan.HireNpc`).
+        message AdminHireNpc { program: ProgramId, public_ip: string, job_role: string } -> Result<Outcome, ScriptFailure>
+        /// Hires an administrator for the rented-server network behind `public_ip`
+        /// (`BankHelperServer.HireAdminRentalServerRpc`).
+        message AdminHireRentalAdmin { program: ProgramId, public_ip: string } -> Result<Outcome, ScriptFailure>
+        /// Deletes the administrator the network behind `public_ip` hired
+        /// (`BankHelperServer.FireAdminRentalServerRpc`).
+        message AdminFireRentalAdmin { program: ProgramId, public_ip: string } -> Result<Outcome, ScriptFailure>
+        /// Sets up the computer at `lan_ip` behind `public_ip` as a smart appliance.
+        message AdminAddSmartAppliance {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+            appliance: SmartApplianceOptions,
+        } -> Result<bool, ScriptFailure>
+        /// Adds offline NPC `user` to the computer at `lan_ip` behind `public_ip`, schedules its first login after
+        /// `delay` seconds, and returns its ID.
+        message AdminAddNpc {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+            user: string,
+            delay: u64,
+            name: string,
+        } -> Result<u32?, ScriptFailure>
+        /// Deletes network `public_ip` and its computers, excluding the player's network.
+        message AdminRemoveNetwork { program: ProgramId, public_ip: string } -> Result<bool, ScriptFailure>
+        /// Disables the network behind `public_ip` for non-payment or re-enables it (`BankSubs.DisableNetwork`).
+        /// Returns false when no network exists there.
+        message AdminDisableNetwork { program: ProgramId, public_ip: string, disabled: bool } -> Result<bool, ScriptFailure>
+        /// Sets the connection speed of the network behind `public_ip` to one of the ISP packs
+        /// (`NetworkLan.netSpeed`). Returns false when no network exists there.
+        message AdminSetNetSpeed { program: ProgramId, public_ip: string, net_speed: u8 } -> Result<bool, ScriptFailure>
+        /// Updates the alarm on NPC `user`'s phone (`FileHelperServer.ModifyClockPhoneServerRpc`).
+        message AdminSetPhoneAlarm {
+            program: ProgramId,
+            public_ip: string,
+            user: string,
+            hour: i64,
+            minute: i64,
+            delete: bool,
+        } -> Result<PhoneAlarmConfig?, ScriptFailure>
+        /// Reads NPC `user`'s phone alarm and finalizes completed lateness
+        /// (`FileHelperServer.GetConfigClockPhoneServerRpc`).
+        message AdminPhoneAlarm { program: ProgramId, public_ip: string, user: string } -> Result<PhoneAlarmConfig?, ScriptFailure>
+        /// Stores the world to the server database and returns success. Returns false without a database or after a
+        /// failed write.
+        message AdminSnapshot { program: ProgramId } -> Result<bool, ScriptFailure>
+        /// Moves the world clock forward by `seconds` and returns the elapsed world time.
+        message AdminTick { program: ProgramId, seconds: u64 } -> Result<u64, ScriptFailure>
+        /// Updates the date returned by `current_date`.
+        message AdminSetDate { program: ProgramId, date: string } -> Result<bool, ScriptFailure>
+        /// Gets a shell as `user` on the computer at `lan_ip` behind `public_ip` when that user exists.
+        message AdminShell { program: ProgramId, public_ip: string, lan_ip: string, user: string } -> Result<ObjectId?, ScriptFailure>
+        /// Changes the script to a root shell on its computer (`sudo`).
+        message AdminSudo { program: ProgramId } -> Result<ObjectId, ScriptFailure>
+        /// Establishes a session for `user` on the computer at `lan_ip` behind `public_ip` unless already open.
+        message AdminLogin { program: ProgramId, public_ip: string, lan_ip: string, user: string } -> Result<bool, ScriptFailure>
+        /// Triggers a social-engineering login for NPC `user` on the computer at `address`/`lan_ip`. The NPC logs in
+        /// to its SSH or FTP service and exposes its credentials to sniffers on the path, as with game LoginService
+        /// mail (`Persona.ProcesaIngenieraSocial`).
+        message AdminNpcLogin {
+            program: ProgramId,
+            address: string,
+            lan_ip: string,
+            user: string,
+        } -> Result<bool, ScriptFailure>
+        /// Installs an inactive network card on the computer at `lan_ip` behind `public_ip`, matching the game
+        /// hardware UI (`HardwareHelperServer.InstallHardware`). Returns whether the computer exists.
+        message AdminAddNetCard {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+            wifi: bool,
+            monitor_support: bool,
+        } -> Result<bool, ScriptFailure>
+        /// Updates an existing library file to `version`, preserving its kind and weaknesses.
+        message AdminSetLibraryVersion {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+            path: string,
+            version: string,
+        } -> Result<bool, ScriptFailure>
+        /// Updates an existing port to its service library at `version`.
+        message AdminSetPortLibraryVersion {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+            port: u16,
+            version: string,
+        } -> Result<bool, ScriptFailure>
+        /// Stores `password` independently of an account and returns its MD5 hash (`Database.AddPassword`).
+        message AdminRegisterPassword { program: ProgramId, password: string } -> Result<string, ScriptFailure>
+        /// Reads a criminal/employee/student SQL viewer database as JSON. This operation uses game UI RPCs rather
+        /// than standard script intrinsics (`FileHelperServer.LeerFichaServerRpc`).
+        message AdminServiceRecords {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+            service: string,
+        } -> Result<string?, ScriptFailure>
+        /// Overwrites the SQL record with the same `person_id`; returns empty on success or the game UI's error.
+        message AdminUpdateServiceRecord {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+            service: string,
+            record: string,
+        } -> Result<Outcome, ScriptFailure>
+        /// Opens the browser CCTV channel. The game exposes this through web access, not a script intrinsic
+        /// (`NetworkHelperServer.AccessWebServerRpc`). A null password requests the password prompt.
+        message AdminAccessCctv {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+            password: string?,
+        } -> Result<CctvAccess, ScriptFailure>
+        /// Installs ADB after the smartphone social-engineering flow accepts its mail
+        /// (`Persona.ProcesaIngenieraSocial`). The game has no direct ADB-install script intrinsic. Returns whether
+        /// the target is a smartphone.
+        message AdminInstallSmartphoneAdb {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+        } -> Result<bool, ScriptFailure>
+        /// Stores `source` at `path` on the script computer, owned by the script user.
+        message AdminCreateProgram { program: ProgramId, path: string, source: string } -> Result<bool, ScriptFailure> limit 16MiB
+        /// Lists the exploit shop's offers for the library file `library` at `version`, as the hack shop's browser does
+        /// (`NetworkHelperServer.GetExploitListServerRpc`). The game offers them only in that browser.
+        message AdminExploitShop { program: ProgramId, library: string, version: string } -> Result<ExploitListing, ScriptFailure>
+        /// Buys exploit `exploit` of the library file `library` at `version` into `folder` of the script computer, owned
+        /// by the script user and paid by the player, as the hack shop's browser does
+        /// (`BankHelperServer.BuyItemServerRpc`). The file is a program when `compile` is set, otherwise source text
+        /// named `<exploit>.src`.
+        message AdminBuyExploit {
+            program: ProgramId,
+            library: string,
+            version: string,
+            exploit: string,
+            folder: string,
+            compile: bool,
+        } -> Result<Outcome, ScriptFailure>
+        /// Updates `wallet_user`'s balance in `coin`.
+        message AdminGrantCoins { program: ProgramId, wallet_user: string, coin: string, amount: f64 } -> Result<bool, ScriptFailure>
+        /// Adds `amount` to bank account `number`.
+        message AdminDeposit { program: ProgramId, number: string, amount: f64 } -> Result<bool, ScriptFailure>
+        message AdminCreateMailAccount { program: ProgramId, address: string, password: string } -> Result<bool, ScriptFailure>
+        /// Adds a CTF account for the script computer.
+        message AdminCreateCtfAccount { program: ProgramId, user: string, password: string } -> Result<bool, ScriptFailure>
+        /// Adds a CTF event owned and played by the script computer.
+        message AdminCreateCtfEvent { program: ProgramId, event: CtfEventOptions } -> Result<bool, ScriptFailure>
+        /// Scores event `name` as the script computer's player.
+        message AdminRateCtfEvent { program: ProgramId, name: string, quality: i64, difficulty: i64 } -> Result<CtfRating, ScriptFailure>
+        message AdminCreateDebugAccount { program: ProgramId, user: string, password: string } -> Result<bool, ScriptFailure>
+        /// Reports the newest library file `library` as the update of the network behind `public_ip`, as an
+        /// administrator replying to the update-libraries mail does (`Persona.UpdateReportedNetworks`). The network's
+        /// older library files of that name take it as the game restores them
+        /// (`FileSystem.ApplyReportedLibUpdates`). Returns null when no network exists there and false when the world
+        /// has no library of that name (the game fails on it).
+        message AdminReportLibraryUpdate { program: ProgramId, public_ip: string, library: string } -> Result<Outcome, ScriptFailure>
+        /// Accepts a procedural mission offered by the hack shop or police network behind `shop_ip`, as its website
+        /// does (`MissionsHelperServer.AcceptMissionServerRpc`): generates the first network of the mission and mails
+        /// its contract to the player. Returns the public address of that network.
+        message AdminAcceptMission { program: ProgramId, shop_ip: string } -> Result<MissionAcceptance, ScriptFailure>
+        /// Creates guild `name` that holds company shares under bank account `bank_account`, with `total_exp`
+        /// experience, `investment_perks` investment licences and `admin_restore_perks` Admin Restore perks, and the
+        /// script computer's player as a member when `join` is set. Guilds are made in the game's interface only.
+        message AdminCreateGuild {
+            program: ProgramId,
+            name: string,
+            bank_account: string,
+            join: bool,
+            total_exp: u32,
+            investment_perks: u32,
+            admin_restore_perks: u32,
+        } -> Result<Outcome, ScriptFailure>
+        /// Sets the shares bank account `bank_account` holds of the company behind `public_ip`
+        /// (`StocksCompany.BuyStocksCompany`). Returns false when no network exists there.
+        message AdminSetCompanyShares {
+            program: ProgramId,
+            public_ip: string,
+            bank_account: string,
+            shares: u32,
+        } -> Result<bool, ScriptFailure>
+        /// Hires CrownShield for guild `guild` at the network behind `public_ip`
+        /// (`NetworkHelperServer.ActivateCrownShieldProtection`).
+        message AdminHireCrownShield { program: ProgramId, guild: string, public_ip: string } -> Result<Outcome, ScriptFailure>
+        /// Turns Admin Restore off (`enabled` false) or on for the company behind `public_ip` as guild `guild`, as its
+        /// company management window does (`NetworkHelperServer.AdminCompanySetAdminRestoreServerRpc`). Returns true or
+        /// the game's failure.
+        message AdminSetAdminRestore { program: ProgramId, guild: string, public_ip: string, enabled: bool } -> Result<Outcome, ScriptFailure>
+    }
+
+    /// Program runtime that receives termination and throttle notifications.
+    client Program {
+        /// Reports server-side termination after process removal, reboot, computer removal, or parent exit.
+        /// The runtime stops the program and its children, then acknowledges with [`EndProgram`].
+        message ProgramEnd {
+            program: ProgramId,
+            reason: EndReason,
+        }
+        /// Sent after the response to an operation of `program` that waited for its program tree's operation budget
+        /// while other work needed the world. The runtime pauses the tree for `milliseconds` at its next safe
+        /// stopping point so other computation can run.
+        message ProgramThrottle {
+            program: ProgramId,
+            milliseconds: u32,
+        }
+    }
+}
+
+/// Program handle scoped to a connection and valid until [`EndProgram`]. IDs are not reused within that connection.
+struct ProgramId {
+    id: u32,
+}
+
+/// Connection-local script-object handle valid until [`ReleaseObjects`] or disconnection.
+struct ObjectId {
+    id: u32,
+}
+
+/// Session and file details for a program that has started.
+struct ProgramSession {
+    program: ProgramId,
+    /// Shell for the program session, using its computer and user.
+    shell: ObjectId,
+    /// Account that runs the program.
+    user: string,
+    /// Home folder of the user and the initial working directory.
+    home: string,
+    /// Path of the program file.
+    path: string,
+}
+
+/// Script-visible result of a mutation.
+union Outcome {
+    /// Null when the mutation target is missing.
+    Null,
+    True,
+    False,
+    /// Reason the mutation failed; the intrinsic returns this text.
+    Failure(Failure),
+}
+
+/// What `close_program` did (`ComputerIntrinsics.close_program`).
+union ProgramClose {
+    /// The outcome of closing any process but the caller's own.
+    Outcome(Outcome),
+    /// The process is the caller's own, a command a terminal runs: the caller stops, and its terminal goes on.
+    OwnProcess,
+}
+
+/// Failure category and payload. The runtime formats it as the intrinsic that encountered it does.
+union Failure {
+    /// Rule refused the arguments.
+    Refusal(Refusal),
+    /// The market did not place the order.
+    Market(MarketFailure),
+    /// Blockchain, coin, wallet, or sub-wallet request failed.
+    Economy(EconomyFailure),
+    /// A file or folder was not read, made or changed.
+    File(FileFailure),
+    /// `aptclient` request failed.
+    Apt(AptFailure),
+    /// Computer user, process, or network-card operation failed.
+    Computer(ComputerFailure),
+    /// `crypto.so` request failed.
+    Crypto(CryptoFailure),
+    /// Mail account operation failed.
+    Mail(MailFailure),
+    /// CTF account or event operation failed.
+    Ctf(CtfFailure),
+    /// A shell did not launch a program.
+    Launch(LaunchFailure),
+    /// A shell did not log in to a service.
+    Login(LoginFailure),
+    /// Shell operation failed.
+    Shell(ShellFailure),
+    /// Debug library operation failed.
+    Debug(DebugFailure),
+    /// Admin operation failed.
+    Admin(AdminFailure),
+    /// `rshell_client` did not connect.
+    Rshell(RshellFailure),
+    /// `metaxploit.so` request failed.
+    Metaxploit(MetaxploitFailure),
+    /// Smart appliance or police traffic network operation failed.
+    Device(DeviceFailure),
+    /// NPC firing or hiring failed, or a rented-server administrator could not be hired or removed.
+    Job(JobFailure),
+    Alarm(AlarmFailure),
+    /// A service did not install, start or stop.
+    ServiceControl(ServiceControlFailure),
+    /// The exploit shop did not list or sell an exploit.
+    Shop(ShopFailure),
+    /// A procedural mission was not accepted.
+    Mission(MissionFailure),
+}
+
+/// Smart appliance or police traffic network request failure (`SmartApplianceIntrinsics`, `TrafficNetIntrinsics`).
+union DeviceFailure {
+    /// Device's computer is gone.
+    ComputerUnavailable,
+    /// Device has no internet access.
+    NoInternet,
+    /// Appliance's hardware is broken.
+    Malfunction,
+    /// Appliance's settings are locked.
+    Locked,
+    /// The override's power or temperature is not the model's.
+    InvalidSettings,
+    /// Override is set while the alarm is on, so the appliance stops before reaching the values.
+    AlarmWarning,
+    /// The device is not on a police network.
+    MissingPoliceNetwork,
+    /// User cannot use the global camera system for another day.
+    Cooldown,
+    /// Network disabled the traffic cameras.
+    CamerasDisabled,
+    /// Computer of the NPC whose account opens the camera system is gone; contains their full name.
+    MissingWorkstation(string),
+    /// The password does not open the camera system.
+    IncorrectPassword,
+    /// The license plate is not one the game issues.
+    InvalidPlate,
+    /// There is no vehicle with the license plate.
+    UnknownPlate,
+    /// No camera detects the vehicle in motion.
+    NotLocated,
+    /// A CrownShield protects the network of the vehicle's administrator (`TrafficNetIntrinsics.locate_vehicle`).
+    CrownShield,
+}
+
+/// NPC firing or hiring failure, or rented-server administrator hiring or removal failure (`NetworkLan.FireNpc`,
+/// `BankHelperServer.HireNpcServerRpc`, `HireAdminRentalServerRpc`, `FireAdminRentalServerRpc`).
+union JobFailure {
+    /// Network has no NPC of that name.
+    UnknownPerson,
+    /// NPC's position is already open: they're dead, dying or fired.
+    Unavailable,
+    /// NPC was hired less than a month ago.
+    HiredRecently,
+    /// The role cannot be hired for.
+    InvalidJob,
+    /// Company has no open position for the role (`JobRole`'s name).
+    NoVacancy(string),
+    /// Network has an administrator who is alive and not fired.
+    AdminExists,
+    /// Network has hired no administrator.
+    NoAdmin,
+    /// The player has no bank account to pay the administrator from.
+    NoBankAccount,
+    /// The player's bank account is not in the bank; contains its number.
+    UnknownBankAccount(string),
+    /// The player's bank account cannot pay the administrator's first month.
+    InsufficientFunds,
+    /// The player has no monthly admin charge registered to take the administrator's charge off.
+    NoAdminPayment,
+}
+
+/// Service installation, startup, or shutdown failure (`ServiceIntrinsics`).
+union ServiceControlFailure {
+    /// Root privileges are required.
+    RootOnly,
+    /// HTTP is not installed, started or stopped on routers.
+    RouterHttp,
+}
+
+/// Network owner information returned by `whois`.
+union Whois {
+    /// Network is not at the address.
+    UnknownAddress,
+    /// Network has no administrative contact.
+    NoInfo,
+    Contact { domain: string, name: string, mail: string, phone: string },
+}
+
+/// Smart appliance model or read failure.
+union ApplianceModel {
+    Null,
+    Model(string),
+    Failure(Failure),
+}
+
+/// Traffic network credentials or read failure.
+union CredentialsInfo {
+    Null,
+    /// Role and full name of the NPC whose account opens the cameras.
+    Info { role: string, name: string },
+    Failure(Failure),
+}
+
+/// Kind of the active network card.
+union ActiveCard {
+    None,
+    Wifi,
+    Ethernet,
+}
+
+/// Network card of a computer.
+struct NetworkDevice {
+    /// Interface name, `ethN` or `wlanN`.
+    name: string,
+    /// First word of the card description.
+    model: string,
+    /// Monitor mode is on.
+    monitor: bool,
+}
+
+/// Wi-Fi network in reach of a network card.
+struct WifiNetwork {
+    bssid: string,
+    /// Signal power in percent.
+    power: i32,
+    essid: string,
+}
+
+/// Wi-Fi networks a card reaches, or why it reaches none.
+union WifiScan {
+    /// The computer has no card of the name.
+    NoDevice,
+    /// The card is not a Wi-Fi card.
+    NotWifi,
+    Networks(list<WifiNetwork>),
+}
+
+/// Weak addresses of a library found by `scan`.
+struct LibraryScan {
+    addresses: list<string>,
+    /// A zone that may hold weaknesses could not be scanned.
+    hidden_zones: bool,
+}
+
+/// Weaknesses at a library address found by `scan_address`.
+struct ZoneScan {
+    /// The library has a zone at the address.
+    zone_exists: bool,
+    /// Weaknesses the metaxploit version can see.
+    weaknesses: list<WeaknessInfo>,
+}
+
+/// Weakness of a library zone (`Vulnerabilidad`).
+struct WeaknessInfo {
+    details: string,
+    unsec_value: string,
+    requirements: list<WeaknessRequirement>,
+}
+
+/// Condition a weakness needs to be exploited (`Vulnerabilidad.Required`).
+union WeaknessRequirement {
+    /// A library compiled at `version` or later.
+    Library { name: string, version: string },
+    /// The target has exactly `count` registered users.
+    RegisteredUsers(u32),
+    AnyActiveUser,
+    RootActiveUser,
+    GuestActiveUser,
+    /// The router forwards `count` ports to the target.
+    PortForward(u32),
+    /// `count` computers use the router as gateway.
+    ConnGateway(u32),
+    LocalNetwork,
+    /// The file system has `path`.
+    PathExist(string),
+}
+
+/// Firewall rule of a router. Missing values match everything.
+struct FirewallEntry {
+    allow: bool,
+    port: u16?,
+    source: string?,
+    destination: string?,
+}
+
+/// Failure of `metaxploit.so` to perform a script request (`MetaExploitIntrinsics`).
+union MetaxploitFailure {
+    /// The computer does not run the rshell service.
+    RshellNotRunning,
+    /// The router has no port forward to the rshell service.
+    RshellForwardMissing,
+}
+
+/// Failure of a shell to perform a script request (`ShellIntrinsics`).
+union ShellFailure {
+    /// Shell's computer is gone.
+    ComputerUnavailable,
+    /// Password to log in with has a character the game forbids.
+    InvalidPasswordCharacter(string),
+    /// Source file is not at the path.
+    MissingSource(string),
+    /// Folder is not at the path.
+    MissingFolder(string),
+    /// User cannot read the source.
+    UnreadableSource(string),
+    /// Named source file is binary.
+    BinarySource(string),
+    /// User cannot write into the folder.
+    UnwritableFolder(string),
+    /// Named source file has no extension to remove.
+    InvalidExtension(string),
+    /// Source is empty.
+    EmptySource,
+    /// Source `import_code` failed with a compiler error.
+    Import(ImportFailure),
+}
+
+/// Reason `import_code` does not produce a file (`PlayerUtils.ImportCode`).
+union ImportFailure {
+    /// The path is not absolute.
+    RelativePath(string),
+    /// File is not at the path.
+    MissingFile(string),
+    /// File is imported already.
+    ImportedTwice(string),
+    /// Code with the imports is over the game's 4 MB limit.
+    TooLarge,
+    /// File is binary, not a program.
+    BinaryFile(string),
+    /// The program does not allow being imported.
+    NoImportPermission(string),
+    /// User cannot read the file.
+    Unreadable(string),
+}
+
+/// Program launch failure from a shell (`ShellIntrinsics.launch`).
+union LaunchFailure {
+    /// File is not at the path.
+    CommandNotFound(string),
+    /// Named file is not executable.
+    NotExecutable(string),
+    /// User cannot execute the file.
+    NoPermission,
+    /// Parameter has a character the game forbids.
+    InvalidParameter(string),
+    /// Program is launched from too many nested programs.
+    TooManyStackCalls,
+    /// Computer has no room for the program's process.
+    Process(ProcessFailure),
+}
+
+/// Failure of a CTF account or event to perform a script request.
+union CtfFailure {
+    /// Computer has no CTF account.
+    NoAccount,
+    /// A rating score is not from 1 to 5.
+    InvalidScore,
+    /// There is no event with the name.
+    UnknownEvent,
+    /// The rater did not complete the event's mission.
+    Incomplete,
+    /// Rater rated the event already.
+    RepeatScore,
+}
+
+/// Failure of a mail account to perform a script request (`MetaMailIntrinsics`, `PlayerIntrinsics.mail_login`).
+union MailFailure {
+    /// Computer has no internet access.
+    NoInternet,
+    /// Object's computer is gone.
+    ComputerUnavailable,
+    /// The address or password does not open an account.
+    WrongCredentials,
+    /// Password is correct, but the account belongs to an NPC who is dead or fired.
+    AccountInactive,
+    /// The account cannot be read again: it is gone.
+    RefreshFailed,
+    /// Object has no account to send from.
+    NoAccount,
+    /// There is no account with the address to deliver to.
+    NotDelivered,
+}
+
+/// Result of `aireplay`. The intrinsic returns null unless the capture did not start.
+union Capture {
+    /// The computer is gone.
+    Null,
+    /// The capture ran and was saved; the terminal prints its progress.
+    Captured(CaptureProgress),
+    /// Capture ran but was not saved; the terminal prints its progress, then the reason.
+    Unsaved { progress: CaptureProgress, failure: Failure },
+    /// Reason the capture did not start; the intrinsic returns it.
+    Failure(Failure),
+}
+
+/// What a Wi-Fi capture collected.
+struct CaptureProgress {
+    /// BSSID of the captured network.
+    bssid: string,
+    /// Packets read.
+    packets: i32,
+    /// ACKs received.
+    acks: i32,
+}
+
+/// Password recovered by `aircrack`.
+union KeyRecovery {
+    /// Null when the computer or the file is gone, or no router has the captured Wi-Fi.
+    Null,
+    Password(string),
+    /// Reason no password was recovered; the terminal prints it.
+    Failure(Failure),
+}
+
+/// Failure of `crypto.so` to perform a script request (`CryptoIntrinsics`).
+union CryptoFailure {
+    /// File is encrypted already.
+    Encrypted,
+    /// The file is not encrypted.
+    NotEncrypted,
+    /// The password does not decrypt the file.
+    IncorrectPassword,
+    /// Monitor mode requires a Wi-Fi card.
+    NotWifiCard,
+    /// The card's chipset does not support monitor mode.
+    NoMonitorSupport,
+    /// There is no router with the Wi-Fi.
+    UnknownRouter,
+    /// Wi-Fi card is not in monitor mode.
+    NoMonitorCard,
+    /// User cannot read the capture.
+    UnreadableCapture,
+    /// The file is not a capture.
+    InvalidCapture,
+    /// Capture is encrypted.
+    EncryptedCapture,
+    /// The capture's content is not the game's format.
+    CorruptedCapture,
+    /// Capture has too few ACKs for the key.
+    MoreAcksNeeded,
+}
+
+/// User groups or the reason they cannot be listed.
+union UserGroups {
+    /// Null when the computer is gone.
+    Null,
+    Groups(list<string>),
+    Failure(Failure),
+}
+
+/// Failure of a computer to perform a script request of its users, processes or network cards (`ComputerIntrinsics`).
+union ComputerFailure {
+    /// Root privileges are required.
+    RootOnly,
+    /// Rebooting requires root or membership in the root group.
+    NoRebootPermission,
+    /// Safe mode can reboot only the player computer.
+    RemoteSafeMode,
+    /// Process is one the system protects.
+    SystemProcess,
+    /// Process belongs to the program started by its terminal on the player computer.
+    ScriptProcess,
+    /// Process belongs to another user.
+    ForeignProcess { pid: i32, user: string },
+    /// There is no user with the name.
+    UnknownUser(string),
+    /// The user is not in the group.
+    UnknownGroup { group: string, user: string },
+    /// Root cannot be deleted.
+    RootDeletion,
+    /// The user cannot be deleted.
+    UndeletableUser,
+    /// The user account is not created.
+    User(UserFailure),
+    /// Computer has no room for another process.
+    Process(ProcessFailure),
+    /// Guests cannot change the network.
+    GuestUser,
+    /// Computer has no network card of the name.
+    MissingNetDevice,
+    /// `connect_wifi` requires a Wi-Fi card.
+    WifiCardsOnly,
+    /// `connect_ethernet` requires an Ethernet card.
+    EthernetCardsOnly,
+    /// Program switched networks less than a second ago.
+    ReconnectTooSoon,
+    /// Rented server's computer only joins its own network.
+    RentedComputer,
+    /// Router's network is disabled for not having been paid for.
+    DisabledNetwork,
+    /// There is no router with the Wi-Fi.
+    UnknownWifi { bssid: string, essid: string },
+    /// Router's Wi-Fi is out of the computer's reach.
+    OutOfReach,
+    /// The Wi-Fi password does not match.
+    IncorrectWifiPassword,
+    /// The Ethernet address is not an IP address.
+    InvalidAddress,
+    /// The Ethernet gateway is not an IP address.
+    InvalidGateway,
+    /// The Ethernet address and gateway are not in one subnet.
+    DifferentSubnets,
+    /// The network did not take the computer.
+    NetCard(NetCardFailure),
+}
+
+/// User account creation failure (`ComputerIntrinsics.create_user`).
+union UserFailure {
+    /// Name is root's.
+    RootExists,
+    /// Name is the reserved guest's.
+    ReservedGuest,
+    /// User of the name exists already.
+    UserExists(string),
+    /// Computer already has the maximum number of users.
+    TooManyUsers,
+}
+
+/// Reason the computer cannot start another process.
+union ProcessFailure {
+    /// Computer is gone.
+    ComputerUnavailable,
+    /// Computer already runs the maximum number of terminals.
+    TooManyTerminals,
+    /// Computer RAM cannot hold the process; `remote` identifies a computer other than the player computer.
+    NoRam { remote: bool },
+}
+
+/// Network connection failure (`NetworkLan.ConnectWifi`, `NetworkLan.ConnectEthernet`).
+union NetCardFailure {
+    /// Computer is gone.
+    ComputerUnavailable,
+    /// Router, or its network, is gone.
+    UnknownRouter,
+    /// Computer's own network is disabled for not having been paid for.
+    DisabledHomeNetwork,
+    /// Gateway is the computer itself.
+    SelfGateway,
+    /// There is no device of the network with the gateway's address.
+    UnknownGateway(string),
+    /// The address is already assigned to another network device.
+    AddressInUse(string),
+    /// Computer has no Wi-Fi card.
+    NoWifiCard,
+    /// Computer has no Ethernet card.
+    NoEthernetCard,
+}
+
+/// Folder entries or the reason they cannot be listed.
+union FileEntries {
+    /// Null when the folder or its shell user is gone or cannot be traversed.
+    Null,
+    Entries(list<ObjectId>),
+    /// The folder is not readable.
+    Failure(Failure),
+}
+
+/// File text or the reason it cannot be read.
+union FileContent {
+    /// Null when the file is gone.
+    Null,
+    Content(string),
+    Failure(Failure),
+}
+
+/// Result of a file change. The intrinsic returns an empty string when complete.
+union FileChange {
+    /// Null when the file or its computer is gone.
+    Null,
+    Done,
+    Failure(Failure),
+}
+
+/// File or folder read, creation, or modification failure (`FileIntrinsics`, `ComputerIntrinsics`, `PlayerUtils`).
+union FileFailure {
+    /// Computer of the change is gone.
+    ComputerUnavailable,
+    /// File is not at the path.
+    MissingFile(string),
+    /// Folder is not at the path.
+    MissingFolder(string),
+    /// The file at the path is not a folder.
+    NotAFolder(string),
+    /// Path is the root or not a valid path.
+    InvalidPath,
+    /// Destination path is empty.
+    EmptyPath,
+    /// User cannot read or write what the change needs.
+    NoPermission,
+    /// User cannot create a file of the name in the folder.
+    NoCreatePermission { folder: string, name: string },
+    /// User cannot read the file at the path.
+    NoReadPermission(string),
+    /// File is one the system protects.
+    SystemFile,
+    /// Named file that would be replaced is system-protected.
+    SystemFileTarget(string),
+    /// File already exists at the path; contains its name.
+    Exists(string),
+    /// Folder has a file of the new name already.
+    NameTaken,
+    /// File system already contains the maximum number of files.
+    TooManyFiles,
+    /// File system already contains the maximum number of files for a new folder.
+    TooManyFolders,
+    /// Folder already contains the maximum number of files.
+    FolderFull,
+    /// Path exceeds the maximum folder nesting depth.
+    TooManySubfolders,
+    /// Hard disk has no room for the copy.
+    DiskFull,
+    /// The root folder cannot be moved.
+    RootMove,
+    /// The root folder cannot be deleted.
+    RootDeletion,
+    /// File would replace a folder, or a folder a file.
+    KindMismatch,
+    /// Symlink would be at the path of its target.
+    SymlinkToItself,
+    /// File at the path is binary.
+    Binary(string),
+    /// A `chmod` change is not in the game's format.
+    WrongFormat,
+    /// The source cannot be reached through its parent folders.
+    CannotAccess(string),
+    /// The source or a skipped child cannot be read.
+    CannotRead(string),
+    /// The destination folder or replaced entry cannot be written.
+    CannotWrite(string),
+    /// Existing destination tree cannot be removed; contains the first denied path.
+    CannotReplace(string),
+    /// File was asked to overwrite itself.
+    OverwriteSelf,
+    /// Certain entries were copied while others were skipped.
+    PartialCopy,
+    /// Certain entries were deleted while others were skipped.
+    PartialDelete,
+    /// Deletion stopped before making changes; contains the requested path.
+    DeletePermission(string),
+    /// A folder's entries cannot be listed; its path.
+    FolderReadPermission(string),
+}
+
+/// Failure of `aptclient` to perform a script request (`AptClientIntrinsics`).
+union AptFailure {
+    /// `/etc/apt/aptcache.bin` does not exist: `update` did not run yet.
+    NoCache,
+    /// The cache exists but its command is not `aptcache.bin`.
+    InvalidCache,
+    /// The repository to add is not an IP address.
+    InvalidAddress(string),
+    /// `sources.txt` already lists the repository.
+    ListedRepository(string),
+    /// `sources.txt` does not list the repository.
+    UnlistedRepository(string),
+    /// Source is not the repository.
+    UnknownRepository(string),
+    /// No source package matches the search term.
+    NoMatch(string),
+    /// There is no source with the package.
+    UnknownPackage(string),
+    /// Repository lists the package, but its server has no file of it.
+    MissingPackageFile(string),
+    /// Computer is gone.
+    ComputerUnavailable,
+    /// Folder to install into is not at the path.
+    MissingFolder(string),
+    /// User cannot write into the folder.
+    NoPermission,
+    /// The package could not be copied from its server.
+    Copy(FileFailure),
+}
+
+/// Arguments rejected by a rule (greyhack-behaviour `Refusal`). The intrinsic raises some as runtime errors and
+/// returns the others as text.
+union Refusal {
+    /// Intrinsic raises `<intrinsic>: Invalid arguments`.
+    InvalidArguments,
+    /// Credential exceeds 15 characters; the intrinsic raises it.
+    TooLong(Credential),
+    /// New filename exceeds 128 characters; the intrinsic raises it.
+    NameTooLong,
+    /// `set_owner` or `set_group` name contains characters other than letters and digits; the intrinsic raises it.
+    FileOwnershipInvalidName(FileOwnership),
+    /// `set_owner` or `set_group` name exceeds 15 characters; the intrinsic raises it.
+    FileOwnershipNameTooLong(FileOwnership),
+    /// Name has other characters than `[a-zA-Z0-9_.-]`.
+    InvalidName(NameKind),
+    /// Name is longer than 128 characters.
+    LongName,
+    /// File content is longer than 160,000 UTF-16 code units.
+    ContentTooLong,
+    /// `rshell_client` process name contains characters outside `[a-zA-Z0-9_.-]`.
+    InvalidProcessName,
+    /// `rshell_client` process name exceeds 24 characters.
+    ProcessNameTooLong,
+    /// `rshell_client` process name is reserved by the game; contains the name.
+    ReservedProcessName(string),
+    /// Market order's amount or price is not above 0.
+    EmptyOrder,
+    /// Market order is for more coins than one trade allows.
+    TooManyOrderCoins,
+    /// Market order's unit price is higher than one trade allows.
+    OrderPriceTooHigh,
+    /// Mail's address has no name before its `@`, or is too long.
+    InvalidMailAddress,
+    MailSubjectTooLong,
+    MailMessageTooLong,
+    /// Password has other characters than letters and digits.
+    InvalidPassword,
+    /// Password is longer than 15 characters.
+    PasswordTooLong,
+    /// `create_user` user name or password contains characters other than letters and digits.
+    InvalidUserCredentials,
+    /// `create_group` user or group name contains characters other than letters and digits.
+    InvalidGroupCredentials,
+    /// Wallet's or coin's new password has other characters than letters and digits.
+    InvalidWalletPassword,
+    /// Wallet's or coin's new password is longer than 16 characters.
+    WalletPasswordTooLong,
+    /// `create_wallet` name or password contains characters other than letters and digits.
+    InvalidWalletCredentials,
+    /// `create_wallet` name or password exceeds 16 characters.
+    WalletCredentialsTooLong,
+    /// `create_subwallet` user name or password contains characters outside `[a-zA-Z0-9_.-]`.
+    InvalidSubwalletCredentials,
+    /// `create_subwallet` user name or password exceeds 15 characters.
+    SubwalletCredentialsTooLong,
+    /// CTF account's new password is longer than 32 characters.
+    CtfPasswordTooLong,
+    /// CTF account's new password has other characters than ASCII letters and digits.
+    InvalidCtfPassword,
+}
+
+/// Credential rejected as too long by `create_user` or `create_group`.
+enum Credential {
+    UserName = 1,
+    Password = 2,
+    GroupName = 3,
+}
+
+/// File ownership attribute changed by `set_owner` or `set_group`.
+enum FileOwnership {
+    Owner = 1,
+    Group = 2,
+}
+
+/// Kind of name rejected by a rule.
+enum NameKind {
+    /// New file created by `touch`.
+    File = 1,
+    /// New folder created by `create_folder`.
+    Folder = 2,
+    /// New name supplied by `rename`, `copy`, `move`, or `symlink`.
+    New = 3,
+}
+
+/// Script-visible result that can contain a new object.
+union ObjectOutcome {
+    Null,
+    False,
+    Object(ObjectId),
+    /// Reason no object was produced; the intrinsic returns this text.
+    Failure(Failure),
+}
+
+/// Operation error raised in the script with game-compatible formatting. The program prefixes the intrinsic name.
+union ScriptFailure {
+    /// Path contains more than 16 nested folders.
+    TooManyFolders,
+    /// Player computer is offline; raises `<intrinsic>: No internet connection`.
+    NoConnection,
+    /// Script arguments are missing or have incorrect types; raises `<intrinsic>: Invalid arguments`.
+    InvalidArguments,
+    /// Script source computer has no network; raises `<intrinsic>: No internet access.`
+    NoAccess,
+    /// `wifi_networks` requires an active Wi-Fi card.
+    WifiCardInactive,
+    /// Object computer rebooted after handle creation. Every operation on it raises `remote connection interrupted`.
+    ConnectionInterrupted,
+    /// Program has ended, so all later operations fail.
+    ProgramEnded,
+    /// Game failed with an unhandled .NET exception and ends the script with the game script error.
+    GameCrash,
+    /// Game returns the failure text instead of the intrinsic result because a precondition failed before the
+    /// operation started (`CoinIntrinsics.CheckStatus`).
+    Refused(Failure),
+}
+
+/// Reason the server terminated a program.
+enum EndReason {
+    /// Process was closed by another program using `close_program` or `kill`.
+    Closed = 1,
+    /// The program computer rebooted.
+    Reboot = 2,
+    /// The program computer was removed from the world.
+    ComputerRemoval = 3,
+    /// Parent program exited.
+    ParentEnd = 4,
+}
+
+/// Reason reported by the runtime for program termination.
+enum ClientEnd {
+    /// Script exited normally.
+    Finished = 1,
+    /// Script terminated with an error.
+    Error = 2,
+    /// User terminated the program.
+    Stopped = 3,
+    /// Server ended the program with [`ProgramEnd`].
+    Acknowledged = 4,
+    /// The terminal that `start_terminal` started ended with `exit` (`PlayerUtils.ExitCommand`), which closes the
+    /// connection it ran on (`MainClass`, `HelperScript.CloseRemotePrograms`).
+    Exited = 5,
+}
+
+// Computer data types
+/// Process entry formatted for `ps`.
+struct ProcessUsage {
+    user: string,
+    pid: u32,
+    /// Processor usage percentage.
+    cpu: f32,
+    /// Computer memory use percentage.
+    memory: f32,
+    name: string,
+}
+
+/// Result and wait state of `connect_wifi` or `connect_ethernet`.
+struct NetworkSwitch {
+    outcome: Outcome,
+    /// Card checks passed, and the delay before another network switch begins now.
+    starts_wait: bool,
+}
+
+/// Card, local address, and gateway for `connect_ethernet`.
+struct EthernetSettings {
+    device: string,
+    address: string,
+    gateway: string,
+}
+
+
+// Router data types
+/// Port list for a device or the reason it is unavailable.
+union DevicePortList {
+    /// Router is missing, or the device is absent and the program computer is on another network.
+    Null,
+    /// Device is missing behind the program computer's own router.
+    Unreachable,
+    Ports(list<Port>),
+}
+
+
+// Port data types
+/// Service behind a port and its library version.
+struct PortService {
+    service: string,
+    version: string,
+}
+
+/// Port data for a computer or router.
+struct Port {
+    number: u16,
+    /// Port of the computer it leads to; `number` itself for a computer's own port.
+    internal_port: u16,
+    service: string,
+    version: string,
+    lan_ip: string,
+    closed: bool,
+    visible: bool,
+}
+
+
+// Service data types
+
+// NetSession data types
+
+// Metaxploit data types
+
+/// Result of a `net_use` session.
+union NetUseTarget {
+    Null,
+    /// Newly opened `netSession`.
+    Session(ObjectId),
+    /// Reason no session opened; the script prints it before receiving null.
+    Failure(NetUseFailure),
+}
+
+/// Reason `net_use` cannot open a session (`MetaExploitIntrinsics.net_use`).
+union NetUseFailure {
+    /// The address is not a valid IP address.
+    InvalidAddress,
+    /// There is no network with the public address.
+    UnknownAddress,
+    /// Main router of the address's network is rebooting.
+    MainRouterDown,
+    /// The LAN does not let the connection through.
+    Lan(LanFailure),
+    /// There is no computer with the LAN address, or none is at the address the router's port leads to.
+    UnknownComputer,
+    /// Computer, or the router for a public address, has no port with this number.
+    MissingPort,
+    /// Router's port is closed.
+    ClosedPort,
+    /// File of the service's library is not a library; its name.
+    InvalidLibrary(string),
+    /// Service library file, followed through symlinks, does not match the library named by the file; contains that
+    /// filename.
+    UnexpectedLibrary(string),
+}
+
+/// Result of `rshell_client`.
+union RshellClientOutcome {
+    /// The metaxploit computer is gone.
+    Null,
+    /// Connection to the server established.
+    True,
+    /// Reason the connection failed, formatted by the game for the script.
+    Failure(Failure),
+}
+
+/// Reverse-shell server connection failure (`MetaExploitIntrinsics.rshell_client`).
+union RshellFailure {
+    /// There is no network with the address.
+    UnknownAddress(string),
+    /// Router forwards the port to no computer.
+    MissingServer(u16),
+    Service(ServiceFailure),
+}
+
+/// Response from `rshell_server`.
+union RshellServerResponse {
+    Null,
+    /// Reason no clients can be listed.
+    Failure(Failure),
+    /// Shell objects for connected reverse-shell clients.
+    Clients(list<ReverseShellClient>),
+}
+
+/// Shell of a connected reverse-shell client and the object returned by its `host_computer`. The object is the client
+/// computer accessed as the shell user, identical to any other computer object with that access
+/// (`HelperScript.AddComputer`).
+struct ReverseShellClient {
+    shell: ObjectId,
+    computer: ObjectId,
+}
+
+// MetaLib data types
+
+/// Object produced by an exploit.
+union ExploitObject {
+    Null,
+    True,
+    False,
+    /// Target network is disabled for non-payment; the intrinsic returns the reason.
+    DisabledNetwork,
+    Shell(ObjectId),
+    Computer(ObjectId),
+    File(ObjectId),
+}
+
+/// Overflow attack output printed by the intrinsic and the object it returns.
+struct Exploit {
+    log: ExploitLog,
+    object: ExploitObject,
+}
+
+/// Overflow attack output categorized by outcome (`MetaLibIntrinsics.overflow`).
+union ExploitLog {
+    /// No output was printed.
+    Nothing,
+    /// The library is not in `/lib`.
+    OutsideLib,
+    /// Library has no weakness at the address with the value.
+    MissingWeakness,
+    /// Router address is unreachable or behind a firewall, leaving only the weakness that disables it.
+    ConnectionRefusal(LanFailure),
+    /// Attack executed. Contains the required library found beforehand by filename, when present, and the attack
+    /// result.
+    Attack { library: string?, result: AttackResult },
+    /// A CrownShield protects the target network (`Database.IsCrownShieldProtected`).
+    CrownShield,
+}
+
+/// Outcome of an attack.
+union AttackResult {
+    /// A requirement of the weakness is not met.
+    Unmet(UnmetRequirement),
+    /// Requirements are met. Reports whether the network administrator intercepted the attack and forced the guest
+    /// user, plus the reward result.
+    Reward { intercepted: bool, reward: AttackReward },
+}
+
+/// Weakness requirement not met by the target.
+union UnmetRequirement {
+    /// Target is gone.
+    TargetGone,
+    /// The required library, by its file name, is not installed.
+    MissingLibrary(string),
+    /// Required library is older than the weakness needs.
+    OldLibrary { library: string, required: string, installed: string },
+    /// Target has fewer registered users than the weakness needs.
+    TooFewUsers,
+    /// Router forwards fewer ports to the target than the weakness needs.
+    TooFewPortForwards,
+    /// Too few computers are connected to the gateway for the weakness.
+    TooFewGatewayConnections,
+    /// File library's weakness that needs a router.
+    RouterOnly,
+    /// User of the target is not active.
+    NoActiveUser,
+    /// The target's root user is not active.
+    NoActiveRoot,
+    /// Guest is not active on the target.
+    NoGuest,
+    /// File is not at the weakness's path.
+    MissingPath(string),
+    /// The exploit does not run on the router's subnet.
+    OtherSubnet,
+}
+
+/// Outcome of a reward whose weakness requirements are met.
+union AttackReward {
+    /// Computer has no user other than root.
+    NoUser,
+    /// User privileges obtained as a shell or folder.
+    Privileges(string),
+    /// Named weakness folder is gone.
+    MissingResource(string),
+    /// Router's attack names no valid LAN address.
+    InvalidLanAddress,
+    /// Computer is not at the LAN address.
+    MissingComputer(string),
+    /// Computer obtained with the user credentials.
+    Credentials(string),
+    /// The target is not a smart appliance.
+    NotAppliance,
+    /// Appliance's override settings were enabled already.
+    OverrideAlreadyOn,
+    /// Appliance's override settings are enabled.
+    OverrideOn,
+    /// The target is not on a police station's network.
+    NotPolice,
+    /// Traffic lights' override is ready.
+    TrafficOverride,
+    /// The target is not a router.
+    NotRouter,
+    /// Router's firewall is disabled.
+    FirewallOff,
+    /// The guest's password cannot be changed.
+    GuestPassword,
+    /// The new password for the user is not alphanumeric.
+    InvalidPassword(string),
+    /// New password is longer than 15 characters.
+    LongPassword,
+    /// User's password is changed.
+    PasswordChange(string),
+}
+
+// DebugLibrary data types
+
+/// Flawed code of a debug library found by `scan`.
+struct DebugScan {
+    description: string,
+    /// Extra description, empty when none.
+    additional_descriptions: string,
+    /// Code with the flaws, one source line per newline.
+    code: string,
+}
+
+/// Zero-day revealed by a passing unit test.
+struct UnitTestReport {
+    address: string,
+    objects: list<ZeroDayObjectInfo>,
+    vulnerability: WeaknessInfo,
+}
+
+/// Partial object a zero-day can obtain.
+struct ZeroDayObjectInfo {
+    kind: ZeroDayObjectKind,
+    /// User access of the object, or the kind of user that gets it.
+    access: string,
+    methods: list<string>,
+}
+
+/// Kind of object a zero-day can obtain.
+enum ZeroDayObjectKind {
+    Computer = 1,
+    File = 2,
+}
+
+/// Result of a debug-library payload.
+union ZeroDayPayload {
+    /// Reason the payload failed to run.
+    Failure(Failure),
+    /// Partial objects returned by the payload.
+    Objects(list<PartialObject>),
+}
+
+/// Patch state of a library (`MetaLibIntrinsics.is_patched`).
+union PatchState {
+    /// Null because the library does not belong to a file.
+    Null,
+    Unpatched,
+    Patched,
+    /// Library's scheduled self-patch date.
+    AutoPatchAt(string),
+}
+
+/// Failure of a debug library to perform a script request (`MetaLibIntrinsics.debug_tools`,
+/// `DebugLibraryIntrinsics.payload`).
+union DebugFailure {
+    /// The password does not open the debug account, or no account has the user.
+    IncorrectPassword,
+    /// Account failed to log in too often.
+    LoginBlocked,
+    /// Library file is not at the path.
+    MissingFile,
+    /// The library is not in `/lib`.
+    OutsideLib,
+    /// Library is patched against the zero-day.
+    Patched,
+    /// Memory zone has no zero-day.
+    NoVulnerability,
+    /// The payload's file, given, cannot be accessed.
+    UnreachableResource(string),
+    /// Inspection detected an existing patch on the current challenge.
+    ScanPatchPresent,
+    /// Testing detected an existing patch on the current challenge.
+    TestPatchPresent,
+    /// Patch file is absent or binary.
+    InvalidPatchFile,
+    /// The submitted patch is not the generated correct code.
+    IncorrectPatch,
+    /// A patch is already present for this challenge.
+    PatchAlreadyPresent,
+    /// Earlier wrong unit-test answer blocked this debug account.
+    UnitTestLockout,
+    /// Submitted error lines do not exactly match the challenge lines.
+    IncorrectErrorLines,
+}
+
+/// Object that exposes only `methods`.
+union PartialObject {
+    Computer { computer: ObjectId, methods: list<string> },
+    File { file: ObjectId, methods: list<string> },
+    MetaLib { library: ObjectId, methods: list<string> },
+}
+
+// MetaMail data types
+
+/// Mail in an inbox, a thread of one or more messages (`UserMail.Mail`).
+struct Email {
+    id: string,
+    from: string,
+    subject: string,
+    /// First message of the thread.
+    body: string,
+    /// Messages after the first, in the order they were added.
+    replies: list<string>,
+}
+
+/// Inbox returned by `fetch`.
+union InboxContent {
+    Failure(Failure),
+    Emails(list<Email>),
+}
+
+/// Mails selected by `read`.
+union MailReads {
+    /// Null when a mail ID is not text.
+    Null,
+    /// Mail for each ID, ordered by the IDs.
+    Mails(list<MailRead>),
+    Failure(Failure),
+}
+
+/// Mail for one ID.
+union MailRead {
+    Found(Email),
+    /// There is no mail of the inbox with the ID.
+    NotFound,
+}
+
+/// Raw mail arguments passed to `send`.
+union MailDraft {
+    /// Non-text argument makes `send` return null.
+    Invalid,
+    /// Rule rejecting the arguments; `send` returns it after finding the account online.
+    Refusal(Refusal),
+    Email { to: string, subject: string, message: string },
+}
+
+// Crypto data types
+
+/// Result of `smtp_user_list`.
+union SmtpUserList {
+    /// User strings in `name exists name@domain` format.
+    Users(list<string>),
+    /// Reason `PlayerUtils.GetSmtpServer` returned no server.
+    Failure(SmtpFailure),
+}
+
+/// SMTP server lookup failure from `PlayerUtils.GetSmtpServer`.
+union SmtpFailure {
+    /// The address is not a valid IP address.
+    InvalidAddress,
+    /// Computer making the query is gone.
+    HostDown,
+    /// There is no computer with the LAN address, or none is at the address the router's port leads to.
+    UnknownHost,
+    /// There is no network with the public address.
+    UnknownAddress,
+    /// Router has no external port with this number.
+    MissingPort(u16),
+    /// The public port does not lead to the computer's SMTP service port.
+    InvalidService,
+    /// The computer does not run SMTP.
+    MissingService,
+}
+
+// AptClient data types
+
+/// One `update` source and its connection result.
+struct AptUpdate {
+    lines: list<AptUpdateLine>,
+}
+
+union AptUpdateLine {
+    /// Source identified by address is being updated.
+    Update(string),
+    /// Connection failure from `PlayerUtils.ConnectComputer`.
+    Connection(ConnectionFailure),
+    /// Service check failure from `Networking.CheckServiceOnline(repository)`.
+    Service(ServiceFailure),
+    /// Repository's server has no repository configuration file.
+    MissingConfig,
+    /// The repository's configuration file is not the game's format.
+    MalformedConfig,
+}
+
+/// Packages found by a search or repository, or the reason none were returned.
+union PackageList {
+    Packages(list<PackageEntry>),
+    Failure(Failure),
+}
+
+/// Listed package name and description; description is absent on the official server.
+struct PackageEntry {
+    name: string,
+    description: string?,
+}
+
+// SmartAppliance data types
+
+// TrafficNet data types
+
+// Ctf data types
+
+// Blockchain data types
+
+/// Numeric script result or game error.
+union Figure {
+    Null,
+    Number(f64),
+    Failure(Failure),
+}
+
+/// Historical coin price with date in `dd/MMM/yyyy - HH:mm` format.
+struct CoinPrice {
+    price: f64,
+    date: string,
+}
+
+/// Coin prices ordered oldest first.
+union PriceHistory {
+    /// Null when the coin does not exist.
+    Null,
+    Prices(list<CoinPrice>),
+    Failure(Failure),
+}
+
+/// Coin object returned to a script.
+union CoinLogin {
+    Null,
+    Coin(ObjectId),
+    Failure(Failure),
+}
+
+/// Name of the coin created by the script user.
+union CoinName {
+    Null,
+    Name(string),
+    Failure(Failure),
+}
+
+/// Failure of a blockchain, coin, wallet or sub-wallet to perform a script request (`BlockchainIntrinsics`,
+/// `CoinIntrinsics`, `WalletIntrinsics`, `SubWalletIntrinsics`).
+union EconomyFailure {
+    /// Library's computer has no internet access.
+    NoInternet,
+    /// Library's computer is gone.
+    ComputerUnavailable,
+    /// There is no coin with the name.
+    UnknownCoin(string),
+    /// The user or password does not match.
+    IncorrectCredentials,
+    /// Script user created no coin.
+    NoCoinCreated,
+    /// Player has no bank account to pay for a wallet.
+    NoBankAccount,
+    /// Wallet has the user name already.
+    WalletUserTaken,
+    /// Player has a wallet already.
+    OneWalletPerPlayer,
+    /// The wallet does not exist.
+    UnknownWallet,
+    /// Script user does not own the wallet or coin.
+    NotOwner,
+    /// Password was reset less than a day ago.
+    PasswordResetTooSoon,
+    /// Wallet has no open order on the coin.
+    NoPendingTrades,
+    /// Sub-wallet no longer exists.
+    UnknownSubwallet,
+    /// Wallet has no balance of the coin.
+    NoCoinBalance,
+    /// Coin has a sub-wallet of the user already.
+    SubwalletTaken,
+    /// The wallet's PIN does not match.
+    IncorrectPin,
+    /// Wallet already has ten sub-wallets for the coin.
+    TooManySubwallets,
+    /// Network is not at the address.
+    UnknownAddress(string),
+    /// Mining reward over 100,000,000 coins.
+    RewardTooHigh,
+    /// Mining reward under 1 coin.
+    RewardTooLow,
+    /// Mining cycle over 2160 hours.
+    CycleTooLong,
+    /// Mining cycle under 1 hour.
+    CycleTooShort,
+    /// The coin's transaction is not made.
+    Transfer(TransferFailure),
+    /// The mine job does not start, or ends without the reward.
+    MineJob(MineJobFailure),
+}
+
+/// Failure of a coin transfer between two sub-wallets (`CoinIntrinsics.transaction`).
+union TransferFailure {
+    /// Coin no longer exists.
+    UnknownCoin,
+    /// Coin has no sub-wallet of the name.
+    MissingSubwallet(string),
+    /// Named origin sub-wallet has none of the coin.
+    NoCoins(string),
+    /// Origin sub-wallet has less than the amount.
+    InsufficientCoins,
+    /// Remaining coins would be fewer than the origin sub-wallet pending sale offers.
+    SaleOfferShortfall,
+}
+
+/// Sub-wallet mining job failed to start or ended without a reward (`SubWalletIntrinsics.mining`).
+union MineJobFailure {
+    /// Computer mining is gone.
+    ComputerUnavailable,
+    /// Coin no longer exists.
+    CoinGone,
+    /// All coins of the named coin have been mined.
+    AllMined(string),
+    /// Sub-wallet no longer exists.
+    SubwalletGone,
+    /// Sub-wallet already mines the coin from the computer.
+    SecondMineJob,
+    /// Computer GPU health is below 5.
+    DamagedGpu,
+    /// Computer GPU health is below 40 and its floating-point self-test failed.
+    CorruptedGpu,
+}
+
+/// Wallet object returned to a script.
+union WalletLogin {
+    Null,
+    Wallet(ObjectId),
+    Failure(Failure),
+}
+
+// Coin data types
+
+// SubWallet data types
+
+/// Latest sub-wallet transfer.
+struct Transaction {
+    dest_account: string,
+    amount: f64,
+    /// Direction of transfer: 0 for incoming and 1 for outgoing.
+    direction: u8,
+    date: string,
+}
+
+// Wallet data types
+
+/// Open coin order for a wallet.
+union TradeOutcome {
+    /// Null when the wallet does not exist.
+    Null,
+    /// Whole order traded immediately.
+    Complete,
+    /// No trades; the full order remains as an offer.
+    Pending,
+    /// Partial trade; the remainder stays as an offer.
+    Partial,
+    /// Reason the order was not placed.
+    Failure(Failure),
+}
+
+/// Reason a market order was not placed (`BlockchainSystem.BuyCoin` / `SellCoin`).
+union MarketFailure {
+    /// There is no coin with the name.
+    UnknownCoin(string),
+    /// Order's amount or price is refused.
+    Refusal(Refusal),
+    /// The wallet is not registered in the coin.
+    MissingRegistration { coin: string, address: string },
+    /// Coin has no sub-wallet of the name.
+    MissingSubwallet(string),
+    /// The wallet's bank account does not exist.
+    NoBankAccount,
+    /// Bank account has less than the purchase cost in dollars; contains the integer part.
+    InsufficientMoney(i64),
+    /// Sub-wallet has fewer coins than the sale offers.
+    InsufficientCoins,
+    /// Wallet has an open order on the `pending` side that the `placed` order would replace.
+    OpenOffer { offer: Side, order: Side },
+}
+
+/// Order-book side for a coin order.
+enum Side {
+    Buy = 1,
+    Sell = 2,
+}
+
+union PendingTrade {
+    /// Null when the wallet does not exist.
+    Null,
+    /// Coin does not exist, or the wallet has no open order.
+    Failure(Failure),
+    /// Wallet's open order: side, amount and unit price.
+    Order { side: Side, amount: f64, price: f64 },
+}
+
+/// Result of cancelling a wallet open order.
+union CancelTrade {
+    /// Null when the wallet does not exist.
+    Null,
+    /// Cancellation succeeded; the game returns empty text.
+    Success,
+    /// Coin does not exist, or no order was pending.
+    Failure(Failure),
+}
+
+/// All standing offers on a coin, with buys before sells in game order.
+union GlobalOffers {
+    /// Coin does not exist.
+    Failure(Failure),
+    Offers(list<GlobalOffer>),
+}
+
+/// Wallet standing offer in a coin order book.
+struct GlobalOffer {
+    wallet_user: string,
+    side: Side,
+    amount: f64,
+    price: f64,
+}
+
+// Shell data types
+
+/// `connect_service` result containing a shell or login handshake.
+union ServiceConnection {
+    /// Shell opened with fewer methods when connected through FTP.
+    Shell { shell: ObjectId, ftp: bool },
+    /// Encrypted SSH or FTP login with its initial result. The client runs `encode` with the password, then `decode`
+    /// with its result, both in `guest_shell`, before [`ShellCompleteEncryptedLogin`] creates any user shell.
+    Encrypted {
+        user: string,
+        guest_shell: ObjectId,
+        message: bool,
+        failure: LoginFailure?,
+        encode: SourceFile,
+        decode: SourceFile,
+    },
+    /// Reason login failed, formatted by the game for the script.
+    Failure(Failure),
+}
+
+/// Final result of an encrypted service login.
+union ServiceLoginResult {
+    /// Shell opened with fewer methods when connected through FTP.
+    Shell { shell: ObjectId, ftp: bool },
+    /// Initial login failure or decoded-password retry failure.
+    Failure(LoginFailure),
+}
+
+/// SSH or FTP login failure from `PlayerUtils.ConnectToService`.
+union LoginFailure {
+    /// Service is neither SSH nor FTP.
+    InvalidService,
+    Connection(ConnectionFailure),
+    Service(ServiceFailure),
+    /// Computer has no such user with this password.
+    IncorrectPassword,
+    /// Password is correct, but the account NPC is dead or fired.
+    AccountInactive,
+}
+
+/// Result of `get_shell` with credentials (`PlayerIntrinsics.get_shell`).
+union ShellLogin {
+    /// Shell of the user.
+    Shell(ObjectId),
+    /// Null: no matching user with this password.
+    Null,
+    /// Password is correct, but the account NPC is dead or fired.
+    AccountInactive,
+}
+
+/// Connection failure from `PlayerUtils.ConnectComputer` for an address and port.
+union ConnectionFailure {
+    /// Public address has no network, or the LAN address has no reachable computer.
+    UnknownAddress,
+    /// Source's public address has no router.
+    RouterUnavailable,
+    /// Router's port table has no port with this number.
+    MissingPort(u16),
+    /// LAN computer has no port with this number.
+    MissingComputerPort(u16),
+    /// Router's port is closed.
+    ClosedPort,
+    /// Reachable computer is not at the address the router's port leads to.
+    NoMachineBehindPort(u16),
+    /// The computer the router's port leads to does not listen on the port's internal number.
+    ServiceNotBehindPort(u16),
+    /// Network is disabled for not having been paid for.
+    DisabledNetwork,
+    /// Computer behind the router port does not start; contains the reasons in order.
+    Startup(list<StartupFailure>),
+    /// The computer was reached, but the LAN does not let the connection through.
+    Lan(LanFailure),
+}
+
+/// Startup file preventing computer startup (`Computer.CheckInicio`); contains the file path.
+union StartupFailure {
+    /// Boot file is missing.
+    MissingKernelFile(string),
+    /// Graphics file is missing.
+    MissingGraphicsFile(string),
+    /// System file or library is missing.
+    MissingSystemFile(string),
+    /// File has the wrong kind: requires a library of its own name in `/lib`, text for `/etc/xorg.conf`, or otherwise
+    /// a binary.
+    InvalidFile(string),
+}
+
+/// Service unavailable on a reached computer (`Networking.CheckServiceOnline`).
+union ServiceFailure {
+    /// Connection's source has no public address.
+    NoInternet,
+    /// Computer is rebooting or offline.
+    HostDown,
+    /// The computer does not run the service; its name.
+    MissingService(string),
+    /// Service port differs from the directly connected or router-forwarded port.
+    InvalidServicePort,
+    /// Router no longer forwards the public port.
+    MissingPortForward,
+    /// Computer has no file of the service's library in `/lib`; its name.
+    MissingLibrary(string),
+    /// Computer's file of the service's library is not a library; its name.
+    InvalidLibrary(string),
+    /// Main router of the computer's network is rebooting.
+    MainRouterDown,
+    /// Service library file, followed through symlinks, does not match the library named by the file; contains that
+    /// filename.
+    UnexpectedLibrary(string),
+    /// LAN blocks the connection during a connectivity test.
+    Lan(LanFailure),
+    /// Device between the computer and its main router does not start (`Computer.IsOutGoingConnectionOk`).
+    RemoteNetworkDown,
+}
+
+/// `flood_connection` result, including LAN rejection after reaching a computer (`PlayerUtils.FirewallPingStatus`).
+union FloodResult {
+    /// Session's computer is gone.
+    Gone,
+    /// Computer reboots and the script continues. Contains the flooded public address and the warning shown.
+    Reboot { address: string, warning: FloodWarning },
+    /// Computer remains active and the script waits until stopped. Contains the flooded public address and the
+    /// warning shown.
+    Active { address: string, warning: FloodWarning },
+}
+
+/// Warning shown before a flood starts.
+union FloodWarning {
+    None,
+    /// A super administrator requires additional traffic.
+    SuperAdmin,
+    /// A CrownShield blocks the traffic.
+    CrownShield,
+}
+
+enum LanFailure {
+    /// The destination does not respond to the entry's ping.
+    Unreachable = 1,
+    /// Firewall on the way stops it.
+    Firewall = 2,
+}
+
+/// Path and contents of a source file.
+struct SourceFile {
+    path: string,
+    source: string,
+}
+
+/// Source produced by `build`, or the build failure.
+union BuildSource {
+    /// Reason the build could not start, returned to the script.
+    Failure(Failure),
+    /// Source with resolved imports, its line source map, and the output binary name.
+    Code { source: string, name: string, source_map: SourceMap },
+}
+
+/// JavaScript source map for built code. `mappings` maps runs of built lines to lines in `sources`; an uncovered line
+/// belongs to the built code itself. A game-built binary names its own lines with the empty source and an imported
+/// file by its name (`PlayerUtils.HelperImport`).
+struct SourceMap {
+    sources: list<string>,
+    mappings: list<SourceMapping>,
+}
+
+/// One-based mapping: built lines `first..=last` correspond to lines `line..` of source `source`.
+struct SourceMapping {
+    first: u32,
+    last: u32,
+    source: u32,
+    line: u32,
+}
+
+/// Program started by `launch`, or the launch refusal.
+union LaunchOutcome {
+    /// Launch refused without a message because the shell computer is gone.
+    Refusal,
+    /// Reason the launch was refused; the terminal prints it.
+    Failure(Failure),
+    /// Program session, source, and line source map for the launched program.
+    Program { session: ProgramSession, source: string, source_map: SourceMap },
+}
+
+// Player data types
+
+/// Folder chosen by `cd`.
+struct FolderChange {
+    /// Whether the current folder exists. A missing folder makes `cd` start from root.
+    current_exists: bool,
+    target: FolderLookup,
+}
+
+/// Result of a folder path lookup.
+union FolderLookup {
+    Found(string),
+    Missing,
+    /// Folder exists but the user cannot read it.
+    Denial,
+}
+
+/// Library object produced by `include_lib`.
+union IncludedLibrary {
+    /// Null when no includable library exists.
+    Null,
+    Metaxploit(ObjectId),
+    Crypto(ObjectId),
+    AptClient(ObjectId),
+    Blockchain(ObjectId),
+    SmartAppliance(ObjectId),
+    TrafficNet(ObjectId),
+    /// Client library for a service, such as `libssh.so`.
+    Service(ObjectId),
+}
+
+// Admin data types
+
+/// Result of browser CCTV access.
+union CctvAccess {
+    /// Game requests a password when none was supplied.
+    Prompt,
+    /// Camera feed JSON containing the camera LAN address and the people on its network.
+    Data(string),
+    /// Reason camera access failed.
+    Failure(Failure),
+}
+
+/// NPC phone alarm and persistent lateness state.
+struct PhoneAlarmConfig {
+    hour: u8,
+    minute: u8,
+    modified: bool,
+    deleted: bool,
+    late_strikes: u8,
+    fired: bool,
+}
+
+/// Phone alarm update failure (`FileHelperServer.ModifyClockPhoneServerRpc`).
+union AlarmFailure {
+    IncorrectTime,
+    IncompatibleDevice,
+}
+
+/// The exploit shop's offers for a library version, or why it has none.
+union ExploitListing {
+    Offers(list<ExploitOffer>),
+    Failure(Failure),
+}
+
+/// Exploit the shop sells.
+struct ExploitOffer {
+    name: string,
+    /// Shop description with the game's markup (`Exploit.GetShopDescription`).
+    description: string,
+    price: i64,
+}
+
+/// Why the exploit shop did not list or sell an exploit (`NetworkHelperServer.GetExploitListServerRpc`,
+/// `BankHelperServer.BuyItemServerRpc`).
+union ShopFailure {
+    /// The version is not three integers.
+    InvalidVersion,
+    /// The library version has no exploits.
+    NoResults,
+    /// The destination folder is not a valid path.
+    InvalidPath,
+    /// The computer that receives the file is gone.
+    UnknownComputer,
+    /// The computer that receives the file has no network access.
+    NoInternet,
+    /// The destination folder is not there and cannot be made.
+    MissingFolder(string),
+    /// The user cannot create a file in the destination folder.
+    NoCreatePermission { folder: string, name: string },
+    /// The shop has no such exploit.
+    UnknownExploit,
+    /// The player has no bank account.
+    NoBankAccount,
+    /// The player's bank account is not in the bank.
+    UnknownBankAccount(string),
+    /// The account cannot pay the price after the coupons.
+    InsufficientFunds,
+    /// The file was not made after the purchase was paid.
+    File(FileFailure),
+}
+
+/// Failure of an admin operation to perform the request.
+union AdminFailure {
+    /// Network has the public address already.
+    AddressTaken(string),
+    /// Network has the domain already.
+    DomainTaken(string),
+    /// There is no network with the public address.
+    UnknownNetwork(string),
+    /// LAN address is taken or not in the network.
+    LanAddressTaken,
+    /// The service's records cannot be read or the record cannot be parsed (`FileHelperServer.UpdateFichaServerRpc`).
+    CorruptedRecords,
+    /// There is no record or computer with the entry any more.
+    MissingRecord,
+    /// The camera's password is wrong, or the computer is not a camera (`NetworkHelperServer.AccessWebServerRpc`).
+    WrongCameraPassword,
+    /// The network has external camera access disabled.
+    CamerasDisabled,
+    /// A guild has the name already.
+    GuildNameTaken(string),
+    /// A guild has the bank account already.
+    GuildAccountTaken(string),
+    /// There is no guild with the name.
+    UnknownGuild(string),
+    /// The address is not a valid public address (`PanelMainGuild.OnHireCrownShield`).
+    InvalidPublicAddress,
+    /// The guild does not hold the Crown (`PanelMainGuild.ConfigCrownShield`).
+    NoCrown,
+    /// The guild has a CrownShield already.
+    CrownShieldActive,
+    /// The address is not a valid company address (`NetworkHelperServer.AdminCompanySetAdminRestoreServerRpc`).
+    InvalidCompany,
+    /// No network has the company's address.
+    UnknownCompany,
+    /// The guild's bank account is not the majority owner of the company.
+    NotGuildCompany,
+    /// The guild already has Admin Restore off for as many companies as its perks allow.
+    AdminRestoreLimit,
+    /// The company's guild turned Admin Restore off, so its administrator does not update the libraries
+    /// (`Persona.UpdateReportedNetworks`).
+    LibraryUpdateSkipped,
+}
+
+/// Packet captured by `sniffer` (`HelperScript.GetPendingSniffers`).
+struct SniffedPacket {
+    source: string,
+    destination: string,
+    protocol: string,
+    /// User of the login the packet carries.
+    user: string,
+    /// Password of the login the packet carries.
+    password: string,
+    /// Packet carries an encrypted password.
+    encrypted: bool,
+    /// Reason the encoder could not be saved beside the program when requested.
+    encoder_failure: FileFailure?,
+}
+
+/// New network options. Missing values use the world random state.
+struct NetworkOptions {
+    public_ip: string?,
+    essid: string?,
+    wifi_password: string?,
+    domain: string?,
+    /// Starting computer count.
+    computers: u32?,
+}
+
+/// Router for the added network, or the creation error.
+union NetworkCreation {
+    Router(ObjectId),
+    Failure(Failure),
+}
+
+/// New computer options. Missing values use the world random state.
+struct ComputerOptions {
+    name: string?,
+    lan_ip: string?,
+    root_password: string?,
+    /// Users other than root.
+    users: list<ComputerUser>?,
+    /// Names of services to run.
+    services: list<string>?,
+    is_switch: bool,
+    mining_hardware: MiningHardware,
+}
+
+/// Username and password for a computer account.
+struct ComputerUser {
+    name: string,
+    password: string,
+}
+
+/// Hardware that mining jobs can use on the computer.
+struct MiningHardware {
+    cpu_speed: f32,
+    cpu_cores: u32,
+    ram_model: u32,
+    gpu_hashrate: f32,
+}
+
+/// Root computer that was added, or the creation error.
+union ComputerCreation {
+    Computer(ObjectId),
+    Failure(Failure),
+}
+
+/// Model, power, and temperature settings for a smart appliance.
+struct SmartApplianceOptions {
+    model: string,
+    power: i32,
+    temperature: i32,
+    override_enabled: bool,
+}
+
+/// Settings for a CTF event. The server hashes its password.
+struct CtfEventOptions {
+    name: string,
+    user: string,
+    password: string,
+    description: string,
+    public_address: string,
+    creator_name: string,
+    mail_content: string,
+}
+
+/// Rewards for a CTF rating, or the failure message.
+union CtfRating {
+    Rewards { participant: i64, creator: i64 },
+    Failure(Failure),
+}
+
+/// Result of accepting a procedural mission.
+union MissionAcceptance {
+    /// The shop has no network.
+    Null,
+    /// The mission was accepted; the first network of the mission.
+    Accepted(string),
+    /// The mission was not accepted.
+    Failure(Failure),
+}
+
+/// Why a procedural mission was not accepted (`MissionsHelperServer.AcceptMissionServerRpc`).
+union MissionFailure {
+    /// The address is not a hack shop or police network.
+    NotAMissionShop,
+    /// The player has no mail account.
+    NoMailAccount,
+    /// No group of addresses carries a mission for the offer.
+    NoMission,
+}

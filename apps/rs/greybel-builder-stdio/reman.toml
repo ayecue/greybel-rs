@@ -1,0 +1,4 @@
+[project]
+kind = "app"
+# Shipped inside greybel-vs only.
+release = false

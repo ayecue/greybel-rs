@@ -1,0 +1,31 @@
+{
+  "name": "greybel-builder",
+  "version": "0.1.0",
+  "description": "The editor side of the greybel-builder crate: its protocol, for building projects, importing files into Grey Hack and transforming code",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "duplex-core": "^0.1.0"
+  },
+  "devDependencies": {
+    "duplex-driver-stdio": "^0.1.0",
+    "greybel-documents-host-provider": "workspace:*"
+  }
+}

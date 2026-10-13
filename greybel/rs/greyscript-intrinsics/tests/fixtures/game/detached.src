@@ -1,0 +1,128 @@
+// Every game class's methods are also globals taking the object first (`TAC.Context.GetVar` finds a name it has no
+// variable for among the intrinsics), so each call below is written both ways and both results are printed.
+admin = include_lib("admin.so")
+router = admin.create_network({"public_ip": "8.8.8.8", "domain": "target.com", "computers": 0})
+lan = router.local_ip[:-1]
+admin.network("8.8.8.8").add_computer({"name": "web", "lan_ip": lan + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["ssh", "ftp"]})
+admin.network("8.8.8.8").computer(lan + "10").login("root")
+
+// shell and computer
+shell = get_shell
+pc = host_computer(shell)
+print [typeof(pc), pc == shell.host_computer, @host_computer == @shell.host_computer]
+print [lan_ip(pc) == pc.local_ip, public_ip_pc(pc) == pc.public_ip, get_name(pc) == pc.get_name]
+print [@lan_ip == @pc.local_ip, @public_ip_pc == @pc.public_ip]
+print [typeof(@local_ip), typeof(@public_ip)]
+touch(pc, home_dir, "detached.txt")
+print pc.File(home_dir + "/detached.txt") != null
+print [create_folder(pc, home_dir, "one"), pc.create_folder(home_dir, "two"), create_folder(pc, home_dir, "one")]
+print get_ports(pc).len == pc.get_ports.len
+print [show_procs(pc).split(char(10))[0], pc.show_procs.split(char(10))[0]]
+print typeof(ping(shell, "8.8.8.8"))
+
+// file
+root = File(pc, "/")
+print [path(root), name(File(pc, "/bin")), parent(File(pc, "/bin")) == root]
+print [is_folder(root), is_binary(File(pc, "/bin/ls")), is_symlink(root), has_permission(root, "r")]
+print [permissions(root), owner(root), group(root), size(root) == root.size]
+print get_files(File(pc, "/etc")).len == File(pc, "/etc").get_files.len
+print get_folders(root).len == root.get_folders.len
+text = File(pc, home_dir + "/detached.txt")
+print set_content(text, "written")
+print [get_content(text), text.get_content]
+print chmod(text, "o+w") == text.chmod("o-w")
+print rename(text, "renamed.txt")
+print [name(text), text.name, path(text)]
+print delete(text)
+print File(pc, home_dir + "/renamed.txt")
+
+// router and port
+gateway = get_router
+print [typeof(gateway), local_ip(gateway) == gateway.local_ip, public_ip(gateway) == gateway.public_ip]
+print [bssid_name(gateway) == gateway.bssid_name, essid_name(gateway) == gateway.essid_name, kernel_version(gateway) == gateway.kernel_version]
+remote = get_router("8.8.8.8")
+ports = used_ports(remote)
+print ports.len == remote.used_ports.len
+port = ports[0]
+print [port_number(port) == port.port_number, is_closed(port) == port.is_closed, get_lan_ip(port) == port.get_lan_ip]
+print port_info(remote, port) == remote.port_info(port)
+print device_ports(remote, lan + "10").len == remote.device_ports(lan + "10").len
+print devices_lan_ip(remote).len == remote.devices_lan_ip.len
+print [firewall_rules(remote).len, ping_port(remote, 22) == remote.ping_port(22)]
+
+// ftp shell, computer and file
+ftp = connect_service(shell, "8.8.8.8", 21, "root", "toor", "ftp")
+print typeof(ftp)
+ftp_pc = host_computer(ftp)
+print [typeof(ftp_pc), get_name(ftp_pc), get_name(ftp_pc) == ftp_pc.get_name]
+ftp_root = File(ftp_pc, "/")
+print [typeof(ftp_root), path(ftp_root), name(File(ftp_pc, "/etc")), get_files(File(ftp_pc, "/etc")).len > 0]
+print [@File == @ftp_pc.File, @host_computer == @ftp.host_computer, @root.path == @ftp_root.path]
+
+// libraries
+meta = include_lib("/lib/metaxploit.so")
+session = net_use(meta, "8.8.8.8", 22)
+print [typeof(session), typeof(meta.net_use("8.8.8.8", 22))]
+lib = dump_lib(session)
+print [lib_name(lib) == lib.lib_name, version(lib) == lib.version]
+print [get_num_users(session) == session.get_num_users, is_any_active_user(session) == session.is_any_active_user]
+loaded = load(meta, "/lib/init.so")
+print [typeof(loaded), lib_name(loaded)]
+print scan(meta, loaded).len == meta.scan(loaded).len
+print scan_address(meta, loaded, scan(meta, loaded)[0]) == meta.scan_address(loaded, meta.scan(loaded)[0])
+crypto = include_lib("/lib/crypto.so")
+print [typeof(crypto), smtp_user_list(crypto, "8.8.8.8", 25) == crypto.smtp_user_list("8.8.8.8", 25)]
+apt = include_lib("/lib/aptclient.so")
+print [update(apt), show(apt, "official_server") == apt.show("official_server")]
+print search(apt, "blockchain") == apt.search("blockchain")
+chain = include_lib("/lib/blockchain.so")
+print [coin_price(chain, "Bitcoin") == chain.coin_price("Bitcoin"), amount_mined(chain, "Ether") == chain.amount_mined("Ether")]
+wallet = create_wallet(chain, "neo", "matrix1")
+print [typeof(wallet), get_pin(wallet) == wallet.get_pin, list_coins(wallet) == wallet.list_coins]
+print get_balance(wallet, "Bitcoin") == wallet.get_balance("Bitcoin")
+service = include_lib("/lib/libssh.so")
+print [typeof(service), @install_service == @service.install_service]
+mail = mail_login("test@test.com", "test")
+// each MetaMail method waits 2 seconds after the last one, so the method form isn't called right after
+print [typeof(mail), fetch(mail).len, @fetch == @mail.fetch, @delete_mail == @mail.delete, typeof(@delete)]
+
+// ctf event
+admin.create_ctf_account("ctfuser", "pw")
+admin.create_ctf_event({"eventName": "mission", "user": "ctfuser", "password": "pw", "description": "desc", "publicAddress": "1.2.3.4", "creatorName": "creator", "mailContent": "mail"})
+ctf = get_ctf("ctfuser", "pw", "mission")
+print [typeof(ctf), get_description(ctf), get_creator_name(ctf) == ctf.get_creator_name, get_template(ctf) == ctf.get_template]
+
+// a method only reads self when self is an object of a class with that method
+print [host_computer("text"), host_computer(null), host_computer(1), host_computer({}), host_computer(pc)]
+print [lan_ip(shell), File(shell, "/"), name(pc), path(gateway)]
+copy = new shell
+print [host_computer(copy), copy.host_computer]
+print host_computer
+print [typeof(@flood_connection), typeof(@get_balance_subwallet), typeof(@reset_password_coin), typeof(@scan_debuglib)]
+
+// A GreyMap includes class type maps, but map literals are not GreyMaps. Null-checked helper lookups return null.
+print [public_ip(shell), public_ip(gateway.__isa), public_ip({}), public_ip(1), port_number({}), port_number(1)]
+print [lan_ip(gateway), local_ip(pc), public_ip_pc(gateway), public_ip(pc)]
+print [load(shell, "/lib/init.so"), decipher(shell, "hash"), overflow(shell, "0x0", "buffer")]
+print [load(shell, ""), overflow({}, "0x0", "buffer")]
+
+// DebugLibrary.CheckStatus returns text for any GreyMap that is not a debug library, and null for other values.
+print [scan_debuglib(shell), scan_debuglib(shell.__isa), scan_debuglib(meta), scan_debuglib({}), scan_debuglib(1)]
+print [launch(pc, "/bin/ls"), launch({}, "/bin/ls")]
+
+// These wrong helpers are used only after the intrinsic checks its arguments or the MetaMail cooldown.
+print [aircrack(shell, ""), airmon(shell, "", "eth0"), aireplay(shell, "", "", 1)]
+print [smtp_user_list(shell, "bad", 25), encrypt(shell, "/x", "bad!"), rshell_client(shell, "bad", 1222, "x")]
+print [port_info(shell, shell), scan(shell, shell), net_use(shell, "bad", 22)]
+
+// Every shared key that names the same native accepts both classes' objects.
+print [@File == @ftp_pc.File, @create_folder == @ftp_pc.create_folder, @get_name == @ftp_pc.get_name]
+print [@root.copy == @ftp_root.copy, @root.move == @ftp_root.move, @root.rename == @ftp_root.rename, @root.path == @ftp_root.path]
+print [@root.parent == @ftp_root.parent, @root.name == @ftp_root.name, @root.is_folder == @ftp_root.is_folder, @root.is_binary == @ftp_root.is_binary]
+print [@root.is_symlink == @ftp_root.is_symlink, @root.has_permission == @ftp_root.has_permission, @root.delete == @ftp_root.delete]
+print [@root.get_folders == @ftp_root.get_folders, @root.get_files == @ftp_root.get_files, @root.permissions == @ftp_root.permissions]
+print [@root.owner == @ftp_root.owner, @root.group == @ftp_root.group, @root.size == @ftp_root.size, @root.date == @ftp_root.date]
+print [@scp == @ftp.scp, @host_computer == @ftp.host_computer]
+
+// Shared keys naming different intrinsics pass the method-name check, then the other helper returns null.
+print [delete(mail), delete_subwallet(mail), delete_subwallet(root)]

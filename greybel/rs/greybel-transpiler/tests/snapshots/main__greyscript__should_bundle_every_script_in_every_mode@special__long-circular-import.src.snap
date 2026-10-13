@@ -1,0 +1,11 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/special/long-circular-import.src
+---
+=== default
+error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src detected.
+=== uglify
+error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src detected.
+=== beautify
+error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src detected.

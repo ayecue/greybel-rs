@@ -1,0 +1,5 @@
+#include ./envar-include
+#include ./sub-sub-sub-import
+test = 123
+was = 123
+x = 123

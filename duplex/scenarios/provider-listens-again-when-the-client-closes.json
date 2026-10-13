@@ -1,0 +1,69 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider whose client closes fails its messages and listens again.",
+  "peer": "provider",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Confirm": {
+          "question": "continue?"
+        }
+      },
+      "as": "confirmed"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Confirm": {
+                    "question": "continue?"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Close": {
+              "reason": "ClosedChannel"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "connection": null,
+        "closed": null,
+        "settled": {
+          "confirmed": {
+            "closed": "ClosedChannel"
+          }
+        },
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

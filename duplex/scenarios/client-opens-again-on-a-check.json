@@ -1,0 +1,50 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client still opening opens again on each check.",
+  "peer": "client",
+  "requires": ["health-check"],
+  "healthCheck": true,
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "check": 2
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              },
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ],
+        "closed": null
+      }
+    }
+  ]
+}

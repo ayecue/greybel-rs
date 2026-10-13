@@ -1,0 +1,32 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+assertion_line: 36
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/import-code-multiline.src
+---
+=== default
+__MSTR=function(lines)
+return lines.join(char(10))
+end function
+import_code("/dependencies/multiline-import.src")
+print(banner)
+--- dependencies/multiline-import.src
+banner=__MSTR(["first line","second line"])
+=== uglify
+K=function(lines)
+return lines.join(char(10))
+end function
+globals.I=globals
+import_code("/dependencies/multiline-import.src")
+print(J)
+--- dependencies/multiline-import.src
+J=K(["first line","second line"])
+=== beautify
+__MSTR = function(lines)
+	return lines.join(char(10))
+end function
+// The imported file has the multiline string, so this file defines __MSTR for it.
+import_code("/dependencies/multiline-import.src")
+print banner
+--- dependencies/multiline-import.src
+banner = __MSTR(["first line", "second line"])

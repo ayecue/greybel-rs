@@ -1,0 +1,13 @@
+[project]
+kind = "app"
+# The programs scripts/build-binaries.cjs (BINARIES) builds into dist/bin.
+uses = ["rs/greybel-lsp-stdio", "rs/greybel-runtime-stdio", "rs/greyhack-world-server", "rs/greybel-builder-stdio"]
+
+# The extension in VS Code, desktop and web.
+[tasks.desktop]
+suite = "integration"
+run = "pnpm test:desktop"
+
+[tasks.web]
+suite = "integration"
+run = "pnpm test:web"

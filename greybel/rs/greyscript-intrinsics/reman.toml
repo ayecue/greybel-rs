@@ -1,0 +1,7 @@
+[project]
+kind = "library"
+
+# The wasm tests (wasm-bindgen-test-runner).
+[tasks.wasm]
+suite = "integration"
+run = "cargo test -p greyscript-intrinsics --target wasm32-unknown-unknown --test web"

@@ -1,0 +1,56 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client the provider denies closes as denied, keeping the refusal.",
+  "peer": "client",
+  "requires": ["handshake"],
+  "open": {
+    "user": "ada",
+    "token": "t0k"
+  },
+  "protocol": "login",
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0,
+                  "payload": {
+                    "user": "ada",
+                    "token": "t0k"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Refuse": {
+              "id": 0,
+              "reason": "Denial",
+              "payload": "WrongToken"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [],
+        "connection": null,
+        "closed": "Denial",
+        "refusal": "WrongToken",
+        "ack": null
+      }
+    }
+  ]
+}

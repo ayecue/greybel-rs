@@ -1,0 +1,463 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - host_computer
+  - start_terminal
+  - build
+  - connect_service
+  - launch
+  - ping
+  - scp
+definitions:
+  build:
+    argStrings:
+      - - string
+      - - string
+      - - number
+    id: build
+    json:
+      arguments:
+        - default: ~
+          label: pathSource
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: pathBinary
+          opt: false
+          types:
+            - string
+        - default:
+            type: number
+            value: 0
+          label: allowImport
+          opt: false
+          types:
+            - number
+      description: "Builds source into a binary and returns an empty `string` on success or an error `string` on failure. Invalid argument types return `\"build: Invalid arguments\"`; source and destination paths require execute permission on every parent folder."
+      example:
+        - shell = get_shell
+        - computer = shell.host_computer
+        - "computer.touch(home_dir, \"test.src\")"
+        - "computer.File(home_dir + \"/test.src\").set_content(\"print(\"\"hello world\"\")\")"
+        - "buildResult = shell.build(home_dir + \"/test.src\", home_dir + \"/Desktop\")"
+        - "if buildResult != \"\" then"
+        - "   print(\"There was an error while compiling: \" + buildResult)"
+        - else
+        - "   print(\"File has been compiled.\")"
+        - end if
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: shell
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok:
+        - "build: Invalid arguments"
+        - "Can't access to ${pathSource}. Permission denied."
+        - "Can't build ${pathSource}. Binary file"
+        - "Can't build ${pathSource}. Invalid extension."
+        - "Can't compile. Source code is empty"
+        - "Can't create binary in ${pathBinary}. Permission denied."
+        - "Can't find ${pathBinary}"
+        - "Can't find ${pathSource}"
+        - Invalid shell
+        - "pathSource and pathBinary can't be empty"
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  connect_service:
+    argStrings:
+      - - string
+      - - number
+      - - string
+      - - string
+      - - string
+    id: connect_service
+    json:
+      arguments:
+        - default: ~
+          label: ipAddress
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: port
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+        - default:
+            type: string
+            value: ssh
+          label: serviceId
+          opt: false
+          types:
+            - string
+      description: "Connects to SSH or FTP and returns a shell, or an error `string` on failure. Invalid arguments and missing internet now return strings. Valid credentials for a dead or fired NPC return `\"This account is disabled.\"`; SSH encryption still raises."
+      example:
+        - shell = get_shell
+        - "connectionResult = shell.connect_service(\"1.1.1.1\", 22, \"test\", \"test\")"
+        - "if typeof(connectionResult) != \"shell\" then"
+        - "   print(\"There was an error while connecting: \" + connectionResult)"
+        - else
+        - "   print(\"Connected!\")"
+        - end if
+      isProtected: false
+      returns:
+        - shell
+        - ftpShell
+        - string
+        - "null"
+      type: function
+    origin: shell
+    otherLanguageDescription: ~
+    returnStrings:
+      - shell
+      - ftpShell
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "can't connect: incorrect user/password"
+        - "can't connect: port ${port} not found"
+        - "can't connect: port closed"
+        - "can't connect: service not found behind the port ${port}"
+        - "can't connect: the remote server has been temporarily disabled due to non-payment"
+        - "can't connect: There is no active machine behind the port ${port}"
+        - "connect_service: Invalid arguments"
+        - "connect_service: No internet access."
+        - "connection rejected: port forward removed by admin"
+        - Direct connections cannot be made outside of this network
+        - Invalid service ID
+        - Invalid target service port configuration.
+        - ip address not found
+        - No internet access.
+        - Remote host is down
+        - This account is disabled.
+        - "Unable to connect: invalid ${library}"
+        - "Unable to connect: missing ${library}"
+        - "Unable to find service ${service}"
+        - "Unexpected library found. Not a valid ${library} library."
+        - Unknown error
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  host_computer:
+    argStrings: []
+    id: host_computer
+    json:
+      arguments: []
+      description: "Returns a `computer` related to the `shell`."
+      example:
+        - shell = get_shell
+        - computer = shell.host_computer
+        - "print(\"Computer public IP is: \" + computer.public_ip)"
+      isProtected: false
+      returns:
+        - computer
+      type: function
+    origin: shell
+    otherLanguageDescription: ~
+    returnStrings:
+      - computer
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  launch:
+    argStrings:
+      - - string
+      - - string
+    id: launch
+    json:
+      arguments:
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+        - default:
+            type: string
+            value: ""
+          label: params
+          opt: false
+          types:
+            - string
+      description: "Launches a binary synchronously and returns one once it starts, zero or an error `string` when it cannot start. Invalid argument types return `\"launch: Invalid arguments\"`. On a remote shell the program starts in that user's home folder. Execute permission is required on every parent folder; SSH encryption still raises."
+      example:
+        - "shell = get_shell(\"root\", \"test\")"
+        - "shell.launch(\"/bin/cat\", \"/etc/passwd\")"
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: shell
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 0
+        - 1
+        - "Can't find computer"
+        - Invalid shell
+        - "launch: Invalid arguments"
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  ping:
+    argStrings:
+      - - string
+    id: ping
+    json:
+      arguments:
+        - default: ~
+          label: ipAddress
+          opt: false
+          types:
+            - string
+      description: "Returns one for a reachable address, zero for an unreachable one, and an error `string` for invalid input. Signature mismatches return `\"ping: Invalid arguments\"` instead of raising."
+      example:
+        - shell = get_shell
+        - "isPingable = shell.ping(\"1.1.1.1\")"
+        - if isPingable then
+        - "   print(\"Ping was successful!\")"
+        - else
+        - "   print(\"Ping failed!\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: shell
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 0
+        - 1
+        - "ping: Invalid arguments"
+        - "ping: invalid ip address"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  scp:
+    argStrings:
+      - - string
+      - - string
+      - - shell
+      - - number
+    id: scp
+    json:
+      arguments:
+        - default: ~
+          label: path_orig
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: path_dest
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: remote_shell
+          opt: false
+          types:
+            - shell
+        - default:
+            type: number
+            value: 0
+          label: is_upload
+          opt: false
+          types:
+            - number
+      description: "Copies files between shells and returns one on complete success. Invalid arguments return `\"scp: Invalid arguments\"`. If nested items are skipped, returns `\"Warning: one or more files or folders cannot be copied.\"`; SSH encryption still raises."
+      example:
+        - shell = get_shell
+        - "remoteShell = shell.connect_service(\"1.1.1.1\", 22, \"test\", \"test\")"
+        - "result = remoteShell.scp(\"/bin/ls\", \"/etc/\", shell)"
+        - "if typeof(result) == \"string\" then"
+        - "   print(\"There was an error while sending file: \" + result)"
+        - else
+        - "   print(\"File got sent successfully.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: shell
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "${destinationFolder} it's not a folder"
+        - "${destinationFolder} not found"
+        - "${filepath} not found"
+        - "${sourceFile} not found"
+        - Invalid path
+        - permission denied
+        - "permission denied. ${filename} is protected"
+        - "scp: Invalid arguments"
+        - The copy can not be made. Reached maximum limit
+        - The copy can not be made. Reached maximum number of files in a folder
+        - unknown error
+        - "Warning: one or more files or folders cannot be copied."
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  start_terminal:
+    argStrings: []
+    id: start_terminal
+    json:
+      arguments: []
+      description: "Starts a terminal on the shell's computer in place of the running script, as the shell's user and in their home folder. It runs the computer's `/bin/bash` when that is a compiled script, otherwise the game's default bash. The terminal's color changes, displaying the IP of the connected shell. The script pauses until the terminal is closed with `exit`, then continues with an empty custom object and returns `1`; a script started with `shell.launch` loses its process. From then on, network functions such as `get_router` also need the shell's computer to be running. Returns null when not called on a shell, and `Unknown error: Unable to access to local computer` when the shell's computer no longer exists. Using this method within an SSH encryption process throws an error, preventing further script execution."
+      example:
+        - shell = get_shell
+        - shell.start_terminal
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: shell
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 0
+        - 1
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - host_computer
+  - start_terminal
+  - build
+  - connect_service
+  - launch
+  - ping
+  - scp
+descriptions:
+  $meta:
+    description: "A `shell` object can be acquired by either using [get_shell](#GENERAL_GET_SHELL), [connect_service](#SHELL_CONNECT_SERVICE) or [overflow](#METALIB_OVERFLOW). The `classID` used for this object is `\"shell\"`. In case you want to use [connect_service](#SHELL_CONNECT_SERVICE) to connect to a SSH port it will be usually at port `22`."
+    example: ~
+  build:
+    description: "Builds source into a binary and returns an empty `string` on success or an error `string` on failure. Invalid argument types return `\"build: Invalid arguments\"`; source and destination paths require execute permission on every parent folder."
+    example:
+      - shell = get_shell
+      - computer = shell.host_computer
+      - "computer.touch(home_dir, \"test.src\")"
+      - "computer.File(home_dir + \"/test.src\").set_content(\"print(\"\"hello world\"\")\")"
+      - "buildResult = shell.build(home_dir + \"/test.src\", home_dir + \"/Desktop\")"
+      - "if buildResult != \"\" then"
+      - "   print(\"There was an error while compiling: \" + buildResult)"
+      - else
+      - "   print(\"File has been compiled.\")"
+      - end if
+  connect_service:
+    description: "Connects to SSH or FTP and returns a shell, or an error `string` on failure. Invalid arguments and missing internet now return strings. Valid credentials for a dead or fired NPC return `\"This account is disabled.\"`; SSH encryption still raises."
+    example:
+      - shell = get_shell
+      - "connectionResult = shell.connect_service(\"1.1.1.1\", 22, \"test\", \"test\")"
+      - "if typeof(connectionResult) != \"shell\" then"
+      - "   print(\"There was an error while connecting: \" + connectionResult)"
+      - else
+      - "   print(\"Connected!\")"
+      - end if
+  host_computer:
+    description: "Returns a `computer` related to the `shell`."
+    example:
+      - shell = get_shell
+      - computer = shell.host_computer
+      - "print(\"Computer public IP is: \" + computer.public_ip)"
+  launch:
+    description: "Launches a binary synchronously and returns one once it starts, zero or an error `string` when it cannot start. Invalid argument types return `\"launch: Invalid arguments\"`. On a remote shell the program starts in that user's home folder. Execute permission is required on every parent folder; SSH encryption still raises."
+    example:
+      - "shell = get_shell(\"root\", \"test\")"
+      - "shell.launch(\"/bin/cat\", \"/etc/passwd\")"
+  ping:
+    description: "Returns one for a reachable address, zero for an unreachable one, and an error `string` for invalid input. Signature mismatches return `\"ping: Invalid arguments\"` instead of raising."
+    example:
+      - shell = get_shell
+      - "isPingable = shell.ping(\"1.1.1.1\")"
+      - if isPingable then
+      - "   print(\"Ping was successful!\")"
+      - else
+      - "   print(\"Ping failed!\")"
+      - end if
+  scp:
+    description: "Copies files between shells and returns one on complete success. Invalid arguments return `\"scp: Invalid arguments\"`. If nested items are skipped, returns `\"Warning: one or more files or folders cannot be copied.\"`; SSH encryption still raises."
+    example:
+      - shell = get_shell
+      - "remoteShell = shell.connect_service(\"1.1.1.1\", 22, \"test\", \"test\")"
+      - "result = remoteShell.scp(\"/bin/ls\", \"/etc/\", shell)"
+      - "if typeof(result) == \"string\" then"
+      - "   print(\"There was an error while sending file: \" + result)"
+      - else
+      - "   print(\"File got sent successfully.\")"
+      - end if
+  start_terminal:
+    description: "Starts a terminal on the shell's computer in place of the running script, as the shell's user and in their home folder. It runs the computer's `/bin/bash` when that is a compiled script, otherwise the game's default bash. The terminal's color changes, displaying the IP of the connected shell. The script pauses until the terminal is closed with `exit`, then continues with an empty custom object and returns `1`; a script started with `shell.launch` loses its process. From then on, network functions such as `get_router` also need the shell's computer to be running. Returns null when not called on a shell, and `Unknown error: Unable to access to local computer` when the shell's computer no longer exists. Using this method within an SSH encryption process throws an error, preventing further script execution."
+    example:
+      - shell = get_shell
+      - shell.start_terminal
+extends: map
+hidden: false

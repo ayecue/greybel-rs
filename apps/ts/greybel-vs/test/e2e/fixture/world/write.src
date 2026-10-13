@@ -1,0 +1,3 @@
+computer = get_shell.host_computer
+computer.touch(home_dir, "shared.txt")
+computer.File(home_dir + "/shared.txt").set_content("from the writer")

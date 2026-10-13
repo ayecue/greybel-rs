@@ -1,0 +1,63 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider migrates the stream a client of an older major sends after a message up by default, item by item.",
+  "peer": "provider",
+  "requires": ["responses", "streams", "migration"],
+  "major": 2,
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Sum": {}
+            }
+          },
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 4
+            }
+          },
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 5
+            }
+          },
+          {
+            "MessageEnd": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              },
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Sum": 9
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider refuses a client of a major it neither speaks nor migrates, naming its own major and those it migrates.",
+  "peer": "provider",
+  "requires": ["migration"],
+  "major": 2,
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 7,
+              "protocol": "3.0",
+              "fingerprint": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Refuse": {
+                  "id": 7,
+                  "reason": "VersionMismatch",
+                  "protocol": "2.0",
+                  "majors": [
+                    1,
+                    2
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "connection": null
+      }
+    }
+  ]
+}

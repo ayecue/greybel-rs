@@ -1,0 +1,4 @@
+#import Lib from "../dependencies/import-isa-lib.src";
+#import liba from "../dependencies/import-isa-lib-instance.src";
+
+print((liba isa Lib))

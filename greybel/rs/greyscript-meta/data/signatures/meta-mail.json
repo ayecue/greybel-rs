@@ -1,0 +1,140 @@
+{
+  "type": "metaMail",
+  "extends": "map",
+  "definitions": {
+    "delete": {
+      "id": "delete_mail",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "mailIDs",
+          "type": {
+            "type": "list",
+            "valueType": "string"
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "delete: No internet access.",
+        "MetaMail: Unable to refresh mail account.",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "fetch": {
+      "id": "fetch",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        "fetch: No internet access.",
+        "MetaMail: Unable to refresh mail account.",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "string",
+        "null"
+      ]
+    },
+    "read": {
+      "id": "read",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "mailIDs",
+          "type": {
+            "type": "list",
+            "valueType": "string"
+          }
+        }
+      ],
+      "returnVariations": [
+        "Mail not found",
+        "MetaMail: Unable to refresh mail account.",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "read: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "string",
+        "null"
+      ]
+    },
+    "send": {
+      "id": "send",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "destAddress",
+          "type": "string"
+        },
+        {
+          "label": "subject",
+          "type": "string"
+        },
+        {
+          "label": "message",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.SendMail",
+        "Mail not delivered",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "send: No internet access.",
+        "send: Unable to access mail account.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "delete_all": {
+      "id": "delete_all",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        1,
+        "delete_all: No internet access.",
+        "MetaMail: Unable to refresh mail account.",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    }
+  }
+}

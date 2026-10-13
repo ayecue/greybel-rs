@@ -1,0 +1,15 @@
+use core 1.0;
+
+/// Vault that opens only on a transport that authenticates both endpoints.
+protocol Vault = "vault" {
+    security authenticated;
+
+    /// Vault that stores secrets.
+    provider Keeper {
+        /// Secret stored under the requested name.
+        message Reveal { name: string } -> string
+    }
+
+    /// Client that requests secrets.
+    client Asker {}
+}

@@ -1,0 +1,11 @@
+sum = 0
+i = 0
+while i < 100000
+  if i % 3 == 0 then
+    sum = sum + i
+  else if i % 5 == 0 then
+    sum = sum - 1
+  end if
+  i = i + 1
+end while
+print sum

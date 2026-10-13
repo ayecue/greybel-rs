@@ -1,0 +1,23 @@
+[package]
+name = "greybel-documents-memory-provider"
+description = "Serves greybel-documents from files held in memory, a pseudo file system for the web and tests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greybel-documents.workspace = true
+vscode-uri.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

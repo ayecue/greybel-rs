@@ -1,0 +1,24 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/wifi.src
+---
+1
+0
+Waiting for beacon frame (BSSID: AC:97:A1:3F:A1:C1)
+Sending Authentication Request (Open system) [ACK]
+Authentication successful
+Sending Association Request
+Association successful :-)
+Read 10410 packets (got 3908 ACKs)
+null
+1
+Waiting for beacon frame (BSSID: AC:97:A1:3F:A1:C1)
+Sending Authentication Request (Open system) [ACK]
+Authentication successful
+Sending Association Request
+Association successful :-)
+Read 161 packets (got 50 ACKs)
+Key not found. More acks needed.
+null
+router not found!

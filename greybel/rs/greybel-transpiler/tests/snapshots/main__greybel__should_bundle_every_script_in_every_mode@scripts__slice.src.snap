@@ -1,0 +1,64 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/slice.src
+---
+=== default
+divideString=function(str,limit)
+offset=0
+maxLen=str.len
+frags=[]
+while offset<maxLen
+next=offset+limit
+frags.push(str[offset:next])
+offset=next
+end while
+return frags
+end function
+print(divideString("blahhblahhblahhblahhblahhblahhgad",5))
+=== uglify
+globals.I=globals
+J=function(str,K)
+L=0
+M=str.len
+N=[]
+while L<M
+O=L+K
+N.push(str[L:O])
+L=O
+end while
+return N
+end function
+print(J("blahhblahhblahhblahhblahhblahhgad",5))
+=== beautify
+divideString = function(str, limit)
+	offset = 0
+	maxLen = str.len
+	frags = []
+
+	while offset < maxLen
+		next = offset + limit
+		frags.push str[offset : next]
+		offset = next
+	end while
+
+	return frags
+end function
+
+print divideString("blahhblahhblahhblahhblahhblahhgad", 5)
+=== beautify, dev mode, keep parentheses, 10 spaces
+divideString = function(str, limit)
+          offset = 0
+          maxLen = str.len
+          frags = []
+
+          while offset < maxLen
+                    next = offset + limit
+                    frags.push(str[offset : next])
+                    offset = next
+          end while
+
+          return frags
+end function
+
+print(divideString("blahhblahhblahhblahhblahhblahhgad", 5))

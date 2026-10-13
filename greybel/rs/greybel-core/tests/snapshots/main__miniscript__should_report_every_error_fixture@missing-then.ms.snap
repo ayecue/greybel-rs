@@ -1,0 +1,16 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/errors/missing-then.ms
+---
+--- strict
+1:1 - 1:5 ExpectedToken(3001): got EOL(
+) where Keyword(then) is required
+--- tree
+Chunk[1:1-4:1][
+	AssignmentStatement[2:2-2:7][Identifier[2:2-2:3][y] = Literal[2:6-2:7][1]]
+]
+--- errors
+1:1 - 1:5 ExpectedToken(3001): got EOL(
+) where Keyword(then) is required
+3:7 - 3:7 UnmatchedEnd(4001): 'end if' without matching 'if'

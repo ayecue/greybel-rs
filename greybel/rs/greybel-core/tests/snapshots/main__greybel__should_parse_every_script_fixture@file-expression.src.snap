@@ -1,0 +1,9 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/scripts/file-expression.src
+---
+Chunk[1:1-2:17][
+	CallStatment[1:1-1:16][CallExpression[1:1-1:16][Identifier[1:1-1:6][print](FeatureFileExpression[1:7-1:16][path = unknown])]]
+	AssignmentStatement[2:1-2:17][Identifier[2:1-2:5][test] = FeatureFileExpression[2:8-2:17][path = unknown]]
+]

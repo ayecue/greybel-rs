@@ -1,0 +1,36 @@
+// The crypto library on the player's own computer and a target's mail server.
+crypto = include_lib("/lib/crypto.so")
+print typeof(crypto)
+
+home = get_shell.host_computer
+home.touch(home_dir, "secret.txt")
+home.File(home_dir + "/secret.txt").set_content("classified")
+file = home_dir + "/secret.txt"
+
+print crypto.is_encrypted(file)
+print crypto.encrypt(file, "hunter2")
+print crypto.is_encrypted(file)
+print crypto.encrypt(file, "hunter2")
+print crypto.decrypt(file, "wrong1")
+print crypto.decrypt(file, "hunter2")
+print crypto.is_encrypted(file)
+
+print crypto.encrypt(file, "bad pass")
+print crypto.encrypt(file, "0123456789abcdef1")
+print crypto.encrypt("", "abc")
+print crypto.encrypt(home_dir + "/missing", "abc")
+print crypto.is_encrypted(home_dir + "/missing")
+
+// decipher a known user's password hash via md5.
+hash = md5("toor")
+admin = include_lib("admin.so")
+router = admin.create_network({"public_ip": "8.8.8.8", "domain": "m.com", "computers": 0})
+lan = router.local_ip[:-1]
+admin.network("8.8.8.8").add_computer({"name": "mail", "lan_ip": lan + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["smtp"]})
+print crypto.decipher(hash)
+print crypto.decipher(md5("pass"))
+print crypto.decipher("deadbeef")
+
+print crypto.smtp_user_list("8.8.8.8", 25)
+print crypto.smtp_user_list("8.8.8.8", 22)
+print crypto.smtp_user_list("nope", 25)

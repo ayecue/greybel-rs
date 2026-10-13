@@ -1,0 +1,4 @@
+[project]
+kind = "app"
+# Named after its program, `greybel-lsp`.
+tag = "greybel-lsp/v{version}"

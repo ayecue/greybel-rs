@@ -1,0 +1,60 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: snapshot
+---
+char(65536)
+  raises char: invalid char code.
+char(55296)
+  raises char: invalid char code.
+code("")
+  raises code: empty string
+"😀".code
+  raises code: invalid char code.
+[1].join("x" * 129)
+  raises join: delimiter too large
+l = []; l.push(l)
+  raises push: Unable to stack to itself
+{}.push(null)
+  raises push: value cannot be null.
+range(null, 2)
+  raises range() "from" and "to" parameters cannot be null
+range(1, null)
+  raises range() "from" and "to" parameters cannot be null
+replace("abc", "a", "b")
+  raises invalid replace invocation: replace must be called from the string itself, for example: abc.replace
+wait(0)
+  raises wait: time must have a value between 0.01 and 300
+wait(301)
+  raises wait: time must have a value between 0.01 and 300
+md5(1)
+  returns md5: Invalid arguments
+"a".split("a", "q")
+  returns split: Invalid regex option
+"a".replace("", "b")
+  raises Type Error: 'replace' pattern can't be empty or null
+"a".replace("a", 1)
+  raises Type Error: 'replace' requires string
+"a".replace("a", "b", "q")
+  returns replace: Invalid regex option
+"a".is_match(1)
+  raises Type Error: 'is_match' requires string
+"a".is_match("")
+  raises Type Error: 'is_match' pattern can't be empty or null
+"a".is_match("a", "ix")
+  raises is_match: Invalid regex option
+("a" * 40 + "b").is_match("(a|aa)+(?=b)c")
+  raises is_match: operation timeout
+"a".matches("")
+  raises Type Error: 'is_match' pattern can't be empty or null
+"a".matches(1)
+  raises Type Error: 'matches' requires string
+"a".matches("a", "z")
+  returns matches: Invalid regex option
+"a".matches("(")
+  returns parsing "(" - Not enough )'s.
+[1].remove(5)
+  raises Index Error: index (5) out of range (0 to 0)
+refEquals(1, 1)
+  raises Undefined Identifier: 'refEquals' is unknown in this context
+stackTrace
+  raises Undefined Identifier: 'stackTrace' is unknown in this context

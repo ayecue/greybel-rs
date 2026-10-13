@@ -1,0 +1,21 @@
+[package]
+name = "greybel-api-reference-web"
+description = "Browser-worker API reference documentation over a host-provided MessagePort, using wasm-bindgen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+duplex-driver-web.workspace = true
+greybel-api-reference.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+
+[lints]
+workspace = true

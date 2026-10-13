@@ -1,0 +1,41 @@
+{
+  "$meta": {
+    "description": "A `smartAppliance` object can be obtained by using [include_lib](#GENERAL_INCLUDE_LIB). The `classID` used for this object is `\"SmartAppliance\"`."
+  },
+  "model": {
+    "description": "Returns a `string` with the appliance model ID.",
+    "example": [
+      "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")",
+      "modelResult = libSmartapp.model",
+      "if modelResult.matches(\"^[A-Z]+$\") then",
+      "    print(\"Model is: \" + modelResult)",
+      "else",
+      "    print(\"Model couldn't be determined due to: \" + modelResult)",
+      "end if"
+    ]
+  },
+  "override_settings": {
+    "description": "Applies the exact power and temperature required by the appliance model. Other values return `\"override_settings: invalid power or temperature for this model. Check the device manual.\"`. With the alarm enabled, returns `\"override_settings: warning: Unsafe settings applied. The safety alarm will shut down the appliance if these values are reached.\"`; the accident is triggered only after the alarm is disabled, including by a later `set_alarm(0)` call.",
+    "example": [
+      "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")",
+      "overrideResult = libSmartapp.override_settings(1000, 20)",
+      "if overrideResult == 1 then",
+      "    print(\"Override was successful!\")",
+      "else",
+      "    print(\"Override failed due to: \" + overrideResult)",
+      "end if"
+    ]
+  },
+  "set_alarm": {
+    "description": "Activates or deactivates the sound alarm indicating any appliance malfunction. If the operation is successful, a `number` with the value one is returned; otherwise, a `string` containing error details is returned. If the `enable` argument deviates from the defined signature, the method will return `null`. Disabling the alarm with `set_alarm(0)` can trigger an accident when unsafe override values are active.",
+    "example": [
+      "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")",
+      "setAlarmResult = libSmartapp.set_alarm(false)",
+      "if setAlarmResult == 1 then",
+      "    print(\"Alarm was disabled successfully!\")",
+      "else",
+      "    print(\"Disabling alarm failed due to: \" + setAlarmResult)",
+      "end if"
+    ]
+  }
+}

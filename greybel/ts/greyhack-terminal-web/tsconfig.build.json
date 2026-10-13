@@ -1,0 +1,11 @@
+{
+  "extends": "presets/tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "types": ["vite/client"],
+    "customConditions": [],
+    "emitDeclarationOnly": true
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,26 @@
+{
+  "type": "version",
+  "extends": "map",
+  "definitions": {
+    "miniscript": {
+      "type": "string",
+      "tags": []
+    },
+    "buildDate": {
+      "type": "string",
+      "tags": []
+    },
+    "host": {
+      "type": "number",
+      "tags": []
+    },
+    "hostName": {
+      "type": "string",
+      "tags": []
+    },
+    "hostInfo": {
+      "type": "string",
+      "tags": []
+    }
+  }
+}

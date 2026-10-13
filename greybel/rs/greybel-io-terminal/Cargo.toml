@@ -1,0 +1,27 @@
+[package]
+name = "greybel-io-terminal"
+description = "Standard input and output of greybel-interpreter programs on the process's terminal"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greybel-io.workspace = true
+crossterm.workspace = true
+scheduler.workspace = true
+
+[dev-dependencies]
+greybel-test-support = { workspace = true, features = ["io"] }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

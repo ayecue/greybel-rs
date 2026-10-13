@@ -1,0 +1,103 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client fails a message that has a response as overloaded, sending nothing of it, while as many as its limits allow wait for their responses.",
+  "peer": "client",
+  "requires": ["responses", "limits"],
+  "connected": true,
+  "limits": {
+    "pending": 1
+  },
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "first"
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 3,
+          "b": 4
+        }
+      },
+      "as": "second"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1,
+                    "b": 2
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "settled": {
+          "first": "pending",
+          "second": {
+            "rejected": "Overload"
+          }
+        }
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseEnd": {
+              "id": 0,
+              "Add": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 5,
+          "b": 6
+        }
+      },
+      "as": "third"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 5,
+                    "b": 6
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "settled": {
+          "first": {
+            "response": 3
+          }
+        }
+      }
+    }
+  ]
+}

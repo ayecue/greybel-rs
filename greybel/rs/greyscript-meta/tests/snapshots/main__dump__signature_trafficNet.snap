@@ -1,0 +1,161 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - camera_link_system
+  - locate_vehicle
+  - get_credentials_info
+definitions:
+  camera_link_system:
+    argStrings: []
+    id: camera_link_system
+    json:
+      arguments: []
+      description: "Accesses the traffic camera system, opening a window with controls to switch between different cameras. If the window opens successfully, this method returns a `number` with the value one. In case of an error, it returns a `string` with details."
+      example:
+        - "libTraffic = include_lib(\"/lib/libtrafficnet.so\")"
+        - linkSystemResult = libTraffic.camera_link_system
+        - if linkSystemResult == 1 then
+        - "    print(\"Initiated camera broadcast!\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+      type: function
+    origin: trafficNet
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+    returnVariations:
+      ok:
+        - 1
+        - "error: No internet access."
+        - "error: This device is not registered on any police network"
+        - "Error: This user cannot access the global camera system for another 12 hours."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_credentials_info:
+    argStrings: []
+    id: get_credentials_info
+    json:
+      arguments: []
+      description: "Returns string which contains job and name of a NPC. If an error occurs, a `string` with details is returned."
+      example:
+        - "libTraffic = include_lib(\"/lib/libtrafficnet.so\")"
+        - print(libTraffic.get_credentials_info)
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: trafficNet
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok:
+        - "${job} ${name}"
+        - "error: No internet access."
+        - "error: This device is not registered on any police network"
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  locate_vehicle:
+    argStrings:
+      - - string
+      - - string
+    id: locate_vehicle
+    json:
+      arguments:
+        - default: ~
+          label: license_plate
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Locates a vehicle by its opaque 17-character license plate. Camera cooldown failures now report 12 hours. Returns one when a camera shows the vehicle, otherwise an error `string` or `null`."
+      example:
+        - "libTraffic = include_lib(\"/lib/libtrafficnet.so\")"
+        - libTraffic.camera_link_system
+        - "vehicleSearchResult = libTraffic.locate_vehicle(\"1L2M3N\", \"pass\")"
+        - if vehicleSearchResult == 1 then
+        - "    print(\"Found vehicle!\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: trafficNet
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "error: Incorrect password. Access denied."
+        - "error: Invalid license plate."
+        - "error: No internet access."
+        - "error: This device is not registered on any police network"
+        - "Error: This network has disabled access to the traffic cameras."
+        - "Error: This user cannot access the global camera system for another 12 hours."
+        - "Error: Unable to use the camera at this time. Too many calls."
+        - "error: Workstation not found. Unable to get the credentials info from ${credentials}"
+        - "locate_vehicle: License plate not found."
+        - The vehicle could not be located in the camera system at this time.
+        - "The vehicle could not be located: CrownShield provides secure transport for this network administrator."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - camera_link_system
+  - locate_vehicle
+  - get_credentials_info
+descriptions:
+  $meta:
+    description: "A `trafficNet` object can be obtained by using [include_lib](#GENERAL_INCLUDE_LIB). The `classID` used for this object is `\"TrafficNet\"`."
+    example: ~
+  camera_link_system:
+    description: "Accesses the traffic camera system, opening a window with controls to switch between different cameras. If the window opens successfully, this method returns a `number` with the value one. In case of an error, it returns a `string` with details."
+    example:
+      - "libTraffic = include_lib(\"/lib/libtrafficnet.so\")"
+      - linkSystemResult = libTraffic.camera_link_system
+      - if linkSystemResult == 1 then
+      - "    print(\"Initiated camera broadcast!\")"
+      - end if
+  get_credentials_info:
+    description: "Returns string which contains job and name of a NPC. If an error occurs, a `string` with details is returned."
+    example:
+      - "libTraffic = include_lib(\"/lib/libtrafficnet.so\")"
+      - print(libTraffic.get_credentials_info)
+  locate_vehicle:
+    description: "Locates a vehicle by its opaque 17-character license plate. Camera cooldown failures now report 12 hours. Returns one when a camera shows the vehicle, otherwise an error `string` or `null`."
+    example:
+      - "libTraffic = include_lib(\"/lib/libtrafficnet.so\")"
+      - libTraffic.camera_link_system
+      - "vehicleSearchResult = libTraffic.locate_vehicle(\"1L2M3N\", \"pass\")"
+      - if vehicleSearchResult == 1 then
+      - "    print(\"Found vehicle!\")"
+      - end if
+extends: map
+hidden: false

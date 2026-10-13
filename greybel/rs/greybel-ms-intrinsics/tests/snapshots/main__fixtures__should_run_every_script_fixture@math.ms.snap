@@ -1,0 +1,18 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/math.ms
+---
+1337
+NaN
+NaN
+1.570048
+-3.878661
+1337
+0.249657
+1337
+-0.968334
+1337
+36.565011
+3.141593
+12000

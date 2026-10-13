@@ -1,0 +1,762 @@
+{
+  "name": "greybel-vs",
+  "displayName": "Greybel VS",
+  "description": "Toolkit for GreyScript.",
+  "publisher": "ayecue",
+  "author": {
+    "name": "ayecue",
+    "email": "soerenwehmeier@googlemail.com"
+  },
+  "icon": "icon.png",
+  "version": "3.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ayecue/greybel-vs.git"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^12.12.0",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^5.27.1",
+    "@typescript-eslint/parser": "^5.27.1",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/test-web": "^0.0.81",
+    "@vscode/vsce": "^3.6.2",
+    "dotenv": "^16.4.5",
+    "esbuild": "0.21.0",
+    "esbuild-plugin-polyfill-node": "0.3.0",
+    "eslint": "^8.17.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-security": "^1.5.0",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "events": "^3.3.0",
+    "mocha": "^11.8.0",
+    "ovsx": "^0.10.6",
+    "source-map-support": "^0.5.12",
+    "wasm-host": "^0.1.0"
+  },
+  "scripts": {
+    "build": "pnpm run compile",
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "node scripts/clean-dist.cjs && pnpm run compile:ts && pnpm run compile:node && pnpm run compile:browser && pnpm run compile:webviews && pnpm run move",
+    "compile:ts": "tsc -p ./",
+    "compile:node": "node scripts/build-node.cjs",
+    "compile:browser": "node scripts/build-browser.cjs",
+    "compile:webviews": "node scripts/build-webviews.cjs",
+    "build:binaries": "node scripts/build-binaries.cjs",
+    "package": "node scripts/package.cjs",
+    "move": "pnpm run move:grammar && pnpm run move:lsp-web && pnpm run move:runtime-web && pnpm run move:world-web && pnpm run move:builder-web && pnpm run move:webviews",
+    "move:grammar": "cp node_modules/greyscript-textmate/dist/greyscript.tmLanguage.json node_modules/greyscript-textmate/dist/greyscriptLanguageConfig.json ./dist/",
+    "move:lsp-web": "cp node_modules/greybel-lsp-web/dist/worker.js ./dist/lsp-web.js && cp node_modules/greybel-lsp-web/dist/greybel-lsp-web.wasm ./dist/lsp-web.wasm",
+    "move:runtime-web": "cp node_modules/greybel-runtime-web/dist/index.js ./dist/runtime-web.js && cp node_modules/greybel-runtime-web/dist/greybel-runtime-web.wasm ./dist/runtime-web.wasm",
+    "move:world-web": "cp node_modules/greyhack-world-operations-web/dist/index.js ./dist/world-web.js && cp node_modules/greyhack-world-operations-web/dist/greyhack-world-operations-web.wasm ./dist/world-web.wasm",
+    "move:builder-web": "cp node_modules/greybel-builder-web/dist/index.js ./dist/builder-web.js && cp node_modules/greybel-builder-web/dist/greybel-builder-web.wasm ./dist/builder-web.wasm",
+    "move:webviews": "cp node_modules/greyhack-terminal-web/dist/greyhack-terminal-web.wasm ./dist/preview.wasm && cp node_modules/greybel-api-reference-web/dist/greybel-api-reference-web.wasm ./dist/api-reference.wasm",
+    "typecheck": "tsc -p ./ --noEmit && tsc -p test --noEmit",
+    "lint": "eslint ./src/**/*.ts",
+    "lint:fix": "eslint --fix ./src/**/*.ts",
+    "watch": "tsc -watch -p ./",
+    "compile:tests": "node scripts/build-tests.cjs",
+    "test:desktop": "pnpm run compile && node scripts/build-binaries.cjs --debug && pnpm run compile:tests && vscode-test",
+    "test:web": "pnpm run compile && pnpm run compile:tests && vscode-test-web --browser=chromium --headless --extensionDevelopmentPath=. --extensionTestsPath=out/test/web/index.js test/e2e/fixture"
+  },
+  "homepage": "https://github.com/ayecue/greybel-vs",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Debuggers",
+    "Programming Languages",
+    "Formatters"
+  ],
+  "main": "dist/extension.js",
+  "browser": "dist/extension.browser.js",
+  "qna": "false",
+  "bugs": {
+    "url": "https://github.com/ayecue/greybel-vs/issues"
+  },
+  "activationEvents": [
+    "onLanguage:greyscript"
+  ],
+  "contributes": {
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "greybel.debug.runFileFromContext",
+          "when": "resourceLangId == greyscript && config.greybel.rootFile == ''",
+          "group": "navigation@1"
+        },
+        {
+          "command": "greybel.debug.debugFileFromContext",
+          "when": "resourceLangId == greyscript && config.greybel.rootFile == ''",
+          "group": "navigation@2"
+        },
+        {
+          "command": "greybel.debug.runRootFile",
+          "when": "resourceLangId == greyscript && config.greybel.rootFile != ''",
+          "group": "navigation@1"
+        },
+        {
+          "command": "greybel.debug.debugRootFile",
+          "when": "resourceLangId == greyscript && config.greybel.rootFile != ''",
+          "group": "navigation@2"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "greybel.gotoError",
+          "when": "resourceLangId == greyscript",
+          "group": "navigation"
+        },
+        {
+          "submenu": "greybel.transform",
+          "when": "resourceLangId == greyscript",
+          "group": "1_modification"
+        },
+        {
+          "command": "greybel.buildFileFromContext",
+          "when": "resourceLangId == greyscript",
+          "group": "1_modification"
+        },
+        {
+          "command": "greybel.debug.runFileFromContext",
+          "when": "resourceLangId == greyscript",
+          "group": "z_commands"
+        },
+        {
+          "command": "greybel.debug.debugFileFromContext",
+          "when": "resourceLangId == greyscript",
+          "group": "z_commands"
+        },
+        {
+          "command": "greybel.api",
+          "when": "resourceLangId == greyscript",
+          "group": "z_commands"
+        },
+        {
+          "command": "greybel.preview",
+          "when": "resourceLangId == greyscript",
+          "group": "z_commands"
+        },
+        {
+          "command": "greybel.share",
+          "when": "resourceLangId == greyscript",
+          "group": "z_commands"
+        },
+        {
+          "command": "greybel.import",
+          "group": "1_modification"
+        }
+      ],
+      "greybel.transform": [
+        {
+          "command": "greybel.transform.clipboard",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.transform.write",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.uglify.write",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.beautify.write",
+          "when": "resourceLangId == greyscript"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "greybel.buildFileFromContext",
+          "when": "resourceLangId == greyscript",
+          "group": "1_modification"
+        },
+        {
+          "command": "greybel.debug.runFileFromContext",
+          "when": "resourceLangId == greyscript",
+          "group": "z_commands"
+        },
+        {
+          "command": "greybel.debug.debugFileFromContext",
+          "when": "resourceLangId == greyscript",
+          "group": "z_commands"
+        },
+        {
+          "command": "greybel.share",
+          "when": "resourceLangId == greyscript",
+          "group": "z_commands"
+        },
+        {
+          "command": "greybel.import",
+          "group": "z_commands"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "greybel.debug.debugFileFromContext",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.debug.runFileFromContext",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.debug.debugRootFile",
+          "when": "resourceLangId == greyscript && config.greybel.rootFile != ''"
+        },
+        {
+          "command": "greybel.debug.runRootFile",
+          "when": "resourceLangId == greyscript && config.greybel.rootFile != ''"
+        },
+        {
+          "command": "greybel.transform.clipboard",
+          "when": "false"
+        },
+        {
+          "command": "greybel.transform.write",
+          "when": "false"
+        },
+        {
+          "command": "greybel.uglify.write",
+          "when": "false"
+        },
+        {
+          "command": "greybel.beautify.write",
+          "when": "false"
+        },
+        {
+          "command": "greybel.share",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.api",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.preview",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.buildRootFile",
+          "when": "resourceLangId == greyscript && config.greybel.rootFile != ''"
+        },
+        {
+          "command": "greybel.buildFileFromContext",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.import",
+          "when": "resourceLangId == greyscript"
+        },
+        {
+          "command": "greybel.gotoError",
+          "when": "false"
+        },
+        {
+          "command": "greybel.snippets",
+          "when": "resourceLangId == greyscript"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "greybel.transform",
+        "label": "Greybel: Transform"
+      }
+    ],
+    "languages": [
+      {
+        "id": "greyscript",
+        "aliases": [
+          "GreyScript",
+          "greyscript"
+        ],
+        "extensions": [
+          ".src",
+          ".gs",
+          ".ms"
+        ],
+        "icon": {
+          "light": "./icons/file-icon-lightmode.png",
+          "dark": "./icons/file-icon-darkmode.png"
+        },
+        "configuration": "./dist/greyscriptLanguageConfig.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "greyscript",
+        "scopeName": "source.src",
+        "path": "./dist/greyscript.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "greyscript",
+        "path": "./snippets.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "greybel.gotoError",
+        "category": "Utility",
+        "title": "Greybel: Goto Error"
+      },
+      {
+        "command": "greybel.resetWorld",
+        "category": "Debug",
+        "title": "Greybel: Reset the mock world"
+      },
+      {
+        "command": "greybel.buildRootFile",
+        "category": "Build",
+        "title": "Greybel: Build root file"
+      },
+      {
+        "command": "greybel.buildFileFromContext",
+        "category": "Build",
+        "title": "Greybel: Build file from context"
+      },
+      {
+        "command": "greybel.transform.clipboard",
+        "category": "Transform",
+        "title": "Greybel: Transform to clipboard"
+      },
+      {
+        "command": "greybel.transform.write",
+        "category": "Transform",
+        "title": "Greybel: Transform"
+      },
+      {
+        "command": "greybel.uglify.write",
+        "category": "Transform",
+        "title": "Greybel: Uglify"
+      },
+      {
+        "command": "greybel.beautify.write",
+        "category": "Transform",
+        "title": "Greybel: Beautify"
+      },
+      {
+        "command": "greybel.share",
+        "category": "Utility",
+        "title": "Greybel: Share"
+      },
+      {
+        "command": "greybel.api",
+        "category": "Utility",
+        "title": "Greybel: API Documentation"
+      },
+      {
+        "command": "greybel.preview",
+        "category": "Utility",
+        "title": "Greybel: Preview output"
+      },
+      {
+        "command": "greybel.import",
+        "category": "Utility",
+        "title": "Greybel: Import file into the game"
+      },
+      {
+        "command": "greybel.snippets",
+        "category": "Utility",
+        "title": "Greybel: Snippets"
+      },
+      {
+        "command": "greybel.debug.debugFileFromContext",
+        "title": "Greybel: Debug file from context",
+        "category": "Execution",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
+      },
+      {
+        "command": "greybel.debug.runFileFromContext",
+        "title": "Greybel: Run file from context",
+        "category": "Execution",
+        "enablement": "!inDebugMode",
+        "icon": "$(play)"
+      },
+      {
+        "command": "greybel.debug.debugRootFile",
+        "title": "Greybel: Debug root file",
+        "category": "Execution",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
+      },
+      {
+        "command": "greybel.debug.runRootFile",
+        "title": "Greybel: Run root file",
+        "category": "Execution",
+        "enablement": "!inDebugMode",
+        "icon": "$(play)"
+      },
+      {
+        "command": "greybel.selectProfile",
+        "title": "Greybel: Select profile"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "greybel.json",
+        "url": "./schemas/greybel.schema.json"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "General",
+        "properties": {
+          "greybel.formatter": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable GreyScript formatter."
+          },
+          "greybel.autocomplete": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable Greybel autocomplete."
+          },
+          "greybel.hoverdocs": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable Greybel hover tooltips."
+          },
+          "greybel.diagnostic": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable Greybel diagnostic."
+          },
+          "greybel.strictMode": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "description": "Accept only what Grey Hack's compiler accepts (MiniScript 1.6.2 for MiniScript files): none of Greybel's syntax or conveniences, such as #include, & or +=."
+          },
+          "greybel.fileExtensions": {
+            "scope": "resource",
+            "type": "string",
+            "default": "src,gs,ms",
+            "description": "Define allowed file extension."
+          },
+          "greybel.rootFile": {
+            "type": "string",
+            "description": "Define the root project file. If not set, the extension will rely on the given context to built or execute files.",
+            "scope": "resource"
+          },
+          "greybel.profile": {
+            "type": "string",
+            "default": "",
+            "scope": "resource",
+            "markdownDescription": "The profile of the project's `greybel.json` whose build and run settings builds, runs and imports use; empty for its base settings. It stays in the editor's settings, not in `greybel.json`: `Greybel: Select profile` or the status bar picks one."
+          },
+          "greybel.autoCompile": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": true,
+            "description": "Enable auto compile."
+          }
+        }
+      },
+      {
+        "title": "Type Analyzer",
+        "properties": {
+          "greybel.typeAnalyzer.exclude": {
+            "type": "string",
+            "default": "**/{node_modules,.*}/**",
+            "description": "Glob pattern of the files and folders the type analyzer leaves out of the workspace. Replaces `files.exclude` for its search.",
+            "scope": "resource"
+          }
+        }
+      },
+      {
+        "title": "Interpreter",
+        "properties": {
+          "greybel.interpreter.environmentType": {
+            "type": "string",
+            "default": "Mock",
+            "enum": [
+              "Mock",
+              "In-Game"
+            ],
+            "description": "Interpreter environment type."
+          },
+          "greybel.interpreter.programName": {
+            "type": "string",
+            "default": "myprogram",
+            "description": "Name of the binary a run builds the program to in its user's home folder and runs as, so it can launch itself.",
+            "scope": "resource"
+          },
+          "greybel.interpreter.port": {
+            "type": "number",
+            "default": 7777,
+            "description": "Message-hook port for interpreter. (Only in-game env)",
+            "scope": "resource"
+          },
+          "greybel.interpreter.memoryLimit": {
+            "scope": "resource",
+            "type": "integer",
+            "default": 1024,
+            "minimum": 1,
+            "description": "Memory in MiB a program may use before it is interrupted, as Grey Hack interrupts one that runs out of memory; there is no limit on how many calls nest. (Only mock env)"
+          },
+          "greybel.interpreter.seed": {
+            "scope": "resource",
+            "type": "string",
+            "default": "test",
+            "description": "Seed of the mock world, which the programs of all debug sessions of the window share; changing it starts a new world. (Only mock env)"
+          },
+          "greybel.interpreter.environmentVariables": {
+            "type": "object",
+            "default": {},
+            "description": "Environment variables.",
+            "scope": "resource"
+          },
+          "greybel.interpreter.environmentFile": {
+            "type": "string",
+            "default": ".env",
+            "description": "Environment variables file.",
+            "scope": "resource"
+          },
+          "greybel.interpreter.useDefaultArgs": {
+            "type": "boolean",
+            "default": false,
+            "description": "Prevent argument prompt and instead use default args.",
+            "scope": "resource"
+          },
+          "greybel.interpreter.silenceErrorPopups": {
+            "type": "boolean",
+            "default": false,
+            "description": "Silence error popups."
+          },
+          "greybel.interpreter.defaultArgs": {
+            "type": "string",
+            "default": "",
+            "description": "Default arguments used for script.",
+            "scope": "resource"
+          }
+        }
+      },
+      {
+        "title": "Transpiler",
+        "properties": {
+          "greybel.transpiler.buildType": {
+            "type": "string",
+            "enum": [
+              "Default",
+              "Uglify",
+              "Beautify"
+            ],
+            "default": "Default",
+            "description": "Build type.",
+            "scope": "resource"
+          },
+          "greybel.transpiler.watch": {
+            "type": "boolean",
+            "default": false,
+            "description": "Watch project files for changes and build root file automatically.",
+            "scope": "resource"
+          },
+          "greybel.transpiler.outputFilename": {
+            "type": "string",
+            "description": "Specify the name of the main output file. Please note that if you do not add an extension auto compile will not work.",
+            "scope": "resource"
+          },
+          "greybel.transpiler.environmentVariables": {
+            "type": "object",
+            "default": {},
+            "description": "Environment variables.",
+            "scope": "resource"
+          },
+          "greybel.transpiler.environmentFile": {
+            "type": "string",
+            "default": ".env",
+            "description": "Environment variables file.",
+            "scope": "resource"
+          },
+          "greybel.transpiler.dlo": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "description": "Disable literals optimization."
+          },
+          "greybel.transpiler.dno": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "description": "Disable namespaces optimization."
+          },
+          "greybel.transpiler.excludedNamespaces": {
+            "type": "array",
+            "default": [],
+            "description": "Excluded namespaces regarding optimization.",
+            "scope": "resource"
+          },
+          "greybel.transpiler.obfuscation": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "description": "Allow special characters when uglifying."
+          },
+          "greybel.transpiler.ingameDirectoryPrompt": {
+            "type": "boolean",
+            "default": false,
+            "description": "Prompts you to select a destination for the files on each import."
+          },
+          "greybel.transpiler.ingameDirectory": {
+            "scope": "resource",
+            "type": "string",
+            "default": "/root/",
+            "description": "Define ingame directory to where the files should be imported to."
+          },
+          "greybel.transpiler.installer.active": {
+            "type": "boolean",
+            "default": true,
+            "description": "Generate installer when building.",
+            "scope": "resource"
+          },
+          "greybel.transpiler.installer.maxChars": {
+            "scope": "resource",
+            "type": "number",
+            "default": 160000,
+            "minimum": 1000,
+            "maximum": 160000,
+            "description": "Amount of characters allowed in one installer file, footer included, before splitting. The game allows at most 160000."
+          },
+          "greybel.transpiler.installer.allowImport": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "description": "Enable allowImport when performing auto compile in installer."
+          },
+          "greybel.transpiler.beautify.keepParentheses": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "description": "Always keep the parentheses."
+          },
+          "greybel.transpiler.beautify.indentation": {
+            "scope": "resource",
+            "type": "string",
+            "enum": [
+              "Tab",
+              "Whitespace"
+            ],
+            "default": "Tab",
+            "description": "Tab or whitespace. What should be used for indentation?"
+          },
+          "greybel.transpiler.beautify.indentationSpaces": {
+            "scope": "resource",
+            "type": "number",
+            "default": 2,
+            "description": "Define the amount of whitespaces when using whitespaces as indentation."
+          }
+        }
+      },
+      {
+        "title": "Create Ingame",
+        "properties": {
+          "greybel.createIngame.port": {
+            "type": "number",
+            "default": 7777,
+            "description": "Message-hook port for file upload.",
+            "scope": "resource"
+          },
+          "greybel.createIngame.active": {
+            "type": "boolean",
+            "default": false,
+            "description": "Create files automatically in-game.",
+            "scope": "resource"
+          },
+          "greybel.createIngame.allowImport": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "description": "Enable allowImport on auto compile."
+          }
+        }
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "greyscript"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "greyscript",
+        "languages": [
+          "greyscript"
+        ],
+        "label": "Greybel Debug",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${command:AskForProgramName}"
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "greyscript",
+            "request": "launch",
+            "name": "Ask for file name",
+            "program": "${command:AskForProgramName}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Greybel Debug: Launch",
+            "description": "A new configuration for 'debugging' a user selected greyscript file.",
+            "body": {
+              "type": "greyscript",
+              "request": "launch",
+              "name": "Ask for file name",
+              "program": "^\"\\${command:AskForProgramName}\""
+            }
+          }
+        ],
+        "variables": {
+          "AskForProgramName": "greybel.debug.getProgramName"
+        }
+      }
+    ]
+  },
+  "dependencies": {
+    "@vscode/debugadapter": "^1.68.0",
+    "@vscode/debugprotocol": "^1.68.0",
+    "ansi-escapes": "^4.3.2",
+    "crlf-normalize": "^1.0.20",
+    "duplex-core": "^0.1.0",
+    "duplex-driver-stdio": "^0.1.0",
+    "duplex-driver-worker": "^0.1.0",
+    "greybel-api-reference-web": "^0.1.0",
+    "greybel-builder": "^0.1.0",
+    "greybel-builder-web": "^0.1.0",
+    "greybel-documents-host-provider": "^0.1.0",
+    "greybel-io-web": "^0.1.0",
+    "greybel-lsp-web": "^0.1.0",
+    "greybel-runtime": "^0.1.0",
+    "greyhack-terminal-text": "^0.1.0",
+    "greybel-runtime-web": "^0.1.0",
+    "greyhack-world-operations": "^0.1.0",
+    "greyhack-world-operations-web": "^0.1.0",
+    "greyhack-terminal-web": "^0.1.0",
+    "greyscript-textmate": "^3.0.0",
+    "vscode-languageclient": "^9.0.1"
+  },
+  "browserslist": "> 0.25%, not dead"
+}

@@ -1,0 +1,14 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/globals.src
+---
+=== default
+print(globals)
+=== uglify
+globals.I=globals
+print(I)
+=== beautify
+print globals
+=== beautify, dev mode, keep parentheses, 10 spaces
+print(globals)

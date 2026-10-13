@@ -1,0 +1,65 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "Over a transport whose ends prove who they are and sign every batch, messages pass; a batch whose signature doesn't hold closes the channel as insecure.",
+  "peer": "client",
+  "requires": ["responses", "security"],
+  "connected": true,
+  "security": {
+    "channel": {
+      "identity": 1,
+      "trusts": [
+        2
+      ],
+      "signsBatches": true
+    },
+    "remote": {
+      "identity": 2,
+      "trusts": [
+        1
+      ],
+      "signsBatches": true
+    }
+  },
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 2,
+          "b": 3
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "expect": {
+        "settled": {
+          "sum": {
+            "response": 5
+          }
+        }
+      }
+    },
+    {
+      "forge": true
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 4,
+          "b": 5
+        }
+      },
+      "as": "again"
+    },
+    {
+      "expect": {
+        "closed": "Insecure",
+        "settled": {
+          "again": {
+            "closed": "Insecure"
+          }
+        }
+      }
+    }
+  ]
+}

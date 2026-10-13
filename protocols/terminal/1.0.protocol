@@ -1,0 +1,135 @@
+use core 1.0;
+
+/// Lays out Grey Hack terminal output in a worker and supplies textures and meshes for WebGL2 rendering compatible
+/// with TextMesh Pro drawing.
+protocol Terminal = "greyhack-terminal" {
+    /// Provider of scrollable terminal layouts.
+    provider View {
+        /// Gets font atlases and the sprite sheet sampled by meshes.
+        message Textures {} -> Result<TextureSet, TextureFailure>
+        /// Gets the scene for `viewport` and recomputes layout when its width changes.
+        message Draw {
+            flatten viewport: Viewport,
+        } -> Scene
+        /// Scrolls by `delta` CSS pixels within the output bounds; positive values scroll down.
+        message Scroll {
+            delta: f32,
+        }
+    }
+
+    /// Host page that renders scenes on a canvas.
+    client Page {
+        /// Signals that the scene changed and must be redrawn.
+        message Redraw {}
+    }
+}
+
+/// Canvas size in CSS pixels and its device-pixel ratio.
+struct Viewport {
+    width: f32,
+    height: f32,
+    pixel_ratio: f32,
+}
+
+struct TextureSet {
+    atlases: list<Atlas>,
+    sprite_sheet: Image,
+}
+
+/// Failure while loading textures.
+union TextureFailure {
+    /// Game assets do not contain the required font atlas.
+    MissingAtlas {
+        font: string,
+        index: u8,
+    },
+}
+
+/// Font atlas `index` containing one distance byte per pixel in top-to-bottom rows.
+struct Atlas {
+    font: u32,
+    index: u8,
+    width: u32,
+    height: u32,
+    alpha: bytes,
+}
+
+/// RGBA image containing four bytes per pixel in top-to-bottom rows.
+struct Image {
+    width: u32,
+    height: u32,
+    rgba: bytes,
+}
+
+/// Frame settings and meshes ordered for drawing.
+struct Scene {
+    frame: Frame,
+    meshes: list<Mesh>,
+}
+
+/// Frame rendering parameters compatible with Unity.
+struct Frame {
+    /// Drawing-buffer size in device pixels (`_ScreenParams.xy`).
+    width: u32,
+    height: u32,
+    /// Column-major projection from y-down pixel coordinates into clip space.
+    projection: list<f32>(16..=16),
+    /// Per-pass `u_sample_offset` values measured in device pixels.
+    samples: list<Vector2>(1..=8),
+    /// Limit on distance-field samples along a stretched glyph (`u_anisotropy`).
+    anisotropy: u8,
+    background: Color,
+}
+
+/// Quads for one material. Each quad has four 24-byte little-endian vertices: position (two `f32`), UV (two `f32`),
+/// scale (`f32`), and color (four `u8`).
+struct Mesh {
+    material: Material,
+    vertices: bytes,
+}
+
+union Material {
+    /// Font atlas and Distance Field material; uniforms are null when unavailable.
+    Font {
+        font: u32,
+        atlas: u8,
+        uniforms: DistanceField?,
+    },
+    /// Material for the sprite sheet.
+    Sprites,
+}
+
+/// Uniforms for the Distance Field shader.
+struct DistanceField {
+    face_color: Vector4,
+    outline_color: Vector4,
+    gradient_scale: f32,
+    sharpness: f32,
+    weight_normal: f32,
+    weight_bold: f32,
+    face_dilate: f32,
+    scale_ratio_a: f32,
+    outline_width: f32,
+    outline_softness: f32,
+    scale: Vector2,
+    vertex_offset: Vector2,
+}
+
+struct Vector2 {
+    x: f32,
+    y: f32,
+}
+
+struct Vector4 {
+    x: f32,
+    y: f32,
+    z: f32,
+    w: f32,
+}
+
+struct Color {
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
+}

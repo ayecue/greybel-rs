@@ -1,0 +1,11 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: "run_in(path, true)"
+input_file: greyscript-intrinsics/tests/fixtures/game/globals.src
+---
+computer
+test
+1
+1
+1
+0

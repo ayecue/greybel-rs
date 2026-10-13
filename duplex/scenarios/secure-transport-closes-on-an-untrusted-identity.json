@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A channel whose secure transport's other end proves an identity it doesn't trust closes as insecure before there is a connection.",
+  "peer": "provider",
+  "requires": ["security"],
+  "security": {
+    "channel": {
+      "identity": 2,
+      "trusts": [
+        1
+      ]
+    },
+    "remote": {
+      "identity": 3
+    }
+  },
+  "steps": [
+    {
+      "expect": {
+        "closed": "Insecure",
+        "connection": null
+      }
+    }
+  ]
+}

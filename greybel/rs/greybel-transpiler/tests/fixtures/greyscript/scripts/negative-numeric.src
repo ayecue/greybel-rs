@@ -1,0 +1,5 @@
+x = test[ : -1]
+y = test[-2 : -1]
+print test[ -1 : ]
+z = test[-1]
+w = 1 - -1

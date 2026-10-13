@@ -1,0 +1,74 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client fails a message the provider rejected as invalid with the provider's violation.",
+  "peer": "client",
+  "requires": ["responses"],
+  "connected": true,
+  "unvalidated": true,
+  "steps": [
+    {
+      "send": {
+        "Divide": {
+          "dividend": 6,
+          "divisor": 3,
+          "precision": 13
+        }
+      },
+      "as": "quotient"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Divide": {
+                    "dividend": 6,
+                    "divisor": 3,
+                    "precision": 13
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Failure": {
+              "id": 0,
+              "rejected": "Invalid",
+              "violation": {
+                "path": [
+                  2
+                ],
+                "requirement": "Maximum"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "settled": {
+          "quotient": {
+            "invalid": {
+              "path": [
+                2
+              ],
+              "requirement": "Maximum"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

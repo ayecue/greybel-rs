@@ -1,0 +1,41 @@
+// Grey Hack's string methods: regex split/replace/match, trim, to_int, md5.
+print "a1b22c333".split("[0-9]+")
+print "a-b+c".split("([-+])")
+print "a-b".split("(-)", "n")
+print "one.two".split(".")
+print "one.two".split("\.")
+print "Hello World".replace("o", "0")
+print "John Smith".replace("(\w+) (\w+)", "$2, $1")
+print "abc".replace("b", "[$`|$&|$']")
+print "abc".replace("b", "$$")
+print "abc".replace("(?<mid>b)", "<${mid}>")
+print "aaa".replace("A", "b", "i")
+print "".replace("a", "b")
+print "Hello".is_match("^h", "i")
+print "Hello".is_match("^h")
+print ("line1" + char(10) + "line2").is_match("^line2$", "m")
+print "x(".is_match("(")
+print "aé😀b😀".matches("😀|b")
+print "a1b2".matches("\d")
+print "  padded  ".trim + "|"
+print "abcabc".lastIndexOf("bc")
+print "abc".lastIndexOf("x")
+print "abc".lastIndexOf("")
+print "42".to_int + 1
+print " -7 ".to_int
+print "1.5".to_int
+print "99999999999".to_int
+print "1,000".to_int
+print "(5)".to_int
+print " 1e3 ".to_int
+print "abc".to_int
+print to_int(5)
+print to_int
+print md5("hello")
+print md5("")
+print char(65) + char(65535).len
+print "A".code
+print code(null)
+print "abc".split("")
+print "".split("")
+print "abc".split("", "q")

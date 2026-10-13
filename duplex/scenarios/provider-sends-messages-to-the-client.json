@@ -1,0 +1,58 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider sends messages of its own.",
+  "peer": "provider",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Confirm": {
+          "question": "continue?"
+        }
+      },
+      "as": "confirmed"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Confirm": {
+                    "question": "continue?"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseEnd": {
+              "id": 0,
+              "Confirm": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "settled": {
+          "confirmed": {
+            "response": true
+          }
+        }
+      }
+    }
+  ]
+}

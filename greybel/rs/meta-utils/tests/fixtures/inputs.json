@@ -1,0 +1,100 @@
+{
+  "typeStrings": [
+    "",
+    "test",
+    "string",
+    "number",
+    "list",
+    "map",
+    "any",
+    "list<string>",
+    "list<>",
+    "list<string",
+    "list<string,number>",
+    "map<string,number>",
+    "map<string>",
+    "map<string,>",
+    "map<string,string,string>",
+    "map<,>",
+    "map<list<string>,map<number,list>>",
+    "list<map<string,map<string,list<list<string>>>>>",
+    "list<list<",
+    "map<a,",
+    "sub-string",
+    "list<sub-string>",
+    ">",
+    ",",
+    "<",
+    "map<string,list<string>>",
+    "list<list<number>>",
+    "  list < number >  ",
+    "list>",
+    "list<x>>",
+    "map<x,list<y>",
+    "list<map>",
+    "list<map<x,y>",
+    "map<list<x>,y",
+    "foo<bar>",
+    "list<foo<bar>>",
+    "list<string>|number",
+    "äöü",
+    "list<äöü>",
+    "list<map<,>>"
+  ],
+  "typeObjects": [
+    "list",
+    "map",
+    "string",
+    {
+      "type": "list",
+      "valueType": "test"
+    },
+    {
+      "type": "map",
+      "keyType": "test",
+      "valueType": "test"
+    },
+    {
+      "type": "map"
+    },
+    {
+      "type": "list"
+    },
+    {
+      "type": "foo",
+      "valueType": "bar",
+      "keyType": "baz"
+    },
+    {
+      "type": "map",
+      "keyType": {
+        "type": "foo",
+        "valueType": "x"
+      },
+      "valueType": {
+        "type": "list",
+        "valueType": {
+          "type": "map"
+        }
+      }
+    },
+    {
+      "type": "list",
+      "valueType": {
+        "type": "map",
+        "keyType": "string",
+        "valueType": {
+          "type": "map",
+          "keyType": "string",
+          "valueType": {
+            "type": "list",
+            "valueType": {
+              "type": "list",
+              "valueType": "string"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

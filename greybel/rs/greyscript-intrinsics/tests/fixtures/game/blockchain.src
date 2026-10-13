@@ -1,0 +1,41 @@
+chain = include_lib("/lib/blockchain.so")
+print typeof(chain)
+
+print chain.coin_price("Bitcoin") > 0
+print chain.coin_price("DogeCoin")
+print chain.amount_mined("Ether") >= 0
+history = chain.show_history("Ether")
+print typeof(history) + " " + history.len
+print typeof(history[0][0]) + " " + history[0][1]
+print chain.show_history("DogeCoin")
+
+// wallets (player has a bank account)
+print chain.login_wallet("ghost", "nope")
+w = chain.create_wallet("neo", "matrix1")
+print typeof(w)
+print chain.create_wallet("neo", "matrix1")
+print chain.create_wallet("", "x")
+print chain.create_wallet("bad name", "x")
+print w.get_pin.len == 5
+print w.get_balance
+print w.get_balance("Ether")
+print w.list_coins.len
+
+again = chain.login_wallet("neo", "matrix1")
+print typeof(again)
+
+// coins: get_coin needs creator credentials (unknown here), so expect error
+print chain.get_coin("Bitcoin", "neo", "matrix1")
+
+// ── Coin market arguments ──
+admin = include_lib("admin.so")
+admin.deposit("test", 1000000)
+admin.grant_coins("neo", "Bitcoin", 100)
+
+print w.get_balance("Bitcoin")
+print w.sell_coin("Bitcoin", 40, 500, "missing")
+print w.buy_coin("Bitcoin", 40, 500, "missing")
+print w.buy_coin("DogeCoin", 1, 5, "missing")
+print w.buy_coin("Bitcoin", 0, 5, "missing")
+print w.buy_coin("Bitcoin", 60000, 5, "missing")
+print w.buy_coin("Bitcoin", 1, 20000, "missing")

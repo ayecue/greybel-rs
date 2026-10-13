@@ -1,0 +1,55 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider rejects a message an item of whose stream doesn't meet its requirement.",
+  "peer": "provider",
+  "requires": ["streams"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Sum": {}
+            }
+          },
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 1000001
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              },
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "Invalid",
+                  "violation": {
+                    "path": [],
+                    "requirement": "Maximum"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

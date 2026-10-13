@@ -1,0 +1,11 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/list.src
+---
+[
+  "\"bar\"",
+  "\"bar\"",
+  "\"foo\"",
+  "\"changed\""
+]

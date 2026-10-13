@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>greyhack-test-support</AssemblyName>
+    <RootNamespace>GreyHackTestSupport</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(GreybelDotnet)greyhack-message-hook-proxy/src/GreyHackMessageHookProxy.csproj" />
+    <ProjectReference Include="$(GreybelDotnet)greyhack-setup-wizard/src/GreyHackSetupWizard.csproj" />
+  </ItemGroup>
+
+  <!-- The plugins it builds and installs into its clone of the game, and where its work folder goes by default. -->
+  <ItemGroup>
+    <AssemblyMetadata Include="GreybelDotnet" Value="$(GreybelDotnet)" />
+    <AssemblyMetadata
+      Include="Target"
+      Value="$([System.IO.Path]::GetFullPath('$(GreybelDotnet)../../target'))"
+    />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="GreyHackTestSupport.Tests" />
+  </ItemGroup>
+</Project>

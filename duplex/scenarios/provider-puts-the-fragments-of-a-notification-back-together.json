@@ -1,0 +1,65 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider passes a notification its sender split into fragments to its handler once the last fragment arrives, in a later batch.",
+  "peer": "provider",
+  "requires": ["fragments"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Fragment": {
+              "of": {
+                "Message": {
+                  "Log": {
+                    "text": "split in two"
+                  }
+                }
+              },
+              "to": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "received": [],
+        "sent": []
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Fragment": {
+              "of": {
+                "Message": {
+                  "Log": {
+                    "text": "split in two"
+                  }
+                }
+              },
+              "from": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "received": [
+          {
+            "Log": {
+              "text": "split in two"
+            }
+          }
+        ],
+        "sent": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+// File objects on the player's computer, as user "test".
+pc = get_shell.host_computer
+home = pc.File(home_dir)
+print home.name + " " + home.path + " " + home.is_folder + " " + home.permissions + " " + home.owner + " " + home.group + " " + home.size
+for f in home.get_folders
+  print f.path
+end for
+print home.get_files
+print home.parent.path
+print pc.File("Desktop").path
+print pc.File("/nope")
+print pc.touch(home_dir, "notes.txt")
+print pc.touch(home_dir, "notes.txt")
+print pc.touch("/root", "x.txt")
+print pc.touch(home_dir, "bad name")
+notes = pc.File(home_dir + "/notes.txt")
+print notes.set_content("hello")
+print notes.get_content
+print notes.is_binary + " " + notes.is_symlink + " " + notes.allow_import
+print notes.has_permission("r") + " " + notes.has_permission("w") + " " + notes.has_permission("x") + " " + notes.has_permission("z")
+print notes.chmod("o-rx")
+print notes.permissions
+print notes.chmod("a+r")
+print notes.copy(home_dir + "/Desktop", "copy.txt")
+print pc.File(home_dir + "/Desktop/copy.txt").get_content
+print notes.rename("renamed.txt")
+print notes.path
+print notes.move(home_dir + "/Downloads", "moved.txt")
+print notes.path + " " + notes.get_content
+print notes.symlink(home_dir, "link.txt")
+link = pc.File(home_dir + "/link.txt")
+print link.is_symlink + " " + link.path(1) + " " + link.get_content
+print pc.create_folder(home_dir, "projects")
+print pc.create_folder(home_dir, "projects")
+print pc.create_folder("/", "top")
+print pc.File(home_dir + "/projects").delete
+print pc.File(home_dir + "/projects")
+print pc.File("/bin/ls").is_binary + " " + pc.File("/bin/ls").get_content
+print pc.File("/etc/passwd").get_content
+print pc.File("/etc").get_folders
+print notes.set_owner("root")
+print notes.set_group("staff")
+print notes.owner + " " + notes.group
+print pc.File(home_dir + "/Desktop/copy.txt").delete
+print pc.File("/").delete

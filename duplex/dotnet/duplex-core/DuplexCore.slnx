@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/DuplexCore.csproj" />
+  <Project Path="tests/DuplexCore.Tests.csproj" />
+</Solution>

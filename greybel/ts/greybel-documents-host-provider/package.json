@@ -1,0 +1,32 @@
+{
+  "name": "greybel-documents-host-provider",
+  "version": "0.1.0",
+  "description": "The host side of the greybel-documents-host-provider crate: its protocol, and a router serving files held in memory",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "picomatch": "^4.0.3",
+    "duplex-core": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/picomatch": "^4.0.2",
+    "duplex-driver-worker": "^0.1.0"
+  }
+}

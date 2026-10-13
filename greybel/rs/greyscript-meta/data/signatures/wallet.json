@@ -1,0 +1,272 @@
+{
+  "type": "wallet",
+  "extends": "map",
+  "definitions": {
+    "list_coins": {
+      "id": "list_coins",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        "Error: wallet does not exist/incorrect credentials.",
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "string"
+      ]
+    },
+    "get_balance": {
+      "id": "get_balance",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "Error: wallet does not exist/incorrect credentials.",
+        "get_balance: wallet does not have coins in the selected currency",
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "buy_coin": {
+      "id": "buy_coin",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "coinName",
+          "type": "string"
+        },
+        {
+          "label": "coin_amount",
+          "type": "number"
+        },
+        {
+          "label": "unit_price",
+          "type": "number"
+        },
+        {
+          "label": "subwalletUser",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "buy_coin: Invalid arguments",
+        "No internet access.",
+        "sell_coin: coin amount and proposed price cannot be 0.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "sell_coin": {
+      "id": "sell_coin",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "coinName",
+          "type": "string"
+        },
+        {
+          "label": "coin_amount",
+          "type": "number"
+        },
+        {
+          "label": "unit_price",
+          "type": "number"
+        },
+        {
+          "label": "subwalletUser",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "No internet access.",
+        "sell_coin: coin amount and proposed price cannot be 0.",
+        "sell_coin: Invalid arguments",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "get_pending_trade": {
+      "id": "get_pending_trade",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "list",
+        "null"
+      ]
+    },
+    "cancel_pending_trade": {
+      "id": "cancel_pending_trade",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "get_global_offers": {
+      "id": "get_global_offers",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        {
+          "type": "map",
+          "keyType": "string",
+          "valueType": "list"
+        },
+        "null"
+      ]
+    },
+    "list_global_coins": {
+      "id": "list_global_coins",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        {
+          "type": "list",
+          "valueType": "string"
+        }
+      ]
+    },
+    "show_nodes": {
+      "id": "show_nodes",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "show_nodes: coin does not exist",
+        "show_nodes: wallet does not exist",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "reset_password": {
+      "id": "reset_password",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "newPassword",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.ResetWalletPass",
+        "No internet access.",
+        "reset_password: name and password cannot exceed the 16 character limit.",
+        "reset_password: only alphanumeric characters are allowed as password",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "get_pin": {
+      "id": "get_pin",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string"
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: "run_in(path, true)"
+input_file: greyscript-intrinsics/tests/fixtures/game/ftp.src
+---
+ftpshell
+ftpComputer
+web
+1
+1
+error: Key Not Found: 'public_ip' not found in map

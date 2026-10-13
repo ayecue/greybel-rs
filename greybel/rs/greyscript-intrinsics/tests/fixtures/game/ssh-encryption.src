@@ -1,0 +1,42 @@
+// A server that encrypts SSH connections: connect_service runs its encode
+// then decode scripts over the password before handing back a shell.
+admin = include_lib("admin.so")
+router = admin.create_network({"public_ip": "8.8.8.8", "domain": "t.com", "computers": 0})
+lan = router.local_ip[:-1]
+admin.network("8.8.8.8").add_computer({"name": "web", "lan_ip": lan + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["ssh"]})
+
+// Set up the server's encryption scripts (as root on the server).
+srv = admin.network("8.8.8.8").computer(lan + "10").shell.host_computer
+srv.create_folder("/", "server")
+srv.create_folder("/server", "conf")
+srv.touch("/server/conf", "sshd.conf")
+srv.File("/server/conf/sshd.conf").set_content("{""encryption_enabled"": true, ""path_enc"": ""/server/encode.src"", ""path_dec"": ""/server/decode.bin""}")
+srv.touch("/server", "encode.src")
+srv.File("/server/encode.src").set_content("Encode = function(password)
+return ""enc_"" + password
+end function")
+srv.File("/server/decode.bin").delete
+srv.touch("/server", "decode.bin.src")
+srv.File("/server/decode.bin.src").set_content("Decode = function(password)
+return password[4:]
+end function")
+admin.network("8.8.8.8").computer(lan + "10").shell.build("/server/decode.bin.src", "/server")
+
+// Connect with encryption on: the scripts run, then a shell comes back.
+shell = get_shell.connect_service("8.8.8.8", 22, "bob", "pass")
+print typeof(shell)
+print shell.host_computer.public_ip
+
+// An encode script that never prints the >END marker fails the connection.
+srv.File("/server/encode.src").set_content("print(""broken"")")
+print get_shell.connect_service("8.8.8.8", 22, "bob", "pass")
+
+// The scripts run as guest in /server/conf.
+srv.File("/server/encode.src").set_content("print(active_user + "" "" + current_path + "" "" + program_path)")
+print get_shell.connect_service("8.8.8.8", 22, "bob", "pass")
+
+// The intrinsics that reach beyond the script raise in it.
+srv.File("/server/encode.src").set_content("print(get_shell)")
+print get_shell.connect_service("8.8.8.8", 22, "bob", "pass")
+srv.File("/server/encode.src").set_content("print(md5(""a""))")
+print get_shell.connect_service("8.8.8.8", 22, "bob", "pass")

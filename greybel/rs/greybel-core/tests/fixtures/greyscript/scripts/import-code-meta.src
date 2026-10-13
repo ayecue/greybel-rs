@@ -1,0 +1,3 @@
+import_code("a.src")
+import_code("b.src") // no-emit;no-eval;
+import_code("c.src") // no-emit;no-eval;override=other.src;

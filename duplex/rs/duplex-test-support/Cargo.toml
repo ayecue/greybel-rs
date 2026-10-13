@@ -1,0 +1,25 @@
+[package]
+name = "duplex-test-support"
+description = "Test-only helpers for duplex: an in-memory driver, a manual clock, a frame codec and the conformance fixtures"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+doctest = false
+
+[features]
+security = ["duplex-core/security"]
+tokio = ["dep:tokio"]
+
+[dependencies]
+duplex-core.workspace = true
+duplex-protocol.workspace = true
+scheduler = { workspace = true, features = ["manual"] }
+serde_json.workspace = true
+tokio = { workspace = true, optional = true, features = ["rt", "io-util", "io-std"] }
+
+[lints]
+workspace = true

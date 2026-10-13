@@ -1,0 +1,9 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/scripts/line-expression.src
+---
+Chunk[1:1-2:13][
+	CallStatment[1:1-1:12][CallExpression[1:1-1:12][Identifier[1:1-1:6][print](FeatureLineExpression[1:7-1:12][])]]
+	AssignmentStatement[2:1-2:13][Identifier[2:1-2:5][test] = FeatureLineExpression[2:8-2:13][]]
+]

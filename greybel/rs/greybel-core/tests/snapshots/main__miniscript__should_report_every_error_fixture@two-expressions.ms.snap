@@ -1,0 +1,11 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/errors/two-expressions.ms
+---
+--- strict
+1:7 - 1:8 ExpectedToken(3001): got Number(2) where EOL is required
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:7 - 1:8 ExpectedToken(3001): got Number(2) where EOL is required

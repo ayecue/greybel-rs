@@ -1,0 +1,44 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/simple-object.src
+---
+=== default
+test={}
+test.here="was"
+test.was=function
+super.here
+print(self.here)
+end function
+print(test.was)
+=== uglify
+globals.I=globals
+J={}
+J.here="was"
+J.was=function
+super.here
+print(self.here)
+end function
+print(J.was)
+=== beautify
+test = {}
+
+test.here = "was"
+
+test.was = function
+	super.here
+	print self.here
+end function
+
+print test.was
+=== beautify, dev mode, keep parentheses, 10 spaces
+test = {}
+
+test.here = "was"
+
+test.was = function
+          super.here
+          print(self.here)
+end function
+
+print(test.was)

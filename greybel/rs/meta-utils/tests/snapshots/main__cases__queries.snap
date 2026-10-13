@@ -1,0 +1,401 @@
+---
+source: meta-utils/tests/cases.rs
+expression: part
+---
+code:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+hasIndex:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+hello:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each: {}
+indexOf:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+indexes:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+insert:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+len:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+lower:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+myProperty:
+  all:
+    origin: sub-string
+    search:
+      - sub-string
+  any:
+    origin: sub-string
+    search:
+      - sub-string
+  each:
+    any:
+      origin: sub-string
+      search:
+        - sub-string
+    sub-string:
+      origin: sub-string
+      search:
+        - sub-string
+nested:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+print:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+remove:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+remove2:
+  all:
+    origin: sub-string
+    search:
+      - sub-string
+  any:
+    origin: sub-string
+    search:
+      - sub-string
+  each:
+    any:
+      origin: sub-string
+      search:
+        - sub-string
+    sub-string:
+      origin: sub-string
+      search:
+        - sub-string
+replace:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+split:
+  all:
+    origin: string
+    search:
+      - string
+      - sub-string
+  any:
+    origin: string
+    search:
+      - string
+      - sub-string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+        - sub-string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: sub-string
+      search:
+        - sub-string
+trim:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+upper:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+val:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string
+values:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    string:
+      origin: string
+      search:
+        - string
+    sub-string:
+      origin: string
+      search:
+        - string

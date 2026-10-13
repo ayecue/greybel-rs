@@ -1,0 +1,11 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_invalid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/errors/import-without-from.src
+---
+--- strict
+1:1 - 1:18 ExpectedToken(3001): expected from keyword
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:1 - 1:18 ExpectedToken(3001): expected from keyword

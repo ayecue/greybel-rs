@@ -1,0 +1,27 @@
+[package]
+name = "greybel-vs-assets"
+description = "What greybel-vs takes from the libraries, kept up to date by its tests: the game's scripts as snippets, greybel.json's JSON Schema, and the defaults its settings declare"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+autotests = false
+
+[lib]
+doctest = false
+
+[dev-dependencies]
+greybel-lsp.workspace = true
+greybel-project.workspace = true
+greyhack-world-assets.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

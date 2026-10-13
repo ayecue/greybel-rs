@@ -1,0 +1,130 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider rejects a message as overloaded when its turn to be handled comes while its handlers respond to as many as its limits allow, and takes messages again once they responded.",
+  "peer": "provider",
+  "requires": ["responses", "streams", "limits"],
+  "connected": true,
+  "limits": {
+    "responding": 1
+  },
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Sum": {}
+            }
+          },
+          {
+            "Message": {
+              "id": 1,
+              "Sum": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              },
+              {
+                "Failure": {
+                  "id": 1,
+                  "rejected": "Overload"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 4
+            }
+          },
+          {
+            "MessageEnd": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Sum": 4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 1,
+              "Sum": {}
+            }
+          },
+          {
+            "MessageEnd": {
+              "id": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageCredit": {
+                  "id": 1,
+                  "count": 4095
+                }
+              },
+              {
+                "ResponseEnd": {
+                  "id": 1,
+                  "Sum": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

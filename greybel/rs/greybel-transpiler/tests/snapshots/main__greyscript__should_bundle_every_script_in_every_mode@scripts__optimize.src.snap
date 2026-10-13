@@ -1,0 +1,78 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/optimize.src
+---
+=== default
+test=function(abc)
+print(abc)
+end function
+superlangername=function(abc)
+print(abc)
+end function
+superlangername3=function(abc)
+print(abc)
+end function
+superlangername4=function(abc)
+print(abc)
+end function
+superlangername5=function(abc)
+print(abc)
+end function
+test("xxxxxxxxxx")
+superlangername("xxxxxxxxxx")
+superlangername4("xxxxxxxxxx")
+superlangername("xxxxxxxxxx")
+superlangername5("xxxxxxxxxx")
+superlangername3("xxxxxxxxxx")
+=== uglify
+globals.I=globals
+I.P="xxxxxxxxxx"
+J=function(O)
+print(O)
+end function
+K=function(O)
+print(O)
+end function
+L=function(O)
+print(O)
+end function
+M=function(O)
+print(O)
+end function
+N=function(O)
+print(O)
+end function
+J(P)
+K(P)
+M(P)
+K(P)
+N(P)
+L(P)
+=== beautify
+test = function(abc)
+	print abc
+end function
+
+superlangername = function(abc)
+	print abc
+end function
+
+superlangername3 = function(abc)
+	print abc
+end function
+
+superlangername4 = function(abc)
+	print abc
+end function
+
+superlangername5 = function(abc)
+	print abc
+end function
+
+test "xxxxxxxxxx"
+superlangername "xxxxxxxxxx"
+superlangername4 "xxxxxxxxxx"
+superlangername "xxxxxxxxxx"
+superlangername5 "xxxxxxxxxx"
+superlangername3 "xxxxxxxxxx"

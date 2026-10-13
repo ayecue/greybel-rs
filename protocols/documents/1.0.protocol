@@ -1,0 +1,20 @@
+use core 1.0;
+
+/// Provides a language server with read access to editor-owned documents.
+protocol Documents = "greybel-documents" {
+    /// Editor that supplies documents.
+    provider Editor {
+        /// Gets the content of document `uri`, or null if the document does not exist.
+        message ReadFile {
+            uri: string,
+        } -> string?
+        /// Gets document URIs that match `include` and do not match optional glob `exclude`.
+        message FindFiles {
+            include: string,
+            exclude?: string,
+        } -> list<string>
+    }
+
+    /// Language server that consumes editor documents.
+    client Server {}
+}

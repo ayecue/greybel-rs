@@ -1,0 +1,16 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/import-code-with-import.src
+---
+=== default
+import_code("../dependencies/other-import")
+=== uglify
+globals.I=globals
+import_code("../dependencies/other-import")
+=== beautify
+import_code("../dependencies/other-import")
+=== beautify, dev mode
+import_code("../dependencies/other-import")
+=== beautify, dev mode, keep parentheses, 10 spaces
+import_code("../dependencies/other-import")

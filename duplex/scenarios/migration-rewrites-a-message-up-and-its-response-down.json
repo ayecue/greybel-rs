@@ -1,0 +1,43 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider migrates what a client of an older major sends up, and the response down, by the migration's own rewrite.",
+  "connected": true,
+  "peer": "provider",
+  "requires": ["responses", "migration"],
+  "major": 2,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Add": {
+                "a": 2,
+                "b": 3
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Add": 5
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,497 @@
+---
+source: greyscript-meta/tests/dump.rs
+assertion_line: 10
+expression: part
+---
+definitionOrder:
+  - coin_price
+  - show_history
+  - amount_mined
+  - get_coin
+  - get_coin_name
+  - login_wallet
+  - create_wallet
+  - delete_coin
+definitions:
+  amount_mined:
+    argStrings:
+      - - string
+    id: amount_mined
+    json:
+      arguments:
+        - default: ~
+          label: coinName
+          opt: false
+          types:
+            - string
+      description: "Returns a `number` representing the total amount of mined coins. In case of an error, it will return a `string` with the details. If the provided coinName is anything other than a `string`, the method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "mined = blockchain.amount_mined(\"test\")"
+        - "if typeof(mined) == \"string\" then"
+        - "    exit \"Couldnt get amount mined due to: \" + mined"
+        - end if
+        - "print \"Your mined amount is \" + mined"
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: blockchain
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - "amount_mined: Coin does not exist."
+        - "amount_mined: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  coin_price:
+    argStrings:
+      - - string
+    id: coin_price
+    json:
+      arguments:
+        - default: ~
+          label: coinName
+          opt: false
+          types:
+            - string
+      description: "Returns a `number` representing the current unit value of the cryptocurrency. In case of an error, a `string` with the error details will be returned. If the provided `coinName` is anything other than a `string`, the method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "price = blockchain.coin_price(\"test\")"
+        - "if typeof(price) == \"string\" then"
+        - "    exit \"Couldnt get coin price due to: \" + price"
+        - end if
+        - "print \"Your coin price is \" + price"
+      isProtected: false
+      returns:
+        - "null"
+        - string
+        - number
+      type: function
+    origin: blockchain
+    otherLanguageDescription: ~
+    returnStrings:
+      - "null"
+      - string
+      - number
+    returnVariations:
+      ok:
+        - "coin_price: Coin does not exist."
+        - "coin_price: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  create_wallet:
+    argStrings:
+      - - string
+      - - string
+    id: create_wallet
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Creates a `wallet` and returns a `wallet` object on success, which can be used to manage cryptocurrencies. In case of an error, it will return a `string` with the details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "wallet = blockchain.create_wallet(\"test\", \"test\")"
+        - "if typeof(wallet) == \"string\" then"
+        - "  print \"Wallet creation failed due to: \" + wallet"
+        - else
+        - "  print \"Wallet creation was successful!\""
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - wallet
+        - "null"
+      type: function
+    origin: blockchain
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - wallet
+      - "null"
+    returnVariations:
+      ok:
+        - "create_wallet: name and password cannot exceed the 16 character limit."
+        - "create_wallet: No internet access."
+        - "Error: It is necessary to have a bank account to be able to create a wallet."
+        - "Error: only alphanumeric allowed as name and password"
+        - "Error: Only one wallet per player allowed."
+        - "Error: Wallet user already exists."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  delete_coin:
+    argStrings:
+      - - string
+      - - string
+      - - string
+    id: delete_coin
+    json:
+      arguments:
+        - default: ~
+          label: coinName
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Removes a cryptocurrency from the world. The credentials used in the creation of the cryptocurrency are required. On success, it will return a `number` with the value one. On failure, it will return a `string` containing details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "result = blockchain.delete_coin(\"test\", \"test\", \"test\")"
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Couldnt delete coin due to: \" + result"
+        - end if
+        - "print \"Coin got deleted\""
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: blockchain
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "delete_coin: No internet access."
+        - "Error: ${coinname} does not exist"
+        - "Error: incorrect user/password"
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_coin:
+    argStrings:
+      - - string
+      - - string
+      - - string
+    id: get_coin
+    json:
+      arguments:
+        - default: ~
+          label: coinName
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Returns a `coin` object used to manage the currency. In case of an error, it will return a `string` with the details. If any of the provided parameters deviate from the defined signature, the method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - "if typeof(coin) != \"coin\" then"
+        - "    exit \"Couldnt get coin object due to: \" + coin"
+        - end if
+        - "print \"Your coin address is \" + coin.get_address"
+      isProtected: false
+      returns:
+        - string
+        - coin
+        - "null"
+      type: function
+    origin: blockchain
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - coin
+      - "null"
+    returnVariations:
+      ok:
+        - "get_coin: Incorrect user/password"
+        - "get_coin: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_coin_name:
+    argStrings:
+      - - string
+      - - string
+    id: get_coin_name
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Returns a `string` with the name of the coin owned by the player. In case of an error, it returns a `string` with details. If any provided parameters deviate from the defined signature, this method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coinName = blockchain.get_coin_name(\"test\", \"test\")"
+        - "if not coinName.matches(\"^[A-Z]+$\") then"
+        - "    exit \"Couldnt get coin name due to: \" + coinName"
+        - end if
+        - "print \"The name of the coin you're owning is \" + coinName"
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: blockchain
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "get_coin_name: Incorrect user/password"
+        - "get_coin_name: No currency has been found"
+        - "get_coin_name: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  login_wallet:
+    argStrings:
+      - - string
+      - - string
+    id: login_wallet
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Returns a `wallet` object on success. In case of an error, it will return a `string` indicating the reason. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "wallet = blockchain.login_wallet(\"test\", \"test\")"
+        - "if typeof(wallet) == \"string\" then"
+        - "  print \"Login failed due to: \" + wallet"
+        - else
+        - "  print \"Login was successful!\""
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - wallet
+        - "null"
+      type: function
+    origin: blockchain
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - wallet
+      - "null"
+    returnVariations:
+      ok:
+        - "login_wallet: Account not found or incorrect password"
+        - "login_wallet: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  show_history:
+    argStrings:
+      - - string
+    id: show_history
+    json:
+      arguments:
+        - default: ~
+          label: coinName
+          opt: false
+          types:
+            - string
+      description: "Returns a `map` with the latest changes in the value of a specific cryptocurrency. The key of the `map` is an index represented by a `number`. The value is a `list`, where index 0 is the historical price of the coin and index 1 is the date when the price change occurred. If the provided `coinName` is anything other than a `string` or if no coin exists with this name, the method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "history = blockchain.show_history(\"test\")"
+        - "if typeof(history) == \"string\" then"
+        - "    exit \"Couldnt fetch history due to: \" + history"
+        - else if history == null then
+        - "    exit \"There doesnt seem to be a coin\""
+        - end if
+        - for entry in history.values
+        - "    price = entry[0]"
+        - "    date = entry[1]"
+        - "    print \"The price on \" + date + \" was \" + price"
+        - end for
+      isProtected: false
+      returns:
+        - keyType: number
+          type: map
+          valueType:
+            type: list
+            valueType: any
+        - string
+        - "null"
+      type: function
+    origin: blockchain
+    otherLanguageDescription: ~
+    returnStrings:
+      - "map<number,list<any>>"
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "show_history: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - coin_price
+  - show_history
+  - amount_mined
+  - get_coin
+  - get_coin_name
+  - login_wallet
+  - create_wallet
+  - delete_coin
+descriptions:
+  $meta:
+    description: "A `blockchain` object can be obtained by using [include_lib](#GENERAL_INCLUDE_LIB). The `classID` used for this object is `\"blockchainLib\"`."
+    example: ~
+  amount_mined:
+    description: "Returns a `number` representing the total amount of mined coins. In case of an error, it will return a `string` with the details. If the provided coinName is anything other than a `string`, the method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "mined = blockchain.amount_mined(\"test\")"
+      - "if typeof(mined) == \"string\" then"
+      - "    exit \"Couldnt get amount mined due to: \" + mined"
+      - end if
+      - "print \"Your mined amount is \" + mined"
+  coin_price:
+    description: "Returns a `number` representing the current unit value of the cryptocurrency. In case of an error, a `string` with the error details will be returned. If the provided `coinName` is anything other than a `string`, the method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "price = blockchain.coin_price(\"test\")"
+      - "if typeof(price) == \"string\" then"
+      - "    exit \"Couldnt get coin price due to: \" + price"
+      - end if
+      - "print \"Your coin price is \" + price"
+  create_wallet:
+    description: "Creates a `wallet` and returns a `wallet` object on success, which can be used to manage cryptocurrencies. In case of an error, it will return a `string` with the details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "wallet = blockchain.create_wallet(\"test\", \"test\")"
+      - "if typeof(wallet) == \"string\" then"
+      - "  print \"Wallet creation failed due to: \" + wallet"
+      - else
+      - "  print \"Wallet creation was successful!\""
+      - end if
+  delete_coin:
+    description: "Removes a cryptocurrency from the world. The credentials used in the creation of the cryptocurrency are required. On success, it will return a `number` with the value one. On failure, it will return a `string` containing details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "result = blockchain.delete_coin(\"test\", \"test\", \"test\")"
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Couldnt delete coin due to: \" + result"
+      - end if
+      - "print \"Coin got deleted\""
+  get_coin:
+    description: "Returns a `coin` object used to manage the currency. In case of an error, it will return a `string` with the details. If any of the provided parameters deviate from the defined signature, the method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - "if typeof(coin) != \"coin\" then"
+      - "    exit \"Couldnt get coin object due to: \" + coin"
+      - end if
+      - "print \"Your coin address is \" + coin.get_address"
+  get_coin_name:
+    description: "Returns a `string` with the name of the coin owned by the player. In case of an error, it returns a `string` with details. If any provided parameters deviate from the defined signature, this method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coinName = blockchain.get_coin_name(\"test\", \"test\")"
+      - "if not coinName.matches(\"^[A-Z]+$\") then"
+      - "    exit \"Couldnt get coin name due to: \" + coinName"
+      - end if
+      - "print \"The name of the coin you're owning is \" + coinName"
+  login_wallet:
+    description: "Returns a `wallet` object on success. In case of an error, it will return a `string` indicating the reason. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "wallet = blockchain.login_wallet(\"test\", \"test\")"
+      - "if typeof(wallet) == \"string\" then"
+      - "  print \"Login failed due to: \" + wallet"
+      - else
+      - "  print \"Login was successful!\""
+      - end if
+  show_history:
+    description: "Returns a `map` with the latest changes in the value of a specific cryptocurrency. The key of the `map` is an index represented by a `number`. The value is a `list`, where index 0 is the historical price of the coin and index 1 is the date when the price change occurred. If the provided `coinName` is anything other than a `string` or if no coin exists with this name, the method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "history = blockchain.show_history(\"test\")"
+      - "if typeof(history) == \"string\" then"
+      - "    exit \"Couldnt fetch history due to: \" + history"
+      - else if history == null then
+      - "    exit \"There doesnt seem to be a coin\""
+      - end if
+      - for entry in history.values
+      - "    price = entry[0]"
+      - "    date = entry[1]"
+      - "    print \"The price on \" + date + \" was \" + price"
+      - end for
+extends: ~
+hidden: false

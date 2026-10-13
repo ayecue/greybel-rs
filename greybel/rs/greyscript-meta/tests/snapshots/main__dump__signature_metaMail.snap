@@ -1,0 +1,315 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - delete
+  - fetch
+  - read
+  - send
+  - delete_all
+definitions:
+  delete:
+    argStrings:
+      - - list<string>
+    id: delete_mail
+    json:
+      arguments:
+        - default: ~
+          label: mailIDs
+          opt: false
+          types:
+            - type: list
+              valueType: string
+      description: "Deletes every matching ID in a `list` of mail ID strings. Returns one if at least one mail was deleted and `null` if none matched or the list is invalid. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+      example:
+        - "metaMail = mail_login(user_mail_address, \"test\")"
+        - mails = metaMail.fetch
+        - "results = []"
+        - for mail in mails
+        - "   segments = mail.split(char(10))"
+        - "   mailId = segments[2][8:]"
+        - "   print(metaMail.delete([mailId]))"
+        - end for
+        - "print(\"Deleted every mail!\")"
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: metaMail
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "delete: No internet access."
+        - "MetaMail: Unable to refresh mail account."
+        - "MetaMail: Wait 2 seconds before using mail again."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  delete_all:
+    argStrings: []
+    id: delete_all
+    json:
+      arguments: []
+      description: "Deletes every mail in the account and returns one. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Missing internet returns `\"delete_all: No internet access.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+      example:
+        - "metaMail = mail_login(\"test@test.com\", \"test\")"
+        - print(metaMail.delete_all)
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: metaMail
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "delete_all: No internet access."
+        - "MetaMail: Unable to refresh mail account."
+        - "MetaMail: Wait 2 seconds before using mail again."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  fetch:
+    argStrings: []
+    id: fetch
+    json:
+      arguments: []
+      description: "Returns a `list` of mail summaries containing ID, sender, subject, and a 125-character preview. The account is refreshed before reading; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+      example:
+        - "metaMail = mail_login(user_mail_address, \"test\")"
+        - mails = metaMail.fetch
+        - "results = []"
+        - for mail in mails
+        - "   segments = mail.split(char(10))"
+        - "   item = {}"
+        - "   item.mailId = segments[2][8:]"
+        - "   item.from = segments[3][6:]"
+        - "   item.subject = segments[4][9:]"
+        - "   item.preview = segments[5:]"
+        - "   results.push(item)"
+        - end for
+        - print(results)
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+        - string
+        - "null"
+      type: function
+    origin: metaMail
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "fetch: No internet access."
+        - "MetaMail: Unable to refresh mail account."
+        - "MetaMail: Wait 2 seconds before using mail again."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  read:
+    argStrings:
+      - - list<string>
+    id: read
+    json:
+      arguments:
+        - default: ~
+          label: mailIDs
+          opt: false
+          types:
+            - type: list
+              valueType: string
+      description: "Takes a `list` of mail ID strings and returns a `list` of full-message strings in the same order, using `\"Mail not found\"` for each missing ID. A non-list argument or non-string element returns `null`. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+      example:
+        - "metaMail = mail_login(user_mail_address, \"test\")"
+        - mails = metaMail.fetch
+        - "results = []"
+        - for mail in mails
+        - "   segments = mail.split(char(10))"
+        - "   mailId = segments[2][8:]"
+        - "   print(metaMail.read([mailId]))"
+        - end for
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+        - string
+        - "null"
+      type: function
+    origin: metaMail
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - Mail not found
+        - "MetaMail: Unable to refresh mail account."
+        - "MetaMail: Wait 2 seconds before using mail again."
+        - "read: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  send:
+    argStrings:
+      - - string
+      - - string
+      - - string
+    id: send
+    json:
+      arguments:
+        - default: ~
+          label: destAddress
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: subject
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: message
+          opt: false
+          types:
+            - string
+      description: "Sends mail from the account represented by this `MetaMail` object. Subject and message limits are 128 and 2500 characters. Returns one on success or an error `string`; account access failures return `\"send: Unable to access mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+      example:
+        - "metaMail = mail_login(user_mail_address, \"test\")"
+        - "result = metaMail.send(user_mail_address, \"test subject\", \"test message\")"
+        - "if typeof(result) == \"string\" then"
+        - "   print(\"There was an error while sending mail: \" + result)"
+        - else
+        - "   print(\"Mail got send successfully.\")"
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: metaMail
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "Error: attachment not found"
+        - Invalid email address
+        - Mail message too large
+        - Mail not delivered
+        - Mail subject too large
+        - "MetaMail: Wait 2 seconds before using mail again."
+        - "send: No internet access."
+        - "send: Unable to access mail account."
+        - "The email couldn't be sent. The recipient has blocked emails sent by other players using npcs accounts."
+        - "The email couldn't be sent. The recipient has blocked emails sent by other players."
+        - "The email couldn't be sent. The recipient has blocked this email address."
+        - "Unable to attach file: permission denied"
+        - "Unknown error: attachment failed"
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - delete
+  - fetch
+  - read
+  - send
+  - delete_all
+descriptions:
+  $meta:
+    description: "A `MetaMail` object can be obtained by using [mail_login](#GENERAL_MAIL_LOGIN). The `classID` used for this object is `\"MetaMail\"`."
+    example: ~
+  delete:
+    description: "Deletes every matching ID in a `list` of mail ID strings. Returns one if at least one mail was deleted and `null` if none matched or the list is invalid. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+    example:
+      - "metaMail = mail_login(user_mail_address, \"test\")"
+      - mails = metaMail.fetch
+      - "results = []"
+      - for mail in mails
+      - "   segments = mail.split(char(10))"
+      - "   mailId = segments[2][8:]"
+      - "   print(metaMail.delete([mailId]))"
+      - end for
+      - "print(\"Deleted every mail!\")"
+  delete_all:
+    description: "Deletes every mail in the account and returns one. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Missing internet returns `\"delete_all: No internet access.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+    example:
+      - "metaMail = mail_login(\"test@test.com\", \"test\")"
+      - print(metaMail.delete_all)
+  fetch:
+    description: "Returns a `list` of mail summaries containing ID, sender, subject, and a 125-character preview. The account is refreshed before reading; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+    example:
+      - "metaMail = mail_login(user_mail_address, \"test\")"
+      - mails = metaMail.fetch
+      - "results = []"
+      - for mail in mails
+      - "   segments = mail.split(char(10))"
+      - "   item = {}"
+      - "   item.mailId = segments[2][8:]"
+      - "   item.from = segments[3][6:]"
+      - "   item.subject = segments[4][9:]"
+      - "   item.preview = segments[5:]"
+      - "   results.push(item)"
+      - end for
+      - print(results)
+  read:
+    description: "Takes a `list` of mail ID strings and returns a `list` of full-message strings in the same order, using `\"Mail not found\"` for each missing ID. A non-list argument or non-string element returns `null`. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+    example:
+      - "metaMail = mail_login(user_mail_address, \"test\")"
+      - mails = metaMail.fetch
+      - "results = []"
+      - for mail in mails
+      - "   segments = mail.split(char(10))"
+      - "   mailId = segments[2][8:]"
+      - "   print(metaMail.read([mailId]))"
+      - end for
+  send:
+    description: "Sends mail from the account represented by this `MetaMail` object. Subject and message limits are 128 and 2500 characters. Returns one on success or an error `string`; account access failures return `\"send: Unable to access mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon."
+    example:
+      - "metaMail = mail_login(user_mail_address, \"test\")"
+      - "result = metaMail.send(user_mail_address, \"test subject\", \"test message\")"
+      - "if typeof(result) == \"string\" then"
+      - "   print(\"There was an error while sending mail: \" + result)"
+      - else
+      - "   print(\"Mail got send successfully.\")"
+      - end if
+extends: map
+hidden: false

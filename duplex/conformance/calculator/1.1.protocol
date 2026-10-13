@@ -1,0 +1,76 @@
+use core 1.0;
+
+/// Calculator client for a user.
+protocol Calculation = "calculator" {
+    provider Calculator {
+        /// Entry for the calculator log.
+        message Log {
+            text: string,
+        } limit 4MiB
+        message Add {
+            a: i64,
+            b: i64,
+        } -> i64
+        message Divide {
+            dividend: i64,
+            divisor: i64,
+            /// Number of decimal places requested by the user.
+            precision?: u8(..=12),
+        } -> Result<Quotient, DivisionFailure>
+        /// Resets the calculation and clears the log.
+        message Reset {}
+        /// Counts through `to`, emitting the phase, each number, and finally their sum.
+        message Count {
+            to: u32(..=10000),
+        } -> Stream(Phase, u64)<u32> timeout 1s
+        /// Adds the terms sent on the following stream.
+        message Sum {
+            terms: Stream<i64(-1000000..=1000000)>(..=1000),
+        } -> i64 timeout 1s
+    }
+
+    /// Client that requests calculator operations.
+    client User {
+        /// Calculator asks for confirmation before a long calculation.
+        message Confirm {
+            question: string,
+        } -> bool
+        /// Progress of a long calculation.
+        message Progress {
+            phase: Phase,
+            /// Completed fraction, when known.
+            done_share: f64?,
+            steps: list<Step>,
+            counts: record<u32>,
+            note?: string?,
+            /// Estimated seconds remaining, when known.
+            eta?: f64,
+        }
+    }
+}
+
+union Quotient {
+    Exact { value: i64 },
+    WithRemainder { value: i64, remainder: i64 },
+}
+
+/// Reason a division was not completed.
+enum DivisionFailure {
+    ByZero,
+    /// User declined the confirmation request.
+    Refusal,
+}
+
+enum Phase {
+    Pending,
+    Active,
+    Final,
+}
+
+/// Completed calculation step.
+struct Step {
+    name: string(1..=32, match "[a-z ]+"),
+    result: Quotient?,
+    /// Elapsed time in milliseconds.
+    duration?: u32,
+}

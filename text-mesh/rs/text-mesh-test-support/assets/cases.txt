@@ -1,0 +1,32 @@
+plain text
+<b>bold</b> and <i>italic</i> and <b><i>both</i></b>
+<size=24>size 24</size> <size=150%>150%</size> <size=0.8em>0.8em</size> <size=100>capped</size>
+x<sup>2</sup> H<sub>2</sub>O <smallcaps>Small Caps</smallcaps> <uppercase>up</uppercase> <lowercase>LOW</lowercase>
+<cspace=4>spaced</cspace> <cspace=-0.1em>tight</cspace> <mspace=1.2em>mono</mspace> <mspace=10>ii</mspace> a<space=2em>b c<space=-5>d
+<voffset=0.5em>up</voffset> <voffset=-0.5em>down</voffset> <voffset=1.4em>a line up</voffset> base <voffset=6>6px</voffset>
+<rotate=90>rotated</rotate> <scale=1.5>wide</scale> <scale=0.5>narrow</scale> <rotate=90><scale=2>both</scale>
+abcdef<pos=0>XY<pos=4em>after<pos=50%>half<pos=-10>neg
+<margin=10%>margin both</margin> after <margin-left=50>left only <margin-right=5em>right too
+<margin left=20 right=10%>attributes</margin>
+<indent=15%>indented line that is long enough to wrap around the terminal width so the indent shows on the next line as well, more words here</indent>
+<line-indent=30>line indent<br>second</line-indent>
+<align=center>centered</align>
+<align=right>right aligned</align>
+<align=justified>justified text that is long enough to wrap so the first line gets justified across the whole width of the terminal item, and more words follow here</align>
+<align=flush>flush text that is long enough to wrap so the first line gets justified across the whole width of the terminal item, and more words follow here</align>
+<width=50%>width fifty percent so this text wraps earlier than the full width of the item does</width>
+<line-height=50%>line height<br>fifty percent</line-height>
+<line-height=40>line height<br>forty pixels</line-height>
+first<br>second<br><br>fourth
+a b  c   d    e	tab	tabs
+word wrap: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+averyveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongwordwithoutanyspacesthatcannotwrapatallbecauseitislongerthanthewidth
+<nobr>no break across these words</nobr> and then many more words so the line has to wrap somewhere around here at the end of it all
+caret <sprite=0>X <sprite=1>Y <sprite=2>Z <sprite index=0 color=#00F0DD> <size=40><sprite=0></size> <voffset=-0.5em><sprite=0></voffset> end
+Cyrillic: Привет мир, Japanese: こんにちは, Thai: สวัสดี, box: ┌─┐│└┘ ▲▼, euro € tm ™ permille ‰
+CJK falls back to missing: 你好 and an emoji 😀 too
+<font="LiberationSans SDF">AV To We Ty kerning pairs, LiberationSans</font> back
+<font="LiberationSans SDF"><b>Bold</b> <i>Italic</i> <size=30>Big</size></font>
+<mark=#ff000080>marked</mark> <u>underline</u> <s>strike</s>
+<style=H1>H1</style> <style=Quote>Quote style</style> <style=Title>Title</style>
+<noparse><b>not bold</b></noparse> &lt; a<nbsp>b

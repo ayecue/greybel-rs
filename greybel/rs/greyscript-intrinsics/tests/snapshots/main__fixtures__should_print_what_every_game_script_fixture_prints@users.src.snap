@@ -1,0 +1,33 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: "run_in(path, true)"
+input_file: greyscript-intrinsics/tests/fixtures/game/users.src
+---
+Denied. Only root user can execute this command.
+1
+Error: can't create user. alice already exists.
+Error: root user already exists.
+Error: can't create guest user. Reserved user.
+Error: only alphanumeric allowed as user name and password.
+alice
+
+1
+alice
+staff
+
+1
+Error: group staff not found in user alice
+Error: user nobody does not exist.
+1
+user nobody does not exist
+Error: only alphanumeric allowed as password.
+1
+4
+root:098f6bcd4621d373cade4e832627b4f6
+test:098f6bcd4621d373cade4e832627b4f6
+alice:795f3202b17cb6bc3d4b771d8c6c9eaf
+the root user can't be deleted.
+sorry, at the moment that account can't be deleted.
+1
+null
+can't delete user. alice does not exist

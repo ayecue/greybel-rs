@@ -1,0 +1,9 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/stringify-functions.src
+---
+[
+  "FUNCTION(self, delimiter=\",\")",
+  "FUNCTION(a, b=123, c=\"abc\")"
+]

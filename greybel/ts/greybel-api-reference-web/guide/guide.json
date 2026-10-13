@@ -1,0 +1,18 @@
+{
+  "title": "GreyScript API – Unofficial Documentation",
+  "introduction": "introductions/greyscript.md",
+  "chapters": [
+    "chapters/syntax.md",
+    "chapters/values.md",
+    "chapters/type-conversion.md",
+    "chapters/operators.md",
+    "chapters/variables.md",
+    "chapters/control-flow.md",
+    "chapters/functions.md",
+    "chapters/classes.md",
+    "chapters/errors.md",
+    "chapters/greybel.md",
+    "chapters/greyscript.md",
+    "chapters/tools.md"
+  ]
+}

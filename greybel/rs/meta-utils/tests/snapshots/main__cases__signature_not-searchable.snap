@@ -1,0 +1,39 @@
+---
+source: meta-utils/tests/cases.rs
+expression: part
+---
+definitionOrder:
+  - hello
+definitions:
+  hello:
+    argStrings:
+      - - number
+    id: hello
+    json:
+      arguments:
+        - default: ~
+          label: foo
+          opt: false
+          types:
+            - number
+      description: ~
+      example: ~
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: not-searchable
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder: []
+descriptions: {}
+extends: string
+hidden: false

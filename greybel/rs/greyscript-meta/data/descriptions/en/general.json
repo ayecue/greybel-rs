@@ -1,0 +1,2711 @@
+{
+  "$meta": {
+    "description": "Use `if` blocks to do different things depending on some condition. Include zero or more `else if` blocks and one optional `else` block. Use a `while` block to loop as long as a condition is true. A `for` loop can loop over any `list`, including ones easily created with the `range` function. The `break` statement jumps out of a `while` or `for` loop. The `continue` statement jumps to the top of the loop, skipping the rest of the current iteration.",
+    "example": [
+      "// if block",
+      "if 2+2 == 4 then",
+      "   print \"math works!\"",
+      "else if pi > 3 then",
+      "   print \"pi is tasty\"",
+      "else if \"a\" < \"b\" then",
+      "   print \"I can sort\"",
+      "else",
+      "   print \"last chance\"",
+      "end if",
+      "",
+      "// while loop",
+      "s = \"Spam\"",
+      "while s.len < 50",
+      "   s = s + \", spam\"",
+      "end while",
+      "print s + \" and spam!\"",
+      "",
+      "// for loop",
+      "for i in range(10, 1)",
+      "   print i + \"...\"",
+      "end for",
+      "print \"Liftoff!\""
+    ]
+  },
+  "mail_login": {
+    "description": "Returns a `MetaMail` entity if the login was successful. On failure a `string` with details gets returned. In case any of the provided values deviate from the types defined in the signature this method will return `null`. Utilizing this method in an SSH encryption process will trigger an error, halting further script execution.",
+    "example": [
+      "metaMail = mail_login(\"test@test.com\", \"test\")",
+      "if metaMail == null then",
+      "   print(\"Loggin failed.\")",
+      "else",
+      "   print(\"You've got mail.\")",
+      "end if"
+    ]
+  },
+  "parent_path": {
+    "description": "Returns a `string` containing the parent of the provided path. An empty path returns an empty `string`. A non-string path returns `\"parent_path: Invalid arguments\"` instead of raising a runtime error.",
+    "example": [
+      "print(\"Is proper parent path: \" + (parent_path(\"/my/test/path\") == \"/my/test\"))"
+    ]
+  },
+  "hasIndex": {
+    "description": "Verifies if an index is available within an object. In case of success this method will return a `number` with the value one. In case of failure the value will be a zero. This method supports `map`s, `list`s and `string`s. Each passed type may result in different behavior therefore it is advisable to take a look at each of their specific signatures. In case an unsupported value gets passed this method will return `null`.",
+    "example": [
+      "print(\"List has index: \" + hasIndex([1, 2, 3], 2)"
+    ]
+  },
+  "typeof": {
+    "description": "Returns a `string` containing the runtime type. For maps, `classID` is read through the `__isa` prototype chain, so an inherited `classID` is honored. Game objects compare and hash by identity; retrieving the same underlying shell, computer, file, router, port, or library returns the same object again.",
+    "example": [
+      "myObj = { \"classID\": \"myType\" }",
+      "if typeof(myObj) == \"myType\" then",
+      "   print(\"Object is myType.\")",
+      "else",
+      "   print(\"Object is not myType.\")",
+      "end if"
+    ]
+  },
+  "get_router": {
+    "description": "Returns the `router` to which the executing computer is connected, or the router at an optional IP address. Returns `null` when no router can be resolved. Without an active internet connection it returns `\"get_router: No internet connection\"`.",
+    "example": [
+      "router = get_router",
+      "if router.local_ip == get_shell.host_computer.network_gateway then",
+      "   print(\"Router is equal to network gateway.\")",
+      "else",
+      "   print(\"Router is not equal to network gateway.\")",
+      "end if"
+    ]
+  },
+  "get_switch": {
+    "description": "Returns the switch on the local network whose IP address matches, otherwise it returns `null`.",
+    "example": [
+      "router = get_switch(\"192.168.0.2)",
+      "print(\"IP address of switch: \" + router.local_ip)"
+    ]
+  },
+  "nslookup": {
+    "description": "Returns the IP address for a web address, with or without the `www.` prefix. Returns `\"IP not found\"` when the name cannot be resolved and round-tripped, and `\"nslookup: Invalid arguments\"` for a missing, empty, or non-string address.",
+    "example": [
+      "url = params[0]",
+      "print(\"IP for website is: \" + nslookup(url))"
+    ]
+  },
+  "print": {
+    "description": "Prints a message on the terminal, including an empty line when called without an argument or with an empty string. `replace_text` replaces previous output. By default `parse_newlines` converts each literal `\\n` (backslash followed by `n`) to a line break; pass zero to print those two characters unchanged. Output supports [TextMeshPro rich-text tags](https://docs.unity3d.com/Packages/com.unity.textmeshpro@4.0/manual/index.html).",
+    "example": [
+      "for i in range(9)",
+      "   print((\"#\" * (9 - i)) + (\"-\" * i) , true)",
+      "   wait(0.2)",
+      "end for"
+    ]
+  },
+  "clear_screen": {
+    "description": "Removes any text existing in a Terminal prior to this point. Utilizing this method in an SSH encryption process will trigger an error, halting further script execution.",
+    "example": [
+      "for i in range(9)",
+      "   clear_screen",
+      "   print((\"#\" * (9 - i)) + (\"-\" * i))",
+      "   wait(0.2)",
+      "end for"
+    ]
+  },
+  "active_user": {
+    "description": "Returns a `string` with the name of the user who is executing the current script.",
+    "example": [
+      "print(\"Current active user: \" + active_user)"
+    ]
+  },
+  "home_dir": {
+    "description": "Returns a `string` with the home folder path of the user who is executing the current script.",
+    "example": [
+      "print(\"Home dir of current user: \" + home_dir)"
+    ]
+  },
+  "get_shell": {
+    "description": "Returns the current `shell`, or a shell for the supplied credentials. Returns `null` for unknown credentials, `\"get_shell: Invalid arguments\"` for invalid argument types, and `\"This account is disabled.\"` when valid credentials belong to a dead or fired NPC.",
+    "example": [
+      "shell = get_shell(\"root\", \"test\")",
+      "if shell == null then",
+      "   print(\"Couldn't obtain root shell.\")",
+      "else",
+      "   print(\"Obtained root shell.\")",
+      "end if"
+    ]
+  },
+  "indexes": {
+    "description": "Returns a `list` containing all indexes or keys of the passed object. This method supports `map`s, `list`s, and `string`s. The type of each item may vary when using this method on a `map` since keys could be any type. The other types will return a `list` where each item is a `number`. In case a type is passed that is not supported, this method will return `null`.",
+    "example": [
+      "indexesOfStr = indexes(\"test\")",
+      "print(\"Following indexes are available: \" + indexesOfStr.join(\", \"))"
+    ]
+  },
+  "values": {
+    "description": "Returns a `list` containing all values of an object. Supported types are `map`s and `string`s. In case the passed type deviates from these two, it will return the passed value itself.",
+    "example": [
+      "indexesOfStr = values(\"test\")",
+      "print(\"Following values are available: \" + indexesOfStr.join(\", \"))"
+    ]
+  },
+  "indexOf": {
+    "description": "Lookups index of value within `map`s, `list`s, or `string`s. For `list`s and `string`s, the behavior is very similar. On success, you'll receive a `number` representing the found index. On failure, it will return `null`. For `map`s, it's a bit different since the returned value could be of any type. On failure, it will return `null` as well. If a value gets passed that is not supported, this method returns `null`.",
+    "example": [
+      "index = indexOf(\"test\", \"e\")",
+      "print(\"e is at: \" + index)"
+    ]
+  },
+  "len": {
+    "description": "Returns `number` indicating what size the passed object is. In case anything other than a `map`, `list` or `string` gets passed this method will return `null`.",
+    "example": [
+      "length = len(\"test\")",
+      "print(\"Length of string is: \" + length)"
+    ]
+  },
+  "shuffle": {
+    "description": "Randomizes content of an object. Valid data types for this method are `list` and `map`. In case a map-like object such as a `file` or `computer` a runtime exception will be thrown.",
+    "example": [
+      "list = [0, 1, 2, 3, 4, 5]",
+      "shuffle(list)",
+      "print(\"And the winner is: \" + list[0])"
+    ]
+  },
+  "val": {
+    "description": "Casts a `string` to a `number`. If the provided `string` does not represent a valid `number`, the `number` zero will be returned. If any type other than `string` or `number` is passed, this method will return `null`.",
+    "example": [
+      "num = val(\"1.25\")",
+      "print(\"Number in string is: \" + num)"
+    ]
+  },
+  "lower": {
+    "description": "Returns a `string` which is the lowercase transformed version of the provided `string`. In case anything other than a `string` gets passed this method will return the passed value again.",
+    "example": [
+      "myString = lower(\"HELLO WORLD\")",
+      "print(myString)"
+    ]
+  },
+  "upper": {
+    "description": "Returns a `string` which is the uppercase transformed version of the provided `string`. In case anything other than a `string` gets passed this method will return the passed value again.",
+    "example": [
+      "myString = upper(\"hello world\")",
+      "print(myString)"
+    ]
+  },
+  "sum": {
+    "description": "Returns a `number` representing the sum of all items within a `map` or a `list`. If any non-supported type is passed, this method will return a `number` with the value zero.",
+    "example": [
+      "list = [0, 1, 2, 3, 4, 5]",
+      "print(\"Sum of all items is: \" + sum(list))"
+    ]
+  },
+  "pop": {
+    "description": "When passing a `list` to this method, it will return the value at the last index and remove it from the `list`. Additionally, if a `map` is passed, it will always return the value corresponding to the first matching key and mutate the `map` object accordingly. However, passing a map-like object such as `file` or `computer` will result in an error, interrupting further script execution. If the passed object is empty or is anything other than a `map` or `list`, the method will return `null`.",
+    "example": [
+      "list = [0, 1, 2, 3, 4, 5]",
+      "print(\"The last item is: \" + pop(list))"
+    ]
+  },
+  "pull": {
+    "description": "When passing a `list` to this method, it will return the value at the first index and remove it from the `list`. Additionally, if a `map` is passed, it will always return the value corresponding to the first matching key and mutate the `map` object accordingly. However, passing a map-like object such as `file` or `computer` will result in an error, interrupting further script execution. If the passed object is empty or is anything other than a `map` or `list`, the method will return `null`.",
+    "example": [
+      "list = [0, 1, 2, 3, 4, 5]",
+      "print(\"The first item is: \" + pull(list))"
+    ]
+  },
+  "push": {
+    "description": "Allows pushing a value into an object, supporting `map`s and `list`s. However, it throws an error if you attempt to push a value into itself or into a map-like object such as a `file`, halting further script execution. If you try to push a value into an object that isn't a `map` or `list`, it returns `null`.",
+    "example": [
+      "list = [0, 1, 2, 3, 4, 5]",
+      "push(list, 42)",
+      "print(\"The answer to everything is: \" + pop(list))"
+    ]
+  },
+  "sort": {
+    "description": "Sorts the values of a `list` alphanumerically. This operation mutates the original `list`. Optionally, a key can be provided, which is used if the items are `map`s or `list`s. Finally, this method returns the updated `list`. If a type other than `list` is passed, the method returns the passed value without any changes.",
+    "example": [
+      "list = [9, 3, 5, 7]",
+      "sort(list)",
+      "print(\"Sorted list: \" + list.join(\", \"))"
+    ]
+  },
+  "remove": {
+    "description": "Depending on the data type, this function will remove a value in the provided object, potentially mutating the object. This method works with `map`s, `list`s, and `string`s. Each passed type may support different types for the `k` argument. For example, using this method on a string would treat the key as a character index. Therefore, it is advised to review the signatures of each type. Passing a key with the type `null` may cause an error to be thrown, preventing further script execution. The same will happen if the passed self value deviates from being a `map`, `list`, or `string`.",
+    "example": [
+      "list = [9, 3, 5, 7]",
+      "remove(list, 5)",
+      "print(\"List after removal: \" + list.join(\", \"))"
+    ]
+  },
+  "user_input": {
+    "description": "Pauses execution for terminal input. `isPassword` masks input, `anyKey` accepts one key, and `addToHistory` controls input history. `echo` defaults to one; pass zero to hide typed input. Invalid argument types, including a non-number `echo`, return `\"user_input: Invalid arguments\"`. Use during SSH encryption still raises a runtime error.",
+    "example": [
+      "num = 0",
+      "aboveIncludingZeroTag = \"<color=yellow>\"",
+      "belowZeroTag = \"<color=red>\"",
+      "while (true)",
+      "   clear_screen",
+      "   output = aboveIncludingZeroTag + num",
+      "   if (num < 0) then",
+      "      output = belowZeroTag + num",
+      "   end if",
+      "   print(output)",
+      "   key = user_input(\"Press arrow up/down to change value.\", false, true)",
+      "   if (key == \"UpArrow\") then",
+      "      num = num + 1",
+      "   else if (key == \"DownArrow\") then",
+      "       num = num - 1",
+      "   else",
+      "       exit(\"Bye!\")",
+      "   end if",
+      "end while"
+    ]
+  },
+  "include_lib": {
+    "description": "Loads a library binary and returns its library object, or `null` when it cannot be loaded. An empty or non-string path returns `\"include_lib: Invalid arguments\"`. The chat service and `libchat.so` are no longer available. In Greybel's simulated world, `include_lib(\"admin.so\")` returns the `admin` object, which the game doesn't have.",
+    "example": [
+      "crypto = include_lib(\"/lib/crypto.so\")",
+      "if crypto == null then",
+      "   print(\"Crypto library couldn't get imported.\")",
+      "else",
+      "   print(\"Crypto library got imported.\")",
+      "end if"
+    ]
+  },
+  "import_code": {
+    "description": "Enables to import code from different sources into one file. This is useful in case you want to split code into different files and also to avoid any limitation in regards to text file character limits. Note that `import_code` requires an absolute path and is called while compiling the file into a binary instead of during runtime. Additionally `import_code` cannot be nested. Code can be either imported from plain text files or binaries that have `\"allow import\"` enabled. `import_code` is also parsed wherever it is found, not even a `//` comment will prevent it being evaluated.",
+    "example": [
+      "//Content of main.src",
+      "import_code(\"/home/user/my_module.src\")",
+      "print(\"bye\")",
+      "//Content of my_module.src",
+      "print(\"hello!\")"
+    ]
+  },
+  "exit": {
+    "description": "Stops execution of the currently running script. Optionally a message can be provided which will be shown in the Terminal. There is also the possibility of styling output by using [TextMeshPro rich-text tags](https://docs.unity3d.com/Packages/com.unity.textmeshpro@4.0/manual/index.html).",
+    "example": [
+      "while (true)",
+      "   shouldExit = lower(user_input(\"Want to exit? (Y/N)\"))",
+      "   if (shouldExit == \"y\") then",
+      "      exit(\"See you!\")",
+      "   end if",
+      "end while"
+    ]
+  },
+  "user_mail_address": {
+    "description": "Returns a `string` containing the email address of the player who is executing the script. If the user does not have an email address this method will return `null`.",
+    "example": [
+      "print(\"My EMail address is: \" + user_mail_address)"
+    ]
+  },
+  "user_bank_number": {
+    "description": "Returns a `string` containing the bank account number of the player who is executing the script. If the user does not have a bank this method will return `null`.",
+    "example": [
+      "print(\"My Bank number is: \" + user_bank_number)"
+    ]
+  },
+  "whois": {
+    "description": "Returns administrator information for an IP address or an error `string`. Invalid or empty arguments return `\"whois: Invalid arguments\"`. The result no longer appends `[Neurobox Network]` for Neurobox networks.",
+    "example": [
+      "adminInfo = whos(\"1.1.1.1\")",
+      "infoLines = adminInfo.split(char(10))",
+      "infoObject = {}",
+      "infoObject.domainName = infoLines[0].split(\":\")[1].trim",
+      "infoObject.administrativeContact = infoLines[1].split(\":\")[1].trim",
+      "infoObject.emailAddress = infoLines[2].split(\":\")[1].trim",
+      "infoObject.phone = infoLines[3].split(\":\")[1].trim",
+      "print(\"Phone number: \" + infoObject.phone)"
+    ]
+  },
+  "wait": {
+    "description": "Pauses the script execution. Optionally, the duration can be provided via the `time` argument. By default, the duration will be 1 second. The duration cannot be below 0.01 or above 300; otherwise, this method will throw a runtime exception.",
+    "example": [
+      "start = time",
+      "wait(5)",
+      "elapsed = time - start",
+      "print(\"Waited: \" + elapsed)"
+    ]
+  },
+  "command_info": {
+    "description": "Returns command documentation. For a command key, joins the available `<KEY>_USAGE`, `<KEY>_DETAIL`, and `<KEY>_HELP` translations with blank lines; a key already ending in `_USAGE` is read directly. Invalid or empty arguments return `\"command_info: Invalid arguments\"`.",
+    "example": [
+      "print(command_info(\"LS_USAGE\"))"
+    ]
+  },
+  "program_path": {
+    "description": "Returns a `string` containing the path of the script that is currently executing. It will update when using `launch`, which makes it different from `launch_path`.",
+    "example": [
+      "path = program_path",
+      "print(\"Script gets executed within: \" + parent_path(path))"
+    ]
+  },
+  "current_path": {
+    "description": "Returns a `string` with the current active working directory. The working directory can be changed via the `cd` command.",
+    "example": [
+      "path = current_path",
+      "print(\"My working directory is: \" + path)"
+    ]
+  },
+  "format_columns": {
+    "description": "Returns a `string` which is the formatted version of the provided text. Keep in mind that [TextMeshPro rich-text tags](https://docs.unity3d.com/Packages/com.unity.textmeshpro@4.0/manual/index.html) might screw up the output. When using tags consider applying these after formatting. Passing anything other than a `string` will result in an empty `string`.",
+    "example": [
+      "text = \"FIRST SECOND THIRD",
+      "1 2 3\"",
+      "print(format_columns(text))"
+    ]
+  },
+  "current_date": {
+    "description": "Returns a `string` containing the current date and time. Ingame time passes 15 times as fast as real-time - 4 seconds per in-game minute. The initial time after every wipe will be the 1st of January 2000 at 6:00 AM. Additionally, the game time will not proceed while the server is offline.\n* Output schema: `\"[day]/[month]/[year] - [hours]:[minutes]\"`\n* Example output: `\"27/Jan/2000 - 08:19\"`\n",
+    "example": [
+      "dateStr = current_date",
+      "dateSegments = dateStr.split(\" - \")",
+      "date = dateSegments[0].split(\"/\")",
+      "day = date[0]",
+      "month = date[1]",
+      "year = date[2]",
+      "dateTime = dateSegments[1].split(\":\")",
+      "hours = dateTime[0]",
+      "minutes = dateTime[1]",
+      "print(\"Current day: \" + day)"
+    ]
+  },
+  "is_lan_ip": {
+    "description": "Returns a `number`. One indicates that the provided IP address is a valid LAN IP address. Otherwise, zero will be returned.",
+    "example": [
+      "print(\"Is Lan IP: \" + is_lan_ip(\"192.168.0.1\"))"
+    ]
+  },
+  "is_valid_ip": {
+    "description": "Returns a `number`. If the provided IP address is valid, its value will be one. Otherwise, its value is zero.",
+    "example": [
+      "print(\"Is valid IP: \" + is_valid_ip(\"1.1.1.1\"))"
+    ]
+  },
+  "bitwise": {
+    "description": "Returns a `number` by performing bitwise operations. Supported operators are: `\"~\"`, `\"&\"`, `\"|\"`, `\"^\"`, `\"<<\"`, `\">>\"`, `\">>>\"`. In case you want to use the tilde operator you only need to provide the operator and the left argument. If any of the required arguments is `null` this method will return `null`. Warning: If either operand is >= `0x80000000`, it'll always returns 0.",
+    "example": [
+      "num = params[0].to_int",
+      "isOdd = bitwise(\"&\", num, 1) == 1",
+      "if isOdd then",
+      "   print(\"Number is odd.\")",
+      "else",
+      "   print(\"Number is even.\")",
+      "end if"
+    ]
+  },
+  "abs": {
+    "description": "Returns the absolute value of `number`.",
+    "example": [
+      "a = 1",
+      "b = 5",
+      "difference = abs(a - b)",
+      "print(\"Difference between a and b is: \" + difference)"
+    ]
+  },
+  "acos": {
+    "description": "Returns the inverse cosine (in radians) of a `number`.",
+    "example": [
+      "adjacent = 8",
+      "hypotenuse = 10",
+      "calcAngle = acos(adjacent / hypotenuse)",
+      "print(\"Angle: \" + calcAngle)"
+    ]
+  },
+  "asin": {
+    "description": "Returns the inverse sine (in radians) of a `number`.",
+    "example": [
+      "opposite = 6",
+      "hypotenuse = 10",
+      "calcAngle = acos(opposite / hypotenuse)",
+      "print(\"Angle: \" + calcAngle)"
+    ]
+  },
+  "atan": {
+    "description": "Returns the inverse tangent (in radians) of a `number`.",
+    "example": [
+      "opposite = 8",
+      "hypotenuse = 10",
+      "calcAngle = atan(opposite / hypotenuse)",
+      "print(\"Angle: \" + calcAngle)"
+    ]
+  },
+  "tan": {
+    "description": "Returns the tangent of a `number` in radians.",
+    "example": [
+      "degrees = 90",
+      "tanFromDegrees = tan(degress * pi / 180)",
+      "print(\"Tan from degrees: \" + tanFromDegrees)"
+    ]
+  },
+  "cos": {
+    "description": "Returns the cosine of a `number` in radians.",
+    "example": [
+      "radians = 1",
+      "radius = 10",
+      "circleX = cos(radians) * radius",
+      "print(circleX)"
+    ]
+  },
+  "code": {
+    "description": "Returns the Unicode `number` of the first character of the string. In case an empty `string` is provided the script execution will crash.",
+    "example": [
+      "key = user_input(\"Press a key!\", false, true)",
+      "isA = key.code == 97",
+      "if isA then",
+      "   print(\"You pressed A.\")",
+      "else",
+      "   print(\"You did not press A.\")",
+      "end if"
+    ]
+  },
+  "char": {
+    "description": "Returns the UTF-16 character `string` related to the provided unicode `number`. The provided `number` needs to be between 0 and 65535. Any `number` which is outside this range will cause the script to throw a runtime error. Beware when passing non-ASCII values to intrinsics as they will likely get re-encoded as UTF-8. For example, `md5(char(255))` will actually return the hash of the two-byte sequence `0xC3` `0xBF`.",
+    "example": [
+      "key = user_input(\"Press a key!\", false, true)",
+      "isA = key == char(97)",
+      "if isA then",
+      "   print(\"You pressed A.\")",
+      "else",
+      "   print(\"You did not press A.\")",
+      "end if"
+    ]
+  },
+  "sin": {
+    "description": "Returns the sine of a `number` in radians.",
+    "example": [
+      "radians = 1",
+      "radius = 10",
+      "circleY = sin(radians) * radius",
+      "print(circleY)"
+    ]
+  },
+  "floor": {
+    "description": "Returns `number` rounded down to the integer value of the provided `number`.",
+    "example": [
+      "price = 25.43467",
+      "floored = floor(price * 100) / 100",
+      "print(\"Floored price: \" + floored)"
+    ]
+  },
+  "range": {
+    "description": "Generates a `list` where each item is a `number`. By default, if only one argument is provided, the list starts at the given value and decrements by one for each item. You can optionally define a start and end value, as well as customize the incremental value. However, if the incremental value is zero, or if the list exceeds `16777215L` items, or if start/end is `null`, the function will throw a runtime error.",
+    "example": [
+      "print(\"Countdown:\")",
+      "for num in range(10)",
+      "   print(num)",
+      "end for",
+      "print(\"Done!\")"
+    ]
+  },
+  "round": {
+    "description": "Returns `number` rounded to the integer value of the provided `number`.",
+    "example": [
+      "price = 25.43467",
+      "rounded = round(price * 100) / 100",
+      "print(\"Price: \" + rounded)"
+    ]
+  },
+  "rnd": {
+    "description": "Returns a random `number` between 0 and 1. Optionally a seed `number` can be provided.",
+    "example": [
+      "min = 10",
+      "max = 20",
+      "output = floor(rnd * (max - min + 1) + min)",
+      "input = user_input(\"Guess a number between 10 and 20!\").to_int",
+      "if (input == output) then",
+      "   print(\"You guessed right!\")",
+      "else",
+      "   print(\"You failed! The number was \" + output)",
+      "end if"
+    ]
+  },
+  "sign": {
+    "description": "Returns a one or minus one, indicating the sign of the number passed as argument. If the input is zero, it will be returned as-is.",
+    "example": [
+      "print(sign(40))",
+      "print(sign(-40))",
+      "print(sign(0))"
+    ]
+  },
+  "sqrt": {
+    "description": "Returns the square root of a `number`.",
+    "example": [
+      "a = 3",
+      "b = 4",
+      "calcHypotenuse = sqrt((a * a) + (b * b))",
+      "print(\"Hypotenuse: \" + calcHypotenuse)"
+    ]
+  },
+  "str": {
+    "description": "Returns the `string` value of provided data. Can be used to turn a `number` into a `string` or to get the signature of a `function`.",
+    "example": [
+      "signature = str(@user_input)",
+      "argSegment = signature[9:signature.len - 1]",
+      "args = argSegment.split(\",\")",
+      "print(\"Function has \" + args.len + \" arguments.\")"
+    ]
+  },
+  "ceil": {
+    "description": "Returns `number` rounded up to the integer value of the provided `number`.",
+    "example": [
+      "price = 25.43467",
+      "upperPrice = ceil(price * 100) / 100",
+      "print(\"Upper price: \" + upperPrice)"
+    ]
+  },
+  "pi": {
+    "description": "Returns the `number` PI to the precision of six.",
+    "example": [
+      "radius = 10",
+      "circumference = 2 * pi * radius",
+      "print(\"Circumference: \" + circumference)"
+    ]
+  },
+  "launch": {
+    "description": "Launches a binary synchronously and returns one once it starts, zero or an error `string` when it cannot start. Invalid argument types return `\"launch: Invalid arguments\"`. On a remote shell the program starts in that user's home folder. Execute permission is required on every parent folder; SSH encryption still raises.",
+    "example": [
+      "shell = get_shell(\"root\", \"test\")",
+      "launch(shell, \"/bin/cat\", \"/etc/passwd\")"
+    ]
+  },
+  "launch_path": {
+    "description": "Returns a `string` containing the path of the program that launched the current one with `launch`. When the current program was not launched by another, it is the current program's path, like `program_path`.",
+    "example": [
+      "path = launch_path",
+      "print(\"Script gets executed within: \" + parent_path(path))"
+    ]
+  },
+  "slice": {
+    "description": "Returns a sliced version of the passed object. Valid data types for slicing are `string` and `list`. The returned object will contain all elements related to the provided start and end index. If no start or end index is provided this method will essentially return a shallow copy of the passed object. If an invalid data type is passed, `null` is returned.",
+    "example": [
+      "myString = \"not your text\"",
+      "print(\"my \" + slice(myString, 9))"
+    ]
+  },
+  "md5": {
+    "description": "Returns the MD5 hash `string` of the provided `string`. A non-string value returns `\"md5: Invalid arguments\"`. Use during SSH encryption still raises a runtime error.",
+    "example": [
+      "passwordHash = md5(\"test\")",
+      "print(\"Hash for the password 'test' is \" + passwordHash)"
+    ]
+  },
+  "hash": {
+    "description": "Returns numeric hash for the provided data. Using this method within a SSH encryption process will cause an error to be thrown causing the script execution to stop.",
+    "example": [
+      "hashA = hash({ \"a\": 2, \"b\": 1 })",
+      "hashB = hash({ \"b\": 1, \"a\": 2 })",
+      "if (hashA == hashB) then",
+      "   print(\"Objects are alike!\")",
+      "else",
+      "   print(\"Objects are different!\")",
+      "end if"
+    ]
+  },
+  "time": {
+    "description": "Returns a `number` of seconds representing the elapsed time since the script started.",
+    "example": [
+      "start = time",
+      "for i in range(10000)",
+      "   var = i * 100",
+      "end for",
+      "endTime = time - start",
+      "print(\"Script execution done within: \" + endTime)"
+    ]
+  },
+  "bitAnd": {
+    "description": "Performs a bitwise AND for the provided values. Returns a `number`. Warning: If either operand is >= `0x80000000`, it'll always return 0.",
+    "example": [
+      "print(\"Result of bitwise AND: \" + bitAnd(1, 2))"
+    ]
+  },
+  "bitOr": {
+    "description": "Performs a bitwise OR for the provided values. Returns a `number`. Warning: If either operand is >= `0x80000000`, it'll always return 0.",
+    "example": [
+      "print(\"Result of bitwise OR: \" + bitOr(1, 2))"
+    ]
+  },
+  "bitXor": {
+    "description": "Performs a bitwise XOR for the provided values. Returns a `number`. Warning: If either operand is >= `0x80000000`, it'll always return 0.",
+    "example": [
+      "print(\"Result of bitwise XOR: \" + bitXor(1, 2))"
+    ]
+  },
+  "log": {
+    "description": "Returns the natural logarithm of a `number`. By default, the base is 10. Optionally the base can be changed.",
+    "example": [
+      "a = 2",
+      "b = 8",
+      "baseLog = log(a) / log(b)",
+      "print(\"Base log is: \" + baseLog)"
+    ]
+  },
+  "yield": {
+    "description": "Waits for the next tick.",
+    "example": [
+      "while (true)",
+      "   yield",
+      "   print(\"tick\")",
+      "end while"
+    ]
+  },
+  "get_custom_object": {
+    "description": "Returns `map` which is shared throughout script execution. Can be helpful if it desired to pass or receive values when using `launch`. Using this method in a SSH encryption process will cause an error to be thrown preventing further script execution.",
+    "example": [
+      "get_custom_object.didScriptFail = true",
+      "someScriptContent = [",
+      "   \"print \"\"Done!\"\"\",",
+      "   \"get_custom_object.didScriptFail = false\",",
+      "].join(char(10))",
+      "myShell = get_shell(\"root\", \"test\")",
+      "myComputer = myShell.host_computer",
+      "myComputer.touch(\"/root\", \"someScript.src\")",
+      "someScriptFile = myComputer.File(\"/root/someScript.src\")",
+      "someScriptFile.set_content(someScriptContent)",
+      "myShell.build(\"/root/someScript.src\", \"/root\")",
+      "myShell.launch(\"/root/someScript\")",
+      "if get_custom_object.didScriptFail then",
+      "   print(\"Script did not finish successfully.\")",
+      "else",
+      "   print(\"Script finished successfully.\")",
+      "end if"
+    ]
+  },
+  "insert": {
+    "description": "Inserts a value into either a `list` or a `string`. If the method is used on any other data type or the passed index is not a `number`, this method throws an error, preventing further script execution.",
+    "example": [
+      "list = [2, 3, 4]",
+      "insert(list, 2, 42)",
+      "print(\"List with inserted item: \" + list.join(\", \"))"
+    ]
+  },
+  "to_int": {
+    "description": "Parses a `string` as an invariant-culture double and returns the resulting `number`, accepting forms such as `\"1.5\"`, `\" 1e3 \"`, `\"1,000\"`, and `\"(5)\"`. Non-numeric text is returned unchanged, a `number` is returned as-is, and other types return `null`. The global function defaults `self` to zero.",
+    "example": [
+      "myString = \"1\"",
+      "print(to_int(myString) + 41)"
+    ]
+  },
+  "join": {
+    "description": "Returns the stringified list values joined by `delimiter`, which defaults to one space. Lists larger than `16777215L` items and delimiters longer than 128 characters still raise a runtime error.",
+    "example": [
+      "myList = [42, 1, 3]",
+      "print(join(myList, \" .-*'*-. \"))"
+    ]
+  },
+  "split": {
+    "description": "Splits a `string` with a regular expression and returns a `list` of strings. An empty separator returns one character per list item. Invalid regex options return `\"split: Invalid regex option\"`; an invalid .NET regex pattern returns its error message as a `string`. Invalid argument types return `null`; regex timeouts still raise a runtime error.",
+    "example": [
+      "myString = \"42 as an answer is wrong\"",
+      "segments = split(myString, \" \")",
+      "if segments[0] != \"42\" then",
+      "   print(\"Invalid information spotted!\")",
+      "else",
+      "   print(\"Information seems valid!\")",
+      "end if"
+    ]
+  },
+  "replace": {
+    "description": "Replaces matching values in a `map` or `list` and returns the mutated object. String replacement is provided by `replace_regex`; using this collection operation on a string raises a runtime error.",
+    "example": [
+      "list = [1,2,3,42]",
+      "newList = replace(list, 42, 4)",
+      "print(newList)"
+    ]
+  },
+  "replace_regex": {
+    "description": "Returns a `string` with regular-expression matches replaced. Invalid regex options return `\"replace: Invalid regex option\"`; an invalid .NET regex pattern returns its error message as a `string`. Empty patterns, invalid argument types, and regex timeouts still raise runtime errors.",
+    "example": [
+      "myString = \"42 as an answer is wrong\"",
+      "newString = replace_regex(myString, \"\\w+$\", \"right\")",
+      "print(newString)"
+    ]
+  },
+  "is_match": {
+    "description": "Uses regular expression to check if a string matches a certain pattern. If it matches, it will return a `number` with the value one. If it does not match, the value of the `number` will be zero. If any provided arguments deviate from the method signature types, if the pattern is empty, if the provided [regexOptions](https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-options) are invalid, or if the regular expression times out, an error will be thrown, preventing further script execution.",
+    "example": [
+      "myString = \"42 as an answer is wrong\"",
+      "hasWordAtTheEnd = is_match(myString, \"\\w+$\")",
+      "print(hasWordAtTheEnd)"
+    ]
+  },
+  "matches": {
+    "description": "Returns a `map` whose numeric keys are match positions and whose values are the matching strings. Invalid regex options return `\"matches: Invalid regex option\"`; an invalid .NET regex pattern returns its error message as a `string`. Empty patterns, invalid argument types, and regex timeouts still raise runtime errors. `is_match` continues to raise for invalid regex options.",
+    "example": [
+      "myString = \"42 as an answer is wrong\"",
+      "result = matches(myString, \"w\")",
+      "print(result)"
+    ]
+  },
+  "get_ctf": {
+    "description": "Returns `ctfEvent` object if there is one available. In case of failure this method will return a `string` with details."
+  },
+  "show": {
+    "description": "Displays all the packages available in a repository. The repository must be listed in the `\"/etc/apt/sources.txt\"` file. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. If it cannot find a repository, it will return a string with an error message. On success, it will return a `string` containing all packages and their descriptions, with each entry separated by a newline. An invalid cache returns `\"/etc/apt/aptcache.bin is not a valid apt cache. Launch apt with the update option to refresh the file\"`.",
+    "example": [
+      "aptClient = include_lib(\"/lib/aptclient.so\")",
+      "packages = show(aptClient, \"177.202.15.132\")",
+      "packageList = split(packages, char(10) + char(10))",
+      "pop(packageList) // remove last empty item",
+      "for packageItem in packageList",
+      "    entry = split(packageItem, char(10))",
+      "    packageName = entry[0]",
+      "    packageDescription = entry[1]",
+      "    print \"Title: <b>\" + packageName + \"</b>\"",
+      "    print \"Description: <i>\" + packageDescription + \"</i>\"",
+      "    print \"----------------------------\"",
+      "end for"
+    ]
+  },
+  "search": {
+    "description": "The `search` method specifically looks for a package in any of the repositories listed in `\"/etc/apt/sources.txt\"`. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. On success, it will return a `string` containing all packages that partially match the provided search value. On failure, it will return a `string` with various error messages. An invalid cache returns `\"/etc/apt/aptcache.bin is not a valid apt cache. Launch apt with the update option to refresh the file\"`.",
+    "example": [
+      "aptClient = include_lib(\"/lib/aptclient.so\")",
+      "packages = search(aptClient, \".so\")",
+      "packageList = split(packages, char(10) + char(10))",
+      "for packageItem in packageList",
+      "    entry = split(packageItem, char(10))",
+      "    if len(entry) != 2 then",
+      "        print \"something wrong in: \" + entry",
+      "        continue",
+      "    end if",
+      "    packageName = entry[0]",
+      "    packageDescription = entry[1]",
+      "    print \"Title: <b>\" + packageName + \"</b>\"",
+      "    print \"Description: <i>\" + packageDescription + \"</i>\"",
+      "    print \"----------------------------\"",
+      "end for"
+    ]
+  },
+  "update": {
+    "description": "Refreshes the list of available packages after adding a new repository in `\"/etc/apt/sources.txt\"`, or if the remote repository has updated its information in `\"/server/conf/repod.conf\"`. If either the `\"/etc/apt/sources.txt\"` file has an invalid format or an invalid `aptClient` object is passed, this method will return a `number` with the value zero. On a successful update, an empty `string` will be returned. In case of failure, a `string` with an error message will be returned.",
+    "example": [
+      "aptClient = include_lib(\"/lib/aptclient.so\")",
+      "result = update(aptClient)",
+      "if result == \"\" then",
+      "    print \"Update successful!\"",
+      "else",
+      "    print \"Error while updating: \" + result",
+      "end if"
+    ]
+  },
+  "add_repo": {
+    "description": "Adds a repository address to the `\"/etc/apt/sources.txt\"` file. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. On success, it will return an empty `string`. In case of failure, it will return a `string` with an error message.",
+    "example": [
+      "aptClient = include_lib(\"/lib/aptclient.so\")",
+      "result = add_repo(aptClient, \"177.202.15.132\")",
+      "if result == \"\" then",
+      "    print \"Addition successful!\"",
+      "else",
+      "    print \"Error while adding: \" + result",
+      "end if"
+    ]
+  },
+  "del_repo": {
+    "description": "Removes a repository address from the `\"/etc/apt/sources.txt\"` file. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. On success, it will return an empty `string`. In case of failure, it will return a `string` with an error message.",
+    "example": [
+      "aptClient = include_lib(\"/lib/aptclient.so\")",
+      "result = del_repo(aptClient, \"177.202.15.132\")",
+      "if result == \"\" then",
+      "    print \"Deletion successful!\"",
+      "else",
+      "    print \"Error while deleting: \" + result",
+      "end if"
+    ]
+  },
+  "install": {
+    "description": "Installs a program or library from a remote repository listed in `\"/etc/apt/sources.txt\"`. If no path is specified, the program installs in `\"/lib\"` if it is a library or in `\"/bin\"` otherwise. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. On success, it will return a `number` with the value one. In case of failure, it will return a `string` containing an error message. An invalid cache returns `\"/etc/apt/aptcache.bin is not a valid apt cache. Launch apt with the update option to refresh the file\"`.",
+    "example": [
+      "aptClient = include_lib(\"/lib/aptclient.so\")",
+      "result = install(aptClient, \"rshell_interface\")",
+      "if result == 1 then",
+      "    print \"Installed program successful!\"",
+      "else",
+      "    print \"Error while installing: \" + result",
+      "end if"
+    ]
+  },
+  "check_upgrade": {
+    "description": "Verifies if there is a newer version of the program or library in the repository. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. On success, it will return a `number`, which can be either zero or one. Zero indicates that there is no new version available, while one indicates that there is a new version. In case of failure, it will return a string containing an error message. An invalid cache returns `\"/etc/apt/aptcache.bin is not a valid apt cache. Launch apt with the update option to refresh the file\"`.",
+    "example": [
+      "aptClient = include_lib(\"/lib/aptclient.so\")",
+      "result = check_upgrade(aptClient, \"/bin/rshell_interface\")",
+      "if result == 0 then",
+      "    print \"Program doesnt need an update!\"",
+      "else if result == 1 then",
+      "    print \"Program does need an update!\"",
+      "else",
+      "    print \"Error while checking version: \" + result",
+      "end if"
+    ]
+  },
+  "coin_price": {
+    "description": "Returns a `number` representing the current unit value of the cryptocurrency. In case of an error, it will return a `string` with the error details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "price = coin_price(blockchain, \"test8\")",
+      "if typeof(price) == \"string\" then",
+      "    exit \"Couldnt get coin price due to: \" + price",
+      "end if",
+      "print \"Your coin price is \" + price"
+    ]
+  },
+  "show_history": {
+    "description": "Returns a `map` with the latest changes in the value of a specific cryptocurrency. The key of the `map` is an index represented by a `number`. The value is a `list`, where index 0 is the historical price of the coin and index 1 is the date when the price change occurred. If any of the provided parameters have a type that deviates from the defined signature, or if no coin exists with this name, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "history = show_history(blockchain, \"test\")",
+      "if typeof(history) == \"string\" then",
+      "    exit \"Couldnt fetch history due to: \" + history",
+      "end if",
+      "for entry in values(history)",
+      "    price = entry[0]",
+      "    date = entry[1]",
+      "    print \"The price on \" + date + \" was \" + price",
+      "end for"
+    ]
+  },
+  "amount_mined": {
+    "description": "Returns a `number` representing the total amount of mined coins. In case of an error, it will return a string with details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "mined = amount_mined(blockchain, \"test\")",
+      "if typeof(mined) == \"string\" then",
+      "    exit \"Couldnt get amount mined due to: \" + mined",
+      "end if",
+      "print \"Your mined amount is \" + mined"
+    ]
+  },
+  "get_coin": {
+    "description": "Returns a `coin` object used to manage the currency. In case of an error, it will return a `string` with the details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "if typeof(coin) != \"coin\" then",
+      "    exit \"Couldnt get coin object due to: \" + coin",
+      "end if",
+      "print \"Your coin address is \" + get_address(coin)"
+    ]
+  },
+  "get_coin_name": {
+    "description": "Returns a `string` with the name of the coin owned by the player. In case of an error, it will return a `string` with the details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coinName = get_coin_name(blockchain, \"test\", \"test\")",
+      "if not matches(coinName, \"^[A-Z]+$\") then",
+      "    exit \"Couldnt get coin name due to: \" + coinName",
+      "end if",
+      "print \"The name of the coin you're owning is \" + coinName"
+    ]
+  },
+  "login_wallet": {
+    "description": "Returns a `wallet` object on success. In case of an error, it will return a `string` indicating the reason. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "if typeof(wallet) == \"string\" then",
+      "  print \"Login failed due to: \" + wallet",
+      "else",
+      "  print \"Login was successful!\"",
+      "end if"
+    ]
+  },
+  "create_wallet": {
+    "description": "Creates a `wallet` and returns a `wallet` object on success, which can be used to manage cryptocurrencies. In case of an error, it will return a `string` with the details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = create_wallet(blockchain, \"test\", \"test\")",
+      "if typeof(wallet) == \"string\" then",
+      "  print \"Wallet creation failed due to: \" + wallet",
+      "else",
+      "  print \"Wallet creation was successful!\"",
+      "end if"
+    ]
+  },
+  "delete_coin": {
+    "description": "Removes a cryptocurrency from the world. It is required to provide the credentials used in the creation of the cryptocurrency. On success, it will return a `number` with the value one. On failure, it will return a `string` containing details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "result = delete_coin(blockchain, \"test\", \"test\", \"test\")",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Couldnt delete coin due to: \" + result",
+      "end if",
+      "print \"Coin got deleted\""
+    ]
+  },
+  "set_cycle_mining": {
+    "description": "Defines the interval (in-game hours) in which each user receives a coin reward when mining. The interval cannot be lower than 1 and not be higher than 2160. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. On success, it will return a `number` with the value one. In case of failure, the method will return a `string` with details.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = set_cycle_mining(coin, 20)",
+      "if result == 1 then",
+      "    print \"Successful updated mining interval\"",
+      "else",
+      "    print \"Failed updating mining interval\"",
+      "end if"
+    ]
+  },
+  "get_cycle_mining": {
+    "description": "Returns a `number` representing the defined interval in which each user receives a coin reward when mining. In case of failure, the method will return a `string` with details. If an invalid coin object is provided, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = get_cycle_mining(coin)",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed getting cyclic mining value due to: \" + result",
+      "end if",
+      "print \"cyclic mining value: \" + result"
+    ]
+  },
+  "get_reward": {
+    "description": "Returns a `number` representing the amount of coins that will be received as a reward after each mining cycle. In case of failure, the method will return a `string` with details. If an invalid coin object is provided, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = get_reward(coin)",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed getting reward value due to: \" + result",
+      "end if",
+      "print \"reward value: \" + result"
+    ]
+  },
+  "set_reward": {
+    "description": "Assigns the reward that miners will receive after each mining cycle. The reward value has to be above one. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. On success, the method will return a `number` with the value one. In case of failure, the method will return a `string` with details. Rewards above 100000000 return `\"Error: The reward cannot exceed 100000000 coins\"`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = set_reward(coin, -1)",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed setting reward due to: \" + result",
+      "end if",
+      "print \"Successfully set reward!\""
+    ]
+  },
+  "transaction": {
+    "description": "Makes a transaction of the currency between the indicated subwallets. In case of an error, a `string` with the details is returned. In case of success, a `number` with a value of one will be returned. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. Coins committed to a pending sale cannot be transferred and return `\"Error: coins are committed to a pending sale. Cancel it before transferring.\"`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = transaction(coin, \"test\", \"test2\", 20)",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed transaction due to: \" + result",
+      "end if",
+      "print \"Successfully transfered!\""
+    ]
+  },
+  "create_subwallet": {
+    "description": "Registers a new account in the `coin` that can be used to manage services such as stores. It is necessary to provide the PIN of the owner's `wallet` that wants to register. In case of success, the method will return a `number` with the value one. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. In case of an error, a `string` with the details is returned.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "result = create_subwallet(coin, \"test\", wallet.get_pin, \"test\", \"test\")",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed to create subwallet due to: \" + result",
+      "end if",
+      "print \"Successfully created subwallet!\""
+    ]
+  },
+  "get_subwallet": {
+    "description": "Returns a `subWallet` object on success. In case of error, it returns a `string` with the details. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = get_subwallet(coin, \"test\")",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed to get subwallet due to: \" + result",
+      "end if",
+      "print \"Successfully received subwallet!\""
+    ]
+  },
+  "get_subwallets": {
+    "description": "Returns a `list` where each item is a `subWallet` object, including all the accounts registered in the cryptocurrency. In case of error, it returns a `string` with the details. If an invalid coin object is provided, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = get_subwallets(coin)",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed to get subwallets due to: \" + result",
+      "end if",
+      "for subwallet in result",
+      "    print get_user(subwallet) + \" has \" + get_balance_subwallet(subwallet) + \" coins\"",
+      "end for"
+    ]
+  },
+  "set_address": {
+    "description": "Configures a valid address that will be shown to users who do not have the currency, indicating where to register. In case of an error, a `string` with the details is returned. In case of success, a `number` with a value of one will be returned. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = set_address(coin, \"12.12.12.12\")",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed to set address due to: \" + result",
+      "end if",
+      "print \"Successfully set address!\""
+    ]
+  },
+  "get_address": {
+    "description": "Returns the configured address that will be shown to users who do not have the currency, indicating where they have to register. In case of an error, the method will return a `string` with details. If an invalid coin object is provided, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = get_address(coin)",
+      "if not is_valid_ip(result) then",
+      "    exit \"Failed to get address due to: \" + result",
+      "end if",
+      "print \"address: \" + result"
+    ]
+  },
+  "get_mined_coins": {
+    "description": "Returns a `number` representing the amount of coins that have been mined so far. In case of an error, the method will return a `string` with details. If an invalid coin object is provided, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = get_mined_coins(coin)",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed to get mined coins due to: \" + result",
+      "end if",
+      "print \"mined coins: \" + result"
+    ]
+  },
+  "reset_password_coin": {
+    "description": "Resets the password of the coin. It returns a `number` with the value one if resetting was successful; otherwise, it will return a `string`. If an invalid coin object is provided, the method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "result = reset_password(coin, \"test\")",
+      "if typeof(result) == \"string\" then",
+      "    exit \"Failed to reset password due to: \" + result",
+      "end if",
+      "print \"Successfully reset password\""
+    ]
+  },
+  "get_ports": {
+    "description": "Returns a `list` of `port`s on the `computer` which are active. If an invalid `computer` object is passed, this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "ports = get_ports(host_computer(get_shell))",
+      "for port in ports",
+      "    print(\"Info: \" + router.port_info(port))",
+      "end for"
+    ]
+  },
+  "get_name": {
+    "description": "Returns the hostname of the machine. If an invalid `computer` object is passed, this method will return a `string` containing `\"Unknown\"`.",
+    "example": [
+      "computerName = get_name(host_computer(get_shell))",
+      "print(\"The name of your machine is \" + computerName)"
+    ]
+  },
+  "lan_ip": {
+    "description": "Returns a `string` with the local IP address of the `computer`. If an invalid `computer` object is passed, this method will return `null`.",
+    "example": [
+      "localIp = lan_ip(host_computer(get_shell))",
+      "print(\"Public ip:\" + localIp)"
+    ]
+  },
+  "public_ip_pc": {
+    "description": "Returns a `string` with the public IP address of the `computer`. If an invalid `computer` object is passed, this method will return `null`.",
+    "example": [
+      "publicIp = public_ip_pc(host_computer(get_shell))",
+      "print(\"Public ip:\" + publicIp)"
+    ]
+  },
+  "File": {
+    "description": "Returns the file or folder at an absolute or relative path. Returns `\"File: Invalid arguments\"` for an empty or non-string path, and `null` when the path or computer is invalid or the shell user no longer exists.",
+    "example": [
+      "filePath = \"/etc/passwd\"",
+      "file = File(host_computer(get_shell), filePath)",
+      "if file != null then",
+      "   print(file.get_content)",
+      "else",
+      "   print(\"File at given path \" + filePath + \" does not exist.\")",
+      "end if"
+    ]
+  },
+  "create_folder": {
+    "description": "Creates a folder and returns one on success or an error `string` on failure. Invalid argument types return `\"create_folder: Invalid arguments\"`; use during SSH encryption still raises a runtime error.",
+    "example": [
+      "path = \"/home/\" + active_user + \"/Desktop\"",
+      "computer = host_computer(get_shell)",
+      "createResult = create_folder(computer, path, \"myfolder\")",
+      "if typeof(createResult) == \"string\" then",
+      "   print(\"There was an error when creating the folder: \" + createResult)",
+      "else",
+      "   print(\"Folder got created at given path \" + path)",
+      "end if"
+    ]
+  },
+  "is_network_active": {
+    "description": "Returns a `number` with either the value one or zero. The value will be one if the `computer` has internet access. If there is no internet access, it will return zero instead. In case an invalid `computer` object is passed, this method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "if is_network_active(computer) then",
+      "   print(\"You're connected.\")",
+      "else",
+      "   print(\"You're not connected.\")",
+      "end if"
+    ]
+  },
+  "touch": {
+    "description": "Creates an empty text `file` at the provided path. Certain limitations apply to file creation: the `file` name must be alphanumeric and below 128 characters. Creation will fail if a `file` already exists at the specified path or if there are insufficient permissions. Additionally, there is a file limit of about 250 per folder and 3125 files overall on the computer. If successful, it returns a `number` with the value one. On failure, it returns a `string` with details. Using this method in an SSH encryption process will cause an error to be thrown, preventing further script execution. If an invalid `computer` object is passed, this method will return `null`.",
+    "example": [
+      "path = \"/home/\" + active_user + \"/Desktop\"",
+      "computer = host_computer(get_shell)",
+      "createResult = touch(computer, path, \"myFile.txt\")",
+      "if typeof(createResult) == \"string\" then",
+      "   print(\"There was an error when creating the file: \" + createResult)",
+      "else",
+      "   print(\"File got created at given path \" + path)",
+      "end if"
+    ]
+  },
+  "show_procs": {
+    "description": "Returns a `string` providing an overview of all active processes on the `computer`. This includes information about the username, PID, CPU usage, memory consumption, and command name. Using this method in an SSH encryption process will throw an error, preventing further script execution. If an invalid `computer` object is passed, this method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "procs = show_procs(computer)",
+      "list = procs.split(char(10))[1:]",
+      "processes = []",
+      "for item in list",
+      "   parsedItem = item.split(\" \")",
+      "   process = {}",
+      "   process.user = parsedItem[0]",
+      "   process.pid = parsedItem[1]",
+      "   process.cpu = parsedItem[2]",
+      "   process.mem = parsedItem[3]",
+      "   process.command = parsedItem[4]",
+      "   processes.push(process)",
+      "end for",
+      "print(processes)"
+    ]
+  },
+  "network_devices": {
+    "description": "Returns a `string` containing all network devices available on the `computer`, with each item providing information about the interface name, chipset, and whether monitoring support is enabled. If an invalid `computer` object is passed, this method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "devices = network_devices(computer)",
+      "deviceList = devices.split(char(10))",
+      "for item in deviceList",
+      "   print(item)",
+      "end for"
+    ]
+  },
+  "change_password": {
+    "description": "Changes an existing user password as root. Empty usernames return `\"change_password: Invalid arguments\"`; non-alphanumeric passwords and passwords over 15 characters also return error strings. Other signature mismatches return `null`.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "changeResult = change_password(computer, \"test\", \"newPassword\")",
+      "if typeof(changeResult) == \"string\" then",
+      "   print(\"There was an error when changing the password: \" + changeResult)",
+      "else",
+      "   print(\"Password got successfully changed.\")",
+      "end if"
+    ]
+  },
+  "create_user": {
+    "description": "Creates an alphanumeric user as root. Empty usernames and user names or passwords over 15 characters return error strings instead of raising. Success returns one; other signature mismatches return `null`.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "creationResult = create_user(computer, \"newUser\", \"123\")",
+      "if typeof(creationResult) == \"string\" then",
+      "   print(\"There was an error when creating an user: \" + creationResult)",
+      "else",
+      "   print(\"User got successfully created.\")",
+      "end if"
+    ]
+  },
+  "delete_user": {
+    "description": "Deletes a user as root, optionally removing the home folder. An empty username returns `\"delete_user: Invalid arguments\"`; other failures return error strings and success returns one.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "deletionResult = delete_user(computer, \"test\", true)",
+      "if typeof(deletionResult) == \"string\" then",
+      "   print(\"There was an error when deleting an user: \" + deletionResult)",
+      "else",
+      "   print(\"User got successfully deleted.\")",
+      "end if"
+    ]
+  },
+  "create_group": {
+    "description": "Adds a group to an existing user as root, and also returns one if the user already has that group. Empty arguments, group names over 15 characters, and other validation failures return error strings instead of raising.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "creationResult = create_group(computer, \"test\", \"staff\")",
+      "if typeof(creationResult) == \"string\" then",
+      "   print(\"There was an error when creating a group: \" + creationResult)",
+      "else",
+      "   print(\"Group got successfully created.\")",
+      "end if"
+    ]
+  },
+  "delete_group": {
+    "description": "Removes a group from a user as root. Empty arguments return `\"delete_group: Invalid arguments\"`; other failures return error strings and success returns one.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "deletionResult = delete_group(computer, \"test\", \"staff\")",
+      "if typeof(deletionResult) == \"string\" then",
+      "   print(\"There was an error when deleting a group: \" + deletionResult)",
+      "else",
+      "   print(\"Group got successfully deleted.\")",
+      "end if"
+    ]
+  },
+  "groups": {
+    "description": "Returns the groups of an existing user, one per line. Empty usernames return `\"groups: Invalid arguments\"`; unknown users return an error `string`, and other signature mismatches return `null`.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "create_group(computer, \"root\", \"staff\")",
+      "groups = groups(computer, \"root\")",
+      "listOfGroups = groups.split(char(10))",
+      "print(listOfGroups)"
+    ]
+  },
+  "close_program": {
+    "description": "Closes a program associated with the provided PID. You can see the list of active programs by either using `show_procs` or typing `ps` into your terminal. To close a program, you need to be either the owner of the running process or root. In case the closing of a program fails, this method will return a `string` containing details. On success, it will return a `number` with the value one. If there is no process with the provided PID, this method will return a `number` with the value zero. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "processes = split(show_procs(computer), char(10))[1:]",
+      "pid = split(processes[1], \" \")[1]",
+      "closeResult = close_program(computer, to_int(pid))",
+      "if typeof(closeResult) == \"string\" then",
+      "   print(\"There was an error when closing a program: \" + closeResult)",
+      "else",
+      "   print(\"Program with pid \" + pid + \" got successfully closed.\")",
+      "end if"
+    ]
+  },
+  "wifi_networks": {
+    "description": "Returns a `list` of visible Wi-Fi network descriptions. Unknown devices and invalid objects return `null`; device and disabled-card failures, including `\"wifi_networks: wifi card is disabled\"`, are returned as strings.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "networks = wifi_networks(computer, \"wlan0\")",
+      "result = []",
+      "for network in networks",
+      "   parsedItem = network.split(\" \")",
+      "   item = {}",
+      "   item.BSSID = parsedItem[0]",
+      "   item.PWR = parsedItem[1]",
+      "   item.ESSID = parsedItem[2]",
+      "   result.push(item)",
+      "end for",
+      "print(result)"
+    ]
+  },
+  "connect_wifi": {
+    "description": "Connects to a Wi-Fi network and returns one on success or an error `string` on failure. A rented computer cannot join another network and returns `\"connect_wifi: rented computers cannot connect to another network.\"`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "networks = wifi_networks(computer)",
+      "firstNetwork = networks[0].split(\" \")",
+      "BSSID = firstNetwork[0]",
+      "ESSID = firstNetwork[2]",
+      "connectionResult = connect_wifi(host_computer, \"wlan0\", BSSID, ESSID, \"wifi-password\")",
+      "if typeof(connectionResult) == \"string\" then",
+      "   print(\"There was an error while connecting to new Wifi: \" + connectionResult)",
+      "else",
+      "   print(\"Connected to new Wifi successfully.\")",
+      "end if"
+    ]
+  },
+  "connect_ethernet": {
+    "description": "Configures an ethernet address. Success returns an empty `string`; invalid arguments, missing internet, and connection failures return error strings instead of raising.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "connectionResult = connect_ethernet(computer, \"eth0\", \"192.168.0.4\", local_ip(get_router))",
+      "if typeof(connectionResult) == \"string\" then",
+      "   print(\"There was an error while connecting: \" + connectionResult)",
+      "else",
+      "   print(\"Connected successfully.\")",
+      "end if"
+    ]
+  },
+  "network_gateway": {
+    "description": "Returns a `string` with the gateway IP address configured on the `computer`. If an invalid `computer` object gets passed, this method returns a `string` with the value `\"0.0.0.0\"`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "gatewayIp = network_gateway(computer)",
+      "print(\"Gateway IP: \" + gatewayIp)"
+    ]
+  },
+  "active_net_card": {
+    "description": "Returns a `string` which contains either the keyword `\"WIFI\"` or `\"ETHERNET\"` depending on which connection type your `computer` is connected by. In case an invalid `computer` object gets passed, this method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "netCard = active_net_card(computer)",
+      "print(\"Connected by: \" + netCard)"
+    ]
+  },
+  "aircrack": {
+    "description": "Returns the password recovered from an aireplay capture, or `null` when recovery fails. An empty path returns `\"aircrack: Invalid arguments\"`.",
+    "example": [
+      "crypto = include_lib(\"/lib/crypto.so\")",
+      "networks = wifi_networks(host_computer(get_shell), \"wlan0\")",
+      "firstNetwork = networks[1].split(\" \")",
+      "bssid = firstNetwork[0]",
+      "pwr = firstNetwork[1][:-1].to_int",
+      "essid = firstNetwork[2]",
+      "aireplayResult = aireplay(crypto, bssid, essid, 300000 / pwr + 15)",
+      "if (aireplayResult == null) then",
+      "   result = aircrack(crypto, home_dir + \"/file.cap\")",
+      "   print(result)",
+      "end if"
+    ]
+  },
+  "airmon": {
+    "description": "Starts or stops monitor mode. Returns one on success, zero for an invalid option or device, and an error `string` for an unsupported or disabled card, including `\"wifi_networks: wifi card is disabled\"`.",
+    "example": [
+      "crypto = include_lib(\"/lib/crypto.so\")",
+      "airmonResult = airmon(crypto, \"start\", \"wlan0\")",
+      "if typeof(airmonResult) == \"string\" then",
+      "   print(\"There was an error while switching monitoring mode: \" + airmonResult)",
+      "else",
+      "   print(\"Monitoring mode switched successfully.\")",
+      "end if"
+    ]
+  },
+  "aireplay": {
+    "description": "Injects wireless frames and writes `file.cap` when stopped. Invalid arguments and a disabled Wi-Fi card now return error strings instead of raising. Success returns `null`.",
+    "example": [
+      "crypto = include_lib(\"/lib/crypto.so\")",
+      "networks = wifi_networks(host_computer(get_shell), \"wlan0\")",
+      "for index in range(0, networks.len - 1)",
+      "   print(index + \".) \" + networks[index])",
+      "end for",
+      "selectedIndex = user_input(\"Select Wifi: \").to_int",
+      "if (typeof(selectedIndex) == \"string\" or selectedIndex < 0 or selectedIndex > networks.len - 1) then",
+      "   exit(\"Wrong index!\")",
+      "end if",
+      "parsed = networks[selectedIndex].split(\" \")",
+      "bssid = parsed[0]",
+      "pwr = parsed[1][:-1].to_int",
+      "essid = parsed[2]",
+      "potentialAcks = 300000 / (pwr + 15)",
+      "aireplaycrypto, bssid, essid, potentialAcks)",
+      "wifiPassword = aircrack(crypto, \"/home/\" + active_user + \"/file.cap\")",
+      "print(\"Wifi password for \" + essid + \" is \" + wifiPassword)"
+    ]
+  },
+  "decipher": {
+    "description": "Returns a decrypted password via the provided password MD5 hash. Keep in mind that this method is not decrypting a password but rather checking for existing passwords within the game world with a matching MD5 hash. So in case a password does not exist in the game world, the decryption will fail. On failure, this method will return `null`. Using this method in an SSH encryption process will cause an error to be thrown, aborting further script execution.",
+    "example": [
+      "crypto = include_lib(\"/lib/crypto.so\")",
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "passwdContent = get_content(File(computer, \"/etc/passwd\"))",
+      "firstAccount = passwdContent.split(char(10))[0]",
+      "parsed = firstAccount.split(\":\")",
+      "username = parsed[0]",
+      "passwordHash = parsed[1]",
+      "password = decipher(crypto, passwordHash)",
+      "print(\"User: \" + username)",
+      "print(\"Password: \" + password)"
+    ]
+  },
+  "smtp_user_list": {
+    "description": "Returns a `list` containing only the user names on the SMTP server. Connection and validation failures return an error `string`; signature mismatches return `null`.",
+    "example": [
+      "crypto = include_lib(\"/lib/crypto.so\")",
+      "print(smtp_user_list(crypto, \"192.168.0.4\", 25))"
+    ]
+  },
+  "get_description": {
+    "description": "Returns a `string` with the CTF event description. If the provided `ctfEvent` object is invalid or missing, this method will return `null`."
+  },
+  "get_template": {
+    "description": "Returns a `string` with the CTF event template. If the provided `ctfEvent` object is invalid or missing, this method will return `null`."
+  },
+  "player_success": {
+    "description": "Returns a `number` with the value one if the CTF event was completed successfully. Otherwise, this method will return a `number` with the value zero. If the provided `ctfEvent` object is invalid or missing, this method will return `null`."
+  },
+  "get_creator_name": {
+    "description": "Returns a `string` with the name of the CTF event creator. If the provided `ctfEvent` object is invalid or missing, this method will return `null`."
+  },
+  "get_mail_content": {
+    "description": "Returns a `string` with the mail content of the CTF event. If the provided `ctfEvent` object is invalid or missing, this method will return `null`."
+  },
+  "chmod": {
+    "description": "Changes file permissions and returns an empty `string` on success or an error `string` on failure. A non-number `isRecursive` returns `\"chmod: Invalid arguments\"`; inaccessible files can return `\"permission denied\"`.",
+    "example": [
+      "hostComputer = host_computer(get_shell(\"root\", \"test\"))",
+      "rootFolder = File(hostComputer, \"/bin\")",
+      "oldPermissions = permissions(rootFolder)",
+      "chmod(rootFolder, \"o-wrx\", true)",
+      "newPermissions = permissions(rootFolder)",
+      "print(\"Old permissions: \" + oldPermissions)",
+      "print(\"New permissions: \" + newPermissions)"
+    ]
+  },
+  "copy": {
+    "description": "Copies a file or folder and returns one on success. Argument and path validation failures return error strings. If some nested items cannot be copied, returns `\"Warning: one or more files or folders cannot be copied.\"`. Read access is required, including execute permission on every parent folder; SSH encryption still raises.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "passwdFile = File(computer, \"/etc/passwd\")",
+      "copyResult = copy(passwdFile, \"/etc/\", \"duplicate\")",
+      "if typeof(copyResult) == \"string\" then",
+      "   print(\"There was an error while copying file: \" + copyResult)",
+      "else",
+      "   print(\"File got copied successfully.\")",
+      "end if"
+    ]
+  },
+  "move": {
+    "description": "Moves a file or folder and returns one on success. Invalid arguments, long names, and oversized paths return error strings instead of raising. The operation requires execute permission on every parent folder; SSH encryption still raises.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "passwdFile = File(computer, \"/etc/passwd\")",
+      "moveResult = move(passwdFile, \"/root/\", \"newFileName\")",
+      "if typeof(moveResult) == \"string\" then",
+      "   print(\"There was an error while moving file: \" + moveResult)",
+      "else",
+      "   print(\"File got moved successfully.\")",
+      "end if"
+    ]
+  },
+  "symlink": {
+    "description": "Creates a symlink and returns one on success. Invalid arguments, long names, and oversized paths return error strings instead of raising. The operation requires execute permission on every parent folder; SSH encryption still raises.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "lsFile = File(computer, \"/bin/ls\")",
+      "symResult = symlink(lsFile, \"/bin\", \"alternativeLS\")",
+      "if typeof(symResult) == \"string\" then",
+      "   print(\"There was an error while creating symlink: \" + symResult)",
+      "else",
+      "   print(\"Symlink got created successfully.\")",
+      "end if"
+    ]
+  },
+  "rename": {
+    "description": "Rename the file with the name provided. Files can only be renamed if the user has write permissions or is root. The new filename has to be below 128 characters and alphanumeric. On failure, this method will return a `string` with details. Otherwise, this method will return an empty string. If this method is used within an SSH encryption process, an error will be thrown, causing the script execution to be interrupted. In case the provided name is `null` or an invalid `file` object is passed, this method will return a `number` with the value zero.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "passwdFile = File(computer, \"/etc/passwd\")",
+      "renameResult = rename(passwdFile, \"renamed\")",
+      "if typeof(renameResult) == \"string\" then",
+      "   print(\"There was an error while renaming file: \" + renameResult)",
+      "else",
+      "   print(\"File got renamed successfully.\")",
+      "end if"
+    ]
+  },
+  "path": {
+    "description": "Returns a `string` containing the file path. If the file is a symlink, the optional `symlinkOrigPath` argument can be set to return the original path of the linked file instead. If the file has been deleted, this method will still return the path it had prior to deletion. If an invalid `file` object is passed, this method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "passwdFile = File(computer, \"/etc/passwd\")",
+      "print(\"File location: \" + path(passwdFile))"
+    ]
+  },
+  "is_folder": {
+    "description": "Returns a `number`. The value is one if the file is a folder, zero otherwise. In case the file gets deleted or an invalid `file` object is passed, this method will return `null` instead.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "etcFolder = File(computer, \"/etc\")",
+      "print(\"Is a folder: \" + is_folder(etcFolder))"
+    ]
+  },
+  "parent": {
+    "description": "Returns the parent folder of the current file or folder. In case there is no parent folder `null` will be returned instead. In case the file gets deleted or an invalid `file` object gets passed, this method will return `null` as well.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "etcFolder = File(computer, \"/etc\")",
+      "print(\"Parent path: \" + path(parent(etcFolder)))"
+    ]
+  },
+  "name": {
+    "description": "Returns a `string` with the name of the file. In case the file gets deleted or an invalid `file` object gets passed, this method will return `null` instead.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "passwdFile = File(computer, \"/etc/passwd\")",
+      "print(\"Filename: \" + name(passwdFile))"
+    ]
+  },
+  "allow_import": {
+    "description": "Returns a `number`. If the file is binary and can be imported by other scripts, the value will be one; otherwise, the value will be zero. In case the file gets deleted, this method will cause a crash. If an invalid `file` object gets passed, this method will return `null` instead.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "print(\"File can be imported: \" + allow_import(lsBinary))"
+    ]
+  },
+  "get_content": {
+    "description": "Returns a `string` representing the content of the file. To read a file, the user requires read access or being root. Note that you cannot read a binary file. In case of failure, `null` will be returned. If this method is used within an SSH encryption process, an error will be thrown, preventing any further script execution.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "passwdFile = File(computer, \"/etc/passwd\")",
+      "print(\"File content: \" + get_content(passwdFile))"
+    ]
+  },
+  "set_content": {
+    "description": "Saves text into a `file`. The content will not get appended to the `file`; therefore, existing content will be overridden. To set new content, the user requires write permissions or being root. Keep in mind that text files cannot exceed the character limit of 160,000. In case setting the content was successful, a `number` with the value one will be returned. Otherwise, a `string` with details will be returned. If this method is used within an SSH encryption process, an error will be thrown, preventing any further script execution. If the provided content is `null`, an invalid `file` object gets passed or permissions are lacking, this method will return a `number` with the value zero. In case the file gets deleted this method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell(\"root\", \"test\"))",
+      "passwdFile = File(computer, \"/etc/passwd\")",
+      "setResult = set_content(passwdFile, \"moo\")",
+      "if typeof(setResult) == \"string\" then",
+      "   print(\"There was an error while setting file content: \" + setResult)",
+      "else if setResult == 0 then",
+      "   print(\"Unable to set content of file!\")",
+      "else",
+      "   print(\"File content got changed successfully.\")",
+      "end if"
+    ]
+  },
+  "is_binary": {
+    "description": "Returns a `number`. If the file is a binary, the value will be one; otherwise, it will be zero. In case the file gets deleted or an invalid `file` object gets passed, this method will return `null` instead.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "print(\"File is a binary: \" + is_binary(lsBinary))"
+    ]
+  },
+  "is_symlink": {
+    "description": "Returns a `number`. If the file is a symlink, the value will be one; otherwise, it will be zero. In case the file gets deleted or an invalid `file` object gets passed, this method will return `null` instead.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "print(\"File is a symlink: \" + is_symlink(lsBinary))"
+    ]
+  },
+  "has_permission": {
+    "description": "Returns a `number` indicating if the user who launched the script has the requested permissions. One will indicate that the user has the correct permissions. In case permissions are lacking, the value will be zero. There are three different permission types: read `\"r\"`, write `\"w\"`, and execute `\"x\"`. In case the file gets deleted or an invalid `file` object gets passed, this method will return `null` instead.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "print(\"Is able to execute ls: \" + has_permission(lsBinary, \"x\"))"
+    ]
+  },
+  "delete": {
+    "description": "Deletes every matching ID in a `list` of mail ID strings. Returns one if at least one mail was deleted and `null` if none matched or the list is invalid. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "deletionResult = delete(lsBinary)",
+      "if typeof(deletionResult) == \"string\" and len(deletionResult) > 0 then",
+      "   print(\"There was an error while deleting a file: \" + deletionResult)",
+      "else",
+      "   print(\"File got deleted successfully.\")",
+      "end if"
+    ]
+  },
+  "get_folders": {
+    "description": "Returns a `list` of child folders. Returns `null` for a missing folder or non-folder object, and `\"Permission denied: <path>\"` when the folder is unreadable.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "binFolder = File(computer, \"/home\")",
+      "folders = get_folders(binFolder)",
+      "for folder in folders",
+      "   print(folder.path)",
+      "end for"
+    ]
+  },
+  "get_files": {
+    "description": "Returns a `list` of child files. Returns `null` for a missing folder or non-folder object, and `\"Permission denied: <path>\"` when the folder is unreadable.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "binFolder = File(computer, \"/bin\")",
+      "files = get_files(binFolder)",
+      "for file in files",
+      "   print(file.path)",
+      "end for"
+    ]
+  },
+  "permissions": {
+    "description": "Returns a `string` with the current file permissions. In case the current file gets deleted or an invalid `file` object gets passed, this method will return `null`. The format for this permissions `string` is as follows: `\"[fileType][wrx](u)[wrx](g)[wrx](o)\"`. The file type is either `\"d\"` in case it's a directory or `\"-\"`. The user type gets defined through three possible types: user `\"u\"`, group `\"g\"`, and other `\"o\"`. There are three different permission types: read `\"r\"`, write `\"w\"`, and execute `\"x\"`. An example of a `string` returned by this method would be `\"-rwxr-xr-x\"`. Taking the latter as an example, the following things become clear:\n* The provided file is not a directory.\n* The user has full access.\n* The group and others have almost all permissions besides writing.\n",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "binFolder = File(computer, \"/bin\")",
+      "perms = permissions(binFolder)",
+      "fileType = perms[0]",
+      "permissionsForUser = perms[1:4]",
+      "permissionsForGroup = perms[4:7]",
+      "permissionsForOther = perms[7:10]",
+      "print(\"File type: \" + fileType)",
+      "print(\"User permissions: \" + permissionsForUser)",
+      "print(\"Group permissions: \" + permissionsForGroup)",
+      "print(\"Other permissions: \" + permissionsForOther)"
+    ]
+  },
+  "owner": {
+    "description": "Returns a `string` with the name of the file owner. User permissions get applied to whoever is the owner of a file. In case the current file gets deleted or an invalid `file` object gets passed, this method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "print(\"Owner of ls is: \" + owner(lsBinary))"
+    ]
+  },
+  "set_owner": {
+    "description": "Changes the file owner and returns an empty `string` on success. Invalid owner values and a non-number recursive flag return error strings instead of raising. Missing files and other signature mismatches return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "ownerResult = set_owner(lsBinary, \"root\")",
+      "if typeof(ownerResult) == \"string\" then",
+      "   print(\"There was an error while changing owner: \" + ownerResult)",
+      "else",
+      "   print(\"File owner changed successfully.\")",
+      "end if"
+    ]
+  },
+  "group": {
+    "description": "Returns a `string` with the name of the group to which this file belongs. Group permissions get applied to whoever is the owner of a file. In case the current file gets deleted or an invalid `file` object gets passed, this method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "print(\"File is related to following group: \" + group(lsBinary))"
+    ]
+  },
+  "set_group": {
+    "description": "Changes the file group and returns an empty `string` on success. Invalid group values and a non-number recursive flag return error strings instead of raising. Missing files and other signature mismatches return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "ownerResult = set_group(lsBinary, \"root\")",
+      "if typeof(ownerResult) == \"string\" then",
+      "   print(\"There was an error while changing group: \" + ownerResult)",
+      "else",
+      "   print(\"File group changed successfully.\")",
+      "end if"
+    ]
+  },
+  "size": {
+    "description": "Returns a `string` with the size of the file in bytes. There is no correlation between file size and actual file content. Instead, the file size is depending on the name of the file. In case the current file gets deleted or an invalid `file` object gets passed, this method will return `null`.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "lsBinary = File(computer, \"/bin/ls\")",
+      "size = size(lsBinary)",
+      "if size.to_int > 1000 then",
+      "   print(\"File size is bigger than 1000 bytes.\")",
+      "else",
+      "   print(\"File size is below 1000 bytes.\")",
+      "end if"
+    ]
+  },
+  "load": {
+    "description": "Loads a library binary as a `metaLib`, or `null` on failure. An empty path returns `\"load: Invalid arguments\"` instead of raising.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "libFolder = File(host_computer(get_shell), \"/lib\")",
+      "for file in get_files(libFolder)",
+      "   metaLib = load(metax, file.path)",
+      "   print(\"Library: \" + lib_name(metaLib) + \" - \" + version(metaLib))",
+      "end for"
+    ]
+  },
+  "net_use": {
+    "description": "Returns a `netSession` for an IP address and port, or `null` on failure. Disabled internet returns `\"net_use: No internet connection\"`; invalid addresses print an error and return `null`. SSH encryption still raises.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "ports = used_ports(get_router(\"1.1.1.1\"))",
+      "for port in ports",
+      "   netSession = net_use(metax, \"1.1.1.1\", port_number(port))",
+      "   metaLib = dump_lib(netSession)",
+      "   print(\"Library: \" + lib_name(metaLib) + \" - \" + version(metaLib) + \" on port \" + port_number(port))",
+      "end for"
+    ]
+  },
+  "rshell_client": {
+    "description": "Launches a process on the victim's `computer`, silently attempting to continuously connect in the background to the specified address and port. For the reverse shell to run successfully, the `rshell` service must be installed, and the port forward must be configured correctly on the machine where the server is waiting for the victim's connection. If the launch was successful, a `number` with the value one will be returned. In case of failure, a `string` with details will be returned.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "rshell_client(metax, \"1.1.1.1\", 1222, \"bgprocess\")"
+    ]
+  },
+  "rshell_server": {
+    "description": "This method returns a `list` of `shell` objects that have been reverse shell connected to this computer. To manage the connections received, the `rshell` service must be installed on the machine that receives the victims' connections. In case of failure a `string` will be returned with details. If the provided object is anything other than `metaxploit` this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "shells = rshell_server(metax)",
+      "firstShell = shells[0]",
+      "chmod(File(host_computer(firstShell), \"/\"), \"o-wrx\", true)"
+    ]
+  },
+  "scan": {
+    "description": "Returns a `list` where each item is a `string` representing a memory area which has vulnerabilities related to the provided library. These memory areas can be used to make further scans via `scan_address`. In case of failure, this method returns `null` instead. An example of a memory area would be \"0x7BFC1EAA\". Using this method within a SSH encryption process will throw a runtime exception.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "scanResult = scan(metax, metaLib)",
+      "for area in scanResult",
+      "   print(\"Memory area containg vulnerability: \" + area)",
+      "end for"
+    ]
+  },
+  "scan_address": {
+    "description": "Returns a `string` containing information about each vulnerability in the provided library and memory area. In case the scanning fails this method will return `null`. Using this method within a SSH encryption process will throw a runtime exception.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "scanResult = scan(metax, metaLib)",
+      "scanAddress = scan_address(metax, metaLib, scanResult[0])",
+      "segments = split(scanAddress, \"Unsafe check: \")[1:]",
+      "exploits = []",
+      "for segment in segments",
+      "   labelStart = indexOf(segment, \"<b>\")",
+      "   labelEnd = indexOf(segment, \"</b>\")",
+      "   push(exploits, segment[labelStart + 3: labelEnd])",
+      "end for",
+      "print(\"Available vulnerabilities: \" + join(exploits, \", \"))"
+    ]
+  },
+  "sniffer": {
+    "description": "The terminal listens to the network packets of any connection that passes through the computer. When any connection information gets captured, it will print a `string` with the obtained data. In case saving of encryption source is enabled it will download the source code of the script responsible for encryption. In case the operation fails this method will return `null`. Using this method within a SSH encryption process will throw a runtime exception.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "result = sniffer(metax)",
+      "print(result)"
+    ]
+  },
+  "overflow": {
+    "description": "Exploits a library vulnerability and returns the exploit result. Invalid argument types return `\"overflow: Invalid arguments\"`. For remote router exploits, firewall status is checked when the attack runs: `\"Connection refused. Address unreachable\"` or `\"Connection refused. The target is behind a firewall.\"` is printed and the method returns `null`. Other failed requirements also return `null`; disabled networks return an error `string`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "scanResult = scan(metax, metaLib)",
+      "target = scanResult[0]",
+      "scanAddress = scan_address(metax, metaLib, target)",
+      "segments = split(scanAddress, \"Unsafe check: \")",
+      "exploit = null",
+      " for segment in segments",
+      "   hasRequirement = indexOf(segment, \"*\") != null",
+      "   if (not hasRequirement) then",
+      "      labelStart = indexOf(segment, \"<b>\")",
+      "      labelEnd = indexOf(segment, \"</b>\")",
+      "      exploit = segment[labelStart + 3: labelEnd]",
+      "   end if",
+      "end for",
+      "if (exploit) then",
+      "   print(\"Exploiting... \" + target + \":\" + exploit)",
+      "   print(overflow(metaLib, target, exploit))",
+      "else",
+      "   print(\"No exploit found with zero requirements\")",
+      "end if"
+    ]
+  },
+  "version": {
+    "description": "Returns a `string` containing the version number of the library. An example of a version number would be `\"1.0.0\"`. In case an invalid `metaLib` object gets passed this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "print(\"Init.so version: \" + version(metaLib))"
+    ]
+  },
+  "lib_name": {
+    "description": "Returns a `string` containing the name of the library. An example of a name would be `\"init.so\"`. In case an invalid `metaLib` object gets passed this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "print(\"Name for library is: \" + lib_name(metaLib))"
+    ]
+  },
+  "dump_lib": {
+    "description": "Returns the `metaLib` associated with the remote service. For example if the `metaxpoit` method `net_use` was used on a ssh port it will return the `metaLib` related to the ssh service. In case the port was zero is will return a `metaLib` related to the kernel router. If an invalid `netSession` gets passed this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "ports = used_ports(get_router(\"1.1.1.1\"))",
+      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "metaLib = dump_lib(netSession)",
+      "print(\"Library: \" + lib_name(metaLib) + \" - \" + version(metaLib) + \" on port \" + port_number(ports[0]))"
+    ]
+  },
+  "get_num_conn_gateway": {
+    "description": "Returns the number of devices using this router as a gateway. If you obtained your `netSession` from a computer, it will fetch and return the value from its gateway router. If an invalid `netSession` gets passed this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "ports = used_ports(get_router(\"1.1.1.1\"))",
+      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "print(\"Gateway clients: \" + get_num_conn_gateway(netSession))"
+    ]
+  },
+  "get_num_portforward": {
+    "description": "Returns the number of ports forwarded by this router. If you obtained your `netSession` from a computer, it will fetch and return the value from its gateway router. If an invalid `netSession` gets passed this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "ports = used_ports(get_router(\"1.1.1.1\"))",
+      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "print(\"Port forwards: \" + get_num_portforward(netSession))"
+    ]
+  },
+  "get_num_users": {
+    "description": "Returns the number of user accounts on the system. If an invalid `netSession` gets passed this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "ports = used_ports(get_router(\"1.1.1.1\"))",
+      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "print(\"User accounts: \" + get_num_users(netSession))"
+    ]
+  },
+  "is_any_active_user": {
+    "description": "Returns a `number`. If there is an active user on the system it will be one. Otherwise, it will be zero. If an invalid `netSession` gets passed this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "ports = used_ports(get_router(\"1.1.1.1\"))",
+      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "print(\"User Active?: \" + is_any_active_user(netSession))"
+    ]
+  },
+  "is_root_active_user": {
+    "description": "Returns a `number`. If there is an active root on the system it will be one. Otherwise, it will be zero. If an invalid `netSession` gets passed this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "ports = used_ports(get_router(\"1.1.1.1\"))",
+      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "print(\"Root Active?: \" + is_root_active_user(netSession))"
+    ]
+  },
+  "device_ports": {
+    "description": "Returns the open `port` objects for a LAN device, or `null` on failure. Empty or invalid addresses return error strings, including `\"device_ports: Invalid arguments\"`, instead of raising.",
+    "example": [
+      "router = get_router",
+      "devices = devices_lan_ip(router)",
+      "for ip in devices",
+      "   ports = device_ports(router, ip)",
+      "   openPorts = []",
+      "   for port in ports",
+      "      if is_closed(port) then continue",
+      "      push(openPorts, port)",
+      "   end for",
+      "",
+      "   if (len(openPorts) == 0) then",
+      "      print(ip + \" has no open ports\")",
+      "   else",
+      "      print(ip + \" contains following open ports:\")",
+      "      for port in openPorts",
+      "         print(\"|-\" +  port.port_number)",
+      "      end for",
+      "   end if",
+      "end for"
+    ]
+  },
+  "devices_lan_ip": {
+    "description": "Returns a `list` where each item is a `string` representing a LAN IP address. All devices are within the network of the router and can be reached by using the `ping` method. Some of the devices might be behind a firewall. In case the passed object is not a `router` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "devices = devices_lan_ip(router)",
+      "for ip in devices",
+      "   print(ip + \" found!\")",
+      "end for"
+    ]
+  },
+  "bssid_name": {
+    "description": "Returns a `string` with the BSSID value of the router. In case the passed object is not a `router` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "bssid = bssid_name(router)",
+      "print(\"BSSID: \" + bssid)"
+    ]
+  },
+  "essid_name": {
+    "description": "Returns a `string` with the ESSID value of the router. In case the passed object is not a `router` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "essid = essid_name(router)",
+      "print(\"ESSID: \" + essid)"
+    ]
+  },
+  "firewall_rules": {
+    "description": "Returns a `list` where each item is a `string` containing a firewall rule. In case the passed object is not a `router` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "rules = firewall_rules(router)",
+      "print(\"Firewall rules: \" + join(rules, \", \"))"
+    ]
+  },
+  "kernel_version": {
+    "description": "Returns a `string` with the version of the `kernel_router.so` library. In case the passed object is not a `router` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "version = kernel_version(router)",
+      "print(\"Kernel router version: \" + version)"
+    ]
+  },
+  "local_ip": {
+    "description": "Returns a `string` with the local IP address of the router. In case the passed object is not a `router` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "localIp = local_ip(router)",
+      "print(\"Local IP: \" + localIp)"
+    ]
+  },
+  "public_ip": {
+    "description": "Returns a `string` with the public IP address of the router. In case the passed object is not a `router` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "publicIp = public_ip(router)",
+      "print(\"Public IP: \" + publicIp)"
+    ]
+  },
+  "used_ports": {
+    "description": "Returns a `list` where each item is a `port` used inside the router. In case the passed object is not a `router` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "ports = used_ports(router)",
+      "for port in ports",
+      "   print(\"Port \" + port_number(port) + \" is available!\")",
+      "end for"
+    ]
+  },
+  "ping_port": {
+    "description": "Returns a `port` that is behind the port `number` provided. In case the `port` does not exist `null` gets returned.",
+    "example": [
+      "router = get_router",
+      "ports = used_ports(router)",
+      "for port in ports",
+      "   pingedPort = ping_port(router, port.port_number)",
+      "   if (pingedPort == null) then continue",
+      "   print(\"Pinged \" + port_number(pingedPort))",
+      "end for"
+    ]
+  },
+  "port_info": {
+    "description": "Returns a `string` with information about the provided port, including details about the running service and its version. For example, the output could be `\"http 1.0.0\"`. If the operation fails, `null` will be returned.",
+    "example": [
+      "router = get_router",
+      "ports = used_ports(router)",
+      "for port in ports",
+      "   info = port_info(router, port)",
+      "   print(info)",
+      "end for"
+    ]
+  },
+  "install_service": {
+    "description": "Installs the necessary files for the correct functioning of the service and starts it. If the installation is completed successfully, it returns a `number` with the value one. In case of an error, it returns a `string` with details. If the passed object is not a `service` this method will cause a crash.",
+    "example": [
+      "service = include_lib(\"/lib/libhttp.so\")",
+      "result = install_service(service)",
+      "if result == 1 then",
+      "    print \"Successfully installed service\"",
+      "else",
+      "    print \"Service installation failed: \" + result",
+      "end if"
+    ]
+  },
+  "start_service": {
+    "description": "Starts the service and opens its associated `port` on the local machine. The service requires a port forwarded to the router to be accessible from the outside. If the service starts correctly, it returns a `number` with the value one. In case of an error, it returns a `string` with details. If the passed object is not a `service` this method will cause a crash.",
+    "example": [
+      "service = include_lib(\"/lib/libhttp.so\")",
+      "result = start_service(service)",
+      "if result == 1 then",
+      "    print \"Successfully started service\"",
+      "else",
+      "    print \"Starting service failed: \" + result",
+      "end if"
+    ]
+  },
+  "stop_service": {
+    "description": "Stops the service and closes its associated `port` on the local machine. If the service is stopped successfully, it returns a `number` with the value one. If an error occurs during the process, it returns a `string` with details. In some cases, the returned `number` might be zero, indicating that the service removal failed. If the passed object is not a `service` this method will cause a crash.",
+    "example": [
+      "service = include_lib(\"/lib/libhttp.so\")",
+      "result = stop_service(service)",
+      "if result == 1 then",
+      "    print \"Successfully stopped service\"",
+      "else",
+      "    print \"Stopping service failed: \" + result",
+      "end if"
+    ]
+  },
+  "host_computer": {
+    "description": "Returns a `computer` related to the `shell`. If an invalid `shell` object gets passed this method will return `null`.",
+    "example": [
+      "shell = get_shell",
+      "computer = host_computer(shell)",
+      "print(\"Computer public IP is: \" + public_ip(computer))"
+    ]
+  },
+  "start_terminal": {
+    "description": "Starts a terminal on the shell's computer in place of the running script, as the shell's user and in their home folder. It runs the computer's `/bin/bash` when that is a compiled script, otherwise the game's default bash. The terminal's color changes, displaying the IP of the connected shell. The script pauses until the terminal is closed with `exit`, then continues with an empty custom object and returns `1`; a script started with `shell.launch` loses its process. From then on, network functions such as `get_router` also need the shell's computer to be running. Returns null when not called on a shell, and `Unknown error: Unable to access to local computer` when the shell's computer no longer exists. Using this method within an SSH encryption process throws an error, preventing further script execution.",
+    "example": [
+      "start_terminal(get_shell)"
+    ]
+  },
+  "build": {
+    "description": "Builds source into a binary and returns an empty `string` on success or an error `string` on failure. Invalid argument types return `\"build: Invalid arguments\"`; source and destination paths require execute permission on every parent folder.",
+    "example": [
+      "shell = get_shell",
+      "computer = host_computer(shell)",
+      "touch(computer, home_dir, \"test.src\")",
+      "set_content(File(computer, home_dir + \"/test.src\"), \"print(\"\"hello world\"\")\")",
+      "buildResult = build(shell, home_dir + \"/test.src\", home_dir + \"/Desktop\")",
+      "if buildResult != \"\" then",
+      "   print(\"There was an error while compiling: \" + buildResult)",
+      "else",
+      "   print(\"File has been compiled.\")",
+      "end if"
+    ]
+  },
+  "connect_service": {
+    "description": "Connects to SSH or FTP and returns a shell, or an error `string` on failure. Invalid arguments and missing internet now return strings. Valid credentials for a dead or fired NPC return `\"This account is disabled.\"`; SSH encryption still raises.",
+    "example": [
+      "shell = get_shell",
+      "connectionResult = connect_service(shell, \"1.1.1.1\", 22, \"test\", \"test\")",
+      "if typeof(connectionResult) != \"shell\" then",
+      "   print(\"There was an error while connecting: \" + connectionResult)",
+      "else",
+      "   print(\"Connected!\")",
+      "end if"
+    ]
+  },
+  "ping": {
+    "description": "Returns one for a reachable address, zero for an unreachable one, and an error `string` for invalid input. Signature mismatches return `\"ping: Invalid arguments\"` instead of raising.",
+    "example": [
+      "shell = get_shell",
+      "isPingable = ping(shell, \"1.1.1.1\")",
+      "if isPingable then",
+      "   print(\"Ping was successful!\")",
+      "else",
+      "   print(\"Ping failed!\")",
+      "end if"
+    ]
+  },
+  "scp": {
+    "description": "Copies files between shells and returns one on complete success. Invalid arguments return `\"scp: Invalid arguments\"`. If nested items are skipped, returns `\"Warning: one or more files or folders cannot be copied.\"`; SSH encryption still raises.",
+    "example": [
+      "shell = get_shell",
+      "remoteShell = connect_service(shell, \"1.1.1.1\", 22, \"test\", \"test\")",
+      "result = scp(remoteShell, \"/bin/ls\", \"/etc/\", shell)",
+      "if typeof(result) == \"string\" then",
+      "   print(\"There was an error while sending file: \" + result)",
+      "else",
+      "   print(\"File got sent successfully.\")",
+      "end if"
+    ]
+  },
+  "get_balance_subwallet": {
+    "description": "Returns a `number` of coins of a given currency. In case of error, a `string` with the details is returned. In case an object gets passed which is not a `subWallet` this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "subWallet = get_subwallet(coin, \"test\")",
+      "print \"Balance: \" + get_balance_subwallet(subWallet)"
+    ]
+  },
+  "set_info": {
+    "description": "Stores optional information in the Subwallet for any use. Upon success, a `number` with the value one will be returned. In case of failure, a `string` with details will be returned. If an object is passed that is not a `subWallet`, this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = blockchain.get_coin(\"test\", \"test\", \"test\")",
+      "subWallet = coin.get_subwallet(\"test\")",
+      "result = subWallet.set_info(\"test\")",
+      "if result == 1 then",
+      "    print \"Subwallet info got set!\"",
+      "end if"
+    ]
+  },
+  "get_info": {
+    "description": "Returns a `string` with the information stored by the coin creator. If an object is passed that is not a `subWallet`, this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "subWallet = get_subwallet(coin, \"test\")",
+      "print \"Subwallet info: \" + subWallet.get_info"
+    ]
+  },
+  "delete_subwallet": {
+    "description": "Deletes the account registered in the cryptocurrency. Returns a `number` where one indicates successful deletion and zero indicates failure. In case of certain failures, this method may return a `string` with details. If an object is passed that is not a `subWallet`, this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "subWallet = get_subwallet(coin, \"test\")",
+      "result = subWallet.delete",
+      "if result == 1 then",
+      "    print \"Subwallet got deleted!\"",
+      "end if"
+    ]
+  },
+  "get_user": {
+    "description": "Returns a `string` with the username associated with this subwallet. On failure, this method returns a `string` with an error message. If an object is passed that is not a `subWallet`, this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "subWallet = get_subwallet(coin, \"test\")",
+      "print \"Subwallet user: \" + subWallet.get_user"
+    ]
+  },
+  "last_transaction": {
+    "description": "Returns a `list` with the information of the last transaction. Index 0 is a `string` with the other subWallet. Index 1 is an integer with the amount. Index 2 is a `number` indicating the direction of the transaction (0 for Deposit, 1 for Withdrawal). Index 3 is a `string` indicating the date of the transaction. On failure, this method will either return a `number` with the value zero or a `string` with an error message. If an object is passed that is not a `subWallet`, this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "subWallet = get_subwallet(coin, \"test\")",
+      "transactionItem = subWallet.last_transaction",
+      "destinationAccount = transactionItem[0]",
+      "amount = transactionItem[1]",
+      "direction = transactionItem[2]",
+      "completeDate = transactionItem[3]",
+      "if direction == 0 then",
+      "    print \"Received \" + amount + \" from \" + destinationAccount + \" got completed at the \" + completeDate",
+      "else",
+      "    print \"Send \" + amount + \" to \" + destinationAccount + \" got completed at the \" + completeDate",
+      "end if "
+    ]
+  },
+  "mining": {
+    "description": "Starts the process of mining the cryptocurrency. The process leaves the terminal busy until a coin is mined. On success, this method will return a `number` with the value one. On failure, this method will return a `string` with details. If an object is passed that is not a `subWallet`, this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "subWallet = get_subwallet(coin, \"test\")",
+      "while subWallet.mining == 1",
+      "    print \"Mining...\", true",
+      "    print \"Balance \" + subWallet.get_balance",
+      "end while"
+    ]
+  },
+  "check_password": {
+    "description": "Returns a `number` with the value one if the credentials are correct, otherwise, the value is zero. For some cases, this method will return a `string` with an error message. If an object is passed that is not a `subWallet`, this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "subWallet = get_subwallet(coin, \"test\")",
+      "password = user_input(\"SubWallet password:\", true)",
+      "if subWallet.check_password(password) == 1 then",
+      "    print \"Password is correct!\"",
+      "end if"
+    ]
+  },
+  "wallet_username": {
+    "description": "Returns a `string` with the name of the `wallet` to which this subwallet belongs. If an object is passed that is not a `subWallet`, this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "coin = get_coin(blockchain, \"test\", \"test\", \"test\")",
+      "subWallet = get_subwallet(coin, \"test\")",
+      "print \"SubWallet username: \" + subWallet.wallet_username"
+    ]
+  },
+  "list_coins": {
+    "description": "Returns a `list` where each item is a `string` with the names of the coins available in the `wallet`. On failure this method returns a `string` with an error message. If the passed value is not a `wallet` this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "print \"My wallet is connected to: \" + join(list_coins(wallet), \", \")"
+    ]
+  },
+  "get_balance": {
+    "description": "Returns a `number` of coins of a given currency. In case of error, a `string` with the details is returned. Returns a `number` of coins of a given currency. In case of error, a `string` with the details is returned. Any deviation from the method signature will result in a `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "for coinName in list_coins(wallet)",
+      "    print \"You have \" + get_balance(wallet, coinName) + \" coins of the currency \"\"\" + coinName + \"\"\"\"",
+      "end for"
+    ]
+  },
+  "buy_coin": {
+    "description": "Publishes a coin purchase offer, returning one on success or an error `string` on failure. Signature mismatches return `\"buy_coin: Invalid arguments\"` instead of raising.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "result = buy_coin(wallet, \"test\", 100, 20, \"test\")",
+      "if result == 1 then",
+      "    print \"Sucessfully created purchase offer!\"",
+      "else",
+      "    print \"Failed: \" + result",
+      "end if"
+    ]
+  },
+  "sell_coin": {
+    "description": "Publishes a coin sale offer, returning one on success or an error `string` on failure. Signature mismatches return `\"sell_coin: Invalid arguments\"` instead of raising.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "result = sell_coin(wallet, \"test\", 100, 20, \"test\")",
+      "if result == 1 then",
+      "    print \"Sucessfully created sell offer!\"",
+      "else",
+      "    print \"Failed: \" + result",
+      "end if"
+    ]
+  },
+  "get_pending_trade": {
+    "description": "Returns a `list` with the pending sale or purchase offer of this wallet for a certain currency. Index 0 of the `list` represents the type of offer with a `string` (Buy/Sell), index 1 represents the quantity to be sold or bought, and index 2 represents the price per unit. On failure, this method will return a `string` with details. Any deviation from the method signature will result in a `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "result = get_pending_trade(wallet, \"test\")",
+      "isBuying = result[0] == \"Buy\"",
+      "quantity = result[1]",
+      "unitPrice = result[2]",
+      "currentBalance = get_balance(wallet, \"test\")",
+      "if isBuying then",
+      "    print \"After buying was successful your balance will be \" + (quantity * unitPrice + currentBalance)",
+      "else",
+      "    print \"After selling was successful your balance will be \" + (currentBalance - quantity * unitPrice)",
+      "end if"
+    ]
+  },
+  "cancel_pending_trade": {
+    "description": "Cancel any pending offer of a certain coin. On success, an empty `string` will be returned. On failure, a `string` with an error message will be returned. Any deviation from the method signature will result in `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "if cancel_pending_trade(wallet, \"test\") == \"\" then",
+      "    print \"Trade got canceled!\"",
+      "end if"
+    ]
+  },
+  "get_global_offers": {
+    "description": "Returns a `map` with all the offers made by any player of a given currency. The key of the `map` represents the WalletID of the player who has made the offer, and the value of the `map` is a `list` where index 0 represents the type of offer with a `string` (Buy/Sell), index 1 represents the amount to sell or buy, and index 2 represents the price per unit. In case of failure, this method returns a `string` with details. Any deviation from the method signature will result in `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "for item in get_global_offers(wallet, \"test\")",
+      "    walletId = item.key",
+      "    trade = item.value",
+      "    isBuying = trade[0] == \"Buy\"",
+      "    quantity = trade[1]",
+      "    unitPrice = trade[2]",
+      "    print \"-\" * 10",
+      "    print \"<b>\" + walletId + \"</b>\"",
+      "    if isBuying then",
+      "        print \"<color=green>Is buying</color>\"",
+      "    else",
+      "        print \"<color=yellow>Is selling</color>\"",
+      "    end if",
+      "    print quantity + \" coins with a unit price of \" + unitPrice",
+      "end for"
+    ]
+  },
+  "list_global_coins": {
+    "description": "Returns a `list` where each item is a `string` containing the names of all the currencies that exist. In case of failure, this method returns a `string` with details. If the passed value is not a `wallet` this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "print \"All existing coins: \" join(list_global_coins(wallet), \", \")"
+    ]
+  },
+  "show_nodes": {
+    "description": "Returns a `number` representing the count of devices mining a specific coin for the same `wallet`. In case of an error, a `string` with details is returned. Any deviation from the method signature will result in `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "print \"Active miners: \" show_nodes(wallet, \"test\")"
+    ]
+  },
+  "reset_password": {
+    "description": "Change the password of the wallet. Only the account owner can perform this action. If the process is completed successfully, a `number` with the value one will be returned. In case of an error, a `string` with details will be returned. Any deviation from the method signature will result in `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "if reset_password(wallet, \"test\") == 1 then",
+      "    print \"You got a new password!\"",
+      "end if"
+    ]
+  },
+  "get_pin": {
+    "description": "Returns a `string` with a PIN that refreshes every few minutes. This PIN is used to obtain an account in cryptocurrency services. If the passed value is not a `wallet` this method will return `null`.",
+    "example": [
+      "blockchain = include_lib(\"/lib/blockchain.so\")",
+      "myShell = get_shell",
+      "myComputer = host_computer(myShell)",
+      "wallet = login_wallet(blockchain, \"test\", \"test\")",
+      "touch(myComputer, \"/root\", \"pin_launch.src\")",
+      "myFile = File(myComputer, \"/root/pin_launch.src\")",
+      "set_content(myFile, \"",
+      "    blockchain = include_lib(\"\"/lib/blockchain.so\"\")",
+      "    myShell = get_shell",
+      "    myComputer = host_computer(myShell)",
+      "    wallet = login_wallet(blockchain, \"\"test\"\", \"\"test\"\")",
+      "    if params[0] == get_pin(wallet) then",
+      "        get_custom_object.secret = \"\"The answer is 42\"\"",
+      "    else",
+      "        get_custom_object.secret = \"\"The answer is 10053\"\"",
+      "    end if",
+      "\")",
+      "build(myShell, \"/root/pin_launch.src\", \"/root\")",
+      "delete(myFile)",
+      "launch(myShell, \"/root/pin_launch\", get_pin(wallet))",
+      "print \"The secret: \" + get_custom_object.secret"
+    ]
+  },
+  "delete_mail": {
+    "description": "Deletes every matching ID in a `list` of mail ID strings. Returns one if at least one mail was deleted and `null` if none matched or the list is invalid. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon.",
+    "example": [
+      "metaMail = mail_login(user_mail_address, \"test\")",
+      "mails = fetch(metaMail)",
+      "results = []",
+      "for mail in mails",
+      "   segments = split(mail, char(10))",
+      "   mailId = segments[2][8:]",
+      "   print(delete_mail(metaMail, mailId))",
+      "end for",
+      "print(\"Deleted every mail!\")"
+    ]
+  },
+  "fetch": {
+    "description": "Returns a `list` of mail summaries containing ID, sender, subject, and a 125-character preview. The account is refreshed before reading; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon.",
+    "example": [
+      "metaMail = mail_login(user_mail_address, \"test\")",
+      "mails = fetch(metaMail)",
+      "results = []",
+      "for mail in mails",
+      "   segments = split(mail, char(10))",
+      "   item = {}",
+      "   item.mailId = segments[2][8:]",
+      "   item.from = segments[3][6:]",
+      "   item.subject = segments[4][9:]",
+      "   item.preview = segments[5:]",
+      "   push(results, item)",
+      "end for",
+      "print(results)"
+    ]
+  },
+  "read": {
+    "description": "Takes a `list` of mail ID strings and returns a `list` of full-message strings in the same order, using `\"Mail not found\"` for each missing ID. A non-list argument or non-string element returns `null`. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon.",
+    "example": [
+      "metaMail = mail_login(user_mail_address, \"test\")",
+      "mails = fetch(metaMail)",
+      "results = []",
+      "for mail in mails",
+      "   segments = split(mail, char(10))",
+      "   mailId = segments[2][8:]",
+      "   print(read(metaMail, mailId))",
+      "end for"
+    ]
+  },
+  "send": {
+    "description": "Sends mail from the account represented by this `MetaMail` object. Subject and message limits are 128 and 2500 characters. Returns one on success or an error `string`; account access failures return `\"send: Unable to access mail account.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon.",
+    "example": [
+      "metaMail = mail_login(user_mail_address, \"test\")",
+      "result = send(metaMail, user_mail_address, \"test subject\", \"test message\")",
+      "if typeof(result) == \"string\" then",
+      "   print(\"There was an error while sending mail: \" + result)",
+      "else",
+      "   print(\"Mail got send successfully.\")",
+      "end if"
+    ]
+  },
+  "port_number": {
+    "description": "Returns the `number` which is used for the port. In case the passed object is not a `port` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "ports = used_ports(router)",
+      "for port in ports",
+      "   print(\"Port \" + port_number(port) + \" is in use!\")",
+      "end for"
+    ]
+  },
+  "is_closed": {
+    "description": "Returns a `number`, where one indicates that the specified `port` is closed and zero indicates that the port is open. In case the passed object is not a `port` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "ports = used_ports(router)",
+      "for port in ports",
+      "   state = \"open\"",
+      "   if (is_closed(port)) then state = \"closed\"",
+      "   print(\"Port \" + port_number(port) + \" is \" + state + \"!\")",
+      "end for"
+    ]
+  },
+  "get_lan_ip": {
+    "description": "Returns a `string` containing the local IP address of the computer to which the port is pointing. In case the passed object is not a `port` this method will return `null`.",
+    "example": [
+      "router = get_router",
+      "ports = used_ports(router)",
+      "for port in ports",
+      "   print(\"Port \" + port_number(port) + \" is pointed to \" + get_lan_ip(port) + \"!\")",
+      "end for"
+    ]
+  },
+  "reset_ctf_password": {
+    "description": "Resets the password of your CTF account. Returns a `number` with the value one if resetting was successful; otherwise, it will return a `string` containing the reason for failure.",
+    "example": [
+      "reset_ctf_password(\"mysafepassword\")"
+    ]
+  },
+  "reverse": {
+    "description": "Reverses the order of all values in the `list`. This operation will mutate the `list`.",
+    "example": [
+      "myList = [42, 1, 3]",
+      "reverse(myList)",
+      "print(\"Reversed list: \" + myList.split(\", \"))"
+    ]
+  },
+  "trim": {
+    "description": "Returns a new `string` stripped of any spacing at the beginning and ending. If any value gets passed that is not a `string` this method will return `null`.",
+    "example": [
+      "myString = \"    42   \"",
+      "print(trim(myString))"
+    ]
+  },
+  "lastIndexOf": {
+    "description": "Returns a `number` indicating the last matching index of the provided value inside the `string`. If the value does not exist inside the `string`, `-1` is returned. If any of the provided values deviates from the defined types in the method signature, this method will return `null`.",
+    "example": [
+      "myString = \"42 as an answer is wrong\"",
+      "index = lastIndexOf(myString, \"wrong\")",
+      "if index != -1 then",
+      "   print(\"Invalid information spotted at: \" + index)",
+      "else",
+      "   print(\"Information seems valid.\")",
+      "end if"
+    ]
+  },
+  "funcRef": {
+    "description": "Returns a `map` which enables to extend function references with custom methods.",
+    "example": [
+      "funcRef.signature = function",
+      "   return str(@self)",
+      "end function",
+      "print (@print).signature"
+    ]
+  },
+  "list": {
+    "description": "Returns a `map` which enables to extend list types with custom methods.",
+    "example": [
+      "list.map = function(callback)",
+      "   newList = []",
+      "   for item in self",
+      "      newList.push(callback(item, __item_idx))",
+      "   end for",
+      "   return newList",
+      "end function",
+      "myMapFunction = function(item, index)",
+      "   print \"Mapping value at index: \" + index",
+      "   return item.myValue",
+      "end function",
+      "print [{ \"myValue\": 24 }].map(@myMapFunction)"
+    ]
+  },
+  "number": {
+    "description": "Returns a `map` which enables to extend number types with custom methods.",
+    "example": [
+      "number.bitwise = function(operator, right)",
+      "  return bitwise(operator, self, right)",
+      "end function",
+      "print (1234).bitwise(\">>\", 1)"
+    ]
+  },
+  "string": {
+    "description": "Returns a `map` which enables to extend string types with custom methods.",
+    "example": [
+      "string.color = function(colorValue = \"red\")",
+      "  return \"<color=\" + colorValue + \">\" + self + \"</color>\"",
+      "end function",
+      "print \"My text: \".color + \"Hello world\".color(\"yellow\")"
+    ]
+  },
+  "map": {
+    "description": "Returns a `map` which enables to extend map types with custom methods.",
+    "example": [
+      "map.extend = function(value)",
+      "  for item in value",
+      "    self[item.key] = item.value",
+      "  end for",
+      "  return self",
+      "end function",
+      "test = {\"123\":123}",
+      "test.extend({\"bar\": \"foo\"})",
+      "print \"My extended value: \" + test.bar"
+    ]
+  },
+  "scan_debuglib": {
+    "description": "Scans the library in debug mode to identify potential code errors that may lead to vulnerabilities. If issues are detected, the relevant code snippets are printed. In case of an error, a `string` containing the error message is returned. If an invalid `debugLibrary` object is passed, this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "debugLib = debug_tools(metaLib, \"test\", \"test\")",
+      "print(\"Debug Library result: \" + scan_debuglib(debugLib))"
+    ]
+  },
+  "apply_patch": {
+    "description": "Applies a patch containing corrected code to the specified text file at the provided path. Returns a `string` with the result of the operation. If any of the provided values deviates from the defined types in the method signature, this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "debugLib = debug_tools(metaLib, \"test\", \"test\")",
+      "print(\"Path result: \" + apply_patch(debugLib, \"/etc/passwd\"))"
+    ]
+  },
+  "unit_testing": {
+    "description": "Conducts automated tests on the specified lines of code. If potential vulnerabilities are detected due to errors in these lines, this method will print partial objects that could be obtained by exploiting the vulnerability, along with the affected memory zone and detailed vulnerability information. In case of failure, this function returns a `string` with an error message. If any of the provided values deviates from the defined types in the method signature, this method will return `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "debugLib = debug_tools(metaLib, \"test\", \"test\")",
+      "print(\"Unit test results: \" + unit_testing(debugLib, [1, 2, 3]))"
+    ]
+  },
+  "camera_link_system": {
+    "description": "Accesses the traffic camera system, opening a window with controls to switch between different cameras. If the window opens successfully, this method returns a `number` with the value one. In case of an error, it returns a `string` with details. If an invalid traffic net object gets passed this method will return `null`.",
+    "example": [
+      "libTraffic = include_lib(\"/lib/libtrafficnet.so\")",
+      "linkSystemResult = camera_link_system(libTraffic)",
+      "if linkSystemResult == 1 then",
+      "    print(\"Initiated camera broadcast!\")",
+      "end if"
+    ]
+  },
+  "locate_vehicle": {
+    "description": "Locates a vehicle by its opaque 17-character license plate. Camera cooldown failures now report 12 hours. Returns one when a camera shows the vehicle, otherwise an error `string` or `null`.",
+    "example": [
+      "libTraffic = include_lib(\"/lib/libtrafficnet.so\")",
+      "camera_link_system(libTraffic)",
+      "vehicleSearchResult = locate_vehicle(libTraffic, \"1L2M3N\", \"pass\")",
+      "if vehicleSearchResult == 1 then",
+      "    print(\"Found vehicle!\")",
+      "end if"
+    ]
+  },
+  "get_credentials_info": {
+    "description": "Returns string which contains job and name of a NPC. If an error occurs, a `string` with details is returned. If an invalid `trafficNet` object is passed, this method will return `null`.",
+    "example": [
+      "libTraffic = include_lib(\"/lib/libtrafficnet.so\")",
+      "print(get_credentials_info(libTraffic))"
+    ]
+  },
+  "model": {
+    "description": "Returns a `string` with the appliance model ID. If the passed object is not a `smartAppliance` this method will return `null`.",
+    "example": [
+      "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")",
+      "modelResult = model(libSmartapp)",
+      "if modelResult.matches(\"^[A-Z]+$\") then",
+      "    print(\"Model is: \" + modelResult)",
+      "else",
+      "    print(\"Model couldn't be determined due to: \" + modelResult)",
+      "end if"
+    ]
+  },
+  "override_settings": {
+    "description": "Applies the exact power and temperature required by the appliance model. Other values return `\"override_settings: invalid power or temperature for this model. Check the device manual.\"`. With the alarm enabled, returns `\"override_settings: warning: Unsafe settings applied. The safety alarm will shut down the appliance if these values are reached.\"`; the accident is triggered only after the alarm is disabled, including by a later `set_alarm(0)` call.",
+    "example": [
+      "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")",
+      "overrideResult = override_settings(libSmartapp, 1000, 20)",
+      "if overrideResult == 1 then",
+      "    print(\"Override was successful!\")",
+      "else",
+      "    print(\"Override failed due to: \" + overrideResult)",
+      "end if"
+    ]
+  },
+  "set_alarm": {
+    "description": "Activates or deactivates the sound alarm indicating any appliance malfunction. If the operation is successful, a `number` with the value one is returned; otherwise, a `string` containing error details is returned. If any arguments deviate from the defined signature, this method will return `null`. Disabling the alarm with `set_alarm(0)` can trigger an accident when unsafe override values are active.",
+    "example": [
+      "libSmartapp = include_lib(\"/lib/libsmartappliance.so\")",
+      "setAlarmResult = set_alarm(libSmartapp, false)",
+      "if setAlarmResult == 1 then",
+      "    print(\"Alarm was disabled successfully!\")",
+      "else",
+      "    print(\"Disabling alarm failed due to: \" + setAlarmResult)",
+      "end if"
+    ]
+  },
+  "debug_tools": {
+    "description": "Returns a library in debug mode as a `debugLibrary` object. A valid Neurobox engineer's username and password are required to access this mode. If successful, the `debugLibrary` object is returned; in case of an error, a `string` with details is provided. Passing values that deviate from the defined signature will result in `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "debugLib = debug_tools(metaLib, \"test\", \"test\")",
+      "if typeof(debugLib) == \"debugLibrary\" then",
+      "   print(\"Received debug libary object!\")",
+      "end if"
+    ]
+  },
+  "is_patched": {
+    "description": "Returns by default a number indicating whether the library has been patched. A value of one indicates that the library has been patched, while zero indicates that it has not. If the getdate parameter is set to `true`, the function will return a `string` containing the date of the last patch. The data format is as follows: `\"dd/MM/yyyy\"`. Additionally if there is any error the return value will be a `string`. Providing values that deviate from the defined signature will cause `null` to be returned.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "isPatchedResult = is_patched(metaLib)",
+      "if isPatchedResult == 1 then",
+      "   print(\"init.so has been patched!\")",
+      "end if"
+    ]
+  },
+  "payload": {
+    "description": "Returns a `list` containing a single partial `computer` object if zero-day vulnerabilities are detected within the specified memory zone. If a file path is provided, a partial `file` object associated with this path will also be included in the `list`. Additionally, if this file is a library, its corresponding `metaLib` object is added to the returned `list`. In case of an error, a `string` with details is returned. Providing arguments that deviate from the defined signature will result in `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "metaLib = load(metax, \"/lib/init.so\")",
+      "debugLib = debug_tools(metaLib, \"test\", \"test\")",
+      "result = payload(debugLib, \"0x7A69F4C3\")",
+      "if typeof(result) == \"list\" and len(result) > 0 then",
+      "   print(\"Successfully executed payload!\")",
+      "end if"
+    ]
+  },
+  "flood_connection": {
+    "description": "Floods the target until stopped, or reboots it once enough distinct addresses flood it concurrently. The threshold is `netSpeed * 3` when a super administrator is on the network and three quarters of that otherwise. Super-admin networks print `\"Warning: Super administrator detected. Additional DDoS traffic required.\"`; a successful reboot prints `\"remote connection interrupted\"`. Returns `null`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "ports = used_ports(get_router(\"1.1.1.1\"))",
+      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "flood_connection(netSession)"
+    ]
+  },
+  "get_abs_path": {
+    "description": "Resolves a path against the optional base path or current directory. Invalid argument types and excessive path lengths return their respective error strings instead of raising.",
+    "example": [
+      "print(\"Absolute path of file in my current active path: \" + get_abs_path(\"test.src\"))"
+    ]
+  },
+  "cd": {
+    "description": "Changes the active shell directory and returns an empty `string` on success. The target and every parent folder require execute permission. Invalid argument types return `\"cd: Invalid arguments\"`; SSH encryption still raises.",
+    "example": [
+      "cd(\"/root\")"
+    ]
+  },
+  "encrypt": {
+    "description": "Encrypts the specified file using the provided key. On success, the method returns a `number` with the value one. If encryption fails, a descriptive error message is returned as a `string`. If any arguments deviate from the expected types defined in the method signature, the method returns `null`.",
+    "example": [
+      "crypto = include_lib(\"/lib/crypto.so\")",
+      "encryptionResult = encrypt(crypto, \"/etc/passwd\", \"mySecretKey\")",
+      "if encryptionResult == 1 then",
+      "    print(\"File got encrypted!\")",
+      "else",
+      "    print(\"Failed to encrypt file due to: \" + encryptionResult)",
+      "end if"
+    ]
+  },
+  "decrypt": {
+    "description": "Decrypts the specified file using the provided key. On success, the method returns a `number` with the value one. If decryption fails, a descriptive error message is returned as a `string`. If any arguments deviate from the expected types defined in the method signature, the method returns `null`.",
+    "example": [
+      "crypto = include_lib(\"/lib/crypto.so\")",
+      "decryptionResult = decrypt(crypto, \"/etc/passwd\", \"mySecretKey\")",
+      "if decryptionResult == 1 then",
+      "    print(\"File got decrypted!\")",
+      "else",
+      "    print(\"Failed to decrypt file due to: \" + decryptionResult)",
+      "end if"
+    ]
+  },
+  "is_encrypted": {
+    "description": "Checks whether the specified file is encrypted. Returns a `number` with the value one if the file is encrypted, or zero if it is not. If the check fails (e.g., due to a missing or unreadable file), a descriptive error message is returned as a `string`. If the argument does not match the expected type, the method returns `null`.",
+    "example": [
+      "crypto = include_lib(\"/lib/crypto.so\")",
+      "isEncrypted = is_encrypted(crypto, \"/etc/passwd\")",
+      "if isEncrypted == 1 then",
+      "    print(\"File is encrypted!\")",
+      "else",
+      "    print(\"File is not encrypted!\")",
+      "end if"
+    ]
+  },
+  "reboot": {
+    "description": "Reboots a computer. By default, it reboots in standard mode. If the optional safeMode parameter is provided and evaluates to a truthy value, the system will reboot in safe mode instead. On success, the method returns a `number` with the value one. If the reboot fails, a descriptive error message is returned as a `string`. If the argument type deviates from the expected signature, the method returns `null`. Calling this method in an SSH encryption process will trigger an error, halting further script execution.",
+    "example": [
+      "computer = host_computer(get_shell)",
+      "signal = reboot(computer, true)",
+      "if signal == 1 then",
+      "   print(\"Reboot signal emitted successfully.\")",
+      "else",
+      "   print(\"There was an error when rebooting the computer: \" + signal)",
+      "end if"
+    ]
+  },
+  "delete_all": {
+    "description": "Deletes every mail in the account and returns one. The account is refreshed first; refresh failures return `\"MetaMail: Unable to refresh mail account.\"`. Missing internet returns `\"delete_all: No internet access.\"`. Every mail method enforces a two-second cooldown after the previous mail use and returns `\"MetaMail: Wait 2 seconds before using mail again.\"` when called too soon.",
+    "example": [
+      "metaMail = mail_login(\"test@test.com\", \"test\")",
+      "print(metaMail.delete_all)"
+    ]
+  },
+  "date": {
+    "description": "Returns the file timestamp as `\"dd/MMM/yyyy HH:mm\"` using invariant English month abbreviations, for example `\"05/Mar/2026 14:07\"`. Returns `null` if the file no longer exists. Symlinks are not followed and no permission check is performed."
+  },
+  "net_speed": {
+    "description": "Returns the network connection-speed pack number: `3`, `6`, `12`, `20`, or `25` (`ISPPanel.PackID`). Returns `null` when the router cannot be resolved.",
+    "example": [
+      "router = get_router",
+      "print(router.net_speed)"
+    ]
+  },
+  "poll_input": {
+    "description": "Returns pending terminal input as a `string`, or an empty `string` when no input is available. Calls made within 250 milliseconds of the previous poll also return an empty `string`. Use during SSH encryption raises a runtime error.",
+    "example": [
+      "input = poll_input",
+      "if input != \"\" then print(input)"
+    ]
+  }
+}

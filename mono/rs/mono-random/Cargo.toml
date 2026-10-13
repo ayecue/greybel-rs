@@ -1,0 +1,19 @@
+[package]
+name = "mono-random"
+description = "Pseudo-random numbers as Grey Hack's Mono runtime's System.Random generates them"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

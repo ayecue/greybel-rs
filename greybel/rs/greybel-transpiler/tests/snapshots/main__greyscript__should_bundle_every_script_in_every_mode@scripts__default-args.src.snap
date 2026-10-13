@@ -1,0 +1,39 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/default-args.src
+---
+=== default
+test=function(arg1=0,arg2="test")
+print(arg1)
+print(arg2)
+end function
+test
+test("foo",0)
+var1="test"
+var2="test"
+var3="test"
+=== uglify
+globals.I=globals
+I.P="test"
+J=function(N=0,O="test")
+print(N)
+print(O)
+end function
+J
+J("foo",0)
+K=P
+L=P
+M=P
+=== beautify
+test = function(arg1 = 0, arg2 = "test")
+	print arg1
+	print arg2
+end function
+
+test
+test "foo", false
+
+var1 = "test"
+var2 = "test"
+var3 = "test"

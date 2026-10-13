@@ -1,0 +1,72 @@
+---
+source: vscode-uri/tests/operations.rs
+expression: cases
+---
+- input: "foo://a/some/file/test.txt"
+  output:
+    basename: test.txt
+    extname: ".txt"
+- input: "foo://a/some/file/"
+  output:
+    basename: file
+    extname: ""
+- input: "foo://a/some/file///"
+  output:
+    basename: file
+    extname: ""
+- input: "foo://a/some/file"
+  output:
+    basename: file
+    extname: ""
+- input: "foo://a/some"
+  output:
+    basename: some
+    extname: ""
+- input: "foo://a/"
+  output:
+    basename: ""
+    extname: ""
+- input: "foo://a"
+  output:
+    basename: ""
+    extname: ""
+- input: "untitled:untitled-1"
+  output:
+    basename: untitled-1
+    extname: ""
+- input: "foo://a/foo/bar"
+  output:
+    basename: bar
+    extname: ""
+- input: "foo://a/foo/bar.foo"
+  output:
+    basename: bar.foo
+    extname: ".foo"
+- input: "foo://a/foo/.foo"
+  output:
+    basename: ".foo"
+    extname: ""
+- input: "foo://a/foo/a.foo/"
+  output:
+    basename: a.foo
+    extname: ".foo"
+- input: "foo://a/foo/a.foo//"
+  output:
+    basename: a.foo
+    extname: ".foo"
+- input: "foo://a/x/.."
+  output:
+    basename: ".."
+    extname: ""
+- input: "foo://a/x/.b.c"
+  output:
+    basename: ".b.c"
+    extname: ".c"
+- input: "foo://a/x/a.."
+  output:
+    basename: a..
+    extname: "."
+- input: "foo://a/x/..."
+  output:
+    basename: "..."
+    extname: "."

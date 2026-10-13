@@ -1,0 +1,22 @@
+[package]
+name = "text-mesh-unity"
+description = "The reference project (text-mesh/unity/text-mesh-reference) run to bake, export, record and capture what TextMesh Pro does with a setup"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+doctest = false
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+text-mesh-font.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

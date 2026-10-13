@@ -1,0 +1,17 @@
+text = ""
+i = 0
+while i < 2000
+  text = text + (i % 10)
+  i = i + 1
+end while
+fives = 0
+for c in text
+  if c == "5" then fives = fives + 1
+end for
+parts = 0
+i = 0
+while i < 2000
+  parts = parts + (text[i:i+3] == "123")
+  i = i + 1
+end while
+print fives + parts

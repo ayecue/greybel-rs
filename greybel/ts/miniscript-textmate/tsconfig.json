@@ -1,0 +1,10 @@
+{
+  "extends": "presets/tsconfig.base.json",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "types": []
+  },
+  "include": [
+    "src"
+  ]
+}

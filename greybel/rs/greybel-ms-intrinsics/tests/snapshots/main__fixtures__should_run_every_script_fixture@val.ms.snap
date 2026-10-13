@@ -1,0 +1,32 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/val.ms
+---
+1.23
+123
+1
+0
+0
+1234.56
+0
+0
+0
+1234.5
+0
+12.5
+-12.5
+2.3
+230
+2.32
+232
+1
+1230
+0.123
+0
+0
+1234.56
+1.56
+0
+0.56
+2

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Remove="System.Net.Http" />
+    <Using Include="System.Globalization" />
+    <Using Include="System.Text" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="MonoRust" Value="$(MonoRust)" />
+  </ItemGroup>
+</Project>

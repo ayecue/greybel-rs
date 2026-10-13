@@ -1,0 +1,8 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: "render_valid(&read(path), &options(Version::Latest))"
+input_file: greybel-core/tests/fixtures/miniscript/scripts/member-with-nl.ms
+---
+Chunk[1:1-4:5][
+	MemberExpression[1:1-4:5][MemberExpression[1:1-3:5][MemberExpression[1:1-2:5][Identifier[1:1-1:2][x].Identifier[2:1-2:5][test]].Identifier[3:1-3:5][test]].Identifier[4:1-4:5][test]]
+]

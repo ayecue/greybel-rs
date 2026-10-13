@@ -1,0 +1,75 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider migrates what it sends a client of an older major down, and the client's response up.",
+  "connected": true,
+  "peer": "provider",
+  "requires": ["responses", "migration"],
+  "major": 2,
+  "steps": [
+    {
+      "send": {
+        "Progress": {
+          "phase": "Active",
+          "eta": 2
+        }
+      }
+    },
+    {
+      "send": {
+        "Confirm": {
+          "question": "divide?"
+        }
+      },
+      "as": "confirmed"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "Progress": {
+                    "phase": "Active",
+                    "eta": 2
+                  }
+                }
+              },
+              {
+                "Message": {
+                  "id": 0,
+                  "Confirm": {
+                    "question": "divide?"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseEnd": {
+              "id": 0,
+              "Confirm": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "settled": {
+          "confirmed": {
+            "response": true
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+pub const END_OF_TEXT: u32 = 0x03;
+pub const TAB: u32 = 0x09;
+pub const LF: u32 = 0x0A;
+pub const VT: u32 = 0x0B;
+pub const CR: u32 = 0x0D;
+pub const HYPHEN: u32 = 0x2D;
+pub const SOFT_HYPHEN: u32 = 0xAD;
+pub const NO_BREAK_SPACE: u32 = 0xA0;
+pub const FIGURE_SPACE: u32 = 0x2007;
+pub const ZERO_WIDTH_SPACE: u32 = 0x200B;
+pub const NON_BREAKING_HYPHEN: u32 = 0x2011;
+pub const LINE_SEPARATOR: u32 = 0x2028;
+pub const PARAGRAPH_SEPARATOR: u32 = 0x2029;
+pub const NARROW_NO_BREAK_SPACE: u32 = 0x202F;
+pub const WORD_JOINER: u32 = 0x2060;

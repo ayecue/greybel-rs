@@ -1,0 +1,33 @@
+[package]
+name = "greybel-bundler"
+description = "Builds GreyScript projects for Grey Hack by transpiling entry files and generating output layouts, installer scripts, and in-game deployments"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greybel-core.workspace = true
+greybel-documents.workspace = true
+greybel-transpiler.workspace = true
+vscode-uri.workspace = true
+greyscript-meta.workspace = true
+miniscript-meta.workspace = true
+fastrand.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+greybel-documents-memory-provider.workspace = true
+greybel-test-support.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

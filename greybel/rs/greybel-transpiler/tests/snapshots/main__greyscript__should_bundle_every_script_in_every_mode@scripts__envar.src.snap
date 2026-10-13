@@ -1,0 +1,21 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+assertion_line: 36
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/envar.src
+---
+=== default
+myvar2="""foo"""
+
+myvar="""foo"""
+print("0.2")
+=== uglify
+globals.I=globals
+K="""foo"""
+J="""foo"""
+print("0.2")
+=== beautify
+myvar2 = """foo"""
+
+myvar = """foo"""
+print "0.2"

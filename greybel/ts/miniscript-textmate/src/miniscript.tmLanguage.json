@@ -1,0 +1,332 @@
+{
+  "version": "1.0.0",
+  "name": "MiniScript",
+  "scopeName": "source.ms",
+  "patterns": [
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#numeric"
+    },
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#constant"
+    },
+    {
+      "include": "#keyword"
+    },
+    {
+      "include": "#function"
+    },
+    {
+      "include": "#type"
+    },
+    {
+      "include": "#meta-typing"
+    },
+    {
+      "include": "#general-functions"
+    },
+    {
+      "include": "#type-methods"
+    },
+    {
+      "patterns": [
+        {
+          "include": "#variables"
+        },
+        {
+          "include": "#identifier"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "function": {
+      "begin": "(?<=function\\()",
+      "end": "\\)",
+      "patterns": [
+        {
+          "include": "#string"
+        },
+        {
+          "match": "([^=\\),]+)(=[^\\),\"]+)?",
+          "captures": {
+            "1": {
+              "patterns": [
+                {
+                  "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b",
+                  "name": "variable.parameter.miniscript"
+                }
+              ]
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#string"
+                },
+                {
+                  "include": "#numeric"
+                },
+                {
+                  "include": "#constant"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "meta-typing": {
+      "patterns": [
+        {
+          "match": "^\\((function)\\)([^(]+)\\(([^)]*)\\):([^\\n]+)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.miniscript"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#general-functions"
+                },
+                {
+                  "patterns": [
+                    {
+                      "include": "#variables"
+                    },
+                    {
+                      "include": "#identifier"
+                    }
+                  ]
+                }
+              ]
+            },
+            "3": {
+              "patterns": [
+                {
+                  "match": "([^:]+):([^=,]+)(\\=[^,]+)?",
+                  "captures": {
+                    "1": {
+                      "patterns": [
+                        {
+                          "include": "#variables"
+                        },
+                        {
+                          "include": "#identifier"
+                        }
+                      ]
+                    },
+                    "2": {
+                      "patterns": [
+                        {
+                          "include": "#type-union"
+                        }
+                      ]
+                    },
+                    "3": {
+                      "patterns": [
+                        {
+                          "include": "#string"
+                        },
+                        {
+                          "include": "#numeric"
+                        },
+                        {
+                          "include": "#constant"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "4": {
+              "patterns": [
+                {
+                  "include": "#type-union"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "match": "^\\((literal)\\)([^:]+):([^\\n]+)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.greyscript"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#string"
+                },
+                {
+                  "include": "#numeric"
+                },
+                {
+                  "include": "#constant"
+                }
+              ]
+            },
+            "3": {
+              "patterns": [
+                {
+                  "include": "#pseudo-type"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "match": "^\\((constant|expr|internal|var|unknown|map|list)\\)([^:]+):([^\\n]+)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.greyscript"
+            },
+            "2": {
+              "patterns": [
+                {
+                  "include": "#variables"
+                },
+                {
+                  "include": "#identifier"
+                }
+              ]
+            },
+            "3": {
+              "patterns": [
+                {
+                  "include": "#type-union"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "type-union": {
+      "patterns": [
+        {
+          "match": "\\b(or)\\b",
+          "name": "keyword.control.logical.miniscript"
+        },
+        {
+          "include": "#constant"
+        },
+        {
+          "include": "#pseudo-type"
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "support.variable.miniscript",
+          "match": "\\b(params|locals|globals|outer)\\b"
+        },
+        {
+          "name": "variable.language.self.miniscript",
+          "match": "\\b(self)\\b"
+        },
+        {
+          "name": "variable.language.super.miniscript",
+          "match": "\\b(super)\\b"
+        }
+      ]
+    },
+    "identifier": {
+      "patterns": [
+        {
+          "name": "entity.other.attribute.miniscript",
+          "match": "(?<=[^.]\\.)\\b([a-zA-Z_][\\w]*)"
+        },
+        {
+          "name": "constant.other.miniscript",
+          "match": "\\b([A-Z_]+)\\b"
+        },
+        {
+          "name": "entity.name.type.miniscript",
+          "match": "\\b([A-Z][\\w]*)\\b"
+        },
+        {
+          "name": "variable.other.miniscript",
+          "match": "\\b([a-z_][\\w]*)\\b"
+        }
+      ]
+    },
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.line",
+          "begin": "//",
+          "end": "\n"
+        }
+      ]
+    },
+    "numeric": {
+      "patterns": [
+        {
+          "name": "constant.numeric",
+          "match": "(?<![\\w\\d.])\\d+(\\.\\d+)?([eE]-?\\d*)?"
+        }
+      ]
+    },
+    "string": {
+      "name": "string.quoted.double.miniscript",
+      "begin": "\"",
+      "end": "\""
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "name": "keyword.control.block.miniscript",
+          "match": "\\b(if|then|end|else|function|in|while|for|from)\\b"
+        },
+        {
+          "name": "keyword.control.statement.miniscript",
+          "match": "\\b(return|continue|break)\\b"
+        },
+        {
+          "name": "keyword.control.logical.miniscript",
+          "match": "\\b(and|or|isa)\\b"
+        },
+        {
+          "name": "keyword.control.unary.miniscript",
+          "match": "\\b(not|new)\\b"
+        },
+        {
+          "name": "keyword.control.notused.miniscript",
+          "match": "\\b(repeat)\\b"
+        },
+        {
+          "name": "keyword.operator.miniscript",
+          "match": "([<>=!]=|[+\\-*\\/^<>|\\&%]|<<|>>>?)"
+        }
+      ]
+    },
+    "constant": {
+      "name": "constant.language.miniscript",
+      "match": "\\b(true|false|null)\\b"
+    },
+    "type": {
+      "name": "support.class.miniscript",
+      "match": "\\b(list|map|number|string|funcRef)\\b"
+    },
+    "pseudo-type": {
+      "match": "[a-zA-Z_][a-zA-Z0-9_]*(?:<[^<>]*(?:<[^<>]*>[^<>]*)*>)?",
+      "name": "support.class.miniscript"
+    },
+    "general-functions": {
+      "name": "support.function.miniscript",
+      "match": "\\b(abs|acos|asin|atan|bitAnd|bitOr|bitXor|ceil|char|code|cos|floor|funcRef|hasIndex|hash|indexOf|indexes|insert|join|len|list|log|lower|map|number|pi|pop|print|pull|push|range|refEquals|remove|replace|rnd|round|shuffle|sign|sin|slice|sort|split|sqrt|stackTrace|str|string|sum|tan|time|upper|val|values|version|wait|yield)\\b"
+    },
+    "type-methods": {
+      "name": "support.function.miniscript",
+      "match": "\\.(code|hasIndex|indexOf|indexes|insert|join|len|lower|pop|pull|push|remove|replace|shuffle|sort|split|sum|upper|val|values)\\b"
+    }
+  }
+}

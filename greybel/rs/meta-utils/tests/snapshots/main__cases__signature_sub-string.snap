@@ -1,0 +1,120 @@
+---
+source: meta-utils/tests/cases.rs
+assertion_line: 69
+expression: part
+---
+definitionOrder:
+  - remove2
+  - myProperty
+  - split
+definitions:
+  myProperty:
+    json:
+      description: "Test, test!"
+      example:
+        - testing
+      isProtected: true
+      type:
+        type: list
+        valueType: string
+    origin: sub-string
+    otherLanguageDescription: ~
+    tags:
+      - property
+    typeString: list<string>
+    variations:
+      ok:
+        - 1
+        - foo
+  remove2:
+    argStrings:
+      - - string
+    id: remove
+    json:
+      arguments:
+        - default: ~
+          label: toDelete
+          opt: false
+          types:
+            - string
+      description: "Returns a new `string` where the provided `string` got removed."
+      example:
+        - "myString = \"42 as an answer is wrong\""
+        - "newString = myString.remove(\"wrong\")"
+        - "print(newString + \"right\")"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: sub-string
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok:
+        - 123
+        - 1234
+        - 1337
+        - hello world
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  split:
+    argStrings:
+      - - string
+      - - "map<string,string>"
+    id: split
+    json:
+      arguments:
+        - default: ~
+          label: delimiter
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: extraArg
+          opt: false
+          types:
+            - keyType: string
+              type: map
+              valueType: string
+      description: ~
+      example: ~
+      isProtected: false
+      returns:
+        - type: list
+          valueType: string
+      type: function
+    origin: sub-string
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<string>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - remove2
+  - myProperty
+descriptions:
+  $meta:
+    description: unknown
+    example: ~
+  myProperty:
+    description: "Test, test!"
+    example:
+      - testing
+  remove2:
+    description: "Returns a new `string` where the provided `string` got removed."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "newString = myString.remove(\"wrong\")"
+      - "print(newString + \"right\")"
+extends: string
+hidden: false

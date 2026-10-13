@@ -1,0 +1,75 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client fails a message sent before there is a connection as overloaded while as many as its limits allow wait for one, and sends only those once connected.",
+  "peer": "client",
+  "requires": ["limits"],
+  "limits": {
+    "queued": 1
+  },
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Log": {
+          "text": "one"
+        }
+      }
+    },
+    {
+      "send": {
+        "Log": {
+          "text": "two"
+        }
+      },
+      "fails": {
+        "rejected": "Overload"
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Ack": {
+              "id": 0,
+              "connection": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "Log": {
+                    "text": "one"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

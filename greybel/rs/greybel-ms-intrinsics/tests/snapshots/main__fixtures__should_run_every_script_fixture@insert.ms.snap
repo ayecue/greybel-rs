@@ -1,0 +1,9 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/insert.ms
+---
+Hello there, Bob!
+Hello Bob?!
+[1, "A", 2, 3, 4, "B", 5]
+["C", 1, 2, 3, 4, 5, "D"]

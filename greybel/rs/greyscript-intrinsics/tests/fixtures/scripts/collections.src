@@ -1,0 +1,26 @@
+// Grey Hack's list, map and type-map changes.
+l = [1, 2, 3]
+print l.reverse
+print l
+print reverse("abc")
+print [1, null, "a"].join("-")
+m = {}
+m.push "k"
+print m
+print [1, 2].push(3)
+print "abc".hasIndex("x")
+print "abc".hasIndex(-3)
+print "".hasIndex("x")
+print [1, 2].hasIndex("x")
+print {"a": 1}.hasIndex("a")
+print [1, 2, 1].replace(1, 9)
+print {"a": 1, "b": 2}.replace(1, 0)
+print list.hasIndex("reverse")
+print map.hasIndex("reverse")
+print string.hasIndex("trim")
+print string.hasIndex("join")
+print @"".replace == @replace_regex
+print @"".replace == @replace
+print hash(null)
+print range(3)
+print range(1, 2, 0.5)

@@ -1,0 +1,130 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider rejects a message whose frame takes more bytes than its limit as `Overload`, from its first fragment on, drops the rest of it, and reads what follows.",
+  "peer": "provider",
+  "requires": ["responses", "limits", "fragments"],
+  "connected": true,
+  "limits": {
+    "message": 10
+  },
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Fragment": {
+              "of": {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1000000000,
+                    "b": 2000000000
+                  }
+                }
+              },
+              "to": 4
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "Overload"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Fragment": {
+              "of": {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1000000000,
+                    "b": 2000000000
+                  }
+                }
+              },
+              "from": 4
+            }
+          },
+          {
+            "Message": {
+              "id": 1,
+              "Add": {
+                "a": 1,
+                "b": 2
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseEnd": {
+                  "id": 1,
+                  "Add": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 2,
+              "Add": {
+                "a": 1000000000,
+                "b": 2000000000
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 2,
+                  "rejected": "Overload"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

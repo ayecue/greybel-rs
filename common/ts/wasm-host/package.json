@@ -1,0 +1,24 @@
+{
+  "name": "wasm-host",
+  "version": "0.1.0",
+  "description": "The TypeScript side of the repository's wasm-bindgen crates: the Vite plugin building a crate to WebAssembly next to its bindings, the worker script instantiating a crate whose start function serves the worker, and serveWasm, with which a worker's host serves it the WebAssembly",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./worker": "./src/worker.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "vite": "^7.3.7"
+  },
+  "dependencies": {
+    "binaryen": "^132.0.0"
+  },
+  "devDependencies": {
+    "presets": "workspace:*"
+  }
+}

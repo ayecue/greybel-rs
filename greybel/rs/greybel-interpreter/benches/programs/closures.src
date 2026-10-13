@@ -1,0 +1,14 @@
+makeAdder = function(n)
+  add = function(x)
+    return x + n
+  end function
+  return @add
+end function
+total = 0
+i = 0
+while i < 20000
+  f = makeAdder(i)
+  total = total + f(1)
+  i = i + 1
+end while
+print total

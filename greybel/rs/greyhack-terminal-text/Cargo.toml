@@ -1,0 +1,32 @@
+[package]
+name = "greyhack-terminal-text"
+description = "Grey Hack rich-text to ANSI and plain text using text-mesh assets, with a duplex terminal renderer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+greyhack-text-mesh-assets.workspace = true
+text-mesh-ansi.workspace = true
+text-mesh-core.workspace = true
+text-mesh-layout.workspace = true
+
+[dev-dependencies]
+duplex-test-support = { workspace = true, features = ["tokio"] }
+duplex-ts.workspace = true
+greybel-test-support.workspace = true
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

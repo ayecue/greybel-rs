@@ -1,0 +1,22 @@
+[package]
+name = "greybel-runtime-stdio"
+description = "Stdio greybel-runtime binary for one editor, with terminal rendering and optional shared TCP world"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "greybel-runtime"
+path = "src/main.rs"
+
+[dependencies]
+duplex-driver-stdio.workspace = true
+greybel-runtime = { workspace = true, features = ["game"] }
+greyhack-terminal-text.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[lints]
+workspace = true

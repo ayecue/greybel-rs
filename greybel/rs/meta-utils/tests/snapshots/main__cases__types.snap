@@ -1,0 +1,27 @@
+---
+source: meta-utils/tests/cases.rs
+expression: part
+---
+availableTags:
+  - method
+  - function
+  - property
+primitives:
+  - any
+  - general
+  - string
+  - function
+  - number
+  - list
+  - map
+types:
+  - sub-string
+  - not-searchable
+visibleTypes:
+  - string
+  - function
+  - number
+  - list
+  - map
+  - sub-string
+  - not-searchable

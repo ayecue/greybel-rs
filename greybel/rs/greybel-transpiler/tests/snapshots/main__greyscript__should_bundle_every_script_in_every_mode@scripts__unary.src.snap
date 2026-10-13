@@ -1,0 +1,38 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/unary.src
+---
+=== default
+test=function
+return null
+end function
+print(@"was".split and (0 or not 0))
+print(@("was".split and (0 or not 0)))
+print(not "was".split and (0 or not 0))
+print(not ("was".split and (0 or not 0)))
+print(-1+2)
+print(-(1+2))
+=== uglify
+globals.I=globals
+I.K="was"
+J=function
+return null
+end function
+print(@K.split and (0 or not 0))
+print(@(K.split and (0 or not 0)))
+print(not K.split and (0 or not 0))
+print(not (K.split and (0 or not 0)))
+print(-1+2)
+print(-(1+2))
+=== beautify
+test = function
+	return null
+end function
+
+print @"was".split and (false or not false)
+print @("was".split and (false or not false))
+print not "was".split and (false or not false)
+print not ("was".split and (false or not false))
+print -1 + 2
+print -(1 + 2)

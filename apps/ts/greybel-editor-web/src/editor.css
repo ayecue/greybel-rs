@@ -1,0 +1,421 @@
+:root {
+  color-scheme: dark;
+  --background: #181818;
+  --panel: #1f1f1f;
+  --border: #333;
+  --text: #ccc;
+  --accent: #0e639c;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--background);
+  color: var(--text);
+  font:
+    13px system-ui,
+    sans-serif;
+}
+
+#editor-app,
+.editor-app {
+  height: 100%;
+}
+
+.editor-app {
+  display: grid;
+  grid-template-rows: auto minmax(200px, 1fr) minmax(260px, 45%);
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar h1 {
+  margin: 0 8px 0 0;
+  font-size: 15px;
+}
+
+.toolbar .hint {
+  margin-left: auto;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button[aria-pressed='true'] {
+  outline: 1px solid #fff;
+}
+
+input,
+select,
+textarea {
+  background: #2a2a2a;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.workspace {
+  display: flex;
+  min-height: 0;
+}
+
+.code {
+  flex: 1;
+  min-width: 0;
+}
+
+.reference-panel {
+  width: 40%;
+  overflow: auto;
+  border-left: 1px solid var(--border);
+  background: #fff;
+  color: #000;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(400px, 2fr);
+  min-height: 0;
+  border-top: 1px solid var(--border);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 6px 10px;
+  gap: 6px;
+  overflow: auto;
+}
+
+.panel + .panel {
+  border-left: 1px solid var(--border);
+}
+
+.panel-header {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.panel-header h2 {
+  margin: 0 6px 0 0;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.panel-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.panel-options label {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.transform-result {
+  flex: 1;
+  min-height: 80px;
+  font-family: Menlo, Consolas, monospace;
+  resize: none;
+}
+
+.terminal-tabs {
+  display: flex;
+  flex: none;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.terminal-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 2px 8px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.terminal-tab.active {
+  opacity: 1;
+  box-shadow: inset 0 -1px 0 var(--accent);
+}
+
+.terminal-state {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.terminal-close,
+.terminal-add {
+  padding: 0 4px;
+  background: none;
+  color: var(--text);
+}
+
+.terminals {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 160px;
+}
+
+.terminal[hidden] {
+  display: none;
+}
+
+.terminal {
+  flex: 1;
+  width: 100%;
+  min-height: 160px;
+  background: #04081a;
+}
+
+.terminal:focus {
+  outline: 1px solid var(--accent);
+}
+
+.debug-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.debug-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.debug-columns {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8px;
+  max-height: 160px;
+  overflow: auto;
+}
+
+.debug-stack,
+.debug-scopes ul {
+  margin: 0;
+  padding-left: 18px;
+  font-family: Menlo, Consolas, monospace;
+}
+
+.debug-location {
+  opacity: 0.6;
+}
+
+.debug-name {
+  color: #9cdcfe;
+}
+
+.debug-log {
+  margin: 0;
+  max-height: 80px;
+  overflow: auto;
+}
+
+.link-popup {
+  position: fixed;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.link-popup textarea {
+  width: 480px;
+  height: 60px;
+}
+
+.notices {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 20;
+}
+
+.notices li {
+  max-width: 420px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: #5a1d1d;
+  border: 1px solid #be1100;
+  cursor: pointer;
+}
+
+/* The terminal's text, for screen readers: the canvas shows it. */
+.terminal-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: pre;
+}
+
+.file-list {
+  width: 200px;
+  flex: none;
+  overflow: auto;
+  border-right: 1px solid var(--border);
+  padding: 6px 0;
+}
+
+.file-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 4px;
+}
+
+.file-list-header h2 {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.file-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.file-list li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+}
+
+.file-list li.active {
+  background: #37373d;
+}
+
+.file-path {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.file-list .entry-marker,
+.file-list .delete-file {
+  padding: 0 4px;
+  background: none;
+  color: var(--text);
+  opacity: 0.35;
+}
+
+.file-list .entry-marker.entry {
+  color: #89d185;
+  opacity: 1;
+  outline: none;
+}
+
+.file-list li:hover .delete-file {
+  opacity: 0.8;
+}
+
+.file-name {
+  width: 100%;
+}
+
+.debug-stack button.debug-location {
+  padding: 0;
+  background: none;
+  color: #3794ff;
+  text-decoration: underline;
+}
+
+.code-area {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.code-area .code {
+  min-height: 0;
+}
+
+.code[hidden] {
+  display: none;
+}
+
+.tab-bar {
+  display: flex;
+  flex: none;
+  overflow-x: auto;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 10px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.tab.active {
+  background: #1e1e1e;
+  opacity: 1;
+  box-shadow: inset 0 1px 0 var(--accent);
+}
+
+.tab .close-tab {
+  padding: 0 4px;
+  background: none;
+  color: var(--text);
+  opacity: 0.5;
+}
+
+.tab:hover .close-tab,
+.tab.active .close-tab {
+  opacity: 1;
+}
+
+.no-file {
+  margin: auto;
+  opacity: 0.6;
+}

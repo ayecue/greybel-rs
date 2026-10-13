@@ -1,0 +1,10 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/circular-import.src
+---
+[
+  "\"circular 2\"",
+  "\"circular 1\"",
+  "\"circular start\""
+]

@@ -1,0 +1,22 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/new-map.src
+---
+[
+  "{{\"myTest\": 0, 1: 2}: 1}",
+  "{\"__isa\": {{\"myTest\": 0, 1: 2}: 1}, \"foo\": \"bar\"}",
+  "{\"__isa\": {\"__isa\": {{...}: 1}, \"foo\": \"bar\"}, \"moo\": \"123\"}",
+  "1",
+  "\"123\"",
+  "\"bar\"",
+  "{\"__isa\": {\"__isa\": {\"__isa\": {...}, \"foo\": \"bar\"}, \"moo\": \"123\"}, {\"myTest\": 0, 1: 2}: \"change\"}",
+  "{\"__isa\": {\"__isa\": {\"__isa\": {...}, \"moo\": \"123\"}, {\"myTest\": 0, 1: 2}: \"change\"}}",
+  "{\"__isa\": {{\"myTest\": 0, 1: 2}: 1}, \"foo\": \"bar\"}",
+  "{\"__isa\": {\"__isa\": {{...}: 1}, \"foo\": \"bar\"}, \"moo\": \"123\"}",
+  "{\"__isa\": {\"__isa\": {\"__isa\": {...}, \"foo\": \"bar\"}, \"moo\": \"123\"}, {\"myTest\": 0, 1: 2}: \"change\"}",
+  "{\"__isa\": {\"__isa\": {\"__isa\": {...}, \"moo\": \"123\"}, {\"myTest\": 0, 1: 2}: \"change\"}}",
+  "{\"__isa\": {\"__isa\": {\"__isa\": {...}, \"foo\": \"bar\"}, \"moo\": \"123\"}, {\"myTest\": 0, 1: 2}: \"change\"}",
+  "\"bar\"",
+  "[\"b\", \"a\", \"r\"]"
+]

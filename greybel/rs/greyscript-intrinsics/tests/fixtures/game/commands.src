@@ -1,0 +1,22 @@
+// The game's own commands: /bin contains their GreyScript sources, so
+// shell.launch runs them; command_info reads the game's English texts.
+shell = get_shell
+computer = shell.host_computer
+ls = computer.File("/bin/ls")
+print ls.is_binary + " " + ls.has_permission("x") + " " + ls.size
+print shell.launch("/bin/pwd")
+print shell.launch("/bin/whoami")
+shell.launch("/bin/ls", "/home")
+shell.launch("/bin/ls", "-x")
+shell.launch("/bin/cd")
+print command_info("ls_usage")
+print command_info("Ls_Usage") == command_info("LS_USAGE")
+print command_info("no_such_key")
+
+// the layout is the game's: no nmap in /bin, the player's first-install
+// tools are there and owned by the player, guest has a home
+print computer.File("/bin/nmap")
+print computer.File("/bin/aircrack").owner
+print computer.File("/usr/bin/Map.exe").is_binary
+print computer.File("/home/guest").permissions
+print computer.File("/var/system.log").is_binary

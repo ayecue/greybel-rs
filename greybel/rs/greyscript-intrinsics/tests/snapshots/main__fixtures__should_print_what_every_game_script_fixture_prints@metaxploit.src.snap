@@ -1,0 +1,59 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/metaxploit.src
+---
+MetaxploitLib
+null
+NetSession
+2
+1
+MetaLib
+libssh.so
+1.3.0
+addresses: 3
+1
+Starting attack... failed!
+No guest user found.
+
+Starting attack...success!
+Computer obtained with credentials from user: bob
+Searching required library kernel_module.so => found!
+
+Starting attack...success!
+Executing payload...
+error: can't change password for user bob. Passwords must be alphanumeric.
+Exploit failed. Vulnerability not found.
+Exploit failed. Vulnerability not found.
+Starting attack... failed!
+/Public does not exist.
+
+Starting attack...success!
+Computer obtained with credentials from user: guest
+
+Starting attack...success!
+Computer obtained with credentials from user: bob
+
+Starting attack...success!
+Privileges obtained from user: guest
+Starting attack... failed!
+No guest user found.
+Starting attack... failed!
+Insufficient amount of port forward towards the target.
+
+Starting attack...success!
+Computer obtained with credentials from user: guest
+
+Starting attack...success!
+Privileges obtained from user: guest
+
+Starting attack...success!
+Executing payload...
+error: can't change password for user bob. Passwords must be alphanumeric.
+exploit result: number
+Exploit failed. Vulnerability not found.
+null
+Invalid ip address: 300.0.0.1
+null
+Port not found.
+null

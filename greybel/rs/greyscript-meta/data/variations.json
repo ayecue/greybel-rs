@@ -1,0 +1,304 @@
+[
+ {
+  "name": "GreyInterpreter.CheckScpUpload",
+  "variations": [
+   "${filepath} not found",
+   "Invalid path",
+   "permission denied",
+   "permission denied. ${filename} is protected",
+   "The copy can not be made. Reached maximum limit",
+   "The copy can not be made. Reached maximum number of files in a folder",
+   "unknown error"
+  ]
+ },
+ {
+  "name": "PlayerUtils.ConnectComputer",
+  "variations": [
+   "can't connect: port ${port} not found",
+   "can't connect: port closed",
+   "can't connect: service not found behind the port ${port}",
+   "can't connect: the remote server has been temporarily disabled due to non-payment",
+   "can't connect: There is no active machine behind the port ${port}",
+   "ip address not found"
+  ]
+ },
+ {
+  "name": "PlayerUtils.RenameFichero",
+  "variations": [
+   "${filepath} not found",
+   "Error: name cannot exceed the limit of 128 characters.",
+   "permission denied",
+   "permission denied. File protected",
+   "There is already a file with that name, please choose another one.",
+   "Unknown error"
+  ]
+ },
+ {
+  "name": "PlayerUtils.FirewallPingStatus",
+  "variations": [
+   "Connection refused. Address unreachable",
+   "Connection refused. The target is behind a firewall."
+  ]
+ },
+ {
+  "name": "Computer.CheckInicio",
+  "variations": [
+   "Fatal error:  ${filepath} not found!",
+   "Fatal error: ${filepath} corrupted!",
+   "Graphics error: ${filepath} not found!",
+   "Kernel panic: missing ${filepath} file!"
+  ]
+ },
+ {
+  "name": "Networking.CheckServiceOnline",
+  "variations": [
+   "connection rejected: port forward removed by admin",
+   "Invalid target service port configuration.",
+   "No internet access.",
+   "Remote host is down",
+   "Unable to connect: invalid ${library}",
+   "Unable to connect: missing ${library}",
+   "Unable to find service ${service}",
+   "Unexpected library found. Not a valid ${library} library.",
+   "Unknown error"
+  ]
+ },
+ {
+  "name": "Networking.IsRouterAvailable",
+  "variations": [
+   "can't connect: invalid or missing kernel_router.so in the target router",
+   "can't connect: unexpected library found. Not a valid kernel_router.so library in the target router."
+  ]
+ },
+ {
+  "name": "BlockchainSystem.AddWallet",
+  "variations": [
+   "Error: Only one wallet per player allowed.",
+   "Error: Wallet user already exists."
+  ]
+ },
+ {
+  "name": "BlockchainSystem.RemoveCurrency",
+  "variations": [
+   "Error: ${coinname} does not exist",
+   "Error: incorrect user/password"
+  ]
+ },
+ {
+  "name": "BlockchainSystem.AddSubWallet",
+  "variations": [
+   "Error: Coin does not exist.",
+   "Error: Incorrect PIN",
+   "Error: only a maximum of 10 subwallets per coin is allowed.",
+   "Error: This username already exists",
+   "Error: Wallet does not exists."
+  ]
+ },
+ {
+  "name": "BlockchainSystem.Transaction",
+  "variations": [
+   "${subWalletOrig} need to be registered in ${coinName} to be able to receive this coin.",
+   "Error: ${subWalletDest} not found",
+   "Error: ${subWalletOrig} not found",
+   "Error: coin does not exist",
+   "Error: coins are committed to a pending sale. Cancel it before transferring.",
+   "Error: insufficient funds to complete the transaction",
+   "Error: subwallet ${subWalletDest} does not have coins in the selected currency",
+   "Error: target wallet does not exist",
+   "Error: wallet ${subWalletOrig} does not exist"
+  ]
+ },
+ {
+  "name": "BlockchainSystem.SetAddress",
+  "variations": [
+   "Error: ${coinName} does not exist"
+  ]
+ },
+ {
+  "name": "BlockchainSystem.GetAddress",
+  "variations": [
+   "Error: ${coinName} does not exist"
+  ]
+ },
+ {
+  "name": "BlockchainSystem.ResetCoinPass",
+  "variations": [
+   "Error: coin does not exist",
+   "Error: Only the account owner can change the password"
+  ]
+ },
+ {
+  "name": "PlayerUtils.CrearCarpeta",
+  "variations": [
+   "${filename} file exists",
+   "Can't create folder. Reached maximum limit",
+   "Error: empty destination path",
+   "Error: name cannot exceed the limit of 128 characters.",
+   "Error: only alphanumeric allowed as folder name.",
+   "permission denied",
+   "The copy can not be made. Reached maximum number of files in a folder",
+   "The maximum number of subfolders has been exceeded",
+   "Unknown error."
+  ]
+ },
+ {
+  "name": "PlayerUtils.CrearArchivo",
+  "variations": [
+   "Can't create file ${pathFolderDest}/${filename}. Permission denied",
+   "Can't create file. Reached maximum limit",
+   "Can't create file. Unknown error",
+   "Invalid path",
+   "The copy can not be made. Reached maximum number of files in a folder",
+   "There is not enough free space on the hard disk."
+  ]
+ },
+ {
+  "name": "Computer.ValidateNewUser",
+  "variations": [
+   "Error: can't create guest user. Reserved user.",
+   "Error: can't create user. ${username} already exists.",
+   "Error: root user already exists."
+  ]
+ },
+ {
+  "name": "NetworkLan.ConnectEthernet",
+  "variations": [
+   "can't connect: the home network has been temporarily disabled due to non-payment",
+   "Error: address ${address} is already in use.",
+   "Error: Ethernet card not connected to the network",
+   "Error: gateway ${gateway} does not exist in the network",
+   "Error: the gateway cannot be the same device to connect",
+   "Error: unable to run command on routers/switches",
+   "Unable to find ISP network to connect using Ethernet card",
+   "Unknown error: The current IP ${localIp} does not exist in this network"
+  ]
+ },
+ {
+  "name": "PlayerUtils.GetSmtpServer",
+  "variations": [
+   "host doesn't exist",
+   "host is down",
+   "invalid IP address",
+   "invalid target service",
+   "ip address not found",
+   "port ${port} not found",
+   "service not found"
+  ]
+ },
+ {
+  "name": "FileSystem.UpdatePermisos",
+  "variations": [
+   "permission denied",
+   "permission denied. File protected.",
+   "Wrong format."
+  ]
+ },
+ {
+  "name": "PlayerUtils.MoverFichero",
+  "variations": [
+   "${destinationParentPath} not found",
+   "${sourceFilepath} not found",
+   "A file cannot overwrite a folder or vice versa",
+   "Error: Invalid path",
+   "permission denied",
+   "permission denied. ${filename} is protected.",
+   "The copy can not be made. Reached maximum limit",
+   "The copy can not be made. Reached maximum number of files in a folder",
+   "There is not enough free space on the hard disk.",
+   "Unknown error"
+  ]
+ },
+ {
+  "name": "PlayerUtils.RemoveFile",
+  "variations": [
+   "Deletion cancelled: permission denied: ${path}. No files or folders were deleted.",
+   "file not found: ${path}",
+   "unknown error :/"
+  ]
+ },
+ {
+  "name": "Database.GetMailAccount",
+  "variations": [
+   "${user} user not found",
+   "Unable to login into account. Wrong password.",
+   "Unknown error: This email account cannot be obtained."
+  ]
+ },
+ {
+  "name": "PlayerUtils.SendMail",
+  "variations": [
+   "Error: attachment not found",
+   "Invalid email address",
+   "Mail message too large",
+   "Mail subject too large",
+   "The email couldn't be sent. The recipient has blocked emails sent by other players using npcs accounts.",
+   "The email couldn't be sent. The recipient has blocked emails sent by other players.",
+   "The email couldn't be sent. The recipient has blocked this email address.",
+   "Unable to attach file: permission denied",
+   "Unknown error: attachment failed"
+  ]
+ },
+ {
+  "name": "PlayerUtils.ConnectToService",
+  "variations": [
+   "can't connect: incorrect user/password",
+   "Invalid service ID",
+   "This account is disabled."
+  ]
+ },
+ {
+  "name": "BlockchainSystem.SetInfoSubWallet",
+  "variations": [
+   "Error: ${coinName} does not exist",
+   "Error: ${subWalletUser} does not exist",
+   "Error: main wallet linked to ${subWalletUser} does not exist anymore"
+  ]
+ },
+ {
+  "name": "BlockchainSystem.GetInfoSubWallet",
+  "variations": [
+   "Error: ${coinName} does not exist",
+   "Error: ${subWalletUser} does not exist",
+   "Error: Coin ${coinName}does not exist in the Wallet user",
+   "Error: main wallet linked to ${subWalletUser} does not exist anymore"
+  ]
+ },
+ {
+  "name": "BlockchainSystem.ResetWalletPass",
+  "variations": [
+   "Error: Only the account owner can change the password",
+   "Error: The password can only be reset once a day",
+   "Error: Wallet does not exist."
+  ]
+ },
+ {
+  "name": "BlockchainSystem.SellCoin",
+  "variations": [
+   "A partial transaction has occurred. The data of your offer has been updated",
+   "Error: Coin ${coinName} does not exist",
+   "Error: exceeded maximum of 21 million coins",
+   "Error: subwallet does not contain enough coins to sell",
+   "Error: Wallet does not exist",
+   "Error: You already have a pending purchase. Cancel it to create a new sale.",
+   "Error: You already have a pending sale. Cancel it to create a new sale.",
+   "Not enough buyers found. Transaction is pending until a buyer is found.",
+   "Purchase failed: It is necessary to create a bank account to make transactions",
+   "Subwallet ${subwalletID} does not exist"
+  ]
+ },
+ {
+  "name": "BlockchainSystem.BuyCoin",
+  "variations": [
+   "A partial transaction has occurred. The data of your offer has been updated",
+   "Error: Coin ${coinName} does not exist",
+   "Error: Wallet does not exist",
+   "Error: You already have a pending purchase. Cancel it to create a new purchase.",
+   "Error: You already have a pending sale. Cancel it to create a new purchase.",
+   "Not enough sellers found. Transaction is pending until a seller is found.",
+   "Purchase failed: Insufficient money in the bank. Required $${price}",
+   "Purchase failed: It is necessary to create a bank account to make transactions",
+   "Subwallet ${subwalletID} does not exist",
+   "You need to be registered in ${coinName} to be able to buy this coin."
+  ]
+ }
+]

@@ -1,0 +1,54 @@
+use greyhack_behaviour::NetworkKind;
+
+use crate::{ComputerDraft, NetworkAdmin, Port, RouterDraft};
+
+/// Explicit node-by-node network layout used to reproduce another network, including layouts copied
+/// from Grey Hack.
+#[derive(Debug, Clone)]
+pub struct NetworkLayout {
+    pub kind: NetworkKind,
+    pub public_ip: String,
+    pub domain: String,
+    /// Devices and computers in main-router-first, parent-before-child order.
+    pub nodes: Vec<LanNodeLayout>,
+    pub admin: Option<NetworkAdmin>,
+    /// Whether the network is disabled for nonpayment (`NetworkLan.disabledNetwork`).
+    pub disabled: bool,
+    /// Connection speed (`NetworkLan.netSpeed`).
+    pub net_speed: u8,
+    /// Whether a rented-server network hired an administrator (`NetworkLan.superAdminRental`).
+    pub rental_admin: bool,
+}
+
+/// Device or computer in a [`NetworkLayout`].
+#[derive(Debug, Clone)]
+pub struct LanNodeLayout {
+    /// Parent device index in the layout; `None` for the main router.
+    pub parent: Option<usize>,
+    /// Computer gateway; empty for devices.
+    pub gateway: String,
+    pub device: DeviceLayout,
+}
+
+/// Node type in a [`NetworkLayout`].
+#[derive(Debug, Clone)]
+pub enum DeviceLayout {
+    /// Router or switch with ports and port forwards.
+    Router {
+        draft: RouterDraft,
+        ports: Vec<Port>,
+        forwards: Vec<ForwardLayout>,
+    },
+    /// Hub without an address.
+    Hub,
+    /// Computer, marked as the player computer by its draft when applicable.
+    Computer(Box<ComputerDraft>),
+}
+
+/// Router public port `number` forwarded to `port` on the computer at `lan_ip`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ForwardLayout {
+    pub number: u16,
+    pub lan_ip: String,
+    pub port: u16,
+}

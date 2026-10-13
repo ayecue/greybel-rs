@@ -1,0 +1,463 @@
+{
+  "type": "admin",
+  "extends": "map",
+  "definitions": {
+    "seed": {
+      "id": "seed",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "snapshot": {
+      "id": "snapshot",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "tick": {
+      "id": "tick",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "seconds",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "traffic_accident": {
+      "id": "traffic_accident",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "set_date": {
+      "id": "set_date",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "date",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "networks": {
+      "id": "networks",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "null"
+      ]
+    },
+    "network": {
+      "id": "network",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "publicIp",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "adminNetwork",
+        "null"
+      ]
+    },
+    "create_network": {
+      "id": "create_network",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "options",
+          "type": "map"
+        }
+      ],
+      "returns": [
+        "router",
+        "string",
+        "null"
+      ]
+    },
+    "sudo": {
+      "id": "sudo",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "create_program": {
+      "id": "create_program",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string"
+        },
+        {
+          "label": "source",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "exploit_shop": {
+      "id": "exploit_shop",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "library",
+          "type": "string"
+        },
+        {
+          "label": "version",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "list",
+        "string",
+        "null"
+      ]
+    },
+    "buy_exploit": {
+      "id": "buy_exploit",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "library",
+          "type": "string"
+        },
+        {
+          "label": "version",
+          "type": "string"
+        },
+        {
+          "label": "exploit",
+          "type": "string"
+        },
+        {
+          "label": "folder",
+          "type": "string"
+        },
+        {
+          "label": "compile",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "register_password": {
+      "id": "register_password",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "create_mail_account": {
+      "id": "create_mail_account",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "address",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "create_ctf_account": {
+      "id": "create_ctf_account",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "accept_mission": {
+      "id": "accept_mission",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "shop_ip",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "create_debug_account": {
+      "id": "create_debug_account",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "deposit": {
+      "id": "deposit",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "number",
+          "type": "string"
+        },
+        {
+          "label": "amount",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "grant_coins": {
+      "id": "grant_coins",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "walletUser",
+          "type": "string"
+        },
+        {
+          "label": "coin",
+          "type": "string"
+        },
+        {
+          "label": "amount",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "create_ctf_event": {
+      "id": "create_ctf_event",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "options",
+          "type": "map"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "rate_ctf_event": {
+      "id": "rate_ctf_event",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "name",
+          "type": "string"
+        },
+        {
+          "label": "quality",
+          "type": "number"
+        },
+        {
+          "label": "difficulty",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "number"
+        },
+        "string",
+        "null"
+      ]
+    },
+    "create_guild": {
+      "id": "create_guild",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "name",
+          "type": "string"
+        },
+        {
+          "label": "bank_account",
+          "type": "string"
+        },
+        {
+          "label": "join",
+          "type": "number"
+        },
+        {
+          "label": "total_exp",
+          "type": "number"
+        },
+        {
+          "label": "investment_perks",
+          "type": "number"
+        },
+        {
+          "label": "admin_restore_perks",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    }
+  }
+}

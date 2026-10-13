@@ -1,0 +1,62 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider's handler reads the items a message's sender streams after it, then responds.",
+  "peer": "provider",
+  "requires": ["responses", "streams"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Sum": {}
+            }
+          },
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 1
+            }
+          },
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 2
+            }
+          },
+          {
+            "MessageEnd": {
+              "id": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              },
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Sum": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

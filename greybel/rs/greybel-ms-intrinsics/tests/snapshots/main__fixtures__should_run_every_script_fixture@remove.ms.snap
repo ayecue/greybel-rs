@@ -1,0 +1,19 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/remove.ms
+---
+{null: 42}
+42
+1
+{42: null}
+null
+1
+1
+Ho Bob!
+Hello!
+[1, 2, 3, 5]
+0
+1
+{"foo": "bar"}
+["a", "c", "a"]

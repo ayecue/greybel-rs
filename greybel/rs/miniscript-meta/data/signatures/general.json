@@ -1,0 +1,1156 @@
+{
+  "type": "general",
+  "definitions": {
+    "hasIndex": {
+      "id": "hasIndex",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map",
+            "string"
+          ]
+        },
+        {
+          "label": "index",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "print": {
+      "id": "print",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "any",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "delimiter",
+          "type": "string",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "indexes": {
+      "id": "indexes",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "map",
+            "list",
+            "string"
+          ]
+        }
+      ],
+      "returns": [
+        "list",
+        "null"
+      ]
+    },
+    "values": {
+      "id": "values",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "map",
+            "list",
+            "string"
+          ]
+        }
+      ],
+      "returns": [
+        "list"
+      ]
+    },
+    "indexOf": {
+      "id": "indexOf",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map",
+            "string"
+          ]
+        },
+        {
+          "label": "value",
+          "type": "any"
+        },
+        {
+          "label": "after",
+          "type": "any",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "any",
+        "null"
+      ]
+    },
+    "len": {
+      "id": "len",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "string",
+            "map"
+          ]
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "shuffle": {
+      "id": "shuffle",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "val": {
+      "id": "val",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "lower": {
+      "id": "lower",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "upper": {
+      "id": "upper",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "sum": {
+      "id": "sum",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "pop": {
+      "id": "pop",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        }
+      ],
+      "returns": [
+        "any",
+        "null"
+      ]
+    },
+    "pull": {
+      "id": "pull",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        }
+      ],
+      "returns": [
+        "any",
+        "null"
+      ]
+    },
+    "push": {
+      "id": "push",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        },
+        {
+          "label": "value",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "map",
+        "list",
+        "null"
+      ]
+    },
+    "sort": {
+      "id": "sort",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "list"
+        },
+        {
+          "label": "byKey",
+          "type": "any"
+        },
+        {
+          "label": "ascending",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1
+          }
+        }
+      ],
+      "returns": [
+        "list",
+        "null"
+      ]
+    },
+    "remove": {
+      "id": "remove",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map",
+            "string"
+          ]
+        },
+        {
+          "label": "key",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "list",
+        "map",
+        "string"
+      ]
+    },
+    "wait": {
+      "id": "wait",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "seconds",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1
+          }
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "abs": {
+      "id": "abs",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "acos": {
+      "id": "acos",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "asin": {
+      "id": "asin",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "atan": {
+      "id": "atan",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "y",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "tan": {
+      "id": "tan",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "radians",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "cos": {
+      "id": "cos",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "radians",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "code": {
+      "id": "code",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "char": {
+      "id": "char",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "codePoint",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 65
+          }
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "sin": {
+      "id": "sin",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "radians",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "floor": {
+      "id": "floor",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "range": {
+      "id": "range",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "start",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "end",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "inc",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "number"
+        }
+      ]
+    },
+    "round": {
+      "id": "round",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "decimalPlaces",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "rnd": {
+      "id": "rnd",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "seed",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "sign": {
+      "id": "sign",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "sqrt": {
+      "id": "sqrt",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "str": {
+      "id": "str",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "ceil": {
+      "id": "ceil",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "pi": {
+      "id": "pi",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "slice": {
+      "id": "slice",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "seq",
+          "types": [
+            "list",
+            "string"
+          ]
+        },
+        {
+          "label": "from",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "to",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "list",
+        "string"
+      ]
+    },
+    "hash": {
+      "id": "hash",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "time": {
+      "id": "time",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "bitAnd": {
+      "id": "bitAnd",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "a",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "b",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "bitOr": {
+      "id": "bitOr",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "a",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "b",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "bitXor": {
+      "id": "bitXor",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "a",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "b",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "log": {
+      "id": "log",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "base",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 10
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "yield": {
+      "id": "yield",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "insert": {
+      "id": "insert",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "string"
+          ]
+        },
+        {
+          "label": "index",
+          "type": "number"
+        },
+        {
+          "label": "value",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "list",
+        "string"
+      ]
+    },
+    "join": {
+      "id": "join",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "list"
+        },
+        {
+          "label": "delimiter",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": " "
+          }
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "split": {
+      "id": "split",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        },
+        {
+          "label": "delimiter",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": " "
+          }
+        },
+        {
+          "label": "maxCount",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": -1
+          }
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        }
+      ]
+    },
+    "replace": {
+      "id": "replace",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map",
+            "string"
+          ]
+        },
+        {
+          "label": "oldval",
+          "type": "any"
+        },
+        {
+          "label": "newval",
+          "type": "any"
+        },
+        {
+          "label": "maxCount",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "list",
+        "map",
+        "string"
+      ]
+    },
+    "funcRef": {
+      "id": "funcRef",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string"
+        }
+      ]
+    },
+    "list": {
+      "id": "list",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string"
+        }
+      ]
+    },
+    "map": {
+      "id": "map",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string"
+        }
+      ]
+    },
+    "number": {
+      "id": "number",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string"
+        }
+      ]
+    },
+    "string": {
+      "id": "string",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string"
+        }
+      ]
+    },
+    "refEquals": {
+      "id": "refEquals",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "a",
+          "type": "any"
+        },
+        {
+          "label": "b",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "stackTrace": {
+      "id": "stackTrace",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        }
+      ]
+    },
+    "version": {
+      "id": "version",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        "version"
+      ]
+    }
+  }
+}

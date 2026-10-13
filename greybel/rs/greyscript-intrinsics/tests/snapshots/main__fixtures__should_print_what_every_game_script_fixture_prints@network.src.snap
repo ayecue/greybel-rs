@@ -1,0 +1,56 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+assertion_line: 39
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/network.src
+---
+8.8.8.8
+8.8.8.8
+IP not found
+Domain name: www.target.com
+4
+No Info available
+Domain name: www.zurobuxin.org
+Administrative contact: Korrie Heritosh
+Email address: Heritosh@zurobuxin.org
+Phone: 142600119
+Error: the IP address must be public
+Invalid IP address: nope
+1
+1
+1
+0
+ping: invalid ip address
+can't connect: incorrect user/password
+null
+can't connect: port 23 not found
+can't connect: port 22 not found
+Invalid service ID
+Unable to find service ssh
+Error: invalid character '(' in password argument.
+shell
+web 192.168.1.10 test
+bob
+1
+0
+Unable to find service ssh
+can't connect: port 22 not found.
+shell web
+ftpshell
+ftpComputer web
+ftpFile bob
+0 0 0
+1
+secret
+1
+1
+1
+1
+/home/bob/missing not found
+/nowhere not found
+/home/test/loot.txt it's not a folder
+permission denied: cannot access /etc/passwd
+permission denied: cannot write /root
+Invalid path
+1
+1

@@ -1,0 +1,57 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A refused client closes for the reason, failing its messages.",
+  "peer": "client",
+  "requires": ["responses"],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Refuse": {
+              "id": 0,
+              "reason": "Busy"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "closed": "Busy",
+        "settled": {
+          "sum": {
+            "closed": "Busy"
+          }
+        },
+        "sent": []
+      }
+    }
+  ]
+}

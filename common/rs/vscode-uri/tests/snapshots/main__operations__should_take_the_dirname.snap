@@ -1,0 +1,124 @@
+---
+source: vscode-uri/tests/operations.rs
+expression: cases
+---
+- input: "foo://a/some/file/test.txt"
+  output:
+    scheme: foo
+    authority: a
+    path: /some/file
+    query: ""
+    fragment: ""
+    string: "foo://a/some/file"
+    unencoded: "foo://a/some/file"
+    fsPath: /some/file
+- input: "foo://a/some/file/"
+  output:
+    scheme: foo
+    authority: a
+    path: /some
+    query: ""
+    fragment: ""
+    string: "foo://a/some"
+    unencoded: "foo://a/some"
+    fsPath: /some
+- input: "foo://a/some/file///"
+  output:
+    scheme: foo
+    authority: a
+    path: /some
+    query: ""
+    fragment: ""
+    string: "foo://a/some"
+    unencoded: "foo://a/some"
+    fsPath: /some
+- input: "foo://a/some/file"
+  output:
+    scheme: foo
+    authority: a
+    path: /some
+    query: ""
+    fragment: ""
+    string: "foo://a/some"
+    unencoded: "foo://a/some"
+    fsPath: /some
+- input: "foo://a/some"
+  output:
+    scheme: foo
+    authority: a
+    path: /
+    query: ""
+    fragment: ""
+    string: "foo://a/"
+    unencoded: "foo://a/"
+    fsPath: /
+- input: "foo://a/"
+  output:
+    scheme: foo
+    authority: a
+    path: /
+    query: ""
+    fragment: ""
+    string: "foo://a/"
+    unencoded: "foo://a/"
+    fsPath: /
+- input: "foo://a"
+  output:
+    scheme: foo
+    authority: a
+    path: ""
+    query: ""
+    fragment: ""
+    string: "foo://a"
+    unencoded: "foo://a"
+    fsPath: ""
+- input: "foo://"
+  output:
+    scheme: foo
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "foo:"
+    unencoded: "foo:"
+    fsPath: ""
+- input: "untitled:untitled-1"
+  output:
+    scheme: untitled
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "untitled:"
+    unencoded: "untitled:"
+    fsPath: ""
+- input: "untitled:a/b"
+  output:
+    scheme: untitled
+    authority: ""
+    path: a
+    query: ""
+    fragment: ""
+    string: "untitled:a"
+    unencoded: "untitled:a"
+    fsPath: a
+- input: "file:///x"
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: ""
+    fragment: ""
+    string: "file:///"
+    unencoded: "file:///"
+    fsPath: /
+- input: "file:///"
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: ""
+    fragment: ""
+    string: "file:///"
+    unencoded: "file:///"
+    fsPath: /

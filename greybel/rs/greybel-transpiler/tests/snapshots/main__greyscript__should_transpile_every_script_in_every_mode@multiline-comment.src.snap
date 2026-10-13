@@ -1,0 +1,28 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/multiline-comment.src
+---
+=== default
+print("test")
+=== uglify
+globals.I=globals
+print("test")
+=== beautify
+// my Test
+//
+// **
+print "test" // another comment
+// one line comment
+=== beautify, dev mode
+/* my Test
+
+  ** */
+print "test" /* another comment */
+// one line comment
+=== beautify, dev mode, keep parentheses, 10 spaces
+/* my Test
+
+  ** */
+print("test") /* another comment */
+// one line comment

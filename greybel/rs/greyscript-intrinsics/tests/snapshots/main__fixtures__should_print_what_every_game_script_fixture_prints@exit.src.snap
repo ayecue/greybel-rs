@@ -1,0 +1,7 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: "run_in(path, true)"
+input_file: greyscript-intrinsics/tests/fixtures/game/exit.src
+---
+before
+bye

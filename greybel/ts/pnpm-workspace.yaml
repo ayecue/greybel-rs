@@ -1,0 +1,20 @@
+packages:
+  - '*'
+
+# Packages of the repository's other TypeScript workspaces, used from their
+# folders: install those workspaces first.
+overrides:
+  emitter: link:../../common/ts/emitter
+  handle-error: link:../../common/ts/handle-error
+  presets: link:../../common/ts/presets
+  wasm-host: link:../../common/ts/wasm-host
+  duplex-core: link:../../duplex/ts/duplex-core
+  duplex-driver-stdio: link:../../duplex/ts/duplex-driver-stdio
+  duplex-driver-worker: link:../../duplex/ts/duplex-driver-worker
+
+allowBuilds:
+  '@playwright/browser-chromium': true
+  '@vscode/vsce-sign': true
+  core-js-pure: false
+  esbuild: true
+  keytar: false

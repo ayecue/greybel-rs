@@ -1,0 +1,20 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/super.src
+---
+[
+  "\"test\"",
+  "\"doing math\"",
+  "3",
+  "3",
+  "1",
+  "10",
+  "\"test\"",
+  "{\"__isa\": {\"__isa\": {\"__isa\": {...}, \"test\": FUNCTION()}, \"test\": FUNCTION()}, \"lllbefore\": \"moo\", \"lll\": \"was\"}",
+  "123",
+  "\"\"123\"\"",
+  "123",
+  "\"\"123\"\"",
+  "1"
+]

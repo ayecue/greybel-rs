@@ -1,0 +1,40 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client closes for the reason the provider closes the connection.",
+  "peer": "client",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Close": {
+              "reason": "Timeout"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "closed": "Timeout",
+        "settled": {
+          "sum": {
+            "closed": "Timeout"
+          }
+        }
+      }
+    }
+  ]
+}

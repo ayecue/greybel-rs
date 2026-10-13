@@ -1,0 +1,31 @@
+[package]
+name = "greyhack-world-server"
+description = "Loopback TCP game server for sharing a Grey Hack world between runtime processes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[dependencies]
+clap.workspace = true
+duplex-driver-stdio.workspace = true
+greyhack-world.workspace = true
+greyhack-world-operations.workspace = true
+scheduler = { workspace = true, features = ["tokio"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt", "macros", "net", "io-std", "io-util"] }
+
+[dev-dependencies]
+duplex-core.workspace = true
+duplex-test-support = { workspace = true, features = ["tokio"] }
+greybel-test-support = { workspace = true, features = ["interpreter"] }
+greyscript-intrinsics.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

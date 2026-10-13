@@ -1,0 +1,27 @@
+// build compiles a .src into a runnable binary named after the source.
+sh = get_shell
+pc = sh.host_computer
+
+pc.touch(home_dir, "hello.src")
+pc.File(home_dir + "/hello.src").set_content("print(""built hello "" + params[0])")
+
+// "" means success; the binary "hello" now sits beside the source.
+print "build: [" + sh.build(home_dir + "/hello.src", home_dir) + "]"
+print pc.File(home_dir + "/hello") != null
+
+// The built binary runs, and sees its params.
+print sh.launch(home_dir + "/hello", "world")
+
+// A syntax error is reported instead of a binary being made.
+pc.touch(home_dir, "bad.src")
+pc.File(home_dir + "/bad.src").set_content("if true")
+print sh.build(home_dir + "/bad.src", home_dir) != ""
+print pc.File(home_dir + "/bad") == null
+
+// Bad paths and extensions.
+print sh.build(home_dir + "/missing.src", home_dir)
+pc.touch(home_dir, "noext")
+print sh.build(home_dir + "/noext", home_dir)
+pc.touch(home_dir, "empty.src")
+print sh.build(home_dir + "/empty.src", home_dir)
+print sh.build("", home_dir)

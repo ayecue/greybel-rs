@@ -1,0 +1,39 @@
+[package]
+name = "greybel-core"
+description = "Lexer and parser for MiniScript and its Greybel and GreyScript dialects, picked at runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+rustc-hash.workspace = true
+str_indices.workspace = true
+greybel-core-macros.workspace = true
+greybel-symbols.workspace = true
+mono-number.workspace = true
+thiserror.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+fastrand.workspace = true
+greybel-test-support = { workspace = true, features = ["node-depth"] }
+insta.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[[bench]]
+name = "parse"
+harness = false

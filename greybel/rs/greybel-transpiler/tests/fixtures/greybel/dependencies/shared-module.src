@@ -1,0 +1,2 @@
+print "shared"
+module.exports = 1

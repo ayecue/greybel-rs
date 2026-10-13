@@ -1,0 +1,14 @@
+use core 1.0;
+
+/// Worker echoes values requested by the page.
+protocol Echo = "echo" {
+    /// Worker that listens for the page.
+    provider Worker {
+        message Shout {
+            text: string,
+        } -> string
+    }
+
+    /// Page that connects to the worker.
+    client Page {}
+}

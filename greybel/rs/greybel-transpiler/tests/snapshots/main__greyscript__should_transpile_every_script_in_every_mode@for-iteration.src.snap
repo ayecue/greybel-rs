@@ -1,0 +1,85 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/for-iteration.src
+---
+=== default
+myVariable=[1,2,3,4]
+for longVariable in myVariable
+print(__longVariable_idx)
+end for
+for longVariable in myVariable
+for longVariable in myVariable
+print(__longVariable_idx)
+end for
+print(__longVariable_idx)
+end for
+=== uglify
+globals.I=globals
+J=[1,2,3,4]
+for K in J
+print(__K_idx)
+end for
+for K in J
+for K in J
+print(__K_idx)
+end for
+print(__K_idx)
+end for
+=== beautify
+myVariable = [
+	1,
+	2,
+	3,
+	4,
+]
+
+for longVariable in myVariable
+	print __longVariable_idx
+end for
+
+
+for longVariable in myVariable
+	for longVariable in myVariable
+		print __longVariable_idx
+	end for
+	print __longVariable_idx
+end for
+=== beautify, dev mode
+myVariable = [
+	1,
+	2,
+	3,
+	4,
+]
+
+for longVariable in myVariable
+	print __longVariable_idx
+end for
+
+
+for longVariable in myVariable
+	for longVariable in myVariable
+		print __longVariable_idx
+	end for
+	print __longVariable_idx
+end for
+=== beautify, dev mode, keep parentheses, 10 spaces
+myVariable = [
+          1,
+          2,
+          3,
+          4,
+]
+
+for longVariable in myVariable
+          print(__longVariable_idx)
+end for
+
+
+for longVariable in myVariable
+          for longVariable in myVariable
+                    print(__longVariable_idx)
+          end for
+          print(__longVariable_idx)
+end for

@@ -1,0 +1,8 @@
+{
+  "extends": "presets/tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "files": ["../vitest.context.d.ts"],
+  "include": ["src", "test", "bench"]
+}

@@ -1,0 +1,38 @@
+[package]
+name = "text-mesh-font-builder"
+description = "Builds TextMesh Pro font data ahead of time: metrics and SDF atlases from font files with TMP's font asset settings, written out as Rust static data for text-mesh-font"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+autotests = false
+
+[lib]
+doctest = false
+
+[[bin]]
+name = "text-mesh-font-builder"
+path = "src/main.rs"
+
+[dependencies]
+text-mesh-font.workspace = true
+ttf-parser.workspace = true
+skrifa.workspace = true
+png.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+clap.workspace = true
+
+[dev-dependencies]
+text-mesh-test-support.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

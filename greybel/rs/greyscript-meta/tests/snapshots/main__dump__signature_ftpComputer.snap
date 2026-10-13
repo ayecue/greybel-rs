@@ -1,0 +1,182 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - get_name
+  - File
+  - create_folder
+definitions:
+  File:
+    argStrings:
+      - - string
+    id: File
+    json:
+      arguments:
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+      description: "Returns the file or folder at an absolute or relative path. Returns `\"File: Invalid arguments\"` for an empty or non-string path, and `null` when the path or computer is invalid or the shell user no longer exists."
+      example:
+        - shell = get_shell
+        - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+        - ftpComputer = ftpShell.host_computer
+        - "file = ftpComputer.File(\"/etc/passwd\")"
+        - "if file.has_permission(\"r\") then"
+        - "   ftpShell.scp(\"/etc/passwd\", \"/home/test/Desktop\", shell)"
+        - else
+        - "   print(\"No permissions to read passwd file.\")"
+        - end if
+      isProtected: false
+      returns:
+        - ftpFile
+        - "null"
+        - string
+      type: function
+    origin: ftpComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - ftpFile
+      - "null"
+      - string
+    returnVariations:
+      ok:
+        - "File: Invalid arguments"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  create_folder:
+    argStrings:
+      - - string
+      - - string
+    id: create_folder
+    json:
+      arguments:
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+        - default:
+            type: string
+            value: newFolder
+          label: nameFolder
+          opt: false
+          types:
+            - string
+      description: "Creates a folder and returns one on success or an error `string` on failure. Invalid argument types return `\"create_folder: Invalid arguments\"`; use during SSH encryption still raises a runtime error."
+      example:
+        - shell = get_shell
+        - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+        - ftpComputer = ftpShell.host_computer
+        - "createResult = ftpComputer.create_folder(path, \"myfolder\")"
+        - "if typeof(createResult) == \"string\" then"
+        - "   print(\"There was an error when creating the folder: \" + createResult)"
+        - else
+        - "   print(\"Folder got created at given path \" + path)"
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - number
+      type: function
+    origin: ftpComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+    returnVariations:
+      ok:
+        - 1
+        - "${filename} file exists"
+        - "Can't create folder. Reached maximum limit"
+        - "create_folder: Invalid arguments"
+        - "create_folder: path too large"
+        - "Error: empty destination path"
+        - "Error: invalid path"
+        - "Error: name cannot exceed the limit of 128 characters."
+        - "Error: only alphanumeric allowed as folder name."
+        - permission denied
+        - The copy can not be made. Reached maximum number of files in a folder
+        - The maximum number of subfolders has been exceeded
+        - Unknown error.
+    tags:
+      - method
+      - ssh incompatible
+    typeString: function
+    variations:
+      ok: []
+  get_name:
+    argStrings: []
+    id: get_name
+    json:
+      arguments: []
+      description: Returns the hostname of the machine.
+      example:
+        - shell = get_shell
+        - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+        - ftpComputer = ftpShell.host_computer
+        - ftpComputerName = ftpComputer.get_name
+        - "print(\"The name of the ftp server is \" + ftpComputerName)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: ftpComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - get_name
+  - File
+  - create_folder
+descriptions:
+  $meta:
+    description: "A `ftpComputer` object can be obtained by using [host_computer](#FTPSHELL_HOST_COMPUTER). The `classID` used for this object is `\"ftpComputer\"`."
+    example: ~
+  File:
+    description: "Returns the file or folder at an absolute or relative path. Returns `\"File: Invalid arguments\"` for an empty or non-string path, and `null` when the path or computer is invalid or the shell user no longer exists."
+    example:
+      - shell = get_shell
+      - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+      - ftpComputer = ftpShell.host_computer
+      - "file = ftpComputer.File(\"/etc/passwd\")"
+      - "if file.has_permission(\"r\") then"
+      - "   ftpShell.scp(\"/etc/passwd\", \"/home/test/Desktop\", shell)"
+      - else
+      - "   print(\"No permissions to read passwd file.\")"
+      - end if
+  create_folder:
+    description: "Creates a folder and returns one on success or an error `string` on failure. Invalid argument types return `\"create_folder: Invalid arguments\"`; use during SSH encryption still raises a runtime error."
+    example:
+      - shell = get_shell
+      - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+      - ftpComputer = ftpShell.host_computer
+      - "createResult = ftpComputer.create_folder(path, \"myfolder\")"
+      - "if typeof(createResult) == \"string\" then"
+      - "   print(\"There was an error when creating the folder: \" + createResult)"
+      - else
+      - "   print(\"Folder got created at given path \" + path)"
+      - end if
+  get_name:
+    description: Returns the hostname of the machine.
+    example:
+      - shell = get_shell
+      - "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")"
+      - ftpComputer = ftpShell.host_computer
+      - ftpComputerName = ftpComputer.get_name
+      - "print(\"The name of the ftp server is \" + ftpComputerName)"
+extends: map
+hidden: false

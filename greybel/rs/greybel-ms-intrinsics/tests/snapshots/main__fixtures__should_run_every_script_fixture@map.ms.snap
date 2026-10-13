@@ -1,0 +1,19 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/map.ms
+---
+1
+0
+["foo", "bar"]
+[9064, "ipsum"]
+bar
+null
+2
+foo
+{"bar": "ipsum"}
+{"foo": 123, "bar": "ipsum", "moo": 1}
+323
+{"foo": 123, "bar": "ipsum"}
+1
+{"test": 3, "bar": 3, "foo": 1}

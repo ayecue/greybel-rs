@@ -1,0 +1,31 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+assertion_line: 39
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/blockchain.src
+---
+blockchainLib
+1
+coin_price: Coin does not exist.
+1
+map 3
+number 01/Dec/2000 - 06:00
+null
+login_wallet: Account not found or incorrect password
+wallet
+Error: Wallet user already exists.
+Error: only alphanumeric allowed as name and password
+Error: only alphanumeric allowed as name and password
+1
+null
+wallet does not have coins in the selected currency
+0
+wallet
+get_coin: Incorrect user/password
+100
+Subwallet missing does not exist
+Subwallet missing does not exist
+Error: Coin DogeCoin does not exist
+sell_coin: coin amount and proposed price cannot be 0.
+Error: Max coins per trade is 50000
+Error: Max unit price is $10000

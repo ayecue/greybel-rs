@@ -1,0 +1,16 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::Greybel))"
+input_file: greybel-core/tests/fixtures/greybel/scripts/greybel-utils.src
+---
+Chunk[1:1-12:21][
+	FeatureImportExpression[1:1-1:28][name = Identifier[1:9-1:12][foo], path = test/bar]
+	FeatureIncludeExpression[2:1-2:20][path = test/bar]
+	AssignmentStatement[3:1-3:23][Identifier[3:1-3:5][test] = FeatureEnvarExpression[3:8-3:23][name = TEST_ENV]]
+	FeatureDebuggerExpression[4:1-4:9][]
+	AssignmentStatement[5:1-5:14][Identifier[5:1-5:5][from] = Literal[5:8-5:14][test]]
+	FeatureImportExpression[7:1-7:29][name = Identifier[7:10-7:13][foo], path = test/bar]
+	FeatureIncludeExpression[8:1-8:21][path = test/bar]
+	AssignmentStatement[10:1-10:27][Identifier[10:1-10:5][test] = FeatureInjectExpression[10:8-10:27][path = test/bar]]
+	FeatureIncludeExpression[12:1-12:21][path = ./test/bar]
+]

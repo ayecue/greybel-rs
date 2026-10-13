@@ -1,0 +1,24 @@
+---
+source: miniscript-meta/tests/dump.rs
+expression: part
+---
+availableTags:
+  - method
+  - function
+primitives:
+  - any
+  - general
+  - string
+  - function
+  - number
+  - list
+  - map
+types:
+  - version
+visibleTypes:
+  - string
+  - function
+  - number
+  - list
+  - map
+  - version

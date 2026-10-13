@@ -1,0 +1,15 @@
+[workspace]
+language = "dotnet"
+
+# greyhack-util's tests, which also fail when a generated file or, with the game installed, the game contract is
+# out of date; and the setup wizard library's. The proxy is tested by greyhack-message-hook-client's tests with the
+# feature `dotnet`; greyhack-test-support declares its own.
+[tasks.util]
+suite = "unit"
+cwd = "greyhack-util"
+run = "dotnet test --solution GreyHackUtil.slnx"
+
+[tasks.setup-wizard]
+suite = "unit"
+cwd = "greyhack-setup-wizard"
+run = "dotnet test --solution GreyHackSetupWizard.slnx"

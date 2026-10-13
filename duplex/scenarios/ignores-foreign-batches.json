@@ -1,0 +1,138 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A channel ignores batches of other channels and connections, of itself, of other versions, cut short, and no batches at all, then goes on with its own.",
+  "peer": "provider",
+  "requires": [],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "Log": {
+                "text": "other channel"
+              }
+            }
+          }
+        ],
+        "channel": 1
+      }
+    },
+    {
+      "receive": {
+        "connection": 9,
+        "frames": [
+          {
+            "Message": {
+              "Log": {
+                "text": "other connection"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Message": {
+              "Log": {
+                "text": "no connection"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "Log": {
+                "text": "own"
+              }
+            }
+          }
+        ],
+        "from": "provider"
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "Log": {
+                "text": "other version"
+              }
+            }
+          }
+        ],
+        "core": 2
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "Log": {
+                "text": "cut short"
+              }
+            }
+          }
+        ],
+        "truncate": 1
+      }
+    },
+    {
+      "receive": {
+        "bytes": "6c6f67"
+      }
+    },
+    {
+      "receive": {
+        "bytes": ""
+      }
+    },
+    {
+      "expect": {
+        "received": [],
+        "sent": []
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "Log": {
+                "text": "ours"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "received": [
+          {
+            "Log": {
+              "text": "ours"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

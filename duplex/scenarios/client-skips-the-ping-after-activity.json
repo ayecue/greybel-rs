@@ -1,0 +1,60 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A check right after anything of the provider counts no miss and sends no ping; the check after it pings again.",
+  "peer": "client",
+  "requires": ["health-check"],
+  "connected": true,
+  "healthCheck": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Ping": {}
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Pong": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": [],
+        "health": "healthy"
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Ping": {}
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

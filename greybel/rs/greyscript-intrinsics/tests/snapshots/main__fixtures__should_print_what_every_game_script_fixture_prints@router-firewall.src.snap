@@ -1,0 +1,26 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+assertion_line: 46
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/router-firewall.src
+---
+0
+NetSession
+MetaLib
+kernel_router.so
+NetSession
+MetaLib
+1
+1
+
+Starting attack...success!
+Privileges obtained from user: guest
+
+Starting attack...success!
+Privileges obtained from user: guest
+
+Starting attack...success!
+Accessing firewall config...
+Firewall disabled.
+1
+0

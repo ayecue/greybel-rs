@@ -1,0 +1,17 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/self-ms-behaviour.src
+---
+[
+  "{\"bar\": FUNCTION(actualValue, self, self)}",
+  "\"test\"",
+  "\"do not ignore\"",
+  "\"bar\"",
+  "{\"bar\": FUNCTION(was, self, self, last)}",
+  "\"test\"",
+  "\"show me\"",
+  "\"do not ignore\"",
+  "\"bar\"",
+  "\"show me\""
+]

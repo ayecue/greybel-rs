@@ -1,0 +1,62 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider rejects a message as `Timeout` once its handler took the message's timeout, 1 second for `Sum`, without responding.",
+  "peer": "provider",
+  "requires": ["streams", "timeouts"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Sum": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "wait": 999
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "wait": 1
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "Timeout"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

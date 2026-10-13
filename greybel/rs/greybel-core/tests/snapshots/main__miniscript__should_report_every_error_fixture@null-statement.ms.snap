@@ -1,0 +1,13 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/errors/null-statement.ms
+---
+--- strict
+1:1 - 1:5 UnexpectedKeyword(2002): unexpected keyword 'null' at start of line
+    hint: Use 'null' as a value, e.g. x = null
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:1 - 1:5 UnexpectedKeyword(2002): unexpected keyword 'null' at start of line
+    hint: Use 'null' as a value, e.g. x = null

@@ -1,0 +1,248 @@
+{
+  "type": "adminComputer",
+  "extends": "map",
+  "definitions": {
+    "shell": {
+      "id": "shell",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "root"
+          }
+        }
+      ],
+      "returns": [
+        "shell",
+        "null"
+      ]
+    },
+    "login": {
+      "id": "login",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "add_npc": {
+      "id": "add_npc",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "delay",
+          "type": "number"
+        },
+        {
+          "label": "name",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "npc"
+          }
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "npc_login": {
+      "id": "npc_login",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "add_net_card": {
+      "id": "add_net_card",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "wifi",
+          "type": "number"
+        },
+        {
+          "label": "monitorSupport",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "add_smart_appliance": {
+      "id": "add_smart_appliance",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "options",
+          "type": "map"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "set_library_version": {
+      "id": "set_library_version",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string"
+        },
+        {
+          "label": "version",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "set_port_library_version": {
+      "id": "set_port_library_version",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "port",
+          "type": "number"
+        },
+        {
+          "label": "version",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "service_records": {
+      "id": "service_records",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "service",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "update_service_record": {
+      "id": "update_service_record",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "service",
+          "type": "string"
+        },
+        {
+          "label": "record",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "access_cctv": {
+      "id": "access_cctv",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "install_smartphone_adb": {
+      "id": "install_smartphone_adb",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    }
+  }
+}

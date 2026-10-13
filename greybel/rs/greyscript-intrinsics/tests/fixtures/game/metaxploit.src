@@ -1,0 +1,46 @@
+// The exploit loop against a target built with admin.so.
+admin = include_lib("admin.so")
+router = admin.create_network({"public_ip": "8.8.8.14", "domain": "t.com", "computers": 0})
+lan = router.local_ip[:-1]
+admin.network("8.8.8.14").add_computer({"name": "web", "lan_ip": lan + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["ssh"]})
+admin.network("8.8.8.14").computer(lan + "10").login("root")
+
+meta = include_lib("/lib/metaxploit.so")
+print typeof(meta)
+print typeof(include_lib("/lib/missing.so"))
+
+session = meta.net_use("8.8.8.14", 22)
+print typeof(session)
+print session.get_num_users
+print session.is_root_active_user
+
+lib = session.dump_lib
+print typeof(lib)
+print lib.lib_name
+print lib.version
+
+addresses = meta.scan(lib)
+print "addresses: " + addresses.len
+info = meta.scan_address(lib, addresses[0])
+print info.indexOf("Unsafe check") != null
+
+// Parse the first unsafe value and break it.
+hit = null
+for address in addresses
+    report = meta.scan_address(lib, address)
+    chunks = report.split("<b>")
+    i = 1
+    while i < chunks.len
+        candidate = chunks[i].split("</b>")[0]
+        outcome = lib.overflow(address, candidate)
+        if typeof(outcome) != "null" and typeof(outcome) != "string" then
+            hit = outcome
+        end if
+        i = i + 1
+    end while
+end for
+print "exploit result: " + typeof(hit)
+
+print lib.overflow("0xBADADDR", "nope")
+print meta.net_use("300.0.0.1", 22)
+print typeof(meta.net_use("8.8.8.14", 9999))

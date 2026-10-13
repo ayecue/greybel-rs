@@ -1,0 +1,28 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A channel of a protocol that needs an authenticated transport closes as insecure on one without security, sending nothing and failing what it sends.",
+  "peer": "client",
+  "requires": ["responses"],
+  "protocol": "vault",
+  "steps": [
+    {
+      "send": {
+        "Reveal": {
+          "name": "key"
+        }
+      },
+      "as": "secret"
+    },
+    {
+      "expect": {
+        "sent": [],
+        "closed": "Insecure",
+        "settled": {
+          "secret": {
+            "closed": "Insecure"
+          }
+        }
+      }
+    }
+  ]
+}

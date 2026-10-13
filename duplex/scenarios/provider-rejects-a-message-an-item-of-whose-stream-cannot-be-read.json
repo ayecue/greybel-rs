@@ -1,0 +1,57 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider rejects a message as malformed when an item of the stream its sender sends after it can't be read, and frees its id.",
+  "peer": "provider",
+  "requires": ["streams"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Sum": {}
+            }
+          },
+          {
+            "MessageItem": {
+              "id": 0,
+              "body": ""
+            }
+          },
+          {
+            "MessageItem": {
+              "id": 0,
+              "Sum": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "MessageCredit": {
+                  "id": 0,
+                  "count": 4095
+                }
+              },
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "MalformedMessage"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

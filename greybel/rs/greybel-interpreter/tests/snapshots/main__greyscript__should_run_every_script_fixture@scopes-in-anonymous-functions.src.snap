@@ -1,0 +1,9 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/scopes-in-anonymous-functions.src
+---
+[
+  "\"abc\"",
+  "\"wa\""
+]

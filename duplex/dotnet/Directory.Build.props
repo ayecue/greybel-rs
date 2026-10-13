@@ -1,0 +1,8 @@
+<Project>
+  <!-- Folders outside a project that it reads or writes. A project embeds one
+       with <AssemblyMetadata Include="Duplex" Value="$(Duplex)" />. -->
+  <PropertyGroup>
+    <DuplexDotnet>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))</DuplexDotnet>
+    <Duplex>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../'))</Duplex>
+  </PropertyGroup>
+</Project>

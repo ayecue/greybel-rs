@@ -1,0 +1,26 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/expressions.src
+---
+=== default
+"as"+"wa"
+print("was")-print("hallo")
+print(-123)
+print+123
+=== uglify
+globals.I=globals
+"as"+"wa"
+print("was")-print("hallo")
+print(-123)
+print+123
+=== beautify
+"as" + "wa"
+print("was") - print("hallo")
+print -123
+print + 123
+=== beautify, dev mode, keep parentheses, 10 spaces
+"as" + "wa"
+print("was") - print("hallo")
+print(-123)
+print + 123

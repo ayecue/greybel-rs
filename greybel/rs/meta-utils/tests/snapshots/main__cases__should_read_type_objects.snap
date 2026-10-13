@@ -1,0 +1,99 @@
+---
+source: meta-utils/tests/cases.rs
+expression: cases
+---
+- input: list
+  output:
+    json:
+      type: list
+      valueType: any
+    string: list<any>
+- input: map
+  output:
+    json:
+      keyType: any
+      type: map
+      valueType: any
+    string: "map<any,any>"
+- input: string
+  output:
+    json: string
+    string: string
+- input:
+    type: list
+    valueType: test
+  output:
+    json:
+      type: list
+      valueType: test
+    string: list<test>
+- input:
+    keyType: test
+    type: map
+    valueType: test
+  output:
+    json:
+      keyType: test
+      type: map
+      valueType: test
+    string: "map<test,test>"
+- input:
+    type: map
+  output:
+    json:
+      keyType: any
+      type: map
+      valueType: any
+    string: "map<any,any>"
+- input:
+    type: list
+  output:
+    json:
+      type: list
+      valueType: any
+    string: list<any>
+- input:
+    keyType: baz
+    type: foo
+    valueType: bar
+  output:
+    error: "`keyType` does not apply to `foo`"
+- input:
+    keyType:
+      type: foo
+      valueType: x
+    type: map
+    valueType:
+      type: list
+      valueType:
+        type: map
+  output:
+    error: "`valueType` does not apply to `foo`"
+- input:
+    type: list
+    valueType:
+      keyType: string
+      type: map
+      valueType:
+        keyType: string
+        type: map
+        valueType:
+          type: list
+          valueType:
+            type: list
+            valueType: string
+  output:
+    json:
+      type: list
+      valueType:
+        keyType: string
+        type: map
+        valueType:
+          keyType: string
+          type: map
+          valueType:
+            type: list
+            valueType:
+              type: list
+              valueType: string
+    string: "list<map<string,map<string,list<list<string>>>>>"

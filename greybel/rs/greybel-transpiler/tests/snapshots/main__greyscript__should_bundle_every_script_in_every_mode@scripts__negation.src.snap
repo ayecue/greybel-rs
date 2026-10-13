@@ -1,0 +1,26 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/negation.src
+---
+=== default
+test=-1+2+-2+3
+foo=[-1,-2+4,(-2)+-4+6]
+print(test)
+print(foo)
+=== uglify
+globals.I=globals
+J=-1+2+-2+3
+K=[-1,-2+4,(-2)+-4+6]
+print(J)
+print(K)
+=== beautify
+test = -1 + 2 + -2 + 3
+foo = [
+	-1,
+	-2 + 4,
+	(-2) + -4 + 6,
+]
+
+print test
+print foo

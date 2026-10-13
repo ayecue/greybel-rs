@@ -1,0 +1,52 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A closing client tells the provider why at once, after what it wrote, and fails its messages.",
+  "peer": "client",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "close": "ClosedChannel"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1,
+                    "b": 2
+                  }
+                }
+              },
+              {
+                "Close": {
+                  "reason": "ClosedChannel"
+                }
+              }
+            ]
+          }
+        ],
+        "settled": {
+          "sum": {
+            "closed": "ClosedChannel"
+          }
+        },
+        "closed": "ClosedChannel"
+      }
+    }
+  ]
+}

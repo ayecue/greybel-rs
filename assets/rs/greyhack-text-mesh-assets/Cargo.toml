@@ -1,0 +1,29 @@
+[package]
+name = "greyhack-text-mesh-assets"
+description = "Embedded Grey Hack TextMesh Pro assets, including fonts, atlases, sprites, text settings, terminal theme, and OFL font sources"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+asset-bundle.workspace = true
+text-mesh-core.workspace = true
+text-mesh-font.workspace = true
+text-mesh-layout.workspace = true
+text-mesh-setup.workspace = true
+
+[dev-dependencies]
+asset-bundle = { workspace = true, features = ["fingerprint"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

@@ -1,0 +1,7 @@
+[workspace]
+language = "dotnet"
+
+[tasks.duplex-core]
+suite = "unit"
+cwd = "duplex-core"
+run = "dotnet test --solution DuplexCore.slnx"

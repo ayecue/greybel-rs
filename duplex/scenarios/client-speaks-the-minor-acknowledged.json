@@ -1,0 +1,89 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client speaks the older minor the provider acknowledges it with: it hears its version is deprecated, leaves out what newer minors added, and can't send what they alone know.",
+  "peer": "client",
+  "requires": ["responses"],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Ack": {
+              "id": 0,
+              "connection": 1,
+              "protocol": "1.0",
+              "deprecation": "1.1 tells how long a calculation takes"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [],
+        "connection": 1,
+        "version": "1.0",
+        "deprecated": [
+          {
+            "version": "1.1",
+            "note": "1.1 tells how long a calculation takes"
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Divide": {
+          "dividend": 7,
+          "divisor": 2,
+          "precision": 3
+        }
+      },
+      "as": "divided"
+    },
+    {
+      "send": {
+        "Reset": {}
+      },
+      "fails": "unsupported"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "minor": 0,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Divide": {
+                    "dividend": 7,
+                    "divisor": 2
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

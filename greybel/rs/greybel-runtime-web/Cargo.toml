@@ -1,0 +1,24 @@
+[package]
+name = "greybel-runtime-web"
+description = "Browser-worker greybel-runtime and terminal renderer with optional shared world (wasm-bindgen)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+duplex-driver-web.workspace = true
+greybel-runtime.workspace = true
+greyhack-terminal-text.workspace = true
+greyscript-intrinsics.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,56 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client closes a connection acknowledged with versions it can't speak, telling the provider.",
+  "peer": "client",
+  "requires": [],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Ack": {
+              "id": 0,
+              "connection": 1,
+              "fingerprint": 7
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Close": {
+                  "reason": "VersionMismatch"
+                }
+              }
+            ]
+          }
+        ],
+        "connection": null,
+        "closed": "VersionMismatch"
+      }
+    }
+  ]
+}

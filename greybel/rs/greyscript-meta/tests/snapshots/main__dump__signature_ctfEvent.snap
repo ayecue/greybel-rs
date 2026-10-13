@@ -1,0 +1,151 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - get_description
+  - get_template
+  - player_success
+  - get_creator_name
+  - get_mail_content
+definitions:
+  get_creator_name:
+    argStrings: []
+    id: get_creator_name
+    json:
+      arguments: []
+      description: "Returns `string` with the name of the CTF event creator."
+      example: ~
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: ctfEvent
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_description:
+    argStrings: []
+    id: get_description
+    json:
+      arguments: []
+      description: "Returns `string` with the CTF event description."
+      example: ~
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: ctfEvent
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_mail_content:
+    argStrings: []
+    id: get_mail_content
+    json:
+      arguments: []
+      description: "Returns `string` with the mail content of the CTF event."
+      example: ~
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: ctfEvent
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_template:
+    argStrings: []
+    id: get_template
+    json:
+      arguments: []
+      description: "Returns `string` with the CTF event template."
+      example: ~
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: ctfEvent
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  player_success:
+    argStrings: []
+    id: player_success
+    json:
+      arguments: []
+      description: "Returns `number` with the value one if the CTF event got completed successfully. Otherwise this method will return a `number` with the value zero."
+      example: ~
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: ctfEvent
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok:
+        - 0
+        - 1
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - get_description
+  - get_template
+  - player_success
+  - get_creator_name
+  - get_mail_content
+descriptions:
+  $meta:
+    description: "A `ctfEvent` object can be obtained by using [get_ctf](#GENERAL_GET_CTF). The `classID` used for this object is `\"ctfEvent\"`."
+    example: ~
+  get_creator_name:
+    description: "Returns `string` with the name of the CTF event creator."
+    example: ~
+  get_description:
+    description: "Returns `string` with the CTF event description."
+    example: ~
+  get_mail_content:
+    description: "Returns `string` with the mail content of the CTF event."
+    example: ~
+  get_template:
+    description: "Returns `string` with the CTF event template."
+    example: ~
+  player_success:
+    description: "Returns `number` with the value one if the CTF event got completed successfully. Otherwise this method will return a `number` with the value zero."
+    example: ~
+extends: map
+hidden: false

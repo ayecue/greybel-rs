@@ -1,0 +1,19 @@
+myObj = {}
+myObj.testFunc = function
+    print("test func start")
+    test = function
+        print("called inner test func")
+    end function
+    return {"foo":@test}
+end function
+
+callFunc = function(toCall)
+    print("Call start")
+    toCall
+    print("Call end")
+end function
+
+myObj["testFunc"]
+myObj.testFunc()["foo"]
+callFunc(myObj["testFunc"])
+print typeof(myObj["testFunc"])

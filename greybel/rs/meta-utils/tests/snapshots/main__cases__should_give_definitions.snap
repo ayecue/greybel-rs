@@ -1,0 +1,82 @@
+---
+source: meta-utils/tests/cases.rs
+expression: definitions
+---
+- definition:
+    arguments:
+      - default: ~
+        label: delimiter
+        opt: false
+        types:
+          - string
+    description: "Returns a `list` where each item is a segment of the `string`. The separation depends on the provided separator `string`. Keep in mind that for some odd reason, this method is using regular expressions for matching."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - "segments = myString.split(\" \")"
+      - "if segments[0] != \"42\" then"
+      - "   print(\"Invalid information spotted!\")"
+      - else
+      - "   print(\"Information seems valid!\")"
+      - end if
+    isProtected: false
+    returns:
+      - type: list
+        valueType: string
+    type: function
+  property: split
+  type: string
+- definition:
+    description: "Test, test!"
+    example:
+      - testing
+    isProtected: true
+    type:
+      type: list
+      valueType: string
+  property: myProperty
+  type: sub-string
+- definition:
+    arguments:
+      - default: ~
+        label: delimiter
+        opt: false
+        types:
+          - string
+      - default: ~
+        label: extraArg
+        opt: false
+        types:
+          - keyType: string
+            type: map
+            valueType: string
+    description: ~
+    example: ~
+    isProtected: false
+    returns:
+      - type: list
+        valueType: string
+    type: function
+  property: split
+  type: sub-string
+- definition:
+    arguments:
+      - default: ~
+        label: index
+        opt: false
+        types:
+          - number
+    description: "Returns `true` if the provided index is available in the `string`. Otherwise, this method will return `false`."
+    example:
+      - "myString = \"42 as an answer is wrong\""
+      - containsIndex = myString.hasIndex(1)
+      - if containsIndex then
+      - "   print(\"String contains index of 1.\")"
+      - else
+      - "   print(\"String does not contain index of 1.\")"
+      - end if
+    isProtected: false
+    returns:
+      - number
+    type: function
+  property: hasIndex
+  type: sub-string

@@ -1,0 +1,95 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider refuses a client of another major of the protocol or of the core, even one whose batches it can read only `Open` of, with its own versions.",
+  "peer": "provider",
+  "requires": [],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 1,
+              "protocol": "2.0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 2,
+              "core": "2.0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "core": 2,
+        "frames": [
+          {
+            "Open": {
+              "id": 3,
+              "core": "2.0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Refuse": {
+                  "id": 1,
+                  "reason": "VersionMismatch"
+                }
+              },
+              {
+                "Refuse": {
+                  "id": 2,
+                  "reason": "VersionMismatch"
+                }
+              },
+              {
+                "Refuse": {
+                  "id": 3,
+                  "reason": "VersionMismatch",
+                  "majors": [
+                    1
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "connection": null
+      }
+    }
+  ]
+}

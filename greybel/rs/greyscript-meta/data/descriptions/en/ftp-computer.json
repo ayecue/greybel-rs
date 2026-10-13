@@ -1,0 +1,43 @@
+{
+  "$meta": {
+    "description": "A `ftpComputer` object can be obtained by using [host_computer](#FTPSHELL_HOST_COMPUTER). The `classID` used for this object is `\"ftpComputer\"`."
+  },
+  "get_name": {
+    "description": "Returns the hostname of the machine.",
+    "example": [
+      "shell = get_shell",
+      "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")",
+      "ftpComputer = ftpShell.host_computer",
+      "ftpComputerName = ftpComputer.get_name",
+      "print(\"The name of the ftp server is \" + ftpComputerName)"
+    ]
+  },
+  "File": {
+    "description": "Returns the file or folder at an absolute or relative path. Returns `\"File: Invalid arguments\"` for an empty or non-string path, and `null` when the path or computer is invalid or the shell user no longer exists.",
+    "example": [
+      "shell = get_shell",
+      "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")",
+      "ftpComputer = ftpShell.host_computer",
+      "file = ftpComputer.File(\"/etc/passwd\")",
+      "if file.has_permission(\"r\") then",
+      "   ftpShell.scp(\"/etc/passwd\", \"/home/test/Desktop\", shell)",
+      "else",
+      "   print(\"No permissions to read passwd file.\")",
+      "end if"
+    ]
+  },
+  "create_folder": {
+    "description": "Creates a folder and returns one on success or an error `string` on failure. Invalid argument types return `\"create_folder: Invalid arguments\"`; use during SSH encryption still raises a runtime error.",
+    "example": [
+      "shell = get_shell",
+      "ftpShell = shell.connect_service(\"172.8.0.5\", 21, \"test\", \"test\", \"ftp\")",
+      "ftpComputer = ftpShell.host_computer",
+      "createResult = ftpComputer.create_folder(path, \"myfolder\")",
+      "if typeof(createResult) == \"string\" then",
+      "   print(\"There was an error when creating the folder: \" + createResult)",
+      "else",
+      "   print(\"Folder got created at given path \" + path)",
+      "end if"
+    ]
+  }
+}

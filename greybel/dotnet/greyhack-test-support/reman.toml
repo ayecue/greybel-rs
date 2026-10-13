@@ -1,0 +1,13 @@
+[project]
+kind = "app"
+# The tool greybel's game tests run the installed game with (greybel-test-support's `game`), so that what greybel
+# emulates of the game is compared with the game itself. Versioned and in the changelog, never released.
+release = false
+# Its plugin speaks the protocol through Protocol/TestSupportProtocol.g.cs, which greyhack-test-support-client's
+# tests generate: no manifest names it.
+uses = ["duplex/greyhack-test-support"]
+
+# The tool's parts that don't need the game: its log, session files and plugin projects.
+[tasks.unit]
+suite = "unit"
+run = "dotnet test --project tests"

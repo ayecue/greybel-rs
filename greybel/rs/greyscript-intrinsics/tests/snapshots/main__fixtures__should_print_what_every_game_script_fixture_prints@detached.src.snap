@@ -1,0 +1,76 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/detached.src
+---
+["computer", 1, 1]
+[1, 1, 1]
+[1, 1]
+["function", "function"]
+1
+[1, 1, "Error: one file exists"]
+1
+["USER PID CPU MEM COMMAND", "USER PID CPU MEM COMMAND"]
+number
+["/", "bin", 1]
+[1, 1, 0, 1]
+["drwxr-xr-x", "root", "root", 1]
+1
+1
+1
+["written", "written"]
+1
+
+["renamed.txt", "renamed.txt", "/home/test/renamed.txt"]
+
+null
+["router", 1, 1]
+[1, 1, 1]
+1
+[1, 1, 1]
+1
+1
+1
+[0, 1]
+ftpshell
+["ftpComputer", "web", 1]
+["ftpFile", "/", "etc", 1]
+[1, 1, 1]
+["NetSession", "NetSession"]
+[1, 1]
+[1, 1]
+["MetaLib", "init.so"]
+1
+1
+["cryptoLib", 1]
+["", 1]
+1
+[1, 1]
+["wallet", 1, 1]
+1
+["service", 1]
+["MetaMail", 1, 1, 1, "function"]
+["ctfEvent", "desc", 1, 1]
+[null, null, null, null, null]
+[null, null, null, null]
+[null, null]
+null
+["function", "function", "function", "function"]
+[null, null, null, null, null, null]
+[null, null, null, null]
+[null, null, null]
+["load: Invalid arguments", "overflow: Invalid arguments"]
+["error: file not found", "error: file not found", "error: file not found", null, null]
+["Invalid shell", "launch: Invalid arguments"]
+["aircrack: Invalid arguments", 0, "aireplay: Invalid arguments"]
+["Error: Invalid ip address", "Error: only alphanumeric allowed as password.", "rshell_client: Invalid IP address"]
+Invalid ip address: bad
+[null, null, null]
+[1, 1, 1]
+[1, 1, 1, 1]
+[1, 1, 1, 1]
+[1, 1, 1]
+[1, 1, 1]
+[1, 1, 1, 1]
+[1, 1]
+[null, null, null]

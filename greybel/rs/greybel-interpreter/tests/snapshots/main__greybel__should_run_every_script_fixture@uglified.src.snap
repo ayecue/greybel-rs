@@ -1,0 +1,11 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/uglified.src
+---
+[
+  "{\"B\": {\"exports\": {\"bar\": 123}}}",
+  "\"B\"",
+  "{\"exports\": {\"bar\": 123}}",
+  "123"
+]

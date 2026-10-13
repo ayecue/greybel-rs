@@ -1,0 +1,22 @@
+<b>TextMesh Pro terminal</b> — demo
+Plain text in the theme's terminal colour.
+<color=red>red</color> <color=orange>orange</color> <color=yellow>yellow</color> <color=green>green</color> <color=lightblue>lightblue</color> <#4080FF>#4080FF</color> <color=#ff40ff80>translucent magenta</color>
+<b>bold</b> <i>italic</i> <u>underline</u> <s>strikethrough</s> <u color=#ff0000>red underline</u> <mark>marked</mark> <mark=#ff000080>red mark</mark>
+<font-weight=300>light</font-weight> <font-weight=900>black</font-weight> <alpha=#60>alpha 60</alpha>
+<size=24>size 24</size> <size=150%>150%</size> <size=0.8em>0.8em</size> <size=100>capped at 60</size>
+x<sup>2</sup> H<sub>2</sub>O <smallcaps>Small Caps</smallcaps> <uppercase>uppercase</uppercase> <lowercase>LOWERCASE</lowercase>
+<cspace=4>spaced out</cspace> <mspace=1.2em>mono</mspace> a<space=2em>b
+<voffset=0.5em>up</voffset> <voffset=-0.5em>down</voffset> <voffset=1.4em>a line up</voffset> base <voffset=6>6px</voffset>
+<rotate=90>—|-</rotate> <rotate=45>tilted</rotate> <rotate=180>upside down</rotate> <scale=1.5>wide</scale> <rotate=90><scale=2>scale replaces rotate</scale>
+abcdef<pos=0>XY<pos=4em>after pos 4em <pos=50%>at 50%
+<color=#9e9e9e><pos=4.95>———(root@<color=#ff3c3c>mainframe</color>)——[<color=#ff3c3c>142.31.8.200</color>]——[192.168.0.4]——[<color=#ff3c3c>/home/root</color>]——[<color=#3cff7a>shell</color>]<voffset=-0.35em><pos=0><rotate=90>—<pos=0><voffset=-0.7em>—<pos=0><voffset=-1.05em>—<rotate=0><pos=4.95><voffset=-1.4em>——<#c3201f>$</color></color> 
+<style=H1>H1</style> <style=H2>H2</style> <style=H3>H3</style> <style=C1>C1</style> <style=C2>C2</style> <style=C3>C3</style> <style=Link>Link</style> <style="quote">Quote</style>
+<font="LiberationSans SDF">LiberationSans SDF</font> back to the terminal's font <font="LiberationSans SDF" material="LiberationSans SDF - Outline">outline material</font>
+sprites: <sprite index=0 color=#00F0DD> (a caret as Grey Hack writes it), all three: <sprite=0> <sprite=1> <sprite=2> , by name <sprite name="circle" color=#ff0000> , tinted <sprite=1 tint=1> , the bar does not advance: <sprite=0>X
+<size=40><sprite index=0></size> big bar, <voffset=-0.5em><sprite index=0></voffset> lowered bar
+shown as text: <Color=red>mixed case</Color> <color=gray>gray</color> <foo> <sprite=7> <style=H4> <b c d> <size> <space=5%>
+edge cases: <b>unclosed bold, </b></b></b>extra closings, <color=red>red <color=#zzz>zzz</color> back to red</color>, <#f00>short hex <#f008>short hex alpha</color></color>
+<noparse><b>not bold</b></noparse> | a<br>b | a<nbsp>b | </noparse>closing noparse vanishes
+<color=red>a colour left open ends with its line
+so this line is plain again.
+Long lines are cut like the terminal does: word000 word001 word002 word003 word004 word005 word006 word007 word008 word009 word010 word011 word012 word013 word014 word015 word016 word017 word018 word019 word020 word021 word022 word023 word024 word025 word026 word027 word028 word029 word030 word031 word032 word033 word034 word035 word036 word037 word038 word039

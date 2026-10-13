@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Description>BepInEx plugin for Grey Hack that starts single player as the game starts and logs when it is ready, for tests running it headless.</Description>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>GreyHackTestSupport.Plugin</RootNamespace>
+    <AssemblyName>GreyHackTestSupport</AssemblyName>
+    <!-- PluginInfo.PLUGIN_VERSION, from the version (../../Directory.Build.targets). -->
+    <PluginInfoNamespace>GreyHackTestSupport.Plugin</PluginInfoNamespace>
+  </PropertyGroup>
+  <!-- One build per BepInEx major, as the message hook: Debug-BepInEx5 (or Debug), Debug-BepInEx6 (defines BEPINEX6). -->
+  <PropertyGroup>
+    <Configurations>Debug;Debug-BepInEx5;Debug-BepInEx6</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('BepInEx6'))">
+    <DefineConstants>$(DefineConstants);BEPINEX6</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="UnityEngine.Modules" Version="2022.3.62" IncludeAssets="compile" />
+  </ItemGroup>
+  <ItemGroup Condition="!$(Configuration.Contains('BepInEx6'))">
+    <PackageReference Include="BepInEx.Core" Version="5.*" />
+  </ItemGroup>
+  <ItemGroup Condition="$(Configuration.Contains('BepInEx6'))">
+    <PackageReference Include="BepInEx.Unity.Mono" Version="6.0.0-be.*" IncludeAssets="compile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\greyhack-message-hook\src\GreyHackMessageHook.csproj" />
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GreyHackManagedPath)/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

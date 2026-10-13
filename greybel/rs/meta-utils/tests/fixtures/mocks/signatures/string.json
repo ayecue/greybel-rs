@@ -1,0 +1,204 @@
+{
+  "type": "string",
+  "definitions": {
+    "remove": {
+      "id": "remove",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "toDelete",
+          "type": "string"
+        }
+      ],
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "hasIndex": {
+      "id": "hasIndex",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "index",
+          "type": "number"
+        }
+      ],
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "insert": {
+      "id": "insert",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "index",
+          "type": "number"
+        },
+        {
+          "label": "value",
+          "type": "string"
+        }
+      ],
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "indexOf": {
+      "id": "indexOf",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "value",
+          "type": "string"
+        },
+        {
+          "label": "offset",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "split": {
+      "id": "split",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "delimiter",
+          "type": "string"
+        }
+      ],
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        }
+      ]
+    },
+    "replace": {
+      "id": "replace",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "toReplace",
+          "type": "string"
+        },
+        {
+          "label": "newString",
+          "type": "string"
+        }
+      ],
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "trim": {
+      "id": "trim",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "indexes": {
+      "id": "indexes",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "number"
+        }
+      ]
+    },
+    "code": {
+      "id": "code",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "len": {
+      "id": "len",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "lower": {
+      "id": "lower",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "upper": {
+      "id": "upper",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "val": {
+      "id": "val",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "values": {
+      "id": "values",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        }
+      ]
+    }
+  }
+}

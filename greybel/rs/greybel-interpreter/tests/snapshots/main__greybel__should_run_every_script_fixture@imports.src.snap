@@ -1,0 +1,11 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/imports.src
+---
+[
+  "\"import-file.src at line 3 (imported)\"",
+  "\"file imported and sub file imported\"",
+  "\"foo included code and sub foo included code\"",
+  "\"imports.src at line 6 (main file)\""
+]

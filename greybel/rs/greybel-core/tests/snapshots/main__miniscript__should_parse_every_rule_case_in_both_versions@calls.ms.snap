@@ -1,0 +1,80 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/rules/calls.ms
+---
+=== "x = a(1)"
+1.6, latest: ok
+Chunk[1:1-1:9][
+	AssignmentStatement[1:1-1:9][Identifier[1:1-1:2][x] = CallExpression[1:5-1:9][Identifier[1:5-1:6][a](Literal[1:7-1:8][1])]]
+]
+=== "x = a.b(1)"
+1.6, latest: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:11][Identifier[1:1-1:2][x] = CallExpression[1:5-1:11][MemberExpression[1:5-1:8][Identifier[1:5-1:6][a].Identifier[1:7-1:8][b]](Literal[1:9-1:10][1])]]
+]
+=== "a[1](0)"
+1.6, latest: ok
+Chunk[1:1-1:8][
+	CallExpression[1:1-1:8][IndexExpression[1:1-1:5][isStatementStart][Identifier[1:1-1:2][a][Literal[1:3-1:4][1]]](Literal[1:6-1:7][0])]
+]
+=== "x = a(1).b(2)"
+1.6, latest: ok
+Chunk[1:1-1:14][
+	AssignmentStatement[1:1-1:14][Identifier[1:1-1:2][x] = CallExpression[1:5-1:14][MemberExpression[1:5-1:11][CallExpression[1:5-1:9][Identifier[1:5-1:6][a](Literal[1:7-1:8][1])].Identifier[1:10-1:11][b]](Literal[1:12-1:13][2])]]
+]
+=== "x = a (1)"
+1.6, latest: ok
+Chunk[1:1-1:10][
+	AssignmentStatement[1:1-1:10][Identifier[1:1-1:2][x] = CallExpression[1:5-1:10][Identifier[1:5-1:6][a](Literal[1:8-1:9][1])]]
+]
+=== "a (1)"
+1.6, latest: ok
+Chunk[1:1-1:6][
+	CallStatment[1:1-1:6][CallExpression[1:1-1:6][Identifier[1:1-1:2][a](Literal[1:4-1:5][1])]]
+]
+=== "x = a(1)(2)"
+1.6, latest: --- error
+1:9 - 1:10 ExpectedToken(3001): got LParen where EOL is required
+=== "x = a[1](0)"
+1.6, latest: --- error
+1:9 - 1:10 ExpectedToken(3001): got LParen where EOL is required
+=== "x = (a)(0)"
+1.6, latest: --- error
+1:8 - 1:9 ExpectedToken(3001): got LParen where EOL is required
+=== "x = \"\"(0)"
+1.6, latest: --- error
+1:7 - 1:8 ExpectedToken(3001): got LParen where EOL is required
+=== "x = {}(0)"
+1.6, latest: --- error
+1:7 - 1:8 ExpectedToken(3001): got LParen where EOL is required
+=== "x = [1](0)"
+1.6, latest: --- error
+1:8 - 1:9 ExpectedToken(3001): got LParen where EOL is required
+=== "print foo()()"
+1.6, latest: --- error
+1:1 - 1:13 ExpectedToken(3001): got LParen where Comma or EOL is required
+=== "foo()()"
+1.6, latest: --- error
+1:7 - 1:8 ExpectedExpression(3002): got RParen where number, string, or identifier is required
+=== "x = self()"
+1.6, latest: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:11][Identifier[1:1-1:2][x] = CallExpression[1:5-1:11][Identifier[1:5-1:9][self]()]]
+]
+=== "self()"
+1.6, latest: ok
+Chunk[1:1-1:7][
+	CallExpression[1:1-1:7][Identifier[1:1-1:5][self]()]
+]
+=== "x = @self"
+1.6, latest: ok
+Chunk[1:1-1:10][
+	AssignmentStatement[1:1-1:10][Identifier[1:1-1:2][x] = UnaryExpression[1:5-1:10][@ Identifier[1:6-1:10][self]]]
+]
+=== "x = a [1]"
+1.6, latest: --- error
+1:7 - 1:8 ExpectedToken(3001): got LSquare where EOL is required
+=== "x = a[1:2](0)"
+1.6, latest: --- error
+1:11 - 1:12 ExpectedToken(3001): got LParen where EOL is required

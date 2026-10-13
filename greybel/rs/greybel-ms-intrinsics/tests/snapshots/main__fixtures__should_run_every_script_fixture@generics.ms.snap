@@ -1,0 +1,29 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/generics.ms
+---
+{
+123
+0
+1.23
+0
+1502598398
+-2051310762
+-1815023436
+1072693248
+1083507712
+[6, 5, 4, 3, 2, 1, 0]
+[1, 2, 3, 4, 5]
+[5, 4, 3, 2, 1]
+[0, 2, 4, 6, 8, 10]
+438123312
+1.205571
+0
+1
+1
+null
+1
+{"miniscript": "1.6.2", "buildDate": "", "host": 0.1, "hostName": "greybel-ms-intrinsics", "hostInfo": "https://github.com/ayecue/greybel-rs"}
+0
+1

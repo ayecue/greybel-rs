@@ -1,0 +1,532 @@
+{
+  "type": "file",
+  "extends": "map",
+  "definitions": {
+    "chmod": {
+      "id": "chmod",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "typePerm",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "isRecursive",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        "!FileSystem.UpdatePermisos",
+        "${path} not found",
+        "chmod: Invalid arguments",
+        "permission denied"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "copy": {
+      "id": "copy",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "newName",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.MoverFichero",
+        "copy: Invalid arguments",
+        "copy: name cannot exceed the 128 character limit.",
+        "Error: only alphanumeric allowed as newname",
+        "move: path too large",
+        "Warning: one or more files or folders cannot be copied."
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "move": {
+      "id": "move",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "newName",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.MoverFichero",
+        "Error: only alphanumeric allowed as newname",
+        "move: Invalid arguments",
+        "move: name cannot exceed the 128 character limit.",
+        "move: path too large"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "symlink": {
+      "id": "symlink",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "newName",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.CrearArchivo",
+        "!PlayerUtils.CrearCarpeta",
+        "Error: invalid path",
+        "Error: only alphanumeric allowed as newname",
+        "move: name cannot exceed the 128 character limit.",
+        "symlink: Invalid arguments",
+        "symlink: path too large",
+        "The file already exists"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "rename": {
+      "id": "rename",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "newName",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        0,
+        "!PlayerUtils.RenameFichero",
+        "Error: name cannot exceed the limit of 128 characters.",
+        "Error: only alphanumeric allowed as newname"
+      ],
+      "returns": [
+        "string",
+        "number"
+      ]
+    },
+    "path": {
+      "id": "path",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "symlinkOrigPath",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "is_folder": {
+      "id": "is_folder",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "parent": {
+      "id": "parent",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "file",
+        "null"
+      ]
+    },
+    "name": {
+      "id": "name",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "allow_import": {
+      "id": "allow_import",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "get_content": {
+      "id": "get_content",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "returnVariations": [
+        "can't open ${filepath}. Binary file.",
+        "Error: can't find the computer of this file"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "set_content": {
+      "id": "set_content",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "content",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "can't open ${filepath}. Binary file.",
+        "I can't save the file. The maximum of 160,000 characters has been exceeded.",
+        "set_content: unable to use this method in encryption configuration"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "is_binary": {
+      "id": "is_binary",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "is_symlink": {
+      "id": "is_symlink",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "has_permission": {
+      "id": "has_permission",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "typePerm",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "delete": {
+      "id": "delete",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        "!PlayerUtils.RemoveFile",
+        "Warning: one or more files or folders cannot be deleted."
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "get_folders": {
+      "id": "get_folders",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        "Permission denied: ${path}"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "file"
+        },
+        "null",
+        "string"
+      ]
+    },
+    "get_files": {
+      "id": "get_files",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        "Permission denied: ${path}"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "file"
+        },
+        "null",
+        "string"
+      ]
+    },
+    "permissions": {
+      "id": "permissions",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "owner": {
+      "id": "owner",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "set_owner": {
+      "id": "set_owner",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "owner",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "isRecursive",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        "Only alphanumeric characters are allowed for owner names.",
+        "Owner cannot exceed the 15 character limit.",
+        "Permission denied",
+        "set_owner: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "group": {
+      "id": "group",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "set_group": {
+      "id": "set_group",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "groupname",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "isRecursive",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        "Group name cannot exceed the 15 character limit.",
+        "Only alphanumeric characters are allowed for group names.",
+        "Permission denied",
+        "set_group: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "size": {
+      "id": "size",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "date": {
+      "id": "date",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "$meta": {
+    "description": "A `trafficNet` object can be obtained by using [include_lib](#GENERAL_INCLUDE_LIB). The `classID` used for this object is `\"TrafficNet\"`."
+  },
+  "camera_link_system": {
+    "description": "Accesses the traffic camera system, opening a window with controls to switch between different cameras. If the window opens successfully, this method returns a `number` with the value one. In case of an error, it returns a `string` with details.",
+    "example": [
+      "libTraffic = include_lib(\"/lib/libtrafficnet.so\")",
+      "linkSystemResult = libTraffic.camera_link_system",
+      "if linkSystemResult == 1 then",
+      "    print(\"Initiated camera broadcast!\")",
+      "end if"
+    ]
+  },
+  "locate_vehicle": {
+    "description": "Locates a vehicle by its opaque 17-character license plate. Camera cooldown failures now report 12 hours. Returns one when a camera shows the vehicle, otherwise an error `string` or `null`.",
+    "example": [
+      "libTraffic = include_lib(\"/lib/libtrafficnet.so\")",
+      "libTraffic.camera_link_system",
+      "vehicleSearchResult = libTraffic.locate_vehicle(\"1L2M3N\", \"pass\")",
+      "if vehicleSearchResult == 1 then",
+      "    print(\"Found vehicle!\")",
+      "end if"
+    ]
+  },
+  "get_credentials_info": {
+    "description": "Returns string which contains job and name of a NPC. If an error occurs, a `string` with details is returned.",
+    "example": [
+      "libTraffic = include_lib(\"/lib/libtrafficnet.so\")",
+      "print(libTraffic.get_credentials_info)"
+    ]
+  }
+}

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <!-- The wizard's window. English is the neutral language. -->
+  <data name="WindowTitle" xml:space="preserve"><value>Message Hook Setup</value></data>
+  <data name="StatusHeading" xml:space="preserve"><value>Grey Hack</value></data>
+  <data name="StatusIntro" xml:space="preserve"><value>Message Hook communicates with Grey Hack through its plugin, which BepInEx loads into the game.</value></data>
+  <data name="StatusFolderLabel" xml:space="preserve"><value>Game folder</value></data>
+  <data name="StatusBepInExLabel" xml:space="preserve"><value>BepInEx</value></data>
+  <data name="StatusPluginLabel" xml:space="preserve"><value>Plugin</value></data>
+  <data name="StatusPortLabel" xml:space="preserve"><value>Port</value></data>
+  <data name="StatusFolderMissing" xml:space="preserve"><value>Not found</value></data>
+  <data name="StatusNotInstalled" xml:space="preserve"><value>Not installed</value></data>
+  <data name="StatusPortDefault" xml:space="preserve"><value>{0} (default)</value><comment>{0}: the default port</comment></data>
+  <data name="ReadinessNoGame" xml:space="preserve"><value>Choose the game's folder to see its status.</value></data>
+  <data name="ReadinessNoBepInEx" xml:space="preserve"><value>Not ready: BepInEx isn't installed.</value></data>
+  <data name="ReadinessNoPlugin" xml:space="preserve"><value>Not ready: the plugin isn't installed.</value></data>
+  <data name="ReadinessWrongPlugin" xml:space="preserve"><value>Not ready: {0} is the plugin file for another BepInEx version. BepInEx {1} needs {2}.</value><comment>{0}: the installed plugin file; {1}: BepInEx major; {2}: the file it needs</comment></data>
+  <data name="ReadinessReady" xml:space="preserve"><value>Setup is already done. Message Hook connects on port {0}.</value><comment>{0}: port</comment></data>
+  <data name="GameNotFound" xml:space="preserve"><value>Grey Hack wasn't found in your Steam libraries. Choose its folder.</value></data>
+  <data name="SetupStart" xml:space="preserve"><value>Set up…</value></data>
+  <data name="SetupChange" xml:space="preserve"><value>Change setup…</value></data>
+  <data name="ChooseFolder" xml:space="preserve"><value>Choose folder…</value></data>
+  <data name="SearchAgain" xml:space="preserve"><value>Search again</value></data>
+  <data name="FolderPickerTitle" xml:space="preserve"><value>Choose the Grey Hack folder</value></data>
+  <data name="WizardSteps" xml:space="preserve"><value>Steps</value></data>
+  <data name="StepCounter" xml:space="preserve"><value>Step {0} of {1}</value><comment>{0}: the current step; {1}: the number of steps</comment></data>
+  <data name="Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Done" xml:space="preserve"><value>Done</value></data>
+  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="InstalledValue" xml:space="preserve"><value>Installed: {0}</value><comment>{0}: what the game has, or StatusNotInstalled</comment></data>
+  <data name="NothingToChange" xml:space="preserve"><value>Nothing to change</value></data>
+  <data name="SourceLabel" xml:space="preserve"><value>Source</value></data>
+  <data name="NoFileChosen" xml:space="preserve"><value>No file chosen</value></data>
+  <data name="ChooseFile" xml:space="preserve"><value>Choose file…</value></data>
+  <data name="BepInExPageTitle" xml:space="preserve"><value>BepInEx</value></data>
+  <data name="BepInExInstall" xml:space="preserve"><value>Install BepInEx</value></data>
+  <data name="BepInExRemove" xml:space="preserve"><value>Remove BepInEx (does not affect plugins/settings)</value></data>
+  <data name="VersionLabel" xml:space="preserve"><value>Version</value></data>
+  <data name="BepInExStable" xml:space="preserve"><value>BepInEx 5 (stable, recommended)</value></data>
+  <data name="BepInExBeta" xml:space="preserve"><value>BepInEx 6 (beta)</value></data>
+  <data name="RosettaNote" xml:space="preserve"><value>On Apple Silicon Macs, Grey Hack then runs under Rosetta, because BepInEx 6 for macOS supports Intel only.</value></data>
+  <data name="BepInExSourceDownload" xml:space="preserve"><value>Download</value></data>
+  <data name="BepInExReleaseValue" xml:space="preserve"><value>BepInEx {0} from {1}</value><comment>{0}: BepInEx version; {1}: URL</comment></data>
+  <data name="BepInExSourceZip" xml:space="preserve"><value>Use a zip file</value></data>
+  <data name="BepInExZipMissing" xml:space="preserve"><value>Choose a BepInEx zip file.</value></data>
+  <data name="BepInExNothingToRemove" xml:space="preserve"><value>BepInEx isn't installed, so there's nothing to remove.</value></data>
+  <data name="ZipPickerTitle" xml:space="preserve"><value>Choose a BepInEx zip file</value></data>
+  <data name="ZipFileKind" xml:space="preserve"><value>Zip files</value></data>
+  <data name="PluginPageTitle" xml:space="preserve"><value>Plugin</value></data>
+  <data name="PluginHeading" xml:space="preserve"><value>Message Hook Plugin</value></data>
+  <data name="PluginInstall" xml:space="preserve"><value>Install the plugin</value></data>
+  <data name="PluginRemove" xml:space="preserve"><value>Remove the plugin</value></data>
+  <data name="PluginFileValue" xml:space="preserve"><value>Plugin file for BepInEx {0}: {1}</value><comment>{0}: BepInEx major; {1}: file name</comment></data>
+  <data name="PluginWithoutBepInEx" xml:space="preserve"><value>BepInEx won't be installed, so the plugin can't be either.</value></data>
+  <data name="PluginSourceRelease" xml:space="preserve"><value>Download the latest release</value></data>
+  <data name="PluginReleaseValue" xml:space="preserve"><value>{0} from {1}</value><comment>{0}: release tag; {1}: GitHub repository</comment></data>
+  <data name="PluginReleaseLookup" xml:space="preserve"><value>Checking for the latest release…</value></data>
+  <data name="PluginReleaseMissing" xml:space="preserve"><value>No release available ({0}).</value><comment>{0}: why, from the library</comment></data>
+  <data name="PluginSourceFile" xml:space="preserve"><value>Use a file</value></data>
+  <data name="PluginNothingToRemove" xml:space="preserve"><value>The plugin isn't installed, so there's nothing to remove.</value></data>
+  <data name="PluginNeedsBepInEx" xml:space="preserve"><value>The plugin depends on the BepInEx installation.</value></data>
+  <data name="PluginFileMissing" xml:space="preserve"><value>Choose {0}, the plugin file for BepInEx {1}.</value><comment>{0}: file name; {1}: BepInEx major</comment></data>
+  <data name="PluginFileWrong" xml:space="preserve"><value>{0} is the wrong file. BepInEx {1} needs {2}.</value><comment>{0}: the file chosen; {1}: BepInEx major; {2}: the file it needs</comment></data>
+  <data name="PluginReleaseUnavailable" xml:space="preserve"><value>No release is available. Choose a plugin file.</value></data>
+  <data name="PluginPickerTitle" xml:space="preserve"><value>Choose the plugin file</value></data>
+  <data name="PluginFileKind" xml:space="preserve"><value>Plugin files</value></data>
+  <data name="PortPageTitle" xml:space="preserve"><value>Port</value></data>
+  <data name="PortSet" xml:space="preserve"><value>Set port</value></data>
+  <data name="PortInUse" xml:space="preserve"><value>The port {0} the message hook requires is already used.</value><comment>{0}: port</comment></data>
+  <data name="PortInvalid" xml:space="preserve"><value>Enter a whole number from 1 to 65535.</value></data>
+  <data name="SummaryPageTitle" xml:space="preserve"><value>Summary</value></data>
+  <data name="SummaryIntro" xml:space="preserve"><value>Following changes will be applied:</value></data>
+  <data name="SummaryNothing" xml:space="preserve"><value>Nothing to apply.</value></data>
+  <data name="SummaryBullet" xml:space="preserve"><value>•  {0}</value><comment>{0}: one change</comment></data>
+  <data name="ChangeBepInExDownload" xml:space="preserve"><value>Download and install BepInEx {0}</value><comment>{0}: BepInEx version</comment></data>
+  <data name="ChangeBepInExZip" xml:space="preserve"><value>Install BepInEx from {0}</value><comment>{0}: the zip file's path</comment></data>
+  <data name="ChangeBepInExRemoval" xml:space="preserve"><value>Remove BepInEx (does not affect plugins/settings)</value></data>
+  <data name="ChangePluginDownload" xml:space="preserve"><value>Download and install {0} ({1})</value><comment>{0}: file name; {1}: release tag</comment></data>
+  <data name="ChangePluginFile" xml:space="preserve"><value>Install the plugin from {0}</value><comment>{0}: the file's path</comment></data>
+  <data name="ChangePluginRemoval" xml:space="preserve"><value>Remove the plugin</value></data>
+  <data name="ChangePort" xml:space="preserve"><value>Set the port to {0}</value><comment>{0}: port</comment></data>
+  <data name="OutcomeComplete" xml:space="preserve"><value>Installation complete.</value></data>
+  <data name="OutcomeFailure" xml:space="preserve"><value>Unexpected failure: {0}</value><comment>{0}: the error's message</comment></data>
+  <data name="LogFailure" xml:space="preserve"><value>Failure: {0}</value><comment>{0}: the error's message</comment></data>
+</root>

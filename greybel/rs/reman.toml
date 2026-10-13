@@ -1,0 +1,10 @@
+[workspace]
+language = "rust"
+
+# What greybel emulates of the game against the game itself (GREY_HACK_PATH; BEPINEX=6 for BepInEx 6): the test
+# client's game tests and its parity tests, which run each script in the game, through greyhack-test-support, and
+# with greyscript-intrinsics, and compare what they print.
+[tasks.parity]
+suite = "game"
+cwd = "greyhack-test-support-client"
+run = "cargo nextest run -p greyhack-test-support-client --features game -E 'test(/^(game|parity)::/)'"

@@ -1,0 +1,361 @@
+{
+    "version": "2.0.0",
+    "name": "GreyScript",
+    "scopeName": "source.src",
+    "patterns": [
+        {
+            "include": "#string"
+        },
+        {
+            "include": "#numeric"
+        },
+        {
+            "include": "#comment"
+        },
+        {
+            "include": "#constant"
+        },
+        {
+            "include": "#keyword"
+        },
+        {
+            "include": "#function"
+        },
+        {
+            "include": "#type"
+        },
+        {
+            "include": "#meta-typing"
+        },
+        {
+            "include": "#general-functions"
+        },
+        {
+            "include": "#type-methods"
+        },
+        {
+            "patterns": [
+                {
+                    "include": "#variables"
+                },
+                {
+                    "include": "#identifier"
+                }
+            ]
+        }
+    ],
+    "repository": {
+        "function": {
+            "begin": "(?<=function\\()",
+            "end": "\\)",
+            "patterns": [
+                {
+                    "include": "#string"
+                },
+                {
+                    "match": "([^=\\),]+)(=[^\\),\"]+)?",
+                    "captures": {
+                        "1": {
+                            "patterns": [
+                                {
+                                    "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b",
+                                    "name": "variable.parameter.greyscript"
+                                }
+                            ]
+                        },
+                        "2": {
+                            "patterns": [
+                                {
+                                    "include": "#string"
+                                },
+                                {
+                                    "include": "#numeric"
+                                },
+                                {
+                                    "include": "#constant"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "meta-typing": {
+            "patterns": [
+                {
+                    "match": "^\\((function)\\)([^(]+)\\(([^)]*)\\):([^\\n]+)",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.control.greyscript"
+                        },
+                        "2": {
+                            "patterns": [
+                                {
+                                    "include": "#general-functions"
+                                },
+                                {
+                                    "patterns": [
+                                        {
+                                            "include": "#variables"
+                                        },
+                                        {
+                                            "include": "#identifier"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "3": {
+                            "patterns": [
+                                {
+                                    "match": "([^:]+):([^=,]+)(\\=[^,]+)?",
+                                    "captures": {
+                                        "1": {
+                                            "patterns": [
+                                                {
+                                                    "include": "#variables"
+                                                },
+                                                {
+                                                    "include": "#identifier"
+                                                }
+                                            ]
+                                        },
+                                        "2": {
+                                            "patterns": [
+                                                {
+                                                    "include": "#type-union"
+                                                }
+                                            ]
+                                        },
+                                        "3": {
+                                            "patterns": [
+                                                {
+                                                    "include": "#string"
+                                                },
+                                                {
+                                                    "include": "#numeric"
+                                                },
+                                                {
+                                                    "include": "#constant"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "4": {
+                            "patterns": [
+                                {
+                                    "include": "#type-union"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "match": "^\\((literal)\\)([^:]+):([^\\n]+)",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.control.greyscript"
+                        },
+                        "2": {
+                            "patterns": [
+                                {
+                                    "include": "#string"
+                                },
+                                {
+                                    "include": "#numeric"
+                                },
+                                {
+                                    "include": "#constant"
+                                }
+                            ]
+                        },
+                        "3": {
+                            "patterns": [
+                                {
+                                    "include": "#pseudo-type"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "match": "^\\((constant|expr|internal|var|unknown|map|list)\\)([^:]+):([^\\n]+)",
+                    "captures": {
+                        "1": {
+                            "name": "keyword.control.greyscript"
+                        },
+                        "2": {
+                            "patterns": [
+                                {
+                                    "include": "#variables"
+                                },
+                                {
+                                    "include": "#identifier"
+                                }
+                            ]
+                        },
+                        "3": {
+                            "patterns": [
+                                {
+                                    "include": "#type-union"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "type-union": {
+            "patterns": [
+                {
+                    "match": "\\b(or)\\b",
+                    "name": "keyword.control.logical.greyscript"
+                },
+                {
+                    "include": "#constant"
+                },
+                {
+                    "include": "#pseudo-type"
+                }
+            ]
+        },
+        "variables": {
+            "patterns": [
+                {
+                    "name": "support.variable.greyscript",
+                    "match": "\\b(params|locals|globals|outer)\\b"
+                },
+                {
+                    "name": "variable.language.self.greyscript",
+                    "match": "\\b(self)\\b"
+                },
+                {
+                    "name": "variable.language.super.greyscript",
+                    "match": "\\b(super)\\b"
+                }
+            ]
+        },
+        "identifier": {
+            "patterns": [
+                {
+                    "name": "entity.other.attribute.greyscript",
+                    "match": "(?<=[^.]\\.)\\b([a-zA-Z_][\\w]*)"
+                },
+                {
+                    "name": "constant.other.greyscript",
+                    "match": "\\b([A-Z_]+)\\b"
+                },
+                {
+                    "name": "entity.name.type.greyscript",
+                    "match": "\\b([A-Z][\\w]*)\\b"
+                },
+                {
+                    "name": "variable.other.greyscript",
+                    "match": "\\b([a-z_][\\w]*)\\b"
+                }
+            ]
+        },
+        "comment": {
+            "patterns": [
+                {
+                    "name": "comment.line",
+                    "begin": "//(?!(include|import))",
+                    "end": "\\n"
+                },
+                {
+                    "name": "comment.block",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "numeric": {
+            "patterns": [
+                {
+                    "name": "constant.numeric",
+                    "match": "(?<![\\w\\d.])\\d+(\\.\\d+)?([eE]-?\\d*)?"
+                }
+            ]
+        },
+        "string": {
+            "name": "string.quoted.double.greyscript",
+            "begin": "\"",
+            "end": "\""
+        },
+        "keyword": {
+            "patterns": [
+                {
+                    "name": "keyword.control.block.greyscript",
+                    "match": "\\b(if|then|end|else|function|in|while|for|from)\\b"
+                },
+                {
+                    "name": "keyword.control.statement.greyscript",
+                    "match": "\\b(return|continue|break)\\b"
+                },
+                {
+                    "name": "keyword.control.logical.greyscript",
+                    "match": "\\b(and|or|isa)\\b"
+                },
+                {
+                    "name": "keyword.control.unary.greyscript",
+                    "match": "\\b(not|new)\\b"
+                },
+                {
+                    "name": "keyword.control.notused.greyscript",
+                    "match": "\\b(repeat)\\b"
+                },
+                {
+                    "name": "keyword.control.greybel.greyscript",
+                    "match": "#(include|import|envar|filename|line|inject)\\b"
+                },
+                {
+                    "name": "keyword.control.greybel.greyscript",
+                    "match": "#include\\s+type\\b"
+                },
+                {
+                    "name": "keyword.control.greybel.greyscript",
+                    "match": "#(if|else|endif)\\b"
+                },
+                {
+                    "name": "keyword.control.greybel.greyscript",
+                    "match": "//(include|import)\\b"
+                },
+                {
+                    "name": "keyword.control.greybel.greyscript",
+                    "match": "//include\\s+type\\b"
+                },
+                {
+                    "name": "keyword.control.greybel.greyscript",
+                    "match": "\\b(debugger)\\b"
+                },
+                {
+                    "name": "keyword.operator.greyscript",
+                    "match": "([<>=!]=|[+\\-*\\/^<>|\\&%]|<<|>>>?)"
+                }
+            ]
+        },
+        "constant": {
+            "name": "constant.language.greyscript",
+            "match": "\\b(true|false|null)\\b"
+        },
+        "type": {
+            "name": "support.class.greyscript",
+            "match": "\\b(list|map|number|string|funcRef)\\b"
+        },
+        "pseudo-type": {
+            "match": "[a-zA-Z_][a-zA-Z0-9_]*(?:<[^<>]*(?:<[^<>]*>[^<>]*)*>)?",
+            "name": "support.class.greyscript"
+        },
+        "general-functions": {
+            "name": "support.function.greyscript",
+            "match": "\\b(File|abs|acos|active_net_card|active_user|add_repo|aircrack|aireplay|airmon|allow_import|amount_mined|apply_patch|asin|atan|bitAnd|bitOr|bitXor|bitwise|bssid_name|build|buy_coin|camera_link_system|cancel_pending_trade|cd|ceil|change_password|char|check_password|check_upgrade|chmod|clear_screen|close_program|code|coin_price|command_info|connect_ethernet|connect_service|connect_wifi|copy|cos|create_folder|create_group|create_subwallet|create_user|create_wallet|current_date|current_path|date|debug_tools|decipher|decrypt|del_repo|delete|delete_all|delete_coin|delete_group|delete_mail|delete_subwallet|delete_user|device_ports|devices_lan_ip|dump_lib|encrypt|essid_name|exit|fetch|firewall_rules|flood_connection|floor|format_columns|funcRef|get_abs_path|get_address|get_balance|get_balance_subwallet|get_coin|get_coin_name|get_content|get_creator_name|get_credentials_info|get_ctf|get_custom_object|get_cycle_mining|get_description|get_files|get_folders|get_global_offers|get_info|get_lan_ip|get_mail_content|get_mined_coins|get_name|get_num_conn_gateway|get_num_portforward|get_num_users|get_pending_trade|get_pin|get_ports|get_reward|get_router|get_shell|get_subwallet|get_subwallets|get_switch|get_template|get_user|group|groups|hasIndex|has_permission|hash|home_dir|host_computer|import_code|include_lib|indexOf|indexes|insert|install|install_service|is_any_active_user|is_binary|is_closed|is_encrypted|is_folder|is_lan_ip|is_match|is_network_active|is_patched|is_root_active_user|is_symlink|is_valid_ip|join|kernel_version|lan_ip|lastIndexOf|last_transaction|launch|launch_path|len|lib_name|list|list_coins|list_global_coins|load|local_ip|locate_vehicle|log|login_wallet|lower|mail_login|map|matches|md5|mining|model|move|name|net_speed|net_use|network_devices|network_gateway|nslookup|number|overflow|override_settings|owner|parent|parent_path|path|payload|permissions|pi|ping|ping_port|player_success|poll_input|pop|port_info|port_number|print|program_path|public_ip|public_ip_pc|pull|push|range|read|reboot|remove|rename|replace|replace_regex|reset_ctf_password|reset_password|reset_password_coin|reverse|rnd|round|rshell_client|rshell_server|scan|scan_address|scan_debuglib|scp|search|sell_coin|send|set_address|set_alarm|set_content|set_cycle_mining|set_group|set_info|set_owner|set_reward|show|show_history|show_nodes|show_procs|shuffle|sign|sin|size|slice|smtp_user_list|sniffer|sort|split|sqrt|start_service|start_terminal|stop_service|str|string|sum|symlink|tan|time|to_int|touch|transaction|trim|typeof|unit_testing|update|upper|used_ports|user_bank_number|user_input|user_mail_address|val|values|version|wait|wallet_username|whois|wifi_networks|yield)\\b"
+        },
+        "type-methods": {
+            "name": "support.function.greyscript",
+            "match": "\\.(File|accept_mission|access_cctv|active_net_card|add_computer|add_net_card|add_npc|add_repo|add_smart_appliance|aircrack|aireplay|airmon|allow_import|amount_mined|apply_patch|bssid_name|build|buy_coin|buy_exploit|camera_link_system|cancel_pending_trade|change_password|check_password|check_upgrade|chmod|close_program|code|coin_price|computer|connect_ethernet|connect_service|connect_wifi|copy|create_ctf_account|create_ctf_event|create_debug_account|create_folder|create_group|create_guild|create_mail_account|create_network|create_program|create_subwallet|create_user|create_wallet|date|debug_tools|decipher|decrypt|del_repo|delete|delete_all|delete_coin|delete_group|delete_user|deposit|device_ports|devices_lan_ip|dump_lib|encrypt|essid_name|exploit_shop|fetch|fire_admin|fire_npc|firewall_rules|flood_connection|get_address|get_balance|get_coin|get_coin_name|get_content|get_creator_name|get_credentials_info|get_cycle_mining|get_description|get_files|get_folders|get_global_offers|get_info|get_lan_ip|get_mail_content|get_mined_coins|get_name|get_num_conn_gateway|get_num_portforward|get_num_users|get_pending_trade|get_pin|get_ports|get_reward|get_subwallet|get_subwallets|get_template|get_user|grant_coins|group|groups|hasIndex|has_permission|hire_admin|hire_crown_shield|hire_npc|host_computer|indexOf|indexes|insert|install|install_service|install_smartphone_adb|is_any_active_user|is_binary|is_closed|is_encrypted|is_folder|is_match|is_network_active|is_patched|is_root_active_user|is_symlink|join|kernel_version|lastIndexOf|last_transaction|launch|len|lib_name|list_coins|list_global_coins|load|local_ip|locate_vehicle|login|login_wallet|lower|matches|mining|model|move|name|net_speed|net_use|network|network_devices|network_gateway|networks|npc_login|overflow|override_settings|owner|parent|path|payload|permissions|phone_alarm|ping|ping_port|player_success|pop|port_info|port_number|public_ip|pull|push|rate_ctf_event|read|reboot|register_password|remove|rename|replace|report_library_update|reset_password|reverse|rshell_client|rshell_server|scan|scan_address|scp|search|seed|sell_coin|send|service_records|set_address|set_admin_restore|set_alarm|set_company_shares|set_content|set_cycle_mining|set_date|set_group|set_info|set_library_version|set_net_speed|set_owner|set_phone_alarm|set_port_library_version|set_reward|shell|show|show_history|show_nodes|show_procs|shuffle|size|smtp_user_list|snapshot|sniffer|sort|split|start_service|start_terminal|stop_service|sudo|sum|symlink|tick|to_int|touch|traffic_accident|transaction|trim|unit_testing|update|update_service_record|upper|used_ports|val|values|version|wallet_username|wifi_networks)\\b"
+        }
+    }
+}

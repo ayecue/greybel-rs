@@ -1,0 +1,43 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/import-code.src
+---
+=== default
+import_code("./ascii")
+import_code("../dependencies/sub-import")
+import_code("./isa.src")
+
+import_code("./file-does-not-exit")
+print(123)
+=== uglify
+globals.I=globals
+import_code("./ascii")
+import_code("../dependencies/sub-import")
+import_code("./isa.src")
+import_code("./file-does-not-exit")
+print(123)
+=== beautify
+import_code("./ascii")
+import_code("../dependencies/sub-import")
+import_code("./isa.src") // override=./isa.src;
+// no-emit;
+import_code("./file-does-not-exit") // no-eval;
+
+print 123
+=== beautify, dev mode
+import_code("./ascii")
+import_code("../dependencies/sub-import")
+import_code("./file-does-not-exit") // override=./isa.src;
+import_code("./file-does-not-exit") // no-emit;
+import_code("./file-does-not-exit") // no-eval;
+
+print 123
+=== beautify, dev mode, keep parentheses, 10 spaces
+import_code("./ascii")
+import_code("../dependencies/sub-import")
+import_code("./file-does-not-exit") // override=./isa.src;
+import_code("./file-does-not-exit") // no-emit;
+import_code("./file-does-not-exit") // no-eval;
+
+print(123)

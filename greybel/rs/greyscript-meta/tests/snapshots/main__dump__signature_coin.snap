@@ -1,0 +1,683 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - set_cycle_mining
+  - get_cycle_mining
+  - get_reward
+  - set_reward
+  - transaction
+  - create_subwallet
+  - get_subwallet
+  - get_subwallets
+  - set_address
+  - get_address
+  - get_mined_coins
+  - reset_password
+definitions:
+  create_subwallet:
+    argStrings:
+      - - string
+      - - string
+      - - string
+      - - string
+    id: create_subwallet
+    json:
+      arguments:
+        - default: ~
+          label: walletID
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: pin
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: subWalletUser
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: subWalletPass
+          opt: false
+          types:
+            - string
+      description: "Registers a new account in the `coin` that can be used to manage services such as stores. It is necessary to provide the PIN of the owner's `wallet` that wants to register. In case of success, the method will return a `number` with the value one. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. In case of an error, a `string` with the details is returned."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - "wallet = blockchain.login_wallet(\"test\", \"test\")"
+        - "result = coin.create_subwallet(\"test\", wallet.get_pin, \"test\", \"test\")"
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed to create subwallet due to: \" + result"
+        - end if
+        - "print \"Successfully created subwallet!\""
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "Error: Coin does not exist."
+        - "Error: Incorrect PIN"
+        - "error: No internet access."
+        - "Error: only a maximum of 10 subwallets per coin is allowed."
+        - "Error: This username already exists"
+        - "Error: Wallet does not exists."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_address:
+    argStrings: []
+    id: get_address
+    json:
+      arguments: []
+      description: "Returns the configured address that will be shown to users who do not have the currency, indicating where they have to register. In case of an error, it returns a `string` with details."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - result = coin.get_address
+        - if not is_valid_ip(result) then
+        - "    exit \"Failed to get address due to: \" + result"
+        - end if
+        - "print \"address: \" + result"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok:
+        - "Error: ${coinName} does not exist"
+        - "error: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_cycle_mining:
+    argStrings: []
+    id: get_cycle_mining
+    json:
+      arguments: []
+      description: "Returns a `number` representing the defined interval in which each user receives a coin reward when mining. In case of failure, the method will return a `string` with details."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - result = coin.get_cycle_mining
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed getting cyclic mining value due to: \" + result"
+        - end if
+        - "print \"cyclic mining value: \" + result"
+      isProtected: false
+      returns:
+        - string
+        - number
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+    returnVariations:
+      ok:
+        - "error: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_mined_coins:
+    argStrings: []
+    id: get_mined_coins
+    json:
+      arguments: []
+      description: "Returns a `number` representing the amount of coins that have been mined so far. In case of an error, it returns a `string` with details."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - result = coin.get_mined_coins
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed to get mined coins due to: \" + result"
+        - end if
+        - "print \"mined coins: \" + result"
+      isProtected: false
+      returns:
+        - string
+        - number
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+    returnVariations:
+      ok:
+        - "error: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_reward:
+    argStrings: []
+    id: get_reward
+    json:
+      arguments: []
+      description: "Returns a `number` representing the amount of coins that will be received as a reward after each mining cycle. In case of failure, the method will return a `string` with details."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - result = coin.get_reward
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed getting reward value due to: \" + result"
+        - end if
+        - "print \"reward value: \" + result"
+      isProtected: false
+      returns:
+        - string
+        - number
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+    returnVariations:
+      ok:
+        - "error: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_subwallet:
+    argStrings:
+      - - string
+    id: get_subwallet
+    json:
+      arguments:
+        - default: ~
+          label: subWalletUser
+          opt: false
+          types:
+            - string
+      description: "Returns a `subWallet` object on success. In case of error, it returns a `string` with the details. If the provided `subWalletUser` is not a `string`, this method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - "result = coin.get_subwallet(\"test\")"
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed to get subwallet due to: \" + result"
+        - end if
+        - "print \"Successfully received subwallet!\""
+      isProtected: false
+      returns:
+        - string
+        - subWallet
+        - "null"
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - subWallet
+      - "null"
+    returnVariations:
+      ok:
+        - "error: No internet access."
+        - "get_subwallet: The account does not exist"
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  get_subwallets:
+    argStrings: []
+    id: get_subwallets
+    json:
+      arguments: []
+      description: "Returns a `list` where each item is a `subWallet` object, including all the accounts registered in the cryptocurrency. In case of error, it returns a `string` with the details."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - result = coin.get_subwallets
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed to get subwallets due to: \" + result"
+        - end if
+        - for subwallet in result
+        - "    print subwallet.get_user + \" has \" + subwallet.get_balance + \" coins\""
+        - end for
+      isProtected: false
+      returns:
+        - string
+        - type: list
+          valueType: subWallet
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - list<subWallet>
+    returnVariations:
+      ok:
+        - "error: No internet access."
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  reset_password:
+    argStrings:
+      - - string
+    id: reset_password_coin
+    json:
+      arguments:
+        - default: ~
+          label: newPassword
+          opt: false
+          types:
+            - string
+      description: "Resets the password of the coin. It returns a `number` with the value one if resetting was successful; otherwise, it will return a `string`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - "result = coin.reset_password(\"test\")"
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed to reset password due to: \" + result"
+        - end if
+        - "print \"Successfully reset password\""
+      isProtected: false
+      returns:
+        - number
+        - string
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+    returnVariations:
+      ok:
+        - 1
+        - "Error: coin does not exist"
+        - "error: No internet access."
+        - "Error: Only the account owner can change the password"
+        - "reset_password: name and password cannot exceed the 16 character limit."
+        - "reset_password: only alphanumeric characters are allowed as password"
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  set_address:
+    argStrings:
+      - - string
+    id: set_address
+    json:
+      arguments:
+        - default: ~
+          label: address
+          opt: false
+          types:
+            - string
+      description: "Configures a valid address that will be shown to users who do not have the currency, indicating where to register. In case of an error, it returns a `string` with the details. In case of success, a `number` with a value of one will be returned. If the provided address is not a `string`, this method will return `null`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - "result = coin.set_address(\"12.12.12.12\")"
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed to set address due to: \" + result"
+        - end if
+        - "print \"Successfully set address!\""
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "Error: ${coinName} does not exist"
+        - "error: No internet access."
+        - "set_address: address ${address}not found"
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  set_cycle_mining:
+    argStrings:
+      - - number
+    id: set_cycle_mining
+    json:
+      arguments:
+        - default:
+            type: number
+            value: 3
+          label: rateHours
+          opt: false
+          types:
+            - number
+      description: "Defines the interval (in-game hours) in which each user receives a coin reward when mining. The interval cannot be lower than 1 and not higher than 2160. If the provided `rateHours` is not a `number`, this method will return `null`. On success, it will return a `number` with the value one. In case of failure, the method will return a `string` with details."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - result = coin.set_cycle_mining(20)
+        - if result == 1 then
+        - "    print \"Successful updated mining interval\""
+        - else
+        - "    print \"Failed updating mining interval\""
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "error: No internet access."
+        - the mining cycle cannot be less than 1 hour
+        - the mining cycle cannot exceed the maximum of 2160 hours
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  set_reward:
+    argStrings:
+      - - number
+    id: set_reward
+    json:
+      arguments:
+        - default:
+            type: number
+            value: 1
+          label: coin_amount
+          opt: false
+          types:
+            - number
+      description: "Assigns the reward that miners will receive after each mining cycle. The reward value has to be above one. If the provided `coin_amount` is not a `number`, this method will return `null`. On success, it will return a `number` with the value one. In case of failure, the method will return a `string` with details. Rewards above 100000000 return `\"Error: The reward cannot exceed 100000000 coins\"`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - result = coin.set_reward(-1)
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed setting reward due to: \" + result"
+        - end if
+        - "print \"Successfully set reward!\""
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "Error: Coin does not exist"
+        - "error: No internet access."
+        - "Error: The reward cannot be less than 1 coin"
+        - "Error: The reward cannot exceed 100000000 coins"
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  transaction:
+    argStrings:
+      - - string
+      - - string
+      - - number
+    id: transaction
+    json:
+      arguments:
+        - default: ~
+          label: subWalletOrig
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: subWalletDest
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: valAmount
+          opt: false
+          types:
+            - number
+      description: "Facilitates a transaction of the currency between the indicated subwallets. In case of an error, a `string` with the details is returned. In case of success, a `number` with a value of one will be returned. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. Coins committed to a pending sale cannot be transferred and return `\"Error: coins are committed to a pending sale. Cancel it before transferring.\"`."
+      example:
+        - "blockchain = include_lib(\"/lib/blockchain.so\")"
+        - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+        - "result = coin.transaction(\"test\", \"test2\", 20)"
+        - "if typeof(result) == \"string\" then"
+        - "    exit \"Failed transaction due to: \" + result"
+        - end if
+        - "print \"Successfully transfered!\""
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: coin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - 1
+        - "${subWalletOrig} need to be registered in ${coinName} to be able to receive this coin."
+        - "Error: ${subWalletDest} not found"
+        - "Error: ${subWalletOrig} not found"
+        - "Error: amount value cannot be less than 1"
+        - "Error: coin does not exist"
+        - "Error: coins are committed to a pending sale. Cancel it before transferring."
+        - "Error: insufficient funds to complete the transaction"
+        - "error: No internet access."
+        - "Error: subwallet ${subWalletDest} does not have coins in the selected currency"
+        - "Error: target wallet does not exist"
+        - "Error: wallet ${subWalletOrig} does not exist"
+        - "Unknown error: Unable to access to local computer"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - set_cycle_mining
+  - get_cycle_mining
+  - get_reward
+  - set_reward
+  - transaction
+  - create_subwallet
+  - get_subwallet
+  - get_subwallets
+  - set_address
+  - get_address
+  - get_mined_coins
+  - reset_password
+descriptions:
+  $meta:
+    description: "A `coin` object can be obtained by using [get_coin](#BLOCKCHAIN_GET_COIN). The `classID` used for this object is `\"coin\"`."
+    example: ~
+  create_subwallet:
+    description: "Registers a new account in the `coin` that can be used to manage services such as stores. It is necessary to provide the PIN of the owner's `wallet` that wants to register. In case of success, the method will return a `number` with the value one. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. In case of an error, a `string` with the details is returned."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - "wallet = blockchain.login_wallet(\"test\", \"test\")"
+      - "result = coin.create_subwallet(\"test\", wallet.get_pin, \"test\", \"test\")"
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed to create subwallet due to: \" + result"
+      - end if
+      - "print \"Successfully created subwallet!\""
+  get_address:
+    description: "Returns the configured address that will be shown to users who do not have the currency, indicating where they have to register. In case of an error, it returns a `string` with details."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - result = coin.get_address
+      - if not is_valid_ip(result) then
+      - "    exit \"Failed to get address due to: \" + result"
+      - end if
+      - "print \"address: \" + result"
+  get_cycle_mining:
+    description: "Returns a `number` representing the defined interval in which each user receives a coin reward when mining. In case of failure, the method will return a `string` with details."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - result = coin.get_cycle_mining
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed getting cyclic mining value due to: \" + result"
+      - end if
+      - "print \"cyclic mining value: \" + result"
+  get_mined_coins:
+    description: "Returns a `number` representing the amount of coins that have been mined so far. In case of an error, it returns a `string` with details."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - result = coin.get_mined_coins
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed to get mined coins due to: \" + result"
+      - end if
+      - "print \"mined coins: \" + result"
+  get_reward:
+    description: "Returns a `number` representing the amount of coins that will be received as a reward after each mining cycle. In case of failure, the method will return a `string` with details."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - result = coin.get_reward
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed getting reward value due to: \" + result"
+      - end if
+      - "print \"reward value: \" + result"
+  get_subwallet:
+    description: "Returns a `subWallet` object on success. In case of error, it returns a `string` with the details. If the provided `subWalletUser` is not a `string`, this method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - "result = coin.get_subwallet(\"test\")"
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed to get subwallet due to: \" + result"
+      - end if
+      - "print \"Successfully received subwallet!\""
+  get_subwallets:
+    description: "Returns a `list` where each item is a `subWallet` object, including all the accounts registered in the cryptocurrency. In case of error, it returns a `string` with the details."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - result = coin.get_subwallets
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed to get subwallets due to: \" + result"
+      - end if
+      - for subwallet in result
+      - "    print subwallet.get_user + \" has \" + subwallet.get_balance + \" coins\""
+      - end for
+  reset_password:
+    description: "Resets the password of the coin. It returns a `number` with the value one if resetting was successful; otherwise, it will return a `string`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - "result = coin.reset_password(\"test\")"
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed to reset password due to: \" + result"
+      - end if
+      - "print \"Successfully reset password\""
+  set_address:
+    description: "Configures a valid address that will be shown to users who do not have the currency, indicating where to register. In case of an error, it returns a `string` with the details. In case of success, a `number` with a value of one will be returned. If the provided address is not a `string`, this method will return `null`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - "result = coin.set_address(\"12.12.12.12\")"
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed to set address due to: \" + result"
+      - end if
+      - "print \"Successfully set address!\""
+  set_cycle_mining:
+    description: "Defines the interval (in-game hours) in which each user receives a coin reward when mining. The interval cannot be lower than 1 and not higher than 2160. If the provided `rateHours` is not a `number`, this method will return `null`. On success, it will return a `number` with the value one. In case of failure, the method will return a `string` with details."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - result = coin.set_cycle_mining(20)
+      - if result == 1 then
+      - "    print \"Successful updated mining interval\""
+      - else
+      - "    print \"Failed updating mining interval\""
+      - end if
+  set_reward:
+    description: "Assigns the reward that miners will receive after each mining cycle. The reward value has to be above one. If the provided `coin_amount` is not a `number`, this method will return `null`. On success, it will return a `number` with the value one. In case of failure, the method will return a `string` with details. Rewards above 100000000 return `\"Error: The reward cannot exceed 100000000 coins\"`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - result = coin.set_reward(-1)
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed setting reward due to: \" + result"
+      - end if
+      - "print \"Successfully set reward!\""
+  transaction:
+    description: "Facilitates a transaction of the currency between the indicated subwallets. In case of an error, a `string` with the details is returned. In case of success, a `number` with a value of one will be returned. If any of the provided parameters have a type that deviates from the defined signature, the method will return `null`. Coins committed to a pending sale cannot be transferred and return `\"Error: coins are committed to a pending sale. Cancel it before transferring.\"`."
+    example:
+      - "blockchain = include_lib(\"/lib/blockchain.so\")"
+      - "coin = blockchain.get_coin(\"test\", \"test\", \"test\")"
+      - "result = coin.transaction(\"test\", \"test2\", 20)"
+      - "if typeof(result) == \"string\" then"
+      - "    exit \"Failed transaction due to: \" + result"
+      - end if
+      - "print \"Successfully transfered!\""
+extends: map
+hidden: false

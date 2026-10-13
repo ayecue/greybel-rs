@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Description>BepInEx plugin for Grey Hack. Enables Greybel to communicate with game client.</Description>
+    <Version>1.2.6</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <Authors>ayecue</Authors>
+    <Company>ayecue</Company>
+    <!-- AssemblyVersion and FileVersion follow Version; so does PluginInfo.PLUGIN_VERSION (../../Directory.Build.targets). -->
+    <PluginInfoNamespace>GreyHackMessageHook</PluginInfoNamespace>
+    <Configurations>Release-BepInEx5;Debug-BepInEx5;Release-BepInEx6;Debug-BepInEx6</Configurations>
+    <RootNamespace>GreyHackMessageHook</RootNamespace>
+    <NoWarn>CS1998</NoWarn>
+  </PropertyGroup>
+
+  <!-- BepInEx 5 Configuration -->
+  <PropertyGroup Condition="$(Configuration.Contains('BepInEx5'))">
+    <AssemblyName>GreyHackMessageHook5</AssemblyName>
+    <OutputPath>bin\$(Configuration)\BepInEx5\</OutputPath>
+  </PropertyGroup>
+
+  <!-- BepInEx 6 Configuration -->
+  <PropertyGroup Condition="$(Configuration.Contains('BepInEx6'))">
+    <AssemblyName>GreyHackMessageHook</AssemblyName>
+    <DefineConstants>$(DefineConstants);BEPINEX6</DefineConstants>
+    <OutputPath>bin\$(Configuration)\BepInEx6\</OutputPath>
+  </PropertyGroup>
+
+  <!-- The SDK defines DEBUG only for a configuration named Debug: the plugin's Logger logs in DEBUG builds. -->
+  <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))">
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+  </PropertyGroup>
+  <!-- Debug symbols for Release builds -->
+  <PropertyGroup Condition="$(Configuration.StartsWith('Release'))">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- Common packages -->
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="UnityEngine.Modules" Version="2022.3.62" IncludeAssets="compile" />
+  </ItemGroup>
+
+  <!-- BepInEx 5 specific packages -->
+  <ItemGroup Condition="$(Configuration.Contains('BepInEx5'))">
+    <PackageReference Include="BepInEx.Core" Version="5.*" />
+  </ItemGroup>
+
+  <!-- BepInEx 6 specific packages -->
+  <ItemGroup Condition="$(Configuration.Contains('BepInEx6'))">
+    <PackageReference Include="BepInEx.Unity.Mono" Version="6.0.0-be.*" IncludeAssets="compile" />
+    <PackageReference Include="MonoMod" Version="22.7.31.1" />
+  </ItemGroup>
+
+  <!-- The proxy and the duplex core, compiled into the plugin (Unity loads one assembly per plugin). -->
+  <ItemGroup>
+    <Compile
+      Include="$(GreybelDotnet)greyhack-message-hook-proxy/src/**/*.cs"
+      Exclude="$(GreybelDotnet)greyhack-message-hook-proxy/src/obj/**;$(GreybelDotnet)greyhack-message-hook-proxy/src/bin/**"
+      LinkBase="proxy"
+    />
+    <Compile
+      Include="$(DuplexDotnet)duplex-core/src/**/*.cs"
+      Exclude="$(DuplexDotnet)duplex-core/src/obj/**;$(DuplexDotnet)duplex-core/src/bin/**"
+      LinkBase="duplex"
+    />
+  </ItemGroup>
+
+  <!-- Game assemblies -->
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GreyHackManagedPath)/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CheckGreyHackAssemblies" BeforeTargets="ResolveAssemblyReferences">
+    <Error
+      Condition="!Exists('$(GreyHackManagedPath)/Assembly-CSharp.dll')"
+      Text="Grey Hack's Assembly-CSharp.dll was not found in '$(GreyHackManagedPath)'. Set GREY_HACK_PATH to the game folder or GREY_HACK_MANAGED_PATH to its Managed folder."
+    />
+  </Target>
+</Project>

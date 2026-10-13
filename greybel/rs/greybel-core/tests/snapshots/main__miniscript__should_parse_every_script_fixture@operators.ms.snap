@@ -1,0 +1,17 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: "render_valid(&read(path), &options(Version::Latest))"
+input_file: greybel-core/tests/fixtures/miniscript/scripts/operators.ms
+---
+Chunk[1:1-11:1][
+	AssignmentStatement[1:1-1:21][Identifier[1:1-1:2][x] = LogicalExpression[1:5-1:21][Identifier[1:5-1:6][a] or LogicalExpression[1:10-1:21][Identifier[1:10-1:11][b] and NegationExpression[1:16-1:21][not Identifier[1:20-1:21][c]]]]]
+	AssignmentStatement[2:1-2:34][Identifier[2:1-2:2][x] = ComparisonGroupExpression[2:5-2:34][Identifier[2:5-2:6][a] == Identifier[2:10-2:11][b] != Identifier[2:15-2:16][c] < Identifier[2:19-2:20][d] <= Identifier[2:24-2:25][e] > Identifier[2:28-2:29][f] >= Identifier[2:33-2:34][g]]]
+	AssignmentStatement[3:1-3:26][Identifier[3:1-3:2][x] = BinaryExpression[3:5-3:26][BinaryExpression[3:5-3:10][Identifier[3:5-3:6][a] + Identifier[3:9-3:10][b]] - BinaryExpression[3:13-3:26][BinaryExpression[3:13-3:22][BinaryExpression[3:13-3:18][Identifier[3:13-3:14][c] * Identifier[3:17-3:18][d]] / Identifier[3:21-3:22][e]] % Identifier[3:25-3:26][f]]]]
+	AssignmentStatement[4:1-4:11][Identifier[4:1-4:2][x] = BinaryNegatedExpression[4:5-4:11][- BinaryExpression[4:6-4:11][Identifier[4:6-4:7][a] ^ Identifier[4:10-4:11][b]]]]
+	AssignmentStatement[5:1-5:16][Identifier[5:1-5:2][x] = BinaryExpression[5:5-5:16][BinaryExpression[5:6-5:11][Identifier[5:6-5:7][a] + Identifier[5:10-5:11][b]] * Identifier[5:15-5:16][c]]]
+	AssignmentStatement[6:1-6:14][Identifier[6:1-6:2][x] = IsaExpression[6:5-6:14][Identifier[6:5-6:6][a] isa Identifier[6:11-6:14][map]]]
+	AssignmentStatement[7:1-7:7][Identifier[7:1-7:2][x] = UnaryExpression[7:5-7:7][@ Identifier[7:6-7:7][a]]]
+	AssignmentStatement[8:1-8:10][Identifier[8:1-8:2][x] = UnaryExpression[8:5-8:10][new Identifier[8:9-8:10][a]]]
+	AssignmentStatement[9:1-9:18][Identifier[9:1-9:2][x] = SliceExpression[9:5-9:18][IndexExpression[9:5-9:13][MemberExpression[9:5-9:10][MemberExpression[9:5-9:8][Identifier[9:5-9:6][a].Identifier[9:7-9:8][b]].Identifier[9:9-9:10][c]][Literal[9:11-9:12][1]]][Literal[9:14-9:15][2]:Literal[9:16-9:17][3]]]]
+	AssignmentStatement[10:1-10:25][Identifier[10:1-10:2][x] = BinaryExpression[10:5-10:25][BinaryExpression[10:5-10:18][SliceExpression[10:5-10:10][Identifier[10:5-10:6][a][EmptyExpression[10:6-10:7][]:Literal[10:8-10:9][2]]] + SliceExpression[10:13-10:18][Identifier[10:13-10:14][a][Literal[10:15-10:16][1]:EmptyExpression[10:16-10:17][]]]] + SliceExpression[10:21-10:25][Identifier[10:21-10:22][a][EmptyExpression[10:22-10:23][]:EmptyExpression[10:23-10:24][]]]]]
+]

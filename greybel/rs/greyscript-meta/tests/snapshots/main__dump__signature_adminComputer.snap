@@ -1,0 +1,554 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - shell
+  - login
+  - add_npc
+  - npc_login
+  - add_net_card
+  - add_smart_appliance
+  - set_library_version
+  - set_port_library_version
+  - service_records
+  - update_service_record
+  - access_cctv
+  - install_smartphone_adb
+definitions:
+  access_cctv:
+    argStrings:
+      - - string
+    id: access_cctv
+    json:
+      arguments:
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+      description: "Opens this camera's feed with `password`, as the game's camera website does. Returns `null` when the camera asks for a password, the feed as JSON when the password is right (the camera's LAN address and the people of its network), or why it can't be opened as a `string`. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "print(computer.access_cctv(\"secret\"))"
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  add_net_card:
+    argStrings:
+      - - number
+      - - number
+    id: add_net_card
+    json:
+      arguments:
+        - default: ~
+          label: wifi
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: monitorSupport
+          opt: false
+          types:
+            - number
+      description: "Adds a network card to this computer: Wi-Fi when `wifi` is truthy, otherwise Ethernet, with monitor mode when `monitorSupport` is truthy. Returns `1` when it was added, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "computer.add_net_card(1, 1)"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  add_npc:
+    argStrings:
+      - - string
+      - - number
+      - - string
+    id: add_npc
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: delay
+          opt: false
+          types:
+            - number
+        - default:
+            type: string
+            value: npc
+          label: name
+          opt: false
+          types:
+            - string
+      description: "Adds an NPC who logs in to this computer as `user`, first after `delay` seconds, named `name`. Returns the NPC's id, or `null` when it couldn't be added. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "print(computer.add_npc(\"bob\", 60, \"Bob\"))"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  add_smart_appliance:
+    argStrings:
+      - - "map<any,any>"
+    id: add_smart_appliance
+    json:
+      arguments:
+        - default: ~
+          label: options
+          opt: false
+          types:
+            - keyType: any
+              type: map
+              valueType: any
+      description: "Turns this computer into a smart appliance. Every key of `options` is optional: `model` (default `\"FR/unknown\"`), `power`, `temperature` and `overrideEnabled` (default `1`). Returns `1` when it was changed, otherwise `0`. Options that aren't a map, or keys of the wrong type, raise `add_smart_appliance: Invalid arguments`. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "computer.add_smart_appliance({\"model\": \"ACME/FR1\", \"power\": 100, \"temperature\": 4})"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  install_smartphone_adb:
+    argStrings: []
+    id: install_smartphone_adb
+    json:
+      arguments: []
+      description: "Installs the ADB service on this smartphone. Returns `1` when it was installed, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - computer.install_smartphone_adb
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  login:
+    argStrings:
+      - - string
+    id: login
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+      description: "Opens a session for `user` on this computer, so the active-user checks of exploits and `netSession` see them. Returns `1` when it was opened, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "computer.login(\"root\")"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  npc_login:
+    argStrings:
+      - - string
+    id: npc_login
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+      description: "Makes the NPC `user` of this computer log in to their SSH or FTP service, as the social-engineering mail does in the game: their credentials pass the sniffers on the way, and they stay logged in for an hour. Returns `1` when they logged in, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "print(computer.npc_login(\"bob\"))"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  service_records:
+    argStrings:
+      - - string
+    id: service_records
+    json:
+      arguments:
+        - default: ~
+          label: service
+          opt: false
+          types:
+            - string
+      description: "Returns the records of this computer's records `service`, `\"criminals\"`, `\"employees\"` or `\"students\"`, as JSON, as the game's records viewer shows them. Returns `null` when the computer doesn't run that service. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "print(computer.service_records(\"criminals\"))"
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  set_library_version:
+    argStrings:
+      - - string
+      - - string
+    id: set_library_version
+    json:
+      arguments:
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: version
+          opt: false
+          types:
+            - string
+      description: "Sets the version of the library at `path` on this computer, such as `\"1.0.2\"`. Returns `1` when it was changed, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "computer.set_library_version(\"/lib/libssh.so\", \"1.0.2\")"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  set_port_library_version:
+    argStrings:
+      - - number
+      - - string
+    id: set_port_library_version
+    json:
+      arguments:
+        - default: ~
+          label: port
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: version
+          opt: false
+          types:
+            - string
+      description: "Sets the version of the library of the service on this computer's `port`. Returns `1` when it was changed, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "computer.set_port_library_version(22, \"1.0.2\")"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  shell:
+    argStrings:
+      - - string
+    id: shell
+    json:
+      arguments:
+        - default:
+            type: string
+            value: root
+          label: user
+          opt: false
+          types:
+            - string
+      description: "Returns a `shell` on this computer as `user`, without a password, or `null` when the computer or the user doesn't exist. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "print(computer.shell(\"root\").host_computer.get_name)"
+      isProtected: false
+      returns:
+        - shell
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - shell
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  update_service_record:
+    argStrings:
+      - - string
+      - - string
+    id: update_service_record
+    json:
+      arguments:
+        - default: ~
+          label: service
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: record
+          opt: false
+          types:
+            - string
+      description: "Replaces the record of the same person in this computer's records `service` (`\"criminals\"`, `\"employees\"` or `\"students\"`) with the JSON `record`, as the game's records viewer does. Returns an empty `string` on success, otherwise the viewer's error. Returns `null` when called on anything but an `adminComputer`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+        - "records = computer.service_records(\"employees\")"
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: adminComputer
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - shell
+  - login
+  - add_npc
+  - npc_login
+  - add_net_card
+  - add_smart_appliance
+  - set_library_version
+  - set_port_library_version
+  - service_records
+  - update_service_record
+  - access_cctv
+  - install_smartphone_adb
+descriptions:
+  $meta:
+    description: "An `adminComputer` belongs to Greybel's interpreter, not to the game: `adminNetwork.computer` returns one for a computer's LAN address, in Greybel's simulated world only. Its methods give access to that computer and change it, such as opening a shell without a password or adding NPCs. The `classID` used for this object is `\"adminComputer\"`."
+    example: ~
+  access_cctv:
+    description: "Opens this camera's feed with `password`, as the game's camera website does. Returns `null` when the camera asks for a password, the feed as JSON when the password is right (the camera's LAN address and the people of its network), or why it can't be opened as a `string`. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "print(computer.access_cctv(\"secret\"))"
+  add_net_card:
+    description: "Adds a network card to this computer: Wi-Fi when `wifi` is truthy, otherwise Ethernet, with monitor mode when `monitorSupport` is truthy. Returns `1` when it was added, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "computer.add_net_card(1, 1)"
+  add_npc:
+    description: "Adds an NPC who logs in to this computer as `user`, first after `delay` seconds, named `name`. Returns the NPC's id, or `null` when it couldn't be added. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "print(computer.add_npc(\"bob\", 60, \"Bob\"))"
+  add_smart_appliance:
+    description: "Turns this computer into a smart appliance. Every key of `options` is optional: `model` (default `\"FR/unknown\"`), `power`, `temperature` and `overrideEnabled` (default `1`). Returns `1` when it was changed, otherwise `0`. Options that aren't a map, or keys of the wrong type, raise `add_smart_appliance: Invalid arguments`. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "computer.add_smart_appliance({\"model\": \"ACME/FR1\", \"power\": 100, \"temperature\": 4})"
+  install_smartphone_adb:
+    description: "Installs the ADB service on this smartphone. Returns `1` when it was installed, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - computer.install_smartphone_adb
+  login:
+    description: "Opens a session for `user` on this computer, so the active-user checks of exploits and `netSession` see them. Returns `1` when it was opened, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "computer.login(\"root\")"
+  npc_login:
+    description: "Makes the NPC `user` of this computer log in to their SSH or FTP service, as the social-engineering mail does in the game: their credentials pass the sniffers on the way, and they stay logged in for an hour. Returns `1` when they logged in, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "print(computer.npc_login(\"bob\"))"
+  service_records:
+    description: "Returns the records of this computer's records `service`, `\"criminals\"`, `\"employees\"` or `\"students\"`, as JSON, as the game's records viewer shows them. Returns `null` when the computer doesn't run that service. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "print(computer.service_records(\"criminals\"))"
+  set_library_version:
+    description: "Sets the version of the library at `path` on this computer, such as `\"1.0.2\"`. Returns `1` when it was changed, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "computer.set_library_version(\"/lib/libssh.so\", \"1.0.2\")"
+  set_port_library_version:
+    description: "Sets the version of the library of the service on this computer's `port`. Returns `1` when it was changed, otherwise `0`. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "computer.set_port_library_version(22, \"1.0.2\")"
+  shell:
+    description: "Returns a `shell` on this computer as `user`, without a password, or `null` when the computer or the user doesn't exist. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "print(computer.shell(\"root\").host_computer.get_name)"
+  update_service_record:
+    description: "Replaces the record of the same person in this computer's records `service` (`\"criminals\"`, `\"employees\"` or `\"students\"`) with the JSON `record`, as the game's records viewer does. Returns an empty `string` on success, otherwise the viewer's error. Returns `null` when called on anything but an `adminComputer`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")"
+      - "records = computer.service_records(\"employees\")"
+extends: map
+hidden: false

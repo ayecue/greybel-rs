@@ -1,0 +1,66 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client that no provider acknowledges closes for `Timeout` on the fourth check, without telling anyone.",
+  "peer": "client",
+  "requires": ["responses", "health-check"],
+  "healthCheck": true,
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "check": 3
+    },
+    {
+      "expect": {
+        "closed": null
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "closed": "Timeout",
+        "settled": {
+          "sum": {
+            "closed": "Timeout"
+          }
+        },
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              },
+              {
+                "Open": {
+                  "id": 0
+                }
+              },
+              {
+                "Open": {
+                  "id": 0
+                }
+              },
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

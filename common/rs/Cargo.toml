@@ -1,0 +1,41 @@
+[workspace]
+resolver = "3"
+members = ["scheduler", "thin-str", "vscode-uri"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.93"
+repository = "https://github.com/ayecue/greybel-rs"
+
+[workspace.dependencies]
+scheduler = { path = "scheduler" }
+thin-str = { path = "thin-str" }
+vscode-uri = { path = "vscode-uri" }
+
+insta = { version = "1.48", features = ["yaml"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = "1"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+
+# Keep local line tables, omitting other debug info and all dependency debug info.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+# Binaries choose their own panic behavior.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

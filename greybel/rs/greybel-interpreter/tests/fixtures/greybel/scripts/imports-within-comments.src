@@ -1,0 +1,5 @@
+//import fooImport from ../dependencies/import-file.src;
+//include ../dependencies/include-file.src;
+
+print(fooImport)
+print(includeFileFoo)

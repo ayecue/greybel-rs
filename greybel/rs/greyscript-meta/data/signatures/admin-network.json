@@ -1,0 +1,300 @@
+{
+  "type": "adminNetwork",
+  "extends": "map",
+  "definitions": {
+    "computer": {
+      "id": "computer",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "lanIp",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "adminComputer",
+        "null"
+      ]
+    },
+    "add_computer": {
+      "id": "add_computer",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "options",
+          "type": "map"
+        }
+      ],
+      "returns": [
+        "computer",
+        "string",
+        "null"
+      ]
+    },
+    "remove": {
+      "id": "remove",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "set_net_speed": {
+      "id": "set_net_speed",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "speed",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "fire_npc": {
+      "id": "fire_npc",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "This person cannot be fired.",
+        "Unknown error: Unable to find person to fire.",
+        "You cannot fire this person until one month has passed since their hiring."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "hire_npc": {
+      "id": "hire_npc",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "jobRole",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "Error: invalid job option"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "hire_admin": {
+      "id": "hire_admin",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "returnVariations": [
+        "You already have an administrator hired for this network."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "fire_admin": {
+      "id": "fire_admin",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "returnVariations": [
+        "You don't have any administrator hired on this network."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "set_phone_alarm": {
+      "id": "set_phone_alarm",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "hour",
+          "type": "number"
+        },
+        {
+          "label": "minute",
+          "type": "number"
+        },
+        {
+          "label": "deleteAlarm",
+          "type": "number"
+        }
+      ],
+      "returnVariations": [
+        "Error: Incorrect time. A 24-hour format is expected.",
+        "Error: This program is not compatible with this device"
+      ],
+      "returns": [
+        "map",
+        "string",
+        "null"
+      ]
+    },
+    "phone_alarm": {
+      "id": "phone_alarm",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "map",
+        "null"
+      ]
+    },
+    "report_library_update": {
+      "id": "report_library_update",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "library",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "Thanks for the warning, but I am not going to update them for now."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "set_company_shares": {
+      "id": "set_company_shares",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "bank_account",
+          "type": "string"
+        },
+        {
+          "label": "shares",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "hire_crown_shield": {
+      "id": "hire_crown_shield",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "guild",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "Crown required",
+        "Enter a valid public IP address."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "set_admin_restore": {
+      "id": "set_admin_restore",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "guild",
+          "type": "string"
+        },
+        {
+          "label": "enabled",
+          "type": "number"
+        }
+      ],
+      "returnVariations": [
+        "Error: Admin Restore can only be configured for guild-owned companies.",
+        "Error: company not found",
+        "Error: invalid company",
+        "Error: This guild cannot disable Admin Restore for more companies at its current perk level."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    }
+  }
+}

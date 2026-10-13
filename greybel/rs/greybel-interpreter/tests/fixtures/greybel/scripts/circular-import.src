@@ -1,0 +1,3 @@
+#include ../dependencies/circular-import-1
+
+print("circular start")

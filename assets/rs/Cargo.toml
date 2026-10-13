@@ -1,0 +1,45 @@
+[workspace]
+resolver = "3"
+members = ["asset-bundle", "greyhack-*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.93"
+repository = "https://github.com/ayecue/greybel-rs"
+
+[workspace.dependencies]
+asset-bundle = { path = "asset-bundle" }
+greyhack-text-mesh-assets = { path = "greyhack-text-mesh-assets" }
+greyhack-world-assets = { path = "greyhack-world-assets" }
+
+# Crates of the other workspaces in the repository.
+text-mesh-core = { path = "../../text-mesh/rs/text-mesh-core" }
+text-mesh-font = { path = "../../text-mesh/rs/text-mesh-font" }
+text-mesh-layout = { path = "../../text-mesh/rs/text-mesh-layout" }
+text-mesh-setup = { path = "../../text-mesh/rs/text-mesh-setup" }
+
+flate2 = "1"
+serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
+thiserror = "2"
+serde_json = "1"
+
+# Keep local line tables, omitting other debug info and all dependency debug info.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+# Binaries choose their own panic behavior.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

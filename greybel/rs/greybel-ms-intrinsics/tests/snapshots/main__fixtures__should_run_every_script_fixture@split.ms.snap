@@ -1,0 +1,10 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/split.ms
+---
+["Eat", "pray", "love"]
+["", "foo", "bar", ""]
+["Eat", "pray, love"]
+["foo", "bar", "baz=bamf"]
+["H", "e", "llo"]

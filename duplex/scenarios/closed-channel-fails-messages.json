@@ -1,0 +1,57 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A closed channel fails what it is asked to send.",
+  "peer": "client",
+  "requires": ["responses"],
+  "connected": true,
+  "steps": [
+    {
+      "close": "ClosedChannel"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Close": {
+                  "reason": "ClosedChannel"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "send": {
+        "Log": {
+          "text": "late"
+        }
+      },
+      "fails": {
+        "closed": "ClosedChannel"
+      }
+    },
+    {
+      "expect": {
+        "settled": {
+          "sum": {
+            "closed": "ClosedChannel"
+          }
+        },
+        "sent": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "greyhack-terminal-web",
+  "version": "0.1.0",
+  "description": "Grey Hack's terminal on a canvas, drawn with WebGL2 like the game's TextMesh Pro: the greyhack-terminal-web crate, in a worker, lays out the output of the program at the other end of a message target, whose io channel the page relays to it, and gives the page what to draw",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./greyhack-terminal-web.wasm": "./dist/greyhack-terminal-web.wasm"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vite build --mode test && vitest run"
+  },
+  "dependencies": {
+    "duplex-core": "^0.1.0",
+    "duplex-driver-worker": "^0.1.0",
+    "greybel-io-web": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "0.21.0",
+    "playwright": "1.64.1",
+    "wasm-host": "^0.1.0"
+  }
+}

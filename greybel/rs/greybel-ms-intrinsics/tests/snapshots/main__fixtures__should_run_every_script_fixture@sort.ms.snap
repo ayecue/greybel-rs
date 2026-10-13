@@ -1,0 +1,15 @@
+---
+source: greybel-ms-intrinsics/tests/fixtures.rs
+expression: run(path)
+input_file: greybel-ms-intrinsics/tests/fixtures/scripts/sort.ms
+---
+[3, 5, 9, 12, 45]
+[45, 12, 9, 5, 3]
+["3", 5, 42]
+[42, 5, "3"]
+[1, 2, null]
+["a", "b", null]
+[{"name": "one", "val": 1}, {"name": "three", "val": 3}, {"name": "two", "val": 2}]
+[{"name": "one", "val": 1}, {"name": "two", "val": 2}, {"name": "three", "val": 3}]
+[{"name": "two", "val": 2}, {"name": "three", "val": 3}, {"name": "one", "val": 1}]
+[{"name": "three", "val": 3}, {"name": "two", "val": 2}, {"name": "one", "val": 1}]

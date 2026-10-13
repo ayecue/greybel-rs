@@ -1,0 +1,22 @@
+[package]
+name = "text-mesh-setup"
+description = "TextMesh Pro setups: the JSON file of a terminal's fonts (with their metrics, kerning and atlases), sprites, text settings, frame and colours, read into text-mesh's types"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[lib]
+doctest = false
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+text-mesh-core.workspace = true
+text-mesh-font.workspace = true
+text-mesh-layout.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

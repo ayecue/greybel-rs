@@ -1,0 +1,21 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/iteration-idx.src
+---
+[
+  "{\"key\": \"a\", \"value\": 1}",
+  "{\"key\": \"c\", \"value\": 1}",
+  "{\"key\": \"k\", \"value\": 2}",
+  "0",
+  "2",
+  "\"extend\"",
+  "4",
+  "1",
+  "2",
+  "3",
+  "4",
+  "2",
+  "3",
+  "4"
+]

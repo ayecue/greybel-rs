@@ -1,0 +1,36 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/greybel-utils-with-comments.src
+---
+=== default
+#import foo from "./ascii.src";
+#include "./ascii.src";
+#include "../dependencies/sub-import.src";
+"true"
+//debugger
+=== uglify
+globals.I=globals
+#import J from "./ascii.src";
+#include "./ascii.src";
+#include "../dependencies/sub-import.src";
+"true"
+//debugger
+=== beautify
+#import foo from "./ascii.src";
+#include "./ascii.src";
+#include "../dependencies/sub-import.src";
+"true"
+//debugger
+=== beautify, dev mode
+#import foo from "./ascii.src";
+#include "./ascii.src";
+#include "../dependencies/sub-import.src";
+#envar TEST_ENV
+debugger
+=== beautify, dev mode, keep parentheses, 10 spaces
+#import foo from "./ascii.src";
+#include "./ascii.src";
+#include "../dependencies/sub-import.src";
+#envar TEST_ENV
+debugger

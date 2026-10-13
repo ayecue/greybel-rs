@@ -1,0 +1,394 @@
+{
+  "$defs": {
+    "BuildMode": {
+      "description": "How a build writes code.",
+      "oneOf": [
+        {
+          "const": "Default",
+          "description": "As written, without comments.",
+          "type": "string"
+        },
+        {
+          "const": "Uglify",
+          "description": "Minified.",
+          "type": "string"
+        },
+        {
+          "const": "Beautify",
+          "description": "Formatted as `format` says.",
+          "type": "string"
+        }
+      ]
+    },
+    "BuildSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "autoCompile": {
+          "default": true,
+          "description": "Compiles the build in the game and deletes its source files.",
+          "type": "boolean",
+          "x-vscode-setting": "greybel.autoCompile"
+        },
+        "deploy": {
+          "$ref": "#/$defs/DeploySettings",
+          "default": {
+            "allowImport": false
+          }
+        },
+        "disableLiteralsOptimization": {
+          "default": false,
+          "description": "Retains repeated literals as they are when uglifying.",
+          "type": "boolean",
+          "x-vscode-setting": "greybel.transpiler.dlo"
+        },
+        "disableNamespacesOptimization": {
+          "default": false,
+          "description": "Retains names as they are when uglifying.",
+          "type": "boolean",
+          "x-vscode-setting": "greybel.transpiler.dno"
+        },
+        "excludedNamespaces": {
+          "default": [],
+          "description": "Names uglifying retains.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "x-vscode-setting": "greybel.transpiler.excludedNamespaces"
+        },
+        "ingameDirectory": {
+          "default": "/root/",
+          "description": "The folder in the game the build runs from.",
+          "type": "string",
+          "x-vscode-setting": "greybel.transpiler.ingameDirectory"
+        },
+        "installer": {
+          "$ref": "#/$defs/InstallerSettings",
+          "default": {
+            "active": true,
+            "allowImport": false,
+            "maxChars": 160000
+          }
+        },
+        "mode": {
+          "$ref": "#/$defs/BuildMode",
+          "default": "Default",
+          "x-vscode-setting": "greybel.transpiler.buildType"
+        },
+        "obfuscation": {
+          "default": false,
+          "description": "Shortens names that code reads as strings too, such as map keys.",
+          "type": "boolean",
+          "x-vscode-setting": "greybel.transpiler.obfuscation"
+        },
+        "output": {
+          "default": "build",
+          "description": "The folder a build is written to, relative to the project's folder.",
+          "type": "string"
+        },
+        "outputName": {
+          "default": null,
+          "description": "The name of the built entry file, for a build of one file; an empty one is none.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-vscode-setting": "greybel.transpiler.outputFilename"
+        },
+        "variables": {
+          "$ref": "#/$defs/VariableSettings",
+          "default": {
+            "files": [
+              ".env"
+            ],
+            "values": {}
+          },
+          "description": "The values `#envar` reads in a build.",
+          "x-vscode-setting": {
+            "files": "greybel.transpiler.environmentFile",
+            "values": "greybel.transpiler.environmentVariables"
+          }
+        }
+      },
+      "type": "object"
+    },
+    "DeploySettings": {
+      "additionalProperties": false,
+      "description": "Builds created in the game through its message hook.",
+      "properties": {
+        "allowImport": {
+          "default": false,
+          "description": "Lets the program compiled in the game import code at runtime.",
+          "type": "boolean",
+          "x-vscode-setting": "greybel.createIngame.allowImport"
+        }
+      },
+      "type": "object"
+    },
+    "Format": {
+      "additionalProperties": false,
+      "properties": {
+        "indentation": {
+          "$ref": "#/$defs/Indentation",
+          "default": "Tab",
+          "x-vscode-setting": "greybel.transpiler.beautify.indentation"
+        },
+        "indentationSpaces": {
+          "default": 2,
+          "description": "The spaces of one indentation, when it is `Whitespace`.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer",
+          "x-vscode-setting": "greybel.transpiler.beautify.indentationSpaces"
+        },
+        "retainParentheses": {
+          "default": false,
+          "description": "Retains every parenthesis of the code.",
+          "type": "boolean",
+          "x-vscode-setting": "greybel.transpiler.beautify.keepParentheses"
+        }
+      },
+      "type": "object"
+    },
+    "Indentation": {
+      "enum": [
+        "Tab",
+        "Whitespace"
+      ],
+      "type": "string"
+    },
+    "InstallerSettings": {
+      "additionalProperties": false,
+      "description": "Installer files, which recreate the build in the game when run there.",
+      "properties": {
+        "active": {
+          "default": true,
+          "description": "Writes installer files.",
+          "type": "boolean",
+          "x-vscode-setting": "greybel.transpiler.installer.active"
+        },
+        "allowImport": {
+          "default": false,
+          "description": "Lets the program compiled by an installer import code at runtime.",
+          "type": "boolean",
+          "x-vscode-setting": "greybel.transpiler.installer.allowImport"
+        },
+        "maxChars": {
+          "default": 160000,
+          "description": "How many characters an installer file has at most: longer installers are split.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer",
+          "x-vscode-setting": "greybel.transpiler.installer.maxChars"
+        }
+      },
+      "type": "object"
+    },
+    "Profile": {
+      "additionalProperties": false,
+      "description": "A named variation of a project's `build` and `run`: what it says replaces what the settings it changes say, an\nobject key by key, and any other value entirely, so a list replaces the list it changes.",
+      "properties": {
+        "build": {
+          "$ref": "#/$defs/BuildSettings",
+          "description": "What the profile changes of `build`."
+        },
+        "extends": {
+          "description": "The profile this one changes, instead of the base settings.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run": {
+          "$ref": "#/$defs/RunSettings",
+          "description": "What the profile changes of `run`."
+        }
+      },
+      "type": "object"
+    },
+    "RunSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "memoryLimit": {
+          "default": 1024,
+          "description": "Memory in MiB a program in the simulated world may use before it is interrupted, as Grey Hack interrupts one\nthat runs out of memory; there is no limit on how many calls nest.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer",
+          "x-vscode-setting": "greybel.interpreter.memoryLimit"
+        },
+        "params": {
+          "default": [],
+          "description": "The program's `params`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "x-vscode-format": "spaceList",
+          "x-vscode-setting": "greybel.interpreter.defaultArgs"
+        },
+        "programName": {
+          "default": "myprogram",
+          "description": "The name of the binary a run builds the program to in its user's home folder and runs as, so it can launch\nitself; the game's binary only exists while the run lasts.",
+          "type": "string",
+          "x-vscode-setting": "greybel.interpreter.programName"
+        },
+        "seed": {
+          "default": "test",
+          "description": "The text the simulated world is generated from: the same seed makes the same world.",
+          "type": "string",
+          "x-vscode-setting": "greybel.interpreter.seed"
+        },
+        "variables": {
+          "$ref": "#/$defs/VariableSettings",
+          "default": {
+            "files": [
+              ".env"
+            ],
+            "values": {}
+          },
+          "description": "The values `#envar` reads in a run.",
+          "x-vscode-setting": {
+            "files": "greybel.interpreter.environmentFile",
+            "values": "greybel.interpreter.environmentVariables"
+          }
+        }
+      },
+      "type": "object"
+    },
+    "VariableSettings": {
+      "additionalProperties": false,
+      "description": "The values `#envar` reads: the `NAME=value` lines of `files`, then `values`, a later value of a name replacing an\nearlier one.",
+      "properties": {
+        "files": {
+          "default": [
+            ".env"
+          ],
+          "description": "Files of `NAME=value` lines, relative to the project's folder; a missing file has no values.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "x-vscode-format": "commaList"
+        },
+        "values": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A project's `greybel.json`. Every setting is optional: a missing one has its default. `x-vscode-setting` names the\ngreybel-vs setting each is synced with, and `x-vscode-format` how a list is written there: `commaList` and\n`spaceList` join it, `first` is its first item.",
+  "properties": {
+    "$schema": {
+      "description": "The JSON Schema of the file, for editors.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "build": {
+      "$ref": "#/$defs/BuildSettings",
+      "default": {
+        "autoCompile": true,
+        "deploy": {
+          "allowImport": false
+        },
+        "disableLiteralsOptimization": false,
+        "disableNamespacesOptimization": false,
+        "excludedNamespaces": [],
+        "ingameDirectory": "/root/",
+        "installer": {
+          "active": true,
+          "allowImport": false,
+          "maxChars": 160000
+        },
+        "mode": "Default",
+        "obfuscation": false,
+        "output": "build",
+        "outputName": null,
+        "variables": {
+          "files": [
+            ".env"
+          ],
+          "values": {}
+        }
+      }
+    },
+    "entries": {
+      "default": [],
+      "description": "The files a build or a run starts from, relative to the project's folder.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "x-vscode-format": "first",
+      "x-vscode-setting": "greybel.rootFile"
+    },
+    "exclude": {
+      "default": "**/{node_modules,.*}/**",
+      "description": "The files the type analyzer skips, as a glob relative to the project's folder.",
+      "type": "string",
+      "x-vscode-setting": "greybel.typeAnalyzer.exclude"
+    },
+    "extensions": {
+      "default": [
+        "src",
+        "gs",
+        "ms"
+      ],
+      "description": "The file extensions an import may omit, tried in this order; a leading dot is dropped.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "x-vscode-format": "commaList",
+      "x-vscode-setting": "greybel.fileExtensions"
+    },
+    "format": {
+      "$ref": "#/$defs/Format",
+      "default": {
+        "indentation": "Tab",
+        "indentationSpaces": 2,
+        "retainParentheses": false
+      },
+      "description": "How code is formatted, by the editor and by beautified builds."
+    },
+    "profiles": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Profile"
+      },
+      "description": "Named variations of `build` and `run`, which a build or a run selects by name: `--profile` of the command line,\n`profile` of an MCP tool, `greybel.profile` of greybel-vs.",
+      "type": "object"
+    },
+    "run": {
+      "$ref": "#/$defs/RunSettings",
+      "default": {
+        "memoryLimit": 1024,
+        "params": [],
+        "programName": "myprogram",
+        "seed": "test",
+        "variables": {
+          "files": [
+            ".env"
+          ],
+          "values": {}
+        }
+      }
+    },
+    "strictMode": {
+      "default": false,
+      "description": "Accepts only what Grey Hack's compiler accepts (MiniScript 1.6.2 for MiniScript files): none of Greybel's\nsyntax or conveniences, such as `#include`, `&` or `+=`.",
+      "type": "boolean",
+      "x-vscode-setting": "greybel.strictMode"
+    }
+  },
+  "title": "greybel.json",
+  "type": "object"
+}

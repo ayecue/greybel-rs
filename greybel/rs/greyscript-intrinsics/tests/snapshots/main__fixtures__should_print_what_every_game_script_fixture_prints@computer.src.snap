@@ -1,0 +1,37 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+assertion_line: 39
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/computer.src
+---
+shell
+computer
+test
+192.168.0.2
+1.1.1.1
+WIFI
+192.168.0.1
+1
+[]
+USER PID CPU MEM COMMAND
+root 1 0.0% 3.1% kernel_task
+root 2 0.0% 6.3% Xorg
+test 1000 0.0% 1.2% script
+wlan0 Atheros False
+
+test
+/home/test
+/home/test
+/home/test/script
+/home/test/script
+01/Dec/2000 - 06:00
+test@test.com
+test
+null
+shell
+Permission denied. PID 1 belongs to user <b>root</b>
+0
+Permission denied. Process protected.
+1
+custom
+null number string list map function

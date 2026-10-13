@@ -1,0 +1,40 @@
+{
+  "name": "greybel-api-reference-web",
+  "version": "0.1.0",
+  "description": "The reference of the GreyScript API on a page, with its scripting guide: the greybel-api-reference-web crate, in a worker, gives the page every type's section ready to show and responds to its searches; the page shows them and requests an editor, if it has one, to open examples",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./editor": {
+      "source": "./src/workbench-editor.generated.ts",
+      "types": "./dist/workbench-editor.generated.d.ts",
+      "default": "./dist/workbench-editor.generated.js"
+    },
+    "./greybel-api-reference-web.wasm": "./dist/greybel-api-reference-web.wasm"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json && tsc -p tsconfig.editor.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vite build --mode test && vitest run"
+  },
+  "dependencies": {
+    "duplex-core": "^0.1.0",
+    "duplex-driver-worker": "^0.1.0",
+    "preact": "^11.1.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.21.0",
+    "playwright": "1.64.1",
+    "wasm-host": "^0.1.0"
+  }
+}

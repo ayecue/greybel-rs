@@ -1,0 +1,8 @@
+---
+source: greybel-core/tests/greyscript.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::GreyScript))"
+input_file: greybel-core/tests/fixtures/greyscript/scripts/callexpr-with-nl.src
+---
+Chunk[1:1-6:7][
+	CallExpression[1:1-6:7][Identifier[1:1-1:2][x](Literal[2:5-2:6][1], Literal[3:5-3:6][2], Literal[4:5-4:6][3], Literal[5:5-5:6][4], Literal[6:5-6:6][5])]
+]

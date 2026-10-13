@@ -1,0 +1,10 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/scopes.src
+---
+[
+  "\"main local\"",
+  "\"test fn local\"",
+  "\"test bar local\""
+]

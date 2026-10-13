@@ -1,0 +1,59 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider frees the id of a message it rejects as cancelled at once, as its sender does when the rejection comes: it handles the next message under it. A message cancelled while it waits to be handled is never handled.",
+  "peer": "provider",
+  "requires": ["responses", "cancellation"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Sum": {}
+            }
+          },
+          {
+            "Cancel": {
+              "id": 0
+            }
+          },
+          {
+            "Message": {
+              "id": 0,
+              "Add": {
+                "a": 1,
+                "b": 2
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "rejected": "Cancellation"
+                }
+              },
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Add": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

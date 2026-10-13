@@ -1,0 +1,657 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - remove
+  - insert
+  - push
+  - pop
+  - pull
+  - shuffle
+  - reverse
+  - sum
+  - hasIndex
+  - indexOf
+  - sort
+  - join
+  - indexes
+  - len
+  - values
+  - replace
+definitions:
+  hasIndex:
+    argStrings:
+      - - number
+    id: hasIndex
+    json:
+      arguments:
+        - default: ~
+          label: index
+          opt: false
+          types:
+            - number
+      description: "Returns a `number`. If the provided index is available in the `list`, the value will be one. Otherwise, the value will be zero."
+      example:
+        - "myList = [42, 1, 3]"
+        - containsIndex = myList.hasIndex(1)
+        - if containsIndex then
+        - "   print(\"List contains index of 1.\")"
+        - else
+        - "   print(\"List does not contain index of 1.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok:
+        - 0
+        - 1
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexOf:
+    argStrings:
+      - - any
+      - - number
+    id: indexOf
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - any
+        - default: ~
+          label: after
+          opt: true
+          types:
+            - number
+      description: "Returns a `number` which indicates the first matching index of the provided value inside the `list`. Optionally a start index can be provided. In case the value does not exist inside the `list` a `null` gets returned."
+      example:
+        - "myList = [42, 1, 3]"
+        - index = myList.indexOf(42)
+        - if index != null then
+        - "   print(\"The answer for everything is at the following index: \" + index)"
+        - else
+        - "   print(\"No answer for everything found.\")"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  indexes:
+    argStrings: []
+    id: indexes
+    json:
+      arguments: []
+      description: "Returns a `list` containing all available indexes."
+      example:
+        - "myList = [42, 1, 3]"
+        - for i in myList.indexes
+        - "   print(myList[i])"
+        - end for
+      isProtected: false
+      returns:
+        - type: list
+          valueType: number
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<number>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  insert:
+    argStrings:
+      - - number
+      - - T
+    id: insert
+    json:
+      arguments:
+        - default: ~
+          label: index
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - T
+      description: "Inserts a value into the `list` at the index provided. Due to the insertion the `list` will get mutated. Returns the mutated `list`. If the passed index is not a `number`, this method throws an error, preventing further script execution."
+      example:
+        - "myList = [1, 3]"
+        - "myList.insert(1, 42)"
+        - "print(\"This list does contain the answer to everything: \" + myList.join(\", \"))"
+      isProtected: false
+      returns:
+        - self
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - self
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  join:
+    argStrings:
+      - - string
+    id: join
+    json:
+      arguments:
+        - default:
+            type: string
+            value: " "
+          label: delimiter
+          opt: false
+          types:
+            - string
+      description: "Returns the stringified list values joined by `delimiter`, which defaults to one space. Lists larger than `16777215L` items and delimiters longer than 128 characters still raise a runtime error."
+      example:
+        - "myList = [42, 1, 3]"
+        - "print(myList.join(\" .-*'*-. \"))"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  len:
+    argStrings: []
+    id: len
+    json:
+      arguments: []
+      description: "Returns a `number` representing the count of values inside the `list`."
+      example:
+        - "myList = [42, 1, 3]"
+        - "print(\"myList contains \" + myList.len + \" items\")"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  pop:
+    argStrings: []
+    id: pop
+    json:
+      arguments: []
+      description: "Returns and removes the last item in the `list`. This operation will mutate the `list`. If the `map` is empty, this method will return `null`."
+      example:
+        - "myList = [1, 3, 42]"
+        - answer = myList.pop
+        - "print(\"Answer to everything: \" + answer)"
+      isProtected: false
+      returns:
+        - T
+        - "null"
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - T
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  pull:
+    argStrings: []
+    id: pull
+    json:
+      arguments: []
+      description: "Returns and removes the first item in the `list`.  This operation will mutate the `list`. If the `map` is empty, this method will return `null`."
+      example:
+        - "myList = [42, 1, 3]"
+        - answer = myList.pull
+        - "print(\"Answer to everything: \" + answer)"
+      isProtected: false
+      returns:
+        - T
+        - "null"
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - T
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  push:
+    argStrings:
+      - - T
+    id: push
+    json:
+      arguments:
+        - default: ~
+          label: value
+          opt: false
+          types:
+            - T
+      description: "Appends a value to the end of the `list`. This operation will mutate the `list`. Additionally, this method will return the updated `list`. However, it throws an error if you attempt to push a value into itself or into a map-like object such as a `file`, halting further script execution."
+      example:
+        - "myList = [1, 3]"
+        - myList.push(42)
+        - "print(\"This list does contain the answer to everything: \" + myList.join(\", \"))"
+      isProtected: false
+      returns:
+        - self
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - self
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  remove:
+    argStrings:
+      - - number
+    id: remove
+    json:
+      arguments:
+        - default: ~
+          label: k
+          opt: false
+          types:
+            - number
+      description: "Removes an item from the `list` with the provided index. Due to the removal the `list` will get mutated. If the passed index is `null` this method will throw an error preventing further script execution."
+      example:
+        - "myList = [1, 42, 3]"
+        - myList.remove(1)
+        - "print(\"This list does not contain the answer to everything: \" + myList.join(\", \"))"
+      isProtected: false
+      returns:
+        - "null"
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  replace:
+    argStrings:
+      - - any
+      - - T
+      - - number
+    id: replace
+    json:
+      arguments:
+        - default: ~
+          label: oldval
+          opt: false
+          types:
+            - any
+        - default: ~
+          label: newval
+          opt: false
+          types:
+            - T
+        - default: ~
+          label: maxCount
+          opt: true
+          types:
+            - number
+      description: "Returns updated `list` where each value matching with the provided replace argument gets replaced. This operation will mutate the `list`."
+      example:
+        - "myList = [1, 2, 2, 7]"
+        - "myList.replace(2, 3)"
+        - "print(myList.join(\"\"))"
+      isProtected: false
+      returns:
+        - self
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - self
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  reverse:
+    argStrings: []
+    id: reverse
+    json:
+      arguments: []
+      description: "Reverses the order of all values in the `list`. This operation will mutate the `list`."
+      example:
+        - "myList = [42, 1, 3]"
+        - myList.reverse
+        - "print(\"Reversed list: \" + myList.join(\", \"))"
+      isProtected: false
+      returns:
+        - "null"
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  shuffle:
+    argStrings: []
+    id: shuffle
+    json:
+      arguments: []
+      description: "Shuffles all values in the `list`. This operation will mutate the `list`."
+      example:
+        - "myList = [42, 1, 3]"
+        - myList.shuffle
+        - "print(\"New list order: \" + myList.join(\", \"))"
+      isProtected: false
+      returns:
+        - "null"
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  sort:
+    argStrings:
+      - - any
+      - - number
+    id: sort
+    json:
+      arguments:
+        - default: ~
+          label: byKey
+          opt: false
+          types:
+            - any
+        - default:
+            type: number
+            value: 1
+          label: ascending
+          opt: false
+          types:
+            - number
+      description: "Sorts the values of a `list` alphanumerically. This operation mutates the original `list`. Optionally, a key can be provided, which is used if the items are `map`s or `list`s. Finally, this method returns the updated `list`."
+      example:
+        - "myList = [{ \"key\": 42 }, { \"key\": 2 }, { \"key\": 1 }]"
+        - "myList.sort(\"key\")"
+        - print(myList)
+      isProtected: false
+      returns:
+        - self
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - self
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  sum:
+    argStrings: []
+    id: sum
+    json:
+      arguments: []
+      description: "Returns sum of all values inside the `list`. Any non-numeric values will be considered a zero."
+      example:
+        - "myList = [42, 1, 3]"
+        - sum = myList.sum
+        - "print(\"Sum of all items in list: \" + sum)"
+      isProtected: false
+      returns:
+        - number
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  values:
+    argStrings: []
+    id: values
+    json:
+      arguments: []
+      description: "Returns a `list` containing all available values. Note that this will not create a copy of the original `list`. The returned instance will the same as original `list`, so any mutations made to the returned `list` will also affect the original one."
+      example:
+        - "myList = [42, 1, 3]"
+        - for v in myList.values
+        - "   print(v)"
+        - end for
+      isProtected: false
+      returns:
+        - type: list
+          valueType: T
+      type: function
+    origin: list
+    otherLanguageDescription: ~
+    returnStrings:
+      - list<T>
+    returnVariations:
+      ok: []
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - remove
+  - insert
+  - push
+  - pop
+  - pull
+  - shuffle
+  - reverse
+  - sum
+  - hasIndex
+  - indexOf
+  - sort
+  - join
+  - indexes
+  - len
+  - values
+  - replace
+descriptions:
+  $meta:
+    description: "Create a `list` with square brackets. Then iterate over the `list` with for, or pull out individual items with a 0-based index in square brackets. A negative index counts from the end. Get a slice (subset) of a `list` with two indices, separated by a colon."
+    example:
+      - "x = [2, 4, 6, 8]"
+      - "print(x[0]) // get first item from list"
+      - "print(x[-1]) // get last item from list"
+      - "print(x[1:3]) // slice items from index 1 to 3"
+      - "x[2] = 5 // set item at index 2 to 5"
+      - print(x)
+      - "print(x + [42]) // concatenate two lists"
+  hasIndex:
+    description: "Returns a `number`. If the provided index is available in the `list`, the value will be one. Otherwise, the value will be zero."
+    example:
+      - "myList = [42, 1, 3]"
+      - containsIndex = myList.hasIndex(1)
+      - if containsIndex then
+      - "   print(\"List contains index of 1.\")"
+      - else
+      - "   print(\"List does not contain index of 1.\")"
+      - end if
+  indexOf:
+    description: "Returns a `number` which indicates the first matching index of the provided value inside the `list`. Optionally a start index can be provided. In case the value does not exist inside the `list` a `null` gets returned."
+    example:
+      - "myList = [42, 1, 3]"
+      - index = myList.indexOf(42)
+      - if index != null then
+      - "   print(\"The answer for everything is at the following index: \" + index)"
+      - else
+      - "   print(\"No answer for everything found.\")"
+      - end if
+  indexes:
+    description: "Returns a `list` containing all available indexes."
+    example:
+      - "myList = [42, 1, 3]"
+      - for i in myList.indexes
+      - "   print(myList[i])"
+      - end for
+  insert:
+    description: "Inserts a value into the `list` at the index provided. Due to the insertion the `list` will get mutated. Returns the mutated `list`. If the passed index is not a `number`, this method throws an error, preventing further script execution."
+    example:
+      - "myList = [1, 3]"
+      - "myList.insert(1, 42)"
+      - "print(\"This list does contain the answer to everything: \" + myList.join(\", \"))"
+  join:
+    description: "Returns the stringified list values joined by `delimiter`, which defaults to one space. Lists larger than `16777215L` items and delimiters longer than 128 characters still raise a runtime error."
+    example:
+      - "myList = [42, 1, 3]"
+      - "print(myList.join(\" .-*'*-. \"))"
+  len:
+    description: "Returns a `number` representing the count of values inside the `list`."
+    example:
+      - "myList = [42, 1, 3]"
+      - "print(\"myList contains \" + myList.len + \" items\")"
+  pop:
+    description: "Returns and removes the last item in the `list`. This operation will mutate the `list`. If the `map` is empty, this method will return `null`."
+    example:
+      - "myList = [1, 3, 42]"
+      - answer = myList.pop
+      - "print(\"Answer to everything: \" + answer)"
+  pull:
+    description: "Returns and removes the first item in the `list`.  This operation will mutate the `list`. If the `map` is empty, this method will return `null`."
+    example:
+      - "myList = [42, 1, 3]"
+      - answer = myList.pull
+      - "print(\"Answer to everything: \" + answer)"
+  push:
+    description: "Appends a value to the end of the `list`. This operation will mutate the `list`. Additionally, this method will return the updated `list`. However, it throws an error if you attempt to push a value into itself or into a map-like object such as a `file`, halting further script execution."
+    example:
+      - "myList = [1, 3]"
+      - myList.push(42)
+      - "print(\"This list does contain the answer to everything: \" + myList.join(\", \"))"
+  remove:
+    description: "Removes an item from the `list` with the provided index. Due to the removal the `list` will get mutated. If the passed index is `null` this method will throw an error preventing further script execution."
+    example:
+      - "myList = [1, 42, 3]"
+      - myList.remove(1)
+      - "print(\"This list does not contain the answer to everything: \" + myList.join(\", \"))"
+  replace:
+    description: "Returns updated `list` where each value matching with the provided replace argument gets replaced. This operation will mutate the `list`."
+    example:
+      - "myList = [1, 2, 2, 7]"
+      - "myList.replace(2, 3)"
+      - "print(myList.join(\"\"))"
+  reverse:
+    description: "Reverses the order of all values in the `list`. This operation will mutate the `list`."
+    example:
+      - "myList = [42, 1, 3]"
+      - myList.reverse
+      - "print(\"Reversed list: \" + myList.join(\", \"))"
+  shuffle:
+    description: "Shuffles all values in the `list`. This operation will mutate the `list`."
+    example:
+      - "myList = [42, 1, 3]"
+      - myList.shuffle
+      - "print(\"New list order: \" + myList.join(\", \"))"
+  sort:
+    description: "Sorts the values of a `list` alphanumerically. This operation mutates the original `list`. Optionally, a key can be provided, which is used if the items are `map`s or `list`s. Finally, this method returns the updated `list`."
+    example:
+      - "myList = [{ \"key\": 42 }, { \"key\": 2 }, { \"key\": 1 }]"
+      - "myList.sort(\"key\")"
+      - print(myList)
+  sum:
+    description: "Returns sum of all values inside the `list`. Any non-numeric values will be considered a zero."
+    example:
+      - "myList = [42, 1, 3]"
+      - sum = myList.sum
+      - "print(\"Sum of all items in list: \" + sum)"
+  values:
+    description: "Returns a `list` containing all available values. Note that this will not create a copy of the original `list`. The returned instance will the same as original `list`, so any mutations made to the returned `list` will also affect the original one."
+    example:
+      - "myList = [42, 1, 3]"
+      - for v in myList.values
+      - "   print(v)"
+      - end for
+extends: ~
+hidden: false

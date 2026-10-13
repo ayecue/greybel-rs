@@ -1,0 +1,59 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider denies a client by what it opens with, refusing it as denied with what the protocol's handshake declares.",
+  "peer": "provider",
+  "requires": ["handshake"],
+  "protocol": "login",
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 0,
+              "payload": {
+                "user": "ada",
+                "token": "guess"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Refuse": {
+                  "id": 0,
+                  "reason": "Denial",
+                  "payload": "WrongToken"
+                }
+              }
+            ]
+          }
+        ],
+        "connection": null,
+        "closed": null
+      }
+    }
+  ]
+}

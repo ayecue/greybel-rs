@@ -1,0 +1,30 @@
+// The player's shell and computer.
+shell = get_shell
+print typeof(shell)
+pc = shell.host_computer
+print typeof(pc)
+print pc.get_name
+print pc.local_ip
+print pc.public_ip
+print pc.active_net_card
+print pc.network_gateway
+print pc.is_network_active
+print pc.get_ports
+print pc.show_procs
+print pc.network_devices
+print active_user
+print home_dir
+print current_path
+print program_path
+print launch_path
+print current_date
+print user_mail_address
+print user_bank_number
+print get_shell("test", "wrong")
+print typeof(get_shell("root", "test"))
+print pc.close_program(1)
+print pc.close_program(99)
+print pc.close_program(12000)
+print shell == get_shell
+print typeof({"classID": "custom"})
+print typeof(null) + " " + typeof(1) + " " + typeof("") + " " + typeof([]) + " " + typeof({}) + " " + typeof(@print)

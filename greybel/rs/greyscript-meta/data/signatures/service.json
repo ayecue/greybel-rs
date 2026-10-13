@@ -1,0 +1,52 @@
+{
+  "type": "service",
+  "extends": "map",
+  "definitions": {
+    "install_service": {
+      "id": "install_service",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        1,
+        "Denied. Only root user can install this service."
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "start_service": {
+      "id": "start_service",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        1,
+        "Denied. Only root user can install this service."
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "stop_service": {
+      "id": "stop_service",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "Denied. Only root user can install this service."
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A listening provider counts no checks and sends no pings.",
+  "peer": "provider",
+  "requires": ["health-check"],
+  "healthCheck": true,
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Listen": {}
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "check": 10
+    },
+    {
+      "expect": {
+        "sent": [],
+        "closed": null,
+        "health": "healthy"
+      }
+    }
+  ]
+}

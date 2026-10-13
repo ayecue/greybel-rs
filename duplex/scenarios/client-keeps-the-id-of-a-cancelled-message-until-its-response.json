@@ -1,0 +1,137 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client that drops a response before it settles cancels its message, and keeps the message's id until the provider responds: a message sent in between gets another, and one sent after reuses it.",
+  "peer": "client",
+  "requires": ["responses", "cancellation"],
+  "connected": true,
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 2,
+          "b": 3
+        }
+      },
+      "as": "first"
+    },
+    {
+      "drop": "first"
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 4,
+          "b": 5
+        }
+      },
+      "as": "second"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 2,
+                    "b": 3
+                  }
+                }
+              },
+              {
+                "Cancel": {
+                  "id": 0
+                }
+              },
+              {
+                "Message": {
+                  "id": 1,
+                  "Add": {
+                    "a": 4,
+                    "b": 5
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Failure": {
+              "id": 0,
+              "rejected": "Cancellation"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 1
+        }
+      },
+      "as": "third"
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1,
+                    "b": 1
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "ResponseEnd": {
+              "id": 1,
+              "Add": 9
+            }
+          },
+          {
+            "ResponseEnd": {
+              "id": 0,
+              "Add": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "settled": {
+          "second": {
+            "response": 9
+          },
+          "third": {
+            "response": 2
+          }
+        }
+      }
+    }
+  ]
+}

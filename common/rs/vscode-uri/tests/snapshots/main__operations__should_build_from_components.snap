@@ -1,0 +1,201 @@
+---
+source: vscode-uri/tests/operations.rs
+expression: cases
+---
+- input:
+    authority: www.msft.com
+    path: /my/path
+    scheme: http
+  output:
+    scheme: http
+    authority: www.msft.com
+    path: /my/path
+    query: ""
+    fragment: ""
+    string: "http://www.msft.com/my/path"
+    unencoded: "http://www.msft.com/my/path"
+    fsPath: /my/path
+- input:
+    authority: www.MSFT.com
+    path: /my/path
+    scheme: http
+  output:
+    scheme: http
+    authority: www.MSFT.com
+    path: /my/path
+    query: ""
+    fragment: ""
+    string: "http://www.msft.com/my/path"
+    unencoded: "http://www.msft.com/my/path"
+    fsPath: /my/path
+- input:
+    authority: ""
+    path: my/path
+    scheme: http
+  output:
+    scheme: http
+    authority: ""
+    path: /my/path
+    query: ""
+    fragment: ""
+    string: "http:/my/path"
+    unencoded: "http:/my/path"
+    fsPath: /my/path
+- input:
+    authority: ""
+    path: /my/path
+    scheme: http
+  output:
+    scheme: http
+    authority: ""
+    path: /my/path
+    query: ""
+    fragment: ""
+    string: "http:/my/path"
+    unencoded: "http:/my/path"
+    fsPath: /my/path
+- input:
+    authority: a-test-site.com
+    path: /
+    query: test=true
+    scheme: http
+  output:
+    scheme: http
+    authority: a-test-site.com
+    path: /
+    query: test=true
+    fragment: ""
+    string: "http://a-test-site.com/?test%3Dtrue"
+    unencoded: "http://a-test-site.com/?test=true"
+    fsPath: /
+- input:
+    authority: a-test-site.com
+    fragment: test=true
+    path: /
+    query: ""
+    scheme: http
+  output:
+    scheme: http
+    authority: a-test-site.com
+    path: /
+    query: ""
+    fragment: test=true
+    string: "http://a-test-site.com/#test%3Dtrue"
+    unencoded: "http://a-test-site.com/#test=true"
+    fsPath: /
+- input:
+    path: /api/files/test.me
+    query: t=1234
+    scheme: http
+  output:
+    scheme: http
+    authority: ""
+    path: /api/files/test.me
+    query: t=1234
+    fragment: ""
+    string: "http:/api/files/test.me?t%3D1234"
+    unencoded: "http:/api/files/test.me?t=1234"
+    fsPath: /api/files/test.me
+- input:
+    authority: "löcalhost:8080"
+    path: /far
+    scheme: http
+  output:
+    scheme: http
+    authority: "löcalhost:8080"
+    path: /far
+    query: ""
+    fragment: ""
+    string: "http://l%C3%B6calhost:8080/far"
+    unencoded: "http://löcalhost:8080/far"
+    fsPath: /far
+- input:
+    authority: "föö:bör@löcalhost:8080"
+    path: /far
+    scheme: http
+  output:
+    scheme: http
+    authority: "föö:bör@löcalhost:8080"
+    path: /far
+    query: ""
+    fragment: ""
+    string: "http://f%C3%B6%C3%B6:b%C3%B6r@l%C3%B6calhost:8080/far"
+    unencoded: "http://föö:bör@löcalhost:8080/far"
+    fsPath: /far
+- input:
+    scheme: s
+  output:
+    scheme: s
+    authority: ""
+    path: ""
+    query: ""
+    fragment: ""
+    string: "s:"
+    unencoded: "s:"
+    fsPath: ""
+- input:
+    scheme: ""
+  output:
+    scheme: file
+    authority: ""
+    path: /
+    query: ""
+    fragment: ""
+    string: "file:///"
+    unencoded: "file:///"
+    fsPath: /
+- input:
+    scheme: fäil
+  output:
+    error: IllegalScheme
+- input:
+    authority: a
+    path: rel
+    scheme: x
+  output:
+    error: RelativePath
+- input:
+    path: //double
+    scheme: x
+  output:
+    error: DoubleSlashPath
+- input:
+    path: a/b
+    scheme: foo
+  output:
+    scheme: foo
+    authority: ""
+    path: a/b
+    query: ""
+    fragment: ""
+    string: "foo:a/b"
+    unencoded: "foo:a/b"
+    fsPath: a/b
+- input:
+    authority: bar
+    path: /a//b
+    scheme: foo
+  output:
+    scheme: foo
+    authority: bar
+    path: /a//b
+    query: ""
+    fragment: ""
+    string: "foo://bar/a//b"
+    unencoded: "foo://bar/a//b"
+    fsPath: /a//b
+- input:
+    authority: h
+    fragment: "d e#f"
+    path: /p
+    query: "a b#c"
+    scheme: x
+  output:
+    scheme: x
+    authority: h
+    path: /p
+    query: "a b#c"
+    fragment: "d e#f"
+    string: "x://h/p?a%20b%23c#d%20e%23f"
+    unencoded: "x://h/p?a b%23c#d e#f"
+    fsPath: /p

@@ -1,0 +1,124 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/outer.src
+---
+=== default
+main=function
+num=0
+iterate=function
+clear_screen
+text="<mark=green><color=black>"+outer.num
+print(outer.hasIndex("num"))
+if (outer.num>20) then text="<mark=yellow><color=green>"+outer.num
+if (outer.num>40) then text="<mark=red><color=yellow>"+outer.num
+if (outer.num<-20) then text="<mark=green><color=yellow>"+outer.num
+if (outer.num<-40) then text="<mark=yellow><color=red>"+outer.num
+print(text)
+key=user_input("test",0,1)
+if (key=="UpArrow") then
+outer.num=outer.num+(1)
+else if (key=="DownArrow") then
+outer.num=outer.num-(1)
+else
+exit("bye")
+end if
+end function
+while (1)
+iterate
+end while
+end function
+main
+=== uglify
+globals.I=globals
+J=function
+K=0
+L=function
+M
+N="<mark=green><color=black>"+outer.K
+print(outer.hasIndex("K"))
+if (outer.K>20) then N="<mark=yellow><color=green>"+outer.K
+if (outer.K>40) then N="<mark=red><color=yellow>"+outer.K
+if (outer.K<-20) then N="<mark=green><color=yellow>"+outer.K
+if (outer.K<-40) then N="<mark=yellow><color=red>"+outer.K
+print(N)
+O=P("test",0,1)
+if (O=="UpArrow") then
+outer.K=outer.K+(1)
+else if (O=="DownArrow") then
+outer.K=outer.K-(1)
+else
+Q("bye")
+end if
+end function
+while (1)
+L
+end while
+end function
+J
+=== beautify
+main = function
+	num = 0
+	iterate = function
+		clear_screen
+
+		text = "<mark=green><color=black>" + outer.num
+
+		print outer.hasIndex("num")
+
+		if outer.num > 20 then text = "<mark=yellow><color=green>" + outer.num
+		if outer.num > 40 then text = "<mark=red><color=yellow>" + outer.num
+		if outer.num < -20 then text = "<mark=green><color=yellow>" + outer.num
+		if outer.num < -40 then text = "<mark=yellow><color=red>" + outer.num
+
+		print text
+		key = user_input("test", false, true)
+
+		if key == "UpArrow" then
+			outer.num += 1
+		else if key == "DownArrow" then
+			outer.num -= 1
+		else
+			exit "bye"
+		end if
+	end function
+
+	while (true)
+		iterate
+	end while
+end function
+
+main
+=== beautify, dev mode, keep parentheses, 10 spaces
+main = function
+          num = 0
+          iterate = function
+                    clear_screen
+
+                    text = "<mark=green><color=black>" + outer.num
+
+                    print(outer.hasIndex("num"))
+
+                    if outer.num > 20 then text = "<mark=yellow><color=green>" + outer.num
+                    if outer.num > 40 then text = "<mark=red><color=yellow>" + outer.num
+                    if outer.num < -20 then text = "<mark=green><color=yellow>" + outer.num
+                    if outer.num < -40 then text = "<mark=yellow><color=red>" + outer.num
+
+                    print(text)
+                    key = user_input("test", false, true)
+
+                    if key == "UpArrow" then
+                              outer.num += 1
+                    else if key == "DownArrow" then
+                              outer.num -= 1
+                    else
+                              exit("bye")
+                    end if
+          end function
+
+          while (true)
+                    iterate
+          end while
+end function
+
+main

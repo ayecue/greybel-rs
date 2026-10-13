@@ -1,0 +1,47 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider passes notifications to their handler in order.",
+  "peer": "provider",
+  "requires": [],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "Log": {
+                "text": "a"
+              }
+            }
+          },
+          {
+            "Message": {
+              "Log": {
+                "text": "b"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "received": [
+          {
+            "Log": {
+              "text": "a"
+            }
+          },
+          {
+            "Log": {
+              "text": "b"
+            }
+          }
+        ],
+        "sent": []
+      }
+    }
+  ]
+}

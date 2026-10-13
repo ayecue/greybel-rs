@@ -1,0 +1,8 @@
+{
+  "game": "1.0",
+  "files": {
+    "atlas.raw": "c9ac7b0624824f844f6c7f3d50fab9741a8914e878467e8daaedca143a34d90b",
+    "names/empty.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "texts/en.json": "f9d86028c6e0d64e225186f96acb69338b2c59764df79162107f5c4bb34d1310"
+  }
+}

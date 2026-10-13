@@ -1,0 +1,91 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/outer.src
+---
+=== default
+main=function
+num=0
+iterate=function
+clear_screen
+text="<mark=green><color=black>"+outer.num
+print(outer.hasIndex("num"))
+if (outer.num>20) then text="<mark=yellow><color=green>"+outer.num
+if (outer.num>40) then text="<mark=red><color=yellow>"+outer.num
+if (outer.num<-20) then text="<mark=green><color=yellow>"+outer.num
+if (outer.num<-40) then text="<mark=yellow><color=red>"+outer.num
+print(text)
+key=user_input("test",0,1)
+if (key=="UpArrow") then
+outer.num=outer.num+(1)
+else if (key=="DownArrow") then
+outer.num=outer.num-(1)
+else
+exit("bye")
+end if
+end function
+while (1)
+iterate
+end while
+end function
+main
+=== uglify
+globals.I=globals
+J=function
+K=0
+L=function
+clear_screen
+M="<mark=green><color=black>"+outer.K
+print(outer.hasIndex("K"))
+if (outer.K>20) then M="<mark=yellow><color=green>"+outer.K
+if (outer.K>40) then M="<mark=red><color=yellow>"+outer.K
+if (outer.K<-20) then M="<mark=green><color=yellow>"+outer.K
+if (outer.K<-40) then M="<mark=yellow><color=red>"+outer.K
+print(M)
+N=user_input("test",0,1)
+if (N=="UpArrow") then
+outer.K=outer.K+(1)
+else if (N=="DownArrow") then
+outer.K=outer.K-(1)
+else
+exit("bye")
+end if
+end function
+while (1)
+L
+end while
+end function
+J
+=== beautify
+main = function
+	num = 0
+	iterate = function
+		clear_screen
+
+		text = "<mark=green><color=black>" + outer.num
+
+		print outer.hasIndex("num")
+
+		if outer.num > 20 then text = "<mark=yellow><color=green>" + outer.num
+		if outer.num > 40 then text = "<mark=red><color=yellow>" + outer.num
+		if outer.num < -20 then text = "<mark=green><color=yellow>" + outer.num
+		if outer.num < -40 then text = "<mark=yellow><color=red>" + outer.num
+
+		print text
+		key = user_input("test", false, true)
+
+		if key == "UpArrow" then
+			outer.num = outer.num + (1)
+		else if key == "DownArrow" then
+			outer.num = outer.num - (1)
+		else
+			exit "bye"
+		end if
+	end function
+
+	while (true)
+		iterate
+	end while
+end function
+
+main

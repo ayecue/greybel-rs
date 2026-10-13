@@ -1,0 +1,18 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+expression: "run_in(path, true)"
+input_file: greyscript-intrinsics/tests/fixtures/game/launch.src
+---
+1
+before
+hello world
+1
+after
+1
+outer
+hello again
+1
+plain.txt is not an executable file.
+0
+/home/test/missing: command not found
+0

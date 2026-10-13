@@ -1,0 +1,3 @@
+#include "lib/greet"
+print greet("x")
+print nope

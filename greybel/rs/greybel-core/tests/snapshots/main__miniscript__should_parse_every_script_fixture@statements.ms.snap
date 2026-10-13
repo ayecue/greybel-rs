@@ -1,0 +1,58 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: "render_valid(&read(path), &options(Version::Latest))"
+input_file: greybel-core/tests/fixtures/miniscript/scripts/statements.ms
+---
+Chunk[1:1-23:1][
+	AssignmentStatement[1:1-9:13][Identifier[1:1-1:2][f] = Function[1:5-9:13][Identifier[1:14-1:15][a], AssignmentStatement[1:17-1:22][Identifier[1:17-1:18][b] = Literal[1:21-1:22][1]], AssignmentStatement[1:24-1:31][Identifier[1:24-1:25][c] = Literal[1:28-1:31][x]] =>
+		IfStatement[2:2-8:8][
+			IfClause[2:2-4:9][Identifier[2:5-2:6][a]
+				ReturnStatement[3:3-3:11][Identifier[3:10-3:11][b]]
+			]
+			ElseifClause[4:10-6:6][Identifier[4:10-4:11][b]
+				ReturnStatement[5:3-5:11][Identifier[5:10-5:11][c]]
+			]
+			ElseClause[6:2-8:8][
+				ReturnStatement[7:3-7:14][Literal[7:10-7:14][null]]
+			}]
+		]
+	]]
+	IfStatement[10:1-10:27][
+		IfShortcutClause[10:1-10:21][Identifier[10:4-10:5][x]
+			AssignmentStatement[10:11-10:16][Identifier[10:11-10:12][y] = Literal[10:15-10:16][1]]
+		]
+		ElseShortcutClause[10:22-10:27][
+			AssignmentStatement[10:22-10:27][Identifier[10:22-10:23][y] = Literal[10:26-10:27][2]]
+		}]
+	]
+	WhileStatement[11:1-15:10][BinaryExpression[11:7-11:13][Identifier[11:7-11:8][i] < Literal[11:11-11:13][10]]
+		AssignmentStatement[12:2-12:8][Identifier[12:2-12:3][i] = BinaryExpression[12:7-12:8][Identifier[12:2-12:3][i] + Literal[12:7-12:8][1]]]
+		IfStatement[13:2-13:25][
+			IfShortcutClause[13:2-13:25][BinaryExpression[13:5-13:11][Identifier[13:5-13:6][i] == Literal[13:10-13:11][5]]
+				ContinueStatement[13:17-13:25]
+			]
+		]
+		IfStatement[14:2-14:22][
+			IfShortcutClause[14:2-14:22][BinaryExpression[14:5-14:11][Identifier[14:5-14:6][i] == Literal[14:10-14:11][8]]
+				BreakStatement[14:17-14:22]
+			]
+		]
+	]
+	For[16:1-18:8][Identifier[16:5-16:9][item] in ListConstructor[16:13-16:22][
+		ListValue[16:14-16:15][Literal[16:14-16:15][1]]
+		ListValue[16:17-16:18][Literal[16:17-16:18][2]]
+		ListValue[16:20-16:21][Literal[16:20-16:21][3]]
+	]
+		CallStatment[17:2-17:12][CallExpression[17:2-17:12][Identifier[17:2-17:7][print](Identifier[17:8-17:12][item])]]
+	]
+	CallStatment[19:1-19:11][CallExpression[19:1-19:11][Identifier[19:1-19:6][print](Literal[19:7-19:8][1], Literal[19:10-19:11][2])]]
+	AssignmentStatement[20:1-20:26][Identifier[20:1-20:2][m] = MapConstructor[20:5-20:26][
+		MapKeyString[20:6-20:12][Literal[20:6-20:9][a]: Literal[20:11-20:12][1]]
+		MapKeyString[20:14-20:25][Literal[20:14-20:17][b]: ListConstructor[20:19-20:25][
+			ListValue[20:20-20:21][Literal[20:20-20:21][1]]
+			ListValue[20:23-20:24][Literal[20:23-20:24][2]]
+		]]
+	]]
+	AssignmentStatement[21:1-21:9][MemberExpression[21:1-21:4][Identifier[21:1-21:2][m].Identifier[21:3-21:4][a]] = BinaryExpression[21:8-21:9][MemberExpression[21:1-21:4][Identifier[21:1-21:2][m].Identifier[21:3-21:4][a]] - Literal[21:8-21:9][1]]]
+	AssignmentStatement[22:1-22:17][MemberExpression[22:1-22:7][Identifier[22:1-22:5][self].Identifier[22:6-22:7][x]] = MemberExpression[22:10-22:17][Identifier[22:10-22:15][super].Identifier[22:16-22:17][x]]]
+]

@@ -1,0 +1,16 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/return-in-while.src
+---
+[
+  "\"iteration\"",
+  "1",
+  "\"iteration\"",
+  "1",
+  "\"iteration\"",
+  "\"iteration\"",
+  "1",
+  "\"iteration\"",
+  "1"
+]

@@ -1,0 +1,87 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/import-code-with-import.src
+---
+=== default
+MODULES={}
+EXPORTED={}
+__REQUIRE_EVAL=function(cb,ns)
+if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+result=cb(ns)
+if result==null then result={"exports":null}
+if not result.hasIndex("exports") then result.exports=null
+EXPORTED[ns]=result
+return result
+end function
+__REQUIRE=function(ns)
+if not MODULES.hasIndex(ns) then
+print("Module "+ns+" cannot be found...")
+return null
+end if
+return @__REQUIRE_EVAL(@MODULES[ns],ns).exports
+end function
+import_code("/dependencies/other-import.src")
+--- dependencies/other-import.src
+MODULES["C"]=function(r)
+module={}
+module.exports="test"
+return module
+end function
+myNamespace = __REQUIRE("C")
+print(myNamespace)
+=== uglify
+globals.I=globals
+C={}
+D={}
+F=function(cb,ns)
+if D.hasIndex(ns) then return D[ns]
+result=cb(ns)
+if result==null then result={"exports":null}
+if not result.hasIndex("exports") then result.exports=null
+D[ns]=result
+return result
+end function
+E=function(ns)
+if not C.hasIndex(ns) then
+print("Module "+ns+" cannot be found...")
+return null
+end if
+return @F(@C[ns],ns).exports
+end function
+import_code("/dependencies/other-import.src")
+--- dependencies/other-import.src
+C["C"]=function(r)
+H={}
+H.exports="test"
+return H
+end function
+J=E("C")
+print(J)
+=== beautify
+MODULES = {}
+EXPORTED = {}
+__REQUIRE_EVAL = function(cb, ns)
+	if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+	result = cb(ns)
+	if result == null then result = { "exports": null }
+	if not result.hasIndex("exports") then result.exports = null
+	EXPORTED[ns] = result
+	return result
+end function
+__REQUIRE = function(ns)
+	if not MODULES.hasIndex(ns) then
+		print "Module " + ns + " cannot be found..."
+		return null
+	end if
+	return @__REQUIRE_EVAL(@MODULES[ns], ns).exports
+end function
+import_code("/dependencies/other-import.src")
+--- dependencies/other-import.src
+MODULES["C"] = function(r)
+	module = {}
+	module.exports = "test"
+	return module
+end function
+myNamespace = __REQUIRE("C")
+print myNamespace

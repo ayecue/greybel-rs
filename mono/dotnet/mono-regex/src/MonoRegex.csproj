@@ -1,0 +1,47 @@
+<Project>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <_TargetOs Condition="$(RuntimeIdentifier.StartsWith('osx'))">OSX</_TargetOs>
+    <_TargetOs Condition="$(RuntimeIdentifier.StartsWith('linux'))">Linux</_TargetOs>
+    <_TargetOs Condition="$(RuntimeIdentifier.StartsWith('win'))">Windows</_TargetOs>
+    <CrossOsPublish Condition="'$(_TargetOs)' != '' and !$([MSBuild]::IsOSPlatform('$(_TargetOs)'))"
+      >true</CrossOsPublish>
+  </PropertyGroup>
+  <Import
+    Project="Sdk.props"
+    Sdk="StuDev.AotAnywhere"
+    Version="1.0.4"
+    Condition="'$(CrossOsPublish)' == 'true'"
+  />
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PublishAot>true</PublishAot>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>false</UseSystemResourceKeys>
+    <NoWarn>$(NoWarn);CS0618;CS0672;CS3021;SYSLIB0050;SYSLIB0051</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="!$(RuntimeIdentifier.StartsWith('win'))">
+    <TargetName>libMonoRegex</TargetName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../corefx/**/*.cs" />
+    <Using Include="System.Text" />
+  </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import
+    Project="Sdk.targets"
+    Sdk="StuDev.AotAnywhere"
+    Version="1.0.4"
+    Condition="'$(CrossOsPublish)' == 'true'"
+  />
+</Project>

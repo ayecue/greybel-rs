@@ -1,0 +1,13 @@
+#import foo from "./ascii.src";
+#include "./ascii.src";
+#include "../dependencies/sub-import.src"
+#envar TEST_ENV;
+debugger;
+
+
+
+print #line
+print #filename
+
+
+print #inject "../dependencies/inject.src";

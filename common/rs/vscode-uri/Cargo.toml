@@ -1,0 +1,27 @@
+[package]
+name = "vscode-uri"
+description = "Rust port of Microsoft's vscode-uri 3.2.0 with VS Code-compatible URI handling, filesystem paths, and Node POSIX path utilities"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+serde_json.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

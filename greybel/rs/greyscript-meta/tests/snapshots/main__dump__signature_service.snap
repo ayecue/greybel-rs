@@ -1,0 +1,151 @@
+---
+source: greyscript-meta/tests/dump.rs
+assertion_line: 10
+expression: part
+---
+definitionOrder:
+  - install_service
+  - start_service
+  - stop_service
+definitions:
+  install_service:
+    argStrings: []
+    id: install_service
+    json:
+      arguments: []
+      description: "Installs the necessary files for the correct functioning of the service and starts it. If the installation is completed successfully, it returns a `number` with the value one. In case of an error, it returns a `string` with details."
+      example:
+        - "service = include_lib(\"/lib/libhttp.so\")"
+        - result = service.install_service
+        - if result == 1 then
+        - "    print \"Successfully installed service\""
+        - else
+        - "    print \"Service installation failed: \" + result"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+      type: function
+    origin: service
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+    returnVariations:
+      ok:
+        - 1
+        - Denied. Only root user can install this service.
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  start_service:
+    argStrings: []
+    id: start_service
+    json:
+      arguments: []
+      description: "Starts the service and opens its associated `port` on the local machine. The service requires a port forwarded to the router to be accessible from the outside. If the service starts correctly, it returns a `number` with the value one. In case of an error, it returns a `string` with details."
+      example:
+        - "service = include_lib(\"/lib/libhttp.so\")"
+        - result = service.start_service
+        - if result == 1 then
+        - "    print \"Successfully started service\""
+        - else
+        - "    print \"Starting service failed: \" + result"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+      type: function
+    origin: service
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+    returnVariations:
+      ok:
+        - 1
+        - Denied. Only root user can install this service.
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  stop_service:
+    argStrings: []
+    id: stop_service
+    json:
+      arguments: []
+      description: "Stops the service and closes its associated `port` on the local machine. If the service is stopped successfully, it returns a `number` with the value one. If an error occurs during the process, it returns a `string` with details. In some cases, the returned `number` might be zero, indicating that the service removal failed."
+      example:
+        - "service = include_lib(\"/lib/libhttp.so\")"
+        - result = service.stop_service
+        - if result == 1 then
+        - "    print \"Successfully stopped service\""
+        - else
+        - "    print \"Stopping service failed: \" + result"
+        - end if
+      isProtected: false
+      returns:
+        - number
+        - string
+      type: function
+    origin: service
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+    returnVariations:
+      ok:
+        - 0
+        - 1
+        - Denied. Only root user can install this service.
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - install_service
+  - start_service
+  - stop_service
+descriptions:
+  $meta:
+    description: "The service object can be obtained by using [include_lib](#GENERAL_INCLUDE_LIB). The `classID` used for this object is `\"service\"`. Installable services are `\"FTP\"`, `\"SSH\"`, `\"HTTP\"`, and `\"Repository\"`; the chat service and `libchat.so` are no longer available."
+    example: ~
+  install_service:
+    description: "Installs the necessary files for the correct functioning of the service and starts it. If the installation is completed successfully, it returns a `number` with the value one. In case of an error, it returns a `string` with details."
+    example:
+      - "service = include_lib(\"/lib/libhttp.so\")"
+      - result = service.install_service
+      - if result == 1 then
+      - "    print \"Successfully installed service\""
+      - else
+      - "    print \"Service installation failed: \" + result"
+      - end if
+  start_service:
+    description: "Starts the service and opens its associated `port` on the local machine. The service requires a port forwarded to the router to be accessible from the outside. If the service starts correctly, it returns a `number` with the value one. In case of an error, it returns a `string` with details."
+    example:
+      - "service = include_lib(\"/lib/libhttp.so\")"
+      - result = service.start_service
+      - if result == 1 then
+      - "    print \"Successfully started service\""
+      - else
+      - "    print \"Starting service failed: \" + result"
+      - end if
+  stop_service:
+    description: "Stops the service and closes its associated `port` on the local machine. If the service is stopped successfully, it returns a `number` with the value one. If an error occurs during the process, it returns a `string` with details. In some cases, the returned `number` might be zero, indicating that the service removal failed."
+    example:
+      - "service = include_lib(\"/lib/libhttp.so\")"
+      - result = service.stop_service
+      - if result == 1 then
+      - "    print \"Successfully stopped service\""
+      - else
+      - "    print \"Stopping service failed: \" + result"
+      - end if
+extends: map
+hidden: false

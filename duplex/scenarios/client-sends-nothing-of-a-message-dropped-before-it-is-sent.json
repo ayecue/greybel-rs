@@ -1,0 +1,55 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client that drops the response to a message it queued before there was a connection withdraws the message: it sends neither the message nor its cancel once connected.",
+  "peer": "client",
+  "requires": ["cancellation"],
+  "steps": [
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Open": {
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "send": {
+        "Add": {
+          "a": 2,
+          "b": 3
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "drop": "sum"
+    },
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Ack": {
+              "id": 0,
+              "connection": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [],
+        "connection": 1
+      }
+    }
+  ]
+}

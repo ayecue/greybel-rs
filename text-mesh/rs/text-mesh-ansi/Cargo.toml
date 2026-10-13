@@ -1,0 +1,26 @@
+[package]
+name = "text-mesh-ansi"
+description = "Grey Hack's TextMesh Pro rich text as ANSI escape sequences for terminals (24-bit colours, blended over the terminal's background)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+text-mesh-core.workspace = true
+text-mesh-layout.workspace = true
+
+[dev-dependencies]
+text-mesh-test-support.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

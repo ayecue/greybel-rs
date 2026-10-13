@@ -1,0 +1,35 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider migrates a notification of the same layout and names in both majors up by default.",
+  "connected": true,
+  "peer": "provider",
+  "requires": ["migration"],
+  "major": 2,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "Log": {
+                "text": "adding"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "received": [
+          {
+            "Log": {
+              "text": "adding"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

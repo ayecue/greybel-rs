@@ -1,0 +1,18 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: "render_valid(&read(path), &options(Version::Latest))"
+input_file: greybel-core/tests/fixtures/miniscript/scripts/list.ms
+---
+Chunk[1:1-9:2][
+	AssignmentStatement[1:1-1:15][Identifier[1:1-1:5][test] = ListConstructor[1:8-1:15][
+		ListValue[1:9-1:14][Literal[1:9-1:14][foo]]
+	]]
+	AssignmentStatement[2:1-5:2][Identifier[2:1-2:6][test2] = ListConstructor[2:9-5:2][
+		ListValue[3:5-3:8][Literal[3:5-3:8][123]]
+		ListValue[4:5-4:8][Literal[4:5-4:8][345]]
+	]]
+	AssignmentStatement[6:1-9:2][Identifier[6:1-6:6][test3] = ListConstructor[6:9-9:2][
+		ListValue[7:5-7:10][Literal[7:5-7:10][foo]]
+		ListValue[8:5-8:10][Literal[8:5-8:10][moo]]
+	]]
+]

@@ -1,0 +1,4 @@
+# The definitions the worker driver's tests talk over: never released.
+[workspace]
+language = "duplex"
+development = true

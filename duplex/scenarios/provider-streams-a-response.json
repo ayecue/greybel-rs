@@ -1,0 +1,65 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider streams its response to a message: what it starts with, each item, then what it ends with.",
+  "peer": "provider",
+  "requires": ["responses", "streams"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Count": {
+                "to": 2
+              }
+            }
+          },
+          {
+            "ResponseCredit": {
+              "id": 0,
+              "count": 4095
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseStart": {
+                  "id": 0,
+                  "Count": "Active"
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 1
+                }
+              },
+              {
+                "ResponseItem": {
+                  "id": 0,
+                  "Count": 2
+                }
+              },
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Count": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

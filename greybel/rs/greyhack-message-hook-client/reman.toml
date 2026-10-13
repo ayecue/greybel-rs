@@ -1,0 +1,12 @@
+[project]
+kind = "library"
+
+# Against the plugin's proxy (the .NET SDK).
+[tasks.proxy]
+suite = "integration"
+run = "cargo nextest run -p greyhack-message-hook-client --features dotnet"
+
+# Against the installed game, headless (GREY_HACK_PATH; BEPINEX=6 for BepInEx 6).
+[tasks.game]
+suite = "game"
+run = "cargo nextest run -p greyhack-message-hook-client --features game -E 'test(/^game::/)'"

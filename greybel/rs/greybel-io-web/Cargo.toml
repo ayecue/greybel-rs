@@ -1,0 +1,30 @@
+[package]
+name = "greybel-io-web"
+description = "Standard input and output of greybel-interpreter programs, shown and read by a page over a duplex protocol"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greybel-io.workspace = true
+duplex-core.workspace = true
+duplex-driver-web.workspace = true
+
+[dev-dependencies]
+duplex-test-support.workspace = true
+duplex-ts.workspace = true
+greybel-test-support = { workspace = true, features = ["io", "terminal"] }
+serde_json.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

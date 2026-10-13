@@ -1,0 +1,25 @@
+[package]
+name = "text-mesh-core"
+description = "Grey Hack's TextMesh Pro rich text: the game's tag parsing and styles (its Unity.TextMeshPro, including Grey Hack's size cap), and its terminal's line splitting"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+unicode-general-category.workspace = true
+
+[dev-dependencies]
+text-mesh-test-support.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

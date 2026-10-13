@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The plugin against the installed game's assemblies, outside the game: they are loaded, not run, so only code
+       that doesn't need Unity's engine is tested here (the game itself: greyhack-message-hook-client's feature
+       `game`). Builds only with GREY_HACK_PATH, as the plugin. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <!-- The game's assemblies and the plugin's packages disagree on versions of the framework's own. -->
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.2" />
+    <!-- 0Harmony of at least the version the plugin compiles against (BepInEx 5's), and one that runs on .NET 10. -->
+    <PackageReference Include="HarmonyX" Version="2.16.1" />
+    <PackageReference Include="BepInEx.BaseLib" Version="5.4.20" />
+  </ItemGroup>
+
+  <!-- The plugin as BepInEx 5 loads it. Not a project reference: its packages depend on its configuration, which a
+       project reference's restore doesn't see. -->
+  <PropertyGroup>
+    <PluginProject>$(GreybelDotnet)greyhack-message-hook/src</PluginProject>
+  </PropertyGroup>
+  <Target Name="BuildPlugin" BeforeTargets="ResolveAssemblyReferences">
+    <Exec Command="dotnet build &quot;$(PluginProject)&quot; --configuration Debug-BepInEx5 --nologo -v q" />
+  </Target>
+  <ItemGroup>
+    <Reference Include="GreyHackMessageHook5">
+      <HintPath>$(PluginProject)/bin/Debug-BepInEx5/BepInEx5/netstandard2.1/GreyHackMessageHook5.dll</HintPath>
+    </Reference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GreyHackManagedPath)/Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(GreyHackManagedPath)/Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(GreyHackManagedPath)/UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(GreyHackManagedPath)/UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>

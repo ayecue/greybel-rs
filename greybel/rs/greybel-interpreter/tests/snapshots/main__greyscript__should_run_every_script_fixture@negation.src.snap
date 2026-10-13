@@ -1,0 +1,10 @@
+---
+source: greybel-interpreter/tests/greyscript.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greyscript/scripts/negation.src
+---
+[
+  "2",
+  "[-1, 2, 0]",
+  "1"
+]

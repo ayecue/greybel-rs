@@ -1,0 +1,68 @@
+<UserControl
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:GreyHackSetupWizard.Gui.ViewModels"
+  xmlns:res="using:GreyHackSetupWizard.Gui.Resources"
+  x:Class="GreyHackSetupWizard.Gui.Views.PluginPageView"
+  x:DataType="vm:PluginPageViewModel"
+>
+  <StackPanel Spacing="16">
+    <TextBlock Classes="heading" Text="{x:Static res:WindowText.PluginHeading}" />
+    <TextBlock Classes="note" Text="{Binding CurrentText}" />
+
+    <StackPanel Spacing="4">
+      <RadioButton
+        GroupName="pluginAction"
+        Content="{x:Static res:WindowText.PluginInstall}"
+        IsChecked="{Binding Action, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SetupAction.Install}}"
+      />
+      <RadioButton
+        GroupName="pluginAction"
+        Content="{x:Static res:WindowText.PluginRemove}"
+        IsEnabled="{Binding IsRemovable}"
+        IsChecked="{Binding Action, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SetupAction.Remove}}"
+      />
+      <RadioButton
+        GroupName="pluginAction"
+        Content="{x:Static res:WindowText.NothingToChange}"
+        IsChecked="{Binding Action, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SetupAction.Skip}}"
+      />
+    </StackPanel>
+
+    <StackPanel Spacing="4" IsVisible="{Binding IsInstallMode}" Margin="24,0,0,0">
+      <TextBlock Classes="note" Text="{Binding BuildText}" />
+      <TextBlock
+        Text="{x:Static res:WindowText.SourceLabel}"
+        FontWeight="SemiBold"
+        Margin="0,8,0,0"
+      />
+      <RadioButton
+        GroupName="pluginSource"
+        IsEnabled="{Binding IsReleaseAvailable}"
+        IsChecked="{Binding Source, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SourceKind.Download}}"
+      >
+        <StackPanel>
+          <TextBlock Text="{x:Static res:WindowText.PluginSourceRelease}" />
+          <TextBlock Classes="note" Text="{Binding ReleaseText}" />
+        </StackPanel>
+      </RadioButton>
+      <RadioButton
+        GroupName="pluginSource"
+        IsChecked="{Binding Source, Converter={StaticResource EnumMatch}, ConverterParameter={x:Static vm:SourceKind.File}}"
+      >
+        <StackPanel>
+          <TextBlock Text="{x:Static res:WindowText.PluginSourceFile}" />
+          <TextBlock
+            Classes="note"
+            Text="{Binding AssemblyPath, TargetNullValue={x:Static res:WindowText.NoFileChosen}}"
+          />
+        </StackPanel>
+      </RadioButton>
+      <Button
+        Content="{x:Static res:WindowText.ChooseFile}"
+        Command="{Binding ChooseAssemblyCommand}"
+        Margin="28,4,0,0"
+      />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,13 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/errors/break-outside-loop.ms
+---
+--- strict
+1:1 - 1:6 BreakOutsideLoop(5001): 'break' without open loop block
+    hint: 'break' can only be used inside 'while' or 'for' loops
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:1 - 1:6 BreakOutsideLoop(5001): 'break' without open loop block
+    hint: 'break' can only be used inside 'while' or 'for' loops

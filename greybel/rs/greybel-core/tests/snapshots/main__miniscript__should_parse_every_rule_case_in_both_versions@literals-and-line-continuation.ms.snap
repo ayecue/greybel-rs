@@ -1,0 +1,130 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/rules/literals-and-line-continuation.ms
+---
+=== "x = \"a"
+1.6, latest: --- error
+1:5 - 1:7 UnexpectedStringEof(1002): missing closing quote (")
+    hint: Add a closing quote to terminate the string
+=== "x = \"a\nb\""
+1.6: ok
+Chunk[1:1-2:3][
+	AssignmentStatement[1:1-2:3][Identifier[1:1-1:2][x] = Literal[1:5-2:3][a
+	b]]
+]
+latest: --- error
+1:5 - 1:7 UnexpectedStringEof(1002): missing closing quote (")
+    hint: Add a closing quote to terminate the string
+=== "x = 1.2.3"
+1.6, latest: --- error
+1:5 - 1:10 InvalidNumericLiteral(1003): invalid numeric literal: 1.2.3
+=== "x = 1e"
+1.6, latest: --- error
+1:5 - 1:7 InvalidNumericLiteral(1003): invalid numeric literal: 1e
+=== "x = .5"
+1.6, latest: ok
+Chunk[1:1-1:7][
+	AssignmentStatement[1:1-1:7][Identifier[1:1-1:2][x] = Literal[1:5-1:7][0.5]]
+]
+=== "x = [1,\n2]"
+1.6, latest: ok
+Chunk[1:1-2:3][
+	AssignmentStatement[1:1-2:3][Identifier[1:1-1:2][x] = ListConstructor[1:5-2:3][
+		ListValue[1:6-1:7][Literal[1:6-1:7][1]]
+		ListValue[2:1-2:2][Literal[2:1-2:2][2]]
+	]]
+]
+=== "x = {1:\n2}"
+1.6, latest: ok
+Chunk[1:1-2:3][
+	AssignmentStatement[1:1-2:3][Identifier[1:1-1:2][x] = MapConstructor[1:5-2:3][
+		MapKeyString[1:6-2:2][Literal[1:6-1:7][1]: Literal[2:1-2:2][2]]
+	]]
+]
+=== "x = a and\nb"
+1.6, latest: ok
+Chunk[1:1-2:2][
+	AssignmentStatement[1:1-2:2][Identifier[1:1-1:2][x] = LogicalExpression[1:5-2:2][Identifier[1:5-1:6][a] and Identifier[2:1-2:2][b]]]
+]
+=== "x = a +\nb"
+1.6, latest: ok
+Chunk[1:1-2:2][
+	AssignmentStatement[1:1-2:2][Identifier[1:1-1:2][x] = BinaryExpression[1:5-2:2][Identifier[1:5-1:6][a] + Identifier[2:1-2:2][b]]]
+]
+=== "x = (a\n)"
+1.6, latest: --- error
+1:5 - 1:7 ExpectedToken(3001): got EOL(
+) where RParen is required
+=== "x = [1, 2,]"
+1.6, latest: ok
+Chunk[1:1-1:12][
+	AssignmentStatement[1:1-1:12][Identifier[1:1-1:2][x] = ListConstructor[1:5-1:12][
+		ListValue[1:6-1:7][Literal[1:6-1:7][1]]
+		ListValue[1:9-1:10][Literal[1:9-1:10][2]]
+	]]
+]
+=== "x = {1: 2,}"
+1.6, latest: ok
+Chunk[1:1-1:12][
+	AssignmentStatement[1:1-1:12][Identifier[1:1-1:2][x] = MapConstructor[1:5-1:12][
+		MapKeyString[1:6-1:10][Literal[1:6-1:7][1]: Literal[1:9-1:10][2]]
+	]]
+]
+=== "x = [\n]"
+1.6, latest: ok
+Chunk[1:1-2:2][
+	AssignmentStatement[1:1-2:2][Identifier[1:1-1:2][x] = ListConstructor[1:5-2:2][]]
+]
+=== "x = {\n}"
+1.6, latest: ok
+Chunk[1:1-2:2][
+	AssignmentStatement[1:1-2:2][Identifier[1:1-1:2][x] = MapConstructor[1:5-2:2][]]
+]
+=== "print 1,\n2"
+1.6, latest: ok
+Chunk[1:1-2:2][
+	CallStatment[1:1-2:2][CallExpression[1:1-2:2][Identifier[1:1-1:6][print](Literal[1:7-1:8][1], Literal[2:1-2:2][2])]]
+]
+=== "print -1"
+1.6, latest: ok
+Chunk[1:1-1:9][
+	CallStatment[1:1-1:9][CallExpression[1:1-1:9][Identifier[1:1-1:6][print](Literal[1:8-1:9][-1])]]
+]
+=== "print - 1"
+1.6, latest: ok
+Chunk[1:1-1:10][
+	BinaryExpression[1:1-1:10][Identifier[1:1-1:6][print] - Literal[1:9-1:10][1]]
+]
+=== "x -1"
+1.6, latest: ok
+Chunk[1:1-1:5][
+	CallStatment[1:1-1:5][CallExpression[1:1-1:5][Identifier[1:1-1:2][x](Literal[1:4-1:5][-1])]]
+]
+=== "x - 1"
+1.6, latest: ok
+Chunk[1:1-1:6][
+	BinaryExpression[1:1-1:6][Identifier[1:1-1:2][x] - Literal[1:5-1:6][1]]
+]
+=== "x = a[:]"
+1.6, latest: ok
+Chunk[1:1-1:9][
+	AssignmentStatement[1:1-1:9][Identifier[1:1-1:2][x] = SliceExpression[1:5-1:9][Identifier[1:5-1:6][a][EmptyExpression[1:6-1:7][]:EmptyExpression[1:7-1:8][]]]]
+]
+=== "x = a[1:]"
+1.6, latest: ok
+Chunk[1:1-1:10][
+	AssignmentStatement[1:1-1:10][Identifier[1:1-1:2][x] = SliceExpression[1:5-1:10][Identifier[1:5-1:6][a][Literal[1:7-1:8][1]:EmptyExpression[1:8-1:9][]]]]
+]
+=== "x = a[:1]"
+1.6, latest: ok
+Chunk[1:1-1:10][
+	AssignmentStatement[1:1-1:10][Identifier[1:1-1:2][x] = SliceExpression[1:5-1:10][Identifier[1:5-1:6][a][EmptyExpression[1:6-1:7][]:Literal[1:8-1:9][1]]]]
+]
+=== "x = {null: 1}"
+1.6, latest: ok
+Chunk[1:1-1:14][
+	AssignmentStatement[1:1-1:14][Identifier[1:1-1:2][x] = MapConstructor[1:5-1:14][
+		MapKeyString[1:6-1:13][Literal[1:6-1:10][null]: Literal[1:12-1:13][1]]
+	]]
+]

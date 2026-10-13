@@ -1,0 +1,86 @@
+{
+  "type": "general",
+  "definitions": {
+    "hasIndex": {
+      "id": "hasIndex",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "value",
+          "types": [
+            "map",
+            "string"
+          ]
+        },
+        {
+          "label": "index",
+          "type": "any",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "print": {
+      "id": "print",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "value",
+          "type": "any",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "delimiter",
+          "type": "string",
+          "opt": true
+        }
+      ],
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "nested": {
+      "id": "nested",
+      "type": "function",
+      "arguments": [
+        {
+          "label": "value",
+          "type": {
+            "type": "map",
+            "keyType": "string",
+            "valueType": {
+              "type": "list",
+              "valueType": "string"
+            }
+          }
+        }
+      ],
+      "tags": [
+        "function"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": {
+            "type": "list",
+            "valueType": "number"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,27 @@
+[package]
+name = "greybel-io"
+description = "Standard input and output of greybel-interpreter programs: the traits, keys, and output shown in batches"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+scheduler.workspace = true
+
+[dev-dependencies]
+greybel-test-support = { workspace = true, features = ["io"] }
+scheduler.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

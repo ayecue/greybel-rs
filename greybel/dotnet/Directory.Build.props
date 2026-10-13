@@ -1,0 +1,24 @@
+<Project>
+  <!-- Folders outside a project that it reads or writes. A project embeds one
+       with <AssemblyMetadata Include="GreybelRust" Value="$(GreybelRust)" />. -->
+  <PropertyGroup>
+    <GreybelDotnet>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))</GreybelDotnet>
+    <GreybelRust>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../rs'))</GreybelRust>
+    <GreybelContracts>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../contracts'))</GreybelContracts>
+    <DuplexDotnet>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../duplex/dotnet/'))</DuplexDotnet>
+    <AssetsDotnet>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../assets/dotnet/'))</AssetsDotnet>
+  </PropertyGroup>
+
+  <!-- The game's assemblies, which the plugins compile against, are never committed: point GREY_HACK_PATH at the
+       game install (the folder containing "Grey Hack.app" or "Grey Hack_Data"), or GREY_HACK_MANAGED_PATH directly
+       at its Managed folder. -->
+  <PropertyGroup>
+    <GreyHackPath>$(GREY_HACK_PATH)</GreyHackPath>
+    <GreyHackManagedPath>$(GREY_HACK_MANAGED_PATH)</GreyHackManagedPath>
+    <GreyHackManagedPath
+      Condition="'$(GreyHackManagedPath)' == '' And Exists('$(GreyHackPath)/Grey Hack.app')"
+      >$(GreyHackPath)/Grey Hack.app/Contents/Resources/Data/Managed</GreyHackManagedPath>
+    <GreyHackManagedPath Condition="'$(GreyHackManagedPath)' == ''"
+      >$(GreyHackPath)/Grey Hack_Data/Managed</GreyHackManagedPath>
+  </PropertyGroup>
+</Project>

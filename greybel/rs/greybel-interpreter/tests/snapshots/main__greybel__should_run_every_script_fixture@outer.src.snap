@@ -1,0 +1,9 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/outer.src
+---
+[
+  "{\"IS_GREYBEL\": 1, \"params\": []}",
+  "1"
+]

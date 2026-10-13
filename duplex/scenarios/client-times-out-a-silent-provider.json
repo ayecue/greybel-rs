@@ -1,0 +1,49 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A client stays healthy for two checks of a silent provider, turns unhealthy on the third and closes on the fourth, failing its messages.",
+  "peer": "client",
+  "requires": ["responses", "health-check"],
+  "connected": true,
+  "healthCheck": true,
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "check": 2
+    },
+    {
+      "expect": {
+        "health": "healthy"
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "health": "unhealthy",
+        "closed": null
+      }
+    },
+    {
+      "check": 1
+    },
+    {
+      "expect": {
+        "closed": "Timeout",
+        "settled": {
+          "sum": {
+            "closed": "Timeout"
+          }
+        }
+      }
+    }
+  ]
+}

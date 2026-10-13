@@ -1,0 +1,78 @@
+use greyhack_behaviour::{NetworkKind, SECONDS_PER_DAY, day_of_year};
+
+use crate::systems::npcs::jobs::tests::support::{public_ip, world_with};
+use crate::{Database, World};
+
+#[tokio::test]
+/// Lateness doesn't log an NPC out, as being logged in follows only the schedule (`Persona.IsLogged`); a completed one
+/// counts as a strike, and the third fires the NPC (`Persona.NextCita`).
+async fn should_count_late_npcs_as_logged_in_and_fire_on_the_third_strike() {
+    let (mut world, network) = world_with(NetworkKind::Supermarket).await;
+    let address = public_ip(&world, network).await;
+    let admin = world
+        .db
+        .network_admin_person(network)
+        .await
+        .unwrap()
+        .unwrap();
+    let user = world.db.npc(admin).await.unwrap().unwrap().user;
+
+    for strike in 1..=3 {
+        world
+            .set_phone_alarm(&address, &user, 0, 0, true)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+
+        let npc = world.db.npc(admin).await.unwrap().unwrap();
+        let work_start = npc.schedule.work1_start();
+        let midnight = world.time_seconds() / SECONDS_PER_DAY * SECONDS_PER_DAY;
+        let mut work = midnight + work_start;
+
+        while work <= world.time_seconds() || !npc.schedule.is_working(work) {
+            work += SECONDS_PER_DAY;
+        }
+
+        world.tick(work - world.time_seconds()).await.unwrap();
+
+        let late = world.db.npc(admin).await.unwrap().unwrap();
+
+        assert!(late.is_late_to_work(world.time_seconds()).late);
+        assert!(late.online, "a late administrator is logged in");
+
+        let wake = late.wake_up_time.unwrap();
+        let mut alarm_day = world.time_seconds() / SECONDS_PER_DAY * SECONDS_PER_DAY;
+
+        if late.day_alarm != day_of_year(world.time_seconds()) {
+            alarm_day += SECONDS_PER_DAY;
+        }
+
+        world
+            .tick(alarm_day + wake - world.time_seconds())
+            .await
+            .unwrap();
+
+        let after = world.db.npc(admin).await.unwrap().unwrap();
+
+        assert_eq!(
+            after.late_strikes,
+            strike,
+            "{after:?} at {}",
+            world.time_seconds()
+        );
+        assert_eq!(after.fired, strike == 3);
+        assert_eq!(after.wake_up_time, None);
+        assert!(!after.alarm.is_modified);
+    }
+
+    let database = Database::in_memory().await.unwrap();
+
+    world.save_into(&database).await.unwrap();
+
+    let restored = World::load(&database).await.unwrap();
+    let npc = restored.db.npc(admin).await.unwrap().unwrap();
+
+    assert_eq!(npc.late_strikes, 3);
+    assert!(npc.fired);
+}

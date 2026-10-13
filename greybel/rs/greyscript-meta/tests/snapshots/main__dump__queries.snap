@@ -1,0 +1,7371 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+File:
+  all:
+    origin: computer
+    search:
+      - computer
+      - ftpComputer
+  any:
+    origin: computer
+    search:
+      - computer
+      - ftpComputer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+        - ftpComputer
+    computer:
+      origin: computer
+      search:
+        - computer
+    ftpComputer:
+      origin: ftpComputer
+      search:
+        - ftpComputer
+    general:
+      origin: general
+      search:
+        - general
+abs:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+accept_mission:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+access_cctv:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+acos:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+active_net_card:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+active_user:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+add_computer:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+add_net_card:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+add_npc:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+add_repo:
+  all:
+    origin: aptClient
+    search:
+      - aptClient
+  any:
+    origin: aptClient
+    search:
+      - aptClient
+  each:
+    any:
+      origin: aptClient
+      search:
+        - aptClient
+    aptClient:
+      origin: aptClient
+      search:
+        - aptClient
+    general:
+      origin: general
+      search:
+        - general
+add_smart_appliance:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+aircrack:
+  all:
+    origin: crypto
+    search:
+      - crypto
+  any:
+    origin: crypto
+    search:
+      - crypto
+  each:
+    any:
+      origin: crypto
+      search:
+        - crypto
+    crypto:
+      origin: crypto
+      search:
+        - crypto
+    general:
+      origin: general
+      search:
+        - general
+aireplay:
+  all:
+    origin: crypto
+    search:
+      - crypto
+  any:
+    origin: crypto
+    search:
+      - crypto
+  each:
+    any:
+      origin: crypto
+      search:
+        - crypto
+    crypto:
+      origin: crypto
+      search:
+        - crypto
+    general:
+      origin: general
+      search:
+        - general
+airmon:
+  all:
+    origin: crypto
+    search:
+      - crypto
+  any:
+    origin: crypto
+    search:
+      - crypto
+  each:
+    any:
+      origin: crypto
+      search:
+        - crypto
+    crypto:
+      origin: crypto
+      search:
+        - crypto
+    general:
+      origin: general
+      search:
+        - general
+allow_import:
+  all:
+    origin: file
+    search:
+      - file
+  any:
+    origin: file
+    search:
+      - file
+  each:
+    any:
+      origin: file
+      search:
+        - file
+    file:
+      origin: file
+      search:
+        - file
+    general:
+      origin: general
+      search:
+        - general
+amount_mined:
+  all:
+    origin: blockchain
+    search:
+      - blockchain
+  any:
+    origin: blockchain
+    search:
+      - blockchain
+  each:
+    any:
+      origin: blockchain
+      search:
+        - blockchain
+    blockchain:
+      origin: blockchain
+      search:
+        - blockchain
+    general:
+      origin: general
+      search:
+        - general
+apply_patch:
+  all:
+    origin: debugLibrary
+    search:
+      - debugLibrary
+  any:
+    origin: debugLibrary
+    search:
+      - debugLibrary
+  each:
+    any:
+      origin: debugLibrary
+      search:
+        - debugLibrary
+    debugLibrary:
+      origin: debugLibrary
+      search:
+        - debugLibrary
+    general:
+      origin: general
+      search:
+        - general
+asin:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+atan:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+bitAnd:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+bitOr:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+bitXor:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+bitwise:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+bssid_name:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+build:
+  all:
+    origin: shell
+    search:
+      - shell
+  any:
+    origin: shell
+    search:
+      - shell
+  each:
+    any:
+      origin: shell
+      search:
+        - shell
+    general:
+      origin: general
+      search:
+        - general
+    shell:
+      origin: shell
+      search:
+        - shell
+buy_coin:
+  all:
+    origin: wallet
+    search:
+      - wallet
+  any:
+    origin: wallet
+    search:
+      - wallet
+  each:
+    any:
+      origin: wallet
+      search:
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+buy_exploit:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+camera_link_system:
+  all:
+    origin: trafficNet
+    search:
+      - trafficNet
+  any:
+    origin: trafficNet
+    search:
+      - trafficNet
+  each:
+    any:
+      origin: trafficNet
+      search:
+        - trafficNet
+    general:
+      origin: general
+      search:
+        - general
+    trafficNet:
+      origin: trafficNet
+      search:
+        - trafficNet
+cancel_pending_trade:
+  all:
+    origin: wallet
+    search:
+      - wallet
+  any:
+    origin: wallet
+    search:
+      - wallet
+  each:
+    any:
+      origin: wallet
+      search:
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+cd:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+ceil:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+change_password:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+char:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+check_password:
+  all:
+    origin: subWallet
+    search:
+      - subWallet
+  any:
+    origin: subWallet
+    search:
+      - subWallet
+  each:
+    any:
+      origin: subWallet
+      search:
+        - subWallet
+    general:
+      origin: general
+      search:
+        - general
+    subWallet:
+      origin: subWallet
+      search:
+        - subWallet
+check_upgrade:
+  all:
+    origin: aptClient
+    search:
+      - aptClient
+  any:
+    origin: aptClient
+    search:
+      - aptClient
+  each:
+    any:
+      origin: aptClient
+      search:
+        - aptClient
+    aptClient:
+      origin: aptClient
+      search:
+        - aptClient
+    general:
+      origin: general
+      search:
+        - general
+chmod:
+  all:
+    origin: file
+    search:
+      - file
+  any:
+    origin: file
+    search:
+      - file
+  each:
+    any:
+      origin: file
+      search:
+        - file
+    file:
+      origin: file
+      search:
+        - file
+    general:
+      origin: general
+      search:
+        - general
+clear_screen:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+close_program:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+code:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+coin_price:
+  all:
+    origin: blockchain
+    search:
+      - blockchain
+  any:
+    origin: blockchain
+    search:
+      - blockchain
+  each:
+    any:
+      origin: blockchain
+      search:
+        - blockchain
+    blockchain:
+      origin: blockchain
+      search:
+        - blockchain
+    general:
+      origin: general
+      search:
+        - general
+command_info:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+computer:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+connect_ethernet:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+connect_service:
+  all:
+    origin: shell
+    search:
+      - shell
+  any:
+    origin: shell
+    search:
+      - shell
+  each:
+    any:
+      origin: shell
+      search:
+        - shell
+    general:
+      origin: general
+      search:
+        - general
+    shell:
+      origin: shell
+      search:
+        - shell
+connect_wifi:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+copy:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+cos:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+create_ctf_account:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+create_ctf_event:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+create_debug_account:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+create_folder:
+  all:
+    origin: computer
+    search:
+      - computer
+      - ftpComputer
+  any:
+    origin: computer
+    search:
+      - computer
+      - ftpComputer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+        - ftpComputer
+    computer:
+      origin: computer
+      search:
+        - computer
+    ftpComputer:
+      origin: ftpComputer
+      search:
+        - ftpComputer
+    general:
+      origin: general
+      search:
+        - general
+create_group:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+create_guild:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+create_mail_account:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+create_network:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+create_program:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+create_subwallet:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+create_user:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+create_wallet:
+  all:
+    origin: blockchain
+    search:
+      - blockchain
+  any:
+    origin: blockchain
+    search:
+      - blockchain
+  each:
+    any:
+      origin: blockchain
+      search:
+        - blockchain
+    blockchain:
+      origin: blockchain
+      search:
+        - blockchain
+    general:
+      origin: general
+      search:
+        - general
+current_date:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+current_path:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+date:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+debug_tools:
+  all:
+    origin: metaLib
+    search:
+      - metaLib
+  any:
+    origin: metaLib
+    search:
+      - metaLib
+  each:
+    any:
+      origin: metaLib
+      search:
+        - metaLib
+    general:
+      origin: general
+      search:
+        - general
+    metaLib:
+      origin: metaLib
+      search:
+        - metaLib
+decipher:
+  all:
+    origin: crypto
+    search:
+      - crypto
+  any:
+    origin: crypto
+    search:
+      - crypto
+  each:
+    any:
+      origin: crypto
+      search:
+        - crypto
+    crypto:
+      origin: crypto
+      search:
+        - crypto
+    general:
+      origin: general
+      search:
+        - general
+decrypt:
+  all:
+    origin: crypto
+    search:
+      - crypto
+  any:
+    origin: crypto
+    search:
+      - crypto
+  each:
+    any:
+      origin: crypto
+      search:
+        - crypto
+    crypto:
+      origin: crypto
+      search:
+        - crypto
+    general:
+      origin: general
+      search:
+        - general
+del_repo:
+  all:
+    origin: aptClient
+    search:
+      - aptClient
+  any:
+    origin: aptClient
+    search:
+      - aptClient
+  each:
+    any:
+      origin: aptClient
+      search:
+        - aptClient
+    aptClient:
+      origin: aptClient
+      search:
+        - aptClient
+    general:
+      origin: general
+      search:
+        - general
+delete:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+      - metaMail
+      - subWallet
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+      - metaMail
+      - subWallet
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+        - metaMail
+        - subWallet
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+    metaMail:
+      origin: metaMail
+      search:
+        - metaMail
+    subWallet:
+      origin: subWallet
+      search:
+        - subWallet
+delete_all:
+  all:
+    origin: metaMail
+    search:
+      - metaMail
+  any:
+    origin: metaMail
+    search:
+      - metaMail
+  each:
+    any:
+      origin: metaMail
+      search:
+        - metaMail
+    general:
+      origin: general
+      search:
+        - general
+    metaMail:
+      origin: metaMail
+      search:
+        - metaMail
+delete_coin:
+  all:
+    origin: blockchain
+    search:
+      - blockchain
+  any:
+    origin: blockchain
+    search:
+      - blockchain
+  each:
+    any:
+      origin: blockchain
+      search:
+        - blockchain
+    blockchain:
+      origin: blockchain
+      search:
+        - blockchain
+    general:
+      origin: general
+      search:
+        - general
+delete_group:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+delete_mail:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+delete_subwallet:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+delete_user:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+deposit:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+device_ports:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+devices_lan_ip:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+dump_lib:
+  all:
+    origin: netSession
+    search:
+      - netSession
+  any:
+    origin: netSession
+    search:
+      - netSession
+  each:
+    any:
+      origin: netSession
+      search:
+        - netSession
+    general:
+      origin: general
+      search:
+        - general
+    netSession:
+      origin: netSession
+      search:
+        - netSession
+encrypt:
+  all:
+    origin: crypto
+    search:
+      - crypto
+  any:
+    origin: crypto
+    search:
+      - crypto
+  each:
+    any:
+      origin: crypto
+      search:
+        - crypto
+    crypto:
+      origin: crypto
+      search:
+        - crypto
+    general:
+      origin: general
+      search:
+        - general
+essid_name:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+exit:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+exploit_shop:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+fetch:
+  all:
+    origin: metaMail
+    search:
+      - metaMail
+  any:
+    origin: metaMail
+    search:
+      - metaMail
+  each:
+    any:
+      origin: metaMail
+      search:
+        - metaMail
+    general:
+      origin: general
+      search:
+        - general
+    metaMail:
+      origin: metaMail
+      search:
+        - metaMail
+fire_admin:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+fire_npc:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+firewall_rules:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+flood_connection:
+  all:
+    origin: netSession
+    search:
+      - netSession
+  any:
+    origin: netSession
+    search:
+      - netSession
+  each:
+    any:
+      origin: netSession
+      search:
+        - netSession
+    general:
+      origin: general
+      search:
+        - general
+    netSession:
+      origin: netSession
+      search:
+        - netSession
+floor:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+format_columns:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+funcRef:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+get_abs_path:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+get_address:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+get_balance:
+  all:
+    origin: subWallet
+    search:
+      - subWallet
+      - wallet
+  any:
+    origin: subWallet
+    search:
+      - subWallet
+      - wallet
+  each:
+    any:
+      origin: subWallet
+      search:
+        - subWallet
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    subWallet:
+      origin: subWallet
+      search:
+        - subWallet
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+get_balance_subwallet:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+get_coin:
+  all:
+    origin: blockchain
+    search:
+      - blockchain
+  any:
+    origin: blockchain
+    search:
+      - blockchain
+  each:
+    any:
+      origin: blockchain
+      search:
+        - blockchain
+    blockchain:
+      origin: blockchain
+      search:
+        - blockchain
+    general:
+      origin: general
+      search:
+        - general
+get_coin_name:
+  all:
+    origin: blockchain
+    search:
+      - blockchain
+  any:
+    origin: blockchain
+    search:
+      - blockchain
+  each:
+    any:
+      origin: blockchain
+      search:
+        - blockchain
+    blockchain:
+      origin: blockchain
+      search:
+        - blockchain
+    general:
+      origin: general
+      search:
+        - general
+get_content:
+  all:
+    origin: file
+    search:
+      - file
+  any:
+    origin: file
+    search:
+      - file
+  each:
+    any:
+      origin: file
+      search:
+        - file
+    file:
+      origin: file
+      search:
+        - file
+    general:
+      origin: general
+      search:
+        - general
+get_creator_name:
+  all:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  any:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  each:
+    any:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    ctfEvent:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    general:
+      origin: general
+      search:
+        - general
+get_credentials_info:
+  all:
+    origin: trafficNet
+    search:
+      - trafficNet
+  any:
+    origin: trafficNet
+    search:
+      - trafficNet
+  each:
+    any:
+      origin: trafficNet
+      search:
+        - trafficNet
+    general:
+      origin: general
+      search:
+        - general
+    trafficNet:
+      origin: trafficNet
+      search:
+        - trafficNet
+get_ctf:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+get_custom_object:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+get_cycle_mining:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+get_description:
+  all:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  any:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  each:
+    any:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    ctfEvent:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    general:
+      origin: general
+      search:
+        - general
+get_files:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+get_folders:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+get_global_offers:
+  all:
+    origin: wallet
+    search:
+      - wallet
+  any:
+    origin: wallet
+    search:
+      - wallet
+  each:
+    any:
+      origin: wallet
+      search:
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+get_info:
+  all:
+    origin: subWallet
+    search:
+      - subWallet
+  any:
+    origin: subWallet
+    search:
+      - subWallet
+  each:
+    any:
+      origin: subWallet
+      search:
+        - subWallet
+    general:
+      origin: general
+      search:
+        - general
+    subWallet:
+      origin: subWallet
+      search:
+        - subWallet
+get_lan_ip:
+  all:
+    origin: port
+    search:
+      - port
+  any:
+    origin: port
+    search:
+      - port
+  each:
+    any:
+      origin: port
+      search:
+        - port
+    general:
+      origin: general
+      search:
+        - general
+    port:
+      origin: port
+      search:
+        - port
+get_mail_content:
+  all:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  any:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  each:
+    any:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    ctfEvent:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    general:
+      origin: general
+      search:
+        - general
+get_mined_coins:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+get_name:
+  all:
+    origin: computer
+    search:
+      - computer
+      - ftpComputer
+  any:
+    origin: computer
+    search:
+      - computer
+      - ftpComputer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+        - ftpComputer
+    computer:
+      origin: computer
+      search:
+        - computer
+    ftpComputer:
+      origin: ftpComputer
+      search:
+        - ftpComputer
+    general:
+      origin: general
+      search:
+        - general
+get_num_conn_gateway:
+  all:
+    origin: netSession
+    search:
+      - netSession
+  any:
+    origin: netSession
+    search:
+      - netSession
+  each:
+    any:
+      origin: netSession
+      search:
+        - netSession
+    general:
+      origin: general
+      search:
+        - general
+    netSession:
+      origin: netSession
+      search:
+        - netSession
+get_num_portforward:
+  all:
+    origin: netSession
+    search:
+      - netSession
+  any:
+    origin: netSession
+    search:
+      - netSession
+  each:
+    any:
+      origin: netSession
+      search:
+        - netSession
+    general:
+      origin: general
+      search:
+        - general
+    netSession:
+      origin: netSession
+      search:
+        - netSession
+get_num_users:
+  all:
+    origin: netSession
+    search:
+      - netSession
+  any:
+    origin: netSession
+    search:
+      - netSession
+  each:
+    any:
+      origin: netSession
+      search:
+        - netSession
+    general:
+      origin: general
+      search:
+        - general
+    netSession:
+      origin: netSession
+      search:
+        - netSession
+get_pending_trade:
+  all:
+    origin: wallet
+    search:
+      - wallet
+  any:
+    origin: wallet
+    search:
+      - wallet
+  each:
+    any:
+      origin: wallet
+      search:
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+get_pin:
+  all:
+    origin: wallet
+    search:
+      - wallet
+  any:
+    origin: wallet
+    search:
+      - wallet
+  each:
+    any:
+      origin: wallet
+      search:
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+get_ports:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+get_reward:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+get_router:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+get_shell:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+get_subwallet:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+get_subwallets:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+get_switch:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+get_template:
+  all:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  any:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  each:
+    any:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    ctfEvent:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    general:
+      origin: general
+      search:
+        - general
+get_user:
+  all:
+    origin: subWallet
+    search:
+      - subWallet
+  any:
+    origin: subWallet
+    search:
+      - subWallet
+  each:
+    any:
+      origin: subWallet
+      search:
+        - subWallet
+    general:
+      origin: general
+      search:
+        - general
+    subWallet:
+      origin: subWallet
+      search:
+        - subWallet
+grant_coins:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+group:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+groups:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+hasIndex:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+has_permission:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+hash:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+hire_admin:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+hire_crown_shield:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+hire_npc:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+home_dir:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+host_computer:
+  all:
+    origin: ftpShell
+    search:
+      - ftpShell
+      - shell
+  any:
+    origin: ftpShell
+    search:
+      - ftpShell
+      - shell
+  each:
+    any:
+      origin: ftpShell
+      search:
+        - ftpShell
+        - shell
+    ftpShell:
+      origin: ftpShell
+      search:
+        - ftpShell
+    general:
+      origin: general
+      search:
+        - general
+    shell:
+      origin: shell
+      search:
+        - shell
+import_code:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+include_lib:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+indexOf:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+indexes:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+insert:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+  any:
+    origin: any
+    search:
+      - string
+      - list
+  each:
+    any:
+      origin: any
+      search:
+        - string
+        - list
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    string:
+      origin: string
+      search:
+        - string
+install:
+  all:
+    origin: aptClient
+    search:
+      - aptClient
+  any:
+    origin: aptClient
+    search:
+      - aptClient
+  each:
+    any:
+      origin: aptClient
+      search:
+        - aptClient
+    aptClient:
+      origin: aptClient
+      search:
+        - aptClient
+    general:
+      origin: general
+      search:
+        - general
+install_service:
+  all:
+    origin: service
+    search:
+      - service
+  any:
+    origin: service
+    search:
+      - service
+  each:
+    any:
+      origin: service
+      search:
+        - service
+    general:
+      origin: general
+      search:
+        - general
+    service:
+      origin: service
+      search:
+        - service
+install_smartphone_adb:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+is_any_active_user:
+  all:
+    origin: netSession
+    search:
+      - netSession
+  any:
+    origin: netSession
+    search:
+      - netSession
+  each:
+    any:
+      origin: netSession
+      search:
+        - netSession
+    general:
+      origin: general
+      search:
+        - general
+    netSession:
+      origin: netSession
+      search:
+        - netSession
+is_binary:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+is_closed:
+  all:
+    origin: port
+    search:
+      - port
+  any:
+    origin: port
+    search:
+      - port
+  each:
+    any:
+      origin: port
+      search:
+        - port
+    general:
+      origin: general
+      search:
+        - general
+    port:
+      origin: port
+      search:
+        - port
+is_encrypted:
+  all:
+    origin: crypto
+    search:
+      - crypto
+  any:
+    origin: crypto
+    search:
+      - crypto
+  each:
+    any:
+      origin: crypto
+      search:
+        - crypto
+    crypto:
+      origin: crypto
+      search:
+        - crypto
+    general:
+      origin: general
+      search:
+        - general
+is_folder:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+is_lan_ip:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+is_match:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+is_network_active:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+is_patched:
+  all:
+    origin: metaLib
+    search:
+      - metaLib
+  any:
+    origin: metaLib
+    search:
+      - metaLib
+  each:
+    any:
+      origin: metaLib
+      search:
+        - metaLib
+    general:
+      origin: general
+      search:
+        - general
+    metaLib:
+      origin: metaLib
+      search:
+        - metaLib
+is_root_active_user:
+  all:
+    origin: netSession
+    search:
+      - netSession
+  any:
+    origin: netSession
+    search:
+      - netSession
+  each:
+    any:
+      origin: netSession
+      search:
+        - netSession
+    general:
+      origin: general
+      search:
+        - general
+    netSession:
+      origin: netSession
+      search:
+        - netSession
+is_symlink:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+is_valid_ip:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+join:
+  all:
+    origin: list
+    search:
+      - list
+  any:
+    origin: list
+    search:
+      - list
+  each:
+    any:
+      origin: list
+      search:
+        - list
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+kernel_version:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+lan_ip:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+lastIndexOf:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+last_transaction:
+  all:
+    origin: subWallet
+    search:
+      - subWallet
+  any:
+    origin: subWallet
+    search:
+      - subWallet
+  each:
+    any:
+      origin: subWallet
+      search:
+        - subWallet
+    general:
+      origin: general
+      search:
+        - general
+    subWallet:
+      origin: subWallet
+      search:
+        - subWallet
+launch:
+  all:
+    origin: shell
+    search:
+      - shell
+  any:
+    origin: shell
+    search:
+      - shell
+  each:
+    any:
+      origin: shell
+      search:
+        - shell
+    general:
+      origin: general
+      search:
+        - general
+    shell:
+      origin: shell
+      search:
+        - shell
+launch_path:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+len:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+lib_name:
+  all:
+    origin: metaLib
+    search:
+      - metaLib
+  any:
+    origin: metaLib
+    search:
+      - metaLib
+  each:
+    any:
+      origin: metaLib
+      search:
+        - metaLib
+    general:
+      origin: general
+      search:
+        - general
+    metaLib:
+      origin: metaLib
+      search:
+        - metaLib
+list:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+list_coins:
+  all:
+    origin: wallet
+    search:
+      - wallet
+  any:
+    origin: wallet
+    search:
+      - wallet
+  each:
+    any:
+      origin: wallet
+      search:
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+list_global_coins:
+  all:
+    origin: wallet
+    search:
+      - wallet
+  any:
+    origin: wallet
+    search:
+      - wallet
+  each:
+    any:
+      origin: wallet
+      search:
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+load:
+  all:
+    origin: metaxploit
+    search:
+      - metaxploit
+  any:
+    origin: metaxploit
+    search:
+      - metaxploit
+  each:
+    any:
+      origin: metaxploit
+      search:
+        - metaxploit
+    general:
+      origin: general
+      search:
+        - general
+    metaxploit:
+      origin: metaxploit
+      search:
+        - metaxploit
+local_ip:
+  all:
+    origin: computer
+    search:
+      - computer
+      - router
+  any:
+    origin: computer
+    search:
+      - computer
+      - router
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+        - router
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+locate_vehicle:
+  all:
+    origin: trafficNet
+    search:
+      - trafficNet
+  any:
+    origin: trafficNet
+    search:
+      - trafficNet
+  each:
+    any:
+      origin: trafficNet
+      search:
+        - trafficNet
+    general:
+      origin: general
+      search:
+        - general
+    trafficNet:
+      origin: trafficNet
+      search:
+        - trafficNet
+log:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+login:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+login_wallet:
+  all:
+    origin: blockchain
+    search:
+      - blockchain
+  any:
+    origin: blockchain
+    search:
+      - blockchain
+  each:
+    any:
+      origin: blockchain
+      search:
+        - blockchain
+    blockchain:
+      origin: blockchain
+      search:
+        - blockchain
+    general:
+      origin: general
+      search:
+        - general
+lower:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+mail_login:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+map:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+matches:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+md5:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+mining:
+  all:
+    origin: subWallet
+    search:
+      - subWallet
+  any:
+    origin: subWallet
+    search:
+      - subWallet
+  each:
+    any:
+      origin: subWallet
+      search:
+        - subWallet
+    general:
+      origin: general
+      search:
+        - general
+    subWallet:
+      origin: subWallet
+      search:
+        - subWallet
+model:
+  all:
+    origin: smartAppliance
+    search:
+      - smartAppliance
+  any:
+    origin: smartAppliance
+    search:
+      - smartAppliance
+  each:
+    any:
+      origin: smartAppliance
+      search:
+        - smartAppliance
+    general:
+      origin: general
+      search:
+        - general
+    smartAppliance:
+      origin: smartAppliance
+      search:
+        - smartAppliance
+move:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+name:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+net_speed:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+net_use:
+  all:
+    origin: metaxploit
+    search:
+      - metaxploit
+  any:
+    origin: metaxploit
+    search:
+      - metaxploit
+  each:
+    any:
+      origin: metaxploit
+      search:
+        - metaxploit
+    general:
+      origin: general
+      search:
+        - general
+    metaxploit:
+      origin: metaxploit
+      search:
+        - metaxploit
+network:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+network_devices:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+network_gateway:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+networks:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+npc_login:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+nslookup:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+number:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+overflow:
+  all:
+    origin: metaLib
+    search:
+      - metaLib
+  any:
+    origin: metaLib
+    search:
+      - metaLib
+  each:
+    any:
+      origin: metaLib
+      search:
+        - metaLib
+    general:
+      origin: general
+      search:
+        - general
+    metaLib:
+      origin: metaLib
+      search:
+        - metaLib
+override_settings:
+  all:
+    origin: smartAppliance
+    search:
+      - smartAppliance
+  any:
+    origin: smartAppliance
+    search:
+      - smartAppliance
+  each:
+    any:
+      origin: smartAppliance
+      search:
+        - smartAppliance
+    general:
+      origin: general
+      search:
+        - general
+    smartAppliance:
+      origin: smartAppliance
+      search:
+        - smartAppliance
+owner:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+parent:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+parent_path:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+path:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+payload:
+  all:
+    origin: debugLibrary
+    search:
+      - debugLibrary
+  any:
+    origin: debugLibrary
+    search:
+      - debugLibrary
+  each:
+    any:
+      origin: debugLibrary
+      search:
+        - debugLibrary
+    debugLibrary:
+      origin: debugLibrary
+      search:
+        - debugLibrary
+    general:
+      origin: general
+      search:
+        - general
+permissions:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+phone_alarm:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+pi:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+ping:
+  all:
+    origin: shell
+    search:
+      - shell
+  any:
+    origin: shell
+    search:
+      - shell
+  each:
+    any:
+      origin: shell
+      search:
+        - shell
+    general:
+      origin: general
+      search:
+        - general
+    shell:
+      origin: shell
+      search:
+        - shell
+ping_port:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+player_success:
+  all:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  any:
+    origin: ctfEvent
+    search:
+      - ctfEvent
+  each:
+    any:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    ctfEvent:
+      origin: ctfEvent
+      search:
+        - ctfEvent
+    general:
+      origin: general
+      search:
+        - general
+poll_input:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+pop:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+port_info:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+port_number:
+  all:
+    origin: port
+    search:
+      - port
+  any:
+    origin: port
+    search:
+      - port
+  each:
+    any:
+      origin: port
+      search:
+        - port
+    general:
+      origin: general
+      search:
+        - general
+    port:
+      origin: port
+      search:
+        - port
+print:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+program_path:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+public_ip:
+  all:
+    origin: computer
+    search:
+      - computer
+      - router
+  any:
+    origin: computer
+    search:
+      - computer
+      - router
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+        - router
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+public_ip_pc:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+pull:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+push:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+range:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+rate_ctf_event:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+read:
+  all:
+    origin: metaMail
+    search:
+      - metaMail
+  any:
+    origin: metaMail
+    search:
+      - metaMail
+  each:
+    any:
+      origin: metaMail
+      search:
+        - metaMail
+    general:
+      origin: general
+      search:
+        - general
+    metaMail:
+      origin: metaMail
+      search:
+        - metaMail
+reboot:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+register_password:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+remove:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+      - adminNetwork
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+      - adminNetwork
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+        - adminNetwork
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+rename:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+replace:
+  all:
+    origin: string
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: string
+    search:
+      - string
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: string
+      search:
+        - string
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+replace_regex:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+report_library_update:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+reset_ctf_password:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+reset_password:
+  all:
+    origin: coin
+    search:
+      - coin
+      - wallet
+  any:
+    origin: coin
+    search:
+      - coin
+      - wallet
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+        - wallet
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+reset_password_coin:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+reverse:
+  all:
+    origin: list
+    search:
+      - list
+  any:
+    origin: list
+    search:
+      - list
+  each:
+    any:
+      origin: list
+      search:
+        - list
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+rnd:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+round:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+rshell_client:
+  all:
+    origin: metaxploit
+    search:
+      - metaxploit
+  any:
+    origin: metaxploit
+    search:
+      - metaxploit
+  each:
+    any:
+      origin: metaxploit
+      search:
+        - metaxploit
+    general:
+      origin: general
+      search:
+        - general
+    metaxploit:
+      origin: metaxploit
+      search:
+        - metaxploit
+rshell_server:
+  all:
+    origin: metaxploit
+    search:
+      - metaxploit
+  any:
+    origin: metaxploit
+    search:
+      - metaxploit
+  each:
+    any:
+      origin: metaxploit
+      search:
+        - metaxploit
+    general:
+      origin: general
+      search:
+        - general
+    metaxploit:
+      origin: metaxploit
+      search:
+        - metaxploit
+scan:
+  all:
+    origin: metaxploit
+    search:
+      - metaxploit
+      - debugLibrary
+  any:
+    origin: metaxploit
+    search:
+      - metaxploit
+      - debugLibrary
+  each:
+    any:
+      origin: metaxploit
+      search:
+        - metaxploit
+        - debugLibrary
+    debugLibrary:
+      origin: debugLibrary
+      search:
+        - debugLibrary
+    general:
+      origin: general
+      search:
+        - general
+    metaxploit:
+      origin: metaxploit
+      search:
+        - metaxploit
+scan_address:
+  all:
+    origin: metaxploit
+    search:
+      - metaxploit
+  any:
+    origin: metaxploit
+    search:
+      - metaxploit
+  each:
+    any:
+      origin: metaxploit
+      search:
+        - metaxploit
+    general:
+      origin: general
+      search:
+        - general
+    metaxploit:
+      origin: metaxploit
+      search:
+        - metaxploit
+scan_debuglib:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+scp:
+  all:
+    origin: ftpShell
+    search:
+      - ftpShell
+      - shell
+  any:
+    origin: ftpShell
+    search:
+      - ftpShell
+      - shell
+  each:
+    any:
+      origin: ftpShell
+      search:
+        - ftpShell
+        - shell
+    ftpShell:
+      origin: ftpShell
+      search:
+        - ftpShell
+    general:
+      origin: general
+      search:
+        - general
+    shell:
+      origin: shell
+      search:
+        - shell
+search:
+  all:
+    origin: aptClient
+    search:
+      - aptClient
+  any:
+    origin: aptClient
+    search:
+      - aptClient
+  each:
+    any:
+      origin: aptClient
+      search:
+        - aptClient
+    aptClient:
+      origin: aptClient
+      search:
+        - aptClient
+    general:
+      origin: general
+      search:
+        - general
+seed:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+sell_coin:
+  all:
+    origin: wallet
+    search:
+      - wallet
+  any:
+    origin: wallet
+    search:
+      - wallet
+  each:
+    any:
+      origin: wallet
+      search:
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+send:
+  all:
+    origin: metaMail
+    search:
+      - metaMail
+  any:
+    origin: metaMail
+    search:
+      - metaMail
+  each:
+    any:
+      origin: metaMail
+      search:
+        - metaMail
+    general:
+      origin: general
+      search:
+        - general
+    metaMail:
+      origin: metaMail
+      search:
+        - metaMail
+service_records:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+set_address:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+set_admin_restore:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+set_alarm:
+  all:
+    origin: smartAppliance
+    search:
+      - smartAppliance
+  any:
+    origin: smartAppliance
+    search:
+      - smartAppliance
+  each:
+    any:
+      origin: smartAppliance
+      search:
+        - smartAppliance
+    general:
+      origin: general
+      search:
+        - general
+    smartAppliance:
+      origin: smartAppliance
+      search:
+        - smartAppliance
+set_company_shares:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+set_content:
+  all:
+    origin: file
+    search:
+      - file
+  any:
+    origin: file
+    search:
+      - file
+  each:
+    any:
+      origin: file
+      search:
+        - file
+    file:
+      origin: file
+      search:
+        - file
+    general:
+      origin: general
+      search:
+        - general
+set_cycle_mining:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+set_date:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+set_group:
+  all:
+    origin: file
+    search:
+      - file
+  any:
+    origin: file
+    search:
+      - file
+  each:
+    any:
+      origin: file
+      search:
+        - file
+    file:
+      origin: file
+      search:
+        - file
+    general:
+      origin: general
+      search:
+        - general
+set_info:
+  all:
+    origin: subWallet
+    search:
+      - subWallet
+  any:
+    origin: subWallet
+    search:
+      - subWallet
+  each:
+    any:
+      origin: subWallet
+      search:
+        - subWallet
+    general:
+      origin: general
+      search:
+        - general
+    subWallet:
+      origin: subWallet
+      search:
+        - subWallet
+set_library_version:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+set_net_speed:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+set_owner:
+  all:
+    origin: file
+    search:
+      - file
+  any:
+    origin: file
+    search:
+      - file
+  each:
+    any:
+      origin: file
+      search:
+        - file
+    file:
+      origin: file
+      search:
+        - file
+    general:
+      origin: general
+      search:
+        - general
+set_phone_alarm:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+set_port_library_version:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+set_reward:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+shell:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+show:
+  all:
+    origin: aptClient
+    search:
+      - aptClient
+  any:
+    origin: aptClient
+    search:
+      - aptClient
+  each:
+    any:
+      origin: aptClient
+      search:
+        - aptClient
+    aptClient:
+      origin: aptClient
+      search:
+        - aptClient
+    general:
+      origin: general
+      search:
+        - general
+show_history:
+  all:
+    origin: blockchain
+    search:
+      - blockchain
+  any:
+    origin: blockchain
+    search:
+      - blockchain
+  each:
+    any:
+      origin: blockchain
+      search:
+        - blockchain
+    blockchain:
+      origin: blockchain
+      search:
+        - blockchain
+    general:
+      origin: general
+      search:
+        - general
+show_nodes:
+  all:
+    origin: wallet
+    search:
+      - wallet
+  any:
+    origin: wallet
+    search:
+      - wallet
+  each:
+    any:
+      origin: wallet
+      search:
+        - wallet
+    general:
+      origin: general
+      search:
+        - general
+    wallet:
+      origin: wallet
+      search:
+        - wallet
+show_procs:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+shuffle:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+sign:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+sin:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+size:
+  all:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  any:
+    origin: file
+    search:
+      - file
+      - ftpFile
+  each:
+    any:
+      origin: file
+      search:
+        - file
+        - ftpFile
+    file:
+      origin: file
+      search:
+        - file
+    ftpFile:
+      origin: ftpFile
+      search:
+        - ftpFile
+    general:
+      origin: general
+      search:
+        - general
+slice:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+smtp_user_list:
+  all:
+    origin: crypto
+    search:
+      - crypto
+  any:
+    origin: crypto
+    search:
+      - crypto
+  each:
+    any:
+      origin: crypto
+      search:
+        - crypto
+    crypto:
+      origin: crypto
+      search:
+        - crypto
+    general:
+      origin: general
+      search:
+        - general
+snapshot:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+sniffer:
+  all:
+    origin: metaxploit
+    search:
+      - metaxploit
+  any:
+    origin: metaxploit
+    search:
+      - metaxploit
+  each:
+    any:
+      origin: metaxploit
+      search:
+        - metaxploit
+    general:
+      origin: general
+      search:
+        - general
+    metaxploit:
+      origin: metaxploit
+      search:
+        - metaxploit
+sort:
+  all:
+    origin: list
+    search:
+      - list
+  any:
+    origin: list
+    search:
+      - list
+  each:
+    any:
+      origin: list
+      search:
+        - list
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+split:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+sqrt:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+start_service:
+  all:
+    origin: service
+    search:
+      - service
+  any:
+    origin: service
+    search:
+      - service
+  each:
+    any:
+      origin: service
+      search:
+        - service
+    general:
+      origin: general
+      search:
+        - general
+    service:
+      origin: service
+      search:
+        - service
+start_terminal:
+  all:
+    origin: shell
+    search:
+      - shell
+  any:
+    origin: shell
+    search:
+      - shell
+  each:
+    any:
+      origin: shell
+      search:
+        - shell
+    general:
+      origin: general
+      search:
+        - general
+    shell:
+      origin: shell
+      search:
+        - shell
+stop_service:
+  all:
+    origin: service
+    search:
+      - service
+  any:
+    origin: service
+    search:
+      - service
+  each:
+    any:
+      origin: service
+      search:
+        - service
+    general:
+      origin: general
+      search:
+        - general
+    service:
+      origin: service
+      search:
+        - service
+str:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+string:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+sudo:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+sum:
+  all:
+    origin: any
+    search:
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+symlink:
+  all:
+    origin: file
+    search:
+      - file
+  any:
+    origin: file
+    search:
+      - file
+  each:
+    any:
+      origin: file
+      search:
+        - file
+    file:
+      origin: file
+      search:
+        - file
+    general:
+      origin: general
+      search:
+        - general
+tan:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+tick:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+time:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+to_int:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+touch:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+traffic_accident:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
+transaction:
+  all:
+    origin: coin
+    search:
+      - coin
+  any:
+    origin: coin
+    search:
+      - coin
+  each:
+    any:
+      origin: coin
+      search:
+        - coin
+    coin:
+      origin: coin
+      search:
+        - coin
+    general:
+      origin: general
+      search:
+        - general
+trim:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+typeof:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+unit_testing:
+  all:
+    origin: debugLibrary
+    search:
+      - debugLibrary
+  any:
+    origin: debugLibrary
+    search:
+      - debugLibrary
+  each:
+    any:
+      origin: debugLibrary
+      search:
+        - debugLibrary
+    debugLibrary:
+      origin: debugLibrary
+      search:
+        - debugLibrary
+    general:
+      origin: general
+      search:
+        - general
+update:
+  all:
+    origin: aptClient
+    search:
+      - aptClient
+  any:
+    origin: aptClient
+    search:
+      - aptClient
+  each:
+    any:
+      origin: aptClient
+      search:
+        - aptClient
+    aptClient:
+      origin: aptClient
+      search:
+        - aptClient
+    general:
+      origin: general
+      search:
+        - general
+update_service_record:
+  all:
+    origin: adminComputer
+    search:
+      - adminComputer
+  any:
+    origin: adminComputer
+    search:
+      - adminComputer
+  each:
+    adminComputer:
+      origin: adminComputer
+      search:
+        - adminComputer
+    any:
+      origin: adminComputer
+      search:
+        - adminComputer
+upper:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+used_ports:
+  all:
+    origin: router
+    search:
+      - router
+  any:
+    origin: router
+    search:
+      - router
+  each:
+    any:
+      origin: router
+      search:
+        - router
+    general:
+      origin: general
+      search:
+        - general
+    router:
+      origin: router
+      search:
+        - router
+user_bank_number:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+user_input:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+user_mail_address:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+val:
+  all:
+    origin: string
+    search:
+      - string
+  any:
+    origin: string
+    search:
+      - string
+  each:
+    any:
+      origin: string
+      search:
+        - string
+    general:
+      origin: general
+      search:
+        - general
+    string:
+      origin: string
+      search:
+        - string
+values:
+  all:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  any:
+    origin: any
+    search:
+      - string
+      - list
+      - map
+  each:
+    admin:
+      origin: map
+      search:
+        - map
+    adminComputer:
+      origin: map
+      search:
+        - map
+    adminNetwork:
+      origin: map
+      search:
+        - map
+    any:
+      origin: any
+      search:
+        - string
+        - list
+        - map
+    aptClient:
+      origin: map
+      search:
+        - map
+    coin:
+      origin: map
+      search:
+        - map
+    computer:
+      origin: map
+      search:
+        - map
+    crypto:
+      origin: map
+      search:
+        - map
+    ctfEvent:
+      origin: map
+      search:
+        - map
+    debugLibrary:
+      origin: map
+      search:
+        - map
+    file:
+      origin: map
+      search:
+        - map
+    ftpComputer:
+      origin: map
+      search:
+        - map
+    ftpFile:
+      origin: map
+      search:
+        - map
+    ftpShell:
+      origin: map
+      search:
+        - map
+    general:
+      origin: general
+      search:
+        - general
+    list:
+      origin: list
+      search:
+        - list
+    map:
+      origin: map
+      search:
+        - map
+    metaLib:
+      origin: map
+      search:
+        - map
+    metaMail:
+      origin: map
+      search:
+        - map
+    metaxploit:
+      origin: map
+      search:
+        - map
+    netSession:
+      origin: map
+      search:
+        - map
+    port:
+      origin: map
+      search:
+        - map
+    router:
+      origin: map
+      search:
+        - map
+    service:
+      origin: map
+      search:
+        - map
+    shell:
+      origin: map
+      search:
+        - map
+    smartAppliance:
+      origin: map
+      search:
+        - map
+    string:
+      origin: string
+      search:
+        - string
+    subWallet:
+      origin: map
+      search:
+        - map
+    trafficNet:
+      origin: map
+      search:
+        - map
+    wallet:
+      origin: map
+      search:
+        - map
+version:
+  all:
+    origin: metaLib
+    search:
+      - metaLib
+  any:
+    origin: metaLib
+    search:
+      - metaLib
+  each:
+    any:
+      origin: metaLib
+      search:
+        - metaLib
+    general:
+      origin: general
+      search:
+        - general
+    metaLib:
+      origin: metaLib
+      search:
+        - metaLib
+wait:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+wallet_username:
+  all:
+    origin: subWallet
+    search:
+      - subWallet
+  any:
+    origin: subWallet
+    search:
+      - subWallet
+  each:
+    any:
+      origin: subWallet
+      search:
+        - subWallet
+    general:
+      origin: general
+      search:
+        - general
+    subWallet:
+      origin: subWallet
+      search:
+        - subWallet
+whois:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
+wifi_networks:
+  all:
+    origin: computer
+    search:
+      - computer
+  any:
+    origin: computer
+    search:
+      - computer
+  each:
+    any:
+      origin: computer
+      search:
+        - computer
+    computer:
+      origin: computer
+      search:
+        - computer
+    general:
+      origin: general
+      search:
+        - general
+yield:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general

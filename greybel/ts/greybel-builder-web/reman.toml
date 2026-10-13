@@ -1,0 +1,4 @@
+[project]
+kind = "library"
+# The crate its vite.config.ts builds to WebAssembly.
+uses = ["rs/greybel-builder-web"]

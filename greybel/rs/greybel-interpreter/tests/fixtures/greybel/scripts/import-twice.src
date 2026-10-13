@@ -1,0 +1,4 @@
+#import lib from "../dependencies/import-twice-lib.src";
+lib = null
+#import again from "../dependencies/import-twice-lib.src";
+print again.value

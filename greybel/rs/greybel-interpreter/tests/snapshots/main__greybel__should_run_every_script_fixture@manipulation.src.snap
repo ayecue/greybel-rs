@@ -1,0 +1,17 @@
+---
+source: greybel-interpreter/tests/greybel.rs
+expression: snapshot
+input_file: greybel-interpreter/tests/fixtures/greybel/scripts/manipulation.src
+---
+[
+  "{\"see\": \"124578\", \"foo\": 123, \"bar\": 1, \"lore\": \"moo\"}",
+  "[\"123456\", \"xxx\", 123, \"foo\"]",
+  "{\"foo\": 123, \"bar\": 1, \"lore\": \"moo\"}",
+  "[\"xxx\", 123, \"foo\"]",
+  "123",
+  "\"foo\"",
+  "{\"bar\": 1, \"lore\": \"moo\"}",
+  "[\"xxx\", 123]",
+  "{\"foo\": 123, \"bar\": 1, \"lore\": \"moo\"}",
+  "[\"xxx\", 123, \"foo\"]"
+]

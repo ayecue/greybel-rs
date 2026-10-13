@@ -1,0 +1,73 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider reads a frame its sender split into fragments once the last arrives, in a later batch.",
+  "peer": "provider",
+  "requires": ["responses", "fragments"],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Fragment": {
+              "of": {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1,
+                    "b": 2
+                  }
+                }
+              },
+              "to": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": []
+      }
+    },
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Fragment": {
+              "of": {
+                "Message": {
+                  "id": 0,
+                  "Add": {
+                    "a": 1,
+                    "b": 2
+                  }
+                }
+              },
+              "from": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "ResponseEnd": {
+                  "id": 0,
+                  "Add": 3
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

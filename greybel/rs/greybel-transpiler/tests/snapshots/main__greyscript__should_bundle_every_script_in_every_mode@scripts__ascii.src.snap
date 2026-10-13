@@ -1,0 +1,374 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/ascii.src
+---
+=== default
+AsciiGen={}
+map={}
+map.a=["||¯|| ","||_|| ","|| || "]
+map.b=["||¯/ ","|| \ ","||_/ "]
+map.c=["||¯ ","||  ","||_ "]
+map.d=["||¯\\ ","|| // ","||//  "]
+map.e=["||¯ ","||- ","||_ "]
+map.f=["||¯ ","||_ ","||  "]
+map.g=["||¯¯  ","|| \\ ","||_|| "]
+map.h=["|| || ","||-|| ","|| || "]
+map.i=["|| ","|| ","|| "]
+map.j=[" ¯||¯ ","  ||  ","|_||  "]
+map.k=["||  / ","|| /  ","||¯\\ "]
+map.l=["||  ","||  ","||_ "]
+map.m=["||\\/|| ","||   || ","||   || "]
+map.n=["||\\ || ","|| \\|| ","||  \|| "]
+map.o=["||¯|| ","|| || ","||_|| "]
+map.p=["||¯|| ","||_|| ","||    "]
+map.q=["||¯||  ","|| ||  ","||_||¬ "]
+map.r=["||¯|| ","||¯\\ ","|| || "]
+map.s=["||¯¯ "," \\  ","__|| "]
+map.t=["¯||¯ "," ||  "," ||  "]
+map.u=["|| || ","|| || ","||_|| "]
+map.v=["\\ || "," \\|| ","  \\| "]
+map.w=["\\ |\\ | "," \\| \\| ","  \\  \\ "]
+map.x=["\\  / "," \\/  "," //\  "]
+map.y=["\\  // "," \\//  ","  ||   "]
+map.z=["¯// ","//  ","||_ "]
+map["0"]=["||¯|| ","||x|| ","||_|| "]
+map["1"]=["'|| "," || "," || "]
+map["2"]=["¯¯|| ","||¯  ","||_  "]
+map["3"]=["¯|| ","-|| ","_|| "]
+map["4"]=[" /|| ","/_|| ","  || "]
+map["5"]=["||¯¯ "," ¯|| "," _|| "]
+map["6"]=["||¯¯  ","||¯|| ","||_|| "]
+map["7"]=["¯¯// "," //  ","//   "]
+map["8"]=["||¯|| ","||-|| ","||_|| "]
+map["9"]=["||¯|| ","  ¯|| ","  //  "]
+map[" "]=["  ","  ","  "]
+AsciiGen.MAP=map
+AsciiGen.gen=function(str,colors)
+r=[[],[],[]]
+signs=self.MAP
+for char in str
+char=char.lower
+if (signs.hasIndex(char)) then
+r[0].push(signs[char][0])
+r[1].push(signs[char][1])
+r[2].push(signs[char][2])
+end if
+end for
+if (typeof(colors)=="string") then
+r[0]=["<color=#"+colors+">"]+r[0]+["</color>"]
+r[1]=["<color=#"+colors+">"]+r[1]+["</color>"]
+r[2]=["<color=#"+colors+">"]+r[2]+["</color>"]
+else if (typeof(colors)=="list") then
+r[0]=["<color=#"+colors[0]+">"]+r[0]+["</color>"]
+r[1]=["<color=#"+colors[1]+">"]+r[1]+["</color>"]
+r[2]=["<color=#"+colors[2]+">"]+r[2]+["</color>"]
+end if
+return [r[0].join(""),r[1].join(""),r[2].join("")].join("\n")
+end function
+print(AsciiGen.gen("Hallo"))
+=== uglify
+globals.I=globals
+I.AU="||¯|| "
+I.AT="||_|| "
+I.AQ="|| || "
+I.AO="||¯ "
+I.AS="||  "
+I.AP="||_ "
+I.AV="||¯\\ "
+I.AR="|| "
+I.AW="  "
+I.AX="<color=#"
+I.AZ=">"
+I.AY="</color>"
+J={}
+map={}
+map.a=[AU,AT,AQ]
+map.b=["||¯/ ","|| \ ","||_/ "]
+map.c=[AO,AS,AP]
+map.d=[AV,"|| // ","||//  "]
+map.e=[AO,"||- ",AP]
+map.f=[AO,AP,AS]
+map.g=["||¯¯  ","|| \\ ",AT]
+map.h=[AQ,"||-|| ",AQ]
+map.i=[AR,AR,AR]
+map.j=[" ¯||¯ ","  ||  ","|_||  "]
+map.k=["||  / ","|| /  ",AV]
+map.l=[AS,AS,AP]
+map.m=["||\\/|| ","||   || ","||   || "]
+map.n=["||\\ || ","|| \\|| ","||  \|| "]
+map.o=[AU,AQ,AT]
+map.p=[AU,AT,"||    "]
+map.q=["||¯||  ","|| ||  ","||_||¬ "]
+map.r=[AU,AV,AQ]
+map.s=["||¯¯ "," \\  ","__|| "]
+map.t=["¯||¯ "," ||  "," ||  "]
+map.u=[AQ,AQ,AT]
+map.v=["\\ || "," \\|| ","  \\| "]
+map.w=["\\ |\\ | "," \\| \\| ","  \\  \\ "]
+map.x=["\\  / "," \\/  "," //\  "]
+map.y=["\\  // "," \\//  ","  ||   "]
+map.z=["¯// ","//  ",AP]
+map["0"]=[AU,"||x|| ",AT]
+map["1"]=["'|| "," || "," || "]
+map["2"]=["¯¯|| ","||¯  ","||_  "]
+map["3"]=["¯|| ","-|| ","_|| "]
+map["4"]=[" /|| ","/_|| ","  || "]
+map["5"]=["||¯¯ "," ¯|| "," _|| "]
+map["6"]=["||¯¯  ",AU,AT]
+map["7"]=["¯¯// "," //  ","//   "]
+map["8"]=[AU,"||-|| ",AT]
+map["9"]=[AU,"  ¯|| ","  //  "]
+map[" "]=[AW,AW,AW]
+J.MAP=map
+J.gen=function(str,AM)
+AB=[[],[],[]]
+AN=self.MAP
+for char in str
+char=char.lower
+if (AN.hasIndex(char)) then
+AB[0].push(AN[char][0])
+AB[1].push(AN[char][1])
+AB[2].push(AN[char][2])
+end if
+end for
+if (typeof(AM)=="string") then
+AB[0]=[AX+AM+AZ]+AB[0]+[AY]
+AB[1]=[AX+AM+AZ]+AB[1]+[AY]
+AB[2]=[AX+AM+AZ]+AB[2]+[AY]
+else if (typeof(AM)=="list") then
+AB[0]=[AX+AM[0]+AZ]+AB[0]+[AY]
+AB[1]=[AX+AM[1]+AZ]+AB[1]+[AY]
+AB[2]=[AX+AM[2]+AZ]+AB[2]+[AY]
+end if
+return [AB[0].join(""),AB[1].join(""),AB[2].join("")].join("\n")
+end function
+print(J.gen("Hallo"))
+=== beautify
+AsciiGen = {}
+
+map = {}
+
+map.a = [
+	"||¯|| ",
+	"||_|| ",
+	"|| || ",
+]
+map.b = [
+	"||¯/ ",
+	"|| \ ",
+	"||_/ ",
+]
+map.c = [
+	"||¯ ",
+	"||  ",
+	"||_ ",
+]
+map.d = [
+	"||¯\\ ",
+	"|| // ",
+	"||//  ",
+]
+map.e = [
+	"||¯ ",
+	"||- ",
+	"||_ ",
+]
+map.f = [
+	"||¯ ",
+	"||_ ",
+	"||  ",
+]
+map.g = [
+	"||¯¯  ",
+	"|| \\ ",
+	"||_|| ",
+]
+map.h = [
+	"|| || ",
+	"||-|| ",
+	"|| || ",
+]
+map.i = [
+	"|| ",
+	"|| ",
+	"|| ",
+]
+map.j = [
+	" ¯||¯ ",
+	"  ||  ",
+	"|_||  ",
+]
+map.k = [
+	"||  / ",
+	"|| /  ",
+	"||¯\\ ",
+]
+map.l = [
+	"||  ",
+	"||  ",
+	"||_ ",
+]
+map.m = [
+	"||\\/|| ",
+	"||   || ",
+	"||   || ",
+]
+map.n = [
+	"||\\ || ",
+	"|| \\|| ",
+	"||  \|| ",
+]
+map.o = [
+	"||¯|| ",
+	"|| || ",
+	"||_|| ",
+]
+map.p = [
+	"||¯|| ",
+	"||_|| ",
+	"||    ",
+]
+map.q = [
+	"||¯||  ",
+	"|| ||  ",
+	"||_||¬ ",
+]
+map.r = [
+	"||¯|| ",
+	"||¯\\ ",
+	"|| || ",
+]
+map.s = [
+	"||¯¯ ",
+	" \\  ",
+	"__|| ",
+]
+map.t = [
+	"¯||¯ ",
+	" ||  ",
+	" ||  ",
+]
+map.u = [
+	"|| || ",
+	"|| || ",
+	"||_|| ",
+]
+map.v = [
+	"\\ || ",
+	" \\|| ",
+	"  \\| ",
+]
+map.w = [
+	"\\ |\\ | ",
+	" \\| \\| ",
+	"  \\  \\ ",
+]
+map.x = [
+	"\\  / ",
+	" \\/  ",
+	" //\  ",
+]
+map.y = [
+	"\\  // ",
+	" \\//  ",
+	"  ||   ",
+]
+map.z = [
+	"¯// ",
+	"//  ",
+	"||_ ",
+]
+map["0"] = [
+	"||¯|| ",
+	"||x|| ",
+	"||_|| ",
+]
+map["1"] = [
+	"'|| ",
+	" || ",
+	" || ",
+]
+map["2"] = [
+	"¯¯|| ",
+	"||¯  ",
+	"||_  ",
+]
+map["3"] = [
+	"¯|| ",
+	"-|| ",
+	"_|| ",
+]
+map["4"] = [
+	" /|| ",
+	"/_|| ",
+	"  || ",
+]
+map["5"] = [
+	"||¯¯ ",
+	" ¯|| ",
+	" _|| ",
+]
+map["6"] = [
+	"||¯¯  ",
+	"||¯|| ",
+	"||_|| ",
+]
+map["7"] = [
+	"¯¯// ",
+	" //  ",
+	"//   ",
+]
+map["8"] = [
+	"||¯|| ",
+	"||-|| ",
+	"||_|| ",
+]
+map["9"] = [
+	"||¯|| ",
+	"  ¯|| ",
+	"  //  ",
+]
+map[" "] = [
+	"  ",
+	"  ",
+	"  ",
+]
+
+AsciiGen.MAP = map
+
+AsciiGen.gen = function(str, colors)
+	r = [
+		[],
+		[],
+		[],
+	]
+	signs = self.MAP
+
+	for char in str
+		char = char.lower
+		if signs.hasIndex(char) then
+			r[0].push signs[char][0]
+			r[1].push signs[char][1]
+			r[2].push signs[char][2]
+		end if
+	end for
+
+	if typeof(colors) == "string" then
+		r[0] = [ "<color=#" + colors + ">" ] + r[0] + [ "</color>" ]
+		r[1] = [ "<color=#" + colors + ">" ] + r[1] + [ "</color>" ]
+		r[2] = [ "<color=#" + colors + ">" ] + r[2] + [ "</color>" ]
+	else if typeof(colors) == "list" then
+		r[0] = [ "<color=#" + colors[0] + ">" ] + r[0] + [ "</color>" ]
+		r[1] = [ "<color=#" + colors[1] + ">" ] + r[1] + [ "</color>" ]
+		r[2] = [ "<color=#" + colors[2] + ">" ] + r[2] + [ "</color>" ]
+	end if
+
+	return [
+		r[0].join(""),
+		r[1].join(""),
+		r[2].join(""),
+	].join("\n")
+end function
+
+print AsciiGen.gen("Hallo")

@@ -1,0 +1,22 @@
+// Game objects compare and hash by identity; the game gives the same object again for an equal one.
+shell = get_shell
+computer = shell.host_computer
+print shell == get_shell
+print computer == shell.host_computer
+print computer == shell
+bin = computer.File("/bin")
+etc = computer.File("/etc")
+print bin == etc
+print bin == computer.File("/bin")
+objects = {}
+objects[bin] = 1
+objects[etc] = 2
+objects[computer.File("/bin")] = 3
+print objects.len
+print [shell] == [get_shell]
+print {"s": shell} == {"s": get_shell}
+print {"s": shell} == {"s": computer}
+print hash(shell) == hash(get_shell)
+print hash(bin) == hash(etc)
+print typeof(new {"classID": "x"})
+print typeof(new computer)

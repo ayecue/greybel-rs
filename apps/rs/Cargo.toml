@@ -1,0 +1,63 @@
+# The applications: what is released for people to run, built from the libraries of the other workspaces, which
+# depend on nothing here (README.md, Layout).
+
+[workspace]
+resolver = "3"
+members = ["greybel-*", "greyhack-*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.93"
+repository = "https://github.com/ayecue/greybel-rs"
+
+[workspace.dependencies]
+greybel-builder = { path = "../../greybel/rs/greybel-builder" }
+greybel-core = { path = "../../greybel/rs/greybel-core" }
+greybel-documents = { path = "../../greybel/rs/greybel-documents" }
+greybel-documents-fs-provider = { path = "../../greybel/rs/greybel-documents-fs-provider" }
+greybel-io = { path = "../../greybel/rs/greybel-io" }
+greybel-io-terminal = { path = "../../greybel/rs/greybel-io-terminal" }
+greybel-lsp = { path = "../../greybel/rs/greybel-lsp" }
+greybel-mcp = { path = "../../greybel/rs/greybel-mcp" }
+greybel-project = { path = "../../greybel/rs/greybel-project" }
+greybel-runtime = { path = "../../greybel/rs/greybel-runtime" }
+greybel-test-support = { path = "../../greybel/rs/greybel-test-support" }
+greyhack-message-hook-client = { path = "../../greybel/rs/greyhack-message-hook-client" }
+greyhack-terminal-text = { path = "../../greybel/rs/greyhack-terminal-text" }
+greyhack-world = { path = "../../greybel/rs/greyhack-world" }
+greyhack-world-operations = { path = "../../greybel/rs/greyhack-world-operations" }
+greyscript-intrinsics = { path = "../../greybel/rs/greyscript-intrinsics" }
+
+# Crates of the other workspaces in the repository.
+scheduler = { path = "../../common/rs/scheduler" }
+duplex-core = { path = "../../duplex/rs/duplex-core" }
+duplex-driver-stdio = { path = "../../duplex/rs/duplex-driver-stdio" }
+duplex-test-support = { path = "../../duplex/rs/duplex-test-support" }
+greyhack-world-assets = { path = "../../assets/rs/greyhack-world-assets" }
+
+clap = { version = "4.6", features = ["derive", "env"] }
+crossterm = { version = "0.29", default-features = false, features = ["events", "windows"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = "1"
+
+# Keep local line tables, omitting other debug info and all dependency debug info.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+# Binaries choose their own panic behavior.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

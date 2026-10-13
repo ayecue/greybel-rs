@@ -1,0 +1,270 @@
+{
+  "server": [
+    {
+      "name": "CreateContextRpc",
+      "id": 1000,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "filepath", "fieldType": "System.String" },
+        { "name": "basepath", "fieldType": "System.String" },
+        { "name": "programName", "fieldType": "System.String" },
+        { "name": "source", "fieldType": "System.Byte[]" },
+        { "name": "params", "fieldType": "System.Byte[]" },
+        { "name": "sourceMap", "fieldType": "System.Byte[]" },
+        { "name": "strictMode", "fieldType": "System.Boolean" },
+        { "name": "debugMode", "fieldType": "System.Boolean" },
+        { "name": "breakpoints", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "ContextRuntimeStateServerRpc",
+      "id": 1003,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "ContextStepRpc",
+      "id": 1011,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "mode", "fieldType": "System.Int32" }
+      ]
+    },
+    {
+      "name": "ContextDebugModeRpc",
+      "id": 1007,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "activeBreakpoint", "fieldType": "System.Boolean" }
+      ]
+    },
+    {
+      "name": "ContextInjectCodeRpc",
+      "id": 1008,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "source", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "ContextPassBreakpointRpc",
+      "id": 1014,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "ContextSetBreakpointsRpc",
+      "id": 1012,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "breakpoints", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "ContextEvaluateRpc",
+      "id": 1013,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "code", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "DisposeContextRpc",
+      "id": 1020,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "CreateBuildRpc",
+      "id": 1100,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" },
+        { "name": "destination", "fieldType": "System.String" },
+        { "name": "resourceDestination", "fieldType": "System.String" },
+        { "name": "autoCompile", "fieldType": "System.Boolean" }
+      ]
+    },
+    {
+      "name": "AddResourceToBuildRpc",
+      "id": 1101,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" },
+        { "name": "location", "fieldType": "System.String" },
+        { "name": "zipContent", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "AddScriptToBuildRpc",
+      "id": 1102,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" },
+        { "name": "type", "fieldType": "System.Int32" },
+        { "name": "zipContent", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "BuildStateServerRpc",
+      "id": 1103,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "PerformBuildRpc",
+      "id": 1105,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "DisposeBuildRpc",
+      "id": 1110,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" }
+      ]
+    },
+    { "name": "HealthCheckRpc", "id": 1200, "fields": [] }
+  ],
+  "client": [
+    {
+      "name": "CreatedContextRpc",
+      "id": 1000,
+      "window": "terminalPID",
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "terminalPID", "fieldType": "System.Int32" }
+      ]
+    },
+    {
+      "name": "FinishedContextRpc",
+      "id": 1002,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "failed", "fieldType": "System.Boolean" }
+      ]
+    },
+    {
+      "name": "ContextRuntimeStateClientRpc",
+      "id": 1003,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "states", "fieldType": "System.Byte[]" },
+        { "name": "stacktrace", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "ContextBreakpointRpc",
+      "id": 1005,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "filepath", "fieldType": "System.String" },
+        { "name": "lineNum", "fieldType": "System.Int32" },
+        { "name": "frames", "fieldType": "System.Byte[]" },
+        { "name": "globals", "fieldType": "System.Byte[]" },
+        { "name": "breakpoint", "fieldType": "System.Boolean" }
+      ]
+    },
+    {
+      "name": "ContextOpenInternalFileRpc",
+      "id": 1009,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "filepath", "fieldType": "System.String" },
+        { "name": "source", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "ContextUnexpectedErrorRpc",
+      "id": 1010,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "message", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "ContextEvaluatedRpc",
+      "id": 1013,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" },
+        { "name": "failed", "fieldType": "System.Boolean" },
+        { "name": "message", "fieldType": "System.String" },
+        { "name": "hasValue", "fieldType": "System.Boolean" },
+        { "name": "value", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "DisposedContextRpc",
+      "id": 1020,
+      "fields": [
+        { "name": "contextID", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "CreatedBuildRpc",
+      "id": 1100,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "AddedResourceToBuildRpc",
+      "id": 1101,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "AddedScriptToBuildRpc",
+      "id": 1102,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" }
+      ]
+    },
+    {
+      "name": "BuildStateClientRpc",
+      "id": 1103,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" },
+        { "name": "state", "fieldType": "System.Int32" },
+        { "name": "errorMessage", "fieldType": "System.String" },
+        { "name": "output", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "BuildFinishedRpc",
+      "id": 1104,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" },
+        { "name": "state", "fieldType": "System.Int32" },
+        { "name": "errorMessage", "fieldType": "System.String" },
+        { "name": "output", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "DisposedBuildRpc",
+      "id": 1110,
+      "fields": [
+        { "name": "buildID", "fieldType": "System.String" },
+        { "name": "disposeSuccess", "fieldType": "System.Boolean" },
+        { "name": "state", "fieldType": "System.Int32" },
+        { "name": "errorMessage", "fieldType": "System.String" },
+        { "name": "output", "fieldType": "System.Byte[]" }
+      ]
+    },
+    {
+      "name": "StatusRpc",
+      "id": 1200,
+      "fields": [
+        { "name": "status", "fieldType": "System.Boolean" },
+        { "name": "hasPlayerClient", "fieldType": "System.Boolean" },
+        { "name": "isSinglePlayer", "fieldType": "System.Boolean" },
+        { "name": "pluginVersion", "fieldType": "System.String" },
+        { "name": "gameVersion", "fieldType": "System.String" }
+      ]
+    },
+    { "name": "InvalidAction", "id": 1300, "fields": [] }
+  ]
+}

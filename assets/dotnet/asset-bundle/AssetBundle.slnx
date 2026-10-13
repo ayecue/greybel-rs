@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/AssetBundle.csproj" />
+  <Project Path="tests/AssetBundle.Tests.csproj" />
+</Solution>

@@ -1,0 +1,22 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+assertion_line: 46
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/services.src
+---
+0
+service
+1
+1
+22
+1
+null
+1
+0
+null
+1
+0
+/usr/bin/missing: command not found
+0
+passwd is not an executable file.
+0

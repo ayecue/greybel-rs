@@ -1,0 +1,28 @@
+---
+source: greybel-core/tests/greyscript.rs
+expression: "render_valid(&read(path), &ParserOptions::new(Dialect::GreyScript))"
+input_file: greybel-core/tests/fixtures/greyscript/scripts/obj-init.src
+---
+Chunk[1:1-21:14][
+	AssignmentStatement[1:1-1:26][Identifier[1:1-1:18][valueOfIdentifier] = Literal[1:21-1:26][foo]]
+	AssignmentStatement[3:1-9:2][Identifier[3:1-3:9][myObject] = MapConstructor[3:12-9:2][
+		MapKeyString[4:2-6:3][Literal[4:2-4:8][test]: MapConstructor[4:10-6:3][
+			MapKeyString[5:3-5:19][Literal[5:3-5:12][another]: Literal[5:14-5:19][123]]
+		]]
+		MapKeyString[7:2-7:16][Literal[7:2-7:9][value]: Literal[7:11-7:16][123]]
+		MapKeyString[8:2-8:27][Literal[8:2-8:8][idtf]: Identifier[8:10-8:27][valueOfIdentifier]]
+	]]
+	CallExpression[11:1-11:62][Identifier[11:1-11:6][print](ListConstructor[11:7-11:61][
+		ListValue[11:8-11:29][MemberExpression[11:8-11:29][MemberExpression[11:8-11:21][Identifier[11:8-11:16][myObject].Identifier[11:17-11:21][test]].Identifier[11:22-11:29][another]]]
+		ListValue[11:31-11:45][MemberExpression[11:31-11:45][Identifier[11:31-11:39][myObject].Identifier[11:40-11:45][value]]]
+		ListValue[11:47-11:60][MemberExpression[11:47-11:60][Identifier[11:47-11:55][myObject].Identifier[11:56-11:60][idtf]]]
+	])]
+	AssignmentStatement[13:1-19:2][Identifier[13:1-13:7][myList] = ListConstructor[13:10-19:2][
+		ListValue[14:2-16:3][MapConstructor[14:2-16:3][
+			MapKeyString[15:3-15:19][Literal[15:3-15:12][another]: Literal[15:14-15:19][123]]
+		]]
+		ListValue[17:2-17:7][Literal[17:2-17:7][123]]
+		ListValue[18:2-18:19][Identifier[18:2-18:19][valueOfIdentifier]]
+	]]
+	CallExpression[21:1-21:14][Identifier[21:1-21:6][print](Identifier[21:7-21:13][myList])]
+]

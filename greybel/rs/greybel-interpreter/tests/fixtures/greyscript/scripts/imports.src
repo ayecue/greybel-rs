@@ -1,0 +1,9 @@
+#import fooImport from "../dependencies/import-file.src";
+#include "../dependencies/include-file.src";
+import_code("../dependencies/native-import")
+import_code("./ignore-me") // no-eval;
+
+print(fooImport)
+print(includeFileFoo)
+print(nativeImportFoo)
+print(#filename + " at line " + #line + " (main file)")

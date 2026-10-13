@@ -1,0 +1,931 @@
+{
+  "parse": [
+    "file:///c%3A/win/path",
+    "file://%2Fhome%2Fticino%2Fdesktop%2Fcpluscplus%2Ftest.cpp",
+    "file://shares/pröjects/c%23/#l12",
+    "file://shares/pr%C3%B6jects/c%23/#l12",
+    "foo:bar/path",
+    "before:some/file/path",
+    "scheme://authority/path",
+    "scheme:/path",
+    "http:/api/files/test.me?t=1234",
+    "http://api/files/test.me?t=1234",
+    "file:///c:/test/me",
+    "file://shares/files/c%23/p.cs",
+    "file:///c:/Source/Z%C3%BCrich%20or%20Zurich%20(%CB%88zj%CA%8A%C9%99r%C9%AAk,/Code/resources/app/plugins/c%23/plugin.json",
+    "file:///c:/test %25/path",
+    "inmemory:",
+    "foo:api/files/test",
+    "file:?q",
+    "file:#d",
+    "f3ile:#d",
+    "foo+bar:path",
+    "foo-bar:path",
+    "foo.bar:path",
+    "file:////shares/files/p.cs",
+    "file:///_:/path",
+    "file:///a.file",
+    "stuff:?qüery",
+    "file://sh%c3%a4res/path",
+    "untitled:c:/Users/jrieken/Code/abc.txt",
+    "untitled:C:/Users/jrieken/Code/abc.txt",
+    "http://localhost:8080/far",
+    "http://foo:bar@localhost/far",
+    "http://foo@localhost/far",
+    "http://foo:bAr@localhost:8080/far",
+    "http://foo@localhost:8080/far",
+    "file:///c:/alex.txt",
+    "file://monacotools/folder/isi.txt",
+    "file://monacotools1/certificates/SSL/",
+    "https://go.microsoft.com/fwlink/?LinkId=518008",
+    "https://go.microsoft.com/fwlink/?LinkId=518008&foö&ké¥=üü",
+    "https://twitter.com/search?src=typd&q=%23tag",
+    "file:foo/bar",
+    "file:///foo/bar",
+    "http://localhost:3000/#/foo?bar=baz",
+    "http://localhost:3000/foo?bar=baz",
+    "file://some/%.txt",
+    "file://some/%A0.txt",
+    "file:///foo/%25A0.txt",
+    "file:///foo/%252e.txt",
+    "https://myhost.com/Redirect?url=http%3A%2F%2Fwww.bing.com%3Fsearch%3Dtom",
+    "foo://a/foo/bar",
+    "foo://a/foo/bar/",
+    "untitled:untitled-1",
+    "foo://a",
+    "foo://a/b",
+    "untitled:",
+    "untitled:/",
+    "foo://a/some/file/test.txt",
+    "foo://a/some/file/",
+    "foo://a/some/file///",
+    "foo://a/some/file",
+    "foo://a/some",
+    "foo://a/",
+    "foo://",
+    "foo://a/foo/bar.foo",
+    "foo://a/foo/.foo",
+    "foo://a/foo/a.foo/",
+    "foo://a/foo/a.foo//",
+    "",
+    "/no/scheme",
+    "no/scheme",
+    "//host/path",
+    "^bad:path",
+    "1abc:path",
+    "_x:y",
+    "a b:c",
+    "C:/Users/x",
+    "c:\\win\\path",
+    "file:///C:/Upper/Drive",
+    "FILE:///x",
+    "HTTP:x",
+    "https:",
+    "https:x",
+    "mailto:a@b.c",
+    "vscode-vfs://github/owner/repo/main.src",
+    "file:///project/My%20File.src",
+    "x://h/%zz%41%c3",
+    "x://h/%zz%41",
+    "x://h/%FF%C3%A9",
+    "x://h/%C3%41",
+    "x://h/%C3%A9%FF",
+    "x://h/%e2%82",
+    "x://h/%e2%82%ac%",
+    "x://h/%41%4",
+    "x://h/%%41",
+    "x://h/%F0%9F%98%80",
+    "x://h/😀 ok",
+    "x://h/p#frag\nlost",
+    "x://h/p#a b",
+    "x://h/p?q\nr#f",
+    "x://H%41ST:80/p",
+    "x://User:Pass@Host:8080/p",
+    "x://a:b:c@h:1/p",
+    "x://[::1]:80/p",
+    "x://h/[a]:b@c",
+    "x:/!$&'()*+,;=@:/p",
+    "x://h/a\\b",
+    "file://server",
+    "file://server/",
+    "file:///",
+    "file:",
+    "file:x?#",
+    "x:?",
+    "x:#",
+    "x:?#",
+    "x://",
+    "x://?q",
+    "x://#f",
+    ":x",
+    ":",
+    "?q",
+    "#f",
+    "x:path?a?b#c#d"
+  ],
+  "file": [
+    "c:/win/path",
+    "C:/win/path",
+    "c:/win/path/",
+    "/c:/win/path",
+    "c:\\win\\path",
+    "c:\\win/path",
+    "./c/win/path",
+    "file://path/to/file",
+    "a.file",
+    "/Users/jrieken/Code/_samples/18500/Mödel + Other Thîngß/model.js",
+    "/foo/bar",
+    "foo/bar",
+    "./foo/bar",
+    "/foo/%A0.txt",
+    "/foo/%2e.txt",
+    "/coding/c#/project1",
+    "//server",
+    "//server/",
+    "//server/share/x",
+    "//",
+    "///x",
+    "//a//b",
+    "",
+    "/",
+    "/a b/%25/#?",
+    "/😀/x",
+    "/c:/alex.txt",
+    "c:/Source/Zürich or Zurich (ˈzjʊərɪk,/Code/resources/app/plugins",
+    "//monacotools/folder/isi.txt",
+    "//monacotools1/certificates/SSL/"
+  ],
+  "from": [
+    {
+      "scheme": "http",
+      "authority": "www.msft.com",
+      "path": "/my/path"
+    },
+    {
+      "scheme": "http",
+      "authority": "www.MSFT.com",
+      "path": "/my/path"
+    },
+    {
+      "scheme": "http",
+      "authority": "",
+      "path": "my/path"
+    },
+    {
+      "scheme": "http",
+      "authority": "",
+      "path": "/my/path"
+    },
+    {
+      "scheme": "http",
+      "authority": "a-test-site.com",
+      "path": "/",
+      "query": "test=true"
+    },
+    {
+      "scheme": "http",
+      "authority": "a-test-site.com",
+      "path": "/",
+      "query": "",
+      "fragment": "test=true"
+    },
+    {
+      "scheme": "http",
+      "path": "/api/files/test.me",
+      "query": "t=1234"
+    },
+    {
+      "scheme": "http",
+      "authority": "löcalhost:8080",
+      "path": "/far"
+    },
+    {
+      "scheme": "http",
+      "authority": "föö:bör@löcalhost:8080",
+      "path": "/far"
+    },
+    {
+      "scheme": "s"
+    },
+    {
+      "scheme": ""
+    },
+    {
+      "scheme": "fäil"
+    },
+    {
+      "scheme": "x",
+      "authority": "a",
+      "path": "rel"
+    },
+    {
+      "scheme": "x",
+      "path": "//double"
+    },
+    {
+      "scheme": "foo",
+      "path": "a/b"
+    },
+    {
+      "scheme": "foo",
+      "authority": "bar",
+      "path": "/a//b"
+    },
+    {
+      "scheme": "x",
+      "authority": "h",
+      "path": "/p",
+      "query": "a b#c",
+      "fragment": "d e#f"
+    }
+  ],
+  "with": [
+    {
+      "base": "foo:bar/path",
+      "change": {}
+    },
+    {
+      "base": "foo:bar/path",
+      "change": {
+        "scheme": "foo",
+        "path": "bar/path"
+      }
+    },
+    {
+      "base": "before:some/file/path",
+      "change": {
+        "scheme": "after"
+      }
+    },
+    {
+      "base": "s:",
+      "change": {
+        "scheme": "http",
+        "path": "/api/files/test.me",
+        "query": "t=1234"
+      }
+    },
+    {
+      "base": "s:",
+      "change": {
+        "scheme": "http",
+        "authority": "",
+        "path": "/api/files/test.me",
+        "query": "t=1234",
+        "fragment": ""
+      }
+    },
+    {
+      "base": "s:",
+      "change": {
+        "scheme": "https",
+        "authority": "",
+        "path": "/api/files/test.me",
+        "query": "t=1234",
+        "fragment": ""
+      }
+    },
+    {
+      "base": "s:",
+      "change": {
+        "scheme": "HTTP",
+        "authority": "",
+        "path": "/api/files/test.me",
+        "query": "t=1234",
+        "fragment": ""
+      }
+    },
+    {
+      "base": "s:",
+      "change": {
+        "scheme": "boo",
+        "authority": "",
+        "path": "/api/files/test.me",
+        "query": "t=1234",
+        "fragment": ""
+      }
+    },
+    {
+      "base": "scheme://authority/path",
+      "change": {
+        "authority": ""
+      }
+    },
+    {
+      "base": "scheme:/path",
+      "change": {
+        "authority": "authority"
+      }
+    },
+    {
+      "base": "scheme://authority/path",
+      "change": {
+        "authority": null
+      }
+    },
+    {
+      "base": "scheme://authority/path",
+      "change": {
+        "path": ""
+      }
+    },
+    {
+      "base": "scheme://authority/path",
+      "change": {
+        "path": null
+      }
+    },
+    {
+      "base": "scheme:/path",
+      "change": {
+        "authority": ""
+      }
+    },
+    {
+      "base": "foo:bar/path",
+      "change": {
+        "scheme": "fai:l"
+      }
+    },
+    {
+      "base": "foo:bar/path",
+      "change": {
+        "scheme": "fäil"
+      }
+    },
+    {
+      "base": "foo:bar/path",
+      "change": {
+        "authority": "fail"
+      }
+    },
+    {
+      "base": "foo:bar/path",
+      "change": {
+        "path": "//fail"
+      }
+    },
+    {
+      "base": "foo:bar/path",
+      "change": {
+        "scheme": null
+      }
+    },
+    {
+      "base": "foo:bar/path",
+      "change": {
+        "scheme": ""
+      }
+    },
+    {
+      "base": "x://h/p",
+      "change": {
+        "query": null,
+        "fragment": "f"
+      }
+    },
+    {
+      "base": "file:///a",
+      "change": {
+        "path": "rel"
+      }
+    },
+    {
+      "base": "http://h/a",
+      "change": {
+        "path": ""
+      }
+    }
+  ],
+  "joinPath": [
+    {
+      "base": "foo://a/foo/bar",
+      "paths": [
+        "x"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        "x"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        "/x"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        "x/"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        "x",
+        "y"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        "x/",
+        "/y"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        ".",
+        "/y"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        "x/y/z",
+        ".."
+      ]
+    },
+    {
+      "base": "untitled:untitled-1",
+      "paths": [
+        "..",
+        "untitled-2"
+      ]
+    },
+    {
+      "base": "foo://a",
+      "paths": [
+        "x"
+      ]
+    },
+    {
+      "base": "foo:",
+      "paths": []
+    },
+    {
+      "base": "foo://a/b",
+      "paths": []
+    },
+    {
+      "base": "file:///project/main.src",
+      "paths": [
+        "..",
+        "lib",
+        "a.src"
+      ]
+    },
+    {
+      "base": "foo://a/b",
+      "paths": [
+        "../../.."
+      ]
+    },
+    {
+      "base": "untitled:a",
+      "paths": [
+        "../../b"
+      ]
+    },
+    {
+      "base": "foo://a/b",
+      "paths": [
+        ""
+      ]
+    }
+  ],
+  "resolvePath": [
+    {
+      "base": "foo://a/foo/bar",
+      "paths": [
+        "x"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        "x"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        "/x"
+      ]
+    },
+    {
+      "base": "foo://a/foo/bar/",
+      "paths": [
+        "x/"
+      ]
+    },
+    {
+      "base": "foo://a",
+      "paths": [
+        "x/"
+      ]
+    },
+    {
+      "base": "foo://a",
+      "paths": [
+        "/x/"
+      ]
+    },
+    {
+      "base": "foo://a/b",
+      "paths": [
+        "/x/..//y/."
+      ]
+    },
+    {
+      "base": "foo://a/b",
+      "paths": [
+        "x/..//y/."
+      ]
+    },
+    {
+      "base": "untitled:untitled-1",
+      "paths": [
+        "../foo"
+      ]
+    },
+    {
+      "base": "untitled:",
+      "paths": [
+        "foo"
+      ]
+    },
+    {
+      "base": "untitled:",
+      "paths": [
+        ".."
+      ]
+    },
+    {
+      "base": "untitled:",
+      "paths": [
+        "/foo"
+      ]
+    },
+    {
+      "base": "untitled:/",
+      "paths": [
+        "/foo"
+      ]
+    },
+    {
+      "base": "foo://a/b",
+      "paths": []
+    },
+    {
+      "base": "foo://a/b",
+      "paths": [
+        "x",
+        "/y",
+        "z"
+      ]
+    },
+    {
+      "base": "untitled:a",
+      "paths": [
+        "",
+        "."
+      ]
+    }
+  ],
+  "dirname": [
+    "foo://a/some/file/test.txt",
+    "foo://a/some/file/",
+    "foo://a/some/file///",
+    "foo://a/some/file",
+    "foo://a/some",
+    "foo://a/",
+    "foo://a",
+    "foo://",
+    "untitled:untitled-1",
+    "untitled:a/b",
+    "file:///x",
+    "file:///"
+  ],
+  "names": [
+    "foo://a/some/file/test.txt",
+    "foo://a/some/file/",
+    "foo://a/some/file///",
+    "foo://a/some/file",
+    "foo://a/some",
+    "foo://a/",
+    "foo://a",
+    "untitled:untitled-1",
+    "foo://a/foo/bar",
+    "foo://a/foo/bar.foo",
+    "foo://a/foo/.foo",
+    "foo://a/foo/a.foo/",
+    "foo://a/foo/a.foo//",
+    "foo://a/x/..",
+    "foo://a/x/.b.c",
+    "foo://a/x/a..",
+    "foo://a/x/..."
+  ],
+  "posix": {
+    "normalize": [
+      "",
+      ".",
+      "..",
+      "/",
+      "//",
+      "///",
+      "a",
+      "/a",
+      "a/",
+      "a/b",
+      "/a/foo/bar/x",
+      "/a/foo/bar//x",
+      "/a/foo/bar///x",
+      "/a/foo/bar/x/",
+      "a/foo/bar/x/",
+      "a/foo/bar/x//",
+      "//a/foo/bar/x//",
+      "a/.",
+      "a/..",
+      "a/./b",
+      "a/././b",
+      "a/n/../b",
+      "a/n/../",
+      "/a/n/../..",
+      "/a/n/../../..",
+      "/..",
+      "untitled-1/foo/bar/.",
+      "../../a",
+      "a/../../b",
+      "./",
+      "./a/",
+      "...",
+      "a/.../b",
+      "..a/b",
+      "a/..b",
+      "/ä/ö/../ü",
+      "ä/..",
+      "äb/../c",
+      "..ä",
+      "x.y.z",
+      ".x",
+      "x.",
+      "/a/.b",
+      "//a",
+      "//a/",
+      "a//",
+      "/a/b/c/..",
+      "a/b/../../..",
+      "../a/../.."
+    ],
+    "dirname": [
+      "",
+      ".",
+      "..",
+      "/",
+      "//",
+      "///",
+      "a",
+      "/a",
+      "a/",
+      "a/b",
+      "/a/foo/bar/x",
+      "/a/foo/bar//x",
+      "/a/foo/bar///x",
+      "/a/foo/bar/x/",
+      "a/foo/bar/x/",
+      "a/foo/bar/x//",
+      "//a/foo/bar/x//",
+      "a/.",
+      "a/..",
+      "a/./b",
+      "a/././b",
+      "a/n/../b",
+      "a/n/../",
+      "/a/n/../..",
+      "/a/n/../../..",
+      "/..",
+      "untitled-1/foo/bar/.",
+      "../../a",
+      "a/../../b",
+      "./",
+      "./a/",
+      "...",
+      "a/.../b",
+      "..a/b",
+      "a/..b",
+      "/ä/ö/../ü",
+      "ä/..",
+      "äb/../c",
+      "..ä",
+      "x.y.z",
+      ".x",
+      "x.",
+      "/a/.b",
+      "//a",
+      "//a/",
+      "a//",
+      "/a/b/c/..",
+      "a/b/../../..",
+      "../a/../.."
+    ],
+    "basename": [
+      "",
+      ".",
+      "..",
+      "/",
+      "//",
+      "///",
+      "a",
+      "/a",
+      "a/",
+      "a/b",
+      "/a/foo/bar/x",
+      "/a/foo/bar//x",
+      "/a/foo/bar///x",
+      "/a/foo/bar/x/",
+      "a/foo/bar/x/",
+      "a/foo/bar/x//",
+      "//a/foo/bar/x//",
+      "a/.",
+      "a/..",
+      "a/./b",
+      "a/././b",
+      "a/n/../b",
+      "a/n/../",
+      "/a/n/../..",
+      "/a/n/../../..",
+      "/..",
+      "untitled-1/foo/bar/.",
+      "../../a",
+      "a/../../b",
+      "./",
+      "./a/",
+      "...",
+      "a/.../b",
+      "..a/b",
+      "a/..b",
+      "/ä/ö/../ü",
+      "ä/..",
+      "äb/../c",
+      "..ä",
+      "x.y.z",
+      ".x",
+      "x.",
+      "/a/.b",
+      "//a",
+      "//a/",
+      "a//",
+      "/a/b/c/..",
+      "a/b/../../..",
+      "../a/../.."
+    ],
+    "extname": [
+      "",
+      ".",
+      "..",
+      "/",
+      "//",
+      "///",
+      "a",
+      "/a",
+      "a/",
+      "a/b",
+      "/a/foo/bar/x",
+      "/a/foo/bar//x",
+      "/a/foo/bar///x",
+      "/a/foo/bar/x/",
+      "a/foo/bar/x/",
+      "a/foo/bar/x//",
+      "//a/foo/bar/x//",
+      "a/.",
+      "a/..",
+      "a/./b",
+      "a/././b",
+      "a/n/../b",
+      "a/n/../",
+      "/a/n/../..",
+      "/a/n/../../..",
+      "/..",
+      "untitled-1/foo/bar/.",
+      "../../a",
+      "a/../../b",
+      "./",
+      "./a/",
+      "...",
+      "a/.../b",
+      "..a/b",
+      "a/..b",
+      "/ä/ö/../ü",
+      "ä/..",
+      "äb/../c",
+      "..ä",
+      "x.y.z",
+      ".x",
+      "x.",
+      "/a/.b",
+      "//a",
+      "//a/",
+      "a//",
+      "/a/b/c/..",
+      "a/b/../../..",
+      "../a/../.."
+    ],
+    "join": [
+      [],
+      [
+        ""
+      ],
+      [
+        "",
+        ""
+      ],
+      [
+        "a"
+      ],
+      [
+        "a",
+        "b"
+      ],
+      [
+        "/a",
+        "b"
+      ],
+      [
+        "a",
+        "/b"
+      ],
+      [
+        "a/",
+        "/b/"
+      ],
+      [
+        "..",
+        "a"
+      ],
+      [
+        "a",
+        "..",
+        ".."
+      ],
+      [
+        "/",
+        ".."
+      ],
+      [
+        "",
+        "/"
+      ],
+      [
+        "./a",
+        "./b"
+      ],
+      [
+        "ä",
+        "../ö"
+      ]
+    ],
+    "resolve": [
+      [
+        "/"
+      ],
+      [
+        "/a",
+        "b"
+      ],
+      [
+        "/a",
+        "/b"
+      ],
+      [
+        "/a",
+        "../.."
+      ],
+      [
+        "/a/b",
+        "./c/../d"
+      ],
+      [
+        "/",
+        ""
+      ],
+      [
+        "/x",
+        "",
+        "y"
+      ],
+      [
+        "/a/",
+        "b/"
+      ],
+      [
+        "/ä",
+        "ö/.."
+      ]
+    ]
+  }
+}

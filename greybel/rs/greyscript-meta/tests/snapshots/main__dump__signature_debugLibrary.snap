@@ -1,0 +1,215 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - scan
+  - apply_patch
+  - unit_testing
+  - payload
+definitions:
+  apply_patch:
+    argStrings:
+      - - string
+    id: apply_patch
+    json:
+      arguments:
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+      description: "Applies a patch containing corrected code to the specified text file at the provided path. Returns a `string` with the result of the operation. If the path argument is not a `string` this method will return `null`."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - "metaLib = metax.load(\"/lib/init.so\")"
+        - "debugLib = metaLib.debug_tools(\"test\", \"test\")"
+        - "print(\"Path result: \" + debugLib.apply_patch(\"/etc/passwd\"))"
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: debugLibrary
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "error: file not found"
+        - "error: The file to apply the patch cannot be binary"
+        - "error: The patch code is not correct."
+        - The patch had already been applied.
+        - The patch has been applied correctly.
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  payload:
+    argStrings:
+      - - string
+      - - string
+    id: payload
+    json:
+      arguments:
+        - default: ~
+          label: memZone
+          opt: false
+          types:
+            - string
+        - default:
+            type: string
+            value: ""
+          label: pathFile
+          opt: false
+          types:
+            - string
+      description: "Returns a `list` containing a single partial `computer` object if zero-day vulnerabilities are detected within the specified memory zone. If a file path is provided, a partial `file` object associated with this path will also be included in the `list`. Additionally, if this file is a library, its corresponding `metaLib` object is added to the returned `list`. In case of an error, a `string` with details is returned. Providing arguments that deviate from the defined signature will result in `null`."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - "metaLib = metax.load(\"/lib/init.so\")"
+        - "debugLib = metaLib.debug_tools(\"test\", \"test\")"
+        - "result = debugLib.payload(\"0x7A69F4C3\")"
+        - "if typeof(result) == \"list\" and result.len > 0 then"
+        - "   print(\"Successfully executed payload!\")"
+        - end if
+      isProtected: false
+      returns:
+        - string
+        - type: list
+          valueType:
+            keyType: any
+            type: map
+            valueType: any
+        - "null"
+      type: function
+    origin: debugLibrary
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "list<map<any,any>>"
+      - "null"
+    returnVariations:
+      ok:
+        - "Error acquiring partial object file. Unable to access to resource: ${pathFile}"
+        - "Error: The file must be a library"
+        - "Error: The library is patched against this vulnerability."
+        - "Failed: No vulnerabilities have been found in the specified memory area."
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  scan:
+    argStrings: []
+    id: scan_debuglib
+    json:
+      arguments: []
+      description: "Scans the library in debug mode to identify potential code errors that may lead to vulnerabilities. If issues are detected, the relevant code snippets are printed. In case of an error, a `string` containing the error message is returned."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - "metaLib = metax.load(\"/lib/init.so\")"
+        - "debugLib = metaLib.debug_tools(\"test\", \"test\")"
+        - "print(\"Debug Library result: \" + debugLib.scan)"
+      isProtected: false
+      returns:
+        - string
+      type: function
+    origin: debugLibrary
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+    returnVariations:
+      ok:
+        - "error: file not found"
+        - No potential issues have been found
+        - "Potential problems have been found in the following code:\n\n${callengeDescription}"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+  unit_testing:
+    argStrings:
+      - - list<number>
+    id: unit_testing
+    json:
+      arguments:
+        - default: ~
+          label: error_lines
+          opt: false
+          types:
+            - type: list
+              valueType: number
+      description: "Conducts automated tests on the specified lines of code. If potential vulnerabilities are detected due to errors in these lines, this method will print partial objects that could be obtained by exploiting the vulnerability, along with the affected memory zone and detailed vulnerability information. In case of failure, this function returns a `string` with an error message. If the `error lines` argument is not a `list`, the method will return `null`."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - "metaLib = metax.load(\"/lib/init.so\")"
+        - "debugLib = metaLib.debug_tools(\"test\", \"test\")"
+        - "print(\"Unit test results: \" + debugLib.unit_testing([1, 2, 3]))"
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: debugLibrary
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "error: file not found"
+        - "Starting testing in selected lines...\n${methods}\n\nNew vulnerability found: ${vulnerability}"
+        - "Test failed: No errors have been found in one or more of the provided lines, or not all lines with errors have been provided."
+        - "Test failed: No potential issues have been found"
+    tags:
+      - method
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - scan
+  - apply_patch
+  - unit_testing
+  - payload
+descriptions:
+  $meta:
+    description: "A `debugLibrary` object can be acquired by using [debug_tools](#METALIB_DEBUG_TOOLS). The `classID` used for this object is `\"debugLibrary\"`."
+    example: ~
+  apply_patch:
+    description: "Applies a patch containing corrected code to the specified text file at the provided path. Returns a `string` with the result of the operation. If the path argument is not a `string` this method will return `null`."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - "metaLib = metax.load(\"/lib/init.so\")"
+      - "debugLib = metaLib.debug_tools(\"test\", \"test\")"
+      - "print(\"Path result: \" + debugLib.apply_patch(\"/etc/passwd\"))"
+  payload:
+    description: "Returns a `list` containing a single partial `computer` object if zero-day vulnerabilities are detected within the specified memory zone. If a file path is provided, a partial `file` object associated with this path will also be included in the `list`. Additionally, if this file is a library, its corresponding `metaLib` object is added to the returned `list`. In case of an error, a `string` with details is returned. Providing arguments that deviate from the defined signature will result in `null`."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - "metaLib = metax.load(\"/lib/init.so\")"
+      - "debugLib = metaLib.debug_tools(\"test\", \"test\")"
+      - "result = debugLib.payload(\"0x7A69F4C3\")"
+      - "if typeof(result) == \"list\" and result.len > 0 then"
+      - "   print(\"Successfully executed payload!\")"
+      - end if
+  scan:
+    description: "Scans the library in debug mode to identify potential code errors that may lead to vulnerabilities. If issues are detected, the relevant code snippets are printed. In case of an error, a `string` containing the error message is returned."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - "metaLib = metax.load(\"/lib/init.so\")"
+      - "debugLib = metaLib.debug_tools(\"test\", \"test\")"
+      - "print(\"Debug Library result: \" + debugLib.scan)"
+  unit_testing:
+    description: "Conducts automated tests on the specified lines of code. If potential vulnerabilities are detected due to errors in these lines, this method will print partial objects that could be obtained by exploiting the vulnerability, along with the affected memory zone and detailed vulnerability information. In case of failure, this function returns a `string` with an error message. If the `error lines` argument is not a `list`, the method will return `null`."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - "metaLib = metax.load(\"/lib/init.so\")"
+      - "debugLib = metaLib.debug_tools(\"test\", \"test\")"
+      - "print(\"Unit test results: \" + debugLib.unit_testing([1, 2, 3]))"
+extends: map
+hidden: false

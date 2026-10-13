@@ -1,0 +1,53 @@
+[package]
+name = "duplex-core"
+description = "Typed messages between the client and the provider of a protocol over any transport, in batches of binary frames, with an open/close handshake and health checks"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+scheduler.workspace = true
+duplex-macros.workspace = true
+thiserror.workspace = true
+futures-channel = { workspace = true, features = ["std"] }
+futures-core.workspace = true
+rustc-hash.workspace = true
+slotmap.workspace = true
+smallvec.workspace = true
+x25519-dalek = { workspace = true, optional = true }
+ed25519-dalek = { workspace = true, optional = true }
+chacha20poly1305 = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+hmac = { workspace = true, optional = true }
+getrandom = { workspace = true, optional = true }
+
+[features]
+# Enables Noise XX transport security, including encryption, identity authentication, and batch signatures.
+security = ["dep:x25519-dalek", "dep:ed25519-dalek", "dep:chacha20poly1305", "dep:sha2", "dep:hmac", "dep:getrandom"]
+
+[dev-dependencies]
+duplex-core = { path = ".", features = ["security"] }
+duplex-test-support = { workspace = true, features = ["security"] }
+duplex-protocol.workspace = true
+serde_json.workspace = true
+duplex-ts.workspace = true
+duplex-cs.workspace = true
+snow.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "channel"
+harness = false
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

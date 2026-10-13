@@ -1,0 +1,59 @@
+---
+source: greybel-core/tests/miniscript.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/miniscript/rules/statement-ends.ms
+---
+=== "x = 1 2"
+1.6, latest: --- error
+1:7 - 1:8 ExpectedToken(3001): got Number(2) where EOL is required
+=== "x = fooand true"
+1.6, latest: --- error
+1:12 - 1:16 ExpectedToken(3001): got Keyword(true) where EOL is required
+=== "x = aisa a"
+1.6, latest: --- error
+1:10 - 1:11 ExpectedToken(3001): got Identifier(a) where EOL is required
+=== "return 1 2"
+1.6, latest: --- error
+1:10 - 1:11 ExpectedToken(3001): got Number(2) where EOL is required
+=== "x = 1 // c"
+1.6, latest: ok
+Chunk[1:1-1:11][
+	AssignmentStatement[1:1-1:6][Identifier[1:1-1:2][x] = Literal[1:5-1:6][1]]
+]
+=== "x = 1; y = 2"
+1.6, latest: ok
+Chunk[1:1-1:13][
+	AssignmentStatement[1:1-1:6][Identifier[1:1-1:2][x] = Literal[1:5-1:6][1]]
+	AssignmentStatement[1:8-1:13][Identifier[1:8-1:9][y] = Literal[1:12-1:13][2]]
+]
+=== "if a then x = 1 2"
+1.6, latest: --- error
+1:17 - 1:18 ExpectedToken(3001): got Number(2) where EOL is required
+=== "if a then x = 1 else x = 1 2"
+1.6, latest: ok
+Chunk[1:1-1:29][
+	IfStatement[1:1-1:29][
+		IfShortcutClause[1:1-1:21][Identifier[1:4-1:5][a]
+			AssignmentStatement[1:11-1:16][Identifier[1:11-1:12][x] = Literal[1:15-1:16][1]]
+		]
+		ElseShortcutClause[1:22-1:29][
+			AssignmentStatement[1:22-1:27][Identifier[1:22-1:23][x] = Literal[1:26-1:27][1]]
+		}]
+	]
+	Literal[1:28-1:29][2]
+]
+=== "if a then x = fooor false"
+1.6, latest: ok
+Chunk[1:1-1:26][
+	IfStatement[1:1-1:26][
+		IfShortcutClause[1:1-1:26][Identifier[1:4-1:5][a]
+			AssignmentStatement[1:11-1:20][Identifier[1:11-1:12][x] = Identifier[1:15-1:20][fooor]]
+		]
+	]
+]
+=== "while a x = 1"
+1.6, latest: --- error
+1:9 - 1:10 ExpectedToken(3001): got Identifier(x) where EOL is required
+=== "for i in a x = 1"
+1.6, latest: --- error
+1:12 - 1:13 ExpectedToken(3001): got Identifier(x) where EOL is required

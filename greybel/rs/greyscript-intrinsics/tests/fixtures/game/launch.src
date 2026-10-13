@@ -1,0 +1,18 @@
+sh = get_shell
+pc = sh.host_computer
+admin = include_lib("admin.so")
+
+// A launched script runs for real, sees its params, and shares our output.
+print admin.create_program(home_dir + "/hello.src", "print(""hello "" + params[0])")
+print "before"
+print sh.launch(home_dir + "/hello.src", "world")
+print "after"
+
+// A launched program can launch another (nested).
+print admin.create_program(home_dir + "/outer.src", "sh = get_shell" + char(10) + "print(""outer"")" + char(10) + "sh.launch(home_dir + ""/hello.src"", ""again"")")
+sh.launch(home_dir + "/outer.src")
+
+// Not executable, and not found.
+print pc.touch(home_dir, "plain.txt")
+print sh.launch(home_dir + "/plain.txt")
+print sh.launch(home_dir + "/missing")

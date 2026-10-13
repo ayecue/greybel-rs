@@ -1,0 +1,211 @@
+{
+  "type": "string",
+  "definitions": {
+    "remove": {
+      "id": "remove",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "toDelete",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "hasIndex": {
+      "id": "hasIndex",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "index",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "insert": {
+      "id": "insert",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "index",
+          "type": "number"
+        },
+        {
+          "label": "value",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "indexOf": {
+      "id": "indexOf",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "string"
+        },
+        {
+          "label": "offset",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "split": {
+      "id": "split",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "delimiter",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": " "
+          }
+        },
+        {
+          "label": "maxCount",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": -1
+          }
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        }
+      ]
+    },
+    "replace": {
+      "id": "replace",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "arguments": [
+        {
+          "label": "oldVal",
+          "type": "string"
+        },
+        {
+          "label": "newVal",
+          "type": "string"
+        },
+        {
+          "label": "maxCount",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "indexes": {
+      "id": "indexes",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "number"
+        }
+      ]
+    },
+    "code": {
+      "id": "code",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "len": {
+      "id": "len",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "lower": {
+      "id": "lower",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "upper": {
+      "id": "upper",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "val": {
+      "id": "val",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "values": {
+      "id": "values",
+      "type": "function",
+      "tags": [
+        "method"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,117 @@
+use core 1.0;
+
+/// Builds and transforms editor projects, imports files into Grey Hack, and accesses sources through the documents
+/// protocol on the same transport.
+protocol Builds = "greybel-builder" {
+    /// Editor-facing build service.
+    provider Builder {
+        /// Builds every entry and its imports for execution from `ingame_directory`. Reads sources through the
+        /// documents protocol and returns all outputs. Only optional deployment writes to the game.
+        message Build {
+            entries: list<string>,
+            /// Project root URI used to resolve absolute import paths; defaults to the first entry folder.
+            root?: string,
+            /// Extensions to try in declaration order when an import omits one.
+            extensions: list<string>,
+            transpile: TranspileSettings,
+            /// Game-computer folder used as the build execution directory.
+            ingame_directory: string,
+            /// Output filename when the build has one entry.
+            output_name?: string,
+            /// Enables in-game compilation with resources beside `ingame_directory`.
+            auto_compile?: AutoCompile,
+            /// Installer-script length limit. Installer scripts recreate the build in the game.
+            installer_length?: u32,
+            /// Local message-hook port for deploying the build into Grey Hack.
+            deploy_port?: u16,
+        } -> Result<BuildResult, BuildFailure>
+        /// Copies `files` unchanged into `ingame_directory` through local message-hook `port`, preserving paths
+        /// relative to `root`. Returns the number of imported files.
+        message Import {
+            root: string,
+            files: list<string>,
+            ingame_directory: string,
+            port: u16,
+        } -> Result<u32, BuildFailure>
+        /// Transpiles `code` with the build settings without resolving imports.
+        message Transform {
+            code: string,
+            transpile: TranspileSettings,
+        } -> Result<string, BuildFailure>
+    }
+
+    /// Editor that requests builds and transformations.
+    client Editor {}
+}
+
+/// Transpiler options for a build or transformation.
+struct TranspileSettings {
+    mode: TranspileMode,
+    /// Shortens names even when runtime code accesses them as strings.
+    obfuscation: bool,
+    /// Rejects syntax extensions not supported by the reference implementation.
+    strict_mode: bool,
+    /// Environment-variable values exposed by `#envar`.
+    variables: record<string>,
+    /// Extra names excluded from uglification; `params` and game API names are always preserved.
+    excluded_names: list<string>,
+}
+
+/// Source-code output transformation.
+union TranspileMode {
+    /// Removes comments while preserving source layout.
+    Default,
+    /// Minifies source code.
+    Uglify {
+        disable_literals_optimization: bool,
+        disable_namespaces_optimization: bool,
+    },
+    /// Formats source code.
+    Beautify {
+        retain_parentheses: bool,
+        /// Number of spaces per indentation level; absent means tabs.
+        indentation_spaces?: u32,
+    },
+}
+
+/// Settings for in-game compilation.
+struct AutoCompile {
+    /// Permits the compiled program to import code at runtime.
+    allow_import: bool,
+}
+
+/// Files emitted by a build.
+struct BuildResult {
+    /// Common entry-folder URI used to resolve output paths.
+    root: string,
+    files: list<BuiltFile>,
+    installer: list<BuiltFile>,
+}
+
+/// Path and contents of a generated file.
+struct BuiltFile {
+    path: string,
+    code: string,
+}
+
+/// Failure from a build, import, or transformation.
+union BuildFailure {
+    /// Source error, for example invalid syntax or an unresolved import.
+    Invalid {
+        message: string,
+        location?: SourceLocation,
+    },
+    /// This host cannot deploy to the game, for example in a browser.
+    Unavailable,
+    /// Message hook could not be reached or rejected the build.
+    Unreachable {
+        message: string,
+    },
+}
+
+/// Source location using one-based line and character numbers.
+struct SourceLocation {
+    uri: string,
+    line: u32,
+    character: u32,
+}

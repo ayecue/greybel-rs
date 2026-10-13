@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "Over a transport the handshake encrypts, a client and a provider connect, and a message and its response pass.",
+  "peer": "client",
+  "requires": ["responses", "security"],
+  "connected": true,
+  "security": {
+    "channel": {},
+    "remote": {}
+  },
+  "steps": [
+    {
+      "send": {
+        "Add": {
+          "a": 2,
+          "b": 3
+        }
+      },
+      "as": "sum"
+    },
+    {
+      "expect": {
+        "settled": {
+          "sum": {
+            "response": 5
+          }
+        },
+        "connection": 1,
+        "closed": null
+      }
+    }
+  ]
+}

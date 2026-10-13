@@ -1,0 +1,9 @@
+#import foo from "lib/foo.src";
+#include "lib/bar.src";
+//import baz from "lib/baz.src";
+//include "lib/qux.src";
+#inject "data.txt";
+x = #envar MY_VAR;
+line = #line
+file = #filename
+debugger

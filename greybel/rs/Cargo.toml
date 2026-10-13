@@ -1,0 +1,143 @@
+[workspace]
+resolver = "3"
+members = ["greybel-*", "greyscript-*", "greyhack-*", "miniscript-*", "meta-utils"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.93"
+repository = "https://github.com/ayecue/greybel-rs"
+
+[workspace.dependencies]
+greybel-api-reference = { path = "greybel-api-reference" }
+greybel-api-reference-web = { path = "greybel-api-reference-web" }
+greybel-bundler = { path = "greybel-bundler" }
+greybel-builder = { path = "greybel-builder" }
+greybel-builder-web = { path = "greybel-builder-web" }
+greybel-core = { path = "greybel-core" }
+greybel-core-macros = { path = "greybel-core-macros" }
+greybel-documents = { path = "greybel-documents" }
+greybel-documents-fs-provider = { path = "greybel-documents-fs-provider" }
+greybel-documents-host-provider = { path = "greybel-documents-host-provider" }
+greybel-documents-memory-provider = { path = "greybel-documents-memory-provider" }
+greybel-interpreter = { path = "greybel-interpreter" }
+greybel-interpreter-macros = { path = "greybel-interpreter-macros" }
+greybel-io = { path = "greybel-io" }
+greybel-io-terminal = { path = "greybel-io-terminal" }
+greybel-io-web = { path = "greybel-io-web" }
+greybel-lsp = { path = "greybel-lsp" }
+greybel-mcp = { path = "greybel-mcp" }
+greybel-project = { path = "greybel-project" }
+greybel-lsp-web = { path = "greybel-lsp-web" }
+greybel-ms-intrinsics = { path = "greybel-ms-intrinsics" }
+greybel-runtime = { path = "greybel-runtime" }
+greybel-runtime-web = { path = "greybel-runtime-web" }
+greybel-symbols = { path = "greybel-symbols" }
+greybel-source-map = { path = "greybel-source-map" }
+greybel-test-support = { path = "greybel-test-support" }
+greybel-transpiler = { path = "greybel-transpiler" }
+greybel-type-analyzer = { path = "greybel-type-analyzer" }
+greyhack-message-hook-client = { path = "greyhack-message-hook-client" }
+greyhack-terminal-text = { path = "greyhack-terminal-text" }
+greyhack-terminal-web = { path = "greyhack-terminal-web" }
+greyhack-test-support-client = { path = "greyhack-test-support-client" }
+greyscript-intrinsics = { path = "greyscript-intrinsics" }
+greyscript-meta = { path = "greyscript-meta" }
+meta-utils = { path = "meta-utils" }
+miniscript-meta = { path = "miniscript-meta" }
+
+# Crates of the other workspaces in the repository.
+scheduler = { path = "../../common/rs/scheduler" }
+thin-str = { path = "../../common/rs/thin-str" }
+vscode-uri = { path = "../../common/rs/vscode-uri" }
+duplex-core = { path = "../../duplex/rs/duplex-core" }
+duplex-cs = { path = "../../duplex/rs/duplex-cs" }
+duplex-driver-memory = { path = "../../duplex/rs/duplex-driver-memory" }
+duplex-driver-stdio = { path = "../../duplex/rs/duplex-driver-stdio" }
+duplex-tokio = { path = "../../duplex/rs/duplex-tokio" }
+duplex-driver-web = { path = "../../duplex/rs/duplex-driver-web" }
+duplex-test-support = { path = "../../duplex/rs/duplex-test-support" }
+duplex-ts = { path = "../../duplex/rs/duplex-ts" }
+greyhack-text-mesh-assets = { path = "../../assets/rs/greyhack-text-mesh-assets" }
+asset-bundle = { path = "../../assets/rs/asset-bundle" }
+greyhack-behaviour = { path = "greyhack-behaviour" }
+greyhack-world = { path = "greyhack-world" }
+greyhack-world-operations = { path = "greyhack-world-operations" }
+greyhack-world-operations-web = { path = "greyhack-world-operations-web" }
+greyhack-world-assets = { path = "../../assets/rs/greyhack-world-assets" }
+mono-dictionary = { path = "../../mono/rs/mono-dictionary" }
+mono-number = { path = "../../mono/rs/mono-number" }
+mono-random = { path = "../../mono/rs/mono-random" }
+mono-regex = { path = "../../mono/rs/mono-regex" }
+mono-string = { path = "../../mono/rs/mono-string" }
+text-mesh-ansi = { path = "../../text-mesh/rs/text-mesh-ansi" }
+text-mesh-canvas = { path = "../../text-mesh/rs/text-mesh-canvas" }
+text-mesh-core = { path = "../../text-mesh/rs/text-mesh-core" }
+text-mesh-font = { path = "../../text-mesh/rs/text-mesh-font" }
+text-mesh-font-builder = { path = "../../text-mesh/rs/text-mesh-font-builder" }
+text-mesh-html = { path = "../../text-mesh/rs/text-mesh-html" }
+text-mesh-layout = { path = "../../text-mesh/rs/text-mesh-layout" }
+text-mesh-test-support = { path = "../../text-mesh/rs/text-mesh-test-support" }
+text-mesh-unity = { path = "../../text-mesh/rs/text-mesh-unity" }
+text-mesh-webgl = { path = "../../text-mesh/rs/text-mesh-webgl" }
+
+base64 = "0.22"
+clap = { version = "4.6", features = ["derive"] }
+const-fnv1a-hash = "1"
+criterion = { version = "0.7", default-features = false, features = ["cargo_bench_support"] }
+crossterm = { version = "0.29", default-features = false, features = ["events", "windows"] }
+fastrand = "2"
+flate2 = "1"
+futures-core = { version = "0.3", default-features = false }
+futures-util = { version = "0.3", default-features = false }
+gen-lsp-types = "0.11"
+globset = "0.4"
+indexmap = { version = "2", features = ["serde"] }
+insta = { version = "1.48", features = ["glob", "yaml"] }
+itoa = "1"
+js-sys = "0.3"
+md-5 = "0.10"
+sha2 = { version = "0.10", default-features = false }
+png = "0.18"
+proc-macro2 = "1"
+pulldown-cmark = { version = "0.13", default-features = false }
+quote = "1"
+rand_core = "0.10"
+rand_xoshiro = "0.8"
+rapidhash = { version = "4", default-features = false }
+rmcp = { version = "3.8", default-features = false, features = ["server", "macros", "transport-io", "local"] }
+rustc-hash = "2"
+salsa = { version = "0.28", default-features = false, features = ["macros", "inventory", "accumulator"] }
+schemars = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+str_indices = "0.4"
+syn = "2"
+thiserror = "2"
+tokio = "1"
+turso = { version = "0.8.3", default-features = false }
+unicode-general-category = "1"
+uuid = { version = "1", default-features = false, features = ["serde"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+wasm-bindgen-test = "0.3"
+web-sys = "0.3"
+
+# Keep local line tables, omitting other debug info and all dependency debug info.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+# Binaries choose their own panic behavior.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

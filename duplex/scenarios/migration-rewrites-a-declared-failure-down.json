@@ -1,0 +1,43 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A provider migrates what a message of a client of an older major failed with down.",
+  "connected": true,
+  "peer": "provider",
+  "requires": ["responses", "migration"],
+  "major": 2,
+  "steps": [
+    {
+      "receive": {
+        "connection": 1,
+        "frames": [
+          {
+            "Message": {
+              "id": 0,
+              "Divide": {
+                "dividend": 1,
+                "divisor": 0
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 1,
+            "frames": [
+              {
+                "Failure": {
+                  "id": 0,
+                  "Divide": "ByZero"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

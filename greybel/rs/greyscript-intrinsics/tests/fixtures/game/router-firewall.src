@@ -1,0 +1,40 @@
+// Break a router's firewall through net_use with no service port.
+admin = include_lib("admin.so")
+router = admin.create_network({"public_ip": "9.9.9.9", "domain": "fw.com", "computers": 0})
+print router.firewall_rules.len > 0
+
+meta = include_lib("/lib/metaxploit.so")
+
+// net_use with no port connects to the router itself
+session = meta.net_use("9.9.9.9")
+print typeof(session)
+
+lib = session.dump_lib
+print typeof(lib)
+print lib.lib_name
+
+// The router session and its library are the ordinary NetSession / MetaLib
+// classes now, so the NetSession queries work on a router session too.
+print session.classID
+print lib.classID
+print session.get_num_portforward >= 0
+print session.get_num_conn_gateway >= 0
+
+// find a firewall weakness and break it
+disabled = false
+for address in meta.scan(lib)
+    info = meta.scan_address(lib, address)
+    for line in info.split(char(10))
+        if line.indexOf("<b>") == null then continue
+        value = line.split("<b>")[1].split("</b>")[0]
+        result = lib.overflow(address, value)
+        if typeof(result) == "number" and result == 1 then
+            disabled = true
+            break
+        end if
+    end for
+    if disabled then break
+end for
+
+print disabled
+print router.firewall_rules.len

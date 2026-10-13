@@ -1,0 +1,659 @@
+---
+source: greyscript-meta/tests/dump.rs
+expression: part
+---
+definitionOrder:
+  - computer
+  - add_computer
+  - remove
+  - set_net_speed
+  - fire_npc
+  - hire_npc
+  - hire_admin
+  - fire_admin
+  - set_phone_alarm
+  - phone_alarm
+  - report_library_update
+  - set_company_shares
+  - hire_crown_shield
+  - set_admin_restore
+definitions:
+  add_computer:
+    argStrings:
+      - - "map<any,any>"
+    id: add_computer
+    json:
+      arguments:
+        - default: ~
+          label: options
+          opt: false
+          types:
+            - keyType: any
+              type: map
+              valueType: any
+      description: "Adds a computer to this network and returns root access to it as a `computer`. Every key of `options` is optional: `name`, `lan_ip`, `root_password`, `users` (a map of user names to passwords), `services` (a list of service names such as `\"ssh\"`), `switch` (truthy to add a switch instead of a computer), and the mining hardware `cpuSpeed`, `cpuCores`, `ramModel` and `gpuHashrate`. An unknown service returns `\"Error: unknown service <name>\"`; other failures return an error `string`. Options that aren't a map, or keys of the wrong type, raise `add_computer: Invalid arguments`. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "computer = network.add_computer({\"name\": \"web\", \"lan_ip\": \"192.168.0.10\", \"root_password\": \"toor\", \"users\": {\"bob\": \"pass\"}, \"services\": [\"ssh\", \"ftp\"]})"
+        - print(computer.get_name)
+      isProtected: false
+      returns:
+        - computer
+        - string
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - computer
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  computer:
+    argStrings:
+      - - string
+    id: computer
+    json:
+      arguments:
+        - default: ~
+          label: lanIp
+          opt: false
+          types:
+            - string
+      description: "Returns the `adminComputer` for the computer at `lanIp` in this network. The address isn't checked: the methods of an `adminComputer` whose computer doesn't exist fail as they would for any missing computer. A non-string `lanIp` raises `computer: Invalid arguments`. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "computer = network.computer(\"192.168.0.2\")"
+        - print(computer.shell.host_computer.get_name)
+      isProtected: false
+      returns:
+        - adminComputer
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - adminComputer
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  fire_admin:
+    argStrings: []
+    id: fire_admin
+    json:
+      arguments: []
+      description: "Fires the administrator this network hired with `hire_admin`, as its owner does on the bank website, taking $2500 off the player's monthly admin charge, which must exist. Returns `1`, or why none can be fired as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - print(network.fire_admin)
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "You don't have any administrator hired on this network."
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  fire_npc:
+    argStrings:
+      - - string
+    id: fire_npc
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+      description: "Fires the NPC `user` of this network, as the company's owner does on its employees website: they never log in again and their position opens. Returns `1`, or why they can't be fired as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "print(network.fire_npc(\"smith\"))"
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - This person cannot be fired.
+        - "Unknown error: Unable to find person to fire."
+        - You cannot fire this person until one month has passed since their hiring.
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  hire_admin:
+    argStrings: []
+    id: hire_admin
+    json:
+      arguments: []
+      description: "Hires an administrator for this network, a rented server's, as its owner does on the bank website: one of the people of a newly generated network, who intercepts every attack on the server while alive. The player pays the first month, $2500, from their bank account, without coupons, and the same amount is added to their monthly admin charge; an administrator who died or was fired is removed first, with their charge. Returns `1`, or why none can be hired as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - print(network.hire_admin)
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - You already have an administrator hired for this network.
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  hire_crown_shield:
+    argStrings:
+      - - string
+    id: hire_crown_shield
+    json:
+      arguments:
+        - default: ~
+          label: guild
+          opt: false
+          types:
+            - string
+      description: "Hires CrownShield for the guild `guild` at this network, as the guild's owner does in the game's interface: every computer of the network restarts and the network is protected against overflow attacks, floods and its administrator's vehicle being located. The guild must hold the Crown. The price is not charged. Returns `1`, or why it can't be hired as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "print(network.hire_crown_shield(\"Owls\"))"
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - Crown required
+        - Enter a valid public IP address.
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  hire_npc:
+    argStrings:
+      - - string
+    id: hire_npc
+    json:
+      arguments:
+        - default: ~
+          label: jobRole
+          opt: false
+          types:
+            - string
+      description: "Hires an NPC for `jobRole` onto a position a dead or fired NPC left, as the company's owner does on its hiring website. `jobRole` is the game's job name, such as `\"Technical_Support\"`. Returns `1`, or why nobody can be hired as a `string`: `\"There are no open positions in the company for <job>\"` when the network has no open position for that job. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "print(network.hire_npc(\"Technical_Support\"))"
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "Error: invalid job option"
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  phone_alarm:
+    argStrings:
+      - - string
+    id: phone_alarm
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+      description: "Returns the alarm configuration of the smartphone belonging to NPC account `user`. Reading it first completes a finished lateness, adds a strike, and fires the NPC on the third strike. An unmodified alarm displays the NPC's travel-to-work time. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "print(network.phone_alarm(\"smith\"))"
+      isProtected: false
+      returns:
+        - keyType: any
+          type: map
+          valueType: any
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - "map<any,any>"
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  remove:
+    argStrings: []
+    id: remove
+    json:
+      arguments: []
+      description: "Removes this network and its computers. The player's own network can't be removed. When the player rents the network, its price and address also leave the player's monthly rental charge, and the hired administrator's charge leaves the admin charge, as when the player deletes it on the network configuration. Returns `1` when it was removed, otherwise `0`. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - print(network.remove)
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  report_library_update:
+    argStrings:
+      - - string
+    id: report_library_update
+    json:
+      arguments:
+        - default: ~
+          label: library
+          opt: false
+          types:
+            - string
+      description: "Reports the newest library file named `library` as this network's update, as its administrator does when replying to the update-libraries mail. Each library file of that name in the network's computers and routers that is older than the newest is replaced by it, which the game does when it restores them, and computers made for the network after the report start with it. The administrator does not update when the guild that owns the company turned its Admin Restore off, and the reply is `\"Thanks for the warning, but I am not going to update them for now.\"`. Returns `1`, or `0` when the world has no library of that name. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "print(network.report_library_update(\"libssh.so\"))"
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "Thanks for the warning, but I am not going to update them for now."
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  set_admin_restore:
+    argStrings:
+      - - string
+      - - number
+    id: set_admin_restore
+    json:
+      arguments:
+        - default: ~
+          label: guild
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: enabled
+          opt: false
+          types:
+            - number
+      description: "Turns Admin Restore off (`enabled` is `0`) or on for this network's company as the guild `guild`, as its company management window does. The guild's bank account must be the company's majority owner, and a guild can have it off for as many companies as its Admin Restore perks and its level allow. While it is off, the company's administrator does not update libraries reported to it. Returns `1`, or why it can't be set as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "print(network.set_admin_restore(\"Owls\", 0))"
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "Error: Admin Restore can only be configured for guild-owned companies."
+        - "Error: company not found"
+        - "Error: invalid company"
+        - "Error: This guild cannot disable Admin Restore for more companies at its current perk level."
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  set_company_shares:
+    argStrings:
+      - - string
+      - - number
+    id: set_company_shares
+    json:
+      arguments:
+        - default: ~
+          label: bank_account
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: shares
+          opt: false
+          types:
+            - number
+      description: "Sets the shares the bank account `bank_account` holds of this network's company, as buying them on the stock market does: the guild holding the account invests in the company with its first shares and stops with its last. No payment is made. The account owns the company while it holds more than half of its shares. Returns `1`. Arguments of the wrong type raise `set_company_shares: Invalid arguments`. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "network.set_company_shares(user_bank_number, 100000)"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  set_net_speed:
+    argStrings:
+      - - number
+    id: set_net_speed
+    json:
+      arguments:
+        - default: ~
+          label: speed
+          opt: false
+          types:
+            - number
+      description: "Sets this network's connection speed to one of the internet provider's packs, `3`, `6`, `12`, `20` or `25`, as the player buys one on the provider's or the company's website. When the player rents the network, the player's monthly rental charge follows the pack's price, without charging the pack. Returns `1`, or `0` for any other speed. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - network.set_net_speed(25)
+        - "print(get_router(\"82.110.42.17\").net_speed)"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  set_phone_alarm:
+    argStrings:
+      - - string
+      - - number
+      - - number
+      - - number
+    id: set_phone_alarm
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: hour
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: minute
+          opt: false
+          types:
+            - number
+        - default: ~
+          label: deleteAlarm
+          opt: false
+          types:
+            - number
+      description: "Changes the alarm on the smartphone belonging to the NPC account `user`, then applies the game's lateness schedule. `hour` must be from 0 through 23 and `minute` from 0 through 59. A nonzero `deleteAlarm` deletes the alarm. Returns the alarm configuration, including `lateStrikes` and `fired`, or the clock program's validation error. Returns `null` when called on anything but an `adminNetwork`."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "network = admin.network(\"82.110.42.17\")"
+        - "print(network.set_phone_alarm(\"smith\", 23, 30, 0))"
+      isProtected: false
+      returns:
+        - keyType: any
+          type: map
+          valueType: any
+        - string
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - "map<any,any>"
+      - string
+      - "null"
+    returnVariations:
+      ok:
+        - "Error: Incorrect time. A 24-hour format is expected."
+        - "Error: This program is not compatible with this device"
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+descriptionOrder:
+  - $meta
+  - computer
+  - add_computer
+  - remove
+  - set_net_speed
+  - fire_npc
+  - hire_npc
+  - hire_admin
+  - fire_admin
+  - set_phone_alarm
+  - phone_alarm
+  - report_library_update
+  - set_company_shares
+  - hire_crown_shield
+  - set_admin_restore
+descriptions:
+  $meta:
+    description: "An `adminNetwork` belongs to Greybel's interpreter, not to the game: `admin.network` returns one for a network's public address, in Greybel's simulated world only. Its methods change that network, including what the game only does from its websites, such as firing and hiring its NPCs. The `classID` used for this object is `\"adminNetwork\"`."
+    example: ~
+  add_computer:
+    description: "Adds a computer to this network and returns root access to it as a `computer`. Every key of `options` is optional: `name`, `lan_ip`, `root_password`, `users` (a map of user names to passwords), `services` (a list of service names such as `\"ssh\"`), `switch` (truthy to add a switch instead of a computer), and the mining hardware `cpuSpeed`, `cpuCores`, `ramModel` and `gpuHashrate`. An unknown service returns `\"Error: unknown service <name>\"`; other failures return an error `string`. Options that aren't a map, or keys of the wrong type, raise `add_computer: Invalid arguments`. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "computer = network.add_computer({\"name\": \"web\", \"lan_ip\": \"192.168.0.10\", \"root_password\": \"toor\", \"users\": {\"bob\": \"pass\"}, \"services\": [\"ssh\", \"ftp\"]})"
+      - print(computer.get_name)
+  computer:
+    description: "Returns the `adminComputer` for the computer at `lanIp` in this network. The address isn't checked: the methods of an `adminComputer` whose computer doesn't exist fail as they would for any missing computer. A non-string `lanIp` raises `computer: Invalid arguments`. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "computer = network.computer(\"192.168.0.2\")"
+      - print(computer.shell.host_computer.get_name)
+  fire_admin:
+    description: "Fires the administrator this network hired with `hire_admin`, as its owner does on the bank website, taking $2500 off the player's monthly admin charge, which must exist. Returns `1`, or why none can be fired as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - print(network.fire_admin)
+  fire_npc:
+    description: "Fires the NPC `user` of this network, as the company's owner does on its employees website: they never log in again and their position opens. Returns `1`, or why they can't be fired as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "print(network.fire_npc(\"smith\"))"
+  hire_admin:
+    description: "Hires an administrator for this network, a rented server's, as its owner does on the bank website: one of the people of a newly generated network, who intercepts every attack on the server while alive. The player pays the first month, $2500, from their bank account, without coupons, and the same amount is added to their monthly admin charge; an administrator who died or was fired is removed first, with their charge. Returns `1`, or why none can be hired as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - print(network.hire_admin)
+  hire_crown_shield:
+    description: "Hires CrownShield for the guild `guild` at this network, as the guild's owner does in the game's interface: every computer of the network restarts and the network is protected against overflow attacks, floods and its administrator's vehicle being located. The guild must hold the Crown. The price is not charged. Returns `1`, or why it can't be hired as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "print(network.hire_crown_shield(\"Owls\"))"
+  hire_npc:
+    description: "Hires an NPC for `jobRole` onto a position a dead or fired NPC left, as the company's owner does on its hiring website. `jobRole` is the game's job name, such as `\"Technical_Support\"`. Returns `1`, or why nobody can be hired as a `string`: `\"There are no open positions in the company for <job>\"` when the network has no open position for that job. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "print(network.hire_npc(\"Technical_Support\"))"
+  phone_alarm:
+    description: "Returns the alarm configuration of the smartphone belonging to NPC account `user`. Reading it first completes a finished lateness, adds a strike, and fires the NPC on the third strike. An unmodified alarm displays the NPC's travel-to-work time. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "print(network.phone_alarm(\"smith\"))"
+  remove:
+    description: "Removes this network and its computers. The player's own network can't be removed. When the player rents the network, its price and address also leave the player's monthly rental charge, and the hired administrator's charge leaves the admin charge, as when the player deletes it on the network configuration. Returns `1` when it was removed, otherwise `0`. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - print(network.remove)
+  report_library_update:
+    description: "Reports the newest library file named `library` as this network's update, as its administrator does when replying to the update-libraries mail. Each library file of that name in the network's computers and routers that is older than the newest is replaced by it, which the game does when it restores them, and computers made for the network after the report start with it. The administrator does not update when the guild that owns the company turned its Admin Restore off, and the reply is `\"Thanks for the warning, but I am not going to update them for now.\"`. Returns `1`, or `0` when the world has no library of that name. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "print(network.report_library_update(\"libssh.so\"))"
+  set_admin_restore:
+    description: "Turns Admin Restore off (`enabled` is `0`) or on for this network's company as the guild `guild`, as its company management window does. The guild's bank account must be the company's majority owner, and a guild can have it off for as many companies as its Admin Restore perks and its level allow. While it is off, the company's administrator does not update libraries reported to it. Returns `1`, or why it can't be set as a `string`. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "print(network.set_admin_restore(\"Owls\", 0))"
+  set_company_shares:
+    description: "Sets the shares the bank account `bank_account` holds of this network's company, as buying them on the stock market does: the guild holding the account invests in the company with its first shares and stops with its last. No payment is made. The account owns the company while it holds more than half of its shares. Returns `1`. Arguments of the wrong type raise `set_company_shares: Invalid arguments`. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "network.set_company_shares(user_bank_number, 100000)"
+  set_net_speed:
+    description: "Sets this network's connection speed to one of the internet provider's packs, `3`, `6`, `12`, `20` or `25`, as the player buys one on the provider's or the company's website. When the player rents the network, the player's monthly rental charge follows the pack's price, without charging the pack. Returns `1`, or `0` for any other speed. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - network.set_net_speed(25)
+      - "print(get_router(\"82.110.42.17\").net_speed)"
+  set_phone_alarm:
+    description: "Changes the alarm on the smartphone belonging to the NPC account `user`, then applies the game's lateness schedule. `hour` must be from 0 through 23 and `minute` from 0 through 59. A nonzero `deleteAlarm` deletes the alarm. Returns the alarm configuration, including `lateStrikes` and `fired`, or the clock program's validation error. Returns `null` when called on anything but an `adminNetwork`."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "network = admin.network(\"82.110.42.17\")"
+      - "print(network.set_phone_alarm(\"smith\", 23, 30, 0))"
+extends: map
+hidden: false

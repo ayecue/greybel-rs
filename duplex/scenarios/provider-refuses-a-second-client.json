@@ -1,0 +1,39 @@
+{
+  "$schema": "../schema/scenario.schema.json",
+  "description": "A connected provider refuses an open of another id.",
+  "peer": "provider",
+  "requires": [],
+  "connected": true,
+  "steps": [
+    {
+      "receive": {
+        "connection": 0,
+        "frames": [
+          {
+            "Open": {
+              "id": 7
+            }
+          }
+        ]
+      }
+    },
+    {
+      "expect": {
+        "sent": [
+          {
+            "connection": 0,
+            "frames": [
+              {
+                "Refuse": {
+                  "id": 7,
+                  "reason": "Busy"
+                }
+              }
+            ]
+          }
+        ],
+        "connection": 1
+      }
+    }
+  ]
+}

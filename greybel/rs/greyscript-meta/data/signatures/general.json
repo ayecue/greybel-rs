@@ -1,0 +1,6797 @@
+{
+  "type": "general",
+  "definitions": {
+    "mail_login": {
+      "id": "mail_login",
+      "type": "function",
+      "tags": [
+        "function",
+        "general",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "!Database.GetMailAccount",
+        "mail_login: Invalid account name.",
+        "mail_login: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "metaMail",
+        "string",
+        "null"
+      ]
+    },
+    "parent_path": {
+      "id": "parent_path",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "parent_path: Invalid arguments"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "trim": {
+      "id": "trim",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "hasIndex": {
+      "id": "hasIndex",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "map",
+            "list",
+            "string"
+          ]
+        },
+        {
+          "label": "index",
+          "type": "any"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "typeof": {
+      "id": "typeof",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "type_object",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "get_router": {
+      "id": "get_router",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "address",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        "get_router: No internet connection"
+      ],
+      "returns": [
+        "router",
+        "null",
+        "string"
+      ]
+    },
+    "get_switch": {
+      "id": "get_switch",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "address",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "router",
+        "null"
+      ]
+    },
+    "nslookup": {
+      "id": "nslookup",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "address",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "IP not found",
+        "nslookup: Invalid arguments"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "print": {
+      "id": "print",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "s",
+          "type": "any",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "replace_text",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "parse_newlines",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1
+          }
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "clear_screen": {
+      "id": "clear_screen",
+      "type": "function",
+      "tags": [
+        "function",
+        "general",
+        "ssh incompatible"
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "active_user": {
+      "id": "active_user",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "home_dir": {
+      "id": "home_dir",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "get_shell": {
+      "id": "get_shell",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "password",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        "get_shell: Invalid arguments",
+        "This account is disabled."
+      ],
+      "returns": [
+        "shell",
+        "null",
+        "string"
+      ]
+    },
+    "indexes": {
+      "id": "indexes",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "map",
+            "list",
+            "string"
+          ]
+        }
+      ],
+      "returns": [
+        "list",
+        "null"
+      ]
+    },
+    "values": {
+      "id": "values",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "map",
+            "string"
+          ]
+        }
+      ],
+      "returns": [
+        "list"
+      ]
+    },
+    "indexOf": {
+      "id": "indexOf",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map",
+            "string"
+          ]
+        },
+        {
+          "label": "value",
+          "type": "any"
+        },
+        {
+          "label": "after",
+          "type": "any",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "any"
+      ]
+    },
+    "len": {
+      "id": "len",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map",
+            "string"
+          ]
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "shuffle": {
+      "id": "shuffle",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "val": {
+      "id": "val",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "number",
+            "string"
+          ],
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "lower": {
+      "id": "lower",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "upper": {
+      "id": "upper",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "sum": {
+      "id": "sum",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "pop": {
+      "id": "pop",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        }
+      ],
+      "returns": [
+        "any"
+      ]
+    },
+    "pull": {
+      "id": "pull",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        }
+      ],
+      "returns": [
+        "any"
+      ]
+    },
+    "push": {
+      "id": "push",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "map"
+          ]
+        },
+        {
+          "label": "value",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "list",
+        "map",
+        "null"
+      ]
+    },
+    "sort": {
+      "id": "sort",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "list"
+        },
+        {
+          "label": "byKey",
+          "type": "any"
+        },
+        {
+          "label": "ascending",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1
+          }
+        }
+      ],
+      "returns": [
+        "list"
+      ]
+    },
+    "remove": {
+      "id": "remove",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "map",
+            "list",
+            "string"
+          ]
+        },
+        {
+          "label": "k",
+          "type": "any"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null",
+        "string"
+      ]
+    },
+    "user_input": {
+      "id": "user_input",
+      "type": "function",
+      "tags": [
+        "function",
+        "general",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "inputMsg",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "isPassword",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "anyKey",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "addToHistory",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "echo",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1
+          }
+        }
+      ],
+      "returnVariations": [
+        "user_input: Invalid arguments"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "include_lib": {
+      "id": "include_lib",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "libPath",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "include_lib: Invalid arguments"
+      ],
+      "returns": [
+        "crypto",
+        "metaxploit",
+        "service",
+        "blockchain",
+        "aptClient",
+        "smartAppliance",
+        "trafficNet",
+        "admin",
+        "null",
+        "string"
+      ]
+    },
+    "import_code": {
+      "id": "import_code",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "exit": {
+      "id": "exit",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "msg",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "user_mail_address": {
+      "id": "user_mail_address",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "user_bank_number": {
+      "id": "user_bank_number",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "whois": {
+      "id": "whois",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "address",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "Address not found",
+        "Error: the IP address must be public",
+        "Invalid IP address: ${ip}",
+        "No Info available",
+        "whois: Invalid arguments"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "wait": {
+      "id": "wait",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "seconds",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1
+          }
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "command_info": {
+      "id": "command_info",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "keyCommand",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "command_info: Invalid arguments"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "program_path": {
+      "id": "program_path",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "current_path": {
+      "id": "current_path",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "string"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "any"
+        }
+      ]
+    },
+    "format_columns": {
+      "id": "format_columns",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "output_str",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "current_date": {
+      "id": "current_date",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "is_lan_ip": {
+      "id": "is_lan_ip",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "address",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "is_valid_ip": {
+      "id": "is_valid_ip",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "ipAddress",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "bitwise": {
+      "id": "bitwise",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "operator",
+          "type": "string"
+        },
+        {
+          "label": "num1",
+          "type": "number"
+        },
+        {
+          "label": "num2",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "abs": {
+      "id": "abs",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "acos": {
+      "id": "acos",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "asin": {
+      "id": "asin",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "atan": {
+      "id": "atan",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "y",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "tan": {
+      "id": "tan",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "radians",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "cos": {
+      "id": "cos",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "radians",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "code": {
+      "id": "code",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "char": {
+      "id": "char",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "codePoint",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 65
+          }
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "sin": {
+      "id": "sin",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "radians",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "floor": {
+      "id": "floor",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "range": {
+      "id": "range",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "from",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "to",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "step",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "number"
+        }
+      ]
+    },
+    "round": {
+      "id": "round",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "decimalPlaces",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "rnd": {
+      "id": "rnd",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "seed",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "sign": {
+      "id": "sign",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "sqrt": {
+      "id": "sqrt",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "str": {
+      "id": "str",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "any",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "ceil": {
+      "id": "ceil",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "pi": {
+      "id": "pi",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "launch_path": {
+      "id": "launch_path",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "string"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "any"
+        }
+      ]
+    },
+    "slice": {
+      "id": "slice",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "seq",
+          "types": [
+            "list",
+            "string"
+          ]
+        },
+        {
+          "label": "from",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "to",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "list",
+        "string",
+        "null"
+      ]
+    },
+    "md5": {
+      "id": "md5",
+      "type": "function",
+      "tags": [
+        "function",
+        "general",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "value",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "md5: Invalid arguments"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "hash": {
+      "id": "hash",
+      "type": "function",
+      "tags": [
+        "function",
+        "general",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "obj",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "time": {
+      "id": "time",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "bitAnd": {
+      "id": "bitAnd",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "i",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "j",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "bitOr": {
+      "id": "bitOr",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "i",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "j",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "bitXor": {
+      "id": "bitXor",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "i",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "j",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "log": {
+      "id": "log",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "x",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        },
+        {
+          "label": "base",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 10
+          }
+        }
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "yield": {
+      "id": "yield",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "get_custom_object": {
+      "id": "get_custom_object",
+      "type": "function",
+      "tags": [
+        "function",
+        "general",
+        "ssh incompatible"
+      ],
+      "returns": [
+        "map"
+      ]
+    },
+    "insert": {
+      "id": "insert",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "list",
+            "string"
+          ]
+        },
+        {
+          "label": "index",
+          "type": "number"
+        },
+        {
+          "label": "value",
+          "type": "any"
+        }
+      ],
+      "returns": [
+        "list",
+        "string"
+      ]
+    },
+    "to_int": {
+      "id": "to_int",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "any",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "join": {
+      "id": "join",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "list"
+        },
+        {
+          "label": "delimiter",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": " "
+          }
+        }
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "split": {
+      "id": "split",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        },
+        {
+          "label": "pattern",
+          "type": "string"
+        },
+        {
+          "label": "regexOptions",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "none"
+          }
+        }
+      ],
+      "returnVariations": [
+        "${regexErrorMessage}",
+        "split: Invalid regex option"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "null",
+        "string"
+      ]
+    },
+    "reverse": {
+      "id": "reverse",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "list"
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "replace": {
+      "id": "replace",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "types": [
+            "map",
+            "list"
+          ]
+        },
+        {
+          "label": "oldval",
+          "type": "any"
+        },
+        {
+          "label": "newval",
+          "type": "any"
+        },
+        {
+          "label": "maxCount",
+          "type": "number",
+          "opt": true
+        }
+      ],
+      "returns": [
+        "any"
+      ]
+    },
+    "replace_regex": {
+      "id": "replace_regex",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        },
+        {
+          "label": "pattern",
+          "type": "string"
+        },
+        {
+          "label": "newval",
+          "type": "string"
+        },
+        {
+          "label": "regexOptions",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "none"
+          }
+        }
+      ],
+      "returnVariations": [
+        "${regexErrorMessage}",
+        "replace: Invalid regex option"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "is_match": {
+      "id": "is_match",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        },
+        {
+          "label": "pattern",
+          "type": "string"
+        },
+        {
+          "label": "regexOptions",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "none"
+          }
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number"
+      ]
+    },
+    "lastIndexOf": {
+      "id": "lastIndexOf",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        },
+        {
+          "label": "searchStr",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "matches": {
+      "id": "matches",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "string"
+        },
+        {
+          "label": "pattern",
+          "type": "string"
+        },
+        {
+          "label": "regexOptions",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "none"
+          }
+        }
+      ],
+      "returnVariations": [
+        "${regexErrorMessage}",
+        "matches: Invalid regex option"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "number",
+          "valueType": "string"
+        },
+        "string"
+      ]
+    },
+    "get_ctf": {
+      "id": "get_ctf",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        },
+        {
+          "label": "eventName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "get_ctf: user and password cannot be null",
+        "get_ctf: user or password incorrect"
+      ],
+      "returns": [
+        "ctfEvent",
+        "string"
+      ]
+    },
+    "show": {
+      "id": "show",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "aptClient"
+        },
+        {
+          "label": "repository",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "${repository} repository not found",
+        "/etc/apt/aptcache.bin content is malformed. Launch apt with the update option to refresh the file",
+        "/etc/apt/aptcache.bin is not a valid apt cache. Launch apt with the update option to refresh the file",
+        "/etc/apt/aptcache.bin not found. Launch apt with the update option to refresh the file",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "search": {
+      "id": "search",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "aptClient"
+        },
+        {
+          "label": "search",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "${search} not found in any repository",
+        "/etc/apt/aptcache.bin content is malformed. Launch apt with the update option to refresh the file",
+        "/etc/apt/aptcache.bin is not a valid apt cache. Launch apt with the update option to refresh the file",
+        "/etc/apt/aptcache.bin not found. Launch apt with the update option to refresh the file",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "update": {
+      "id": "update",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "aptClient"
+        }
+      ],
+      "returnVariations": [
+        0,
+        "${source} repository not found",
+        "/etc/apt/sources.txt content is malformed",
+        "apt_update: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number"
+      ]
+    },
+    "add_repo": {
+      "id": "add_repo",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "aptClient"
+        },
+        {
+          "label": "repository",
+          "type": "string"
+        },
+        {
+          "label": "port",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1542
+          }
+        }
+      ],
+      "returnVariations": [
+        "${repository} it is already added to sources.txt",
+        "/etc/apt/sources.txt content is malformed.",
+        "/etc/apt/sources.txt does not exist",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "del_repo": {
+      "id": "del_repo",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "aptClient"
+        },
+        {
+          "label": "repository",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "${repository} not found in sources.txt",
+        "/etc/apt/sources.txt content is malformed.",
+        "/etc/apt/sources.txt does not exist",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "install": {
+      "id": "install",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "aptClient"
+        },
+        {
+          "label": "package",
+          "type": "string"
+        },
+        {
+          "label": "custom_path",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!Computer.CheckInicio",
+        "!GreyInterpreter.CheckScpUpload",
+        "!Networking.CheckServiceOnline",
+        "!Networking.IsRouterAvailable",
+        "!PlayerUtils.ConnectComputer",
+        "!PlayerUtils.FirewallPingStatus",
+        "${customPath} not found.",
+        "${package} does not exist in the server",
+        "${package} not found in the server",
+        "${serviceDBFile} does not exist in the server",
+        "/etc/apt/aptcache.bin content is malformed. Launch apt with the update option to refresh the file",
+        "/etc/apt/aptcache.bin is not a valid apt cache. Launch apt with the update option to refresh the file",
+        "/etc/apt/aptcache.bin not found. Launch apt with the update option to refresh the file",
+        "apt folder content does not exist in the server",
+        "apt_install: No internet access.",
+        "package name can not be empty",
+        "permission denied",
+        "There is not enough free space on the hard disk.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "check_upgrade": {
+      "id": "check_upgrade",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "aptClient"
+        },
+        {
+          "label": "filePath",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "!Computer.CheckInicio",
+        "!Networking.CheckServiceOnline",
+        "!PlayerUtils.ConnectComputer",
+        "!PlayerUtils.FirewallPingStatus",
+        "${filepath} does not exist in the server",
+        "${filepath} does not exist in this filesystem",
+        "${filepath} does not exist in this filesystem",
+        "${filepath} not found in the server",
+        "${serviceDBFile} does not exist in the server",
+        "${serviceDBFile} file content is malformed in the server",
+        "/etc/apt/aptcache.bin content is malformed. Launch apt with the update option to refresh the file",
+        "/etc/apt/aptcache.bin is not a valid apt cache. Launch apt with the update option to refresh the file",
+        "/etc/apt/aptcache.bin not found. Launch apt with the update option to refresh the file",
+        "apt folder content does not exist in the server",
+        "apt_check_upgrade: No internet access.",
+        "package name can not be empty",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "coin_price": {
+      "id": "coin_price",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "blockchain"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "coin_price: Coin does not exist.",
+        "coin_price: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "null",
+        "string",
+        "number"
+      ]
+    },
+    "show_history": {
+      "id": "show_history",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "blockchain"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "show_history: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "number",
+          "valueType": "list"
+        },
+        "string",
+        "null"
+      ]
+    },
+    "amount_mined": {
+      "id": "amount_mined",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "blockchain"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "amount_mined: Coin does not exist.",
+        "amount_mined: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "get_coin": {
+      "id": "get_coin",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "blockchain"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "get_coin: Incorrect user/password",
+        "get_coin: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "coin",
+        "null"
+      ]
+    },
+    "get_coin_name": {
+      "id": "get_coin_name",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "blockchain"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "get_coin_name: Incorrect user/password",
+        "get_coin_name: No currency has been found",
+        "get_coin_name: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "login_wallet": {
+      "id": "login_wallet",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "blockchain"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "login_wallet: Account not found or incorrect password",
+        "login_wallet: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "wallet",
+        "null"
+      ]
+    },
+    "create_wallet": {
+      "id": "create_wallet",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "blockchain"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "!BlockchainSystem.AddWallet",
+        "create_wallet: name and password cannot exceed the 16 character limit.",
+        "create_wallet: No internet access.",
+        "Error: It is necessary to have a bank account to be able to create a wallet.",
+        "Error: only alphanumeric allowed as name and password",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "wallet",
+        "null"
+      ]
+    },
+    "delete_coin": {
+      "id": "delete_coin",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "blockchain"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.RemoveCurrency",
+        "delete_coin: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "set_cycle_mining": {
+      "id": "set_cycle_mining",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        },
+        {
+          "label": "rateHours",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 3
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "error: No internet access.",
+        "the mining cycle cannot be less than 1 hour",
+        "the mining cycle cannot exceed the maximum of 2160 hours",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "get_cycle_mining": {
+      "id": "get_cycle_mining",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        }
+      ],
+      "returnVariations": [
+        "error: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "get_reward": {
+      "id": "get_reward",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        }
+      ],
+      "returnVariations": [
+        "error: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "set_reward": {
+      "id": "set_reward",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        },
+        {
+          "label": "coin_amount",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "Error: Coin does not exist",
+        "error: No internet access.",
+        "Error: The reward cannot be less than 1 coin",
+        "Error: The reward cannot exceed 100000000 coins",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "transaction": {
+      "id": "transaction",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        },
+        {
+          "label": "subWalletOrig",
+          "type": "string"
+        },
+        {
+          "label": "subWalletDest",
+          "type": "string"
+        },
+        {
+          "label": "valAmount",
+          "type": "number"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.Transaction",
+        "Error: amount value cannot be less than 1",
+        "error: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "create_subwallet": {
+      "id": "create_subwallet",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        },
+        {
+          "label": "walletID",
+          "type": "string"
+        },
+        {
+          "label": "pin",
+          "type": "string"
+        },
+        {
+          "label": "subWalletUser",
+          "type": "string"
+        },
+        {
+          "label": "subWalletPass",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.AddSubWallet",
+        "error: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "get_subwallet": {
+      "id": "get_subwallet",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        },
+        {
+          "label": "subWalletUser",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "error: No internet access.",
+        "get_subwallet: The account does not exist",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "subWallet",
+        "null"
+      ]
+    },
+    "get_subwallets": {
+      "id": "get_subwallets",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        }
+      ],
+      "returnVariations": [
+        "error: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        {
+          "type": "list",
+          "valueType": "subWallet"
+        },
+        "null"
+      ]
+    },
+    "set_address": {
+      "id": "set_address",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        },
+        {
+          "label": "address",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.SetAddress",
+        "error: No internet access.",
+        "set_address: address ${address}not found",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "get_address": {
+      "id": "get_address",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        }
+      ],
+      "returnVariations": [
+        "!BlockchainSystem.GetAddress",
+        "error: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "get_mined_coins": {
+      "id": "get_mined_coins",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        }
+      ],
+      "returnVariations": [
+        "error: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "reset_password_coin": {
+      "id": "reset_password_coin",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "coin"
+        },
+        {
+          "label": "newPassword",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.ResetCoinPass",
+        "error: No internet access.",
+        "reset_password: name and password cannot exceed the 16 character limit.",
+        "reset_password: only alphanumeric characters are allowed as password",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "get_ports": {
+      "id": "get_ports",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "port"
+        },
+        "null"
+      ]
+    },
+    "get_name": {
+      "id": "get_name",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        }
+      ],
+      "returnVariations": [
+        "Unknown"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "lan_ip": {
+      "id": "lan_ip",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "public_ip_pc": {
+      "id": "public_ip_pc",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "File": {
+      "id": "File",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "path",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "File: Invalid arguments"
+      ],
+      "returns": [
+        "file",
+        "null",
+        "string"
+      ]
+    },
+    "create_folder": {
+      "id": "create_folder",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "path",
+          "type": "string"
+        },
+        {
+          "label": "nameFolder",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "newFolder"
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.CrearCarpeta",
+        "create_folder: Invalid arguments",
+        "create_folder: path too large",
+        "Error: invalid path",
+        "Error: name cannot exceed the limit of 128 characters.",
+        "Error: only alphanumeric allowed as folder name."
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "is_network_active": {
+      "id": "is_network_active",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "touch": {
+      "id": "touch",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "path",
+          "type": "string"
+        },
+        {
+          "label": "nameFile",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.CrearArchivo",
+        "Error: invalid path",
+        "Error: name cannot exceed the limit of 128 characters.",
+        "Error: nameFile must be string",
+        "Error: only alphanumeric allowed as file name.",
+        "The file already exists",
+        "touch: path too large"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "show_procs": {
+      "id": "show_procs",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "network_devices": {
+      "id": "network_devices",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "change_password": {
+      "id": "change_password",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "change_password: Invalid arguments",
+        "Denied. Only root user can execute this command.",
+        "Error: only alphanumeric allowed as password.",
+        "Error: the password cannot exceed the limit of 15 characters.",
+        "user ${username} does not exist"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "create_user": {
+      "id": "create_user",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!Computer.ValidateNewUser",
+        "create_user: Invalid arguments",
+        "Denied. Maximum number of registered users reached.",
+        "Denied. Only root user can execute this command.",
+        "Error: only alphanumeric allowed as user name and password.",
+        "password cannot exceed the 15 character limit.",
+        "username cannot exceed the 15 character limit."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "delete_user": {
+      "id": "delete_user",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "removeHome",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "can't delete user. ${username} does not exist",
+        "delete_user: Invalid arguments",
+        "Denied. Only root user can execute this command.",
+        "sorry, at the moment that account can't be deleted.",
+        "the root user can't be deleted.",
+        "user ${username} not found."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "create_group": {
+      "id": "create_group",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "username",
+          "type": "string"
+        },
+        {
+          "label": "groupname",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "create_group: Invalid arguments",
+        "Denied. Only root user can execute this command.",
+        "Error: only alphanumeric allowed as user and group names.",
+        "Error: user ${username} does not exist.",
+        "groupname cannot exceed the 15 character limit."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "delete_group": {
+      "id": "delete_group",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "username",
+          "type": "string"
+        },
+        {
+          "label": "groupname",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "delete_group: Invalid arguments",
+        "Denied. Only root user can execute this command.",
+        "Error: group ${group} not found in user ${username}",
+        "Error: user ${username} does not exist."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "groups": {
+      "id": "groups",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "username",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "groups: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "close_program": {
+      "id": "close_program",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "PID",
+          "type": "number"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "Permission denied. PID ${pid} belongs to user <b>${username}</b>",
+        "Permission denied. Process protected.",
+        "Unable to close this process. The process belongs to this script."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "wifi_networks": {
+      "id": "wifi_networks",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "net_device",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "wifi_networks: wifi card is disabled"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "null",
+        "string"
+      ]
+    },
+    "connect_wifi": {
+      "id": "connect_wifi",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "net_device",
+          "type": "string"
+        },
+        {
+          "label": "bssid",
+          "type": "string"
+        },
+        {
+          "label": "essid",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "Can't connect. Incorrect password.",
+        "Can't connect. Incorrect password.",
+        "Can't connect. Router not found.",
+        "Can't connect. Target is out of reach.",
+        "can't connect: the remote server has been temporarily disabled due to non-payment",
+        "connect_wifi: Network device not found",
+        "connect_wifi: Only wifi cards are supported",
+        "connect_wifi: permission denied. Guest users can not execute this method",
+        "connect_wifi: rented computers cannot connect to another network."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "connect_ethernet": {
+      "id": "connect_ethernet",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "net_device",
+          "type": "string"
+        },
+        {
+          "label": "address",
+          "type": "string"
+        },
+        {
+          "label": "gateway",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "!NetworkLan.ConnectEthernet",
+        "connect_ethernet: Invalid arguments",
+        "connect_ethernet: Network device not found",
+        "connect_ethernet: No internet connection",
+        "connect_ethernet: Only ethernet cards are supported",
+        "connect_ethernet: permission denied. Guest users can not execute this method",
+        "connect_ethernet: unknown error: unable to retrieve current computer",
+        "Error: invalid gateway",
+        "Error: Invalid IP address",
+        "Error: the IP address and the gateway must belong to the same subnet"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "network_gateway": {
+      "id": "network_gateway",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        }
+      ],
+      "returnVariations": [
+        "0.0.0.0"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "active_net_card": {
+      "id": "active_net_card",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "aircrack": {
+      "id": "aircrack",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "crypto"
+        },
+        {
+          "label": "pathFile",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "aircrack: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "airmon": {
+      "id": "airmon",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "crypto"
+        },
+        {
+          "label": "option",
+          "type": "string"
+        },
+        {
+          "label": "device",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "airmon: monitor mode can only be activated on wifi cards",
+        "airmon: monitor mode is not supported by the chipset of this network card.",
+        "Error: wifi card is disabled",
+        "wifi_networks: wifi card is disabled"
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "aireplay": {
+      "id": "aireplay",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "crypto"
+        },
+        {
+          "label": "bssid",
+          "type": "string"
+        },
+        {
+          "label": "essid",
+          "type": "string"
+        },
+        {
+          "label": "maxAcks",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": -1
+          }
+        }
+      ],
+      "returnVariations": [
+        "aireplay: Invalid arguments",
+        "aireplay: no wifi card found with monitor mode enabled",
+        "Can't connect. Target is out of reach.",
+        "Error: wifi card is disabled",
+        "router not found!",
+        "wifi_networks: wifi card is disabled"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "decipher": {
+      "id": "decipher",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "crypto"
+        },
+        {
+          "label": "encryptPass",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "smtp_user_list": {
+      "id": "smtp_user_list",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "crypto"
+        },
+        {
+          "label": "ipAddress",
+          "type": "string"
+        },
+        {
+          "label": "port",
+          "type": "number"
+        }
+      ],
+      "returnVariations": [
+        "!PlayerUtils.GetSmtpServer",
+        "Error: Invalid ip address"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "string",
+        "null"
+      ]
+    },
+    "get_description": {
+      "id": "get_description",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "ctfEvent"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "get_template": {
+      "id": "get_template",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "ctfEvent"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "player_success": {
+      "id": "player_success",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "ctfEvent"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "get_creator_name": {
+      "id": "get_creator_name",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "ctfEvent"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "get_mail_content": {
+      "id": "get_mail_content",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "ctfEvent"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "chmod": {
+      "id": "chmod",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "typePerm",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "isRecursive",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        "!FileSystem.UpdatePermisos",
+        "${path} not found",
+        "chmod: Invalid arguments",
+        "permission denied"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "copy": {
+      "id": "copy",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "path",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "newName",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.MoverFichero",
+        "copy: Invalid arguments",
+        "copy: name cannot exceed the 128 character limit.",
+        "Error: only alphanumeric allowed as newname",
+        "move: path too large",
+        "Warning: one or more files or folders cannot be copied."
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "move": {
+      "id": "move",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "path",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "newName",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.MoverFichero",
+        "Error: only alphanumeric allowed as newname",
+        "move: Invalid arguments",
+        "move: name cannot exceed the 128 character limit.",
+        "move: path too large"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "symlink": {
+      "id": "symlink",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "path",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "newName",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.CrearArchivo",
+        "!PlayerUtils.CrearCarpeta",
+        "Error: invalid path",
+        "Error: only alphanumeric allowed as newname",
+        "move: name cannot exceed the 128 character limit.",
+        "symlink: Invalid arguments",
+        "symlink: path too large",
+        "The file already exists"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "rename": {
+      "id": "rename",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "newName",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        0,
+        "!PlayerUtils.RenameFichero",
+        "Error: name cannot exceed the limit of 128 characters.",
+        "Error: only alphanumeric allowed as newname"
+      ],
+      "returns": [
+        "string",
+        "number"
+      ]
+    },
+    "path": {
+      "id": "path",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "symlinkOrigPath",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "is_folder": {
+      "id": "is_folder",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "parent": {
+      "id": "parent",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returns": [
+        "file",
+        "null"
+      ]
+    },
+    "name": {
+      "id": "name",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "allow_import": {
+      "id": "allow_import",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "get_content": {
+      "id": "get_content",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returnVariations": [
+        "can't open ${filepath}. Binary file.",
+        "Error: can't find the computer of this file"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "set_content": {
+      "id": "set_content",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "content",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "can't open ${filepath}. Binary file.",
+        "I can't save the file. The maximum of 160,000 characters has been exceeded.",
+        "set_content: unable to use this method in encryption configuration"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "is_binary": {
+      "id": "is_binary",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "is_symlink": {
+      "id": "is_symlink",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "has_permission": {
+      "id": "has_permission",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "typePerm",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "delete": {
+      "id": "delete",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returnVariations": [
+        "!PlayerUtils.RemoveFile",
+        "Warning: one or more files or folders cannot be deleted."
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "get_folders": {
+      "id": "get_folders",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returnVariations": [
+        "Permission denied: ${path}"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "file"
+        },
+        "null",
+        "string"
+      ]
+    },
+    "get_files": {
+      "id": "get_files",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returnVariations": [
+        "Permission denied: ${path}"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "file"
+        },
+        "null",
+        "string"
+      ]
+    },
+    "permissions": {
+      "id": "permissions",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "owner": {
+      "id": "owner",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "set_owner": {
+      "id": "set_owner",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "owner",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "isRecursive",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        "Only alphanumeric characters are allowed for owner names.",
+        "Owner cannot exceed the 15 character limit.",
+        "Permission denied",
+        "set_owner: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "group": {
+      "id": "group",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "set_group": {
+      "id": "set_group",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        },
+        {
+          "label": "groupname",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        },
+        {
+          "label": "isRecursive",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        "Group name cannot exceed the 15 character limit.",
+        "Only alphanumeric characters are allowed for group names.",
+        "Permission denied",
+        "set_group: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "size": {
+      "id": "size",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "load": {
+      "id": "load",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaxploit"
+        },
+        {
+          "label": "path",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "load: Invalid arguments"
+      ],
+      "returns": [
+        "metaLib",
+        "null",
+        "string"
+      ]
+    },
+    "net_use": {
+      "id": "net_use",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaxploit"
+        },
+        {
+          "label": "ipAddress",
+          "type": "string"
+        },
+        {
+          "label": "port",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        "net_use: No internet connection"
+      ],
+      "returns": [
+        "netSession",
+        "null",
+        "string"
+      ]
+    },
+    "rshell_client": {
+      "id": "rshell_client",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaxploit"
+        },
+        {
+          "label": "address",
+          "type": "string"
+        },
+        {
+          "label": "port",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 1222
+          }
+        },
+        {
+          "label": "procName",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "rshell_client"
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!Networking.CheckServiceOnline",
+        "Error: ${programName} is a reserved process name",
+        "Error: only alphanumeric allowed as proccess name.",
+        "Error: proccess name cannot exceed the limit of 28 characters.",
+        "rshell_client: Invalid IP address",
+        "rshell_client: IP address not found: ${ip}",
+        "rshell_client: unable to find remote server at port ${port}"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "rshell_server": {
+      "id": "rshell_server",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaxploit"
+        }
+      ],
+      "returnVariations": [
+        "error: rshell portforward is not configured correctly",
+        "error: service rshelld is not running",
+        "rshell_server: No internet connection",
+        "rshell_server: The service cannot be started on this network."
+      ],
+      "returns": [
+        "string",
+        {
+          "type": "list",
+          "valueType": "shell"
+        },
+        "null"
+      ]
+    },
+    "scan": {
+      "id": "scan",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaxploit"
+        },
+        {
+          "label": "metaLib",
+          "type": "metaLib"
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "null"
+      ]
+    },
+    "scan_address": {
+      "id": "scan_address",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaxploit"
+        },
+        {
+          "label": "metaLib",
+          "type": "metaLib"
+        },
+        {
+          "label": "memAddress",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "sniffer": {
+      "id": "sniffer",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaxploit"
+        },
+        {
+          "label": "encode_source",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "overflow": {
+      "id": "overflow",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaLib"
+        },
+        {
+          "label": "memAddress",
+          "type": "string"
+        },
+        {
+          "label": "unsecValue",
+          "type": "string"
+        },
+        {
+          "label": "args",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "Exploit failed: the remote server has been temporarily disabled due to non-payment",
+        "overflow: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "shell",
+        "computer",
+        "file",
+        "null"
+      ]
+    },
+    "version": {
+      "id": "version",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaLib"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "lib_name": {
+      "id": "lib_name",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaLib"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "debug_tools": {
+      "id": "debug_tools",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaLib"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "Error: Incorrect password",
+        "Error: The file must be a library"
+      ],
+      "returns": [
+        "string",
+        "debugLibrary",
+        "null"
+      ]
+    },
+    "is_patched": {
+      "id": "is_patched",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaLib"
+        },
+        {
+          "label": "getdate",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "Error: The file must be a library"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "payload": {
+      "id": "payload",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "debugLibrary"
+        },
+        {
+          "label": "memZone",
+          "type": "string"
+        },
+        {
+          "label": "pathFile",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        "Error acquiring partial object file. Unable to access to resource: ${pathFile}",
+        "error: file not found",
+        "Error: The file must be a library",
+        "Error: The library is patched against this vulnerability.",
+        "Failed: No vulnerabilities have been found in the specified memory area."
+      ],
+      "returns": [
+        "string",
+        {
+          "type": "list",
+          "valueType": "map"
+        },
+        "null"
+      ]
+    },
+    "dump_lib": {
+      "id": "dump_lib",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "netSession"
+        }
+      ],
+      "returns": [
+        "metaLib",
+        "null"
+      ]
+    },
+    "get_num_conn_gateway": {
+      "id": "get_num_conn_gateway",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "netSession"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "get_num_portforward": {
+      "id": "get_num_portforward",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "netSession"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "get_num_users": {
+      "id": "get_num_users",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "netSession"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "is_any_active_user": {
+      "id": "is_any_active_user",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "netSession"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "is_root_active_user": {
+      "id": "is_root_active_user",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "netSession"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "device_ports": {
+      "id": "device_ports",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        },
+        {
+          "label": "address",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "device_ports: ${ip} is unreachable",
+        "device_ports: Invalid arguments"
+      ],
+      "returns": [
+        "string",
+        {
+          "type": "list",
+          "valueType": "port"
+        },
+        "null"
+      ]
+    },
+    "devices_lan_ip": {
+      "id": "devices_lan_ip",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "null"
+      ]
+    },
+    "bssid_name": {
+      "id": "bssid_name",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "essid_name": {
+      "id": "essid_name",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "firewall_rules": {
+      "id": "firewall_rules",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "null"
+      ]
+    },
+    "kernel_version": {
+      "id": "kernel_version",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "local_ip": {
+      "id": "local_ip",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "public_ip": {
+      "id": "public_ip",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "used_ports": {
+      "id": "used_ports",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        }
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "port"
+        },
+        "null"
+      ]
+    },
+    "ping_port": {
+      "id": "ping_port",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        },
+        {
+          "label": "port",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "port",
+        "null"
+      ]
+    },
+    "port_info": {
+      "id": "port_info",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        },
+        {
+          "label": "port",
+          "type": "port"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "install_service": {
+      "id": "install_service",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "service"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "Denied. Only root user can install this service."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "start_service": {
+      "id": "start_service",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "service"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "Denied. Only root user can install this service."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "stop_service": {
+      "id": "stop_service",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "service"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "Denied. Only root user can install this service."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "host_computer": {
+      "id": "host_computer",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "shell"
+        }
+      ],
+      "returns": [
+        "computer",
+        "null"
+      ]
+    },
+    "start_terminal": {
+      "id": "start_terminal",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "shell"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "build": {
+      "id": "build",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "shell"
+        },
+        {
+          "label": "pathSource",
+          "type": "string"
+        },
+        {
+          "label": "pathBinary",
+          "type": "string"
+        },
+        {
+          "label": "allowImport",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        "build: Invalid arguments",
+        "Can't access to ${pathSource}. Permission denied.",
+        "Can't build ${pathSource}. Binary file",
+        "Can't build ${pathSource}. Invalid extension.",
+        "Can't compile. Source code is empty",
+        "Can't create binary in ${pathBinary}. Permission denied.",
+        "Can't find ${pathBinary}",
+        "Can't find ${pathSource}",
+        "Invalid shell",
+        "pathSource and pathBinary can't be empty",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "connect_service": {
+      "id": "connect_service",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "shell"
+        },
+        {
+          "label": "ipAddress",
+          "type": "string"
+        },
+        {
+          "label": "port",
+          "type": "number"
+        },
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        },
+        {
+          "label": "serviceId",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": "ssh"
+          }
+        }
+      ],
+      "returnVariations": [
+        "!Networking.CheckServiceOnline",
+        "!PlayerUtils.ConnectComputer",
+        "!PlayerUtils.ConnectToService",
+        "connect_service: Invalid arguments",
+        "connect_service: No internet access.",
+        "Direct connections cannot be made outside of this network",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "shell",
+        "ftpShell",
+        "string",
+        "null"
+      ]
+    },
+    "launch": {
+      "id": "launch",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "shell"
+        },
+        {
+          "label": "path",
+          "type": "string"
+        },
+        {
+          "label": "params",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "Can't find computer",
+        "Invalid shell",
+        "launch: Invalid arguments"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "ping": {
+      "id": "ping",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "shell"
+        },
+        {
+          "label": "ipAddress",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "ping: Invalid arguments",
+        "ping: invalid ip address"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "scp": {
+      "id": "scp",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "shell"
+        },
+        {
+          "label": "path_orig",
+          "type": "string"
+        },
+        {
+          "label": "path_dest",
+          "type": "string"
+        },
+        {
+          "label": "remote_shell",
+          "type": "shell"
+        },
+        {
+          "label": "is_upload",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!GreyInterpreter.CheckScpUpload",
+        "${destinationFolder} it's not a folder",
+        "${destinationFolder} not found",
+        "${sourceFile} not found",
+        "scp: Invalid arguments",
+        "Warning: one or more files or folders cannot be copied."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "get_balance_subwallet": {
+      "id": "get_balance_subwallet",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "subWallet"
+        }
+      ],
+      "returnVariations": [
+        "get_balance: The account does not exist.",
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "set_info": {
+      "id": "set_info",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "subWallet"
+        },
+        {
+          "label": "info",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.SetInfoSubWallet",
+        "Error: exceeded maximum of 256 characters",
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "get_info": {
+      "id": "get_info",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "subWallet"
+        }
+      ],
+      "returnVariations": [
+        "!BlockchainSystem.GetInfoSubWallet",
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "delete_subwallet": {
+      "id": "delete_subwallet",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "subWallet"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "get_user": {
+      "id": "get_user",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "subWallet"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "last_transaction": {
+      "id": "last_transaction",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "subWallet"
+        }
+      ],
+      "returnVariations": [
+        0,
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "list"
+        },
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "mining": {
+      "id": "mining",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "subWallet"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "all existing coins of ${coinName} have been mined.",
+        "Error: GPU is damaged. Unable to start the mining process.",
+        "Error: GPU returned corrupted data while performing floating point tests. Unable to start the mining process.",
+        "Hardware error",
+        "No internet access.",
+        "Only one mining process is allowed.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "check_password": {
+      "id": "check_password",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "subWallet"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "login_subwallet: the account does not exist.",
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "wallet_username": {
+      "id": "wallet_username",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "subWallet"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "list_coins": {
+      "id": "list_coins",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        }
+      ],
+      "returnVariations": [
+        "Error: wallet does not exist/incorrect credentials.",
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "string",
+        "null"
+      ]
+    },
+    "get_balance": {
+      "id": "get_balance",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "Error: wallet does not exist/incorrect credentials.",
+        "get_balance: wallet does not have coins in the selected currency",
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "buy_coin": {
+      "id": "buy_coin",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        },
+        {
+          "label": "coin_amount",
+          "type": "number"
+        },
+        {
+          "label": "unit_price",
+          "type": "number"
+        },
+        {
+          "label": "subwalletUser",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.BuyCoin",
+        "buy_coin: Invalid arguments",
+        "No internet access.",
+        "sell_coin: coin amount and proposed price cannot be 0.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "sell_coin": {
+      "id": "sell_coin",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        },
+        {
+          "label": "coin_amount",
+          "type": "number"
+        },
+        {
+          "label": "unit_price",
+          "type": "number"
+        },
+        {
+          "label": "subwalletUser",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.SellCoin",
+        "No internet access.",
+        "sell_coin: coin amount and proposed price cannot be 0.",
+        "sell_coin: Invalid arguments",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "get_pending_trade": {
+      "id": "get_pending_trade",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "No pending trades found",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "list",
+        "null"
+      ]
+    },
+    "cancel_pending_trade": {
+      "id": "cancel_pending_trade",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "No pending trades found",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "get_global_offers": {
+      "id": "get_global_offers",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        {
+          "type": "map",
+          "keyType": "string",
+          "valueType": "list"
+        },
+        "null"
+      ]
+    },
+    "list_global_coins": {
+      "id": "list_global_coins",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "null"
+      ]
+    },
+    "show_nodes": {
+      "id": "show_nodes",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        },
+        {
+          "label": "coinName",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "show_nodes: coin does not exist",
+        "show_nodes: wallet does not exist",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "reset_password": {
+      "id": "reset_password",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        },
+        {
+          "label": "newPassword",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!BlockchainSystem.ResetWalletPass",
+        "No internet access.",
+        "reset_password: name and password cannot exceed the 16 character limit.",
+        "reset_password: only alphanumeric characters are allowed as password",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "get_pin": {
+      "id": "get_pin",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "wallet"
+        }
+      ],
+      "returnVariations": [
+        "No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "delete_mail": {
+      "id": "delete_mail",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaMail"
+        },
+        {
+          "label": "mailIDs",
+          "type": {
+            "type": "list",
+            "valueType": "string"
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "delete: No internet access.",
+        "MetaMail: Unable to refresh mail account.",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "fetch": {
+      "id": "fetch",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaMail"
+        }
+      ],
+      "returnVariations": [
+        "fetch: No internet access.",
+        "MetaMail: Unable to refresh mail account.",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "string",
+        "null"
+      ]
+    },
+    "read": {
+      "id": "read",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaMail"
+        },
+        {
+          "label": "mailIDs",
+          "type": {
+            "type": "list",
+            "valueType": "string"
+          }
+        }
+      ],
+      "returnVariations": [
+        "Mail not found",
+        "MetaMail: Unable to refresh mail account.",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "read: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        {
+          "type": "list",
+          "valueType": "string"
+        },
+        "string",
+        "null"
+      ]
+    },
+    "send": {
+      "id": "send",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaMail"
+        },
+        {
+          "label": "destAddress",
+          "type": "string"
+        },
+        {
+          "label": "subject",
+          "type": "string"
+        },
+        {
+          "label": "message",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "!PlayerUtils.SendMail",
+        "Mail not delivered",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "send: No internet access.",
+        "send: Unable to access mail account.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "port_number": {
+      "id": "port_number",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "port"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "is_closed": {
+      "id": "is_closed",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "port"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "get_lan_ip": {
+      "id": "get_lan_ip",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "port"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "reset_ctf_password": {
+      "id": "reset_ctf_password",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "arguments": [
+        {
+          "label": "new_password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "reset_ctf_password: password can't exceed the maximum limit of 32 characters",
+        "reset_ctf_password: password cannot be null",
+        "reset_ctf_password: password must be alphanumeric",
+        "reset_ctf_password: you do not have a registered CTF account"
+      ],
+      "returns": [
+        "number",
+        "string"
+      ]
+    },
+    "funcRef": {
+      "id": "funcRef",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string",
+          "valueType": "function"
+        }
+      ]
+    },
+    "list": {
+      "id": "list",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string",
+          "valueType": "function"
+        }
+      ]
+    },
+    "map": {
+      "id": "map",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string",
+          "valueType": "function"
+        }
+      ]
+    },
+    "number": {
+      "id": "number",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string",
+          "valueType": "function"
+        }
+      ]
+    },
+    "string": {
+      "id": "string",
+      "type": "function",
+      "tags": [
+        "function",
+        "general"
+      ],
+      "returns": [
+        {
+          "type": "map",
+          "keyType": "string",
+          "valueType": "function"
+        }
+      ]
+    },
+    "scan_debuglib": {
+      "id": "scan_debuglib",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "debugLibrary"
+        }
+      ],
+      "returnVariations": [
+        "error: file not found",
+        "No potential issues have been found",
+        "Potential problems have been found in the following code:\n\n${callengeDescription}"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "apply_patch": {
+      "id": "apply_patch",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "debugLibrary"
+        },
+        {
+          "label": "path",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        "error: file not found",
+        "error: The file to apply the patch cannot be binary",
+        "error: The patch code is not correct.",
+        "The patch had already been applied.",
+        "The patch has been applied correctly."
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "unit_testing": {
+      "id": "unit_testing",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "debugLibrary"
+        },
+        {
+          "label": "error_lines",
+          "type": {
+            "type": "list",
+            "valueType": "number"
+          }
+        }
+      ],
+      "returnVariations": [
+        "error: file not found",
+        "Starting testing in selected lines...\n${methods}\n\nNew vulnerability found: ${vulnerability}",
+        "Test failed: No errors have been found in one or more of the provided lines, or not all lines with errors have been provided.",
+        "Test failed: No potential issues have been found"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "camera_link_system": {
+      "id": "camera_link_system",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "trafficNet"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "error: No internet access.",
+        "error: This device is not registered on any police network",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "locate_vehicle": {
+      "id": "locate_vehicle",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "trafficNet"
+        },
+        {
+          "label": "license_plate",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "error: Incorrect password. Access denied.",
+        "error: No internet access.",
+        "error: This device is not registered on any police network",
+        "Error: This network has disabled access to the traffic cameras.",
+        "Error: This user cannot access the global camera system for another 12 hours.",
+        "error: Workstation not found. Unable to get the credentials info from ${credentials}",
+        "locate_vehicle: License plate not found.",
+        "The vehicle could not be located in the camera system at this time.",
+        "The vehicle could not be located: CrownShield provides secure transport for this network administrator.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "get_credentials_info": {
+      "id": "get_credentials_info",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "trafficNet"
+        }
+      ],
+      "returnVariations": [
+        "${job} ${name}",
+        "error: No internet access.",
+        "error: This device is not registered on any police network",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "model": {
+      "id": "model",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "smartAppliance"
+        }
+      ],
+      "returnVariations": [
+        "error: Device hardware malfunction",
+        "error: No internet access.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "override_settings": {
+      "id": "override_settings",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "smartAppliance"
+        },
+        {
+          "label": "power",
+          "type": "number"
+        },
+        {
+          "label": "temperature",
+          "type": "number"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "error: Device hardware malfunction",
+        "error: No internet access.",
+        "override_settings: denied: The settings are locked for security reasons.",
+        "override_settings: invalid power or temperature for this model. Check the device manual.",
+        "override_settings: warning: Unsafe settings applied. The safety alarm will shut down the appliance if these values are reached.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "set_alarm": {
+      "id": "set_alarm",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "smartAppliance"
+        },
+        {
+          "label": "enable",
+          "type": "number"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "error: Device hardware malfunction",
+        "error: No internet access.",
+        "set_alarm: denied: The alarm settings are locked for security reasons.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "flood_connection": {
+      "id": "flood_connection",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "netSession"
+        }
+      ],
+      "returns": [
+        "null"
+      ]
+    },
+    "get_abs_path": {
+      "id": "get_abs_path",
+      "type": "function",
+      "tags": [
+        "function"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string"
+        },
+        {
+          "label": "basePath",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        "get_abs_path: basePath too large",
+        "get_abs_path: Invalid arguments",
+        "get_abs_path: path too large"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "cd": {
+      "id": "cd",
+      "type": "function",
+      "tags": [
+        "function",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "path",
+          "type": "string",
+          "default": {
+            "type": "string",
+            "value": ""
+          }
+        }
+      ],
+      "returnVariations": [
+        "cd: Invalid arguments",
+        "Error: No such file or directory",
+        "Error: permission denied"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "encrypt": {
+      "id": "encrypt",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "crypto"
+        },
+        {
+          "label": "filePath",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "encrypt: File not found",
+        "encrypt: Invalid file path",
+        "error: file already encrypted",
+        "Error: only alphanumeric allowed as password.",
+        "Error: the password cannot exceed the limit of 15 characters.",
+        "permission denied",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "decrypt": {
+      "id": "decrypt",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "crypto"
+        },
+        {
+          "label": "filePath",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "decrypt: File not found",
+        "decrypt: Incorrect password",
+        "decrypt: Invalid file path",
+        "decrypt: The file is not encrypted.",
+        "Error: only alphanumeric allowed as password.",
+        "Error: the password cannot exceed the limit of 15 characters.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "is_encrypted": {
+      "id": "is_encrypted",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "crypto"
+        },
+        {
+          "label": "filePath",
+          "type": "string"
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "is_encrypted: File not found",
+        "is_encrypted: Invalid file path",
+        "permission denied",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "reboot": {
+      "id": "reboot",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "computer"
+        },
+        {
+          "label": "safeMode",
+          "type": "number",
+          "default": {
+            "type": "number",
+            "value": 0
+          }
+        }
+      ],
+      "returnVariations": [
+        1,
+        "Error: unable to call reboot from a Terminal started automatically from /etc/init.d",
+        "Error: unable to restart in safe mode on remote computers."
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    },
+    "poll_input": {
+      "id": "poll_input",
+      "type": "function",
+      "tags": [
+        "function",
+        "general",
+        "ssh incompatible"
+      ],
+      "returns": [
+        "string"
+      ]
+    },
+    "date": {
+      "id": "date",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "file"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "net_speed": {
+      "id": "net_speed",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "router"
+        }
+      ],
+      "returnVariations": [
+        3,
+        6,
+        12,
+        20,
+        25
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
+    },
+    "delete_all": {
+      "id": "delete_all",
+      "type": "function",
+      "tags": [
+        "function",
+        "detached"
+      ],
+      "arguments": [
+        {
+          "label": "self",
+          "type": "metaMail"
+        }
+      ],
+      "returnVariations": [
+        1,
+        "delete_all: No internet access.",
+        "MetaMail: Unable to refresh mail account.",
+        "MetaMail: Wait 2 seconds before using mail again.",
+        "Unknown error: Unable to access to local computer"
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
+    }
+  }
+}

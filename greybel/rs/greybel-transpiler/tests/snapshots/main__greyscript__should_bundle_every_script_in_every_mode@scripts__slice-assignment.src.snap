@@ -1,0 +1,11 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/slice-assignment.src
+---
+=== default
+error: invalid assignment (not an lvalue)
+=== uglify
+error: invalid assignment (not an lvalue)
+=== beautify
+error: invalid assignment (not an lvalue)

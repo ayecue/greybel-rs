@@ -1,0 +1,36 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/has-index.src
+---
+=== default
+globals.test="was"
+locals.foo="moo"
+print(globals.hasIndex("test"))
+print(locals.hasIndex("foo"))
+print(globals.hasIndex("doesNotExist"))
+print(locals.hasIndex("doesNotExist"))
+=== uglify
+globals.I=globals
+I.J="was"
+locals.K="moo"
+print(I.hasIndex("J"))
+print(locals.hasIndex("K"))
+print(I.hasIndex("doesNotExist"))
+print(locals.hasIndex("doesNotExist"))
+=== beautify
+globals.test = "was"
+locals.foo = "moo"
+
+print globals.hasIndex("test")
+print locals.hasIndex("foo")
+print globals.hasIndex("doesNotExist")
+print locals.hasIndex("doesNotExist")
+=== beautify, dev mode, keep parentheses, 10 spaces
+globals.test = "was"
+locals.foo = "moo"
+
+print(globals.hasIndex("test"))
+print(locals.hasIndex("foo"))
+print(globals.hasIndex("doesNotExist"))
+print(locals.hasIndex("doesNotExist"))

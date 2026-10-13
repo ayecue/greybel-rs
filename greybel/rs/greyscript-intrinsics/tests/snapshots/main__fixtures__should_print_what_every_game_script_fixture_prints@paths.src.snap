@@ -1,0 +1,23 @@
+---
+source: greyscript-intrinsics/tests/fixtures.rs
+assertion_line: 39
+expression: output
+input_file: greyscript-intrinsics/tests/fixtures/game/paths.src
+---
+/home/test/docs
+/var/x
+/home/test/Desktop
+/home/test
+/
+Error: No such file or directory
+Error: permission denied
+
+/etc
+
+/home/test/Desktop
+/home/test/Desktop/x
+1 0 0
+1 0 0
+NAME        SIZE  
+kernel.img  12    
+a           b

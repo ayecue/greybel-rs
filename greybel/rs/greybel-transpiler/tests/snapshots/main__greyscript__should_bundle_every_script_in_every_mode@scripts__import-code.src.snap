@@ -1,0 +1,527 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+assertion_line: 36
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/import-code.src
+---
+=== default
+import_code("/scripts/ascii.src")
+import_code("/dependencies/envar-include.src")
+import_code("/dependencies/sub-sub-sub-import.src")
+import_code("/dependencies/sub-sub-import.src")
+import_code("/dependencies/sub-import.src")
+import_code("/scripts/isa.src")
+
+import_code("./file-does-not-exit")
+print(123)
+--- scripts/ascii.src
+AsciiGen={}
+map={}
+map.a=["||¯|| ","||_|| ","|| || "]
+map.b=["||¯/ ","|| \ ","||_/ "]
+map.c=["||¯ ","||  ","||_ "]
+map.d=["||¯\\ ","|| // ","||//  "]
+map.e=["||¯ ","||- ","||_ "]
+map.f=["||¯ ","||_ ","||  "]
+map.g=["||¯¯  ","|| \\ ","||_|| "]
+map.h=["|| || ","||-|| ","|| || "]
+map.i=["|| ","|| ","|| "]
+map.j=[" ¯||¯ ","  ||  ","|_||  "]
+map.k=["||  / ","|| /  ","||¯\\ "]
+map.l=["||  ","||  ","||_ "]
+map.m=["||\\/|| ","||   || ","||   || "]
+map.n=["||\\ || ","|| \\|| ","||  \|| "]
+map.o=["||¯|| ","|| || ","||_|| "]
+map.p=["||¯|| ","||_|| ","||    "]
+map.q=["||¯||  ","|| ||  ","||_||¬ "]
+map.r=["||¯|| ","||¯\\ ","|| || "]
+map.s=["||¯¯ "," \\  ","__|| "]
+map.t=["¯||¯ "," ||  "," ||  "]
+map.u=["|| || ","|| || ","||_|| "]
+map.v=["\\ || "," \\|| ","  \\| "]
+map.w=["\\ |\\ | "," \\| \\| ","  \\  \\ "]
+map.x=["\\  / "," \\/  "," //\  "]
+map.y=["\\  // "," \\//  ","  ||   "]
+map.z=["¯// ","//  ","||_ "]
+map["0"]=["||¯|| ","||x|| ","||_|| "]
+map["1"]=["'|| "," || "," || "]
+map["2"]=["¯¯|| ","||¯  ","||_  "]
+map["3"]=["¯|| ","-|| ","_|| "]
+map["4"]=[" /|| ","/_|| ","  || "]
+map["5"]=["||¯¯ "," ¯|| "," _|| "]
+map["6"]=["||¯¯  ","||¯|| ","||_|| "]
+map["7"]=["¯¯// "," //  ","//   "]
+map["8"]=["||¯|| ","||-|| ","||_|| "]
+map["9"]=["||¯|| ","  ¯|| ","  //  "]
+map[" "]=["  ","  ","  "]
+AsciiGen.MAP=map
+AsciiGen.gen=function(str,colors)
+r=[[],[],[]]
+signs=self.MAP
+for char in str
+char=char.lower
+if (signs.hasIndex(char)) then
+r[0].push(signs[char][0])
+r[1].push(signs[char][1])
+r[2].push(signs[char][2])
+end if
+end for
+if (typeof(colors)=="string") then
+r[0]=["<color=#"+colors+">"]+r[0]+["</color>"]
+r[1]=["<color=#"+colors+">"]+r[1]+["</color>"]
+r[2]=["<color=#"+colors+">"]+r[2]+["</color>"]
+else if (typeof(colors)=="list") then
+r[0]=["<color=#"+colors[0]+">"]+r[0]+["</color>"]
+r[1]=["<color=#"+colors[1]+">"]+r[1]+["</color>"]
+r[2]=["<color=#"+colors[2]+">"]+r[2]+["</color>"]
+end if
+return [r[0].join(""),r[1].join(""),r[2].join("")].join("\n")
+end function
+print(AsciiGen.gen("Hallo"))
+--- dependencies/envar-include.src
+myvar2="""foo"""
+--- dependencies/sub-sub-sub-import.src
+lastimport="hi"
+--- dependencies/sub-sub-import.src
+
+
+test=123
+was=123
+x=123
+--- dependencies/sub-import.src
+
+
+print(123)
+print(6)
+print("sub-import.src")
+--- scripts/isa.src
+print(2 isa number)
+print(2 isa string)
+print(2 isa list)
+print(2 isa map)
+print("abc" isa number)
+print("abc" isa string)
+print("abc" isa list)
+print("abc" isa map)
+print([1,2,3] isa number)
+print([1,2,3] isa string)
+print([1,2,3] isa list)
+print([1,2,3] isa map)
+print({} isa number)
+print({} isa string)
+print({} isa list)
+print({} isa map)
+print({} isa funcRef)
+=== uglify
+globals.I=globals
+I.Ae=123
+I.AY="||¯|| "
+I.AX="||_|| "
+I.AU="|| || "
+I.AS="||¯ "
+I.AW="||  "
+I.AT="||_ "
+I.AZ="||¯\\ "
+I.AV="|| "
+I.Aa="  "
+I.Ab="<color=#"
+I.Ad=">"
+I.Ac="</color>"
+I.Af="abc"
+import_code("/scripts/ascii.src")
+import_code("/dependencies/envar-include.src")
+import_code("/dependencies/sub-sub-sub-import.src")
+import_code("/dependencies/sub-sub-import.src")
+import_code("/dependencies/sub-import.src")
+import_code("/scripts/isa.src")
+import_code("./file-does-not-exit")
+print(Ae)
+--- scripts/ascii.src
+J={}
+map={}
+map.a=[AY,AX,AU]
+map.b=["||¯/ ","|| \ ","||_/ "]
+map.c=[AS,AW,AT]
+map.d=[AZ,"|| // ","||//  "]
+map.e=[AS,"||- ",AT]
+map.f=[AS,AT,AW]
+map.g=["||¯¯  ","|| \\ ",AX]
+map.h=[AU,"||-|| ",AU]
+map.i=[AV,AV,AV]
+map.j=[" ¯||¯ ","  ||  ","|_||  "]
+map.k=["||  / ","|| /  ",AZ]
+map.l=[AW,AW,AT]
+map.m=["||\\/|| ","||   || ","||   || "]
+map.n=["||\\ || ","|| \\|| ","||  \|| "]
+map.o=[AY,AU,AX]
+map.p=[AY,AX,"||    "]
+map.q=["||¯||  ","|| ||  ","||_||¬ "]
+map.r=[AY,AZ,AU]
+map.s=["||¯¯ "," \\  ","__|| "]
+map.t=["¯||¯ "," ||  "," ||  "]
+map.u=[AU,AU,AX]
+map.v=["\\ || "," \\|| ","  \\| "]
+map.w=["\\ |\\ | "," \\| \\| ","  \\  \\ "]
+map.x=["\\  / "," \\/  "," //\  "]
+map.y=["\\  // "," \\//  ","  ||   "]
+map.z=["¯// ","//  ",AT]
+map["0"]=[AY,"||x|| ",AX]
+map["1"]=["'|| "," || "," || "]
+map["2"]=["¯¯|| ","||¯  ","||_  "]
+map["3"]=["¯|| ","-|| ","_|| "]
+map["4"]=[" /|| ","/_|| ","  || "]
+map["5"]=["||¯¯ "," ¯|| "," _|| "]
+map["6"]=["||¯¯  ",AY,AX]
+map["7"]=["¯¯// "," //  ","//   "]
+map["8"]=[AY,"||-|| ",AX]
+map["9"]=[AY,"  ¯|| ","  //  "]
+map[" "]=[Aa,Aa,Aa]
+J.MAP=map
+J.gen=function(str,AM)
+AB=[[],[],[]]
+AN=self.MAP
+for char in str
+char=char.lower
+if (AN.hasIndex(char)) then
+AB[0].push(AN[char][0])
+AB[1].push(AN[char][1])
+AB[2].push(AN[char][2])
+end if
+end for
+if (typeof(AM)=="string") then
+AB[0]=[Ab+AM+Ad]+AB[0]+[Ac]
+AB[1]=[Ab+AM+Ad]+AB[1]+[Ac]
+AB[2]=[Ab+AM+Ad]+AB[2]+[Ac]
+else if (typeof(AM)=="list") then
+AB[0]=[Ab+AM[0]+Ad]+AB[0]+[Ac]
+AB[1]=[Ab+AM[1]+Ad]+AB[1]+[Ac]
+AB[2]=[Ab+AM[2]+Ad]+AB[2]+[Ac]
+end if
+return [AB[0].join(""),AB[1].join(""),AB[2].join("")].join("\n")
+end function
+print(J.gen("Hallo"))
+--- dependencies/envar-include.src
+AO="""foo"""
+--- dependencies/sub-sub-sub-import.src
+AR="hi"
+--- dependencies/sub-sub-import.src
+AP=Ae
+AQ=Ae
+AE=Ae
+--- dependencies/sub-import.src
+print(Ae)
+print(6)
+print("sub-import.src")
+--- scripts/isa.src
+print(2 isa number)
+print(2 isa string)
+print(2 isa list)
+print(2 isa map)
+print(Af isa number)
+print(Af isa string)
+print(Af isa list)
+print(Af isa map)
+print([1,2,3] isa number)
+print([1,2,3] isa string)
+print([1,2,3] isa list)
+print([1,2,3] isa map)
+print({} isa number)
+print({} isa string)
+print({} isa list)
+print({} isa map)
+print({} isa funcRef)
+=== beautify
+import_code("/scripts/ascii.src")
+import_code("/dependencies/envar-include.src")
+import_code("/dependencies/sub-sub-sub-import.src")
+import_code("/dependencies/sub-sub-import.src")
+import_code("/dependencies/sub-import.src")
+import_code("/scripts/isa.src") // override=./isa.src;
+// no-emit;
+import_code("./file-does-not-exit") // no-eval;
+
+print 123
+--- scripts/ascii.src
+AsciiGen = {}
+
+map = {}
+
+map.a = [
+	"||¯|| ",
+	"||_|| ",
+	"|| || ",
+]
+map.b = [
+	"||¯/ ",
+	"|| \ ",
+	"||_/ ",
+]
+map.c = [
+	"||¯ ",
+	"||  ",
+	"||_ ",
+]
+map.d = [
+	"||¯\\ ",
+	"|| // ",
+	"||//  ",
+]
+map.e = [
+	"||¯ ",
+	"||- ",
+	"||_ ",
+]
+map.f = [
+	"||¯ ",
+	"||_ ",
+	"||  ",
+]
+map.g = [
+	"||¯¯  ",
+	"|| \\ ",
+	"||_|| ",
+]
+map.h = [
+	"|| || ",
+	"||-|| ",
+	"|| || ",
+]
+map.i = [
+	"|| ",
+	"|| ",
+	"|| ",
+]
+map.j = [
+	" ¯||¯ ",
+	"  ||  ",
+	"|_||  ",
+]
+map.k = [
+	"||  / ",
+	"|| /  ",
+	"||¯\\ ",
+]
+map.l = [
+	"||  ",
+	"||  ",
+	"||_ ",
+]
+map.m = [
+	"||\\/|| ",
+	"||   || ",
+	"||   || ",
+]
+map.n = [
+	"||\\ || ",
+	"|| \\|| ",
+	"||  \|| ",
+]
+map.o = [
+	"||¯|| ",
+	"|| || ",
+	"||_|| ",
+]
+map.p = [
+	"||¯|| ",
+	"||_|| ",
+	"||    ",
+]
+map.q = [
+	"||¯||  ",
+	"|| ||  ",
+	"||_||¬ ",
+]
+map.r = [
+	"||¯|| ",
+	"||¯\\ ",
+	"|| || ",
+]
+map.s = [
+	"||¯¯ ",
+	" \\  ",
+	"__|| ",
+]
+map.t = [
+	"¯||¯ ",
+	" ||  ",
+	" ||  ",
+]
+map.u = [
+	"|| || ",
+	"|| || ",
+	"||_|| ",
+]
+map.v = [
+	"\\ || ",
+	" \\|| ",
+	"  \\| ",
+]
+map.w = [
+	"\\ |\\ | ",
+	" \\| \\| ",
+	"  \\  \\ ",
+]
+map.x = [
+	"\\  / ",
+	" \\/  ",
+	" //\  ",
+]
+map.y = [
+	"\\  // ",
+	" \\//  ",
+	"  ||   ",
+]
+map.z = [
+	"¯// ",
+	"//  ",
+	"||_ ",
+]
+map["0"] = [
+	"||¯|| ",
+	"||x|| ",
+	"||_|| ",
+]
+map["1"] = [
+	"'|| ",
+	" || ",
+	" || ",
+]
+map["2"] = [
+	"¯¯|| ",
+	"||¯  ",
+	"||_  ",
+]
+map["3"] = [
+	"¯|| ",
+	"-|| ",
+	"_|| ",
+]
+map["4"] = [
+	" /|| ",
+	"/_|| ",
+	"  || ",
+]
+map["5"] = [
+	"||¯¯ ",
+	" ¯|| ",
+	" _|| ",
+]
+map["6"] = [
+	"||¯¯  ",
+	"||¯|| ",
+	"||_|| ",
+]
+map["7"] = [
+	"¯¯// ",
+	" //  ",
+	"//   ",
+]
+map["8"] = [
+	"||¯|| ",
+	"||-|| ",
+	"||_|| ",
+]
+map["9"] = [
+	"||¯|| ",
+	"  ¯|| ",
+	"  //  ",
+]
+map[" "] = [
+	"  ",
+	"  ",
+	"  ",
+]
+
+AsciiGen.MAP = map
+
+AsciiGen.gen = function(str, colors)
+	r = [
+		[],
+		[],
+		[],
+	]
+	signs = self.MAP
+
+	for char in str
+		char = char.lower
+		if signs.hasIndex(char) then
+			r[0].push signs[char][0]
+			r[1].push signs[char][1]
+			r[2].push signs[char][2]
+		end if
+	end for
+
+	if typeof(colors) == "string" then
+		r[0] = [ "<color=#" + colors + ">" ] + r[0] + [ "</color>" ]
+		r[1] = [ "<color=#" + colors + ">" ] + r[1] + [ "</color>" ]
+		r[2] = [ "<color=#" + colors + ">" ] + r[2] + [ "</color>" ]
+	else if typeof(colors) == "list" then
+		r[0] = [ "<color=#" + colors[0] + ">" ] + r[0] + [ "</color>" ]
+		r[1] = [ "<color=#" + colors[1] + ">" ] + r[1] + [ "</color>" ]
+		r[2] = [ "<color=#" + colors[2] + ">" ] + r[2] + [ "</color>" ]
+	end if
+
+	return [
+		r[0].join(""),
+		r[1].join(""),
+		r[2].join(""),
+	].join("\n")
+end function
+
+print AsciiGen.gen("Hallo")
+--- dependencies/envar-include.src
+myvar2 = """foo"""
+--- dependencies/sub-sub-sub-import.src
+lastimport = "hi"
+--- dependencies/sub-sub-import.src
+
+
+test = 123
+was = 123
+x = 123
+--- dependencies/sub-import.src
+
+
+print 123
+
+
+print 6
+print "sub-import.src"
+--- scripts/isa.src
+print 2 isa number
+print 2 isa string
+print 2 isa list
+print 2 isa map
+
+print "abc" isa number
+print "abc" isa string
+print "abc" isa list
+print "abc" isa map
+
+print [
+	1,
+	2,
+	3,
+] isa number
+print [
+	1,
+	2,
+	3,
+] isa string
+print [
+	1,
+	2,
+	3,
+] isa list
+print [
+	1,
+	2,
+	3,
+] isa map
+
+print {} isa number
+print {} isa string
+print {} isa list
+print {} isa map
+
+print {} isa funcRef

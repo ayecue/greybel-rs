@@ -1,0 +1,48 @@
+[package]
+name = "greybel-builder"
+description = "GreyScript builds, imports, and transformations for Grey Hack, with duplex editor and document protocols"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+greybel-bundler.workspace = true
+greybel-core.workspace = true
+greybel-documents.workspace = true
+greybel-documents-host-provider.workspace = true
+greybel-transpiler.workspace = true
+fastrand.workspace = true
+futures-util.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["sync"] }
+greyhack-message-hook-client = { workspace = true, optional = true }
+
+[features]
+# Enables build and import deployment through Grey Hack's message-hook plugin on native targets.
+game = ["dep:greyhack-message-hook-client"]
+# Runs integration tests against headless Grey Hack via greybel/dotnet/greyhack-test-support. Requires
+# GREY_HACK_PATH, the .NET SDK, and a logged-in Steam session. Kept separate so other crates can enable `game`
+# without enabling these tests.
+game-tests = ["game"]
+
+[dev-dependencies]
+duplex-test-support = { workspace = true, features = ["tokio"] }
+duplex-ts.workspace = true
+greybel-io-web.workspace = true
+greybel-runtime = { workspace = true, features = ["game"] }
+greybel-test-support = { workspace = true, features = ["file-editor", "game", "terminal"] }
+tokio = { workspace = true, features = ["time"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

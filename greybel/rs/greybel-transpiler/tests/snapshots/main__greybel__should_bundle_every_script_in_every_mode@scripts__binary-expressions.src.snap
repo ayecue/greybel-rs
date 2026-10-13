@@ -1,0 +1,46 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/binary-expressions.src
+---
+=== default
+a=a/(b)
+a=a*(b)
+a=a-(b)
+a=a+(b)
+bitOr(a,b)
+bitAnd(a,b)
+a^b
+a and b
+a or b
+=== uglify
+globals.I=globals
+J=J/(K)
+J=J*(K)
+J=J-(K)
+J=J+(K)
+bitOr(J,K)
+bitAnd(J,K)
+J^K
+J and K
+J or K
+=== beautify
+a /= b
+a *= b
+a -= b
+a += b
+bitOr(a, b)
+bitAnd(a, b)
+a ^ b
+a and b
+a or b
+=== beautify, dev mode, keep parentheses, 10 spaces
+a /= b
+a *= b
+a -= b
+a += b
+bitOr(a, b)
+bitAnd(a, b)
+a ^ b
+a and b
+a or b

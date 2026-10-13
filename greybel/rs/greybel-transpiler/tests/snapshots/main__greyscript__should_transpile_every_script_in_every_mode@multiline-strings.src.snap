@@ -1,0 +1,86 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+assertion_line: 17
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/multiline-strings.src
+---
+=== default
+__MSTR=function(lines)
+return lines.join(char(10))
+end function
+banner=__MSTR(["first line","second line"])
+print(__MSTR(["trailing",""]))
+print(__MSTR(["","leading"]))
+print(__MSTR(["a","","b"]).len)
+print(__MSTR(["say ""hi""","ok"]))
+repeated=[__MSTR(["x","y"]),__MSTR(["x","y"]),__MSTR(["x","y"]),__MSTR(["x","y"])]
+print("single line")
+crlf=__MSTR(["a","b"])
+=== uglify
+N=function(lines)
+return lines.join(char(10))
+end function
+globals.I=globals
+I.M=N(["x","y"])
+J=N(["first line","second line"])
+print(N(["trailing",""]))
+print(N(["","leading"]))
+print(N(["a","","b"]).len)
+print(N(["say ""hi""","ok"]))
+K=[M,M,M,M]
+print("single line")
+L=N(["a","b"])
+=== beautify
+__MSTR = function(lines)
+	return lines.join(char(10))
+end function
+// Grey Hack ends a string at a line break, so a string with line breaks becomes a call of __MSTR with its lines.
+banner = __MSTR(["first line", "second line"])
+print __MSTR(["trailing", ""])
+print __MSTR(["", "leading"])
+print __MSTR(["a", "", "b"]).len
+print __MSTR(["say ""hi""", "ok"])
+repeated = [
+	__MSTR(["x", "y"]),
+	__MSTR(["x", "y"]),
+	__MSTR(["x", "y"]),
+	__MSTR(["x", "y"]),
+]
+print "single line"
+crlf = __MSTR(["a", "b"])
+=== beautify, dev mode
+__MSTR = function(lines)
+	return lines.join(char(10))
+end function
+// Grey Hack ends a string at a line break, so a string with line breaks becomes a call of __MSTR with its lines.
+banner = __MSTR(["first line", "second line"])
+print __MSTR(["trailing", ""])
+print __MSTR(["", "leading"])
+print __MSTR(["a", "", "b"]).len
+print __MSTR(["say ""hi""", "ok"])
+repeated = [
+	__MSTR(["x", "y"]),
+	__MSTR(["x", "y"]),
+	__MSTR(["x", "y"]),
+	__MSTR(["x", "y"]),
+]
+print "single line"
+crlf = __MSTR(["a", "b"])
+=== beautify, dev mode, keep parentheses, 10 spaces
+__MSTR = function(lines)
+          return lines.join(char(10))
+end function
+// Grey Hack ends a string at a line break, so a string with line breaks becomes a call of __MSTR with its lines.
+banner = __MSTR(["first line", "second line"])
+print(__MSTR(["trailing", ""]))
+print(__MSTR(["", "leading"]))
+print(__MSTR(["a", "", "b"]).len)
+print(__MSTR(["say ""hi""", "ok"]))
+repeated = [
+          __MSTR(["x", "y"]),
+          __MSTR(["x", "y"]),
+          __MSTR(["x", "y"]),
+          __MSTR(["x", "y"]),
+]
+print("single line")
+crlf = __MSTR(["a", "b"])

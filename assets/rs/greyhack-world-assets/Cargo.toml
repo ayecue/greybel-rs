@@ -1,0 +1,27 @@
+[package]
+name = "greyhack-world-assets"
+description = "Embedded Grey Hack world data, including command and service scripts, base filesystem, name lists, and English game text"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+asset-bundle.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+asset-bundle = { workspace = true, features = ["fingerprint"] }
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true
