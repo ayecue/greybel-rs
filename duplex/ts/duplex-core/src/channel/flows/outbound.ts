@@ -25,6 +25,7 @@ export interface OutgoingHost {
   writeResponseCredit(exchangeId: number, count: number): void;
   withdraw(flow: OutgoingFlow): boolean;
   release(flow: OutgoingFlow): void;
+  deferSettlement(flow: OutgoingFlow): boolean;
 }
 
 export interface OutgoingState {
@@ -100,25 +101,28 @@ class ResponsePendingState implements OutgoingState {
     } catch (error) {
       const failure = error instanceof ChannelError ? error : ChannelError.reject(ErrorCode.MalformedMessage);
 
-      if (segment === MessageSegment.ResponseEnd || segment === MessageSegment.Failure) return flow.failWith(failure);
+      if (segment === MessageSegment.ResponseEnd || segment === MessageSegment.Failure)
+        return flow.receiveFinal(() => flow.failWith(failure));
 
-      return flow.cancelWith(failure);
+      return flow.receiveItem(() => flow.cancelWith(failure));
     }
 
     switch (segment) {
       case MessageSegment.ResponseStart:
         return flow.inbox?.start(value);
       case MessageSegment.ResponseItem:
-        return flow.inbox?.push(value);
+        return flow.receiveItem(() => flow.inbox?.push(value));
       case MessageSegment.Failure:
-        return flow.failWith(ChannelError.fail(value));
+        return flow.receiveFinal(() => flow.failWith(ChannelError.fail(value)));
       default:
-        return flow.completeWith(value);
+        return flow.receiveFinal(() => flow.completeWith(value));
     }
   }
 
   onRejection(flow: OutgoingFlow, code: ErrorCode, violation: Violation | undefined): void {
-    flow.failWith(violation === undefined ? ChannelError.reject(code) : ChannelError.invalid(violation));
+    const error = violation === undefined ? ChannelError.reject(code) : ChannelError.invalid(violation);
+
+    flow.receiveFinal(() => flow.failWith(error));
   }
 
   onCredit(flow: OutgoingFlow, count: number): void {
@@ -141,13 +145,17 @@ class CancelPendingState implements OutgoingState {
 
   onResponse(flow: OutgoingFlow, segment: MessageSegment): void {
     if (segment !== MessageSegment.ResponseEnd && segment !== MessageSegment.Failure) return;
-    flow.enter(OUTCOME_STATE);
-    flow.release();
+    flow.receiveFinal(() => {
+      flow.enter(OUTCOME_STATE);
+      flow.release();
+    });
   }
 
   onRejection(flow: OutgoingFlow): void {
-    flow.enter(OUTCOME_STATE);
-    flow.release();
+    flow.receiveFinal(() => {
+      flow.enter(OUTCOME_STATE);
+      flow.release();
+    });
   }
 
   onCredit(): void {}
@@ -157,6 +165,46 @@ class CancelPendingState implements OutgoingState {
   end(flow: OutgoingFlow): void {
     flow.enter(OUTCOME_STATE);
     flow.release();
+  }
+}
+
+class DeliveryPendingState implements OutgoingState {
+  constructor(private readonly delivery?: () => void) {}
+
+  get isFinal(): boolean {
+    return this.delivery !== undefined;
+  }
+
+  startDispatch(): void {}
+
+  finishDispatch(): void {}
+
+  onResponse(flow: OutgoingFlow, segment: MessageSegment, body: BinaryReader, session: Session): void {
+    if (this.delivery !== undefined) return;
+    RESPONSE_PENDING_STATE.onResponse(flow, segment, body, session);
+  }
+
+  onRejection(flow: OutgoingFlow, code: ErrorCode, violation: Violation | undefined): void {
+    if (this.delivery !== undefined) return;
+    RESPONSE_PENDING_STATE.onRejection(flow, code, violation);
+  }
+
+  onCredit(flow: OutgoingFlow, count: number): void {
+    if (this.delivery !== undefined) return;
+    flow.outbox?.grant(count);
+  }
+
+  cancel(flow: OutgoingFlow, code: ErrorCode): void {
+    if (this.delivery !== undefined) return;
+    flow.cancelWith(ChannelError.reject(code));
+  }
+
+  end(flow: OutgoingFlow, error: Error): void {
+    flow.failWith(error);
+  }
+
+  settle(): void {
+    this.delivery?.();
   }
 }
 
@@ -191,10 +239,11 @@ export class OutgoingFlow implements ResponseSource, StreamSink, EventListenerOb
   readonly #receiveWindow: ReceiveWindow | undefined;
   #state: OutgoingState = PENDING_STATE;
   #sentItemCount = 0;
-  #receivedItemCount = 0;
+  #pendingDeliveriesItemCount = 0;
   #resolveResponse: ((value: unknown) => void) | undefined;
   #rejectResponse: ((error: Error) => void) | undefined;
   #signal: AbortSignal | undefined;
+  readonly #pendingDeliveries: (() => void)[] = [];
 
   constructor(host: OutgoingHost, exchangeId: number, type: IMessage) {
     this.#host = host;
@@ -247,15 +296,48 @@ export class OutgoingFlow implements ResponseSource, StreamSink, EventListenerOb
     this.#state.onRejection(this, code, violation);
   }
 
+  receiveItem(delivery: () => void): void {
+    if (!this.#host.deferSettlement(this)) return delivery();
+    this.#pendingDeliveries.push(delivery);
+    if (this.#state !== RESPONSE_PENDING_STATE) return;
+    this.enter(new DeliveryPendingState());
+  }
+
+  receiveFinal(delivery: () => void): void {
+    if (!this.#host.deferSettlement(this)) return delivery();
+    this.enter(new DeliveryPendingState(delivery));
+  }
+
+  settle(): void {
+    if (this.#state === OUTCOME_STATE) {
+      this.#pendingDeliveries.length = 0;
+
+      return;
+    }
+
+    const delivery = this.#pendingDeliveries.shift();
+
+    if (delivery !== undefined) {
+      delivery();
+      if (this.#state instanceof DeliveryPendingState && !this.#state.isFinal && this.#pendingDeliveries.length === 0)
+        this.enter(RESPONSE_PENDING_STATE);
+
+      return;
+    }
+
+    if (!(this.#state instanceof DeliveryPendingState)) return;
+    this.#state.settle();
+  }
+
   validateSegment(segment: MessageSegment, body: BinaryReader): void {
     const validating = this.#host.validatesInput;
 
     Validation.prepareBody(validating, this.type.limit, body);
     if (segment === MessageSegment.ResponseItem) {
-      Validation.validateItem(validating, this.type.responseItemRange, ++this.#receivedItemCount);
+      Validation.validateItem(validating, this.type.responseItemRange, ++this.#pendingDeliveriesItemCount);
       this.#receiveWindow?.onReceive(body.unreadLength);
     } else if (segment === MessageSegment.ResponseEnd && this.type.streamsResponse)
-      Validation.validateEnd(validating, this.type.responseItemRange, this.#receivedItemCount);
+      Validation.validateEnd(validating, this.type.responseItemRange, this.#pendingDeliveriesItemCount);
   }
 
   onCredit(count: number): void {
@@ -282,7 +364,9 @@ export class OutgoingFlow implements ResponseSource, StreamSink, EventListenerOb
   }
 
   writeSegment(segment: MessageSegment, value: unknown): void {
-    if (this.#state !== RESPONSE_PENDING_STATE && this.#state !== UNSENT_STATE)
+    const receivesItems = this.#state instanceof DeliveryPendingState && !this.#state.isFinal;
+
+    if (this.#state !== RESPONSE_PENDING_STATE && this.#state !== UNSENT_STATE && !receivesItems)
       throw ChannelError.channelEnd(ErrorCode.ClosedChannel);
 
     const validating = this.#host.validatesOutput;

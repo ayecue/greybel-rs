@@ -1,7 +1,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::time::Duration;
 
 use duplex_core::{ChannelOptions, Error, ErrorCode, Health, HealthCheck, Role};
+use duplex_test_support::binary::bytes;
 use duplex_test_support::conformance::Adder;
 use duplex_test_support::conformance::calculator::{
     Add, CalculatorRouter, Divide, DivisionFailure, Phase, Progress, Quotient, Step, User,
@@ -13,6 +15,7 @@ use duplex_test_support::{Memory, recorder};
 
 use crate::support::{
     CONNECTION, Logger, add_request, batch, healths, keep_add_requests, log, logs,
+    notifications_then, post_frames,
 };
 
 #[test]
@@ -350,4 +353,126 @@ fn should_take_a_burst_past_what_it_responds_to_at_once_when_its_handlers_keep_u
     let sums: Vec<_> = sums.into_iter().map(ready_output).collect();
 
     assert_eq!(sums, (1..=BURST).map(Ok).collect::<Vec<_>>());
+}
+
+#[test]
+fn should_deliver_a_response_after_two_thousand_earlier_notifications() {
+    let (user, _calculator, queue) = Memory::connected_pair::<User>();
+    let (received, record) = recorder();
+
+    user.on::<Progress>(move |_, _next| record(()));
+
+    let mut response = user.send(&Add { a: 1, b: 2 }).expect("the request is sent");
+
+    queue.take();
+    post_frames(
+        &queue,
+        notifications_then(
+            2000,
+            Frame::ResponseEnd {
+                id: 0,
+                body: bytes(&3_i64),
+            },
+        ),
+    );
+    queue.step();
+
+    assert!(poll(&mut response).is_pending());
+    assert_eq!(received.borrow().len(), 0);
+    queue.run_tasks();
+    assert_eq!(received.borrow().len(), 2000);
+    assert_eq!(ready_output(response), Ok(3));
+}
+
+#[test]
+fn should_keep_response_order_when_notification_handlers_exceed_a_cycle() {
+    let (user, _calculator, queue) = Memory::connected_pair::<User>();
+    let (received, record) = recorder();
+
+    user.on::<Progress>({
+        let queue = queue.clone();
+
+        move |_, _next| {
+            queue.advance(Duration::from_millis(2));
+            record(());
+        }
+    });
+
+    let mut response = user.send(&Add { a: 1, b: 2 }).expect("the request is sent");
+
+    queue.take();
+    post_frames(
+        &queue,
+        notifications_then(
+            2000,
+            Frame::ResponseEnd {
+                id: 0,
+                body: bytes(&3_i64),
+            },
+        ),
+    );
+    queue.step();
+    queue.run_task();
+
+    assert_eq!(received.borrow().len(), 64);
+    assert!(poll(&mut response).is_pending());
+    queue.run_tasks();
+    assert_eq!(received.borrow().len(), 2000);
+    assert_eq!(ready_output(response), Ok(3));
+}
+
+#[test]
+fn should_deliver_an_unqueued_response_in_the_same_read() {
+    let (user, _calculator, queue) = Memory::connected_pair::<User>();
+    let response = user.send(&Add { a: 1, b: 2 }).expect("the request is sent");
+
+    queue.take();
+    post_frames(
+        &queue,
+        vec![Frame::ResponseEnd {
+            id: 0,
+            body: bytes(&3_i64),
+        }],
+    );
+    queue.step();
+
+    assert_eq!(ready_output(response), Ok(3));
+}
+
+#[test]
+fn should_neither_time_out_nor_cancel_a_received_response_waiting_for_earlier_work() {
+    let (user, _calculator, queue) = Memory::connected_pair::<User>();
+    let (received, record) = recorder();
+
+    user.on::<Progress>(move |_, _next| record(()));
+
+    let mut response = user.send(&Add { a: 1, b: 2 }).expect("the request is sent");
+
+    queue.take();
+    post_frames(
+        &queue,
+        notifications_then(
+            1025,
+            Frame::ResponseEnd {
+                id: 0,
+                body: bytes(&3_i64),
+            },
+        ),
+    );
+    queue.step();
+    assert!(poll(&mut response).is_pending());
+    queue.advance(Duration::from_secs(2));
+    assert!(poll(&mut response).is_pending());
+
+    drop(response);
+    queue.run_tasks();
+
+    assert_eq!(received.borrow().len(), 1025);
+    assert!(
+        queue
+            .queued_slices()
+            .iter()
+            .flat_map(|slice| &slice.frames)
+            .all(|frame| !matches!(frame, Frame::Cancel { .. }))
+    );
 }

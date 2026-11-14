@@ -6,6 +6,7 @@ mod binary;
 mod channel;
 mod connection_id;
 mod definition;
+mod dispatch;
 mod driver;
 mod error;
 mod error_code;
@@ -32,6 +33,7 @@ pub use channel::{
 };
 pub use connection_id::ConnectionId;
 pub use definition::{CORE, ErrorCode, Requirement, Role, Version, Violation};
+pub use dispatch::{Dispatch, ResponderOf};
 pub use driver::{
     BatchStream, Capabilities, Driver, InboundBatch, InboundBufferManager, OutboundBatch, TimerOf,
 };

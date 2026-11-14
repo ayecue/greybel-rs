@@ -18,6 +18,10 @@ pub(super) struct WorkQueue {
 }
 
 impl<D: Driver> TransportState<D> {
+    pub(crate) fn has_queued_work(&self) -> bool {
+        !self.work_queue.queue.borrow().is_empty()
+    }
+
     pub(crate) fn enqueue(&self, endpoint: EndpointId, work: Work) {
         let queue_len = {
             let mut queue = self.work_queue.queue.borrow_mut();

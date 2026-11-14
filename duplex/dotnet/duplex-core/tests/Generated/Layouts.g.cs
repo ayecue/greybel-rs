@@ -6,7 +6,7 @@ namespace Duplex.Tests.Layouts;
 public static partial class Constants
 {
     /// <summary>
-    /// The precision a `DefaultLayout` reads as when left out.
+    /// Precision used by `DefaultLayout` when omitted.
     /// </summary>
     public const byte PRECISION = 2;
     public const string GREETING = "hello";
@@ -418,7 +418,7 @@ public enum Keyword : uint
 }
 
 /// <summary>
-/// Writes and reads `Keyword`.
+/// Serializes and deserializes `Keyword`.
 /// </summary>
 public static class KeywordCodec
 {
@@ -487,7 +487,7 @@ public sealed class KeywordLayout
 }
 
 /// <summary>
-/// Values of a fixed width, and bytes.
+/// Fixed-width values and byte sequences.
 /// </summary>
 public sealed class Raw
 {
@@ -543,7 +543,7 @@ public sealed class Raw
 }
 
 /// <summary>
-/// An enumeration of given values.
+/// Enumeration with explicit numeric values.
 /// </summary>
 public enum Signal : uint
 {
@@ -553,7 +553,7 @@ public enum Signal : uint
 }
 
 /// <summary>
-/// Writes and reads `Signal`.
+/// Serializes and deserializes `Signal`.
 /// </summary>
 public static class SignalCodec
 {
@@ -622,7 +622,7 @@ public sealed class SignalLayout
 }
 
 /// <summary>
-/// Fields with defaults, which the constructors fill.
+/// Fields whose defaults are supplied by constructors.
 /// </summary>
 public sealed class DefaultLayout
 {

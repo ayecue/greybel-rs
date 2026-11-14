@@ -48,6 +48,14 @@ class NotificationWork implements Work {
   }
 }
 
+class SettlementWork implements Work {
+  constructor(private readonly flow: OutgoingFlow) {}
+
+  proceed(): void {
+    this.flow.settle();
+  }
+}
+
 class Reassembly {
   readonly bytes: Uint8Array;
   #length = 0;
@@ -336,6 +344,13 @@ export class MessageExchange<P extends Protocol, L extends PeerOf<P>> implements
     this.#outgoingFlows.remove(flow);
   }
 
+  deferSettlement(flow: OutgoingFlow): boolean {
+    if (!this.#transport.hasQueuedWork) return false;
+    this.#transport.enqueue(new SettlementWork(flow));
+
+    return true;
+  }
+
   canHandle(): boolean {
     return this.#incomingFlows.busyCount < this.#settings.limits.activeResponses;
   }
@@ -497,13 +512,7 @@ export class MessageExchange<P extends Protocol, L extends PeerOf<P>> implements
     this.#routerChain.notify(type.id, message as Inbound<P, L>, NOTIFICATION_CONTEXT);
   }
 
-  #receiveRequest(
-    connection: number,
-    session: Session,
-    typeId: number,
-    exchangeId: number,
-    body: BinaryReader
-  ): void {
+  #receiveRequest(connection: number, session: Session, typeId: number, exchangeId: number, body: BinaryReader): void {
     const incomingFlows = this.#incomingFlows;
 
     if (incomingFlows.get(exchangeId) !== undefined) return;
@@ -517,7 +526,8 @@ export class MessageExchange<P extends Protocol, L extends PeerOf<P>> implements
       remoteType = session.getRemoteType(this.#protocol.messages, this.#role, typeId);
       type = session.getLocalType(remoteType);
     } catch (error) {
-      if (!(error instanceof ChannelError)) return this.writeRejection(connection, exchangeId, ErrorCode.MalformedMessage);
+      if (!(error instanceof ChannelError))
+        return this.writeRejection(connection, exchangeId, ErrorCode.MalformedMessage);
 
       return this.writeRejection(connection, exchangeId, error.code ?? ErrorCode.MalformedMessage, error.violation);
     }

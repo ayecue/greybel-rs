@@ -4,6 +4,7 @@ mod stream;
 mod table;
 mod window;
 
+use std::collections::VecDeque;
 use std::task::{Context, Poll, Waker};
 use std::time::Duration;
 
@@ -54,13 +55,23 @@ pub(crate) enum InboundState {
     Complete,
 }
 
+/// A final response recorded on arrival and waiting behind earlier transport work.
+pub(crate) struct PendingSettlement {
+    event: Event,
+    stream_error: Error,
+    waker: Option<Waker>,
+    cancellation: bool,
+    outcome: Option<Event>,
+}
+
 /// Locally sent message state from `send` through response consumption.
 /// Dispatch- and response-pending states store the sender waker.
 pub(crate) enum OutboundState {
     Pending(PendingBody, Option<Waker>),
     Unsent(Option<Waker>),
     ResponsePending(Option<Waker>),
-    /// Cancellation pending. Keeps the exchange ID until the remote response and buffers any unconsumed outcome.
+    DeliveryPending(PendingSettlement),
+    /// Cancellation pending. Retains the exchange ID until the remote response and buffers any unconsumed outcome.
     CancelPending(Option<Event>),
     /// Final outcome waiting for sender consumption.
     Outcome(Option<Event>),
@@ -70,6 +81,7 @@ impl OutboundState {
     fn into_waker(self) -> Option<Waker> {
         match self {
             Self::Pending(_, waker) | Self::Unsent(waker) | Self::ResponsePending(waker) => waker,
+            Self::DeliveryPending(settlement) => settlement.waker,
             Self::CancelPending(_) | Self::Outcome(_) => None,
         }
     }
@@ -103,7 +115,7 @@ impl OutboundState {
 pub(crate) enum Flow {
     Inbound(InboundState),
     Outbound(OutboundState),
-    /// Notification held until a connection becomes available.
+    /// Notification queued until a connection becomes available.
     Notification(PendingBody),
 }
 
@@ -154,6 +166,7 @@ pub(crate) struct Message {
     pub(crate) refs: u8,
     pub(crate) flow: Flow,
     pub(crate) streams: Option<Box<StreamPair>>,
+    pending_events: VecDeque<Event>,
 }
 
 impl Message {
@@ -164,6 +177,7 @@ impl Message {
             refs: 0,
             flow,
             streams,
+            pending_events: VecDeque::new(),
         }
     }
 
@@ -246,6 +260,86 @@ impl Message {
         self.flow = Flow::Inbound(InboundState::Complete);
     }
 
+    /// Records a response stream event for delivery by its queued work item.
+    pub(crate) fn defer_response_item(&mut self, event: Event) -> Result<(), Event> {
+        if !matches!(self.flow, Flow::Outbound(OutboundState::ResponsePending(_))) {
+            return Err(event);
+        }
+
+        self.pending_events.push_back(event);
+
+        Ok(())
+    }
+
+    /// Delivers the oldest response stream event, returning whether it was an error.
+    pub(crate) fn deliver_response_item(&mut self) -> Option<bool> {
+        let event = self.pending_events.pop_front()?;
+        let failed = matches!(event, Event::Error(_));
+
+        if matches!(
+            self.flow,
+            Flow::Outbound(
+                OutboundState::ResponsePending(_)
+                    | OutboundState::DeliveryPending(_)
+                    | OutboundState::CancelPending(_)
+            )
+        ) && let Some(input) = self.input()
+        {
+            input.push(event);
+        }
+
+        Some(failed)
+    }
+
+    /// Records a final response without waking its sender before earlier work is handled.
+    pub(crate) fn receive_response(&mut self, event: Event, stream_error: &Error) -> bool {
+        let Flow::Outbound(outbound) = &mut self.flow else {
+            return false;
+        };
+        let (waker, cancellation, outcome) =
+            match std::mem::replace(outbound, OutboundState::Outcome(None)) {
+                OutboundState::ResponsePending(waker) => (waker, false, None),
+                OutboundState::CancelPending(outcome) => (None, true, outcome),
+                other => {
+                    *outbound = other;
+
+                    return false;
+                }
+            };
+
+        *outbound = OutboundState::DeliveryPending(PendingSettlement {
+            event,
+            stream_error: stream_error.clone(),
+            waker,
+            cancellation,
+            outcome,
+        });
+
+        true
+    }
+
+    /// Delivers a final response previously recorded by [`Message::receive_response`].
+    pub(crate) fn deliver_response(&mut self) {
+        let Flow::Outbound(OutboundState::DeliveryPending(_)) = &self.flow else {
+            return;
+        };
+        let Flow::Outbound(OutboundState::DeliveryPending(settlement)) =
+            std::mem::replace(&mut self.flow, Flow::Outbound(OutboundState::Outcome(None)))
+        else {
+            unreachable!()
+        };
+
+        if let Some(output) = self.output() {
+            output.fail(settlement.stream_error);
+        }
+
+        if settlement.cancellation {
+            self.emit(settlement.outcome, None);
+        } else {
+            self.emit(Some(settlement.event), settlement.waker);
+        }
+    }
+
     pub(crate) fn on_event(&mut self, event: Event, stream_error: &Error) {
         if let Some(output) = self.output() {
             output.fail(stream_error.clone());
@@ -319,6 +413,14 @@ impl Message {
             | OutboundState::Unsent(waker)
             | OutboundState::ResponsePending(waker) => {
                 *waker = Some(context.waker().clone());
+
+                Poll::Pending
+            }
+            OutboundState::DeliveryPending(settlement) if settlement.cancellation => {
+                Poll::Ready(settlement.outcome.take().unwrap_or_else(closed_event))
+            }
+            OutboundState::DeliveryPending(settlement) => {
+                settlement.waker = Some(context.waker().clone());
 
                 Poll::Pending
             }

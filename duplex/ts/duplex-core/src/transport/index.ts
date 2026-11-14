@@ -85,6 +85,10 @@ export class Transport {
     return this.#endReason;
   }
 
+  get hasQueuedWork(): boolean {
+    return this.#workQueue.hasWork;
+  }
+
   isAsSecureAs(level: SecurityLevel | undefined, signed = false): boolean {
     return this.#security.isAsSecureAs(level, signed);
   }

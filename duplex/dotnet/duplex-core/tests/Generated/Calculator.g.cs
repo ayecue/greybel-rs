@@ -81,19 +81,19 @@ public abstract class Quotient
 }
 
 /// <summary>
-/// Why a division wasn't done.
+/// Reason a division was not completed.
 /// </summary>
 public enum DivisionFailure : uint
 {
     ByZero = 0,
     /// <summary>
-    /// The user refused to confirm it.
+    /// User declined the confirmation request.
     /// </summary>
     Refusal = 1,
 }
 
 /// <summary>
-/// Writes and reads `DivisionFailure`.
+/// Serializes and deserializes `DivisionFailure`.
 /// </summary>
 public static class DivisionFailureCodec
 {
@@ -126,7 +126,7 @@ public enum Phase : uint
 }
 
 /// <summary>
-/// Writes and reads `Phase`.
+/// Serializes and deserializes `Phase`.
 /// </summary>
 public static class PhaseCodec
 {
@@ -156,7 +156,7 @@ public static class PhaseCodec
 }
 
 /// <summary>
-/// A finished step of a calculation.
+/// Completed calculation step.
 /// </summary>
 public sealed class Step
 {
@@ -178,7 +178,7 @@ public sealed class Step
     public Quotient? Result { get; }
 
     /// <summary>
-    /// The milliseconds it took.
+    /// Elapsed time in milliseconds.
     /// </summary>
     public uint? Duration { get; }
 
@@ -229,7 +229,7 @@ public sealed class Step
 }
 
 /// <summary>
-/// A line for the calculator's log.
+/// Entry for the calculator log.
 /// </summary>
 public sealed class Log : global::Duplex.Message
 {
@@ -335,7 +335,7 @@ public sealed class Divide : global::Duplex.Message
     public long Divisor { get; }
 
     /// <summary>
-    /// The digits after the point the user wants.
+    /// Number of decimal places requested by the user.
     /// </summary>
     public byte? Precision { get; }
 
@@ -378,7 +378,7 @@ public sealed class Divide : global::Duplex.Message
 }
 
 /// <summary>
-/// Starts over, forgetting the log.
+/// Resets the calculation and clears the log.
 /// </summary>
 public sealed class Reset : global::Duplex.Message
 {
@@ -412,7 +412,7 @@ public sealed class Reset : global::Duplex.Message
 }
 
 /// <summary>
-/// Counts up to `to`: the phase first, each number, then their sum.
+/// Counts through `to`, emitting the phase, each number, and finally their sum.
 /// </summary>
 public sealed class Count : global::Duplex.Message
 {
@@ -455,7 +455,7 @@ public sealed class Count : global::Duplex.Message
 }
 
 /// <summary>
-/// Adds the terms streamed after it.
+/// Adds the terms sent on the following stream.
 /// </summary>
 public sealed class Sum : global::Duplex.Message
 {
@@ -489,7 +489,7 @@ public sealed class Sum : global::Duplex.Message
 }
 
 /// <summary>
-/// The calculator requests confirmation before a long calculation.
+/// Calculator asks for confirmation before a long calculation.
 /// </summary>
 public sealed class Confirm : global::Duplex.Message
 {
@@ -528,7 +528,7 @@ public sealed class Confirm : global::Duplex.Message
 }
 
 /// <summary>
-/// How far a long calculation is.
+/// Progress of a long calculation.
 /// </summary>
 public sealed class Progress : global::Duplex.Message
 {
@@ -558,7 +558,7 @@ public sealed class Progress : global::Duplex.Message
     public Phase Phase { get; }
 
     /// <summary>
-    /// The share done, once known.
+    /// Completed fraction, when known.
     /// </summary>
     public double? DoneShare { get; }
 
@@ -569,7 +569,7 @@ public sealed class Progress : global::Duplex.Message
     public global::Duplex.Optional<string?> Note { get; }
 
     /// <summary>
-    /// The seconds left, once known.
+    /// Estimated seconds remaining, when known.
     /// </summary>
     public double? Eta { get; }
 
@@ -674,7 +674,7 @@ public sealed class Progress : global::Duplex.Message
 }
 
 /// <summary>
-/// A user requesting calculations of a calculator.
+/// Calculator client for a user.
 /// </summary>
 public static class Calculation
 {
@@ -691,7 +691,7 @@ public static class Calculation
 }
 
 /// <summary>
-/// Routes the notifications the provider `Calculator` receives: override a message's method to handle it.
+/// Routes notifications received by provider `Calculator`. Override a message method to handle it.
 /// </summary>
 public abstract class CalculatorRouter : global::Duplex.Router
 {
@@ -710,7 +710,7 @@ public abstract class CalculatorRouter : global::Duplex.Router
 }
 
 /// <summary>
-/// The provider `Calculator` of `Calculation`, listening for its client over a transport.
+/// The provider `Calculator` for `Calculation` listens for its client over a transport.
 /// </summary>
 public sealed class CalculatorChannel : global::Duplex.ProviderChannel
 {

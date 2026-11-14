@@ -42,6 +42,10 @@ export class WorkQueue implements Schedulable {
     return this.#pending;
   }
 
+  get hasWork(): boolean {
+    return this.#queue.size > 0;
+  }
+
   processTurn(limit: number): number {
     const queue = this.#queue;
     let processedCount = 0;

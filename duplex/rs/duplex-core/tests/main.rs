@@ -2,6 +2,7 @@ mod batch_stream;
 mod binary;
 mod channel;
 mod cs;
+mod dispatch;
 mod handshake;
 mod hub;
 mod inbound_buffers;

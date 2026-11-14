@@ -12,7 +12,7 @@ use crate::connection_id::ConnectionId;
 use crate::definition::{ErrorCode, Requirement, Violation};
 use crate::driver::Driver;
 use crate::error::Error;
-use crate::keys::EntryId;
+use crate::keys::{EntryId, Work};
 use crate::migration::{MessageWrite, MessageWriteBody, SegmentWrite, Session};
 use crate::protocol::{Exchange, MessageRequirementTable, MessageSegment, Peer};
 
@@ -237,9 +237,21 @@ impl<P: Peer, D: Driver> ChannelState<P, D> {
     }
 
     pub(crate) fn release_on_settle(&self, id: EntryId, event: Event, stream_error: &Error) {
-        self.messages
+        if !self.has_queued_work() {
+            self.messages
+                .borrow_mut()
+                .handle_event(id, event, stream_error);
+
+            return;
+        }
+
+        if self
+            .messages
             .borrow_mut()
-            .handle_event(id, event, stream_error);
+            .receive_response(id, event, stream_error)
+        {
+            self.enqueue(Work::Settle(id));
+        }
     }
 
     pub(crate) fn cancel_outbound(&self, id: EntryId, code: ErrorCode) {

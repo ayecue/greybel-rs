@@ -34,6 +34,8 @@ A relay follows the channel's current connection from forwarded frames: an `Ack`
 2. **Handle:** After reading the whole batch, decode, validate, and invoke handlers in arrival order. Process at most 1024 messages or 1 ms per task, fairly across transports.
 3. **Write:** Encode responses directly into the transport outbox in write order. Later cancellation or timeout has no effect.
 
+A response, rejection, or response stream item is delivered to its caller only after every notification the same peer sent before it has been handled. Credit, cancellation, and control frames remain immediate.
+
 When the driver supports read pausing, pause transport reads above 4096 queued incoming messages and resume below 1024. A disconnected or insecure transport closes all its channels with that reason.
 
 ## Wire format

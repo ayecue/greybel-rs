@@ -131,7 +131,7 @@ public enum Unit : uint
 }
 
 /// <summary>
-/// Writes and reads `Unit`.
+/// Serializes and deserializes `Unit`.
 /// </summary>
 public static class UnitCodec
 {
@@ -163,7 +163,7 @@ public enum Kind : uint
 }
 
 /// <summary>
-/// Writes and reads `Kind`.
+/// Serializes and deserializes `Kind`.
 /// </summary>
 public static class KindCodec
 {
@@ -189,7 +189,7 @@ public static class KindCodec
 }
 
 /// <summary>
-/// A reading of a sensor.
+/// Reading reported by a sensor.
 /// </summary>
 public sealed class Reading : global::Duplex.Message
 {
@@ -346,7 +346,7 @@ public sealed class Calibrate : global::Duplex.Message
 }
 
 /// <summary>
-/// A sensor reporting readings, tagged in every place a tag goes.
+/// Sensor that reports readings, with a tag at every supported location.
 /// </summary>
 public static class Sensor
 {
@@ -363,7 +363,7 @@ public static class Sensor
 }
 
 /// <summary>
-/// Routes the notifications the provider `Station` receives: override a message's method to handle it.
+/// Routes notifications received by provider `Station`. Override a message method to handle it.
 /// </summary>
 public abstract class StationRouter : global::Duplex.Router
 {
@@ -382,7 +382,7 @@ public abstract class StationRouter : global::Duplex.Router
 }
 
 /// <summary>
-/// The provider `Station` of `Sensor`, listening for its client over a transport.
+/// The provider `Station` for `Sensor` listens for its client over a transport.
 /// </summary>
 public sealed class StationChannel : global::Duplex.ProviderChannel
 {

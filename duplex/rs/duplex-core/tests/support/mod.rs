@@ -3,6 +3,7 @@
 pub mod batch_stream;
 pub mod binary;
 pub mod cs;
+pub mod dispatch;
 pub mod handshake;
 pub mod hub;
 pub mod scenarios;
@@ -16,13 +17,13 @@ pub mod versions;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use duplex_core::{Channel, Health, NextNotification, Protocol, Responder, Role};
+use duplex_core::{Channel, Health, Message as _, NextNotification, Protocol, Responder, Role};
 use duplex_test_support::binary::bytes;
 use duplex_test_support::conformance::calculator::{
-    Add, Calculation, Calculator, CalculatorRouter, Log, LogRef,
+    Add, Calculation, Calculator, CalculatorRouter, Log, LogRef, Progress,
 };
 use duplex_test_support::frames::{self, Frame, Slice};
-use duplex_test_support::{Memory, recorder};
+use duplex_test_support::{Memory, MemoryQueue, recorder};
 
 pub const CONNECTION: u32 = 1;
 pub const CHANNEL: u32 = <Calculation as Protocol>::CHANNEL_ID;
@@ -87,4 +88,26 @@ impl CalculatorRouter for Logger {
         self.0.borrow_mut().push(message.text.to_string());
         next.call(message);
     }
+}
+
+pub fn notifications_then(count: usize, last: Frame) -> Vec<Frame> {
+    let progress = validation::progress(Vec::new());
+    let mut frames: Vec<_> = (0..count)
+        .map(|_| Frame::Message {
+            type_id: Progress::ID,
+            id: None,
+            body: bytes(&progress),
+        })
+        .collect();
+
+    frames.push(last);
+
+    frames
+}
+
+pub fn post_frames(queue: &MemoryQueue, frames: Vec<Frame>) {
+    queue.post(
+        Role::Client,
+        batch(Role::Provider, CONNECTION, frames).encode(),
+    );
 }

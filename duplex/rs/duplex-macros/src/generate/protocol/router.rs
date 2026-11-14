@@ -61,6 +61,29 @@ impl<'a> ProtocolBuilder<'a> {
                 }
             }
         });
+        let dispatch_routes = inbound_messages.iter().map(|message| {
+            let body = Self::body(message, &quote!('static));
+
+            if message.has_response() {
+                quote! {
+                    {
+                        let dispatch = ::std::rc::Rc::clone(&dispatch);
+                        channel.handle(move |message: #body, responder, next| {
+                            ::std::rc::Rc::clone(&dispatch).message(message, responder, next);
+                        });
+                    }
+                }
+            } else {
+                quote! {
+                    {
+                        let dispatch = ::std::rc::Rc::clone(&dispatch);
+                        channel.on::<#body>(move |message, next| {
+                            ::std::rc::Rc::clone(&dispatch).notification::<#body>(message, next);
+                        });
+                    }
+                }
+            }
+        });
         let protocol = NameProvider::pascal(Symbol::Declared(&self.plan.protocol().name));
         let handles_open =
             self.plan.role == Role::Provider && self.plan.protocol().handshake.is_declared();
@@ -94,6 +117,11 @@ impl<'a> ProtocolBuilder<'a> {
         } else {
             quote!(router)
         };
+        let (dispatch_channel, dispatch_binding) = if unused {
+            (quote!(_channel), quote!(_dispatch))
+        } else {
+            (quote!(channel), quote!(dispatch))
+        };
         let docs = format!(
             " Routes the messages the {} `{}` handles: override a message's method to handle it; `next` passes it on.",
             self.plan.role.keyword(),
@@ -114,6 +142,14 @@ impl<'a> ProtocolBuilder<'a> {
                     #open_route
                     #(#routes)*
                 }
+            }
+
+            /// Installs one generic dispatcher for every inbound message of this protocol role.
+            pub fn attach_dispatch<D: #core::Driver, T: #core::Dispatch>(
+                #dispatch_channel: &#core::Channel<#peer, D>,
+                #dispatch_binding: ::std::rc::Rc<T>,
+            ) {
+                #(#dispatch_routes)*
             }
         }
     }

@@ -3,13 +3,17 @@ use std::pin::pin;
 use std::rc::Rc;
 use std::task::Poll;
 
-use duplex_core::{Capabilities, Error, ErrorCode, Role};
-use duplex_test_support::conformance::calculator::{Calculation, Count, Phase, Sum, User};
+use duplex_core::{Capabilities, Error, ErrorCode, Message as _, Role};
+use duplex_test_support::binary::bytes;
+use duplex_test_support::conformance::calculator::{
+    Calculation, Count, Phase, Progress, Sum, User,
+};
 use duplex_test_support::frames::Frame;
 use duplex_test_support::future::{poll, ready_output};
 use duplex_test_support::{Memory, TaskQueue, recorder};
 
 use crate::support::streams::{WINDOW, counting, pair, summing_later};
+use crate::support::validation::progress;
 use crate::support::{CONNECTION, batch};
 
 #[test]
@@ -403,4 +407,54 @@ fn should_reject_a_message_whose_handler_takes_longer_than_its_timeout() {
         Err(Error::Rejection(ErrorCode::Timeout))
     );
     assert!(kept.borrow()[0].is_finished());
+}
+
+#[test]
+fn should_deliver_response_stream_items_after_earlier_notifications() {
+    let (user, _calculator, queue) = pair();
+    let (received, record) = recorder();
+
+    user.on::<Progress>(move |_, _next| record(()));
+
+    let mut stream = user
+        .send(&Count { to: 1 })
+        .expect("the stream request is sent");
+
+    queue.take();
+
+    let notification = progress(Vec::new());
+    let mut frames: Vec<_> = (0..1025)
+        .map(|_| Frame::Message {
+            type_id: Progress::ID,
+            id: None,
+            body: bytes(&notification),
+        })
+        .collect();
+
+    frames.extend([
+        Frame::ResponseStart {
+            id: 0,
+            body: bytes(&Phase::Active),
+        },
+        Frame::ResponseItem {
+            id: 0,
+            body: bytes(&1_u64),
+        },
+        Frame::ResponseEnd {
+            id: 0,
+            body: bytes(&1_u64),
+        },
+    ]);
+    queue.post(
+        Role::Client,
+        batch(Role::Provider, CONNECTION, frames).encode(),
+    );
+    queue.step();
+
+    assert_eq!(ready_output(stream.start()), Ok(Phase::Active));
+    assert!(poll(&mut pin!(stream.next())).is_pending());
+    queue.run_tasks();
+    assert_eq!(received.borrow().len(), 1025);
+    assert_eq!(ready_output(stream.next()), Some(Ok(1)));
+    assert_eq!(ready_output(stream.end()), Ok(1));
 }

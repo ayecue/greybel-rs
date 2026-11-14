@@ -223,7 +223,7 @@ impl<P: Peer, D: Driver> ChannelState<P, D> {
         self.enqueue(Work::Message(id));
     }
 
-    fn enqueue(&self, work: Work) {
+    pub(super) fn enqueue(&self, work: Work) {
         if let Some(transport) = self.transport.upgrade() {
             transport.enqueue(self.endpoint(), work);
         }
@@ -247,6 +247,18 @@ impl<P: Peer, D: Driver> ChannelState<P, D> {
         {
             dispatch(&notification.body);
         }
+    }
+
+    pub(crate) fn handle_settle(&self, id: EntryId) {
+        if let Some(failed) = self.messages.borrow_mut().deliver_response_item(id) {
+            if failed {
+                self.cancel_outbound(id, ErrorCode::Cancellation);
+            }
+
+            return;
+        }
+
+        self.messages.borrow_mut().settle_response(id);
     }
 
     pub(crate) fn handle_message(&self, id: EntryId) {
@@ -304,11 +316,11 @@ impl<P: Peer, D: Driver> ChannelState<P, D> {
                 Event::End(body)
             };
 
-            self.messages.borrow_mut().handle_event_via_frame(
-                exchange_id,
-                event,
-                &Error::ChannelEnd(ErrorCode::ClosedChannel),
-            );
+            let id = self.messages.borrow().outbound_id(exchange_id);
+
+            if let Some(id) = id {
+                self.release_on_settle(id, event, &Error::ChannelEnd(ErrorCode::ClosedChannel));
+            }
 
             return;
         }
@@ -345,7 +357,7 @@ impl<P: Peer, D: Driver> ChannelState<P, D> {
             return;
         }
 
-        let failed = {
+        let event = {
             let mut messages = self.messages.borrow_mut();
             let Some(entry) = messages.get_mut(id) else {
                 return;
@@ -358,31 +370,54 @@ impl<P: Peer, D: Driver> ChannelState<P, D> {
                 return;
             }
 
-            let Some(input) = entry.input() else {
-                return;
-            };
-
             match payload {
                 Ok(body) if segment == MessageSegment::ResponseStart => {
+                    let Some(input) = entry.input() else {
+                        return;
+                    };
+
                     input.push(Event::Start(body));
 
-                    false
+                    return;
                 }
                 Ok(body) => {
-                    input.push(Event::Item(body));
                     if Self::VALIDATES_INPUT {
                         entry.count_item(RESPONSE_STREAM);
                     }
 
-                    false
+                    Event::Item(body)
                 }
-                Err(error) => {
-                    input.push(Event::Error(error));
-
-                    true
-                }
+                Err(error) => Event::Error(error),
             }
         };
+        let failed = matches!(event, Event::Error(_));
+
+        if self.has_queued_work() {
+            let event = match self.messages.borrow_mut().defer_response_item(id, event) {
+                Ok(()) => {
+                    self.enqueue(Work::Settle(id));
+
+                    return;
+                }
+                Err(event) => event,
+            };
+
+            if let Some(input) = self
+                .messages
+                .borrow_mut()
+                .get_mut(id)
+                .and_then(Message::input)
+            {
+                input.push(event);
+            }
+        } else if let Some(input) = self
+            .messages
+            .borrow_mut()
+            .get_mut(id)
+            .and_then(Message::input)
+        {
+            input.push(event);
+        }
 
         if failed {
             self.cancel_outbound(id, ErrorCode::Cancellation);

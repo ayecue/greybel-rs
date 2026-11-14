@@ -358,6 +358,12 @@ impl<P: Peer, D: Driver> ChannelState<P, D> {
         Ok(())
     }
 
+    pub(super) fn has_queued_work(&self) -> bool {
+        self.transport
+            .upgrade()
+            .is_some_and(|transport| transport.has_queued_work())
+    }
+
     /// Returns whether `connection` is current and has an active session.
     pub(crate) fn is_current(&self, connection: ConnectionId) -> bool {
         self.active
@@ -406,6 +412,7 @@ impl<P: Peer, D: Driver> Endpoint for ChannelState<P, D> {
         match work {
             Work::Message(id) => self.handle_message(id),
             Work::Notification(id) => self.handle_notification(id),
+            Work::Settle(id) => self.handle_settle(id),
         }
     }
 

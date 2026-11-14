@@ -227,25 +227,52 @@ impl MessageTable {
         }
     }
 
-    pub(crate) fn handle_event_via_frame(
-        &mut self,
-        exchange_id: u32,
-        event: Event,
-        stream_error: &Error,
-    ) {
-        if let Some(id) = self.outbound_id(exchange_id) {
-            self.handle_event(id, event, stream_error);
-        }
-    }
-
     pub(crate) fn handle_event(&mut self, id: EntryId, event: Event, stream_error: &Error) {
         let Some(message) = self.slots.get_mut(id) else {
             return;
         };
-        let exchange_id = message.is_outbound().then_some(message.exchange_id);
 
         message.on_event(event, stream_error);
+        self.finish_outbound(id);
+    }
 
+    pub(crate) fn receive_response(
+        &mut self,
+        id: EntryId,
+        event: Event,
+        stream_error: &Error,
+    ) -> bool {
+        self.slots
+            .get_mut(id)
+            .is_some_and(|message| message.receive_response(event, stream_error))
+    }
+
+    pub(crate) fn defer_response_item(&mut self, id: EntryId, event: Event) -> Result<(), Event> {
+        let Some(message) = self.slots.get_mut(id) else {
+            return Err(event);
+        };
+
+        message.defer_response_item(event)
+    }
+
+    pub(crate) fn deliver_response_item(&mut self, id: EntryId) -> Option<bool> {
+        self.slots.get_mut(id)?.deliver_response_item()
+    }
+
+    pub(crate) fn settle_response(&mut self, id: EntryId) {
+        let Some(message) = self.slots.get_mut(id) else {
+            return;
+        };
+
+        message.deliver_response();
+        self.finish_outbound(id);
+    }
+
+    fn finish_outbound(&mut self, id: EntryId) {
+        let Some(message) = self.slots.get_mut(id) else {
+            return;
+        };
+        let exchange_id = message.is_outbound().then_some(message.exchange_id);
         let removable = message.is_removable();
 
         if let Some(exchange_id) = exchange_id
