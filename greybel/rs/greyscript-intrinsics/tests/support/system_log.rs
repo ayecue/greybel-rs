@@ -69,9 +69,16 @@ pub fn world_with_shell_weakness() -> (World, ServiceTarget) {
 
 /// The system log of `computer` in `world`, if it has one.
 pub fn log(world: &World, computer: ComputerId) -> Option<SystemLog> {
-    block_on(world.content(computer, SYSTEM_LOG_PATH, false))
-        .expect("the world reads")
-        .map(|content| SystemLog::parse(&content).expect("a system log"))
+    block_on(
+        world
+            .modules
+            .core
+            .files
+            .lookup
+            .content(computer, SYSTEM_LOG_PATH, false),
+    )
+    .expect("the world reads")
+    .map(|content| SystemLog::parse(&content).expect("a system log"))
 }
 
 /// The `(action, ip, port, file, bounce address)` of each entry of the system log of `computer` in `world`.
@@ -96,12 +103,12 @@ pub fn entries(world: &World, computer: ComputerId) -> Vec<(i64, String, i64, St
 
 /// The public address of `computer` in `world`.
 pub fn public_ip(world: &World, computer: ComputerId) -> String {
-    block_on(world.public_ip(computer)).expect("the world reads")
+    block_on(world.modules.core.networks.topology.public_ip(computer)).expect("the world reads")
 }
 
 /// The router of the player's network, as a computer.
 pub fn router_computer(world: &World, computer: ComputerId) -> ComputerId {
-    let router = block_on(world.router_of(computer))
+    let router = block_on(world.modules.core.networks.topology.router_of(computer))
         .expect("the world reads")
         .expect("a router");
 

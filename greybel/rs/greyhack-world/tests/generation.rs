@@ -9,8 +9,11 @@ use crate::support::generation::add_typed_network;
 
 #[tokio::test]
 async fn should_configure_services_on_generated_computers() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
     let router = world
+        .modules
+        .creation
+        .network_generation
         .add_network(&NetworkOptions {
             computers: Some(0),
             ..NetworkOptions::default()
@@ -18,6 +21,9 @@ async fn should_configure_services_on_generated_computers() {
         .await
         .unwrap();
     let computer = world
+        .modules
+        .creation
+        .network_generation
         .add_computer_to(
             router,
             &ComputerOptions {
@@ -36,6 +42,10 @@ async fn should_configure_services_on_generated_computers() {
     for service in [ServiceId::Ssh, ServiceId::Smtp, ServiceId::Criminals] {
         assert!(
             world
+                .modules
+                .core
+                .files
+                .lookup
                 .file(computer, service.config_path(), false)
                 .await
                 .unwrap()
@@ -43,6 +53,10 @@ async fn should_configure_services_on_generated_computers() {
         );
         assert!(
             world
+                .modules
+                .core
+                .files
+                .lookup
                 .file(computer, service.executable_path(), false)
                 .await
                 .unwrap()
@@ -52,12 +66,25 @@ async fn should_configure_services_on_generated_computers() {
 
     assert_eq!(
         world
+            .modules
+            .core
+            .files
+            .lookup
             .content(computer, "/root/PoliceRecord.exe", false)
             .await
             .unwrap(),
         Some(format!(
             "{}:3306",
-            world.computer(computer).await.unwrap().unwrap().local_ip
+            world
+                .modules
+                .core
+                .networks
+                .topology
+                .computer(computer)
+                .await
+                .unwrap()
+                .unwrap()
+                .local_ip
         ))
     );
 }
@@ -68,19 +95,41 @@ async fn should_generate_police_records_and_update_one_by_person_id() {
     let (router, computer) =
         add_typed_network(&mut world, NetworkKind::Police, "police.test").await;
     let network = world
-        .network(world.router(router).await.unwrap().unwrap().network)
+        .modules
+        .core
+        .networks
+        .settings
+        .network(
+            world
+                .modules
+                .core
+                .networks
+                .routers
+                .router(router)
+                .await
+                .unwrap()
+                .unwrap()
+                .network,
+        )
         .await
         .unwrap();
 
     assert_eq!(network.unwrap().kind, NetworkKind::Police);
     assert!(
         world
+            .modules
+            .core
+            .computers
+            .processes
             .has_service(computer, ServiceId::Criminals)
             .await
             .unwrap()
     );
 
     let records = world
+        .modules
+        .services
+        .installs
         .service_records(computer, ServiceId::Criminals)
         .await
         .unwrap()
@@ -95,12 +144,18 @@ async fn should_generate_police_records_and_update_one_by_person_id() {
 
     updated.age = 99;
     world
+        .modules
+        .services
+        .installs
         .update_service_record(computer, ServiceId::Criminals, updated.clone())
         .await
         .unwrap()
         .unwrap();
 
     let records = world
+        .modules
+        .services
+        .installs
         .service_records(computer, ServiceId::Criminals)
         .await
         .unwrap()
@@ -115,6 +170,9 @@ async fn should_generate_student_records_and_viewers() {
     let (_, computer) =
         add_typed_network(&mut world, NetworkKind::University, "university.test").await;
     let records = world
+        .modules
+        .services
+        .installs
         .service_records(computer, ServiceId::Students)
         .await
         .unwrap()
@@ -126,6 +184,10 @@ async fn should_generate_student_records_and_viewers() {
     assert_eq!(records.records[0].offenses, None);
     assert!(
         world
+            .modules
+            .core
+            .files
+            .lookup
             .file(computer, "/root/StudentsViewer.exe", false)
             .await
             .unwrap()
@@ -142,12 +204,20 @@ async fn should_generate_bank_mail_and_shop_services() {
 
     assert!(
         world
+            .modules
+            .core
+            .computers
+            .processes
             .has_service(bank, ServiceId::BankAccount)
             .await
             .unwrap()
     );
     assert!(
         world
+            .modules
+            .core
+            .files
+            .lookup
             .file(bank, ServiceId::BankAccount.config_path(), false)
             .await
             .unwrap()
@@ -155,6 +225,10 @@ async fn should_generate_bank_mail_and_shop_services() {
     );
     assert_eq!(
         world
+            .modules
+            .core
+            .files
+            .lookup
             .content(mail, ServiceId::Smtp.config_path(), false)
             .await
             .unwrap(),
@@ -162,12 +236,20 @@ async fn should_generate_bank_mail_and_shop_services() {
     );
     assert!(
         world
+            .modules
+            .core
+            .computers
+            .processes
             .has_service(shop, ServiceId::Repository)
             .await
             .unwrap()
     );
     assert!(
         world
+            .modules
+            .core
+            .files
+            .lookup
             .file(shop, "/Public/htdocs/downloads/decipher", false)
             .await
             .unwrap()
@@ -184,25 +266,69 @@ async fn should_create_device_kinds_and_npc_account_files() {
     })
     .await
     .unwrap();
-    let routers = world.public_addresses().await.unwrap();
+    let routers = world
+        .modules
+        .core
+        .networks
+        .routers
+        .public_addresses()
+        .await
+        .unwrap();
     let mut kinds = std::collections::HashSet::new();
     let mut checked_npc = false;
 
     for address in routers {
-        let Some(router) = world.router_at(&address).await.unwrap() else {
+        let Some(router) = world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at(&address)
+            .await
+            .unwrap()
+        else {
             continue;
         };
 
-        for computer in world.devices(router.id).await.unwrap() {
-            let row = world.computer(computer).await.unwrap().unwrap();
+        for computer in world
+            .modules
+            .core
+            .networks
+            .topology
+            .devices(router.id)
+            .await
+            .unwrap()
+        {
+            let row = world
+                .modules
+                .core
+                .networks
+                .topology
+                .computer(computer)
+                .await
+                .unwrap()
+                .unwrap();
 
             kinds.insert(row.kind);
 
             match row.kind {
                 DeviceKind::Camera => {
-                    assert!(world.has_service(computer, ServiceId::Cam).await.unwrap());
+                    assert!(
+                        world
+                            .modules
+                            .core
+                            .computers
+                            .processes
+                            .has_service(computer, ServiceId::Cam)
+                            .await
+                            .unwrap()
+                    );
                     assert_eq!(
                         world
+                            .modules
+                            .core
+                            .files
+                            .lookup
                             .content(computer, "/Public/htdocs/website.html", false)
                             .await
                             .unwrap(),
@@ -210,6 +336,10 @@ async fn should_create_device_kinds_and_npc_account_files() {
                     );
                     assert!(
                         world
+                            .modules
+                            .core
+                            .computers
+                            .users
                             .users(computer)
                             .await
                             .unwrap()
@@ -218,11 +348,24 @@ async fn should_create_device_kinds_and_npc_account_files() {
                     );
                 }
                 DeviceKind::Microwave | DeviceKind::Fridge => {
-                    assert!(world.smart(computer).await.unwrap().is_some());
+                    assert!(
+                        world
+                            .modules
+                            .smart_devices
+                            .appliances
+                            .smart(computer)
+                            .await
+                            .unwrap()
+                            .is_some()
+                    );
                 }
                 DeviceKind::Smartphone => {
                     assert!(
                         world
+                            .modules
+                            .core
+                            .files
+                            .lookup
                             .file(computer, "/usr/bin/Clock.exe", false)
                             .await
                             .unwrap()
@@ -233,18 +376,49 @@ async fn should_create_device_kinds_and_npc_account_files() {
             }
 
             if !checked_npc {
-                let npcs = world.npcs_on(computer).await.unwrap();
+                let npcs = world.modules.npcs.npcs.npcs_on(computer).await.unwrap();
 
                 if let Some(npc) = npcs.first() {
-                    let person = world.person(npc.person).await.unwrap().unwrap();
-                    let mail = person.mail_address.unwrap();
-                    let bank = person.bank_number.unwrap();
-                    let mail_account = world.mail_account(&mail).await.unwrap().unwrap();
-                    let bank_account = world.bank_account(&bank).await.unwrap().unwrap();
+                    let mail = world
+                        .modules
+                        .npcs
+                        .mail
+                        .mail_address(npc.person)
+                        .await
+                        .unwrap()
+                        .unwrap();
+                    let bank = world
+                        .modules
+                        .economy
+                        .bank
+                        .bank_number(npc.person)
+                        .await
+                        .unwrap()
+                        .unwrap();
+                    let mail_account = world
+                        .modules
+                        .npcs
+                        .mail
+                        .mail_account(&mail)
+                        .await
+                        .unwrap()
+                        .unwrap();
+                    let bank_account = world
+                        .modules
+                        .economy
+                        .bank
+                        .bank_account(&bank)
+                        .await
+                        .unwrap()
+                        .unwrap();
                     let prefix = format!("/home/{}/Config", npc.user);
 
                     assert_eq!(
                         world
+                            .modules
+                            .core
+                            .files
+                            .lookup
                             .content(computer, &format!("{prefix}/Mail.txt"), false)
                             .await
                             .unwrap(),
@@ -252,6 +426,10 @@ async fn should_create_device_kinds_and_npc_account_files() {
                     );
                     assert_eq!(
                         world
+                            .modules
+                            .core
+                            .files
+                            .lookup
                             .content(computer, &format!("{prefix}/Bank.txt"), false)
                             .await
                             .unwrap(),
@@ -260,10 +438,31 @@ async fn should_create_device_kinds_and_npc_account_files() {
 
                     let mut phone_mail = false;
 
-                    for device in world.devices(router.id).await.unwrap() {
-                        if world.computer(device).await.unwrap().unwrap().kind
+                    for device in world
+                        .modules
+                        .core
+                        .networks
+                        .topology
+                        .devices(router.id)
+                        .await
+                        .unwrap()
+                    {
+                        if world
+                            .modules
+                            .core
+                            .networks
+                            .topology
+                            .computer(device)
+                            .await
+                            .unwrap()
+                            .unwrap()
+                            .kind
                             != DeviceKind::Smartphone
                             || !world
+                                .modules
+                                .core
+                                .computers
+                                .users
                                 .users(device)
                                 .await
                                 .unwrap()
@@ -275,6 +474,10 @@ async fn should_create_device_kinds_and_npc_account_files() {
 
                         assert_eq!(
                             world
+                                .modules
+                                .core
+                                .files
+                                .lookup
                                 .content(device, &format!("{prefix}/Mail.txt"), false)
                                 .await
                                 .unwrap(),
@@ -304,7 +507,7 @@ async fn should_create_device_kinds_and_npc_account_files() {
 
 #[tokio::test]
 async fn should_authenticate_cctv_and_install_adb_only_on_smartphones() {
-    let mut world = World::generate(&WorldOptions {
+    let world = World::generate(&WorldOptions {
         seed: 7,
         networks: 8,
         ..WorldOptions::default()
@@ -314,13 +517,46 @@ async fn should_authenticate_cctv_and_install_adb_only_on_smartphones() {
     let mut camera = None;
     let mut phone = None;
 
-    for address in world.public_addresses().await.unwrap() {
-        let Some(router) = world.router_at(&address).await.unwrap() else {
+    for address in world
+        .modules
+        .core
+        .networks
+        .routers
+        .public_addresses()
+        .await
+        .unwrap()
+    {
+        let Some(router) = world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at(&address)
+            .await
+            .unwrap()
+        else {
             continue;
         };
 
-        for device in world.devices(router.id).await.unwrap() {
-            let kind = world.computer(device).await.unwrap().unwrap().kind;
+        for device in world
+            .modules
+            .core
+            .networks
+            .topology
+            .devices(router.id)
+            .await
+            .unwrap()
+        {
+            let kind = world
+                .modules
+                .core
+                .networks
+                .topology
+                .computer(device)
+                .await
+                .unwrap()
+                .unwrap()
+                .kind;
 
             if kind == DeviceKind::Camera && camera.is_none() {
                 camera = Some(device);
@@ -336,15 +572,32 @@ async fn should_authenticate_cctv_and_install_adb_only_on_smartphones() {
     let phone = phone.expect("a generated smartphone");
 
     assert_eq!(
-        world.access_cctv(camera, None).await.unwrap().unwrap(),
+        world
+            .modules
+            .smart_devices
+            .cctv
+            .access_cctv(camera, None)
+            .await
+            .unwrap()
+            .unwrap(),
         None
     );
     assert_eq!(
-        world.access_cctv(camera, Some("wrong")).await.unwrap(),
+        world
+            .modules
+            .smart_devices
+            .cctv
+            .access_cctv(camera, Some("wrong"))
+            .await
+            .unwrap(),
         Err(greyhack_world::CctvFailure::WrongPassword)
     );
 
     let password = world
+        .modules
+        .core
+        .computers
+        .users
         .users(camera)
         .await
         .unwrap()
@@ -353,6 +606,9 @@ async fn should_authenticate_cctv_and_install_adb_only_on_smartphones() {
         .unwrap()
         .password;
     let access = world
+        .modules
+        .smart_devices
+        .cctv
         .access_cctv(camera, Some(&password))
         .await
         .unwrap()
@@ -361,13 +617,40 @@ async fn should_authenticate_cctv_and_install_adb_only_on_smartphones() {
 
     assert_eq!(
         access.local_ip,
-        world.computer(camera).await.unwrap().unwrap().local_ip
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(camera)
+            .await
+            .unwrap()
+            .unwrap()
+            .local_ip
     );
 
-    let router = world.router_of(camera).await.unwrap().unwrap();
-    let appliance = world.devices(router.id).await.unwrap()[0];
+    let router = world
+        .modules
+        .core
+        .networks
+        .topology
+        .router_of(camera)
+        .await
+        .unwrap()
+        .unwrap();
+    let appliance = world
+        .modules
+        .core
+        .networks
+        .topology
+        .devices(router.id)
+        .await
+        .unwrap()[0];
 
     world
+        .modules
+        .smart_devices
+        .appliances
         .save_smart(
             appliance,
             Some(&SmartApplianceSettings::new("test/FR1", 600, 20)),
@@ -375,21 +658,75 @@ async fn should_authenticate_cctv_and_install_adb_only_on_smartphones() {
         .await
         .unwrap();
 
-    let mut broken = world.smart(appliance).await.unwrap().unwrap();
+    let mut broken = world
+        .modules
+        .smart_devices
+        .appliances
+        .smart(appliance)
+        .await
+        .unwrap()
+        .unwrap();
 
-    broken.recovery_at = world.time_seconds() + 1;
-    world.save_smart(appliance, Some(&broken)).await.unwrap();
+    broken.recovery_at = world.handle.time_seconds() + 1;
+    world
+        .modules
+        .smart_devices
+        .appliances
+        .save_smart(appliance, Some(&broken))
+        .await
+        .unwrap();
     assert_eq!(
-        world.access_cctv(camera, Some(&password)).await.unwrap(),
+        world
+            .modules
+            .smart_devices
+            .cctv
+            .access_cctv(camera, Some(&password))
+            .await
+            .unwrap(),
         Err(greyhack_world::CctvFailure::NoExternalAccess)
     );
-    world.save_smart(appliance, None).await.unwrap();
+    world
+        .modules
+        .smart_devices
+        .appliances
+        .save_smart(appliance, None)
+        .await
+        .unwrap();
 
-    assert!(!world.install_smartphone_adb(camera).await.unwrap());
-    assert!(world.install_smartphone_adb(phone).await.unwrap());
-    assert!(world.has_service(phone, ServiceId::Adb).await.unwrap());
+    assert!(
+        !world
+            .modules
+            .services
+            .installs
+            .install_smartphone_adb(camera)
+            .await
+            .unwrap()
+    );
     assert!(
         world
+            .modules
+            .services
+            .installs
+            .install_smartphone_adb(phone)
+            .await
+            .unwrap()
+    );
+    assert!(
+        world
+            .modules
+            .core
+            .computers
+            .processes
+            .has_service(phone, ServiceId::Adb)
+            .await
+            .unwrap()
+    );
+    assert!(
+        world
+            .modules
+            .core
+            .files
+            .lookup
             .file(phone, ServiceId::Adb.config_path(), false)
             .await
             .unwrap()
@@ -397,6 +734,10 @@ async fn should_authenticate_cctv_and_install_adb_only_on_smartphones() {
     );
     assert!(
         world
+            .modules
+            .core
+            .files
+            .lookup
             .file(phone, ServiceId::Adb.executable_path(), false)
             .await
             .unwrap()

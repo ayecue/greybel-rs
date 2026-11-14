@@ -76,21 +76,23 @@ pub fn observed_game(snapshot: &NetworkSnapshot) -> Observed {
 
 /// What the world has of the rented network at `public_ip` and the account `number`.
 pub fn observed_world(world: &World, number: &str, public_ip: &str) -> Observed {
-    let router = block_on(world.router_at(public_ip))
+    let router = block_on(world.modules.core.networks.routers.router_at(public_ip))
         .expect("the router is read")
         .expect("the rented network");
-    let network = block_on(world.network(router.network))
+    let network = block_on(world.modules.core.networks.settings.network(router.network))
         .expect("the network is read")
         .expect("the rented network");
-    let payments = block_on(world.bank_subscriptions()).expect("the payments are read");
+    let payments =
+        block_on(world.modules.economy.bank.bank_subscriptions()).expect("the payments are read");
 
     Observed {
-        money: block_on(world.bank_account(number))
+        money: block_on(world.modules.economy.bank.bank_account(number))
             .expect("the account is read")
             .expect("the player's account")
             .money,
         disabled: network.disabled,
-        admin: block_on(world.has_super_admin(router.network)).expect("the admin is read"),
+        admin: block_on(world.modules.npcs.jobs.has_super_admin(router.network))
+            .expect("the admin is read"),
         payments: payments
             .into_iter()
             .filter(|payment| payment.bank == number)
@@ -144,8 +146,9 @@ pub async fn pay(client: &TestClient, world: &mut World) {
         .run_payments()
         .await
         .expect("the game's payments run");
-    world.advance_clock(A_MONTH_AND_A_DAY);
-    block_on(world.run_subscription_payments()).expect("the world's payments run");
+    world.modules.routines.advance_clock(A_MONTH_AND_A_DAY);
+    block_on(world.modules.economy.bank.run_subscription_payments())
+        .expect("the world's payments run");
 }
 
 /// Sets the money of the player's account to `money` in both worlds.
@@ -155,10 +158,11 @@ pub async fn set_money(client: &TestClient, world: &mut World, number: &str, mon
         .await
         .expect("the game's money is set");
 
-    let now = block_on(world.bank_account(number))
+    let now = block_on(world.modules.economy.bank.bank_account(number))
         .expect("the account is read")
         .expect("the player's account")
         .money;
 
-    block_on(world.deposit(number, money - now)).expect("the world's money is set");
+    block_on(world.modules.economy.bank.deposit(number, money - now))
+        .expect("the world's money is set");
 }

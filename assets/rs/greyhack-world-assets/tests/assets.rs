@@ -1,4 +1,4 @@
-use greyhack_world_assets::{FileSystemLayout, GameTextTable, NameList, Script};
+use greyhack_world_assets::{FileSystemLayout, GameTextTable, MissionList, NameList, Script};
 
 #[test]
 fn should_hold_every_command_the_game_registers() {
@@ -185,4 +185,18 @@ fn should_hold_every_part_exploits_are_made_of() {
             .source()
             .contains("<UNSEC_VALUE>")
     );
+}
+
+#[test]
+fn should_hold_the_authored_mission_lists_of_the_game() {
+    let counts: Vec<usize> = MissionList::ALL
+        .iter()
+        .map(|list| {
+            serde_json::from_str::<Vec<serde_json::Value>>(list.text())
+                .expect("a list of missions")
+                .len()
+        })
+        .collect();
+
+    assert_eq!(counts, [10, 3, 3, 3, 1]);
 }

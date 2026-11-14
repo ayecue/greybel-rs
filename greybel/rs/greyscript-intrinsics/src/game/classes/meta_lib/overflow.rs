@@ -1,12 +1,11 @@
-use greybel_interpreter::{NativeFuture, NativeOutput, PrintOptions, Value, Vm, native};
+use greybel_interpreter::{NativeFuture, NativeOutput, Value, Vm, native};
 
 use crate::error::IntrinsicError;
-use crate::game::client::failure::exploit_text;
 use crate::game::client::object::{Access, FileObject};
 use crate::game::client::receiver::receiver;
 use crate::game::client::server::{program, raise, server, settle};
 use crate::game::client::{object, receiver};
-use crate::protocol::{ExploitLog, ExploitObject, MetaLibOverflow};
+use crate::protocol::{ExploitObject, MetaLibOverflow};
 
 /// Exploits the weakness at `memAddress` using `unsecValue`.
 #[native(method)]
@@ -39,11 +38,6 @@ pub fn overflow(
         server(vm)?.send_meta_lib_overflow(&message),
         |vm, exploit| {
             let exploit = exploit.map_err(|failure| raise("overflow", failure))?;
-
-            if exploit.log != ExploitLog::Nothing {
-                vm.stdout()
-                    .print(&exploit_text(&exploit.log), PrintOptions::default());
-            }
 
             let value = match exploit.object {
                 ExploitObject::Null => Value::Null,

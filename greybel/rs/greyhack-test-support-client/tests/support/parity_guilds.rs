@@ -62,9 +62,10 @@ pub fn layout(reply: &GuildsReply) -> GuildsLayout {
 
 /// A copy of the game's player network with the game's guilds.
 pub fn mirrored_world(user: &str, snapshot: &NetworkSnapshot, reply: &GuildsReply) -> World {
-    let mut world = snapshot_world(user, snapshot);
+    let world = snapshot_world(user, snapshot);
 
-    block_on(world.mirror_guilds(&layout(reply))).expect("the guilds are mirrored");
+    block_on(world.modules.guilds.guilds.mirror_guilds(&layout(reply)))
+        .expect("the guilds are mirrored");
 
     world
 }

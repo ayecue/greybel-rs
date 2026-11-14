@@ -4,10 +4,13 @@ use std::rc::Rc;
 
 use duplex_core::{Channel, Driver};
 use greyhack_behaviour::path;
+use greyhack_world::objects::{Access, Object, ObjectTableExt};
 
 use super::Connection;
-use crate::connection::objects::{Access, Object};
-use crate::protocol::{EndProgram, GameServer, ProgramSession, StartProgram};
+use crate::OperationError;
+use crate::protocol::{
+    EndProgram, GameServer, ObjectId, ProgramSession, ScriptFailure, StartProgram,
+};
 
 pub(super) fn attach<D: Driver>(connection: &Rc<Connection>, channel: &Channel<GameServer, D>) {
     connection.operate(
@@ -21,52 +24,108 @@ pub(super) fn attach<D: Driver>(connection: &Rc<Connection>, channel: &Channel<G
             let name = path::file_name(&program_path).to_owned();
 
             state
-                .cycle(async |state_of_world| {
-                    let (world, objects) = state_of_world.of(connection.id);
-                    let computer = world.player();
-                    let pid = if world.computer(computer).await?.is_some() {
-                        world
-                            .spawn_process(computer, &message.user, &name, None)
-                            .await?
-                    } else {
-                        0
-                    };
-                    // `MainClass.Main`: the previous address of a program on the player's computer is its
-                    // public address.
-                    let prev_ip = world.public_ip(computer).await?;
-                    let shell = objects.add(Object::Shell(Access {
-                        computer,
-                        user: message.user.to_string(),
-                        ftp: false,
-                        prev_ip,
-                        bounces: 0,
-                    }));
+                .cycle(
+                    async |world_state| {
+                        let world = &mut world_state.world;
 
-                    Ok(ProgramSession {
-                        program: state.add_program(
+                        // After a game over (`Database.GameOver`) the player has no computer to run a program on:
+                        // the client has disconnected.
+                        if !world.has_player() {
+                            return Err(OperationError::Script(ScriptFailure::ProgramEnded));
+                        }
+
+                        let computer = world.handle.player();
+                        // `GreyScriptHelperServer.PrepareTerminalServerRpc`: the program is in the safe-mode terminal
+                        // only when it is typed into it, and the terminal runs.
+                        let safe_terminal = message.safe_terminal
+                            && world
+                                .modules
+                                .core
+                                .computers
+                                .processes
+                                .in_safe_mode(computer)
+                                .await?;
+                        let pid = if world
+                            .modules
+                            .core
+                            .networks
+                            .topology
+                            .computer(computer)
+                            .await?
+                            .is_some()
+                        {
+                            world
+                                .modules
+                                .core
+                                .computers
+                                .processes
+                                .spawn_process(computer, &message.user, &name, None)
+                                .await?
+                        } else {
+                            0
+                        };
+                        // `MainClass.Main`: the previous address of a program on the player's computer is its
+                        // public address.
+                        let prev_ip = world
+                            .modules
+                            .core
+                            .networks
+                            .topology
+                            .public_ip(computer)
+                            .await?;
+                        let program = state.add_root(
+                            world_state,
                             connection.id,
                             Some((computer, pid)),
+                            ObjectId { id: 0 },
+                            safe_terminal,
+                        )?;
+                        let shell = world_state.trees.objects_of_connection(connection.id).add(
+                            Object::Shell(Access {
+                                computer,
+                                user: message.user.to_string(),
+                                ftp: false,
+                                prev_ip,
+                                bounces: 0,
+                            }),
+                        );
+
+                        let tree = world_state
+                            .trees
+                            .of_program(program)
+                            .expect("the new root is indexed");
+
+                        world_state
+                            .trees
+                            .get_mut(tree)
+                            .expect("the new root tree exists")
+                            .set_session(program, shell);
+
+                        Ok(ProgramSession {
+                            program,
                             shell,
-                            None,
-                        )?,
-                        shell,
-                        user: message.user.to_string(),
-                        home,
-                        path: program_path,
-                    })
-                })
+                            user: message.user.to_string(),
+                            home,
+                            path: program_path,
+                        })
+                    },
+                    true,
+                )
                 .await
         },
     );
     connection.operate(channel, async |state, connection, message: EndProgram| {
         state
-            .cycle(async |world_state| {
-                state
-                    .end_program(world_state, connection.id, message.program, message.reason)
-                    .await;
-            })
+            .cycle(
+                async |world_state| {
+                    state
+                        .end_program(world_state, connection.id, message.program, message.reason)
+                        .await;
+                },
+                true,
+            )
             .await;
 
-        Ok(!state.has_programs(connection.id) && state.save().await)
+        Ok(!state.has_programs(connection.id).await && state.save().await)
     });
 }

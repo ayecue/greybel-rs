@@ -70,7 +70,11 @@ internal static class NetworkSnapshotReader
             router.GetNetworkLan().IsSuperAdminRental(),
             (byte)router.GetNetworkLan().netSpeed,
             Convert.FromBase64String(Database.Singleton.GetWorldSecret()),
-            BankFixture.Read(playerComputer.GetPlayerID())
+            BankFixture.Read(playerComputer.GetPlayerID()),
+            VersionsControl
+                .Singleton.GetLastLibs()
+                .Values.Select(library => JsonConvert.SerializeObject(library))
+                .ToList()
         );
     }
 
@@ -167,7 +171,7 @@ internal static class NetworkSnapshotReader
         return router.GetFileSystem().GetArchivo("/lib/kernel_router.so")?.GetContenido() ?? "";
     }
 
-    private static string ReadRuleField(HwFirewallRule.Rule field)
+    internal static string ReadRuleField(HwFirewallRule.Rule field)
     {
         return field.status == HwFirewallRule.Rule.Status.ANY ? "Any" : field.GetFieldValue();
     }
@@ -185,7 +189,7 @@ internal static class NetworkSnapshotReader
     }
 
     /// <summary>Router port-table entry with its service and version, see <c>ReadPortService</c>.</summary>
-    private static TablePortSnapshot ReadTablePort(Router main, Puerto port)
+    internal static TablePortSnapshot ReadTablePort(Router main, Puerto port)
     {
         (string service, string version) = ReadPortService(main, port);
 

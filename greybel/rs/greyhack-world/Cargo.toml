@@ -12,9 +12,26 @@ autotests = false
 doctest = false
 
 [dependencies]
+duplex-core.workspace = true
 indexmap.workspace = true
 greyhack-behaviour.workspace = true
+greyhack-world-core.workspace = true
+greyhack-world-creation.workspace = true
+greyhack-world-economy.workspace = true
+greyhack-world-guilds.workspace = true
+greyhack-world-intrusion.workspace = true
+greyhack-world-libraries.workspace = true
+greyhack-world-missions.workspace = true
+greyhack-world-modules.workspace = true
+greyhack-world-npcs.workspace = true
+greyhack-world-player.workspace = true
+greyhack-world-router.workspace = true
+greyhack-world-services.workspace = true
+greyhack-world-shell.workspace = true
+greyhack-world-smart-devices.workspace = true
 greyhack-world-assets.workspace = true
+greyhack-world-routines.workspace = true
+greyhack-world-storage.workspace = true
 mono-random.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -22,14 +39,6 @@ greybel-source-map = { workspace = true, features = ["serde"] }
 thiserror.workspace = true
 turso.workspace = true
 tokio = { workspace = true, features = ["rt", "sync", "macros"] }
-
-# Enable browser randomness for each getrandom version used by turso and uuid.
-[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
-getrandom-v02 = { package = "getrandom", version = "0.2", features = ["js"] }
-getrandom-v03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
-getrandom-v04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
-scheduler = { workspace = true, features = ["web"] }
-uuid = { workspace = true, features = ["js"] }
 
 [dev-dependencies]
 greybel-test-support = { workspace = true, features = ["world"] }

@@ -16,6 +16,7 @@ use classes::{
 pub(crate) use client::failure::failure_text;
 pub use client::game::Game;
 pub(crate) use client::login_encryption::LoginEncryption;
+pub(crate) use client::print::print_line;
 pub use client::session::Session;
 use client::state::game;
 pub(super) use client::state::session_mut;

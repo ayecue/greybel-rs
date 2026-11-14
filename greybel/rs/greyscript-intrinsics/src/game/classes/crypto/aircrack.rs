@@ -1,8 +1,7 @@
-use greybel_interpreter::{NativeFuture, NativeOutput, PrintOptions, Value, Vm, native};
+use greybel_interpreter::{NativeFuture, NativeOutput, Value, Vm, native};
 
 use super::access_or_crash;
 use crate::error::IntrinsicError;
-use crate::game::client::failure::failure_text;
 use crate::game::client::object;
 use crate::game::client::server::{program, respond, server};
 use crate::protocol::{CryptoAircrack, KeyRecovery};
@@ -40,18 +39,10 @@ pub fn aircrack(
     Ok(respond(
         vm,
         server(vm)?.send_crypto_aircrack(&message),
-        |vm, recovery| {
+        |_vm, recovery| {
             Ok::<_, IntrinsicError>(match recovery {
                 KeyRecovery::Null => Value::Null,
                 KeyRecovery::Password(password) => Value::from(password),
-                // The terminal displays the password-recovery failure.
-                KeyRecovery::Failure(failure) => {
-                    let text = failure_text("aircrack", &failure)?;
-
-                    vm.stdout().print(&text, PrintOptions::default());
-
-                    Value::Null
-                }
             })
         },
     ))

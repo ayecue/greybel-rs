@@ -27,6 +27,15 @@ pub fn auto_patch_time(now: u64, num_patches: u32) -> u64 {
     add_months(first, months)
 }
 
+/// Whether the zero-day rumor is open at world second `now`: the first fourteen days of every even month
+/// (`ZeroDaySystem.IsRumorTime`).
+#[must_use]
+pub fn is_rumor_time(now: u64) -> bool {
+    let (_, month, day) = date_parts(now);
+
+    month % 2 == 0 && day < 15
+}
+
 /// Whether the lines a script passes to `unit_testing` are the error lines of the challenge,
 /// ignoring order and repeats (`ErrorChecker.AreErrorLinesCorrect`).
 #[must_use]

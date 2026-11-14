@@ -10,12 +10,20 @@ pub async fn world() -> World {
 
 pub async fn names(world: &World, computer: ComputerId, path: &str) -> Vec<String> {
     let folder = world
+        .modules
+        .core
+        .files
+        .lookup
         .folder(computer, path, false)
         .await
         .expect("the world reads")
         .expect("the folder exists");
 
     world
+        .modules
+        .core
+        .files
+        .lookup
         .children(&folder)
         .await
         .expect("the world reads")
@@ -26,6 +34,10 @@ pub async fn names(world: &World, computer: ComputerId, path: &str) -> Vec<Strin
 
 pub async fn data(world: &World, computer: ComputerId, path: &str) -> FileData {
     let node = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(computer, path, false)
         .await
         .expect("the world reads")
@@ -57,6 +69,10 @@ pub async fn npc_without_record_viewer(world: &World) -> Computer {
             ServiceId::Students,
         ] {
             viewer |= world
+                .modules
+                .core
+                .computers
+                .processes
                 .has_service(computer.id, service)
                 .await
                 .expect("the world reads");
@@ -71,11 +87,15 @@ pub async fn npc_without_record_viewer(world: &World) -> Computer {
 }
 
 pub async fn player(world: &World) -> Computer {
-    computer(world, world.player()).await
+    computer(world, world.handle.player()).await
 }
 
 async fn computer(world: &World, id: ComputerId) -> Computer {
     world
+        .modules
+        .core
+        .networks
+        .topology
         .computer(id)
         .await
         .expect("the world reads")

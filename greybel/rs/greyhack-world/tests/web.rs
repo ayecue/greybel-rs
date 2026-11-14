@@ -25,10 +25,27 @@ async fn should_open_the_world_it_saved_on_the_web() {
     // Assert
     assert_eq!(
         (loaded.seed, loaded.player(), loaded.date()),
-        (world.seed, world.player(), world.date())
+        (
+            world.handle.world().seed,
+            world.handle.player(),
+            world.date()
+        )
     );
     assert_eq!(
-        loaded.public_addresses().await.unwrap(),
-        world.public_addresses().await.unwrap()
+        loaded
+            .modules
+            .core
+            .networks
+            .public_addresses()
+            .await
+            .unwrap(),
+        world
+            .modules
+            .core
+            .networks
+            .routers
+            .public_addresses()
+            .await
+            .unwrap()
     );
 }

@@ -1,62 +1,90 @@
-use greyhack_behaviour::{FileData, FirewallRule, PermissionSet, ServiceId};
+use greyhack_behaviour::{FileData, FirewallRule, PermissionSet, ServiceId, library_check_seconds};
 use greyhack_world::{
     ComputerOptions, MineJobFailure, MiningHardware, NetworkOptions, NodeDraft, PlayerOptions,
-    Routine, WorkEnd, WorkResult, World,
+    SnifferPacket, World,
 };
 
-use crate::support::schedule::mining_world;
+use crate::support::schedule::{mining_world, scheduled_work};
 use crate::support::{computer, computers, ended, router, save_copy, work_ends};
 
 /// A tick runs no more due work items than its budget; the others stay due for the next.
 #[tokio::test]
 async fn should_run_no_more_due_work_than_the_budget() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
-    let at = world.time_seconds();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let player = world.handle.player();
+    let at = world.handle.time_seconds();
 
     for _ in 0..3 {
         world
-            .schedule(
-                at,
-                Routine::ServiceRestart {
-                    computer: player,
-                    service: ServiceId::Ssh,
-                },
-            )
+            .modules
+            .services
+            .restart
+            .schedule(at, player, ServiceId::Ssh)
             .await
             .unwrap();
     }
 
-    assert_eq!(world.run_due(2).await.unwrap().routines.len(), 2);
-    assert_eq!(world.scheduled_routines().await.unwrap().len(), 1);
-    assert_eq!(world.run_due(2).await.unwrap().routines.len(), 1);
-    assert!(world.scheduled_routines().await.unwrap().is_empty());
+    assert_eq!(
+        world
+            .modules
+            .routines
+            .run_due(2)
+            .await
+            .unwrap()
+            .routines
+            .len(),
+        2
+    );
+    assert_eq!(scheduled_work(&world).await.len(), 1);
+    assert_eq!(
+        world
+            .modules
+            .routines
+            .run_due(2)
+            .await
+            .unwrap()
+            .routines
+            .len(),
+        1
+    );
+    assert!(scheduled_work(&world).await.is_empty());
 }
 
 /// Due work runs by its time, then by its id.
 #[tokio::test]
 async fn should_run_due_work_by_time_then_id() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
-    let now = world.time_seconds();
-    let restart = |service| Routine::ServiceRestart {
-        computer: player,
-        service,
-    };
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let player = world.handle.player();
+    let now = world.handle.time_seconds();
 
-    world.schedule(now, restart(ServiceId::Ftp)).await.unwrap();
     world
-        .schedule(now - 1, restart(ServiceId::Http))
+        .modules
+        .services
+        .restart
+        .schedule(now, player, ServiceId::Ftp)
         .await
         .unwrap();
-    world.schedule(now, restart(ServiceId::Ssh)).await.unwrap();
+    world
+        .modules
+        .services
+        .restart
+        .schedule(now - 1, player, ServiceId::Http)
+        .await
+        .unwrap();
+    world
+        .modules
+        .services
+        .restart
+        .schedule(now, player, ServiceId::Ssh)
+        .await
+        .unwrap();
 
     assert_eq!(
-        world.run_due(3).await.unwrap().routines,
+        world.modules.routines.run_due(3).await.unwrap().routines,
         [
-            restart(ServiceId::Http),
-            restart(ServiceId::Ftp),
-            restart(ServiceId::Ssh)
+            "services.service_restart",
+            "services.service_restart",
+            "services.service_restart"
         ]
     );
 }
@@ -66,13 +94,19 @@ async fn should_run_due_work_by_time_then_id() {
 #[tokio::test]
 async fn should_run_one_coin_round_per_cycle() {
     let (mut world, coin) = mining_world().await;
-    let player = world.player();
+    let player = world.handle.player();
     let alice = world
+        .modules
+        .economy
+        .mine_jobs
         .schedule_mine_on(coin, "alice", player)
         .await
         .unwrap()
         .unwrap();
     let bob = world
+        .modules
+        .economy
+        .mine_jobs
         .schedule_mine_on(coin, "bob", player)
         .await
         .unwrap()
@@ -80,9 +114,19 @@ async fn should_run_one_coin_round_per_cycle() {
     let report = world.tick(0).await.unwrap();
     let ends = ended(&mut world);
 
-    assert_eq!(report.routines, [Routine::CoinRound { coin }]);
+    assert_eq!(report.routines, ["economy.coin_round"]);
     assert!(ends.contains(&alice) != ends.contains(&bob), "one job wins");
-    assert_eq!(world.mine_jobs().await.unwrap().len(), 1);
+    assert_eq!(
+        world
+            .modules
+            .economy
+            .mine_jobs
+            .mine_jobs()
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
 
     let other = if ends.contains(&alice) { bob } else { alice };
 
@@ -93,9 +137,18 @@ async fn should_run_one_coin_round_per_cycle() {
     world.tick(1).await.unwrap();
 
     assert!(ended(&mut world).contains(&other));
-    assert!(world.mine_jobs().await.unwrap().is_empty());
     assert!(
-        world.scheduled_routines().await.unwrap().is_empty(),
+        world
+            .modules
+            .economy
+            .mine_jobs
+            .mine_jobs()
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        scheduled_work(&world).await.is_empty(),
         "a coin without jobs has no round"
     );
 }
@@ -104,33 +157,59 @@ async fn should_run_one_coin_round_per_cycle() {
 #[tokio::test]
 async fn should_cancel_the_work_of_a_removed_network() {
     let (mut world, coin) = mining_world().await;
-    let router_id = world.add_network(&NetworkOptions::default()).await.unwrap();
+    let router_id = world
+        .modules
+        .creation
+        .network_generation
+        .add_network(&NetworkOptions::default())
+        .await
+        .unwrap();
     let address = router(&world, router_id).await.public_ip;
     let other = world
+        .modules
+        .creation
+        .network_generation
         .add_computer_to(router_id, &ComputerOptions::default())
         .await
         .unwrap()
         .unwrap();
     let job = world
+        .modules
+        .economy
+        .mine_jobs
         .schedule_mine_on(coin, "alice", other)
         .await
         .unwrap()
         .unwrap();
     let restart = world
-        .schedule(
-            world.time_seconds() + 600,
-            Routine::ServiceRestart {
-                computer: other,
-                service: ServiceId::Ssh,
-            },
-        )
+        .modules
+        .services
+        .restart
+        .schedule(world.handle.time_seconds() + 600, other, ServiceId::Ssh)
         .await
         .unwrap();
 
-    assert!(world.remove_network(&address).await.unwrap());
-    assert!(world.mine_jobs().await.unwrap().is_empty());
+    assert!(
+        world
+            .modules
+            .economy
+            .bank
+            .remove_network(&address)
+            .await
+            .unwrap()
+    );
+    assert!(
+        world
+            .modules
+            .economy
+            .mine_jobs
+            .mine_jobs()
+            .await
+            .unwrap()
+            .is_empty()
+    );
     assert_eq!(
-        world.scheduled_routines().await.unwrap().len(),
+        scheduled_work(&world).await.len(),
         1,
         "only the coin's round"
     );
@@ -145,10 +224,13 @@ async fn should_cancel_the_work_of_a_removed_network() {
 /// (`NPCSchedule.NPCSchedule`; `Persona.IsLogged`).
 #[tokio::test]
 async fn should_switch_an_npc_at_work_block_boundaries() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
-    let now = world.time_seconds();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let player = world.handle.player();
+    let now = world.handle.time_seconds();
     let npc = world
+        .modules
+        .npcs
+        .npcs
         .add_npc(player, "root", "Ann", now + 10)
         .await
         .unwrap()
@@ -157,74 +239,120 @@ async fn should_switch_an_npc_at_work_block_boundaries() {
     assert!(world.tick(10).await.unwrap().npc_events.is_empty());
 
     let next = world
+        .modules
+        .routines
         .scheduled_routines()
         .await
         .unwrap()
         .into_iter()
-        .find(|entry| entry.routine == Routine::NpcSwitch { npc })
+        .find(|entry| entry.key == "npcs.switch" && entry.data() == Some(&npc))
         .unwrap()
         .at;
 
     assert!(next > now + 10);
 
-    let report = world.tick(next - world.time_seconds()).await.unwrap();
+    let report = world
+        .tick(next - world.handle.time_seconds())
+        .await
+        .unwrap();
 
     assert_eq!(report.npc_events.len(), 1);
     assert!(
         world
+            .modules
+            .core
+            .computers
+            .users
             .sessions(player)
             .await
             .unwrap()
             .contains(&"root".to_owned())
     );
-    assert!(world.npc(npc).await.unwrap().unwrap().online);
+    assert!(
+        world
+            .modules
+            .npcs
+            .npcs
+            .npc(npc)
+            .await
+            .unwrap()
+            .unwrap()
+            .online
+    );
 
     let next = world
+        .modules
+        .routines
         .scheduled_routines()
         .await
         .unwrap()
         .into_iter()
-        .find(|entry| entry.routine == Routine::NpcSwitch { npc })
+        .find(|entry| entry.key == "npcs.switch" && entry.data() == Some(&npc))
         .unwrap()
         .at;
 
     assert_eq!(
         world
-            .tick(next - world.time_seconds())
+            .tick(next - world.handle.time_seconds())
             .await
             .unwrap()
             .npc_events
             .len(),
         1
     );
-    assert!(!world.npc(npc).await.unwrap().unwrap().online);
+    assert!(
+        !world
+            .modules
+            .npcs
+            .npcs
+            .npc(npc)
+            .await
+            .unwrap()
+            .unwrap()
+            .online
+    );
 }
 
 /// Weekend schedules contain rest and leisure rather than work, so the next login is on Monday
 /// (`NPCSchedule.NPCSchedule`).
 #[tokio::test]
 async fn should_keep_npcs_offline_through_the_weekend() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
 
-    world.set_date("08/Jan/2000 - 06:00");
+    world.modules.routines.set_date("08/Jan/2000 - 06:00");
 
-    let player = world.player();
-    let now = world.time_seconds();
+    let player = world.handle.player();
+    let now = world.handle.time_seconds();
     let npc = world
+        .modules
+        .npcs
+        .npcs
         .add_npc(player, "root", "Ann", now)
         .await
         .unwrap()
         .unwrap();
 
     assert!(world.tick(0).await.unwrap().npc_events.is_empty());
-    assert!(!world.npc(npc).await.unwrap().unwrap().online);
+    assert!(
+        !world
+            .modules
+            .npcs
+            .npcs
+            .npc(npc)
+            .await
+            .unwrap()
+            .unwrap()
+            .online
+    );
 
     let next = world
+        .modules
+        .routines
         .scheduled_routines()
         .await
         .unwrap()
         .into_iter()
-        .find(|entry| entry.routine == Routine::NpcSwitch { npc })
+        .find(|entry| entry.key == "npcs.switch" && entry.data() == Some(&npc))
         .unwrap()
         .at;
 
@@ -236,8 +364,11 @@ async fn should_keep_npcs_offline_through_the_weekend() {
 /// (`Persona.Login`; `Router.AdminRevertRouter`; `RedGlobal.AdminRevertComputer`).
 #[tokio::test]
 async fn should_restore_the_network_when_its_admin_enters_work() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
     let router_id = world
+        .modules
+        .creation
+        .network_generation
         .add_network(&NetworkOptions {
             computers: Some(3),
             ..NetworkOptions::default()
@@ -248,7 +379,14 @@ async fn should_restore_the_network_when_its_admin_enters_work() {
 
     for candidate in computers(&world).await {
         if candidate.router == Some(router_id)
-            && !world.npcs_on(candidate.id).await.unwrap().is_empty()
+            && !world
+                .modules
+                .npcs
+                .npcs
+                .npcs_on(candidate.id)
+                .await
+                .unwrap()
+                .is_empty()
         {
             npc_computer = Some(candidate);
             break;
@@ -256,18 +394,40 @@ async fn should_restore_the_network_when_its_admin_enters_work() {
     }
 
     let computer_id = npc_computer.expect("a generated NPC computer").id;
-    let npc = world.npcs_on(computer_id).await.unwrap()[0].clone();
+    let npc = world.modules.npcs.npcs.npcs_on(computer_id).await.unwrap()[0].clone();
     let original_password = world
+        .modules
+        .core
+        .computers
+        .users
         .user(computer_id, &npc.user)
         .await
         .unwrap()
         .unwrap()
         .password;
-    let original_rules = world.firewall_rules(router_id).await.unwrap();
+    let original_rules = world
+        .modules
+        .core
+        .networks
+        .router_config
+        .firewall_rules(router_id)
+        .await
+        .unwrap();
     let mut router_data = router(&world, router_id).await;
 
-    world.clear_firewall(router_id).await.unwrap();
     world
+        .modules
+        .core
+        .networks
+        .router_config
+        .clear_firewall(router_id)
+        .await
+        .unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .router_config
         .add_firewall_rule(
             router_id,
             &FirewallRule {
@@ -280,13 +440,27 @@ async fn should_restore_the_network_when_its_admin_enters_work() {
         .await
         .unwrap();
     router_data.firewall_active = false;
-    world.save_router(&router_data).await.unwrap();
     world
+        .modules
+        .core
+        .networks
+        .routers
+        .save_router(&router_data)
+        .await
+        .unwrap();
+    world
+        .modules
+        .core
+        .computers
+        .users
         .set_password(computer_id, &npc.user, "hacked")
         .await
         .unwrap();
     assert!(
         world
+            .modules
+            .services
+            .installs
             .install_service(router_id.computer(), ServiceId::Ssh, "1.0.0")
             .await
             .unwrap()
@@ -294,21 +468,39 @@ async fn should_restore_the_network_when_its_admin_enters_work() {
 
     // A missing /lib is one of the game's ShouldRestore triggers (`RedGlobal.ShouldRestore`).
     let lib = world
+        .modules
+        .core
+        .files
+        .lookup
         .folder(computer_id, "/lib", false)
         .await
         .unwrap()
         .unwrap();
 
-    world.remove_node(&lib).await.unwrap();
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .remove_node(&lib)
+        .await
+        .unwrap();
 
     let home = world
+        .modules
+        .core
+        .files
+        .lookup
         .folder(computer_id, &format!("/home/{}", npc.user), false)
         .await
         .unwrap()
         .unwrap();
 
     world
-        .add_node(
+        .modules
+        .libraries
+        .generator
+        .add_full_node(
             &home,
             &NodeDraft::file(
                 "hacked.txt",
@@ -321,31 +513,56 @@ async fn should_restore_the_network_when_its_admin_enters_work() {
         .unwrap();
 
     let mut log = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(computer_id, "/var/system.log", false)
         .await
         .unwrap()
         .expect("the generated system log");
 
     log.data_mut().unwrap().content = "keep this log".to_owned();
-    world.save_node(&log).await.unwrap();
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .save_node(&log)
+        .await
+        .unwrap();
 
     let mut restored = false;
 
     for _ in 0..200 {
-        let now = world.time_seconds();
-        let Some(next) = world.next_due_at().await.unwrap() else {
+        let now = world.handle.time_seconds();
+        let Some(next) = world.modules.routines.next_due_at().await.unwrap() else {
             break;
         };
 
         world.tick(next.saturating_sub(now)).await.unwrap();
 
         let password_restored = world
+            .modules
+            .core
+            .computers
+            .users
             .user(computer_id, &npc.user)
             .await
             .unwrap()
             .is_some_and(|user| user.password == original_password);
 
-        if password_restored && world.firewall_rules(router_id).await.unwrap() == original_rules {
+        if password_restored
+            && world
+                .modules
+                .core
+                .networks
+                .router_config
+                .firewall_rules(router_id)
+                .await
+                .unwrap()
+                == original_rules
+        {
             restored = true;
             break;
         }
@@ -356,6 +573,10 @@ async fn should_restore_the_network_when_its_admin_enters_work() {
     // Only the configuration page stays on the router (`RouterConfigOS.RestorePorts`).
     assert!(
         world
+            .modules
+            .core
+            .computers
+            .processes
             .ports(router_id.computer())
             .await
             .unwrap()
@@ -364,6 +585,10 @@ async fn should_restore_the_network_when_its_admin_enters_work() {
     );
     assert!(
         world
+            .modules
+            .core
+            .files
+            .lookup
             .file(
                 computer_id,
                 &format!("/home/{}/hacked.txt", npc.user),
@@ -375,6 +600,10 @@ async fn should_restore_the_network_when_its_admin_enters_work() {
     );
     assert_eq!(
         world
+            .modules
+            .core
+            .files
+            .lookup
             .content(computer_id, "/var/system.log", false)
             .await
             .unwrap()
@@ -387,50 +616,75 @@ async fn should_restore_the_network_when_its_admin_enters_work() {
 #[tokio::test]
 async fn should_fail_the_work_of_a_deleted_coin() {
     // Arrange
-    let (mut world, coin) = mining_world().await;
-    let player = world.player();
+    let (world, coin) = mining_world().await;
+    let player = world.handle.player();
     let job = world
+        .modules
+        .economy
+        .mine_jobs
         .schedule_mine_on(coin, "alice", player)
         .await
         .unwrap()
         .unwrap();
 
     // Act
-    let deleted = world.delete_coin("Ether").await.unwrap();
+    let deleted = world
+        .modules
+        .economy
+        .mine_jobs
+        .delete_coin("Ether")
+        .await
+        .unwrap();
 
     // Assert
-    let ends = work_ends(&mut world);
+    let ends = work_ends(&world);
 
     assert!(deleted);
-    assert!(world.scheduled_routines().await.unwrap().is_empty());
-    assert!(ends.contains(&WorkEnd {
-        id: job,
-        result: WorkResult::Failure(MineJobFailure::CoinGone),
-    }));
+    assert!(scheduled_work(&world).await.is_empty());
+
+    let end = ends.into_iter().find(|end| end.id == job).unwrap();
+
+    assert_eq!(
+        end.take::<Result<(), MineJobFailure>>(),
+        Ok(Err(MineJobFailure::CoinGone))
+    );
 }
 
 /// Deleting a sub-wallet fails the jobs mining for it.
 #[tokio::test]
 async fn should_fail_the_jobs_of_a_deleted_subwallet() {
     // Arrange
-    let (mut world, coin) = mining_world().await;
-    let player = world.player();
+    let (world, coin) = mining_world().await;
+    let player = world.handle.player();
     let job = world
+        .modules
+        .economy
+        .mine_jobs
         .schedule_mine_on(coin, "alice", player)
         .await
         .unwrap()
         .unwrap();
 
     // Act
-    world.delete_subwallet(coin, "alice").await.unwrap();
+    world
+        .modules
+        .economy
+        .mine_jobs
+        .delete_subwallet(coin, "alice")
+        .await
+        .unwrap();
 
     // Assert
+    let ends = work_ends(&world);
+
+    assert_eq!(ends.len(), 1);
+    assert_eq!(ends[0].id, job);
     assert_eq!(
-        work_ends(&mut world),
-        [WorkEnd {
-            id: job,
-            result: WorkResult::Failure(MineJobFailure::SubwalletGone),
-        }]
+        ends.into_iter()
+            .next()
+            .unwrap()
+            .take::<Result<(), MineJobFailure>>(),
+        Ok(Err(MineJobFailure::SubwalletGone))
     );
 }
 
@@ -438,9 +692,12 @@ async fn should_fail_the_jobs_of_a_deleted_subwallet() {
 #[tokio::test]
 async fn should_end_a_winning_job_done() {
     // Arrange
-    let (mut world, coin) = mining_world().await;
-    let player = world.player();
+    let (world, coin) = mining_world().await;
+    let player = world.handle.player();
     let job = world
+        .modules
+        .economy
+        .mine_jobs
         .schedule_mine_on(coin, "alice", player)
         .await
         .unwrap()
@@ -450,10 +707,12 @@ async fn should_end_a_winning_job_done() {
     world.tick(0).await.unwrap();
 
     // Assert
-    assert!(work_ends(&mut world).contains(&WorkEnd {
-        id: job,
-        result: WorkResult::Complete,
-    }));
+    let end = work_ends(&world)
+        .into_iter()
+        .find(|end| end.id == job)
+        .unwrap();
+
+    assert_eq!(end.take::<Result<(), MineJobFailure>>(), Ok(Ok(())));
 }
 
 /// Removing a network removes the NPCs of its computers, whose switches stop.
@@ -461,16 +720,37 @@ async fn should_end_a_winning_job_done() {
 async fn should_remove_the_npcs_of_a_removed_network() {
     // Arrange
     let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let router_id = world.add_network(&NetworkOptions::default()).await.unwrap();
+    let router_id = world
+        .modules
+        .creation
+        .network_generation
+        .add_network(&NetworkOptions::default())
+        .await
+        .unwrap();
     let address = router(&world, router_id).await.public_ip;
     let other = world
+        .modules
+        .creation
+        .network_generation
         .add_computer_to(router_id, &ComputerOptions::default())
         .await
         .unwrap()
         .unwrap();
-    let user = world.users(other).await.unwrap()[0].name.clone();
-    let now = world.time_seconds();
+    let user = world
+        .modules
+        .core
+        .computers
+        .users
+        .users(other)
+        .await
+        .unwrap()[0]
+        .name
+        .clone();
+    let now = world.handle.time_seconds();
     let npc = world
+        .modules
+        .npcs
+        .npcs
         .add_npc(other, &user, "Ann", now + 10)
         .await
         .unwrap()
@@ -480,14 +760,20 @@ async fn should_remove_the_npcs_of_a_removed_network() {
     let mut world = World::load(&database).await.unwrap();
 
     // Act
-    world.remove_network(&address).await.unwrap();
+    world
+        .modules
+        .economy
+        .bank
+        .remove_network(&address)
+        .await
+        .unwrap();
 
     let database = save_copy(&mut world).await;
     let world = World::load(&database).await.unwrap();
 
     // Assert
-    assert!(world.npc(npc).await.unwrap().is_none());
-    assert!(world.scheduled_routines().await.unwrap().is_empty());
+    assert!(world.modules.npcs.npcs.npc(npc).await.unwrap().is_none());
+    assert!(scheduled_work(&world).await.is_empty());
 }
 
 /// Rates that don't divide the time scale still pass exactly its world seconds per real second, carrying the parts.
@@ -495,14 +781,21 @@ async fn should_remove_the_npcs_of_a_removed_network() {
 async fn should_pass_the_time_scale_per_real_second_at_any_tick_rate() {
     for rate in [4, 14, 20] {
         // Arrange
-        let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-        let start = world.time_seconds();
+        let world = World::new(&PlayerOptions::default()).await.unwrap();
+        let start = world.handle.time_seconds();
 
         // Act
-        world.advance_ticks(u64::from(rate) * 3, rate);
+        world
+            .modules
+            .routines
+            .advance_ticks(u64::from(rate) * 3, rate);
 
         // Assert
-        assert_eq!(world.time_seconds() - start, 42, "at {rate} ticks a second");
+        assert_eq!(
+            world.handle.time_seconds() - start,
+            42,
+            "at {rate} ticks a second"
+        );
     }
 }
 
@@ -510,98 +803,105 @@ async fn should_pass_the_time_scale_per_real_second_at_any_tick_rate() {
 #[tokio::test]
 async fn should_carry_the_part_of_a_second_a_tick_passed() {
     // Arrange
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let start = world.time_seconds();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let start = world.handle.time_seconds();
 
     // Act
-    world.advance_ticks(1, 4);
+    world.modules.routines.advance_ticks(1, 4);
 
-    let first = world.time_seconds() - start;
+    let first = world.handle.time_seconds() - start;
 
-    world.advance_ticks(1, 4);
+    world.modules.routines.advance_ticks(1, 4);
 
     // Assert
     assert_eq!(first, 3);
-    assert_eq!(world.time_seconds() - start, 7);
+    assert_eq!(world.handle.time_seconds() - start, 7);
 }
 
 /// Setting the date drops the carried part of a second.
 #[tokio::test]
 async fn should_forget_the_carry_when_the_date_is_set() {
     // Arrange
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
 
-    world.advance_ticks(1, 4);
-    world.set_date("04/Jan/2000 - 06:00");
+    world.modules.routines.advance_ticks(1, 4);
+    world.modules.routines.set_date("04/Jan/2000 - 06:00");
 
-    let start = world.time_seconds();
+    let start = world.handle.time_seconds();
 
     // Act
-    world.advance_ticks(1, 4);
+    world.modules.routines.advance_ticks(1, 4);
 
     // Assert
-    assert_eq!(world.time_seconds() - start, 3);
+    assert_eq!(world.handle.time_seconds() - start, 3);
 }
 
 /// Due routines run by priority, a crashed service's restart before an NPC switching.
 #[tokio::test]
 async fn should_run_the_due_routines_by_priority() {
     // Arrange
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
-    let now = world.time_seconds();
-    let restart = Routine::ServiceRestart {
-        computer: player,
-        service: ServiceId::Ssh,
-    };
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let player = world.handle.player();
+    let now = world.handle.time_seconds();
     let user = PlayerOptions::default().user;
 
     world
+        .modules
+        .npcs
+        .npcs
         .add_npc(player, &user, "npc", now)
         .await
         .unwrap()
         .unwrap();
-    world.schedule(now, restart.clone()).await.unwrap();
+    world
+        .modules
+        .services
+        .restart
+        .schedule(now, player, ServiceId::Ssh)
+        .await
+        .unwrap();
 
     // Act
-    let report = world.run_due(1).await.unwrap();
+    let report = world.modules.routines.run_due(1).await.unwrap();
 
     // Assert
-    assert_eq!(report.routines, [restart]);
+    assert_eq!(report.routines, ["services.service_restart"]);
 }
 
 /// A routine late enough runs before higher-priority ones due later, so none waits forever.
 #[tokio::test]
 async fn should_raise_the_priority_of_a_late_routine() {
     // Arrange
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
-    let now = world.time_seconds();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let player = world.handle.player();
+    let now = world.handle.time_seconds();
     let user = PlayerOptions::default().user;
-    let npc = world
+    let _ = world
+        .modules
+        .npcs
+        .npcs
         .add_npc(player, &user, "npc", now)
         .await
         .unwrap()
         .unwrap();
-    let switch = Routine::NpcSwitch { npc };
 
-    world.advance_clock(2 * greyhack_behaviour::TIME_SCALE);
     world
-        .schedule(
-            world.time_seconds(),
-            Routine::ServiceRestart {
-                computer: player,
-                service: ServiceId::Ssh,
-            },
-        )
+        .modules
+        .routines
+        .advance_clock(2 * greyhack_behaviour::TIME_SCALE);
+    world
+        .modules
+        .services
+        .restart
+        .schedule(world.handle.time_seconds(), player, ServiceId::Ssh)
         .await
         .unwrap();
 
     // Act
-    let report = world.run_due(1).await.unwrap();
+    let report = world.modules.routines.run_due(1).await.unwrap();
 
     // Assert
-    assert_eq!(report.routines, [switch]);
+    assert_eq!(report.routines, ["npcs.switch"]);
 }
 
 /// A coin's round draws a wallet by its machines' total power, then one of that wallet's machines alike, whatever
@@ -609,13 +909,16 @@ async fn should_raise_the_priority_of_a_late_routine() {
 #[tokio::test]
 async fn should_draw_the_winning_machine_of_a_wallet_alike() {
     // Arrange
-    let (mut world, coin) = mining_world().await;
-    let player = world.player();
+    let (world, coin) = mining_world().await;
+    let player = world.handle.player();
     let router = computer(&world, player).await.router.unwrap();
     let mut machines = Vec::new();
 
     for power in [1.0, 9.0] {
         let machine = world
+            .modules
+            .creation
+            .network_generation
             .add_computer_to(
                 router,
                 &ComputerOptions {
@@ -644,6 +947,9 @@ async fn should_draw_the_winning_machine_of_a_wallet_alike() {
             if job.is_none() {
                 *job = Some(
                     world
+                        .modules
+                        .economy
+                        .mine_jobs
                         .schedule_mine_on(coin, "alice", machine)
                         .await
                         .unwrap()
@@ -654,9 +960,9 @@ async fn should_draw_the_winning_machine_of_a_wallet_alike() {
 
         world.tick(3_600).await.unwrap();
 
-        for end in work_ends(&mut world) {
+        for end in work_ends(&world) {
             if let Some(index) = jobs.iter().position(|job| *job == Some(end.id)) {
-                assert_eq!(end.result, WorkResult::Complete);
+                assert_eq!(end.take::<Result<(), MineJobFailure>>(), Ok(Ok(())));
                 wins[index] += 1;
                 jobs[index] = None;
             }
@@ -678,11 +984,13 @@ async fn should_give_a_generated_network_npcs() {
 
     // Act
     let switches = world
+        .modules
+        .routines
         .scheduled_routines()
         .await
         .unwrap()
         .iter()
-        .filter(|routine| matches!(routine.routine, Routine::NpcSwitch { .. }))
+        .filter(|routine| routine.key == "npcs.switch")
         .count();
 
     // Assert
@@ -693,22 +1001,32 @@ async fn should_give_a_generated_network_npcs() {
 #[tokio::test]
 async fn should_capture_npc_credentials_only_for_a_social_engineering_login() {
     // Arrange
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let player = world.handle.player();
     let router = computer(&world, player).await.router.unwrap();
     let server = world
+        .modules
+        .creation
+        .network_generation
         .add_computer_to(router, &ComputerOptions::default())
         .await
         .unwrap()
         .unwrap();
 
     world
+        .modules
+        .services
+        .installs
         .install_service(server, ServiceId::Ssh, "1.0.0")
         .await
         .unwrap();
 
     let (user, password) = {
         let user = world
+            .modules
+            .core
+            .computers
+            .users
             .users(server)
             .await
             .unwrap()
@@ -718,9 +1036,12 @@ async fn should_capture_npc_credentials_only_for_a_social_engineering_login() {
 
         (user.name, user.password)
     };
-    let now = world.time_seconds();
+    let now = world.handle.time_seconds();
 
     world
+        .modules
+        .npcs
+        .npcs
         .add_npc(server, &user, "npc", now)
         .await
         .unwrap()
@@ -728,27 +1049,34 @@ async fn should_capture_npc_credentials_only_for_a_social_engineering_login() {
 
     let public_ip = crate::support::router(&world, router).await.public_ip;
     let local_ip = computer(&world, server).await.local_ip;
-    let sniffer = world.start_sniffer(server).await.unwrap().unwrap();
+    let sniffer = world
+        .modules
+        .intrusion
+        .sniffers
+        .start_sniffer(server)
+        .await
+        .unwrap()
+        .unwrap();
 
     // A routine schedule login emits no packet.
     world.tick(0).await.unwrap();
-    assert!(
-        work_ends(&mut world)
-            .into_iter()
-            .all(|end| end.id != sniffer)
-    );
+    assert!(work_ends(&world).into_iter().all(|end| end.id != sniffer));
 
     // Act: the social-engineering login.
-    world.npc_social_login(server, &user).await.unwrap();
+    world
+        .modules
+        .npcs
+        .schedules
+        .npc_social_login(server, &user)
+        .await
+        .unwrap();
 
     // Assert
-    let capture = work_ends(&mut world)
+    let capture = work_ends(&world)
         .into_iter()
         .find(|end| end.id == sniffer)
         .expect("the sniffer captured");
-    let WorkResult::Capture(packet) = capture.result else {
-        panic!("a capture, got {:?}", capture.result);
-    };
+    let packet = capture.take::<SnifferPacket>().expect("a sniffer packet");
 
     assert_eq!(packet.source, public_ip);
     assert_eq!(packet.destination, local_ip);
@@ -762,21 +1090,31 @@ async fn should_capture_npc_credentials_only_for_a_social_engineering_login() {
 #[tokio::test]
 async fn should_keep_an_npc_logged_in_for_an_hour_after_a_social_engineering_login() {
     // Arrange
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let player = world.handle.player();
     let router = computer(&world, player).await.router.unwrap();
     let server = world
+        .modules
+        .creation
+        .network_generation
         .add_computer_to(router, &ComputerOptions::default())
         .await
         .unwrap()
         .unwrap();
 
     world
+        .modules
+        .services
+        .installs
         .install_service(server, ServiceId::Ssh, "1.0.0")
         .await
         .unwrap();
 
     let user = world
+        .modules
+        .core
+        .computers
+        .users
         .users(server)
         .await
         .unwrap()
@@ -786,37 +1124,82 @@ async fn should_keep_an_npc_logged_in_for_an_hour_after_a_social_engineering_log
         .name;
 
     // A Sunday: the NPC isn't at work.
-    world.set_date("02/Jan/2000 - 12:00");
+    world.modules.routines.set_date("02/Jan/2000 - 12:00");
 
-    let now = world.time_seconds();
+    let now = world.handle.time_seconds();
 
     world
+        .modules
+        .npcs
+        .npcs
         .add_npc(server, &user, "npc", now)
         .await
         .unwrap()
         .unwrap();
     world.tick(0).await.unwrap();
 
-    let before = world.sessions(server).await.unwrap().contains(&user);
+    let before = world
+        .modules
+        .core
+        .computers
+        .users
+        .sessions(server)
+        .await
+        .unwrap()
+        .contains(&user);
 
     // Act
-    world.npc_social_login(server, &user).await.unwrap();
+    world
+        .modules
+        .npcs
+        .schedules
+        .npc_social_login(server, &user)
+        .await
+        .unwrap();
     world.tick(0).await.unwrap();
 
-    let during = world.sessions(server).await.unwrap().contains(&user);
+    let during = world
+        .modules
+        .core
+        .computers
+        .users
+        .sessions(server)
+        .await
+        .unwrap()
+        .contains(&user);
 
     world.tick(3_600).await.unwrap();
 
-    let after = world.sessions(server).await.unwrap().contains(&user);
+    let after = world
+        .modules
+        .core
+        .computers
+        .users
+        .sessions(server)
+        .await
+        .unwrap()
+        .contains(&user);
 
     // Assert
     assert_eq!((before, during, after), (false, true, false));
 }
 
-/// `next_due_at` reports no due time on an empty routine queue rather than failing to read a NULL.
+/// A new world schedules initial economy upkeep and the recurring library-version check.
 #[tokio::test]
-async fn should_report_no_due_time_when_nothing_is_scheduled() {
+async fn should_schedule_upkeep_and_the_library_check_in_a_new_world() {
     let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let routines = world.modules.routines.scheduled_routines().await.unwrap();
+    let now = world.handle.time_seconds();
 
-    assert_eq!(world.next_due_at().await.unwrap(), None);
+    assert!(scheduled_work(&world).await.is_empty());
+    assert_eq!(routines.len(), 2);
+    assert!(routines.iter().any(|entry| {
+        entry.key == "economy.daily_upkeep"
+            && entry.at
+                == (now / greyhack_behaviour::SECONDS_PER_DAY + 1)
+                    * greyhack_behaviour::SECONDS_PER_DAY
+    }));
+    assert!(routines.iter().any(|entry| {
+        entry.key == "libraries.version_check" && entry.at == now + library_check_seconds()
+    }));
 }

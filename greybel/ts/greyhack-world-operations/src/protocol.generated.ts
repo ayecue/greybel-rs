@@ -58,6 +58,446 @@ export namespace ObjectId {
     id: number;
   }
 }
+/** One line a game intrinsic prints, carrying its typed data rather than rendered text. */
+export abstract class PrintLine {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  abstract write(writer: BinaryWriter): void;
+  static read(reader: BinaryReader): PrintLine {
+    const index = reader.u32();
+    switch (index) {
+      case 0: return PrintLine.AptUpdate.read(reader);
+      case 1: return PrintLine.CaptureHandshake.read(reader);
+      case 2: return PrintLine.CaptureProgress.read(reader);
+      case 3: return PrintLine.CaptureSaveFailure.read(reader);
+      case 4: return PrintLine.KeyRecoveryFailure.read(reader);
+      case 5: return PrintLine.PayloadFailure.read(reader);
+      case 6: return PrintLine.ExploitLog.read(reader);
+      case 7: return PrintLine.NetUseFailure.read(reader);
+      case 8: return PrintLine.HiddenZonesWarning.read(reader);
+      case 9: return PrintLine.FloodStart.read(reader);
+      case 10: return PrintLine.FloodInterrupted.read(reader);
+      case 11: return PrintLine.LoginFailure.read(reader);
+      case 12: return PrintLine.EncryptionEnabled.read(reader);
+      case 13: return PrintLine.LaunchFailure.read(reader);
+      default: throw new RangeError(`no variant ${index} of \`PrintLine\``);
+    }
+  }
+}
+export namespace PrintLine {
+  /** One repository update result (`AptClientIntrinsics.update`). */
+  export class AptUpdate extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.AptUpdate.Fields;
+    constructor(body: PrintLine.AptUpdate.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): AptUpdateLine {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): PrintLine.AptUpdate {
+      const value = AptUpdateLine.read(reader);
+      return new PrintLine.AptUpdate({ value });
+    }
+  }
+  export namespace AptUpdate {
+    export interface Fields {
+      value: AptUpdateLine;
+    }
+  }
+  /** Wi-Fi capture handshake (`CryptoIntrinsics.aireplay`). */
+  export class CaptureHandshake extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "bssid",
+      property: "bssid",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.CaptureHandshake.Fields;
+    constructor(body: PrintLine.CaptureHandshake.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get bssid(): string {
+      return this[BODY].bssid;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(1);
+      const body = this[BODY];
+      writer.string(body.bssid);
+    }
+    static read(reader: BinaryReader): PrintLine.CaptureHandshake {
+      const fieldBssid = reader.string();
+      return new PrintLine.CaptureHandshake({ bssid: fieldBssid });
+    }
+  }
+  export namespace CaptureHandshake {
+    export interface Fields {
+      bssid: string;
+    }
+  }
+  /** Final Wi-Fi capture counts (`Terminal.CollectData`). */
+  export class CaptureProgress extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "packets",
+      property: "packets",
+      tags: []
+    }, {
+      name: "acks",
+      property: "acks",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.CaptureProgress.Fields;
+    constructor(body: PrintLine.CaptureProgress.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get packets(): number {
+      return this[BODY].packets;
+    }
+    get acks(): number {
+      return this[BODY].acks;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(2);
+      const body = this[BODY];
+      writer.i32(body.packets);
+      writer.i32(body.acks);
+    }
+    static read(reader: BinaryReader): PrintLine.CaptureProgress {
+      const fieldPackets = reader.i32();
+      const fieldAcks = reader.i32();
+      return new PrintLine.CaptureProgress({
+        packets: fieldPackets,
+        acks: fieldAcks
+      });
+    }
+  }
+  export namespace CaptureProgress {
+    export interface Fields {
+      packets: number;
+      acks: number;
+    }
+  }
+  /** Failure to save a completed Wi-Fi capture (`Terminal.CloseConnection`). */
+  export class CaptureSaveFailure extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.CaptureSaveFailure.Fields;
+    constructor(body: PrintLine.CaptureSaveFailure.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): Failure {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(3);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): PrintLine.CaptureSaveFailure {
+      const value = Failure.read(reader);
+      return new PrintLine.CaptureSaveFailure({ value });
+    }
+  }
+  export namespace CaptureSaveFailure {
+    export interface Fields {
+      value: Failure;
+    }
+  }
+  /** Failure to recover a Wi-Fi key (`CryptoIntrinsics.aircrack`). */
+  export class KeyRecoveryFailure extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.KeyRecoveryFailure.Fields;
+    constructor(body: PrintLine.KeyRecoveryFailure.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): Failure {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(4);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): PrintLine.KeyRecoveryFailure {
+      const value = Failure.read(reader);
+      return new PrintLine.KeyRecoveryFailure({ value });
+    }
+  }
+  export namespace KeyRecoveryFailure {
+    export interface Fields {
+      value: Failure;
+    }
+  }
+  /** Failure to execute a zero-day payload (`DebugLibraryIntrinsics.payload`). */
+  export class PayloadFailure extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.PayloadFailure.Fields;
+    constructor(body: PrintLine.PayloadFailure.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): Failure {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(5);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): PrintLine.PayloadFailure {
+      const value = Failure.read(reader);
+      return new PrintLine.PayloadFailure({ value });
+    }
+  }
+  export namespace PayloadFailure {
+    export interface Fields {
+      value: Failure;
+    }
+  }
+  /** Overflow attack log (`MetaLibIntrinsics.overflow`). */
+  export class ExploitLog extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.ExploitLog.Fields;
+    constructor(body: PrintLine.ExploitLog.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): ExploitLog {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(6);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): PrintLine.ExploitLog {
+      const value = ExploitLog.read(reader);
+      return new PrintLine.ExploitLog({ value });
+    }
+  }
+  export namespace ExploitLog {
+    export interface Fields {
+      value: ExploitLog;
+    }
+  }
+  /** Failure to open a net session (`MetaExploitIntrinsics.net_use`). */
+  export class NetUseFailure extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "failure",
+      property: "failure",
+      tags: []
+    }, {
+      name: "address",
+      property: "address",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.NetUseFailure.Fields;
+    constructor(body: PrintLine.NetUseFailure.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get failure(): NetUseFailure {
+      return this[BODY].failure;
+    }
+    get address(): string {
+      return this[BODY].address;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(7);
+      const body = this[BODY];
+      body.failure.write(writer);
+      writer.string(body.address);
+    }
+    static read(reader: BinaryReader): PrintLine.NetUseFailure {
+      const fieldFailure = NetUseFailure.read(reader);
+      const fieldAddress = reader.string();
+      return new PrintLine.NetUseFailure({
+        failure: fieldFailure,
+        address: fieldAddress
+      });
+    }
+  }
+  export namespace NetUseFailure {
+    export interface Fields {
+      failure: NetUseFailure;
+      address: string;
+    }
+  }
+  /** Unscanned library zones (`MetaExploitIntrinsics.scan`). */
+  export class HiddenZonesWarning extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(8);
+    }
+    static read(reader: BinaryReader): PrintLine.HiddenZonesWarning {
+      return new PrintLine.HiddenZonesWarning();
+    }
+  }
+  /** Flood start and its warning (`NetSessionIntrinsics.flood_connection`). */
+  export class FloodStart extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "address",
+      property: "address",
+      tags: []
+    }, {
+      name: "warning",
+      property: "warning",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.FloodStart.Fields;
+    constructor(body: PrintLine.FloodStart.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get address(): string {
+      return this[BODY].address;
+    }
+    get warning(): FloodWarning {
+      return this[BODY].warning;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(9);
+      const body = this[BODY];
+      writer.string(body.address);
+      body.warning.write(writer);
+    }
+    static read(reader: BinaryReader): PrintLine.FloodStart {
+      const fieldAddress = reader.string();
+      const fieldWarning = FloodWarning.read(reader);
+      return new PrintLine.FloodStart({
+        address: fieldAddress,
+        warning: fieldWarning
+      });
+    }
+  }
+  export namespace FloodStart {
+    export interface Fields {
+      address: string;
+      warning: FloodWarning;
+    }
+  }
+  /** Flood-induced interruption (`NetSessionIntrinsics.flood_connection`). */
+  export class FloodInterrupted extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(10);
+    }
+    static read(reader: BinaryReader): PrintLine.FloodInterrupted {
+      return new PrintLine.FloodInterrupted();
+    }
+  }
+  /** Login failure printed after reaching a computer (`PlayerUtils.ConnectService`). */
+  export class LoginFailure extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.LoginFailure.Fields;
+    constructor(body: PrintLine.LoginFailure.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): LoginFailure {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(11);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): PrintLine.LoginFailure {
+      const value = LoginFailure.read(reader);
+      return new PrintLine.LoginFailure({ value });
+    }
+  }
+  export namespace LoginFailure {
+    export interface Fields {
+      value: LoginFailure;
+    }
+  }
+  /** Encrypted-connection notice (`ShellIntrinsics.connect_service`). */
+  export class EncryptionEnabled extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(12);
+    }
+    static read(reader: BinaryReader): PrintLine.EncryptionEnabled {
+      return new PrintLine.EncryptionEnabled();
+    }
+  }
+  /** Launch refusal (`ShellIntrinsics.launch` and `ShellIntrinsics.start_terminal`). */
+  export class LaunchFailure extends PrintLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: PrintLine.LaunchFailure.Fields;
+    constructor(body: PrintLine.LaunchFailure.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): Failure {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(13);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): PrintLine.LaunchFailure {
+      const value = Failure.read(reader);
+      return new PrintLine.LaunchFailure({ value });
+    }
+  }
+  export namespace LaunchFailure {
+    export interface Fields {
+      value: Failure;
+    }
+  }
+}
 /** Session and file details for a program that has started. */
 export class ProgramSession {
   static readonly tags: ReadonlyArray<Tag> = [];
@@ -1974,10 +2414,6 @@ export class LibraryScan {
     name: "addresses",
     property: "addresses",
     tags: []
-  }, {
-    name: "hidden_zones",
-    property: "hiddenZones",
-    tags: []
   }];
   protected readonly [BODY]: LibraryScan.Fields;
   constructor(body: LibraryScan.Fields) {
@@ -1986,13 +2422,8 @@ export class LibraryScan {
   get addresses(): string[] {
     return this[BODY].addresses;
   }
-  /** A zone that may hold weaknesses could not be scanned. */
-  get hiddenZones(): boolean {
-    return this[BODY].hiddenZones;
-  }
   write(writer: BinaryWriter): void {
     const body = this[BODY];
-    writer.byte(body.hiddenZones ? 1 : 0);
     const items0 = body.addresses;
     writer.length(items0.length);
     for (const item1 of items0) {
@@ -2000,22 +2431,16 @@ export class LibraryScan {
     }
   }
   static read(reader: BinaryReader): LibraryScan {
-    const flags0 = reader.flags(1);
     const fieldAddresses: string[] = [];
-    for (let count1 = reader.length(); count1 > 0; count1--) {
+    for (let count0 = reader.length(); count0 > 0; count0--) {
       fieldAddresses.push(reader.string());
     }
-    const fieldHiddenZones = (flags0 & 1) !== 0;
-    return new LibraryScan({
-      addresses: fieldAddresses,
-      hiddenZones: fieldHiddenZones
-    });
+    return new LibraryScan({ addresses: fieldAddresses });
   }
 }
 export namespace LibraryScan {
   export interface Fields {
     addresses: string[];
-    hiddenZones: boolean;
   }
 }
 /** Weaknesses at a library address found by `scan_address`. */
@@ -3164,6 +3589,7 @@ export abstract class CtfFailure {
       case 2: return CtfFailure.UnknownEvent.read(reader);
       case 3: return CtfFailure.Incomplete.read(reader);
       case 4: return CtfFailure.RepeatScore.read(reader);
+      case 5: return CtfFailure.OwnEvent.read(reader);
       default: throw new RangeError(`no variant ${index} of \`CtfFailure\``);
     }
   }
@@ -3222,6 +3648,17 @@ export namespace CtfFailure {
     }
     static read(reader: BinaryReader): CtfFailure.RepeatScore {
       return new CtfFailure.RepeatScore();
+    }
+  }
+  /** Rater created the event. */
+  export class OwnEvent extends CtfFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(5);
+    }
+    static read(reader: BinaryReader): CtfFailure.OwnEvent {
+      return new CtfFailure.OwnEvent();
     }
   }
 }
@@ -3322,7 +3759,7 @@ export namespace MailFailure {
     }
   }
 }
-/** Result of `aireplay`. The intrinsic returns null unless the capture did not start. */
+/** Result of `aireplay`. Capture output arrives separately as [`ProgramPrint`] notifications. */
 export abstract class Capture {
   static readonly tags: ReadonlyArray<Tag> = [];
   abstract write(writer: BinaryWriter): void;
@@ -3330,15 +3767,13 @@ export abstract class Capture {
     const index = reader.u32();
     switch (index) {
       case 0: return Capture.Null.read(reader);
-      case 1: return Capture.Captured.read(reader);
-      case 2: return Capture.Unsaved.read(reader);
-      case 3: return Capture.Failure.read(reader);
+      case 1: return Capture.Failure.read(reader);
       default: throw new RangeError(`no variant ${index} of \`Capture\``);
     }
   }
 }
 export namespace Capture {
-  /** The computer is gone. */
+  /** The computer is gone or the capture ran; the intrinsic returns null. */
   export class Null extends Capture {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -3347,81 +3782,6 @@ export namespace Capture {
     }
     static read(reader: BinaryReader): Capture.Null {
       return new Capture.Null();
-    }
-  }
-  /** The capture ran and was saved; the terminal prints its progress. */
-  export class Captured extends Capture {
-    static readonly tags: ReadonlyArray<Tag> = [];
-    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-      name: "value",
-      property: "value",
-      tags: []
-    }];
-    protected readonly [BODY]: Capture.Captured.Fields;
-    constructor(body: Capture.Captured.Fields) {
-      super();
-      this[BODY] = body;
-    }
-    get value(): CaptureProgress {
-      return this[BODY].value;
-    }
-    override write(writer: BinaryWriter): void {
-      writer.u32(1);
-      const body = this[BODY];
-      body.value.write(writer);
-    }
-    static read(reader: BinaryReader): Capture.Captured {
-      const value = CaptureProgress.read(reader);
-      return new Capture.Captured({ value });
-    }
-  }
-  export namespace Captured {
-    export interface Fields {
-      value: CaptureProgress;
-    }
-  }
-  /** Capture ran but was not saved; the terminal prints its progress, then the reason. */
-  export class Unsaved extends Capture {
-    static readonly tags: ReadonlyArray<Tag> = [];
-    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-      name: "progress",
-      property: "progress",
-      tags: []
-    }, {
-      name: "failure",
-      property: "failure",
-      tags: []
-    }];
-    protected readonly [BODY]: Capture.Unsaved.Fields;
-    constructor(body: Capture.Unsaved.Fields) {
-      super();
-      this[BODY] = body;
-    }
-    get progress(): CaptureProgress {
-      return this[BODY].progress;
-    }
-    get failure(): Failure {
-      return this[BODY].failure;
-    }
-    override write(writer: BinaryWriter): void {
-      writer.u32(2);
-      const body = this[BODY];
-      body.progress.write(writer);
-      body.failure.write(writer);
-    }
-    static read(reader: BinaryReader): Capture.Unsaved {
-      const fieldProgress = CaptureProgress.read(reader);
-      const fieldFailure = Failure.read(reader);
-      return new Capture.Unsaved({
-        progress: fieldProgress,
-        failure: fieldFailure
-      });
-    }
-  }
-  export namespace Unsaved {
-    export interface Fields {
-      progress: CaptureProgress;
-      failure: Failure;
     }
   }
   /** Reason the capture did not start; the intrinsic returns it. */
@@ -3441,7 +3801,7 @@ export namespace Capture {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(3);
+      writer.u32(1);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -3456,66 +3816,6 @@ export namespace Capture {
     }
   }
 }
-/** What a Wi-Fi capture collected. */
-export class CaptureProgress {
-  static readonly tags: ReadonlyArray<Tag> = [];
-  static readonly fields: ReadonlyArray<FieldTagContainer> = [
-    {
-      name: "bssid",
-      property: "bssid",
-      tags: []
-    },
-    {
-      name: "packets",
-      property: "packets",
-      tags: []
-    },
-    {
-      name: "acks",
-      property: "acks",
-      tags: []
-    }
-  ];
-  protected readonly [BODY]: CaptureProgress.Fields;
-  constructor(body: CaptureProgress.Fields) {
-    this[BODY] = body;
-  }
-  /** BSSID of the captured network. */
-  get bssid(): string {
-    return this[BODY].bssid;
-  }
-  /** Packets read. */
-  get packets(): number {
-    return this[BODY].packets;
-  }
-  /** ACKs received. */
-  get acks(): number {
-    return this[BODY].acks;
-  }
-  write(writer: BinaryWriter): void {
-    const body = this[BODY];
-    writer.string(body.bssid);
-    writer.i32(body.packets);
-    writer.i32(body.acks);
-  }
-  static read(reader: BinaryReader): CaptureProgress {
-    const fieldBssid = reader.string();
-    const fieldPackets = reader.i32();
-    const fieldAcks = reader.i32();
-    return new CaptureProgress({
-      bssid: fieldBssid,
-      packets: fieldPackets,
-      acks: fieldAcks
-    });
-  }
-}
-export namespace CaptureProgress {
-  export interface Fields {
-    bssid: string;
-    packets: number;
-    acks: number;
-  }
-}
 /** Password recovered by `aircrack`. */
 export abstract class KeyRecovery {
   static readonly tags: ReadonlyArray<Tag> = [];
@@ -3525,13 +3825,12 @@ export abstract class KeyRecovery {
     switch (index) {
       case 0: return KeyRecovery.Null.read(reader);
       case 1: return KeyRecovery.Password.read(reader);
-      case 2: return KeyRecovery.Failure.read(reader);
       default: throw new RangeError(`no variant ${index} of \`KeyRecovery\``);
     }
   }
 }
 export namespace KeyRecovery {
-  /** Null when the computer or the file is gone, or no router has the captured Wi-Fi. */
+  /** Null when the computer or the file is gone, no router has the captured Wi-Fi, or recovery failed. */
   export class Null extends KeyRecovery {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -3570,37 +3869,6 @@ export namespace KeyRecovery {
   export namespace Password {
     export interface Fields {
       value: string;
-    }
-  }
-  /** Reason no password was recovered; the terminal prints it. */
-  export class Failure extends KeyRecovery {
-    static readonly tags: ReadonlyArray<Tag> = [];
-    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-      name: "value",
-      property: "value",
-      tags: []
-    }];
-    protected readonly [BODY]: KeyRecovery.Failure.Fields;
-    constructor(body: KeyRecovery.Failure.Fields) {
-      super();
-      this[BODY] = body;
-    }
-    get value(): Failure {
-      return this[BODY].value;
-    }
-    override write(writer: BinaryWriter): void {
-      writer.u32(2);
-      const body = this[BODY];
-      body.value.write(writer);
-    }
-    static read(reader: BinaryReader): KeyRecovery.Failure {
-      const value = Failure.read(reader);
-      return new KeyRecovery.Failure({ value });
-    }
-  }
-  export namespace Failure {
-    export interface Fields {
-      value: Failure;
     }
   }
 }
@@ -5630,6 +5898,14 @@ export abstract class AptFailure {
       case 10: return AptFailure.MissingFolder.read(reader);
       case 11: return AptFailure.NoPermission.read(reader);
       case 12: return AptFailure.Copy.read(reader);
+      case 13: return AptFailure.NoInternet.read(reader);
+      case 14: return AptFailure.EmptyPackageName.read(reader);
+      case 15: return AptFailure.MalformedCache.read(reader);
+      case 16: return AptFailure.MissingLocalFile.read(reader);
+      case 17: return AptFailure.Connection.read(reader);
+      case 18: return AptFailure.Service.read(reader);
+      case 19: return AptFailure.MissingConfig.read(reader);
+      case 20: return AptFailure.MissingRepositoryFolder.read(reader);
       default: throw new RangeError(`no variant ${index} of \`AptFailure\``);
     }
   }
@@ -5956,6 +6232,154 @@ export namespace AptFailure {
   export namespace Copy {
     export interface Fields {
       value: FileFailure;
+    }
+  }
+  /** The computer has no network access (`Computer.IsNetworkActive`). */
+  export class NoInternet extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(13);
+    }
+    static read(reader: BinaryReader): AptFailure.NoInternet {
+      return new AptFailure.NoInternet();
+    }
+  }
+  /** The package name is empty. */
+  export class EmptyPackageName extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(14);
+    }
+    static read(reader: BinaryReader): AptFailure.EmptyPackageName {
+      return new AptFailure.EmptyPackageName();
+    }
+  }
+  /** The cache is not made as `update` makes it. */
+  export class MalformedCache extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(15);
+    }
+    static read(reader: BinaryReader): AptFailure.MalformedCache {
+      return new AptFailure.MalformedCache();
+    }
+  }
+  /** The file the library or program is checked at is not in the computer's file system. */
+  export class MissingLocalFile extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: AptFailure.MissingLocalFile.Fields;
+    constructor(body: AptFailure.MissingLocalFile.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): string {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(16);
+      const body = this[BODY];
+      writer.string(body.value);
+    }
+    static read(reader: BinaryReader): AptFailure.MissingLocalFile {
+      const value = reader.string();
+      return new AptFailure.MissingLocalFile({ value });
+    }
+  }
+  export namespace MissingLocalFile {
+    export interface Fields {
+      value: string;
+    }
+  }
+  /** The cache lists a server that cannot be connected to. */
+  export class Connection extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: AptFailure.Connection.Fields;
+    constructor(body: AptFailure.Connection.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): ConnectionFailure {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(17);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): AptFailure.Connection {
+      const value = ConnectionFailure.read(reader);
+      return new AptFailure.Connection({ value });
+    }
+  }
+  export namespace Connection {
+    export interface Fields {
+      value: ConnectionFailure;
+    }
+  }
+  /** The cache lists a server whose repository service does not answer. */
+  export class Service extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: AptFailure.Service.Fields;
+    constructor(body: AptFailure.Service.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): ServiceFailure {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(18);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): AptFailure.Service {
+      const value = ServiceFailure.read(reader);
+      return new AptFailure.Service({ value });
+    }
+  }
+  export namespace Service {
+    export interface Fields {
+      value: ServiceFailure;
+    }
+  }
+  /** The server has no repository configuration file. */
+  export class MissingConfig extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(19);
+    }
+    static read(reader: BinaryReader): AptFailure.MissingConfig {
+      return new AptFailure.MissingConfig();
+    }
+  }
+  /** The server's repository folder does not exist. */
+  export class MissingRepositoryFolder extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(20);
+    }
+    static read(reader: BinaryReader): AptFailure.MissingRepositoryFolder {
+      return new AptFailure.MissingRepositoryFolder();
     }
   }
 }
@@ -7283,12 +7707,12 @@ export abstract class NetUseTarget {
     switch (index) {
       case 0: return NetUseTarget.Null.read(reader);
       case 1: return NetUseTarget.Session.read(reader);
-      case 2: return NetUseTarget.Failure.read(reader);
       default: throw new RangeError(`no variant ${index} of \`NetUseTarget\``);
     }
   }
 }
 export namespace NetUseTarget {
+  /** No session opened; any printed failure arrives separately as [`ProgramPrint`]. */
   export class Null extends NetUseTarget {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -7328,37 +7752,6 @@ export namespace NetUseTarget {
   export namespace Session {
     export interface Fields {
       value: ObjectId;
-    }
-  }
-  /** Reason no session opened; the script prints it before receiving null. */
-  export class Failure extends NetUseTarget {
-    static readonly tags: ReadonlyArray<Tag> = [];
-    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-      name: "value",
-      property: "value",
-      tags: []
-    }];
-    protected readonly [BODY]: NetUseTarget.Failure.Fields;
-    constructor(body: NetUseTarget.Failure.Fields) {
-      super();
-      this[BODY] = body;
-    }
-    get value(): NetUseFailure {
-      return this[BODY].value;
-    }
-    override write(writer: BinaryWriter): void {
-      writer.u32(2);
-      const body = this[BODY];
-      body.value.write(writer);
-    }
-    static read(reader: BinaryReader): NetUseTarget.Failure {
-      const value = NetUseFailure.read(reader);
-      return new NetUseTarget.Failure({ value });
-    }
-  }
-  export namespace Failure {
-    export interface Fields {
-      value: NetUseFailure;
     }
   }
 }
@@ -8015,14 +8408,10 @@ export namespace ExploitObject {
     }
   }
 }
-/** Overflow attack output printed by the intrinsic and the object it returns. */
+/** Object produced by an overflow attack; its printed log arrives separately as [`ProgramPrint`]. */
 export class Exploit {
   static readonly tags: ReadonlyArray<Tag> = [];
   static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-    name: "log",
-    property: "log",
-    tags: []
-  }, {
     name: "object",
     property: "object",
     tags: []
@@ -8031,29 +8420,20 @@ export class Exploit {
   constructor(body: Exploit.Fields) {
     this[BODY] = body;
   }
-  get log(): ExploitLog {
-    return this[BODY].log;
-  }
   get object(): ExploitObject {
     return this[BODY].object;
   }
   write(writer: BinaryWriter): void {
     const body = this[BODY];
-    body.log.write(writer);
     body.object.write(writer);
   }
   static read(reader: BinaryReader): Exploit {
-    const fieldLog = ExploitLog.read(reader);
     const fieldObject = ExploitObject.read(reader);
-    return new Exploit({
-      log: fieldLog,
-      object: fieldObject
-    });
+    return new Exploit({ object: fieldObject });
   }
 }
 export namespace Exploit {
   export interface Fields {
-    log: ExploitLog;
     object: ExploitObject;
   }
 }
@@ -9100,14 +9480,26 @@ export abstract class ZeroDayPayload {
   static read(reader: BinaryReader): ZeroDayPayload {
     const index = reader.u32();
     switch (index) {
-      case 0: return ZeroDayPayload.Failure.read(reader);
-      case 1: return ZeroDayPayload.Objects.read(reader);
+      case 0: return ZeroDayPayload.Null.read(reader);
+      case 1: return ZeroDayPayload.Failure.read(reader);
+      case 2: return ZeroDayPayload.Objects.read(reader);
       default: throw new RangeError(`no variant ${index} of \`ZeroDayPayload\``);
     }
   }
 }
 export namespace ZeroDayPayload {
-  /** Reason the payload failed to run. */
+  /** No objects; an outside-library failure arrives separately as [`ProgramPrint`]. */
+  export class Null extends ZeroDayPayload {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+    }
+    static read(reader: BinaryReader): ZeroDayPayload.Null {
+      return new ZeroDayPayload.Null();
+    }
+  }
+  /** Reason the payload failed to run, returned by the intrinsic. */
   export class Failure extends ZeroDayPayload {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [{
@@ -9124,7 +9516,7 @@ export namespace ZeroDayPayload {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(0);
+      writer.u32(1);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -9155,7 +9547,7 @@ export namespace ZeroDayPayload {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(1);
+      writer.u32(2);
       const body = this[BODY];
       const items0 = body.value;
       writer.length(items0.length);
@@ -10266,40 +10658,13 @@ export namespace SmtpFailure {
     }
   }
 }
-/** One `update` source and its connection result. */
+/** No return data from `update`; its source lines arrive separately as [`ProgramPrint`] notifications. */
 export class AptUpdate {
   static readonly tags: ReadonlyArray<Tag> = [];
-  static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-    name: "lines",
-    property: "lines",
-    tags: []
-  }];
-  protected readonly [BODY]: AptUpdate.Fields;
-  constructor(body: AptUpdate.Fields) {
-    this[BODY] = body;
-  }
-  get lines(): AptUpdateLine[] {
-    return this[BODY].lines;
-  }
-  write(writer: BinaryWriter): void {
-    const body = this[BODY];
-    const items0 = body.lines;
-    writer.length(items0.length);
-    for (const item1 of items0) {
-      item1.write(writer);
-    }
-  }
+  static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+  write(writer: BinaryWriter): void {}
   static read(reader: BinaryReader): AptUpdate {
-    const fieldLines: AptUpdateLine[] = [];
-    for (let count0 = reader.length(); count0 > 0; count0--) {
-      fieldLines.push(AptUpdateLine.read(reader));
-    }
-    return new AptUpdate({ lines: fieldLines });
-  }
-}
-export namespace AptUpdate {
-  export interface Fields {
-    lines: AptUpdateLine[];
+    return new AptUpdate();
   }
 }
 export abstract class AptUpdateLine {
@@ -12445,14 +12810,26 @@ export abstract class ServiceConnection {
   static read(reader: BinaryReader): ServiceConnection {
     const index = reader.u32();
     switch (index) {
-      case 0: return ServiceConnection.Shell.read(reader);
-      case 1: return ServiceConnection.Encrypted.read(reader);
-      case 2: return ServiceConnection.Failure.read(reader);
+      case 0: return ServiceConnection.Null.read(reader);
+      case 1: return ServiceConnection.Shell.read(reader);
+      case 2: return ServiceConnection.Encrypted.read(reader);
+      case 3: return ServiceConnection.Failure.read(reader);
       default: throw new RangeError(`no variant ${index} of \`ServiceConnection\``);
     }
   }
 }
 export namespace ServiceConnection {
+  /** No shell; a login failure that reached a computer arrives separately as [`ProgramPrint`]. */
+  export class Null extends ServiceConnection {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+    }
+    static read(reader: BinaryReader): ServiceConnection.Null {
+      return new ServiceConnection.Null();
+    }
+  }
   /** Shell opened with fewer methods when connected through FTP. */
   export class Shell extends ServiceConnection {
     static readonly tags: ReadonlyArray<Tag> = [];
@@ -12477,7 +12854,7 @@ export namespace ServiceConnection {
       return this[BODY].ftp;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(0);
+      writer.u32(1);
       const body = this[BODY];
       writer.byte(body.ftp ? 1 : 0);
       body.shell.write(writer);
@@ -12516,11 +12893,6 @@ export namespace ServiceConnection {
         tags: []
       },
       {
-        name: "message",
-        property: "message",
-        tags: []
-      },
-      {
         name: "failure",
         property: "failure",
         tags: []
@@ -12547,9 +12919,6 @@ export namespace ServiceConnection {
     get guestShell(): ObjectId {
       return this[BODY].guestShell;
     }
-    get message(): boolean {
-      return this[BODY].message;
-    }
     get failure(): LoginFailure | null {
       return this[BODY].failure;
     }
@@ -12560,9 +12929,9 @@ export namespace ServiceConnection {
       return this[BODY].decode;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(1);
+      writer.u32(2);
       const body = this[BODY];
-      writer.byte((body.message ? 1 : 0) | (body.failure !== null ? 2 : 0));
+      writer.byte(body.failure !== null ? 1 : 0);
       writer.string(body.user);
       body.guestShell.write(writer);
       if (body.failure !== null) {
@@ -12572,17 +12941,15 @@ export namespace ServiceConnection {
       body.decode.write(writer);
     }
     static read(reader: BinaryReader): ServiceConnection.Encrypted {
-      const flags0 = reader.flags(3);
+      const flags0 = reader.flags(1);
       const fieldUser = reader.string();
       const fieldGuestShell = ObjectId.read(reader);
-      const fieldMessage = (flags0 & 1) !== 0;
-      const fieldFailure = (flags0 & 2) !== 0 ? LoginFailure.read(reader) : null;
+      const fieldFailure = (flags0 & 1) !== 0 ? LoginFailure.read(reader) : null;
       const fieldEncode = SourceFile.read(reader);
       const fieldDecode = SourceFile.read(reader);
       return new ServiceConnection.Encrypted({
         user: fieldUser,
         guestShell: fieldGuestShell,
-        message: fieldMessage,
         failure: fieldFailure,
         encode: fieldEncode,
         decode: fieldDecode
@@ -12593,13 +12960,12 @@ export namespace ServiceConnection {
     export interface Fields {
       user: string;
       guestShell: ObjectId;
-      message: boolean;
       failure: LoginFailure | null;
       encode: SourceFile;
       decode: SourceFile;
     }
   }
-  /** Reason login failed, formatted by the game for the script. */
+  /** Reason login failed, returned by the intrinsic when it does not print it. */
   export class Failure extends ServiceConnection {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [{
@@ -12616,7 +12982,7 @@ export namespace ServiceConnection {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(2);
+      writer.u32(3);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -12638,13 +13004,24 @@ export abstract class ServiceLoginResult {
   static read(reader: BinaryReader): ServiceLoginResult {
     const index = reader.u32();
     switch (index) {
-      case 0: return ServiceLoginResult.Shell.read(reader);
-      case 1: return ServiceLoginResult.Failure.read(reader);
+      case 0: return ServiceLoginResult.Null.read(reader);
+      case 1: return ServiceLoginResult.Shell.read(reader);
       default: throw new RangeError(`no variant ${index} of \`ServiceLoginResult\``);
     }
   }
 }
 export namespace ServiceLoginResult {
+  /** No shell; the login failure arrives separately as [`ProgramPrint`]. */
+  export class Null extends ServiceLoginResult {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+    }
+    static read(reader: BinaryReader): ServiceLoginResult.Null {
+      return new ServiceLoginResult.Null();
+    }
+  }
   /** Shell opened with fewer methods when connected through FTP. */
   export class Shell extends ServiceLoginResult {
     static readonly tags: ReadonlyArray<Tag> = [];
@@ -12669,7 +13046,7 @@ export namespace ServiceLoginResult {
       return this[BODY].ftp;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(0);
+      writer.u32(1);
       const body = this[BODY];
       writer.byte(body.ftp ? 1 : 0);
       body.shell.write(writer);
@@ -12688,37 +13065,6 @@ export namespace ServiceLoginResult {
     export interface Fields {
       shell: ObjectId;
       ftp: boolean;
-    }
-  }
-  /** Initial login failure or decoded-password retry failure. */
-  export class Failure extends ServiceLoginResult {
-    static readonly tags: ReadonlyArray<Tag> = [];
-    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-      name: "value",
-      property: "value",
-      tags: []
-    }];
-    protected readonly [BODY]: ServiceLoginResult.Failure.Fields;
-    constructor(body: ServiceLoginResult.Failure.Fields) {
-      super();
-      this[BODY] = body;
-    }
-    get value(): LoginFailure {
-      return this[BODY].value;
-    }
-    override write(writer: BinaryWriter): void {
-      writer.u32(1);
-      const body = this[BODY];
-      body.value.write(writer);
-    }
-    static read(reader: BinaryReader): ServiceLoginResult.Failure {
-      const value = LoginFailure.read(reader);
-      return new ServiceLoginResult.Failure({ value });
-    }
-  }
-  export namespace Failure {
-    export interface Fields {
-      value: LoginFailure;
     }
   }
 }
@@ -13554,7 +13900,10 @@ export namespace ServiceFailure {
     }
   }
 }
-/** `flood_connection` result, including LAN rejection after reaching a computer (`PlayerUtils.FirewallPingStatus`). */
+/**
+* `flood_connection` result, including LAN rejection after reaching a computer (`PlayerUtils.FirewallPingStatus`).
+* Flood output arrives separately as [`ProgramPrint`] notifications.
+*/
 export abstract class FloodResult {
   static readonly tags: ReadonlyArray<Tag> = [];
   abstract write(writer: BinaryWriter): void;
@@ -13580,95 +13929,26 @@ export namespace FloodResult {
       return new FloodResult.Gone();
     }
   }
-  /** Computer reboots and the script continues. Contains the flooded public address and the warning shown. */
+  /** Computer reboots and the script continues. */
   export class Reboot extends FloodResult {
     static readonly tags: ReadonlyArray<Tag> = [];
-    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-      name: "address",
-      property: "address",
-      tags: []
-    }, {
-      name: "warning",
-      property: "warning",
-      tags: []
-    }];
-    protected readonly [BODY]: FloodResult.Reboot.Fields;
-    constructor(body: FloodResult.Reboot.Fields) {
-      super();
-      this[BODY] = body;
-    }
-    get address(): string {
-      return this[BODY].address;
-    }
-    get warning(): FloodWarning {
-      return this[BODY].warning;
-    }
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
       writer.u32(1);
-      const body = this[BODY];
-      writer.string(body.address);
-      body.warning.write(writer);
     }
     static read(reader: BinaryReader): FloodResult.Reboot {
-      const fieldAddress = reader.string();
-      const fieldWarning = FloodWarning.read(reader);
-      return new FloodResult.Reboot({
-        address: fieldAddress,
-        warning: fieldWarning
-      });
+      return new FloodResult.Reboot();
     }
   }
-  export namespace Reboot {
-    export interface Fields {
-      address: string;
-      warning: FloodWarning;
-    }
-  }
-  /**
-  * Computer remains active and the script waits until stopped. Contains the flooded public address and the
-  * warning shown.
-  */
+  /** Computer remains active and the script waits until stopped. */
   export class Active extends FloodResult {
     static readonly tags: ReadonlyArray<Tag> = [];
-    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-      name: "address",
-      property: "address",
-      tags: []
-    }, {
-      name: "warning",
-      property: "warning",
-      tags: []
-    }];
-    protected readonly [BODY]: FloodResult.Active.Fields;
-    constructor(body: FloodResult.Active.Fields) {
-      super();
-      this[BODY] = body;
-    }
-    get address(): string {
-      return this[BODY].address;
-    }
-    get warning(): FloodWarning {
-      return this[BODY].warning;
-    }
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
       writer.u32(2);
-      const body = this[BODY];
-      writer.string(body.address);
-      body.warning.write(writer);
     }
     static read(reader: BinaryReader): FloodResult.Active {
-      const fieldAddress = reader.string();
-      const fieldWarning = FloodWarning.read(reader);
-      return new FloodResult.Active({
-        address: fieldAddress,
-        warning: fieldWarning
-      });
-    }
-  }
-  export namespace Active {
-    export interface Fields {
-      address: string;
-      warning: FloodWarning;
+      return new FloodResult.Active();
     }
   }
 }
@@ -14039,7 +14319,7 @@ export abstract class LaunchOutcome {
   }
 }
 export namespace LaunchOutcome {
-  /** Launch refused without a message because the shell computer is gone. */
+  /** Launch refused; any printed reason arrives separately as [`ProgramPrint`]. */
   export class Refusal extends LaunchOutcome {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -14050,7 +14330,7 @@ export namespace LaunchOutcome {
       return new LaunchOutcome.Refusal();
     }
   }
-  /** Reason the launch was refused; the terminal prints it. */
+  /** `start_terminal` returns the unavailable-computer failure instead of printing it. */
   export class Failure extends LaunchOutcome {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [{
@@ -15130,6 +15410,11 @@ export abstract class AdminFailure {
       case 16: return AdminFailure.NotGuildCompany.read(reader);
       case 17: return AdminFailure.AdminRestoreLimit.read(reader);
       case 18: return AdminFailure.LibraryUpdateSkipped.read(reader);
+      case 19: return AdminFailure.UnknownLibrary.read(reader);
+      case 20: return AdminFailure.UnreportableLibrary.read(reader);
+      case 21: return AdminFailure.UnknownReportedZone.read(reader);
+      case 22: return AdminFailure.UnknownReportedValue.read(reader);
+      case 23: return AdminFailure.ReportPending.read(reader);
       default: throw new RangeError(`no variant ${index} of \`AdminFailure\``);
     }
   }
@@ -15465,6 +15750,189 @@ export namespace AdminFailure {
     }
     static read(reader: BinaryReader): AdminFailure.LibraryUpdateSkipped {
       return new AdminFailure.LibraryUpdateSkipped();
+    }
+  }
+  /** The world has no library with the file name (`FileHelperServer.ExploitReport`). */
+  export class UnknownLibrary extends AdminFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: AdminFailure.UnknownLibrary.Fields;
+    constructor(body: AdminFailure.UnknownLibrary.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): string {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(19);
+      const body = this[BODY];
+      writer.string(body.value);
+    }
+    static read(reader: BinaryReader): AdminFailure.UnknownLibrary {
+      const value = reader.string();
+      return new AdminFailure.UnknownLibrary({ value });
+    }
+  }
+  export namespace UnknownLibrary {
+    export interface Fields {
+      value: string;
+    }
+  }
+  /** Players cannot report weaknesses of the library (`FileHelperServer.ExploitReportServerRpc`). */
+  export class UnreportableLibrary extends AdminFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(20);
+    }
+    static read(reader: BinaryReader): AdminFailure.UnreportableLibrary {
+      return new AdminFailure.UnreportableLibrary();
+    }
+  }
+  /** The newest version of the library has no memory zone at the address. */
+  export class UnknownReportedZone extends AdminFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(21);
+    }
+    static read(reader: BinaryReader): AdminFailure.UnknownReportedZone {
+      return new AdminFailure.UnknownReportedZone();
+    }
+  }
+  /** The memory zone has no weakness with the value. */
+  export class UnknownReportedValue extends AdminFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }, {
+      name: "zone",
+      property: "zone",
+      tags: []
+    }];
+    protected readonly [BODY]: AdminFailure.UnknownReportedValue.Fields;
+    constructor(body: AdminFailure.UnknownReportedValue.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): string {
+      return this[BODY].value;
+    }
+    get zone(): string {
+      return this[BODY].zone;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(22);
+      const body = this[BODY];
+      writer.string(body.value);
+      writer.string(body.zone);
+    }
+    static read(reader: BinaryReader): AdminFailure.UnknownReportedValue {
+      const fieldValue = reader.string();
+      const fieldZone = reader.string();
+      return new AdminFailure.UnknownReportedValue({
+        value: fieldValue,
+        zone: fieldZone
+      });
+    }
+  }
+  export namespace UnknownReportedValue {
+    export interface Fields {
+      value: string;
+      zone: string;
+    }
+  }
+  /** The player reported a weakness since the last check for library versions. */
+  export class ReportPending extends AdminFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(23);
+    }
+    static read(reader: BinaryReader): AdminFailure.ReportPending {
+      return new AdminFailure.ReportPending();
+    }
+  }
+}
+/** The version a library release made, or why there is none. */
+export abstract class LibraryRelease {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  abstract write(writer: BinaryWriter): void;
+  static read(reader: BinaryReader): LibraryRelease {
+    const index = reader.u32();
+    switch (index) {
+      case 0: return LibraryRelease.Released.read(reader);
+      case 1: return LibraryRelease.Failure.read(reader);
+      default: throw new RangeError(`no variant ${index} of \`LibraryRelease\``);
+    }
+  }
+}
+export namespace LibraryRelease {
+  export class Released extends LibraryRelease {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: LibraryRelease.Released.Fields;
+    constructor(body: LibraryRelease.Released.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): string {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+      const body = this[BODY];
+      writer.string(body.value);
+    }
+    static read(reader: BinaryReader): LibraryRelease.Released {
+      const value = reader.string();
+      return new LibraryRelease.Released({ value });
+    }
+  }
+  export namespace Released {
+    export interface Fields {
+      value: string;
+    }
+  }
+  export class Failure extends LibraryRelease {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: LibraryRelease.Failure.Fields;
+    constructor(body: LibraryRelease.Failure.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): Failure {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(1);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): LibraryRelease.Failure {
+      const value = Failure.read(reader);
+      return new LibraryRelease.Failure({ value });
+    }
+  }
+  export namespace Failure {
+    export interface Fields {
+      value: Failure;
     }
   }
 }
@@ -16493,15 +16961,23 @@ export class StartProgram extends Message<WorldPeer.Program, StartProgram.Fields
     super(body);
   }
   static override readonly tags: ReadonlyArray<Tag> = [];
-  static override readonly fields: ReadonlyArray<FieldTagContainer> = [{
-    name: "user",
-    property: "user",
-    tags: []
-  }, {
-    name: "path",
-    property: "path",
-    tags: []
-  }];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "user",
+      property: "user",
+      tags: []
+    },
+    {
+      name: "path",
+      property: "path",
+      tags: []
+    },
+    {
+      name: "safe_terminal",
+      property: "safeTerminal",
+      tags: []
+    }
+  ];
   /** Account that runs the program. */
   get user(): string {
     return this[BODY].user;
@@ -16510,21 +16986,32 @@ export class StartProgram extends Message<WorldPeer.Program, StartProgram.Fields
   get path(): string | undefined {
     return this[BODY].path;
   }
+  /**
+  * Whether the program is typed into the safe-mode terminal that restarting the player computer in safe mode
+  * starts (`GreyScriptHelperServer.PrepareTerminalServerRpc`: `GreyInterpreter.isSafeTerminal` is the
+  * protected flag of the terminal process). Programs that program launches share the flag. Has no effect
+  * while the player computer runs no safe-mode terminal.
+  */
+  get safeTerminal(): boolean {
+    return this[BODY].safeTerminal;
+  }
   override write(writer: BinaryWriter): void {
     const body = this[BODY];
-    writer.byte(body.path !== undefined ? 1 : 0);
+    writer.byte((body.path !== undefined ? 1 : 0) | (body.safeTerminal ? 2 : 0));
     writer.string(body.user);
     if (body.path !== undefined) {
       writer.string(body.path);
     }
   }
   static read(reader: BinaryReader): StartProgram {
-    const flags0 = reader.flags(1);
+    const flags0 = reader.flags(3);
     const fieldUser = reader.string();
     const fieldPath = (flags0 & 1) !== 0 ? reader.string() : undefined;
+    const fieldSafeTerminal = (flags0 & 2) !== 0;
     return new StartProgram({
       user: fieldUser,
-      path: fieldPath
+      path: fieldPath,
+      safeTerminal: fieldSafeTerminal
     });
   }
   static override readonly responds = true;
@@ -16547,6 +17034,7 @@ export namespace StartProgram {
   export interface Fields {
     user: string;
     path?: string;
+    safeTerminal: boolean;
   }
 }
 /**
@@ -33877,6 +34365,160 @@ export namespace AdminSetAdminRestore {
   }
 }
 /**
+* Releases the next version of the library file `library` as the game does for a world's first versions: every
+* visible weakness counts as used up, and the check for library versions patches them
+* (`VersionsControl.ForceInitialVersionGeneration`). Returns the new version, or the failure when the world has
+* no such library.
+*/
+export class AdminReleaseLibraryVersion extends Message<WorldPeer.Program, AdminReleaseLibraryVersion.Fields, ValueResponse<LibraryRelease, ScriptFailure>> {
+  static readonly id = 228;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminReleaseLibraryVersion.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "program",
+    property: "program",
+    tags: []
+  }, {
+    name: "library",
+    property: "library",
+    tags: []
+  }];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get library(): string {
+    return this[BODY].library;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    writer.string(body.library);
+  }
+  static read(reader: BinaryReader): AdminReleaseLibraryVersion {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldLibrary = reader.string();
+    return new AdminReleaseLibraryVersion({
+      program: fieldProgram,
+      library: fieldLibrary
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: LibraryRelease): void {
+    value.write(writer);
+  }
+  static readResponseEnd(reader: BinaryReader): LibraryRelease {
+    const value = LibraryRelease.read(reader);
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminReleaseLibraryVersion {
+  export interface Fields {
+    program: ProgramId;
+    library: string;
+  }
+}
+/**
+* Reports the weakness `unsec_value` of the memory zone `zone` of the newest library file `library` as the
+* exploit report window does (`FileHelperServer.ExploitReportServerRpc`): the next check releases a version that
+* patches it. Returns true or the game's failure.
+*/
+export class AdminReportExploit extends Message<WorldPeer.Program, AdminReportExploit.Fields, ValueResponse<Outcome, ScriptFailure>> {
+  static readonly id = 229;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminReportExploit.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "program",
+      property: "program",
+      tags: []
+    },
+    {
+      name: "library",
+      property: "library",
+      tags: []
+    },
+    {
+      name: "zone",
+      property: "zone",
+      tags: []
+    },
+    {
+      name: "unsec_value",
+      property: "unsecValue",
+      tags: []
+    }
+  ];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get library(): string {
+    return this[BODY].library;
+  }
+  get zone(): string {
+    return this[BODY].zone;
+  }
+  get unsecValue(): string {
+    return this[BODY].unsecValue;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    writer.string(body.library);
+    writer.string(body.zone);
+    writer.string(body.unsecValue);
+  }
+  static read(reader: BinaryReader): AdminReportExploit {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldLibrary = reader.string();
+    const fieldZone = reader.string();
+    const fieldUnsecValue = reader.string();
+    return new AdminReportExploit({
+      program: fieldProgram,
+      library: fieldLibrary,
+      zone: fieldZone,
+      unsecValue: fieldUnsecValue
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: Outcome): void {
+    value.write(writer);
+  }
+  static readResponseEnd(reader: BinaryReader): Outcome {
+    const value = Outcome.read(reader);
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminReportExploit {
+  export interface Fields {
+    program: ProgramId;
+    library: string;
+    zone: string;
+    unsecValue: string;
+  }
+}
+/**
 * Reports server-side termination after process removal, reboot, computer removal, or parent exit.
 * The runtime stops the program and its children, then acknowledges with [`EndProgram`].
 */
@@ -33971,6 +34613,50 @@ export namespace ProgramThrottle {
     milliseconds: number;
   }
 }
+/** Queues one typed game-output line for `program`. Lines of an operation arrive before its response. */
+export class ProgramPrint extends Message<WorldPeer.GameServer, ProgramPrint.Fields> {
+  static readonly id = 2;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.GameServer;
+  constructor(body: ProgramPrint.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "program",
+    property: "program",
+    tags: []
+  }, {
+    name: "line",
+    property: "line",
+    tags: []
+  }];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get line(): PrintLine {
+    return this[BODY].line;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    body.line.write(writer);
+  }
+  static read(reader: BinaryReader): ProgramPrint {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldLine = PrintLine.read(reader);
+    return new ProgramPrint({
+      program: fieldProgram,
+      line: fieldLine
+    });
+  }
+}
+export namespace ProgramPrint {
+  export interface Fields {
+    program: ProgramId;
+    line: PrintLine;
+  }
+}
 /**
 * One game server owns the shared Grey Hack world. Runtime clients execute operations sequentially, so programs
 * observe only completed changes, never partial operations.
@@ -34002,9 +34688,13 @@ export const World = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 3729809826 }],
+  versions: [{ fingerprint: 2955075006 }],
   peers: [WorldPeer.Program, WorldPeer.GameServer],
-  messages: [[ProgramEnd, ProgramThrottle], [
+  messages: [[
+    ProgramEnd,
+    ProgramThrottle,
+    ProgramPrint
+  ], [
     StartProgram,
     EndProgram,
     ReleaseObjects,
@@ -34232,7 +34922,9 @@ export const World = {
     AdminCreateGuild,
     AdminSetCompanyShares,
     AdminHireCrownShield,
-    AdminSetAdminRestore
+    AdminSetAdminRestore,
+    AdminReleaseLibraryVersion,
+    AdminReportExploit
   ]],
   tags: [],
   requiredCapabilities: Capabilities.PERSISTENT

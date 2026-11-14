@@ -9,21 +9,61 @@ use crate::support::saved_networks::{
 /// Connecting by Wi-Fi remembers the router as the computer's most recent network (`ConfigOS.SetIpAddress`).
 #[tokio::test]
 async fn should_save_the_network_it_connects_to_by_wifi() {
-    let (mut world, alpha, _) = world_with_networks().await;
-    let player = world.player();
-
-    assert_eq!(world.saved_networks(player).await.unwrap(), []);
-
-    world.connect_wifi(player, alpha).await.unwrap().unwrap();
-
-    let router = world.router(alpha).await.unwrap().unwrap();
+    let (world, alpha, _) = world_with_networks().await;
+    let player = world.handle.player();
 
     assert_eq!(
-        world.saved_networks(player).await.unwrap(),
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .saved_networks(player)
+            .await
+            .unwrap(),
+        []
+    );
+
+    world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .connect_wifi(player, alpha)
+        .await
+        .unwrap()
+        .unwrap();
+
+    let router = world
+        .modules
+        .core
+        .networks
+        .routers
+        .router(alpha)
+        .await
+        .unwrap()
+        .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .saved_networks(player)
+            .await
+            .unwrap(),
         [SavedNetwork::of(&router)]
     );
     assert_eq!(
-        world.saved_networks(player).await.unwrap()[0],
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .saved_networks(player)
+            .await
+            .unwrap()[0],
         SavedNetwork {
             bssid: router.bssid.clone().unwrap(),
             essid: "alpha".to_owned(),
@@ -36,11 +76,27 @@ async fn should_save_the_network_it_connects_to_by_wifi() {
 /// Connecting again to a saved network removes the old entry and adds it last (`ConfigOS.AddSavedNetwork`).
 #[tokio::test]
 async fn should_move_a_network_connected_again_to_the_end() {
-    let (mut world, alpha, bravo) = world_with_networks().await;
-    let player = world.player();
+    let (world, alpha, bravo) = world_with_networks().await;
+    let player = world.handle.player();
 
-    world.connect_wifi(player, alpha).await.unwrap().unwrap();
-    world.connect_wifi(player, bravo).await.unwrap().unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .connect_wifi(player, alpha)
+        .await
+        .unwrap()
+        .unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .connect_wifi(player, bravo)
+        .await
+        .unwrap()
+        .unwrap();
 
     let order = |saved: Vec<SavedNetwork>| {
         saved
@@ -50,14 +106,40 @@ async fn should_move_a_network_connected_again_to_the_end() {
     };
 
     assert_eq!(
-        order(world.saved_networks(player).await.unwrap()),
+        order(
+            world
+                .modules
+                .core
+                .networks
+                .net_cards
+                .saved_networks(player)
+                .await
+                .unwrap()
+        ),
         ["alpha", "bravo"]
     );
 
-    world.connect_wifi(player, alpha).await.unwrap().unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .connect_wifi(player, alpha)
+        .await
+        .unwrap()
+        .unwrap();
 
     assert_eq!(
-        order(world.saved_networks(player).await.unwrap()),
+        order(
+            world
+                .modules
+                .core
+                .networks
+                .net_cards
+                .saved_networks(player)
+                .await
+                .unwrap()
+        ),
         ["bravo", "alpha"]
     );
 }
@@ -65,25 +147,71 @@ async fn should_move_a_network_connected_again_to_the_end() {
 /// The password saved is the router's at the time, and a network connected again saves the current one.
 #[tokio::test]
 async fn should_save_the_password_the_router_had_when_connected() {
-    let (mut world, alpha, _) = world_with_networks().await;
-    let player = world.player();
+    let (world, alpha, _) = world_with_networks().await;
+    let player = world.handle.player();
 
-    world.connect_wifi(player, alpha).await.unwrap().unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .connect_wifi(player, alpha)
+        .await
+        .unwrap()
+        .unwrap();
 
-    let mut router = world.router(alpha).await.unwrap().unwrap();
+    let mut router = world
+        .modules
+        .core
+        .networks
+        .routers
+        .router(alpha)
+        .await
+        .unwrap()
+        .unwrap();
 
     router.wifi_password = "changed".to_owned();
-    world.save_router(&router).await.unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .routers
+        .save_router(&router)
+        .await
+        .unwrap();
 
     assert_eq!(
-        world.saved_networks(player).await.unwrap()[0].password,
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .saved_networks(player)
+            .await
+            .unwrap()[0]
+            .password,
         "pw-a"
     );
 
-    world.connect_wifi(player, alpha).await.unwrap().unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .connect_wifi(player, alpha)
+        .await
+        .unwrap()
+        .unwrap();
 
     assert_eq!(
-        world.saved_networks(player).await.unwrap(),
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .saved_networks(player)
+            .await
+            .unwrap(),
         [SavedNetwork::of(&router)]
     );
 }
@@ -92,18 +220,43 @@ async fn should_save_the_password_the_router_had_when_connected() {
 /// (`PlayerComputer.AutoConnectWifi`), here found through the LAN router of its network.
 #[tokio::test]
 async fn should_connect_to_the_most_recent_saved_network_when_the_player_restarts() {
-    let (mut world, player) = world_on_lan(vec![lan_network("lan-pw")], false).await;
+    let (world, player) = world_on_lan(vec![lan_network("lan-pw")], false).await;
 
     assert_eq!(gateway(&world, player).await, "192.168.1.1");
 
-    assert!(world.reboot_player(false).await.unwrap());
+    assert!(
+        world
+            .modules
+            .core
+            .computers
+            .processes
+            .reboot_player(false)
+            .await
+            .unwrap()
+    );
 
     assert_eq!(gateway(&world, player).await, "172.16.3.1");
     assert_eq!(
-        world.saved_networks(player).await.unwrap(),
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .saved_networks(player)
+            .await
+            .unwrap(),
         [lan_network("lan-pw")]
     );
-    assert!(!world.in_safe_mode(player).await.unwrap());
+    assert!(
+        !world
+            .modules
+            .core
+            .computers
+            .processes
+            .in_safe_mode(player)
+            .await
+            .unwrap()
+    );
 }
 
 /// Only the most recent network counts, whatever came before.
@@ -115,9 +268,16 @@ async fn should_ignore_older_saved_networks_when_the_player_restarts() {
         password: "x".to_owned(),
         public_ip: "1.2.3.4".to_owned(),
     };
-    let (mut world, player) = world_on_lan(vec![lan_network("lan-pw"), older], false).await;
+    let (world, player) = world_on_lan(vec![lan_network("lan-pw"), older], false).await;
 
-    world.reboot_player(false).await.unwrap();
+    world
+        .modules
+        .core
+        .computers
+        .processes
+        .reboot_player(false)
+        .await
+        .unwrap();
 
     assert_eq!(gateway(&world, player).await, "192.168.1.1");
 }
@@ -125,9 +285,16 @@ async fn should_ignore_older_saved_networks_when_the_player_restarts() {
 /// The desktop doesn't reconnect a computer whose Ethernet card is the active one.
 #[tokio::test]
 async fn should_not_connect_by_wifi_when_ethernet_is_active() {
-    let (mut world, player) = world_on_lan(vec![lan_network("lan-pw")], true).await;
+    let (world, player) = world_on_lan(vec![lan_network("lan-pw")], true).await;
 
-    world.reboot_player(false).await.unwrap();
+    world
+        .modules
+        .core
+        .computers
+        .processes
+        .reboot_player(false)
+        .await
+        .unwrap();
 
     assert_eq!(gateway(&world, player).await, "192.168.1.1");
 }
@@ -135,14 +302,36 @@ async fn should_not_connect_by_wifi_when_ethernet_is_active() {
 /// Safe mode starts the protected terminal instead of the desktop, which is what connects the computer.
 #[tokio::test]
 async fn should_not_connect_by_wifi_in_safe_mode_and_start_the_safe_terminal() {
-    let (mut world, player) = world_on_lan(vec![lan_network("lan-pw")], false).await;
+    let (world, player) = world_on_lan(vec![lan_network("lan-pw")], false).await;
 
-    assert!(world.reboot_player(true).await.unwrap());
+    assert!(
+        world
+            .modules
+            .core
+            .computers
+            .processes
+            .reboot_player(true)
+            .await
+            .unwrap()
+    );
 
     assert_eq!(gateway(&world, player).await, "192.168.1.1");
-    assert!(world.in_safe_mode(player).await.unwrap());
+    assert!(
+        world
+            .modules
+            .core
+            .computers
+            .processes
+            .in_safe_mode(player)
+            .await
+            .unwrap()
+    );
 
     let terminal = world
+        .modules
+        .core
+        .computers
+        .processes
         .processes(player)
         .await
         .unwrap()
@@ -166,12 +355,35 @@ async fn should_not_connect_by_wifi_in_safe_mode_and_start_the_safe_terminal() {
 /// (`PlayerComputer.RemoveAllProcess`), and the desktop starts again.
 #[tokio::test]
 async fn should_leave_safe_mode_on_the_next_normal_restart() {
-    let (mut world, player) = world_on_lan(vec![lan_network("lan-pw")], false).await;
+    let (world, player) = world_on_lan(vec![lan_network("lan-pw")], false).await;
 
-    world.reboot_player(true).await.unwrap();
-    world.reboot_player(false).await.unwrap();
+    world
+        .modules
+        .core
+        .computers
+        .processes
+        .reboot_player(true)
+        .await
+        .unwrap();
+    world
+        .modules
+        .core
+        .computers
+        .processes
+        .reboot_player(false)
+        .await
+        .unwrap();
 
-    assert!(!world.in_safe_mode(player).await.unwrap());
+    assert!(
+        !world
+            .modules
+            .core
+            .computers
+            .processes
+            .in_safe_mode(player)
+            .await
+            .unwrap()
+    );
     assert_eq!(gateway(&world, player).await, "172.16.3.1");
 }
 
@@ -179,23 +391,44 @@ async fn should_leave_safe_mode_on_the_next_normal_restart() {
 /// (`NetworkHelperServer.IwconfigUIServerRpc`), in the game's order.
 #[tokio::test]
 async fn should_refuse_a_saved_network_in_the_games_order() {
-    let (mut world, player) = world_on_lan(vec![lan_network("other")], false).await;
+    let (world, player) = world_on_lan(vec![lan_network("other")], false).await;
 
     assert_eq!(
-        world.auto_connect_wifi().await.unwrap(),
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .auto_connect_wifi()
+            .await
+            .unwrap(),
         Err(SavedWifiFailure::IncorrectPassword)
     );
 
-    world.disable_network(MAIN_IP, true).await.unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .settings
+        .disable_network(MAIN_IP, true)
+        .await
+        .unwrap();
 
     assert_eq!(
-        world.auto_connect_wifi().await.unwrap(),
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .auto_connect_wifi()
+            .await
+            .unwrap(),
         Err(SavedWifiFailure::NonPayment)
     );
     assert_eq!(gateway(&world, player).await, "192.168.1.1");
 
     // The LAN router isn't a main router: it is found through the public address it was saved with.
-    let (mut world, _) = world_on_lan(
+    let (world, _) = world_on_lan(
         vec![SavedNetwork {
             public_ip: "1.2.3.4".to_owned(),
             ..lan_network("lan-pw")
@@ -205,11 +438,18 @@ async fn should_refuse_a_saved_network_in_the_games_order() {
     .await;
 
     assert_eq!(
-        world.auto_connect_wifi().await.unwrap(),
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .auto_connect_wifi()
+            .await
+            .unwrap(),
         Err(SavedWifiFailure::UnknownRouter)
     );
 
-    let (mut world, _) = world_on_lan(
+    let (world, _) = world_on_lan(
         vec![SavedNetwork {
             bssid: "11:11:11:11:11:11".to_owned(),
             public_ip: "1.2.3.4".to_owned(),
@@ -220,7 +460,14 @@ async fn should_refuse_a_saved_network_in_the_games_order() {
     .await;
 
     assert_eq!(
-        world.auto_connect_wifi().await.unwrap(),
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .auto_connect_wifi()
+            .await
+            .unwrap(),
         Err(SavedWifiFailure::UnknownRouter)
     );
 }
@@ -228,10 +475,31 @@ async fn should_refuse_a_saved_network_in_the_games_order() {
 /// Without a saved network the game only marks Wi-Fi active.
 #[tokio::test]
 async fn should_only_enable_wifi_without_a_saved_network() {
-    let (mut world, player) = world_on_lan(Vec::new(), true).await;
+    let (world, player) = world_on_lan(Vec::new(), true).await;
 
-    assert_eq!(world.auto_connect_wifi().await.unwrap(), Ok(()));
-    assert!(world.active_net_card(player).await.unwrap().unwrap().wifi);
+    assert_eq!(
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .auto_connect_wifi()
+            .await
+            .unwrap(),
+        Ok(())
+    );
+    assert!(
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .active_net_card(player)
+            .await
+            .unwrap()
+            .unwrap()
+            .wifi
+    );
     assert_eq!(gateway(&world, player).await, "192.168.1.1");
 }
 
@@ -244,7 +512,7 @@ async fn should_refuse_a_saved_network_without_a_wlan0_card() {
         player.saved_networks = vec![lan_network("lan-pw")];
     }
 
-    let mut world = World::new(&PlayerOptions {
+    let world = World::new(&PlayerOptions {
         network: Some(network),
         ..PlayerOptions::default()
     })
@@ -252,7 +520,14 @@ async fn should_refuse_a_saved_network_without_a_wlan0_card() {
     .unwrap();
 
     assert_eq!(
-        world.auto_connect_wifi().await.unwrap(),
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .auto_connect_wifi()
+            .await
+            .unwrap(),
         Err(SavedWifiFailure::NoWlan0)
     );
 }
@@ -260,19 +535,56 @@ async fn should_refuse_a_saved_network_without_a_wlan0_card() {
 /// A computer that fails its startup checks starts the safe-mode terminal as well (`Computer.CheckInicio`).
 #[tokio::test]
 async fn should_start_the_safe_terminal_when_the_startup_checks_fail() {
-    let (mut world, player) = world_on_lan(vec![lan_network("lan-pw")], false).await;
+    let (world, player) = world_on_lan(vec![lan_network("lan-pw")], false).await;
 
-    assert!(world.startup_failures(player).await.unwrap().is_empty());
+    assert!(
+        world
+            .modules
+            .core
+            .computers
+            .startup
+            .startup_failures(player)
+            .await
+            .unwrap()
+            .is_empty()
+    );
 
     let kernel = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player, "/boot/System.map", false)
         .await
         .unwrap()
         .expect("a startup file");
 
-    world.remove_node(&kernel).await.unwrap();
-    world.reboot_player(false).await.unwrap();
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .remove_node(&kernel)
+        .await
+        .unwrap();
+    world
+        .modules
+        .core
+        .computers
+        .processes
+        .reboot_player(false)
+        .await
+        .unwrap();
 
-    assert!(world.in_safe_mode(player).await.unwrap());
+    assert!(
+        world
+            .modules
+            .core
+            .computers
+            .processes
+            .in_safe_mode(player)
+            .await
+            .unwrap()
+    );
     assert_eq!(gateway(&world, player).await, "192.168.1.1");
 }

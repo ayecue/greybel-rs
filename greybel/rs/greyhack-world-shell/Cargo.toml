@@ -1,0 +1,27 @@
+[package]
+name = "greyhack-world-shell"
+description = "Grey Hack shell connections, program builds, launches, and terminal lifecycle"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greybel-source-map.workspace = true
+greyhack-behaviour.workspace = true
+greyhack-world-core.workspace = true
+greyhack-world-guilds.workspace = true
+greyhack-world-intrusion.workspace = true
+greyhack-world-libraries.workspace = true
+greyhack-world-modules.workspace = true
+greyhack-world-router.workspace = true
+greyhack-world-services.workspace = true
+greyhack-world-storage.workspace = true
+
+[lints]
+workspace = true

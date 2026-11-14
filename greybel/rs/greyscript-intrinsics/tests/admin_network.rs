@@ -6,13 +6,26 @@ use crate::support::scripts::run_on_host;
 
 #[test]
 fn should_change_and_read_an_npc_phone_alarm() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).unwrap();
-    let router = block_on(world.add_network(&NetworkOptions::default())).unwrap();
-    let public_ip = block_on(world.router(router)).unwrap().unwrap().public_ip;
+    let world = block_on(World::new(&PlayerOptions::default())).unwrap();
+    let router = block_on(
+        world
+            .modules
+            .creation
+            .network_generation
+            .add_network(&NetworkOptions::default()),
+    )
+    .unwrap();
+    let public_ip = block_on(world.modules.core.networks.routers.router(router))
+        .unwrap()
+        .unwrap()
+        .public_ip;
     let mut npc = None;
 
-    for computer in block_on(world.devices(router)).unwrap() {
-        if let Some(found) = block_on(world.npcs_on(computer)).unwrap().first() {
+    for computer in block_on(world.modules.core.networks.topology.devices(router)).unwrap() {
+        if let Some(found) = block_on(world.modules.npcs.npcs.npcs_on(computer))
+            .unwrap()
+            .first()
+        {
             npc = Some(found.user.clone());
             break;
         }
@@ -47,13 +60,22 @@ print network.set_phone_alarm({}, 0, 0, 0).fired"#,
 
 #[test]
 fn should_report_a_library_update_for_the_network() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).unwrap();
-    let router = block_on(world.add_network(&NetworkOptions {
-        computers: Some(0),
-        ..NetworkOptions::default()
-    }))
+    let world = block_on(World::new(&PlayerOptions::default())).unwrap();
+    let router = block_on(
+        world
+            .modules
+            .creation
+            .network_generation
+            .add_network(&NetworkOptions {
+                computers: Some(0),
+                ..NetworkOptions::default()
+            }),
+    )
     .unwrap();
-    let public_ip = block_on(world.router(router)).unwrap().unwrap().public_ip;
+    let public_ip = block_on(world.modules.core.networks.routers.router(router))
+        .unwrap()
+        .unwrap()
+        .public_ip;
     let options = ComputerOptions {
         services: Some(vec!["ssh".to_owned()]),
         ..ComputerOptions::default()
@@ -61,11 +83,24 @@ fn should_report_a_library_update_for_the_network() {
     let mut computers = Vec::new();
 
     for version in ["1.0.0", "2.0.0"] {
-        let computer = block_on(world.add_computer_to(router, &options))
-            .unwrap()
-            .unwrap();
+        let computer = block_on(
+            world
+                .modules
+                .creation
+                .network_generation
+                .add_computer_to(router, &options),
+        )
+        .unwrap()
+        .unwrap();
 
-        assert!(block_on(world.set_library_version(computer, "/lib/libssh.so", version)).unwrap());
+        assert!(
+            block_on(world.modules.core.computers.hardware.set_library_version(
+                computer,
+                "/lib/libssh.so",
+                version
+            ))
+            .unwrap()
+        );
         computers.push(computer);
     }
 
@@ -82,23 +117,36 @@ print network.report_library_update("libnothing.so")"#,
     assert_eq!(error, None);
     assert_eq!(output.trim_end(), "1\n0");
 
-    let library = block_on(world.file_library(computers[0], "/lib/libssh.so", false))
-        .unwrap()
-        .unwrap();
+    let library = block_on(world.modules.libraries.generator.full_file_library(
+        computers[0],
+        "/lib/libssh.so",
+        false,
+    ))
+    .unwrap()
+    .unwrap();
 
     assert_eq!(library.version, "2.0.0");
 }
 
 #[test]
 fn should_skip_a_library_update_when_the_guild_turned_admin_restore_off() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).unwrap();
-    let router = block_on(world.add_network(&NetworkOptions {
-        computers: Some(0),
-        ..NetworkOptions::default()
-    }))
+    let world = block_on(World::new(&PlayerOptions::default())).unwrap();
+    let router = block_on(
+        world
+            .modules
+            .creation
+            .network_generation
+            .add_network(&NetworkOptions {
+                computers: Some(0),
+                ..NetworkOptions::default()
+            }),
+    )
     .unwrap();
-    let public_ip = block_on(world.router(router)).unwrap().unwrap().public_ip;
-    let computer = block_on(world.add_computer_to(
+    let public_ip = block_on(world.modules.core.networks.routers.router(router))
+        .unwrap()
+        .unwrap()
+        .public_ip;
+    let computer = block_on(world.modules.creation.network_generation.add_computer_to(
         router,
         &ComputerOptions {
             services: Some(vec!["ssh".to_owned()]),
@@ -108,7 +156,14 @@ fn should_skip_a_library_update_when_the_guild_turned_admin_restore_off() {
     .unwrap()
     .unwrap();
 
-    assert!(block_on(world.set_library_version(computer, "/lib/libssh.so", "1.0.0")).unwrap());
+    assert!(
+        block_on(world.modules.core.computers.hardware.set_library_version(
+            computer,
+            "/lib/libssh.so",
+            "1.0.0"
+        ))
+        .unwrap()
+    );
 
     let code = format!(
         r#"admin = include_lib("admin.so")
@@ -132,9 +187,13 @@ print network.report_library_update("libssh.so")"#,
         "1\nError: Admin Restore can only be configured for guild-owned companies.\n1\nError: no guild is called Hawks\n1\nThanks for the warning, but I am not going to update them for now.\n1\n1"
     );
 
-    let library = block_on(world.file_library(computer, "/lib/libssh.so", false))
-        .unwrap()
-        .unwrap();
+    let library = block_on(world.modules.libraries.generator.full_file_library(
+        computer,
+        "/lib/libssh.so",
+        false,
+    ))
+    .unwrap()
+    .unwrap();
 
     assert_ne!(library.version, "1.0.0");
 }

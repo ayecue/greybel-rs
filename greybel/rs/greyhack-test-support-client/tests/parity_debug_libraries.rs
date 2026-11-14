@@ -43,12 +43,15 @@ async fn should_match_intrinsics_for_debug_libraries() {
     let next_month = add_month(month);
     let auto_patch = add_months(month, 3);
     let past_auto_patch = auto_patch + SECONDS_PER_DAY;
-    let mut future_world = snapshot_world("root", &snapshot);
+    let future_world = snapshot_world("root", &snapshot);
 
     future_world.tick(past_auto_patch - now).await.unwrap();
 
     let future = future_world
-        .debug_library(future_world.player(), &debug.path)
+        .modules
+        .libraries
+        .debug
+        .debug_library(future_world.handle.player(), &debug.path)
         .await
         .unwrap()
         .unwrap();

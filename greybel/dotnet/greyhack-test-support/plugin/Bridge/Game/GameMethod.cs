@@ -10,4 +10,18 @@ internal static class GameMethod
         "UpdateReportedNetworks",
         BindingFlags.Instance | BindingFlags.NonPublic
     );
+
+    /// <summary>Counts every visible weakness of a library as used up, as the world's first versions are made.</summary>
+    public static readonly MethodInfo VersionsMarkVisibleVulnerabilities =
+        typeof(VersionsControl).GetMethod(
+            "MarkVisibleVulnerabilitiesAsUsed",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
+
+    /// <summary>Releases the next version of a library when its weaknesses were used up.</summary>
+    public static readonly MethodInfo VersionsCheckUpdatePrograms =
+        typeof(VersionsControl).GetMethod(
+            "CheckUpdatePrograms",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
 }

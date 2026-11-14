@@ -31,12 +31,21 @@ print device.model
 
 #[test]
 fn should_deny_locked_smart_appliance_settings() {
-    let mut world = world_with_appliance();
-    let player = world.player();
-    let mut settings = block_on(world.smart(player)).unwrap().unwrap();
+    let world = world_with_appliance();
+    let player = world.handle.player();
+    let mut settings = block_on(world.modules.smart_devices.appliances.smart(player))
+        .unwrap()
+        .unwrap();
 
     settings.override_enabled = false;
-    block_on(world.save_smart(player, Some(&settings))).unwrap();
+    block_on(
+        world
+            .modules
+            .smart_devices
+            .appliances
+            .save_smart(player, Some(&settings)),
+    )
+    .unwrap();
 
     let code = r#"
 device = include_lib("/lib/libsmartappliance.so")
@@ -54,17 +63,37 @@ print device.set_alarm(1)
 #[tokio::test]
 async fn should_preserve_smart_appliance_settings() {
     let mut world = world_with_appliance();
-    let player = world.player();
-    let mut settings = world.smart(player).await.unwrap().unwrap();
+    let player = world.handle.player();
+    let mut settings = world
+        .modules
+        .smart_devices
+        .appliances
+        .smart(player)
+        .await
+        .unwrap()
+        .unwrap();
 
     settings.alarm = true;
-    world.save_smart(player, Some(&settings)).await.unwrap();
+    world
+        .modules
+        .smart_devices
+        .appliances
+        .save_smart(player, Some(&settings))
+        .await
+        .unwrap();
 
     let database = save_copy(&mut world).await;
 
     let restored = World::load(&database).await.unwrap();
 
-    let settings = restored.smart(restored.player()).await.unwrap().unwrap();
+    let settings = restored
+        .modules
+        .smart_devices
+        .appliances
+        .smart(restored.player())
+        .await
+        .unwrap()
+        .unwrap();
 
     assert_eq!(settings.model, "ACME/FR1");
     assert!(settings.alarm);

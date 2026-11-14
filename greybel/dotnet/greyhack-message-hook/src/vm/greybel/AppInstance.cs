@@ -151,14 +151,28 @@ namespace GreyHackMessageHook.Greybel
                     // Save the launched program's computer before replacing it with the launching program's state.
                     string childComputerId = Interpreter.computerID;
                     HelperScript.HelperVmState lastVm = Interpreter.hostData.GetLastVM();
+                    if (Interpreter.exitBashReboot)
+                    {
+                        // MainClass: a reboot of the terminal's computer also exits the program that started the
+                        // terminal. The program has no terminal below it here, so nothing is left to continue.
+                        lastVm = Interpreter.hostData.GetLastVM();
+                    }
                     int bouncesBeforeExit = Interpreter.GetStartNumBounces();
-                    Interpreter.SetVmState(lastVm);
+                    if (lastVm != null)
+                    {
+                        Interpreter.SetVmState(lastVm);
+                    }
                     // MainClass: ending a terminal's bash with `exit`, or a connection interrupted or a reboot,
                     // closes the programs of the remote it was on (`flag4`).
                     bool endedTerminal =
                         Interpreter.exitingBash
                         || Interpreter.interruptConnection
                         || Interpreter.exitBashReboot;
+                    if (endedTerminal)
+                    {
+                        // MainClass.UpdateTerminalClient removes the terminal's shell from the pending shells.
+                        Interpreter.hostData.RemoveLastShell();
+                    }
                     Interpreter.exitingBash = false;
                     Interpreter.exitBashReboot = false;
                     Interpreter.interruptConnection = false;
@@ -222,7 +236,7 @@ namespace GreyHackMessageHook.Greybel
 
             Interpreter.SendPendingPrint();
             Interpreter
-                .GetHostComputer()
+                .GetHostComputer(checkConnection: false)
                 ?.CloseProgram(Interpreter.hostData.PID, Interpreter, scriptFinished: true);
 
             MessageProcess messageProcess = new MessageProcess(

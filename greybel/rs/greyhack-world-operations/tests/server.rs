@@ -3,6 +3,7 @@ use std::rc::Rc;
 use duplex_core::{Error, ErrorCode};
 use duplex_test_support::local::run_local;
 use futures_util::FutureExt;
+use greyhack_world::prelude::*;
 use greyhack_world::{Database, PlayerOptions, World};
 use greyhack_world_operations::WorldServer;
 use scheduler::ManualClock;
@@ -10,10 +11,13 @@ use scheduler::ManualClock;
 use crate::support::program::{
     ClientEnd, EconomyFailure, EndProgram, EndReason, Failure, FileContent, FileGetContent,
     FileSetContent, LaunchFailure, LaunchOutcome, MetaxploitSniffer, MineJobFailure, ObjectId,
-    Outcome, ProgramEnd, ReleaseObjects, ScriptFailure, SubWalletMining,
+    Outcome, PrintLine, ProgramEnd, ProgramPrint, ReleaseObjects, ScriptFailure, StartProgram,
+    SubWalletMining,
 };
 use crate::support::server::{launch, metaxploit, notes, sub_wallets};
-use crate::support::{connect, end_process, player, process, server, server_with_ether, settle};
+use crate::support::{
+    Notice, connect, end_process, player, process, server, server_with_ether, settle,
+};
 
 /// Tests that program operations mutate the server world and are visible to a second runtime.
 #[test]
@@ -197,9 +201,9 @@ fn should_end_the_programs_of_a_runtime_that_disconnects() {
     });
 }
 
-/// Tests that a refused launch answers why, which the terminal of the program prints, not the game server.
+/// A refused launch queues its typed output before responding without a program value.
 #[test]
-fn should_answer_why_a_launch_is_refused_without_printing_it() {
+fn should_print_why_a_launch_is_refused_before_its_response() {
     run_local(async {
         // Arrange
         let server = server();
@@ -211,13 +215,16 @@ fn should_answer_why_a_launch_is_refused_without_printing_it() {
         let notices = runtime.notices.borrow().clone();
 
         // Assert
+        assert_eq!(outcome, LaunchOutcome::Refusal);
         assert_eq!(
-            outcome,
-            LaunchOutcome::Failure(Failure::Launch(LaunchFailure::CommandNotFound(
-                "/bin/missing".to_owned()
-            )))
+            notices,
+            [Notice::Print(ProgramPrint {
+                program: session.program,
+                line: PrintLine::LaunchFailure(Failure::Launch(LaunchFailure::CommandNotFound(
+                    "/bin/missing".to_owned()
+                ))),
+            })]
         );
-        assert!(notices.is_empty(), "no output, got {notices:?}");
     });
 }
 
@@ -507,5 +514,61 @@ fn should_refuse_a_second_mining_process_of_one_program_tree() {
             (&mut mining).now_or_never().is_none(),
             "the first mining waits for its round"
         );
+    });
+}
+
+/// Tests that the third strike deletes the player's computer, which ends the player's programs, and that no program
+/// starts without one afterwards (`Database.GameOver`).
+#[test]
+fn should_end_the_programs_and_refuse_new_ones_when_the_game_is_over() {
+    run_local(async {
+        // Arrange
+        let server = server();
+        let runtime = connect(&server);
+        let session = runtime.start("/bin/tool").await;
+
+        // Act
+        server
+            .change_world(async |world| {
+                let computer = world.handle.player();
+
+                world
+                    .modules
+                    .guilds
+                    .traces
+                    .set_strikes(2)
+                    .await
+                    .expect("the world writes");
+                world
+                    .modules
+                    .guilds
+                    .traces
+                    .strike_player(computer, greyhack_world::TraceKind::Active)
+                    .await
+                    .expect("the world writes");
+            })
+            .await;
+        settle().await;
+
+        let refused = runtime
+            .channel
+            .send(&StartProgram {
+                user: player().into(),
+                path: Some("/bin/again".into()),
+                safe_terminal: false,
+            })
+            .expect("the program start is sent")
+            .await;
+
+        // Assert
+        assert_eq!(
+            runtime.ended(),
+            [ProgramEnd {
+                program: session.program,
+                reason: EndReason::ComputerRemoval,
+            }]
+        );
+        assert!(refused.is_err());
+        assert!(!server.world().await.has_player());
     });
 }

@@ -19,9 +19,13 @@ fn should_refuse_a_coin_operation_once_its_computer_is_offline() {
 
         server
             .change_world(async |world| {
-                let player = world.player();
+                let player = world.handle.player();
 
                 for (index, mut card) in world
+                    .modules
+                    .core
+                    .networks
+                    .net_cards
                     .net_cards(player)
                     .await
                     .unwrap()
@@ -29,7 +33,14 @@ fn should_refuse_a_coin_operation_once_its_computer_is_offline() {
                     .enumerate()
                 {
                     card.active = false;
-                    world.save_net_card(player, index, &card).await.unwrap();
+                    world
+                        .modules
+                        .core
+                        .networks
+                        .net_cards
+                        .save_net_card(player, index, &card)
+                        .await
+                        .unwrap();
                 }
             })
             .await;

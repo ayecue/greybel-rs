@@ -40,15 +40,30 @@ fn should_refuse_to_locate_the_vehicle_of_an_administrator_under_crownshield() {
         ..
     } = world_with_traffic();
     let address = add_company(&mut world);
-    let home = block_on(world.public_ip(world.player())).unwrap();
+    let home = block_on(
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .public_ip(world.handle.player()),
+    )
+    .unwrap();
 
-    block_on(world.set_npc_job(driver, JobRole::Admin, Some(plate.clone()))).unwrap();
+    block_on(
+        world
+            .modules
+            .npcs
+            .jobs
+            .set_npc_job(driver, JobRole::Admin, Some(plate.clone())),
+    )
+    .unwrap();
     crown(&mut world, &address);
-    block_on(world.hire_crown_shield("Owls", &home))
+    block_on(world.modules.guilds.guilds.hire_crown_shield("Owls", &home))
         .unwrap()
         .unwrap();
     block_on(world.tick(600)).unwrap();
-    assert!(block_on(world.is_crown_shield_protected(&home)).unwrap());
+    assert!(block_on(world.modules.guilds.guilds.is_crown_shield_protected(&home)).unwrap());
 
     let code = format!(
         "device = include_lib(\"/lib/libtrafficnet.so\")\nprint device.locate_vehicle(\"{plate}\", \"secret\")"
@@ -76,9 +91,15 @@ fn should_interrupt_an_overflow_against_a_network_under_crownshield() {
     );
 
     crown(&mut world, &company);
-    block_on(world.hire_crown_shield("Owls", &target_ip))
-        .unwrap()
-        .unwrap();
+    block_on(
+        world
+            .modules
+            .guilds
+            .guilds
+            .hire_crown_shield("Owls", &target_ip),
+    )
+    .unwrap()
+    .unwrap();
     block_on(world.tick(600)).unwrap();
 
     let (output, error, _) = run_on_host(&script, world, true);

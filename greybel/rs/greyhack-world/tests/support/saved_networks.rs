@@ -12,12 +12,27 @@ pub const MAIN_IP: &str = "45.45.45.45";
 
 /// The player's world with two networks within Wi-Fi range of its own router.
 pub async fn world_with_networks() -> (World, RouterId, RouterId) {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
-    let mut home = world.router_of(player).await.unwrap().unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let player = world.handle.player();
+    let mut home = world
+        .modules
+        .core
+        .networks
+        .topology
+        .router_of(player)
+        .await
+        .unwrap()
+        .unwrap();
 
     home.map = [0.0, 0.0];
-    world.save_router(&home).await.unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .routers
+        .save_router(&home)
+        .await
+        .unwrap();
 
     let network = |public_ip: &str, essid: &str, password: &str, x: f32| NetworkOptions {
         public_ip: Some(public_ip.to_owned()),
@@ -27,10 +42,16 @@ pub async fn world_with_networks() -> (World, RouterId, RouterId) {
         ..NetworkOptions::default()
     };
     let alpha = world
+        .modules
+        .creation
+        .network_generation
         .add_network(&network("8.8.8.8", "alpha", "pw-a", 0.1))
         .await
         .unwrap();
     let bravo = world
+        .modules
+        .creation
+        .network_generation
         .add_network(&network("9.9.9.9", "bravo", "pw-b", 0.2))
         .await
         .unwrap();
@@ -73,7 +94,7 @@ pub async fn world_on_lan(saved: Vec<SavedNetwork>, ethernet: bool) -> (World, C
     })
     .await
     .unwrap();
-    let player = world.player();
+    let player = world.handle.player();
 
     (world, player)
 }
@@ -88,5 +109,14 @@ pub fn lan_network(password: &str) -> SavedNetwork {
 }
 
 pub async fn gateway(world: &World, computer: ComputerId) -> String {
-    world.computer(computer).await.unwrap().unwrap().gateway
+    world
+        .modules
+        .core
+        .networks
+        .topology
+        .computer(computer)
+        .await
+        .unwrap()
+        .unwrap()
+        .gateway
 }

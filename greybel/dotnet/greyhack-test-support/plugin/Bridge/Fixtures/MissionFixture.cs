@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using GreyHackTestSupport.Plugin.Bridge.State;
@@ -7,28 +8,38 @@ using Newtonsoft.Json.Linq;
 
 namespace GreyHackTestSupport.Plugin.Bridge.Fixtures;
 
-/// <summary>Draws procedural missions as the game does and reads the mission it builds and the networks it generates.</summary>
-internal sealed class MissionFixture
+/// <summary>Draws missions as the game does and reads the mission it builds and the networks it generates.</summary>
+internal sealed class MissionFixture(ClockFixture clock)
 {
     /// <summary>
-    /// Draws the group of mission <paramref name="request"/>.Index through <c>IPGroupManager.GetRandomGroupForMission</c>,
-    /// builds the mission with <c>MissionGen.GetProceduralMission</c> from the seed of the group, and generates the
-    /// networks of the group with <c>ServerMap.GetRouter</c> as the first access to them does.
+    /// Draws the group of mission <paramref name="request"/>.Index of kind <paramref name="request"/>.Kind through
+    /// <c>IPGroupManager.GetRandomGroupForMission</c>, builds the mission from the seed of the group as
+    /// <c>NetworkLan.ConfigureMissions</c> does (<c>MissionGen.GetMission</c>, or <c>MissionGen.GetProceduralMission</c>
+    /// for a procedural kind), and generates the networks of the group with <c>ServerMap.GetRouter</c> as the first
+    /// access to them does.
     /// </summary>
-    public Reply ReadProceduralMission(ProceduralMissionRpc request)
+    public Reply ReadMission(MissionRpc request)
     {
-        TypeMission type = request.Police ? TypeMission.POLICE_PROCEDURAL : TypeMission.PROCEDURAL;
-        ProceduralMissionSource source = MissionGen.GetProceduralSource(type);
+        TypeMission type = Enum.Parse<TypeMission>(request.Kind);
+
+        // NetworkLan.ConfigureMissions only gives a zero-day group its mission while the rumor is open.
+        if (type == TypeMission.ZERODAY)
+        {
+            EnsureRumorTime();
+        }
+
         List<string> group = IPGroupManager.GetRandomGroupForMission(
             type.ToString(),
             (int)request.Index
         );
         System.Random random = new System.Random(MissionGen.Singleton.GetMissionSeed(group));
-        List<Mission> parts = MissionGen.Singleton.GetProceduralMission(
-            random,
-            group.Count,
-            source
-        );
+        List<Mission> parts = MissionGen.IsProceduralMission(type)
+            ? MissionGen.Singleton.GetProceduralMission(
+                random,
+                group.Count,
+                MissionGen.GetProceduralSource(type)
+            )
+            : MissionGen.Singleton.GetMission((int)request.Index, type, random);
         List<MissionNetworkSnapshot> networks = [];
 
         // A clean baseline: the game copies retain their worlds between runs, so the group may contain computers an
@@ -69,12 +80,60 @@ internal sealed class MissionFixture
                 computers.Add(new MissionComputerSnapshot(computer.GetLocalIP(), files));
             }
 
-            networks.Add(new MissionNetworkSnapshot(group[index], computers));
+            NetworkLan.Device main = router.GetNetworkLan().routerDevice;
+
+            networks.Add(
+                new MissionNetworkSnapshot(
+                    group[index],
+                    computers,
+                    main.firewallRules.Select(rule => new FirewallRuleSnapshot(
+                            rule.action.ToString(),
+                            NetworkSnapshotReader.ReadRuleField(rule.port),
+                            NetworkSnapshotReader.ReadRuleField(rule.sourceAddress),
+                            NetworkSnapshotReader.ReadRuleField(rule.destAddress)
+                        ))
+                        .ToList(),
+                    router
+                        .GetConfigOS()
+                        .puertos.allPorts.Select(port =>
+                            NetworkSnapshotReader.ReadTablePort(router, port)
+                        )
+                        .ToList()
+                )
+            );
         }
 
-        return new Reply.ProceduralMission(
-            new ProceduralMissionReply(group, ReadMission(parts).ToString(0), networks)
+        return new Reply.Mission(
+            new MissionReply(
+                group,
+                ReadParts(parts).ToString(0),
+                networks,
+                ClockServer.Singleton.GetFechaCompleta()
+            )
         );
+    }
+
+    /// <summary>
+    /// Moves the clock to the first day of the next even month when the zero-day rumor is closed
+    /// (<c>ZeroDaySystem.IsRumorTime</c>).
+    /// </summary>
+    private void EnsureRumorTime()
+    {
+        DateTime now = ClockServer.Singleton.GetDateTime();
+
+        if (ZeroDaySystem.IsRumorTime())
+        {
+            return;
+        }
+
+        DateTime next = new DateTime(now.Year, now.Month, 1).AddMonths(1);
+
+        while (next.Month % 2 != 0)
+        {
+            next = next.AddMonths(1);
+        }
+
+        clock.SetTime(next);
     }
 
     /// <summary>
@@ -108,12 +167,13 @@ internal sealed class MissionFixture
     }
 
     /// <summary>The mission as JSON: its common fields, its NPCs, and each part's computers with their items.</summary>
-    private static JObject ReadMission(List<Mission> parts)
+    private static JObject ReadParts(List<Mission> parts)
     {
         Mission first = parts[0];
 
         return new JObject
         {
+            ["missionType"] = first.missionType.ToString(),
             ["starterTextId"] = first.starterTextID,
             ["closureNetworkIndex"] = first.closureNetworkIndex,
             ["closureLocalIndex"] = first.closureLocalIndex,
@@ -131,6 +191,8 @@ internal sealed class MissionFixture
         {
             ["name"] = npc.name,
             ["surname"] = npc.surname,
+            ["isVictim"] = npc.isVictim,
+            ["isGuilty"] = npc.isGuilty,
             ["isForcedPass"] = npc.isForcedPass,
             ["forcedPass"] = npc.forcedPass,
         };
@@ -138,6 +200,7 @@ internal sealed class MissionFixture
     private static JObject ReadComputer(ComputerMission computer) =>
         new JObject
         {
+            ["networkKind"] = computer.isRandomTipoRed ? null : (int)computer.tipoRed,
             ["computerIndexNet"] = computer.computerIndexNet,
             ["cloneNpcPcIdx"] = computer.cloneNpcPcIdx,
             ["archetype"] = computer.proceduralArchetype.HasValue
@@ -188,13 +251,16 @@ internal sealed class MissionFixture
                 json["isScript"] = file.isScript;
                 json["allowImport"] = file.allowImport;
                 json["isImage"] = file.isImage;
-                json["path"] = file.path;
+                // The authored lists give a file in a random folder a null path, the procedural builder empty;
+                // `Router.PostGenMission` reads both with `string.IsNullOrEmpty`.
+                json["path"] = file.path ?? "";
                 json["symlinkTarget"] = file.symlinkTarget;
                 json["owner"] = file.owner;
                 json["permissions"] = file.permissions;
                 json["directoryPermissions"] = file.directoryPermissions;
                 json["encryptWithOwnerPassword"] = file.encryptWithOwnerPassword;
                 json["encryptionPassword"] = file.encryptionPassword;
+                json["isWeb"] = file.isWeb;
                 json["rawContent"] = file.rawContent;
                 json["companions"] = new JArray(
                     file.companionFiles.Select(companion => new JObject
@@ -210,6 +276,15 @@ internal sealed class MissionFixture
             case ServiceItem service:
                 json["service"] = (int)service.servicio;
                 json["allowDuplicates"] = service.allowDuplicates;
+                break;
+            case FirewallItem firewall:
+                json["action"] = (int)firewall.action;
+                json["statusPort"] = (int)firewall.statusPort;
+                json["port"] = firewall.port;
+                json["statusSourceIp"] = (int)firewall.statusSourceIP;
+                json["pcIndexSourceIp"] = firewall.pcIndexSourceIP;
+                json["statusDestIp"] = (int)firewall.statusDestIP;
+                json["pcIndexDestIp"] = firewall.pcIndexDestIP;
                 break;
         }
 

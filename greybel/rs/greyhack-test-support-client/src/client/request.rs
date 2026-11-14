@@ -64,7 +64,7 @@ pub(super) enum RequestKind {
     InstallLibrary {
         local_ip: String,
         name: String,
-        reward: u8,
+        rewards: Vec<u8>,
     },
     SetupBlockchain {
         coin_name: String,
@@ -155,8 +155,8 @@ pub(super) enum RequestKind {
         library: String,
         version: String,
     },
-    ProceduralMission {
-        police: bool,
+    Mission {
+        kind: String,
         index: u32,
     },
     BuyExploit {
@@ -171,6 +171,9 @@ pub(super) enum RequestKind {
     },
     ReportLibraryUpdate {
         public_ip: String,
+        library: String,
+    },
+    ReleaseLibraryVersion {
         library: String,
     },
     RentNetwork {
@@ -191,6 +194,25 @@ pub(super) enum RequestKind {
     },
     QueryTraces,
     QueryWordLists,
+    ExecuteInTerminal {
+        source: String,
+        filepath: String,
+        basepath: String,
+        program_name: String,
+        safe_terminal: bool,
+    },
+    EndGame {
+        strikes: u32,
+        company_ip: String,
+    },
+    RunPayment {
+        kind: String,
+    },
+    RateCtf {
+        event_name: String,
+        quality: i64,
+        difficulty: i64,
+    },
 }
 
 /// A guild the game gets: see `SetupGuildRpc`.

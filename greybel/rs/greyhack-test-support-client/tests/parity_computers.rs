@@ -14,7 +14,13 @@ async fn should_match_intrinsics_for_file_operations() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let prelude = "pc = get_shell.host_computer; old = pc.File(home_dir + \"/probe\"); if old then old.delete; pc.create_folder(home_dir, \"probe\"); d = pc.File(home_dir + \"/probe\"); pc.touch(d.path, \"a.txt\"); f = pc.File(d.path + \"/a.txt\")";
+    // Each script makes its own folder: the game may still show the previous script's folder, deleted at its end, for
+    // a moment after that script finished, so a shared name would let one script see another's leftovers.
+    let prelude = |index: usize| {
+        format!(
+            "pc = get_shell.host_computer; pc.create_folder(home_dir, \"probe{index}\"); d = pc.File(home_dir + \"/probe{index}\"); pc.touch(d.path, \"a.txt\"); f = pc.File(d.path + \"/a.txt\")"
+        )
+    };
     let scripts = [
         "print [d.name, d.path, d.is_folder, d.is_binary, d.is_symlink, d.size, d.permissions, d.owner, d.group, d.parent.path, d.has_permission(\"r\"), d.has_permission(\"x\"), d.has_permission(\"q\")]; print [f.name, f.size, f.permissions, f.owner, f.group, f.get_content, f.is_folder, f.allow_import, f.get_files, f.get_folders]; print f.set_content(\"hello\"); print [f.size, f.get_content]; print d.get_files.len; print d.get_folders; print typeof(d.get_files[0])",
         "print f.chmod(\"u-w\"); print f.permissions; print f.chmod(\"o+rwx\"); print f.permissions; print f.chmod(\"a-x\"); print f.permissions; print f.chmod(\"bad\"); print f.chmod(\"u+w\", 1); print f.chmod(\"g=r\"); print f.chmod(\"777\"); print f.permissions",
@@ -23,9 +29,12 @@ async fn should_match_intrinsics_for_file_operations() {
         "print f.rename(\"r.txt\"); print f.path",
         "print f.set_owner(\"root\"); print f.owner; print f.set_owner(\"nobody\"); print f.set_group(\"root\"); print f.group; print f.set_group(\"nogroup\"); print d.set_owner(\"root\", 1); print d.set_group(\"guest\", 1); print f.delete; print f.delete",
         "print pc.touch(d.path, \"a.txt\"); print pc.touch(\"/nope\", \"x\"); print pc.touch(d.path, \"\"); print pc.touch(d.path, \"bad name!\"); print pc.create_folder(d.path, \"sub\"); print pc.create_folder(d.path, \"sub\"); print pc.create_folder(\"/nope\", \"x\"); print pc.create_folder(d.path, \"\"); print pc.File(\"/nope\"); print pc.File(\"relative\"); print pc.File(\"\")",
-        "print pc.File(\"/bin/ls\").get_content; print pc.File(\"/bin/ls\").set_content(\"x\"); print pc.File(\"/bin/ls\").allow_import; print pc.File(\"/etc/passwd\").permissions; print pc.File(\"/\").name; print pc.File(\"/\").parent; print pc.File(\"/\").permissions; print pc.File(\"/root\").permissions; print pc.File(home_dir).permissions",
+        "print pc.File(\"/bin/ls\").get_content; print pc.File(\"/bin/ls\").set_content(\"x\"); print pc.File(\"/bin/ls\").allow_import; print pc.File(\"/etc/passwd\").permissions; print pc.File(\"/\").name; print pc.File(\"/\").parent; print pc.File(\"/\").permissions; print pc.File(\"/root\").permissions; print pc.File(home_dir).permissions; print pc.File(home_dir + \"/Config\").permissions; print pc.File(\"/home/guest/Config\").permissions",
     ]
-    .map(|script| format!("{prelude}\n{script}\nd.delete"));
+    .iter()
+    .enumerate()
+    .map(|(index, script)| format!("{}\n{script}\nd.delete", prelude(index)))
+    .collect::<Vec<_>>();
     let scripts: Vec<&str> = scripts.iter().map(String::as_str).collect();
     let expected = intrinsics_outcomes(&scripts, &user);
 

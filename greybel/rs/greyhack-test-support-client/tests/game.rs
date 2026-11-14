@@ -1,7 +1,7 @@
 use greybel_test_support::game::Game;
 use greyhack_behaviour::Requirement;
 
-use crate::support::game::{kernel_content, setup_player, test_client};
+use crate::support::game::{join_network, kernel_content, setup_player, test_client};
 
 #[tokio::test]
 async fn should_write_query_execute_and_create_a_network_through_the_bridge() {
@@ -45,16 +45,17 @@ async fn should_restore_a_replaced_router_kernel_at_the_next_setup() {
 
     let requirement = u8::try_from(Requirement::ConnGateway.code()).unwrap();
 
-    let main_router = test.network_state().await.unwrap().nodes[0]
-        .local_ip
-        .to_string();
+    let network = test.network_state().await.unwrap();
+    let main_router = network.nodes[0].local_ip.to_string();
     let original = test
         .set_router_kernel_requirement(&main_router, requirement)
         .await
         .unwrap();
     let replaced = kernel_content(&test).await;
 
+    // The next setup joins a network of its own, so the kernel is read on the first network again.
     setup_player(&test).await;
+    join_network(&test, &network.public_ip).await;
 
     let restored = kernel_content(&test).await;
 

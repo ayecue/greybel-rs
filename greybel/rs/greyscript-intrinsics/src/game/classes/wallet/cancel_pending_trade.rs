@@ -28,9 +28,7 @@ pub fn cancel_pending_trade(
         |_, outcome| match outcome {
             CancelTrade::Null => Ok::<_, IntrinsicError>(Value::Null),
             CancelTrade::Success => Ok(Value::from("")),
-            CancelTrade::Failure(failure) => {
-                failure_value("cancel_pending_trade", &failure)
-            }
+            CancelTrade::Failure(failure) => failure_value("cancel_pending_trade", &failure),
         },
     ))
 }

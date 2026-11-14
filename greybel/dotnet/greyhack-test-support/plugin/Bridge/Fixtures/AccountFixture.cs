@@ -62,7 +62,7 @@ internal sealed class AccountFixture(Player player) : IFixture
         const string user = "ctfuser";
         const string password = "oldpass";
         server.missionsHelper.CreateCTFAccountServerRpc(user, password, -1);
-        // Creating a new player computer leaves the real-time account cooldown intact, so this fixture clears it.
+        // Creating a new player computer does not reset the real-time account cooldown, so this fixture clears it.
         GameField.CtfCooldown.SetValue(server.missionsHelper, new CTFCooldown());
         server.missionsHelper.CreateCTFServerRpc(
             request.EventName,
@@ -89,6 +89,43 @@ internal sealed class AccountFixture(Player player) : IFixture
         }
         CtfEventName = request.EventName;
         return new Reply.Applied();
+    }
+
+    /// <summary>Rates an event as <c>MissionsHelperServer.RateCTFServerRpc</c> does, through <c>CTF_Event.AddScore</c>.</summary>
+    public Reply WriteCtfScore(RateCtfRpc request)
+    {
+        CTF_Event gameEvent = Database.Singleton.GetEvent(
+            request.EventName,
+            "",
+            "",
+            false
+        );
+        string output;
+
+        if (gameEvent == null)
+        {
+            output = "Error: CTF event not found";
+        }
+        else if (gameEvent.IsLocked())
+        {
+            output = "This mission is locked and cannot be rated.";
+        }
+        else
+        {
+            bool rated = gameEvent.AddScore(
+                player.Server.GetPlayerID(),
+                (int)request.Quality,
+                (int)request.Difficulty,
+                out output
+            );
+
+            if (rated)
+            {
+                output = "Mission rated successfully";
+            }
+        }
+
+        return new Reply.CtfRated(new CtfRatedReply(output));
     }
 
     /// <summary>

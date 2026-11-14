@@ -1,13 +1,15 @@
-//! Rows deleted when a database opens.
+//! Rows deleted when a database opens outside the domain-owned volatile sets.
 
-/// Deletes program-lifetime rows: script processes, script logins, mining, sniffer and flood
-/// subscribers, and mining rounds. Retains system processes, service daemons, reverse-shell
+use greyhack_world_storage::TableSet;
+
+/// Deletes program-lifetime rows: script processes, script logins, mining, mining rounds, and the
+/// uses and reports of library weaknesses. Retains system processes, service daemons, reverse-shell
 /// clients, and NPC logins.
-pub(crate) const VOLATILE: &str = "
+pub(super) const VOLATILE: TableSet = TableSet::volatile(
+    "
 DELETE FROM mining_subscribers;
-DELETE FROM sniffer_subscribers;
-DELETE FROM flood_subscribers;
-DELETE FROM active_traces;
+DELETE FROM library_weakness_uses;
+DELETE FROM library_reporters;
 DELETE FROM computer_processes
 WHERE service IS NULL
   AND protected = 0
@@ -23,4 +25,5 @@ WHERE NOT EXISTS (
       AND computer_users.name = computer_sessions.user
 );
 DELETE FROM routines WHERE id IN (SELECT routine_id FROM routine_mining_rounds);
-";
+",
+);

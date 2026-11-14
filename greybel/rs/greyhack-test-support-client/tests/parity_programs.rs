@@ -115,10 +115,11 @@ async fn should_match_intrinsics_for_what_the_terminal_shows() {
     client.shutdown();
 }
 
-/// A script whose terminal runs on a remote computer loses its network once a router or switch between that computer
-/// and its main router stops starting (`Computer.IsNetworkActive`, `NetworkLan.ReversePing`).
+/// A router or switch between a remote computer and its main router stops starting after the script's terminal on that
+/// computer exited: `MainClass` took the terminal's shell off the pending shells when `exit` ended it, so
+/// `Computer.IsNetworkActive` no longer goes through that computer and `get_router` still returns the router.
 #[tokio::test]
-async fn should_match_intrinsics_for_a_terminal_behind_a_device_that_stops() {
+async fn should_match_intrinsics_for_a_device_that_stops_behind_an_exited_terminal() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
@@ -162,10 +163,9 @@ print "stopped " + typeof(get_router)"#,
     )
     .await;
 
-    // `PlayerIntrinsics.get_router` returns "get_router: No internet connection" instead of raising it.
     assert_eq!(
         outcome.output.as_deref(),
-        Some("terminal 1\nrunning router\nstopped string"),
+        Some("terminal 1\nrunning router\nstopped router"),
         "{outcome:?}"
     );
     client.shutdown();

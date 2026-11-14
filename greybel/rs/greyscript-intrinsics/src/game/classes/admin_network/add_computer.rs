@@ -112,9 +112,7 @@ pub fn add_computer(
 
                 Ok::<_, IntrinsicError>(object::create_computer(vm, computer))
             }
-            ComputerCreation::Failure(failure) => {
-                failure_value("add_computer", &failure)
-            }
+            ComputerCreation::Failure(failure) => failure_value("add_computer", &failure),
         },
     ))
 }

@@ -299,7 +299,11 @@ namespace GreyHackMessageHook
                 );
                 if (interpreter != null)
                 {
-                    Computer.CloseProgram(Pid, interpreter, true);
+                    // Read the computer again: Computer.SyncProcesos saves the complete computer while its configuration
+                    // isn't saved yet, and the copy the program began with would undo every change it made since.
+                    Computer current =
+                        ServerMap.Singleton.GetRemoteComputer(Computer.GetID()) ?? Computer;
+                    current.CloseProgram(Pid, interpreter, true);
                 }
                 AppController.KillScript(isTerminal: true);
                 HelperScript.FinishMining();

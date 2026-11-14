@@ -1,10 +1,9 @@
 ---
 source: greyscript-intrinsics/tests/fixtures.rs
-assertion_line: 39
 expression: output
 input_file: greyscript-intrinsics/tests/fixtures/game/files.src
 ---
-test /home/test 1 drwxrwx--- test test 0
+test /home/test 1 drwxrwxr-x test test 0
 /home/test/Desktop
 /home/test/Downloads
 /home/test/Config

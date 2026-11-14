@@ -12,8 +12,9 @@ use crate::support::parity::{
 };
 use crate::support::remote::{forwarded_root, rshell_server_network, script_string};
 
-/// Game methods are also globals taking the object first. Their `self` checks accept any game map, or any object whose
-/// type has the method key; a missing helper then returns null or text, or crashes, in the game's check order.
+/// Game methods are also globals taking the object first. Their `self` checks accept any game map, or only an object
+/// whose type has the method key where the game requests it; a missing helper then returns null or text, or crashes, in
+/// the game's check order.
 #[tokio::test]
 async fn should_match_intrinsics_for_detached_methods() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
@@ -24,7 +25,7 @@ async fn should_match_intrinsics_for_detached_methods() {
         "pc = host_computer(get_shell); print [typeof(pc), pc == get_shell.host_computer, @host_computer == @get_shell.host_computer, lan_ip(pc) == pc.local_ip, public_ip_pc(pc) == pc.public_ip, get_name(pc) == pc.get_name, @lan_ip == @pc.local_ip, @public_ip_pc == @pc.public_ip]".to_owned(),
         "pc = host_computer(get_shell); root = File(pc, \"/\"); print [path(root), name(File(pc, \"/bin\")), parent(File(pc, \"/bin\")) == root, is_folder(root), permissions(root), owner(root), get_files(File(pc, \"/etc\")).len == File(pc, \"/etc\").get_files.len, @File == @pc.File, @get_files == @root.get_files]".to_owned(),
         "r = get_router; print [typeof(r), local_ip(r) == r.local_ip, public_ip(r) == r.public_ip, used_ports(r).len == r.used_ports.len, devices_lan_ip(r) == r.devices_lan_ip, @used_ports == @r.used_ports]".to_owned(),
-        "meta = include_lib(\"/lib/metaxploit.so\"); lib = load(meta, \"/lib/init.so\"); print [typeof(lib), lib_name(lib) == lib.lib_name, version(lib) == lib.version, scan(meta, lib).len == meta.scan(lib).len, @scan == @meta.scan, @overflow == @lib.overflow]".to_owned(),
+        "meta = include_lib(\"/lib/metaxploit.so\"); lib = load(meta, \"/lib/init.so\"); print [typeof(lib), lib_name(lib) == lib.lib_name, version(lib) == lib.version, scan(meta, lib).len, @scan == @meta.scan, @overflow == @lib.overflow]".to_owned(),
         "pc = host_computer(get_shell); print [host_computer(\"text\"), host_computer(null), host_computer(1), host_computer({}), host_computer(pc)]".to_owned(),
         "pc = host_computer(get_shell); print [lan_ip(get_shell), File(get_shell, \"/\"), name(pc), path(get_router), local_ip(pc), public_ip(pc)]".to_owned(),
         "copy = new get_shell; print [host_computer(copy), copy.host_computer]; print host_computer".to_owned(),

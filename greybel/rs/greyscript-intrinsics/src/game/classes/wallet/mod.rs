@@ -7,9 +7,9 @@ use greyhack_behaviour::check_wallet_password;
 
 use crate::error::IntrinsicError;
 use crate::game::client::check::{Proceed, stop};
-use crate::game::client::server::refuse;
 use crate::game::client::object::{GameObject, Kind};
 use crate::game::client::receiver::receiver;
+use crate::game::client::server::refuse;
 use crate::game::client::{object, receiver};
 use crate::protocol::ObjectId;
 

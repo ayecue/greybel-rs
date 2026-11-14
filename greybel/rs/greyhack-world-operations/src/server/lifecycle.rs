@@ -1,27 +1,49 @@
 //! Program and connection termination.
 
+use std::collections::HashMap;
 use std::rc::Rc;
 
-use greyhack_world::{ComputerId, World};
+use greyhack_world::ComputerId;
+use greyhack_world_router::{
+    Process, ProgramEnd as TreeProgramEnd, ProgramTree, TerminalClose, TreeId,
+};
 
-use super::programs::{Process, Termination};
-use super::{ServerState, WorldState};
+use super::{ConnectionChannel, ServerState, WorldState};
 use crate::protocol::{ClientEnd, EndReason, ObjectId, ProgramEnd, ProgramId, ScriptFailure};
 use crate::{OperationError, Result, connection};
+
+/// Server-side program termination and its notification channel.
+pub(crate) struct Termination {
+    pub(crate) program: ProgramId,
+    pub(crate) reason: EndReason,
+    pub(crate) process: Option<Process<ComputerId>>,
+    pub(crate) connection: u32,
+    pub(crate) channel: ConnectionChannel,
+}
 
 impl ServerState {
     /// Terminates active programs whose processes disappeared on changed computers, including descendants
     /// and deferred jobs, and queues [`ProgramEnd`]s. Uses [`EndReason::ComputerRemoval`] for removed
     /// computers, [`EndReason::Reboot`] for computers in `reboots`, and [`EndReason::Closed`] otherwise.
-    pub(super) async fn terminate_ended_programs(&self, world: &mut World, reboots: &[ComputerId]) {
-        let processes = self
-            .programs
-            .borrow()
-            .processes_on(&world.take_changed_computers());
-        let mut gone = Vec::new();
+    pub(super) async fn terminate_ended_programs(
+        &self,
+        state: &mut WorldState,
+        reboots: &[ComputerId],
+    ) {
+        let computers = state.world.take_changed_computers();
+        let processes = state.trees.processes_on(&computers);
+        let mut programs_by_tree: HashMap<TreeId, Vec<(ProgramId, EndReason)>> = HashMap::new();
 
-        for (program, (computer, pid)) in processes {
-            let process = match world.process(computer, pid).await {
+        for (key, program, (computer, pid)) in processes {
+            let process = match state
+                .world
+                .modules
+                .core
+                .computers
+                .processes
+                .process(computer, pid)
+                .await
+            {
                 Ok(process) => process,
                 Err(error) => {
                     self.record_failure(error);
@@ -30,13 +52,34 @@ impl ServerState {
                 }
             };
 
-            match world.computer(computer).await {
+            match state
+                .world
+                .modules
+                .core
+                .networks
+                .topology
+                .computer(computer)
+                .await
+            {
                 Ok(Some(_)) if process.is_some() => {}
                 Ok(Some(_)) if reboots.contains(&computer) => {
-                    gone.push((program, EndReason::Reboot))
+                    programs_by_tree
+                        .entry(key)
+                        .or_default()
+                        .push((program, EndReason::Reboot));
                 }
-                Ok(Some(_)) => gone.push((program, EndReason::Closed)),
-                Ok(None) => gone.push((program, EndReason::ComputerRemoval)),
+                Ok(Some(_)) => {
+                    programs_by_tree
+                        .entry(key)
+                        .or_default()
+                        .push((program, EndReason::Closed));
+                }
+                Ok(None) => {
+                    programs_by_tree
+                        .entry(key)
+                        .or_default()
+                        .push((program, EndReason::ComputerRemoval));
+                }
                 Err(error) => {
                     self.record_failure(error);
 
@@ -45,20 +88,55 @@ impl ServerState {
             }
         }
 
-        if gone.is_empty() {
+        if programs_by_tree.is_empty() {
             return;
         }
 
-        let terminations = self.programs.borrow_mut().take_terminations(&gone);
+        let mut terminations = Vec::new();
 
-        self.end_terminations(world, terminations).await;
+        for (key, programs_by_tree) in programs_by_tree {
+            let ends = state
+                .tree_mut(key)
+                .expect("the scanned tree exists")
+                .take_terminations(&programs_by_tree);
+
+            terminations.extend(self.with_channels(key, ends));
+        }
+
+        self.end_terminations(state, terminations).await;
+    }
+
+    /// Adds notification channels to tree termination records.
+    fn with_channels(
+        &self,
+        key: TreeId,
+        ends: Vec<TreeProgramEnd<ComputerId>>,
+    ) -> Vec<Termination> {
+        ends.into_iter()
+            .filter_map(|end| {
+                Some(Termination {
+                    program: end.program,
+                    reason: end.reason,
+                    process: end.process,
+                    connection: self.trees.get(key)?.connection(),
+                    channel: self
+                        .index
+                        .borrow()
+                        .channel(key, self.trees.get(key)?.connection())?,
+                })
+            })
+            .collect()
     }
 
     /// Cancels jobs and processes for `terminations`, then queues their [`ProgramEnd`] notifications.
-    pub(super) async fn end_terminations(&self, world: &mut World, terminations: Vec<Termination>) {
+    pub(super) async fn end_terminations(
+        &self,
+        state: &mut WorldState,
+        terminations: Vec<Termination>,
+    ) {
         for termination in &terminations {
             if let Err(error) = self
-                .cancel_jobs(world, |job| {
+                .cancel_jobs(state, |job| {
                     job.connection == termination.connection && job.program == termination.program
                 })
                 .await
@@ -66,7 +144,11 @@ impl ServerState {
                 self.record_failure(error);
             }
 
-            if let Err(error) = world
+            if let Err(error) = state
+                .world
+                .modules
+                .shell
+                .shells
                 .end_program_effects(termination.process, u64::from(termination.program.id))
                 .await
             {
@@ -96,20 +178,28 @@ impl ServerState {
         program: ProgramId,
         reason: ClientEnd,
     ) {
+        let key = self.trees.of_program(program);
+
         if reason == ClientEnd::Exited
-            && let Err(error) = self
-                .close_terminal(&mut state.world, connection, program)
-                .await
+            && let Some(key) = key
+            && let Err(error) = self.close_terminal(state, key, program).await
         {
             self.record_failure(error);
         }
 
-        let Some(end) = self.programs.borrow_mut().end(connection, program) else {
+        let Some(key) = key else {
+            return;
+        };
+        let Some(end) = state
+            .tree_mut(key)
+            .expect("the indexed tree exists")
+            .pop(program)
+        else {
             return;
         };
 
         if let Err(error) = self
-            .cancel_jobs(&mut state.world, |job| {
+            .cancel_jobs(state, |job| {
                 job.connection == connection && job.program == program
             })
             .await
@@ -119,53 +209,116 @@ impl ServerState {
 
         if let Err(error) = state
             .world
+            .modules
+            .shell
+            .shells
             .end_program_effects(end.process, u64::from(program.id))
             .await
         {
             self.record_failure(error);
         }
 
-        self.end_terminations(&mut state.world, end.children).await;
+        let children = self.with_channels(key, end.children);
+
+        self.end_terminations(state, children).await;
     }
 
-    /// Logs the exit of the terminal that `connection`'s `program` is on the computer it ran on, as
-    /// `MainClass` does when the terminal's bash ends with `exit` (`HelperScript.CloseRemotePrograms`). Nothing
-    /// happens when the terminal's computer or the tree's root process is gone.
+    /// Logs the exit of the terminal `program` on the computer it ran on, as `MainClass` does when the
+    /// terminal's bash ends with `exit` (`HelperScript.CloseRemotePrograms`). Nothing happens when the
+    /// terminal's computer or the tree's root process is programs_by_tree.
     pub(super) async fn close_terminal(
         &self,
-        world: &mut World,
-        connection: u32,
+        state: &mut WorldState,
+        key: TreeId,
         program: ProgramId,
     ) -> greyhack_world::Result<()> {
-        let (host, root) = {
-            let programs = self.programs.borrow();
-
-            (
-                programs.terminal_host(connection, program),
-                programs.root_process(connection, program),
-            )
+        let Some((host, root)) = state
+            .tree(key)
+            .map(|tree| (tree.terminal_host(program), tree.root_process()))
+        else {
+            return Ok(());
         };
         let (Some(host), Some((root_computer, root_pid))) = (host, root) else {
             return Ok(());
         };
 
-        if !world
+        if !state
+            .world
+            .modules
+            .shell
+            .shells
             .is_terminal_running(host, (root_computer, root_pid))
             .await?
         {
             return Ok(());
         }
 
-        let player = world.player();
-        let close = self
-            .programs
-            .borrow_mut()
-            .exit_terminal(connection, program, player);
-        let Some(close) = close else {
+        let player = state.world.handle.player();
+        let close = state
+            .tree_mut(key)
+            .expect("the indexed tree exists")
+            .exit_terminal(program, player);
+        let Some(TerminalClose { source, remote }) = close else {
             return Ok(());
         };
 
-        world.log_terminal_exit(close.source, close.remote).await
+        state
+            .world
+            .modules
+            .shell
+            .shells
+            .log_terminal_exit(source, remote)
+            .await
+    }
+
+    /// Closes the terminal that `connection`'s `program` runs in when an operation lost its connection:
+    /// `result` is [`ScriptFailure::ConnectionInterrupted`] (`GreyInterpreter.interruptConnection`, from
+    /// `HelperScript.CheckBreakConnecion`), or `rebooted` says the terminal's own computer rebooted
+    /// (`GreyInterpreter.exitBashReboot`). A reboot also ends the terminal's launcher and their descendants.
+    pub(crate) async fn close_lost_terminal<T>(
+        &self,
+        state: &mut WorldState,
+        _connection: u32,
+        program: ProgramId,
+        result: &Result<T>,
+        rebooted: bool,
+    ) {
+        let interrupted = matches!(
+            result,
+            Err(OperationError::Script(ScriptFailure::ConnectionInterrupted))
+        );
+
+        if !interrupted && !rebooted {
+            return;
+        }
+
+        let Some(key) = self.trees.of_program(program) else {
+            return;
+        };
+        let Some(terminal) = state.tree(key).and_then(|tree| tree.terminal_of(program)) else {
+            return;
+        };
+
+        if let Err(error) = self.close_terminal(state, key, terminal).await {
+            self.record_failure(error);
+        }
+
+        if rebooted {
+            let ends = {
+                let mut tree = state.tree_mut(key).expect("the indexed tree exists");
+                let mut reboot_ends = vec![(terminal, EndReason::Reboot)];
+
+                reboot_ends.extend(
+                    tree.launcher_of(terminal)
+                        .map(|launcher| (launcher, EndReason::Reboot)),
+                );
+
+                tree.take_terminations(&reboot_ends)
+            };
+            let terminations = self.with_channels(key, ends);
+
+            self.end_terminations(state, terminations).await;
+        }
     }
 
     /// Sends all queued program termination notices.
@@ -177,54 +330,46 @@ impl ServerState {
         }
     }
 
-    /// Registers a program on `connection` with `process`, shell `session`, and optional launcher `parent`.
+    /// Registers a runtime-started root program on `connection` with `process` and shell `session`.
     ///
     /// # Errors
     ///
     /// Returns [`ScriptFailure::ProgramEnded`] after program IDs are exhausted.
-    pub(crate) fn add_program(
+    pub(crate) fn add_root(
         &self,
+        state: &mut WorldState,
         connection: u32,
-        process: Option<Process>,
+        process: Option<Process<ComputerId>>,
         session: ObjectId,
-        parent: Option<ProgramId>,
+        safe_terminal: bool,
     ) -> Result<ProgramId> {
-        self.programs
+        let (program, _key) = self
+            .index
             .borrow_mut()
-            .add_program(connection, process, session, parent)
-            .ok_or(OperationError::Script(ScriptFailure::ProgramEnded))
-    }
+            .add_program(connection)
+            .ok_or(OperationError::Script(ScriptFailure::ProgramEnded))?;
 
-    /// Registers a `start_terminal` program on `connection` with shell `session`, launched by `parent`. It has no
-    /// process.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`ScriptFailure::ProgramEnded`] after program IDs are exhausted.
-    pub(crate) fn add_terminal_program(
-        &self,
-        connection: u32,
-        session: ObjectId,
-        parent: ProgramId,
-        info: super::TerminalInfo,
-    ) -> Result<ProgramId> {
-        let program = self.add_program(connection, None, session, Some(parent))?;
-
-        self.programs.borrow_mut().set_terminal(program, info);
+        state.trees.insert(ProgramTree::new(
+            connection,
+            program,
+            process,
+            session,
+            safe_terminal,
+        ));
 
         Ok(program)
     }
 
     /// Checks whether `connection` has any non-tombstone programs.
-    pub(crate) fn has_programs(&self, connection: u32) -> bool {
-        self.programs.borrow().has_programs(connection)
+    pub(crate) async fn has_programs(&self, connection: u32) -> bool {
+        self.trees.has_programs(connection)
     }
 
-    /// Schedules cleanup after active operations: remove connection objects and end its program processes.
+    /// Schedules cleanup after active operations: remove connection trees and end their program processes.
     pub(super) fn end_connection(self: &Rc<Self>, connection: u32, spawn: &connection::Spawn) {
-        let (channel, processes) = self.programs.borrow_mut().remove_connection(connection);
+        let channel = self.index.borrow_mut().remove_connection(connection);
 
-        self.budgets.remove_connection(connection);
+        self.budgets.remove(&self.trees.on_connection(connection));
 
         drop(channel);
 
@@ -232,19 +377,30 @@ impl ServerState {
 
         spawn(Box::pin(async move {
             state
-                .cycle(async |world_state| {
-                    world_state.objects.remove(&connection);
-                    if let Err(error) = state
-                        .cancel_jobs(&mut world_state.world, |job| job.connection == connection)
-                        .await
-                    {
-                        state.record_failure(error);
-                    }
+                .cycle(
+                    async |world_state| {
+                        let processes = world_state.trees.remove_connection(connection);
 
-                    if let Err(error) = world_state.world.end_orphaned_processes(&processes).await {
-                        state.record_failure(error);
-                    }
-                })
+                        if let Err(error) = state
+                            .cancel_jobs(world_state, |job| job.connection == connection)
+                            .await
+                        {
+                            state.record_failure(error);
+                        }
+
+                        if let Err(error) = world_state
+                            .world
+                            .modules
+                            .shell
+                            .shells
+                            .end_orphaned_processes(&processes)
+                            .await
+                        {
+                            state.record_failure(error);
+                        }
+                    },
+                    true,
+                )
                 .await;
         }));
     }

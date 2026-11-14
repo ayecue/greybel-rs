@@ -1,17 +1,22 @@
 //! Networks: the player's network, reaching addresses and services, routers, ports, DNS, FTP and network sessions.
 
 use greybel_test_support::game::Game;
-use greyhack_behaviour::Reward;
+use greyhack_behaviour::{Reward, WorldSeed};
 use greyhack_test_support_client::protocol::test_support::LanNodeKind;
+use greyhack_world::WifiGenerator;
 
-use crate::support::game::{join_network, join_network_where, setup_player, test_client};
+use crate::support::game::{
+    join_network, join_network_where, join_new_network_where, setup_player, test_client,
+};
 use crate::support::metaxploit::{overflow_script, router_library, weakness};
 use crate::support::parity::{
     assert_port_info_lines, assert_succeeded, compare_in, compare_in_flooded, game_outcomes,
     intrinsics_outcomes, snapshot_outcomes,
 };
+use crate::support::parity_missions::use_game_word_lists;
 use crate::support::remote::{
     forwarded_root, forwarded_service, script_string, service_account, service_behind_devices,
+    simulated_login, simulated_service_login,
 };
 
 /// Public addresses nothing reached yet: the game makes a network the first time a script reaches one, outside the
@@ -31,6 +36,68 @@ async fn should_match_intrinsics_for_addresses_reached_for_the_first_time() {
     let actual = game_outcomes(&client, &scripts).await;
 
     assert_eq!(actual, expected);
+    client.shutdown();
+}
+
+/// Fresh networks draw their public Wi-Fi names from the world secret, independently of the snapshot mirror
+/// (`ServerMap.RouterNode`, `NetworkLan.RouterNet.ConfigWifi`).
+#[tokio::test]
+async fn should_generate_public_wifi_names_from_the_world_secret() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+
+    use_game_word_lists(&client).await;
+    setup_player(&client).await;
+
+    let mut comparisons = 0;
+
+    for _ in 0..3 {
+        let snapshot = join_new_network_where(&client, "ssh", |snapshot| {
+            let wifi = |main| {
+                snapshot.nodes.iter().any(move |node| {
+                    node.parent.is_none() == main
+                        && matches!(&node.node, LanNodeKind::Router(router) if router.bssid.is_some() && router.essid.is_some())
+                })
+            };
+
+            wifi(true) && wifi(false)
+        })
+        .await;
+        let seed = WorldSeed::new(snapshot.world_secret.to_vec());
+        let generator = WifiGenerator::new(&seed);
+        let before = comparisons;
+
+        for node in &snapshot.nodes {
+            let LanNodeKind::Router(router) = &node.node else {
+                continue;
+            };
+            let (Some(bssid), Some(essid)) = (&router.bssid, &router.essid) else {
+                continue;
+            };
+            let public_ip = snapshot.public_ip.to_string();
+            let local_ip = node.local_ip.to_string();
+            let addresses = if node.parent.is_some() {
+                vec![public_ip.as_str(), local_ip.as_str()]
+            } else {
+                vec![public_ip.as_str()]
+            };
+            let (expected_bssid, expected_essid) = generator.names(&addresses);
+
+            assert_eq!(
+                (bssid.to_string(), essid.to_string()),
+                (expected_bssid, expected_essid),
+                "Wi-Fi names of {public_ip} / {local_ip}"
+            );
+            comparisons += 1;
+        }
+
+        assert!(
+            comparisons >= before + 2,
+            "each network compares a main and a LAN router"
+        );
+    }
+
+    assert!(comparisons >= 6, "three networks have Wi-Fi comparisons");
     client.shutdown();
 }
 
@@ -114,7 +181,7 @@ async fn should_match_intrinsics_for_the_players_network() {
     let mut scripts = vec![
         "r = get_router; print [r.public_ip, r.local_ip, r.essid_name, r.bssid_name, r.kernel_version]; print r.devices_lan_ip; print r.firewall_rules".to_owned(),
         format!("r = get_router; for p in r.used_ports; print [p.port_number, p.is_closed, p.get_lan_ip, r.port_info(p)]; end for; print r.ping_port({forwarded_port}).get_lan_ip; print r.ping_port(8080)"),
-        format!("r = get_router(\"{child_router}\"); print [r.local_ip, r.public_ip, r.essid_name, r.kernel_version, r.used_ports.len]; print r.devices_lan_ip; print r.firewall_rules"),
+        format!("r = get_router(\"{child_router}\"); print [r.local_ip, r.public_ip, r.essid_name, r.bssid_name, r.kernel_version, r.used_ports.len]; print r.devices_lan_ip; print r.firewall_rules"),
         format!("s = get_switch(\"{switch}\"); print [typeof(s), s.local_ip, s.essid_name, s.bssid_name]; print s.firewall_rules; print s.devices_lan_ip; print get_switch(\"{child_router}\"); print get_router(\"{computer}\"); print get_router(\"{switch}\").local_ip"),
         format!("sh = get_shell; for a in {addresses:?}; print a + \" \" + sh.ping(a); end for"),
         format!("r = get_router; for a in {addresses:?}; ports = r.device_ports(a); if typeof(ports) == \"string\" then print ports else print a + \" \" + ports.len; end for"),
@@ -232,6 +299,22 @@ async fn should_match_intrinsics_for_encrypted_service_logins() {
 
         let (port, password) = forwarded_root(&snapshot, "ssh");
         let (ftp_port, ftp_password) = forwarded_root(&snapshot, "ftp");
+
+        // The forwarded computers' root logins have to work for the script to get anywhere; on some generated
+        // networks they don't (in both worlds alike), so only a network where Greybel's copy accepts both is used.
+        if !simulated_login(&snapshot, &user, &address, port, "root", &password)
+            || !simulated_service_login(
+                &snapshot,
+                &user,
+                &address,
+                ftp_port,
+                "root",
+                &ftp_password,
+                "ftp",
+            )
+        {
+            continue;
+        }
 
         break (address, snapshot, port, password, ftp_port, ftp_password);
     };

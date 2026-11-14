@@ -7,14 +7,20 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use duplex_core::NextNotification;
+use greybel_interpreter::Stdout;
 use tokio::sync::Notify;
 
-use crate::protocol::{ProgramEnd, ProgramId, ProgramRouter, ProgramThrottle};
+use crate::game::print_line;
+use crate::protocol::{
+    ProgramEnd, ProgramId, ProgramPrint, ProgramPrintRef, ProgramRouter, ProgramThrottle,
+};
 
 /// Per-program ended flags and pending pauses.
 #[derive(Default)]
 pub(super) struct ProgramTable {
     ends: RefCell<HashSet<u32>>,
+    /// Terminal output of each active program.
+    outputs: RefCell<HashMap<u32, Rc<dyn Stdout>>>,
     /// Pause duration in milliseconds for each throttled program tree.
     pauses: RefCell<HashMap<u32, u32>>,
     /// Count of received program-end and throttle notifications.
@@ -73,9 +79,15 @@ impl ProgramTable {
         self.ends.borrow().contains(&program.id)
     }
 
-    /// Removes `program`'s ended-state and pause tracking.
+    /// Routes later output of `program` to `stdout`.
+    pub(super) fn register_output(&self, program: ProgramId, stdout: Rc<dyn Stdout>) {
+        self.outputs.borrow_mut().insert(program.id, stdout);
+    }
+
+    /// Removes `program`'s output, ended-state, and pause tracking.
     pub(super) fn forget(&self, program: ProgramId) {
         self.ends.borrow_mut().remove(&program.id);
+        self.outputs.borrow_mut().remove(&program.id);
         self.pauses.borrow_mut().remove(&program.id);
     }
 }
@@ -84,6 +96,18 @@ impl ProgramRouter for Rc<ProgramTable> {
     fn on_program_end(&self, message: ProgramEnd, _next: NextNotification<ProgramEnd>) {
         self.ends.borrow_mut().insert(message.program.id);
         self.count_notice();
+    }
+
+    fn on_program_print(
+        &self,
+        message: ProgramPrintRef<'_>,
+        _next: NextNotification<ProgramPrint>,
+    ) {
+        let output = self.outputs.borrow().get(&message.program.id).cloned();
+
+        if let Some(output) = output {
+            print_line(output.as_ref(), &message.line.into_owned());
+        }
     }
 
     fn on_program_throttle(

@@ -27,9 +27,7 @@ pub fn get_pending_trade(
         server(vm)?.send_wallet_get_pending_trade(&message),
         |vm, trade| match trade {
             PendingTrade::Null => Ok::<_, IntrinsicError>(Value::Null),
-            PendingTrade::Failure(failure) => {
-                failure_value("get_pending_trade", &failure)
-            }
+            PendingTrade::Failure(failure) => failure_value("get_pending_trade", &failure),
             PendingTrade::Order {
                 side,
                 amount,

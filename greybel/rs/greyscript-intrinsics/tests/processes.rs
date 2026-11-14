@@ -14,14 +14,29 @@ use crate::support::scripts::run_on_host;
 
 #[test]
 fn should_reject_a_launch_when_ram_is_full() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
-    let player = world.player();
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let player = world.handle.player();
 
-    while block_on(world.check_process_capacity(player, 25.0, false))
-        .unwrap()
-        .is_ok()
+    while block_on(
+        world
+            .modules
+            .core
+            .computers
+            .processes
+            .check_process_capacity(player, 25.0, false),
+    )
+    .unwrap()
+    .is_ok()
     {
-        block_on(world.spawn_process(player, "test", "filler", None)).unwrap();
+        block_on(
+            world
+                .modules
+                .core
+                .computers
+                .processes
+                .spawn_process(player, "test", "filler", None),
+        )
+        .unwrap();
     }
 
     let (output, error, _) = run_on_host("print get_shell.launch(\"/bin/ls\")", world, true);
@@ -33,16 +48,28 @@ fn should_reject_a_launch_when_ram_is_full() {
 
 #[test]
 fn should_refuse_a_terminal_past_the_terminal_limit() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
-    let player = world.player();
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let player = world.handle.player();
 
     for index in 0..15 {
-        block_on(world.spawn_terminal(player, "test", &format!("terminal{index}"))).unwrap();
+        block_on(world.modules.core.computers.processes.spawn_terminal(
+            player,
+            "test",
+            &format!("terminal{index}"),
+        ))
+        .unwrap();
     }
 
-    let error = block_on(world.check_process_capacity(player, 25.0, true))
-        .unwrap()
-        .unwrap_err();
+    let error = block_on(
+        world
+            .modules
+            .core
+            .computers
+            .processes
+            .check_process_capacity(player, 25.0, true),
+    )
+    .unwrap()
+    .unwrap_err();
 
     assert_eq!(error, ProcessFailure::TooManyTerminals);
 }
@@ -52,11 +79,16 @@ fn should_refuse_a_terminal_past_the_terminal_limit() {
 #[test]
 fn should_reject_launch_parameters_that_arent_text() {
     // Arrange
-    let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
-    let player = world.player();
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let player = world.handle.player();
 
     for index in 0..15 {
-        block_on(world.spawn_terminal(player, "test", &format!("terminal{index}"))).unwrap();
+        block_on(world.modules.core.computers.processes.spawn_terminal(
+            player,
+            "test",
+            &format!("terminal{index}"),
+        ))
+        .unwrap();
     }
 
     // Act
@@ -76,9 +108,13 @@ fn should_reject_launch_parameters_that_arent_text() {
 #[tokio::test]
 async fn should_preserve_terminal_process_flags() {
     let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
+    let player = world.handle.player();
 
     world
+        .modules
+        .core
+        .computers
+        .processes
         .spawn_terminal(player, "test", "terminal")
         .await
         .unwrap();
@@ -89,6 +125,10 @@ async fn should_preserve_terminal_process_flags() {
 
     assert!(
         restored
+            .modules
+            .core
+            .computers
+            .processes
             .processes(player)
             .await
             .unwrap()
@@ -127,7 +167,9 @@ fn should_end_a_program_whose_process_another_program_closed() {
         let server = WorldServer::new(
             World::new(&PlayerOptions::default()).await.unwrap(),
             constant_clock(),
-        );
+        )
+        .await
+        .unwrap();
         let user = PlayerOptions::default().user;
         let (_, looping_options) = snapshot_options();
         let (closing_lines, closing_options) = snapshot_options();
@@ -143,6 +185,10 @@ fn should_end_a_program_whose_process_another_program_closed() {
         let pid = server
             .world()
             .await
+            .modules
+            .core
+            .computers
+            .processes
             .processes(player)
             .await
             .unwrap()
@@ -170,6 +216,10 @@ fn should_end_a_program_whose_process_another_program_closed() {
         let running = server
             .world()
             .await
+            .modules
+            .core
+            .computers
+            .processes
             .process(player, pid)
             .await
             .unwrap()
@@ -186,7 +236,9 @@ fn should_reuse_the_code_of_a_binary_launched_again() {
         let server = WorldServer::new(
             World::new(&PlayerOptions::default()).await.unwrap(),
             constant_clock(),
-        );
+        )
+        .await
+        .unwrap();
         let user = PlayerOptions::default().user;
         let build = "sh = get_shell\npc = sh.host_computer\npc.touch(home_dir, \"child.src\")\npc.File(home_dir + \"/child.src\").set_content(\"f = function\n  return 1\nend function\nprint f\")\nsh.build(home_dir + \"/child.src\", home_dir)\n";
         let mut code_counts = Vec::new();

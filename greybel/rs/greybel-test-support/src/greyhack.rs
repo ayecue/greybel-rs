@@ -5,6 +5,7 @@ use std::rc::Rc;
 use duplex_core::{Channel, ChannelOptions};
 use duplex_test_support::local::run_local;
 use greybel_interpreter::{InterpreterError, InterpreterOptions, Stdout};
+use greyhack_world::prelude::*;
 use greyhack_world::{Database, World};
 use greyhack_world_operations::WorldServer;
 use greyscript_intrinsics::protocol::Program;
@@ -50,6 +51,18 @@ pub fn run_on_host_at(
     run_on_server(code, world, user, admin, Some(path), options)
 }
 
+/// Async equivalent of [`run_on_host_at`] for a current-thread runtime or [`tokio::task::LocalSet`].
+pub async fn run_on_host_at_async(
+    code: &str,
+    world: World,
+    user: &str,
+    admin: bool,
+    path: &str,
+    options: InterpreterOptions,
+) -> HostRun {
+    run_on_terminal_server_async(code, world, user, admin, (Some(path), false), options).await
+}
+
 /// Equivalent to [`run_on_host`]. Ignores the final parameter, formerly an entity-cache limit before that cache
 /// was removed.
 pub fn run_on_host_within(
@@ -63,6 +76,18 @@ pub fn run_on_host_within(
     run_on_server(code, world, user, admin, None, options)
 }
 
+/// Equivalent to [`run_on_host`], with the program typed into the safe-mode terminal the world runs
+/// (`GreyInterpreter.isSafeTerminal`).
+pub fn run_on_host_in_safe_terminal(
+    code: &str,
+    world: World,
+    user: &str,
+    admin: bool,
+    options: InterpreterOptions,
+) -> HostRun {
+    run_on_terminal_server(code, world, user, admin, (None, true), options)
+}
+
 /// Runs `code` as program `path` on a new `world` server; `None` selects the default program path.
 fn run_on_server(
     code: &str,
@@ -72,13 +97,45 @@ fn run_on_server(
     path: Option<&str>,
     options: InterpreterOptions,
 ) -> HostRun {
+    run_on_terminal_server(code, world, user, admin, (path, false), options)
+}
+
+/// Runs `code` on a new `world` server as program `path` (`None` selects the default program path) typed into the
+/// safe-mode terminal when the flag is set.
+fn run_on_terminal_server(
+    code: &str,
+    world: World,
+    user: &str,
+    admin: bool,
+    (path, safe_terminal): (Option<&str>, bool),
+    options: InterpreterOptions,
+) -> HostRun {
+    run_local(run_on_terminal_server_async(
+        code,
+        world,
+        user,
+        admin,
+        (path, safe_terminal),
+        options,
+    ))
+}
+
+/// Runs a host program on the caller's current-thread runtime.
+async fn run_on_terminal_server_async(
+    code: &str,
+    world: World,
+    user: &str,
+    admin: bool,
+    (path, safe_terminal): (Option<&str>, bool),
+    options: InterpreterOptions,
+) -> HostRun {
     let stdout = Rc::new(MarkedStdout::default());
     let options = InterpreterOptions {
         stdout: Rc::clone(&stdout) as Rc<dyn Stdout>,
         ..options
     };
 
-    run_local(async {
+    {
         let server = WorldServer::with_database(
             world,
             Database::in_memory().await.expect("an in-memory database"),
@@ -87,7 +144,7 @@ fn run_on_server(
         .await
         .expect("the world is written to the database");
 
-        let error = run_program(&server, code, user, admin, path, options).await;
+        let error = run_program(&server, code, user, admin, (path, safe_terminal), options).await;
         let world = World::load(server.database().expect("a database"))
             .await
             .expect("the world loads");
@@ -98,7 +155,7 @@ fn run_on_server(
             error,
             world,
         }
-    })
+    }
 }
 
 /// Runs `code` on existing `server` with optional admin rights on the current `LocalSet`. Returns a runtime error
@@ -110,7 +167,7 @@ pub async fn run_in(
     admin: bool,
     options: InterpreterOptions,
 ) -> Option<String> {
-    run_program(server, code, user, admin, None, options).await
+    run_program(server, code, user, admin, (None, false), options).await
 }
 
 async fn run_program(
@@ -118,14 +175,20 @@ async fn run_program(
     code: &str,
     user: &str,
     admin: bool,
-    path: Option<&str>,
+    (path, safe_terminal): (Option<&str>, bool),
     options: InterpreterOptions,
 ) -> Option<String> {
-    let mut host =
-        GreyHackInterpreter::start_at(&connect(server), user, path, options, inline(code))
-            .await
-            .expect("the program starts")
-            .with_admin(admin);
+    let mut host = GreyHackInterpreter::start_in_terminal(
+        &connect(server),
+        user,
+        path,
+        safe_terminal,
+        options,
+        inline(code),
+    )
+    .await
+    .expect("the program starts")
+    .with_admin(admin);
 
     match host.run().await {
         Ok(_) => None,
@@ -145,7 +208,20 @@ pub async fn run_in_at(
     path: &str,
     options: InterpreterOptions,
 ) -> Option<String> {
-    run_program(server, code, user, admin, Some(path), options).await
+    run_program(server, code, user, admin, (Some(path), false), options).await
+}
+
+/// Calls [`run_in_at`] with the program typed into the safe-mode terminal the world runs
+/// (`GreyInterpreter.isSafeTerminal`).
+pub async fn run_in_at_safe_terminal(
+    server: &WorldServer,
+    code: &str,
+    user: &str,
+    admin: bool,
+    path: &str,
+    options: InterpreterOptions,
+) -> Option<String> {
+    run_program(server, code, user, admin, (Some(path), true), options).await
 }
 
 /// Creates a same-thread, in-memory connection from a program to `server`.

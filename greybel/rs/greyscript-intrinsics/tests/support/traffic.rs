@@ -15,12 +15,19 @@ pub struct TrafficWorld {
 
 pub fn world_with_traffic() -> TrafficWorld {
     let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
-    let player = world.player();
+    let player = world.handle.player();
     let network = read_computer(&world, player).network;
-    let public_ip = block_on(world.public_ip(player)).unwrap();
+    let public_ip = block_on(world.modules.core.networks.topology.public_ip(player)).unwrap();
 
-    block_on(world.set_network_kind(network, NetworkKind::Police))
-        .expect("the network kind is saved");
+    block_on(
+        world
+            .modules
+            .core
+            .networks
+            .settings
+            .set_network_kind(network, NetworkKind::Police),
+    )
+    .expect("the network kind is saved");
     add_library(
         &mut world,
         player,
@@ -35,11 +42,25 @@ pub fn world_with_traffic() -> TrafficWorld {
 
     let officer = add_npc(&mut world, "alice", "Alice alice");
     let driver = add_npc(&mut world, "Smith", "John Smith");
-    let plate = license_plate(world.world_seed(), &public_ip, "Smith").unwrap();
+    let plate = license_plate(&world.handle.world_seed(), &public_ip, "Smith").unwrap();
 
-    block_on(world.set_npc_job(officer, JobRole::Commissioner, None)).unwrap();
-    block_on(world.set_npc_job(driver, JobRole::Sales, Some(plate.clone()))).unwrap();
-    block_on(world.save_traffic(
+    block_on(
+        world
+            .modules
+            .npcs
+            .jobs
+            .set_npc_job(officer, JobRole::Commissioner, None),
+    )
+    .unwrap();
+    block_on(
+        world
+            .modules
+            .npcs
+            .jobs
+            .set_npc_job(driver, JobRole::Sales, Some(plate.clone())),
+    )
+    .unwrap();
+    block_on(world.modules.smart_devices.traffic.save_traffic(
         network,
         &TrafficNet {
             credentials: Some(officer),
@@ -50,9 +71,15 @@ pub fn world_with_traffic() -> TrafficWorld {
 
     // The clock moves on in quarter hours until the driver drives to or from work.
     for _ in 0..7 * 96 {
-        if block_on(world.locate_vehicle(network, &plate, "secret", false))
-            .unwrap()
-            .is_ok()
+        if block_on(
+            world
+                .modules
+                .smart_devices
+                .traffic
+                .locate_vehicle(network, &plate, "secret", false),
+        )
+        .unwrap()
+        .is_ok()
         {
             return TrafficWorld {
                 world,
@@ -70,23 +97,37 @@ pub fn world_with_traffic() -> TrafficWorld {
 
 /// Adds the player computer's NPC `user`, with the password `secret`.
 fn add_npc(world: &mut World, user: &str, name: &str) -> PersonId {
-    let player = world.player();
+    let player = world.handle.player();
 
-    block_on(world.add_user(player, user, "secret"))
-        .unwrap()
-        .unwrap();
+    block_on(
+        world
+            .modules
+            .core
+            .computers
+            .users
+            .add_user(player, user, "secret"),
+    )
+    .unwrap()
+    .unwrap();
 
-    let at = world.time_seconds();
+    let at = world.handle.time_seconds();
 
-    block_on(world.add_npc(player, user, name, at))
+    block_on(world.modules.npcs.npcs.add_npc(player, user, name, at))
         .unwrap()
         .unwrap()
 }
 
 /// Enables `network`'s traffic override, as the traffic-lights weakness does.
 pub fn enable_override(world: &mut World, network: NetworkId) {
-    let mut traffic = block_on(world.traffic(network)).unwrap();
+    let mut traffic = block_on(world.modules.smart_devices.traffic.traffic(network)).unwrap();
 
     traffic.override_enabled = true;
-    block_on(world.save_traffic(network, &traffic)).unwrap();
+    block_on(
+        world
+            .modules
+            .smart_devices
+            .traffic
+            .save_traffic(network, &traffic),
+    )
+    .unwrap();
 }

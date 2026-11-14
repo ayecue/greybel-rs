@@ -624,6 +624,8 @@ reboot:
   - computer
 register_password:
   - admin
+release_library_version:
+  - admin
 remove:
   - any
   - general
@@ -642,6 +644,8 @@ replace:
 replace_regex:
   - general
   - string
+report_exploit:
+  - admin
 report_library_update:
   - adminNetwork
 reset_ctf_password:

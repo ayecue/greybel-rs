@@ -13,7 +13,9 @@ pub fn change_password(
     user: &Value,
     password: &Value,
 ) -> Result<NativeFuture, IntrinsicError> {
-    let Some((access, user, password)) = computer_with_strings(vm, this, "change_password", user, password) else {
+    let Some((access, user, password)) =
+        computer_with_strings(vm, this, "change_password", user, password)
+    else {
         return Ok(NativeOutput::ready(Value::Null));
     };
 

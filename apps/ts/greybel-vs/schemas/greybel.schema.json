@@ -1,21 +1,21 @@
 {
   "$defs": {
     "BuildMode": {
-      "description": "How a build writes code.",
+      "description": "Build output mode.",
       "oneOf": [
         {
           "const": "Default",
-          "description": "As written, without comments.",
+          "description": "Original formatting without comments.",
           "type": "string"
         },
         {
           "const": "Uglify",
-          "description": "Minified.",
+          "description": "Minified output.",
           "type": "string"
         },
         {
           "const": "Beautify",
-          "description": "Formatted as `format` says.",
+          "description": "Output formatted according to `format`.",
           "type": "string"
         }
       ]
@@ -25,7 +25,7 @@
       "properties": {
         "autoCompile": {
           "default": true,
-          "description": "Compiles the build in the game and deletes its source files.",
+          "description": "Compiles the build in-game and removes its source files.",
           "type": "boolean",
           "x-vscode-setting": "greybel.autoCompile"
         },
@@ -37,19 +37,19 @@
         },
         "disableLiteralsOptimization": {
           "default": false,
-          "description": "Retains repeated literals as they are when uglifying.",
+          "description": "Preserves repeated literals during uglification.",
           "type": "boolean",
           "x-vscode-setting": "greybel.transpiler.dlo"
         },
         "disableNamespacesOptimization": {
           "default": false,
-          "description": "Retains names as they are when uglifying.",
+          "description": "Preserves names during uglification.",
           "type": "boolean",
           "x-vscode-setting": "greybel.transpiler.dno"
         },
         "excludedNamespaces": {
           "default": [],
-          "description": "Names uglifying retains.",
+          "description": "Names excluded from uglification.",
           "items": {
             "type": "string"
           },
@@ -58,7 +58,7 @@
         },
         "ingameDirectory": {
           "default": "/root/",
-          "description": "The folder in the game the build runs from.",
+          "description": "In-game folder from which the build runs.",
           "type": "string",
           "x-vscode-setting": "greybel.transpiler.ingameDirectory"
         },
@@ -77,18 +77,18 @@
         },
         "obfuscation": {
           "default": false,
-          "description": "Shortens names that code reads as strings too, such as map keys.",
+          "description": "Also shortens names accessed as strings, including map keys.",
           "type": "boolean",
           "x-vscode-setting": "greybel.transpiler.obfuscation"
         },
         "output": {
           "default": "build",
-          "description": "The folder a build is written to, relative to the project's folder.",
+          "description": "Project-relative output folder for builds.",
           "type": "string"
         },
         "outputName": {
           "default": null,
-          "description": "The name of the built entry file, for a build of one file; an empty one is none.",
+          "description": "Output entry filename for single-file builds; empty means no name.",
           "type": [
             "string",
             "null"
@@ -103,7 +103,7 @@
             ],
             "values": {}
           },
-          "description": "The values `#envar` reads in a build.",
+          "description": "Build-time values for `#envar`.",
           "x-vscode-setting": {
             "files": "greybel.transpiler.environmentFile",
             "values": "greybel.transpiler.environmentVariables"
@@ -114,11 +114,11 @@
     },
     "DeploySettings": {
       "additionalProperties": false,
-      "description": "Builds created in the game through its message hook.",
+      "description": "In-game builds performed through the message hook.",
       "properties": {
         "allowImport": {
           "default": false,
-          "description": "Lets the program compiled in the game import code at runtime.",
+          "description": "Allows game-compiled programs to import code at runtime.",
           "type": "boolean",
           "x-vscode-setting": "greybel.createIngame.allowImport"
         }
@@ -135,7 +135,7 @@
         },
         "indentationSpaces": {
           "default": 2,
-          "description": "The spaces of one indentation, when it is `Whitespace`.",
+          "description": "Spaces per indentation level when using `Whitespace`.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer",
@@ -143,7 +143,7 @@
         },
         "retainParentheses": {
           "default": false,
-          "description": "Retains every parenthesis of the code.",
+          "description": "Preserves all source parentheses.",
           "type": "boolean",
           "x-vscode-setting": "greybel.transpiler.beautify.keepParentheses"
         }
@@ -159,23 +159,23 @@
     },
     "InstallerSettings": {
       "additionalProperties": false,
-      "description": "Installer files, which recreate the build in the game when run there.",
+      "description": "Installer files that recreate the build when run in-game.",
       "properties": {
         "active": {
           "default": true,
-          "description": "Writes installer files.",
+          "description": "Enables installer-file output.",
           "type": "boolean",
           "x-vscode-setting": "greybel.transpiler.installer.active"
         },
         "allowImport": {
           "default": false,
-          "description": "Lets the program compiled by an installer import code at runtime.",
+          "description": "Allows installer-compiled programs to import code at runtime.",
           "type": "boolean",
           "x-vscode-setting": "greybel.transpiler.installer.allowImport"
         },
         "maxChars": {
           "default": 160000,
-          "description": "How many characters an installer file has at most: longer installers are split.",
+          "description": "Maximum characters per installer file; longer installers are split.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer",
@@ -186,14 +186,14 @@
     },
     "Profile": {
       "additionalProperties": false,
-      "description": "A named variation of a project's `build` and `run`: what it says replaces what the settings it changes say, an\nobject key by key, and any other value entirely, so a list replaces the list it changes.",
+      "description": "Named overrides for project `build` and `run` settings. Objects merge by key; all other values, including lists,\nreplace the original value entirely.",
       "properties": {
         "build": {
           "$ref": "#/$defs/BuildSettings",
-          "description": "What the profile changes of `build`."
+          "description": "Build-setting overrides for this profile."
         },
         "extends": {
-          "description": "The profile this one changes, instead of the base settings.",
+          "description": "Parent profile to modify instead of the base settings.",
           "type": [
             "string",
             "null"
@@ -201,7 +201,7 @@
         },
         "run": {
           "$ref": "#/$defs/RunSettings",
-          "description": "What the profile changes of `run`."
+          "description": "Run-setting overrides for this profile."
         }
       },
       "type": "object"
@@ -211,7 +211,7 @@
       "properties": {
         "memoryLimit": {
           "default": 1024,
-          "description": "Memory in MiB a program in the simulated world may use before it is interrupted, as Grey Hack interrupts one\nthat runs out of memory; there is no limit on how many calls nest.",
+          "description": "Simulated-program memory limit in MiB before interruption, matching Grey Hack's out-of-memory behavior.\nCall nesting is unlimited.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer",
@@ -219,7 +219,7 @@
         },
         "params": {
           "default": [],
-          "description": "The program's `params`.",
+          "description": "Values for the program's `params`.",
           "items": {
             "type": "string"
           },
@@ -229,13 +229,13 @@
         },
         "programName": {
           "default": "myprogram",
-          "description": "The name of the binary a run builds the program to in its user's home folder and runs as, so it can launch\nitself; the game's binary only exists while the run lasts.",
+          "description": "Binary name used when building into the user's home folder so the program can launch itself. The in-game\nbinary exists only for the run's duration.",
           "type": "string",
           "x-vscode-setting": "greybel.interpreter.programName"
         },
         "seed": {
           "default": "test",
-          "description": "The text the simulated world is generated from: the same seed makes the same world.",
+          "description": "Seed text for simulated-world generation; identical seeds produce identical worlds.",
           "type": "string",
           "x-vscode-setting": "greybel.interpreter.seed"
         },
@@ -247,7 +247,7 @@
             ],
             "values": {}
           },
-          "description": "The values `#envar` reads in a run.",
+          "description": "Run-time values for `#envar`.",
           "x-vscode-setting": {
             "files": "greybel.interpreter.environmentFile",
             "values": "greybel.interpreter.environmentVariables"
@@ -258,13 +258,13 @@
     },
     "VariableSettings": {
       "additionalProperties": false,
-      "description": "The values `#envar` reads: the `NAME=value` lines of `files`, then `values`, a later value of a name replacing an\nearlier one.",
+      "description": "Values for `#envar`, loaded from `NAME=value` lines in `files` and then `values`; later entries override\nearlier entries with the same name.",
       "properties": {
         "files": {
           "default": [
             ".env"
           ],
-          "description": "Files of `NAME=value` lines, relative to the project's folder; a missing file has no values.",
+          "description": "Project-relative files containing `NAME=value` lines; missing files contribute no values.",
           "items": {
             "type": "string"
           },
@@ -284,10 +284,10 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "A project's `greybel.json`. Every setting is optional: a missing one has its default. `x-vscode-setting` names the\ngreybel-vs setting each is synced with, and `x-vscode-format` how a list is written there: `commaList` and\n`spaceList` join it, `first` is its first item.",
+  "description": "A project's `greybel.json`; omitted settings use defaults. `x-vscode-setting` identifies the synced greybel-vs\nsetting. `x-vscode-format` controls list serialization: `commaList` and `spaceList` join items, while `first`\nselects the first item.",
   "properties": {
     "$schema": {
-      "description": "The JSON Schema of the file, for editors.",
+      "description": "Editor-facing JSON Schema for this file.",
       "type": [
         "string",
         "null"
@@ -323,7 +323,7 @@
     },
     "entries": {
       "default": [],
-      "description": "The files a build or a run starts from, relative to the project's folder.",
+      "description": "Entry files for builds and runs, relative to the project folder.",
       "items": {
         "type": "string"
       },
@@ -333,7 +333,7 @@
     },
     "exclude": {
       "default": "**/{node_modules,.*}/**",
-      "description": "The files the type analyzer skips, as a glob relative to the project's folder.",
+      "description": "Project-relative glob for files excluded from type analysis.",
       "type": "string",
       "x-vscode-setting": "greybel.typeAnalyzer.exclude"
     },
@@ -343,7 +343,7 @@
         "gs",
         "ms"
       ],
-      "description": "The file extensions an import may omit, tried in this order; a leading dot is dropped.",
+      "description": "Optional import extensions in resolution order; leading dots are removed.",
       "items": {
         "type": "string"
       },
@@ -358,13 +358,13 @@
         "indentationSpaces": 2,
         "retainParentheses": false
       },
-      "description": "How code is formatted, by the editor and by beautified builds."
+      "description": "Formatting used by the editor and beautified builds."
     },
     "profiles": {
       "additionalProperties": {
         "$ref": "#/$defs/Profile"
       },
-      "description": "Named variations of `build` and `run`, which a build or a run selects by name: `--profile` of the command line,\n`profile` of an MCP tool, `greybel.profile` of greybel-vs.",
+      "description": "Named `build` and `run` overrides selected by CLI `--profile`, MCP tool `profile`, or greybel-vs\n`greybel.profile`.",
       "type": "object"
     },
     "run": {
@@ -384,7 +384,7 @@
     },
     "strictMode": {
       "default": false,
-      "description": "Accepts only what Grey Hack's compiler accepts (MiniScript 1.6.2 for MiniScript files): none of Greybel's\nsyntax or conveniences, such as `#include`, `&` or `+=`.",
+      "description": "Restricts syntax to Grey Hack's compiler (MiniScript 1.6.2 for MiniScript files), excluding Greybel extensions\nsuch as `#include`, `&`, and `+=`.",
       "type": "boolean",
       "x-vscode-setting": "greybel.strictMode"
     }

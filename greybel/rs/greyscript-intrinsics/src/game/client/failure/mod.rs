@@ -23,9 +23,7 @@ mod shop;
 mod sniffer;
 
 pub(in crate::game) use apt::apt_update_text;
-pub(in crate::game) use connection::{
-    inactive_account, lan_text, login_reaches_computer, login_text, smtp_text,
-};
+pub(in crate::game) use connection::{inactive_account, lan_text, login_text, smtp_text};
 pub(in crate::game) use debug::{scan_text, unit_test_text};
 pub(in crate::game) use economy::coin_status_text;
 pub(in crate::game) use exploit::exploit_text;
@@ -56,7 +54,7 @@ pub(crate) fn failure_text(
         Failure::Market(failure) => economy::market_text(intrinsic, failure)?,
         Failure::Economy(failure) => economy::economy_text(intrinsic, failure),
         Failure::File(failure) => file::file_text(intrinsic, failure),
-        Failure::Apt(failure) => apt::apt_text(failure),
+        Failure::Apt(failure) => apt::apt_text(intrinsic, failure),
         Failure::Computer(failure) => computer::computer_text(intrinsic, failure),
         Failure::Crypto(failure) => crypto::crypto_text(*failure).to_owned(),
         Failure::Mail(failure) => mail::mail_text(intrinsic, *failure),

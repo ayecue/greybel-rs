@@ -18,6 +18,10 @@ scheduler.workspace = true
 greyhack-behaviour.workspace = true
 greybel-source-map.workspace = true
 greyhack-world.workspace = true
+greyhack-world-modules.workspace = true
+greyhack-world-router.workspace = true
+greyhack-world-routines.workspace = true
+greyhack-world-storage.workspace = true
 greyhack-world-assets.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
@@ -28,7 +32,6 @@ scheduler = { workspace = true, features = ["tokio"] }
 
 [dev-dependencies]
 futures-util.workspace = true
-duplex-ts.workspace = true
 greybel-test-support.workspace = true
 duplex-test-support = { workspace = true, features = ["tokio"] }
 scheduler = { workspace = true, features = ["manual", "tokio"] }

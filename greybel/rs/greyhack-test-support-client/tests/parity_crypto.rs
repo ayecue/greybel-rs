@@ -46,8 +46,10 @@ async fn should_match_intrinsics_for_crypto_wifi_and_smtp() {
         format!(
             "crypto = include_lib(\"/lib/crypto.so\"); print crypto.decipher(md5(\"{password}\"))"
         ),
-        "crypto = include_lib(\"/lib/crypto.so\"); print crypto.smtp_user_list(\"bad\", 25); print crypto.smtp_user_list(\"45.45.45.45\", 25)"
-            .to_owned(),
+        format!(
+            "crypto = include_lib(\"/lib/crypto.so\"); print crypto.smtp_user_list(\"bad\", 25); print crypto.smtp_user_list(\"{address}\", 25)",
+            address = snapshot.public_ip
+        ),
     ];
 
     compare_in(&client, &user, &snapshot, &scripts).await;

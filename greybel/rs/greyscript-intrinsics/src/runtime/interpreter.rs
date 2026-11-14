@@ -101,11 +101,30 @@ impl<P: AsyncResourceProvider> GreyHackInterpreter<P> {
         options: InterpreterOptions,
         provider: P,
     ) -> Result<Self, GreyHackError> {
+        Self::start_in_terminal(server, user, path, false, options, provider).await
+    }
+
+    /// Equivalent to [`Self::start_at`], with the program typed into the safe-mode terminal when `safe_terminal`
+    /// is set and the player's computer runs one (`GreyInterpreter.isSafeTerminal`). Programs it launches run in
+    /// the same terminal.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the game server does not respond.
+    pub async fn start_in_terminal(
+        server: &ServerConnection,
+        user: &str,
+        path: Option<&str>,
+        safe_terminal: bool,
+        options: InterpreterOptions,
+        provider: P,
+    ) -> Result<Self, GreyHackError> {
         let session = server
             .channel()
             .send_start_program(&StartProgram {
                 user: user.into(),
                 path: path.map(Into::into),
+                safe_terminal,
             })?
             .await?;
         let options = InterpreterOptions {
@@ -123,6 +142,8 @@ impl<P: AsyncResourceProvider> GreyHackInterpreter<P> {
             stdout: Rc::clone(&output) as Rc<dyn Stdout>,
             ..options
         };
+
+        server.register_output(program, Rc::clone(&output) as Rc<dyn Stdout>);
 
         let game = Game::new(server.clone(), session, Rc::clone(&output));
         let launches = Rc::clone(&game.launches);

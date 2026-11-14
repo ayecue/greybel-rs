@@ -9,10 +9,27 @@ use crate::support::system_log::{connect_script, world_with_service};
 /// `ActiveTraceSystem.CancelAllActiveTraces`).
 #[test]
 fn should_queue_a_company_computer_for_the_passive_trace_after_a_login_and_a_deletion() {
-    let (mut world, target) = world_with_service();
-    let row = block_on(world.computer(target.computer)).unwrap().unwrap();
+    let (world, target) = world_with_service();
+    let row = block_on(
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(target.computer),
+    )
+    .unwrap()
+    .unwrap();
 
-    block_on(world.set_network_kind(row.network, NetworkKind::Bank)).unwrap();
+    block_on(
+        world
+            .modules
+            .core
+            .networks
+            .settings
+            .set_network_kind(row.network, NetworkKind::Bank),
+    )
+    .unwrap();
 
     let home = if target.user == "root" {
         "/root".to_owned()
@@ -34,18 +51,42 @@ fn should_queue_a_company_computer_for_the_passive_trace_after_a_login_and_a_del
 
     assert_eq!(error, None);
     assert_eq!(output, "shell\n");
-    assert_eq!(block_on(world.passive_traces()).unwrap(), [target.computer]);
-    assert!(block_on(world.active_traces()).unwrap().is_empty());
-    assert_eq!(block_on(world.strikes()).unwrap(), 0);
+    assert_eq!(
+        block_on(world.modules.guilds.traces.passive_traces()).unwrap(),
+        [target.computer]
+    );
+    assert!(
+        block_on(world.modules.guilds.traces.active_traces())
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(block_on(world.modules.guilds.traces.strikes()).unwrap(), 0);
 }
 
 /// Logging in to a computer of a network the player made queues nothing (`Computer.IsSpawnedByPlayer`).
 #[test]
 fn should_not_queue_a_computer_of_a_rented_network() {
-    let (mut world, target) = world_with_service();
-    let row = block_on(world.computer(target.computer)).unwrap().unwrap();
+    let (world, target) = world_with_service();
+    let row = block_on(
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(target.computer),
+    )
+    .unwrap()
+    .unwrap();
 
-    block_on(world.set_network_kind(row.network, NetworkKind::RentServer)).unwrap();
+    block_on(
+        world
+            .modules
+            .core
+            .networks
+            .settings
+            .set_network_kind(row.network, NetworkKind::RentServer),
+    )
+    .unwrap();
 
     let script = connect_script(
         &target.address,
@@ -59,5 +100,9 @@ fn should_not_queue_a_computer_of_a_rented_network() {
 
     assert_eq!(error, None);
     assert_eq!(output, "shell");
-    assert!(block_on(world.passive_traces()).unwrap().is_empty());
+    assert!(
+        block_on(world.modules.guilds.traces.passive_traces())
+            .unwrap()
+            .is_empty()
+    );
 }

@@ -101,17 +101,29 @@ pub async fn compare_after_report(
         let (output, error) = std::thread::scope(|scope| {
             scope
                 .spawn(|| {
-                    let mut world = match guilds {
+                    let world = match guilds {
                         Some(reply) => mirrored_world(user, snapshot, reply),
                         None => snapshot_world(user, snapshot),
                     };
 
-                    block_on(world.register_library(&library(newest).expect("a library")))
-                        .expect("the game's newest library is registered");
+                    block_on(
+                        world
+                            .modules
+                            .libraries
+                            .updates
+                            .register_library(&library(newest).expect("a library")),
+                    )
+                    .expect("the game's newest library is registered");
 
-                    let reported = block_on(world.report_library_update(&public_ip, name))
-                        .expect("the update is reported")
-                        .expect("a network");
+                    let reported = block_on(
+                        world
+                            .modules
+                            .libraries
+                            .updates
+                            .report_library_update(&public_ip, name),
+                    )
+                    .expect("the update is reported")
+                    .expect("a network");
 
                     assert_eq!(
                         reported,

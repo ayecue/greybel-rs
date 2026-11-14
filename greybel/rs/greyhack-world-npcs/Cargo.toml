@@ -1,0 +1,32 @@
+[package]
+name = "greyhack-world-npcs"
+description = "Grey Hack NPCs: jobs, schedules, alarms, network administrators, and mail"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greyhack-behaviour.workspace = true
+greyhack-world-assets.workspace = true
+greyhack-world-core.workspace = true
+greyhack-world-economy.workspace = true
+greyhack-world-modules.workspace = true
+greyhack-world-router.workspace = true
+greyhack-world-routines.workspace = true
+greyhack-world-storage.workspace = true
+mono-random.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+turso.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[lints]
+workspace = true

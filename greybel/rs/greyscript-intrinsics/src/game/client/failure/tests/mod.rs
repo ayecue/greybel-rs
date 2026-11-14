@@ -7,7 +7,6 @@ use greyhack_behaviour::{
     MAX_CONTENT, MAX_CREDENTIAL, MAX_CTF_PASSWORD, MAX_NAME, MAX_ORDER_COINS, MAX_ORDER_PRICE,
     MAX_WALLET_CREDENTIAL, Refusal,
 };
-
 use support::text;
 
 #[test]

@@ -1,6 +1,7 @@
 use greyhack_behaviour::{
-    APT_PACKAGE_SIZE, APT_SOURCES_PATH, DEFAULT_REPOSITORY, DEFAULT_REPOSITORY_PORT, FileData,
-    FileKind, GUEST_USER, LibraryKind, NetworkKind, ROOT_USER, ServiceId, format_apt_sources,
+    APT_CACHE_PATH, APT_PACKAGE_SIZE, APT_SOURCES_PATH, DEFAULT_REPOSITORY,
+    DEFAULT_REPOSITORY_PORT, FileData, FileKind, GUEST_USER, LibraryKind, NetworkKind, ROOT_USER,
+    ServiceId, format_apt_sources,
 };
 use greyhack_world::{
     AptFailure, AptUpdateLine, ConnectionFailure, DeviceLayout, Library, PackageEntry,
@@ -13,12 +14,15 @@ use crate::support::layout::layout;
 
 #[tokio::test]
 async fn should_edit_sources_and_return_update_lines() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let computer = world.player();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
     let address = "45.45.45.45";
 
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .add_apt_repository(computer, DEFAULT_REPOSITORY, DEFAULT_REPOSITORY_PORT)
             .await
             .unwrap(),
@@ -26,6 +30,9 @@ async fn should_edit_sources_and_return_update_lines() {
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .add_apt_repository(computer, address, DEFAULT_REPOSITORY_PORT)
             .await
             .unwrap(),
@@ -33,13 +40,22 @@ async fn should_edit_sources_and_return_update_lines() {
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .add_apt_repository(computer, address, DEFAULT_REPOSITORY_PORT)
             .await
             .unwrap(),
         Err(AptFailure::ListedRepository(address.to_owned()))
     );
     assert_eq!(
-        world.update_apt_packages(computer, &[]).await.unwrap(),
+        world
+            .modules
+            .services
+            .apt
+            .update_apt_packages(computer, &[])
+            .await
+            .unwrap(),
         vec![
             AptUpdateLine::Update(address.to_owned()),
             AptUpdateLine::Connection(ConnectionFailure::MissingPort(DEFAULT_REPOSITORY_PORT)),
@@ -48,6 +64,9 @@ async fn should_edit_sources_and_return_update_lines() {
 
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .remove_apt_repository(computer, address)
             .await
             .unwrap(),
@@ -55,6 +74,10 @@ async fn should_edit_sources_and_return_update_lines() {
     );
     assert_eq!(
         world
+            .modules
+            .core
+            .files
+            .lookup
             .content(computer, APT_SOURCES_PATH, true)
             .await
             .unwrap(),
@@ -62,6 +85,9 @@ async fn should_edit_sources_and_return_update_lines() {
     );
     assert!(
         world
+            .modules
+            .services
+            .apt
             .update_apt_packages(computer, &[])
             .await
             .unwrap()
@@ -69,6 +95,9 @@ async fn should_edit_sources_and_return_update_lines() {
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .remove_apt_repository(computer, address)
             .await
             .unwrap(),
@@ -78,13 +107,22 @@ async fn should_edit_sources_and_return_update_lines() {
 
 #[tokio::test]
 async fn should_search_and_show_repository_packages() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let computer = world.player();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
 
-    world.update_apt_packages(computer, &[]).await.unwrap();
+    world
+        .modules
+        .services
+        .apt
+        .update_apt_packages(computer, &[])
+        .await
+        .unwrap();
 
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .search_apt_packages(computer, "blockchain", &[])
             .await
             .unwrap(),
@@ -95,6 +133,9 @@ async fn should_search_and_show_repository_packages() {
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .search_apt_packages(computer, "missing", &[])
             .await
             .unwrap(),
@@ -102,6 +143,9 @@ async fn should_search_and_show_repository_packages() {
     );
 
     let official = world
+        .modules
+        .services
+        .apt
         .show_apt_repository(computer, "official_server", &[])
         .await
         .unwrap()
@@ -119,6 +163,9 @@ async fn should_search_and_show_repository_packages() {
 
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .show_apt_repository(computer, "missing.test", &[])
             .await
             .unwrap(),
@@ -128,13 +175,22 @@ async fn should_search_and_show_repository_packages() {
 
 #[tokio::test]
 async fn should_install_a_library_with_its_owner_and_default_folder() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let computer = world.player();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
 
-    world.update_apt_packages(computer, &[]).await.unwrap();
+    world
+        .modules
+        .services
+        .apt
+        .update_apt_packages(computer, &[])
+        .await
+        .unwrap();
 
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(computer, ROOT_USER, "nmap", "", &[])
             .await
             .unwrap(),
@@ -142,6 +198,9 @@ async fn should_install_a_library_with_its_owner_and_default_folder() {
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(computer, ROOT_USER, "blockchain.so", "", &[])
             .await
             .unwrap(),
@@ -149,6 +208,10 @@ async fn should_install_a_library_with_its_owner_and_default_folder() {
     );
 
     let node = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(computer, "/lib/blockchain.so", false)
         .await
         .unwrap()
@@ -156,10 +219,22 @@ async fn should_install_a_library_with_its_owner_and_default_folder() {
 
     assert_eq!(node.owner, ROOT_USER);
     assert_eq!(node.data().unwrap().size, APT_PACKAGE_SIZE);
-    assert!(world.library_of(&node).await.unwrap().is_some());
+    assert!(
+        world
+            .modules
+            .libraries
+            .generator
+            .full_library_of(&node)
+            .await
+            .unwrap()
+            .is_some()
+    );
 
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(computer, ROOT_USER, "missing", "", &[])
             .await
             .unwrap(),
@@ -167,6 +242,9 @@ async fn should_install_a_library_with_its_owner_and_default_folder() {
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(computer, ROOT_USER, "blockchain.so", "/missing", &[])
             .await
             .unwrap(),
@@ -174,6 +252,9 @@ async fn should_install_a_library_with_its_owner_and_default_folder() {
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(computer, GUEST_USER, "blockchain.so", "/root", &[])
             .await
             .unwrap(),
@@ -183,42 +264,264 @@ async fn should_install_a_library_with_its_owner_and_default_folder() {
 
 #[tokio::test]
 async fn should_detect_a_newer_library_in_the_sources() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let computer = world.player();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
     let path = "/lib/blockchain.so";
     let package = world
+        .modules
+        .services
+        .apt
         .package(DEFAULT_REPOSITORY, "blockchain.so")
         .await
         .unwrap()
         .unwrap();
-    let node = world.file(computer, path, false).await.unwrap().unwrap();
+    let node = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(computer, path, false)
+        .await
+        .unwrap()
+        .unwrap();
 
     world
-        .set_library_of(&node, package.library.as_deref())
+        .modules
+        .core
+        .files
+        .set_node_library(node.id, package.library)
         .await
         .unwrap();
-    world.update_apt_packages(computer, &[]).await.unwrap();
+    world
+        .modules
+        .services
+        .apt
+        .update_apt_packages(computer, &[])
+        .await
+        .unwrap();
 
     assert_eq!(
-        world.check_apt_upgrade(computer, path, &[]).await.unwrap(),
-        Some(false)
+        world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(computer, path, &[])
+            .await
+            .unwrap(),
+        Ok(false)
     );
     assert!(
         world
+            .modules
+            .core
+            .computers
+            .hardware
             .set_library_version(computer, path, "0.0.1")
             .await
             .unwrap()
     );
     assert_eq!(
-        world.check_apt_upgrade(computer, path, &[]).await.unwrap(),
-        Some(true)
+        world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(computer, path, &[])
+            .await
+            .unwrap(),
+        Ok(true)
+    );
+}
+
+/// `AptClientIntrinsics.check_upgrade` needs network access before it looks at the cache.
+#[tokio::test]
+async fn should_refuse_to_check_an_upgrade_without_network_access() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
+    let mut card = world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .net_cards(computer)
+        .await
+        .unwrap()[0]
+        .clone();
+
+    card.active = false;
+    world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .save_net_card(computer, 0, &card)
+        .await
+        .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(computer, "/lib/blockchain.so", &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::NoInternet),
+        "without a cache the network is refused first"
+    );
+}
+
+/// The checks of `AptClientIntrinsics.check_upgrade` in the order the game makes them: the cache, the name, the
+/// official server's file, the sources.
+#[tokio::test]
+async fn should_refuse_to_check_an_upgrade_in_the_order_the_game_checks() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
+
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(computer, "/lib/blockchain.so", &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::NoCache)
+    );
+
+    world
+        .modules
+        .services
+        .apt
+        .update_apt_packages(computer, &[])
+        .await
+        .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(computer, "", &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::EmptyPackageName)
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(computer, "/lib/ghost/blockchain.so", &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::MissingLocalFile("blockchain.so".to_owned())),
+        "the official server has the library, the computer does not"
+    );
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
             .check_apt_upgrade(computer, "/lib/missing.so", &[])
             .await
             .unwrap(),
-        Some(false)
+        Err(AptFailure::UnknownPackage("missing.so".to_owned()))
+    );
+}
+
+#[tokio::test]
+async fn should_refuse_to_check_an_upgrade_with_a_cache_that_is_not_one() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
+
+    world
+        .modules
+        .services
+        .apt
+        .update_apt_packages(computer, &[])
+        .await
+        .unwrap();
+
+    let mut cache = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(computer, APT_CACHE_PATH, true)
+        .await
+        .unwrap()
+        .unwrap();
+
+    cache.data_mut().unwrap().set_content("[1]");
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .save_node(&cache)
+        .await
+        .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(computer, "/lib/blockchain.so", &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::MalformedCache)
+    );
+}
+
+/// A server of the cache is asked in the order of the cache, and its failures are the answer.
+#[tokio::test]
+async fn should_refuse_to_check_an_upgrade_when_the_cached_server_fails() {
+    let (world, player, shop) = world_with_shop_source().await;
+    let path = "/Public/htdocs/downloads/scanlib";
+    let local = "/root/scanlib";
+
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(player, local, &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::MissingLocalFile("scanlib".to_owned())),
+        "the shop has the package and the computer does not"
+    );
+
+    let package = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(shop, path, false)
+        .await
+        .unwrap()
+        .unwrap();
+
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .remove_node(&package)
+        .await
+        .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(player, local, &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::MissingPackageFile("scanlib".to_owned())),
+        "the server lists a package it has no file of"
     );
 }
 
@@ -231,6 +534,10 @@ async fn should_generate_the_repository_catalog_of_a_hackshop_from_its_downloads
     let names = shop_file_names(&world, shop).await;
     let config: RepositoryConfig = serde_json::from_str(
         &world
+            .modules
+            .core
+            .files
+            .lookup
             .content(shop, ServiceId::Repository.config_path(), false)
             .await
             .unwrap()
@@ -273,6 +580,10 @@ async fn should_generate_the_repository_catalog_of_a_hackshop_from_its_downloads
         LibraryKind::Rshell,
     ] {
         let file = world
+            .modules
+            .core
+            .files
+            .lookup
             .file(
                 shop,
                 &format!("/Public/htdocs/downloads/{}", kind.file_name()),
@@ -284,8 +595,20 @@ async fn should_generate_the_repository_catalog_of_a_hackshop_from_its_downloads
 
         assert_eq!(file.data().unwrap().kind, FileKind::Library);
         assert_eq!(
-            world.library_of(&file).await.unwrap(),
-            world.latest_library(kind).await.unwrap()
+            world
+                .modules
+                .libraries
+                .generator
+                .full_library_of(&file)
+                .await
+                .unwrap(),
+            world
+                .modules
+                .libraries
+                .generator
+                .latest_full_library(kind)
+                .await
+                .unwrap()
         );
     }
 }
@@ -294,10 +617,10 @@ async fn should_generate_the_repository_catalog_of_a_hackshop_from_its_downloads
 /// and its packages are the files of the repository computer's `path_repo`.
 #[tokio::test]
 async fn should_list_and_install_a_hackshop_repository_next_to_the_official_server() {
-    let (mut world, player, _) = world_with_shop_source().await;
+    let (world, player, _) = world_with_shop_source().await;
 
     assert_eq!(
-        world.search_apt_packages(player, "scanlib", &[]).await.unwrap(),
+        world.modules.services.apt.search_apt_packages(player, "scanlib", &[]).await.unwrap(),
         Ok(vec![PackageEntry {
             name: "scanlib".to_owned(),
             description: Some(
@@ -310,6 +633,9 @@ async fn should_list_and_install_a_hackshop_repository_next_to_the_official_serv
 
     // Official libraries come first, without a description; the shop's matches follow with theirs.
     let libs = world
+        .modules
+        .services
+        .apt
         .search_apt_packages(player, "lib", &[])
         .await
         .unwrap()
@@ -326,6 +652,9 @@ async fn should_list_and_install_a_hackshop_repository_next_to_the_official_serv
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(player, ROOT_USER, "scanlib", "/root", &[])
             .await
             .unwrap(),
@@ -333,6 +662,9 @@ async fn should_list_and_install_a_hackshop_repository_next_to_the_official_serv
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(player, ROOT_USER, "blockchain.so", "/root", &[])
             .await
             .unwrap(),
@@ -340,6 +672,9 @@ async fn should_list_and_install_a_hackshop_repository_next_to_the_official_serv
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(player, ROOT_USER, "ghostpkg", "/root", &[])
             .await
             .unwrap(),
@@ -347,11 +682,19 @@ async fn should_list_and_install_a_hackshop_repository_next_to_the_official_serv
     );
 
     let program = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player, "/root/scanlib", false)
         .await
         .unwrap()
         .unwrap();
     let library = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player, "/root/blockchain.so", false)
         .await
         .unwrap()
@@ -359,24 +702,47 @@ async fn should_list_and_install_a_hackshop_repository_next_to_the_official_serv
 
     assert_eq!(program.data().unwrap().kind, FileKind::Program);
     assert_eq!(library.data().unwrap().kind, FileKind::Library);
-    assert!(world.library_of(&library).await.unwrap().is_some());
+    assert!(
+        world
+            .modules
+            .libraries
+            .generator
+            .full_library_of(&library)
+            .await
+            .unwrap()
+            .is_some()
+    );
 }
 
 /// `PlayerUtils.UpdateHackshopLibs` runs when `AptClientIntrinsics.install` reaches a HackShop: a library older than
 /// `VersionsControl.lastLibs` is replaced before it is copied.
 #[tokio::test]
 async fn should_bring_the_libraries_of_a_hackshop_up_to_date_when_installing_from_it() {
-    let (mut world, player, shop) = world_with_shop_source().await;
+    let (world, player, shop) = world_with_shop_source().await;
     let path = "/Public/htdocs/downloads/metaxploit.so";
     let latest = world
-        .latest_library(LibraryKind::Metaxploit)
+        .modules
+        .libraries
+        .generator
+        .latest_full_library(LibraryKind::Metaxploit)
         .await
         .unwrap()
         .unwrap();
-    let file = world.file(shop, path, false).await.unwrap().unwrap();
+    let file = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(shop, path, false)
+        .await
+        .unwrap()
+        .unwrap();
 
     world
-        .set_library_of(
+        .modules
+        .libraries
+        .generator
+        .set_full_library_of(
             &file,
             Some(&Library {
                 kind: LibraryKind::Metaxploit,
@@ -389,6 +755,9 @@ async fn should_bring_the_libraries_of_a_hackshop_up_to_date_when_installing_fro
 
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(player, ROOT_USER, "metaxploit.so", "/root", &[])
             .await
             .unwrap(),
@@ -396,17 +765,44 @@ async fn should_bring_the_libraries_of_a_hackshop_up_to_date_when_installing_fro
     );
 
     let installed = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player, "/root/metaxploit.so", false)
         .await
         .unwrap()
         .unwrap();
-    let served = world.file(shop, path, false).await.unwrap().unwrap();
+    let served = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(shop, path, false)
+        .await
+        .unwrap()
+        .unwrap();
 
     assert_eq!(
-        world.library_of(&installed).await.unwrap(),
+        world
+            .modules
+            .libraries
+            .generator
+            .full_library_of(&installed)
+            .await
+            .unwrap(),
         Some(latest.clone())
     );
-    assert_eq!(world.library_of(&served).await.unwrap(), Some(latest));
+    assert_eq!(
+        world
+            .modules
+            .libraries
+            .generator
+            .full_library_of(&served)
+            .await
+            .unwrap(),
+        Some(latest)
+    );
     assert_eq!(
         shop_file_names(&world, shop)
             .await
@@ -470,26 +866,38 @@ async fn should_serve_the_catalog_of_a_copied_repository_computer() {
         file("tool", FileData::binary_from_source("print(\"copied\")")),
     );
 
-    let mut world = World::new(&PlayerOptions {
+    let world = World::new(&PlayerOptions {
         network: Some(network),
         ..PlayerOptions::default()
     })
     .await
     .unwrap();
-    let player = world.player();
+    let player = world.handle.player();
 
     world
+        .modules
+        .services
+        .apt
         .add_apt_repository(player, "172.16.3.7", 1542)
         .await
         .unwrap()
         .unwrap();
 
     assert_eq!(
-        world.update_apt_packages(player, &[]).await.unwrap(),
+        world
+            .modules
+            .services
+            .apt
+            .update_apt_packages(player, &[])
+            .await
+            .unwrap(),
         [AptUpdateLine::Update("172.16.3.7".to_owned())]
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .show_apt_repository(player, "172.16.3.7", &[])
             .await
             .unwrap(),
@@ -506,17 +914,30 @@ async fn should_serve_the_catalog_of_a_copied_repository_computer() {
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(player, ROOT_USER, "tool", "/etc/apt", &[])
             .await
             .unwrap(),
         Ok(())
     );
     assert_eq!(
-        world.content(player, "/etc/apt/tool", false).await.unwrap(),
+        world
+            .modules
+            .core
+            .files
+            .lookup
+            .content(player, "/etc/apt/tool", false)
+            .await
+            .unwrap(),
         Some("print(\"copied\")".to_owned())
     );
     assert_eq!(
         world
+            .modules
+            .services
+            .apt
             .install_apt_package(player, ROOT_USER, "gone", "/etc/apt", &[])
             .await
             .unwrap(),

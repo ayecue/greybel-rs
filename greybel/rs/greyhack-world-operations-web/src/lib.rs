@@ -25,7 +25,9 @@ fn serve() {
         let world = World::from_seed(&seed(), &PlayerOptions::default())
             .await
             .expect("the world generates");
-        let server = WorldServer::new(world, Rc::new(WebScheduler));
+        let server = WorldServer::new(world, Rc::new(WebScheduler))
+            .await
+            .expect("the server restores payments");
 
         while let Some(scope) = connections.next().await {
             server.attach(scope.transport());

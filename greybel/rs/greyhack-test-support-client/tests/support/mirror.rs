@@ -14,7 +14,7 @@ use greyhack_world::{
     FileSystemDraft, ForwardLayout, Hardware, LanNodeLayout, Library, MemoryZone, MiningHardware,
     NetCard, NetworkAdmin, NetworkLayout, NodeDraft, OfferLayout, Part, Port, PriceRecord, Process,
     RouterDraft, SavedNetwork, Side, SmartApplianceSettings, SubWalletLayout, User, WalletLayout,
-    Weakness, WorkPerformance,
+    Weakness, WorkPerformance, World,
 };
 use serde::Deserialize;
 
@@ -396,6 +396,19 @@ fn file_data(file: &FileSnapshot) -> FileData {
             .flatten(),
         size: file.size,
         ..FileData::default()
+    }
+}
+
+/// Registers the game's newest version of every library (`VersionsControl.lastLibs`), so a copied library that the
+/// game already replaced is not the newest one in the copy either.
+pub fn register_latest_libraries(world: &World, snapshot: &NetworkSnapshot) {
+    for content in &snapshot.latest_libraries {
+        if let Some(library) = library(content) {
+            greybel_test_support::future::block_on(
+                world.modules.libraries.updates.register_library(&library),
+            )
+            .expect("the game's newest library is registered");
+        }
     }
 }
 

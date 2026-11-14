@@ -5,9 +5,9 @@ pub const FIRST: &str = "03/Dec/2000 - 08:30";
 pub const SECOND: &str = "04/Dec/2000 - 09:45";
 
 pub async fn world_at(date: &str) -> World {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
 
-    assert!(world.set_date(date));
+    assert!(world.modules.routines.set_date(date));
 
     world
 }
@@ -24,6 +24,10 @@ pub fn write(action: LogAction, ip: &str) -> LogWrite<'_> {
 
 pub async fn log_of(world: &World, computer: ComputerId) -> SystemLog {
     let content = world
+        .modules
+        .core
+        .files
+        .lookup
         .content(computer, SYSTEM_LOG_PATH, false)
         .await
         .unwrap()
@@ -34,6 +38,10 @@ pub async fn log_of(world: &World, computer: ComputerId) -> SystemLog {
 
 pub async fn log_time(world: &World, computer: ComputerId) -> u64 {
     world
+        .modules
+        .core
+        .files
+        .lookup
         .file(computer, SYSTEM_LOG_PATH, false)
         .await
         .unwrap()

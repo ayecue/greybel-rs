@@ -72,19 +72,19 @@ pub fn game_traces(reply: &TracesReply) -> Traces {
 pub fn world_traces(world: &World) -> Traces {
     let pair = |computer| {
         (
-            block_on(world.public_ip(computer)).unwrap(),
-            block_on(world.computer(computer))
+            block_on(world.modules.core.networks.topology.public_ip(computer)).unwrap(),
+            block_on(world.modules.core.networks.topology.computer(computer))
                 .unwrap()
                 .unwrap()
                 .local_ip,
         )
     };
-    let active = block_on(world.active_traces())
+    let active = block_on(world.modules.guilds.traces.active_traces())
         .unwrap()
         .into_iter()
         .map(|trace| pair(trace.computer))
         .collect();
-    let passive = block_on(world.passive_traces())
+    let passive = block_on(world.modules.guilds.traces.passive_traces())
         .unwrap()
         .into_iter()
         .map(pair)
@@ -93,7 +93,7 @@ pub fn world_traces(world: &World) -> Traces {
     (
         active,
         passive,
-        u32::from(block_on(world.strikes()).unwrap()),
+        u32::from(block_on(world.modules.guilds.traces.strikes()).unwrap()),
     )
 }
 

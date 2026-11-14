@@ -13,6 +13,13 @@ filter = 'package(greybel-runtime) and test(/^game::/)'
 test-group = 'game'
 slow-timeout = { period = "60s", terminate-after = 4 }
 
+# Build 26 missions of every kind, or generate eleven missions' networks, in the game and in Greybel: 60–180 s on an
+# idle machine.
+[[profile.default.overrides]]
+filter = 'package(greyhack-test-support-client) and (test(=parity_missions::should_give_the_mission_networks_the_files_the_game_does) | test(=parity_missions::should_build_the_missions_the_game_builds))'
+test-group = 'game'
+slow-timeout = { period = "60s", terminate-after = 6 }
+
 [[profile.default.overrides]]
 filter = 'package(greyhack-test-support-client) and test(/^(game|parity_[a-z_]+)::/)'
 test-group = 'game'

@@ -12,6 +12,11 @@ internal static class WorldExtractor
         ["ReservedIPs"] = "reserved_ips.json",
         ["WorldItems"] = "world_items.json",
         ["MissionProcedural"] = "mission_procedural.json",
+        ["MissionHidden"] = "mission_hidden.json",
+        ["MissionKarma"] = "mission_karma.json",
+        ["MissionKarmaBlack"] = "mission_karma_black.json",
+        ["MissionKarmaWhite"] = "mission_karma_white.json",
+        ["MissionZeroDay"] = "mission_zero_day.json",
     };
 
     private static readonly Dictionary<string, string> NameFiles = new()

@@ -1,10 +1,10 @@
 //! Player computer and router presets.
 
-use greyhack_behaviour::{ROOT_USER, START_DATE, SYSTEM_PROCESSES};
+use greyhack_behaviour::{ROOT_USER, START_DATE};
+use greyhack_world_core::model::{STANDARD_DISK_MB, STANDARD_RAM_MB};
+use greyhack_world_creation::{add_player_libraries, build_filesystem, system_processes};
 
-use super::filesystem::{add_player_libraries, build_filesystem};
-use crate::model::{STANDARD_DISK_MB, STANDARD_RAM_MB};
-use crate::{ComputerDraft, Hardware, MiningHardware, NetCard, NetworkLayout, Part, Process, User};
+use crate::{ComputerDraft, Hardware, MiningHardware, NetCard, NetworkLayout, Part, User};
 
 /// Player identity and starting computer settings.
 #[derive(Debug, Clone)]
@@ -50,24 +50,6 @@ impl Default for PlayerOptions {
             network: None,
         }
     }
-}
-
-/// Processes started on every computer at boot.
-#[must_use]
-pub fn system_processes() -> Vec<Process> {
-    SYSTEM_PROCESSES
-        .into_iter()
-        .map(|(pid, name, ram_mb)| Process {
-            pid,
-            user: ROOT_USER.to_owned(),
-            name: name.to_owned(),
-            cpu: 0.0,
-            ram_mb,
-            protected: true,
-            service: None,
-            is_terminal: false,
-        })
-        .collect()
 }
 
 /// Builds the player computer before router attachment.

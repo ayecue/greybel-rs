@@ -1,62 +1,50 @@
 //! World database schema. All world state is persisted in these rows. `kind`, `service`, `command`,
 //! `reward`, `requirement`, and `gender` columns store Rust enum discriminants; flags are 0 or 1.
 
-mod accounts;
-mod computer_state;
-mod computers;
-mod ctf;
-mod economy;
-mod files;
-mod guilds;
-mod hardware;
-mod libraries;
-mod mail;
-mod networks;
-mod npcs;
-mod routines;
-mod software;
-mod traces;
-mod volatile;
-mod world;
+pub(crate) mod volatile;
 
-pub(crate) use volatile::VOLATILE;
+use greyhack_world_storage::Schema;
 
-/// The `CREATE TABLE` and `CREATE INDEX` statements of one table group and the tables they create.
-struct TableGroup {
-    schema: &'static str,
-    tables: &'static [&'static str],
+/// Returns the world's schema: its table sets in creation order, parents before the tables that
+/// reference them because foreign keys are enabled. Core precedes every domain; bank and mail links
+/// point from their domain tables to core persons.
+pub(crate) fn world_schema() -> Schema {
+    let mut schema = Schema::new()
+        .with_domain(greyhack_world_core::CoreDomain::schema())
+        .with_domain(greyhack_world_economy::EconomyModule::schema())
+        .with_domain(greyhack_world_npcs::NpcModule::schema())
+        .with_domain(greyhack_world_guilds::GuildModule::schema());
+
+    for (name, tables) in [
+        (
+            "services",
+            greyhack_world_services::ServicesModule::schema().tables,
+        ),
+        (
+            "intrusion",
+            greyhack_world_intrusion::IntrusionModule::schema().tables,
+        ),
+        (
+            "smart-devices",
+            greyhack_world_smart_devices::SmartDevicesModule::schema().tables,
+        ),
+        (
+            "libraries",
+            greyhack_world_libraries::LibraryModule::schema().tables,
+        ),
+        ("shell", Vec::new()),
+        ("creation", Vec::new()),
+        (
+            "player",
+            greyhack_world_player::PlayerModule::schema().tables,
+        ),
+    ] {
+        schema = schema.with_domain(greyhack_world_storage::DomainSchema::new(name, tables));
+    }
+
+    schema.with(volatile::VOLATILE)
 }
 
-/// Table groups in creation order: parents before dependent rows because foreign keys are enabled.
-const GROUPS: [TableGroup; 16] = [
-    accounts::GROUP,
-    libraries::GROUP,
-    networks::GROUP,
-    computers::GROUP,
-    hardware::GROUP,
-    computer_state::GROUP,
-    files::GROUP,
-    software::GROUP,
-    economy::GROUP,
-    mail::GROUP,
-    ctf::GROUP,
-    npcs::GROUP,
-    routines::GROUP,
-    guilds::GROUP,
-    traces::GROUP,
-    world::GROUP,
-];
-
-/// `CREATE TABLE` and `CREATE INDEX` statements executed when opening a database.
-pub(crate) fn schema() -> String {
-    GROUPS.iter().map(|group| group.schema).collect()
-}
-
-/// Tables in [`schema`] creation order: parents before dependent rows.
-pub(crate) fn tables() -> Vec<&'static str> {
-    GROUPS
-        .iter()
-        .flat_map(|group| group.tables)
-        .copied()
-        .collect()
-}
+#[cfg(test)]
+#[path = "tests/mod.rs"]
+pub(crate) mod tests;

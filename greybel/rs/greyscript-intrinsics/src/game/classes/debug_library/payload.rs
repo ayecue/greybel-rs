@@ -1,12 +1,12 @@
-use greybel_interpreter::{NativeFuture, NativeOutput, PrintOptions, Value, Vm, native};
+use greybel_interpreter::{NativeFuture, NativeOutput, Value, Vm, native};
 
 use super::reference;
 use crate::error::IntrinsicError;
-use crate::game::client::failure::{failure_text, failure_value};
+use crate::game::client::failure::failure_value;
 use crate::game::client::object;
 use crate::game::client::object::{Access, FileObject, GameObject, Kind};
 use crate::game::client::server::{program, respond, server};
-use crate::protocol::{DebugFailure, DebugLibraryPayload, Failure, PartialObject, ZeroDayPayload};
+use crate::protocol::{DebugLibraryPayload, PartialObject, ZeroDayPayload};
 
 #[native(method)]
 pub fn payload(
@@ -39,14 +39,7 @@ pub fn payload(
         server(vm)?.send_debug_library_payload(&message),
         |vm, result| {
             let partial_objects = match result {
-                // Grey Hack prints the payload execution failure and returns null.
-                ZeroDayPayload::Failure(failure @ Failure::Debug(DebugFailure::OutsideLib)) => {
-                    let text = failure_text("payload", &failure)?;
-
-                    vm.stdout().print(&text, PrintOptions::default());
-
-                    return Ok(Value::Null);
-                }
+                ZeroDayPayload::Null => return Ok(Value::Null),
                 ZeroDayPayload::Failure(failure) => {
                     return failure_value("payload", &failure);
                 }

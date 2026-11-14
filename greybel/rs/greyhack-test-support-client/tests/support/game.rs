@@ -4,6 +4,9 @@ use greybel_test_support::game::Game;
 use greyhack_test_support_client::protocol::test_support::{LanNodeKind, NetworkSnapshot};
 use greyhack_test_support_client::{TestClient, TestClientOptions};
 
+/// The kind of network [`setup_player`] generates and joins (`ServerMap.TipoRed`); its main router forwards SSH.
+pub const DEFAULT_NETWORK_KIND: &str = "Supermercados";
+
 /// Connects a `TestClient` to the game's test-support port.
 pub async fn test_client(game: &Game) -> TestClient {
     TestClient::connect(TestClientOptions {
@@ -14,7 +17,8 @@ pub async fn test_client(game: &Game) -> TestClient {
     .expect("the test-support protocol connects")
 }
 
-/// Creates the player fixture, connects it over Wi-Fi, stops the game clock and returns its user.
+/// Creates the player fixture, connects it over Wi-Fi to a network generated for the test, stops the game clock and
+/// returns its user.
 ///
 /// The clock runs at 14 game seconds per second, so between reading the game's state and running a script in it, NPCs
 /// could log in or out, which decides active users, phones and administrators. Stopped, both worlds run the script at
@@ -26,7 +30,14 @@ pub async fn setup_player(client: &TestClient) -> String {
         .await
         .expect("the player fixture is created");
 
-    join_network(client, "45.45.45.45").await;
+    // A network generated for this test alone: within a run each copy of the game serves many tests, and the files,
+    // passwords, services and libraries a test's scripts change on a network stay there for the tests after it.
+    let network = client
+        .find_new_network(DEFAULT_NETWORK_KIND, "ssh")
+        .await
+        .expect("a new network for the test");
+
+    join_network(client, &network.public_ip).await;
     client
         .freeze_clock()
         .await
@@ -36,8 +47,7 @@ pub async fn setup_player(client: &TestClient) -> String {
 }
 
 /// The network the player is on, or, when it lacks what `fits` requires, a network generated now whose main router
-/// forwards `service`, joined over Wi-Fi. Each copy of the game generates its own world, so a fixed network such as
-/// 45.45.45.45 differs between them.
+/// forwards `service`, joined over Wi-Fi. The player's network is generated for each test, so what it has differs.
 pub async fn join_network_where(
     client: &TestClient,
     service: &str,

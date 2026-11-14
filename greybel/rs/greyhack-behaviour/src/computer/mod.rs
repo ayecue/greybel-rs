@@ -9,6 +9,7 @@ pub(crate) mod firewall;
 pub(crate) mod hardware;
 pub(crate) mod imports;
 pub(crate) mod libraries;
+pub(crate) mod library_versions;
 pub(crate) mod permissions;
 pub(crate) mod smart_appliance;
 pub(crate) mod ssh;

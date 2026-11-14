@@ -56,9 +56,7 @@ pub fn create_network(
         }),
         |vm, creation| match creation {
             NetworkCreation::Router(id) => router::create(vm, id),
-            NetworkCreation::Failure(failure) => {
-                failure_value("create_network", &failure)
-            }
+            NetworkCreation::Failure(failure) => failure_value("create_network", &failure),
         },
     ))
 }

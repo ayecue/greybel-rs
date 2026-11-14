@@ -18,14 +18,25 @@ pub struct Target {
 
 pub fn remote_service(world: &World) -> Target {
     for router in read_routers(world).into_iter().skip(1) {
-        let devices = block_on(world.devices(router.id)).unwrap();
+        let devices = block_on(world.modules.core.networks.topology.devices(router.id)).unwrap();
 
-        for forward in block_on(world.port_forwards(router.id)).unwrap() {
+        for forward in block_on(
+            world
+                .modules
+                .core
+                .networks
+                .router_config
+                .port_forwards(router.id),
+        )
+        .unwrap()
+        {
             if forward.port.service != ServiceId::Ssh {
                 continue;
             }
 
-            let user = block_on(world.users(forward.computer)).unwrap()[0].clone();
+            let user = block_on(world.modules.core.computers.users.users(forward.computer))
+                .unwrap()[0]
+                .clone();
 
             return Target {
                 router: router.id,

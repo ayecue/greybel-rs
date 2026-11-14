@@ -61,10 +61,16 @@ async fn should_add_the_same_random_files_to_the_same_world() {
 
 #[tokio::test]
 async fn should_add_random_content_to_planned_networks_but_not_to_devices() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
 
     for _ in 0..12 {
-        world.add_network(&NetworkOptions::default()).await.unwrap();
+        world
+            .modules
+            .creation
+            .network_generation
+            .add_network(&NetworkOptions::default())
+            .await
+            .unwrap();
     }
 
     let mut devices = 0;
@@ -78,15 +84,24 @@ async fn should_add_random_content_to_planned_networks_but_not_to_devices() {
             DeviceKind::Computer => {
                 with_files += usize::from(!files.is_empty());
 
-                for npc in world.npcs_on(computer.id).await.unwrap() {
+                for npc in world.modules.npcs.npcs.npcs_on(computer.id).await.unwrap() {
                     let address = world
-                        .person(npc.person)
+                        .modules
+                        .npcs
+                        .mail
+                        .mail_address(npc.person)
+                        .await
+                        .unwrap()
+                        .unwrap();
+                    let inbox = world
+                        .modules
+                        .npcs
+                        .mail
+                        .mail_account(&address)
                         .await
                         .unwrap()
                         .unwrap()
-                        .mail_address
-                        .unwrap();
-                    let inbox = world.mail_account(&address).await.unwrap().unwrap().inbox;
+                        .inbox;
 
                     for mail in inbox {
                         // A conversation is one mail of several messages.
@@ -117,11 +132,14 @@ async fn should_add_random_content_to_planned_networks_but_not_to_devices() {
 /// (`RedGlobal.AdminRevertComputer` runs `Router.GeneraLanPc`).
 #[tokio::test]
 async fn should_regenerate_the_random_files_when_an_admin_restores_a_computer() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
     let mut target = None;
 
     for _ in 0..40 {
         let router = world
+            .modules
+            .creation
+            .network_generation
             .add_network(&NetworkOptions {
                 computers: Some(3),
                 ..NetworkOptions::default()
@@ -131,7 +149,14 @@ async fn should_regenerate_the_random_files_when_an_admin_restores_a_computer() 
 
         for candidate in computers(&world).await {
             if candidate.router == Some(router)
-                && !world.npcs_on(candidate.id).await.unwrap().is_empty()
+                && !world
+                    .modules
+                    .npcs
+                    .npcs
+                    .npcs_on(candidate.id)
+                    .await
+                    .unwrap()
+                    .is_empty()
                 && !random_files(&world, candidate.id).await.is_empty()
             {
                 target = Some(candidate.id);
@@ -148,30 +173,60 @@ async fn should_regenerate_the_random_files_when_an_admin_restores_a_computer() 
 
     // A missing /lib is one of the game's ShouldRestore triggers (`RedGlobal.ShouldRestore`).
     let lib = world
+        .modules
+        .core
+        .files
+        .lookup
         .folder(computer, "/lib", false)
         .await
         .unwrap()
         .unwrap();
 
-    world.remove_node(&lib).await.unwrap();
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .remove_node(&lib)
+        .await
+        .unwrap();
 
     for (path, ..) in &before {
-        let file = world.file(computer, path, false).await.unwrap().unwrap();
+        let file = world
+            .modules
+            .core
+            .files
+            .lookup
+            .file(computer, path, false)
+            .await
+            .unwrap()
+            .unwrap();
 
-        world.remove_node(&file).await.unwrap();
+        world
+            .modules
+            .core
+            .files
+            .changes
+            .remove_node(&file)
+            .await
+            .unwrap();
     }
 
     assert!(random_files(&world, computer).await.is_empty());
 
     for _ in 0..400 {
-        let now = world.time_seconds();
-        let Some(next) = world.next_due_at().await.unwrap() else {
+        let now = world.handle.time_seconds();
+        let Some(next) = world.modules.routines.next_due_at().await.unwrap() else {
             break;
         };
 
         world.tick(next.saturating_sub(now)).await.unwrap();
 
         if world
+            .modules
+            .core
+            .files
+            .lookup
             .folder(computer, "/lib", false)
             .await
             .unwrap()

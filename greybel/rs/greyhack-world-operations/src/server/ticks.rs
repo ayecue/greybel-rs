@@ -10,7 +10,7 @@ use std::rc::Rc;
 use std::task::{Context, Poll};
 use std::time::Duration;
 
-use greyhack_behaviour::{SECONDS_PER_DAY, TIME_SCALE, time_after_ticks};
+use greyhack_behaviour::{TIME_SCALE, time_after_ticks};
 
 use super::ServerState;
 use super::budget::Owner;
@@ -56,8 +56,6 @@ pub(super) struct TickState {
     skip: Cell<u32>,
     /// Exponential backoff applied after the next commit failure.
     backoff: Cell<u32>,
-    /// Last daily-upkeep world day; skipped days do not trigger repeated upkeep.
-    upkeep_day: Cell<Option<u64>>,
 }
 
 /// Maximum tick backoff after a failed commit.
@@ -125,9 +123,9 @@ impl ServerState {
         while due > 0 {
             let idle = {
                 let state = self.world.lock().await;
-                let target = time_after_ticks(state.world.time_seconds(), due, rate);
+                let target = time_after_ticks(state.world.handle.time_seconds(), due, rate);
 
-                match state.world.next_due_at().await {
+                match state.world.modules.routines.next_due_at().await {
                     Ok(next) => next.is_none_or(|at| at > target),
                     Err(error) => {
                         self.record_failure(error);
@@ -188,25 +186,19 @@ impl ServerState {
         let _claim = self.budgets.claim(Owner::World);
         let mut state = self.lock_cycle().await;
 
-        state.world.advance_ticks(count, rate);
+        state.world.modules.routines.advance_ticks(count, rate);
         ticks.count.set(ticks.count.get().saturating_add(count));
         self.budgets
             .refill(count, options.operations, options.operation_cap);
 
-        // Run the game's daily price and subscription upkeep once per world day. The first tick also runs
-        // upkeep to process existing dues and set the initial day.
-        let day = state.world.time_seconds() / SECONDS_PER_DAY;
-
-        if ticks.upkeep_day.get().is_none_or(|last| day > last) {
-            if let Err(error) = state.world.daily_upkeep().await {
-                self.record_failure(error);
-            }
-
-            ticks.upkeep_day.set(Some(day));
-        }
-
-        if let Err(error) = state.world.update_crown_leaderboard().await {
-            self.record_failure(error);
+        if let Err(error) = state
+            .world
+            .handle
+            .events()
+            .publish_now(greyhack_world::ClockAdvanceEnd)
+            .await
+        {
+            self.record_failure(error.into());
         }
 
         if ticks.skip.get() > 0 {
@@ -241,8 +233,8 @@ impl ServerState {
         for _ in 0..budget {
             let _claim = self.budgets.claim(Owner::World);
             let mut state = self.lock_cycle().await;
-            let mut report = state.world.report();
-            let ran = match state.world.run_next_due(&mut report).await {
+            let mut report = state.world.modules.routines.report();
+            let ran = match state.world.modules.routines.run_next_due(&mut report).await {
                 Ok(ran) => ran,
                 Err(error) => {
                     self.record_failure(error);

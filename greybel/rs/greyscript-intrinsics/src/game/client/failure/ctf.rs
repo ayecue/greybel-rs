@@ -10,5 +10,6 @@ pub(super) const fn ctf_text(failure: CtfFailure) -> &'static str {
         CtfFailure::UnknownEvent => "Event not found",
         CtfFailure::Incomplete => "You have to complete the mission to be able to rate it",
         CtfFailure::RepeatScore => "You have already rated this mission",
+        CtfFailure::OwnEvent => "You can't rate your own events",
     }
 }

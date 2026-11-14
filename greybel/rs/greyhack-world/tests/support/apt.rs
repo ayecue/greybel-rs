@@ -50,27 +50,53 @@ pub fn online(computer: &mut ComputerDraft) {
 pub async fn world_with_shop_source() -> (World, ComputerId, ComputerId) {
     let mut world = World::new(&PlayerOptions::default()).await.unwrap();
     let (router, shop) = add_typed_network(&mut world, NetworkKind::HackShop, "shop.test").await;
-    let address = world.router(router).await.unwrap().unwrap().public_ip;
-    let player = world.player();
+    let address = world
+        .modules
+        .core
+        .networks
+        .routers
+        .router(router)
+        .await
+        .unwrap()
+        .unwrap()
+        .public_ip;
+    let player = world.handle.player();
 
     world
+        .modules
+        .services
+        .apt
         .add_apt_repository(player, &address, DEFAULT_REPOSITORY_PORT)
         .await
         .unwrap()
         .unwrap();
-    world.update_apt_packages(player, &[]).await.unwrap();
+    world
+        .modules
+        .services
+        .apt
+        .update_apt_packages(player, &[])
+        .await
+        .unwrap();
 
     (world, player, shop)
 }
 
 pub async fn shop_file_names(world: &World, shop: ComputerId) -> Vec<String> {
     let downloads = world
+        .modules
+        .core
+        .files
+        .lookup
         .folder(shop, "/Public/htdocs/downloads", false)
         .await
         .unwrap()
         .unwrap();
 
     world
+        .modules
+        .core
+        .files
+        .lookup
         .files(&downloads)
         .await
         .unwrap()

@@ -6,13 +6,37 @@ use crate::support::save_copy;
 #[tokio::test]
 async fn should_install_a_network_card_and_persist_it() {
     let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
-    let count = world.net_cards(player).await.unwrap().len();
+    let player = world.handle.player();
+    let count = world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .net_cards(player)
+        .await
+        .unwrap()
+        .len();
     let card = NetCard::new(true, true);
 
-    assert!(world.add_net_card(player, &card).await.unwrap());
+    assert!(
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .add_net_card(player, &card)
+            .await
+            .unwrap()
+    );
 
-    let cards = world.net_cards(player).await.unwrap();
+    let cards = world
+        .modules
+        .core
+        .networks
+        .net_cards
+        .net_cards(player)
+        .await
+        .unwrap();
 
     assert_eq!(cards.len(), count + 1);
     assert_eq!(cards.last(), Some(&card));
@@ -21,23 +45,38 @@ async fn should_install_a_network_card_and_persist_it() {
     let restored = World::load(&database).await.unwrap();
 
     assert_eq!(
-        restored.net_cards(player).await.unwrap().last(),
+        restored
+            .modules
+            .core
+            .networks
+            .net_cards
+            .net_cards(player)
+            .await
+            .unwrap()
+            .last(),
         Some(&card)
     );
 }
 
 #[tokio::test]
 async fn should_change_library_file_and_port_versions() {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let player = world.handle.player();
     let file = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player, "/lib/libssh.so", false)
         .await
         .unwrap()
         .unwrap();
 
     world
-        .set_library_of(
+        .modules
+        .libraries
+        .generator
+        .set_full_library_of(
             &file,
             Some(&Library {
                 kind: LibraryKind::Ssh,
@@ -48,24 +87,39 @@ async fn should_change_library_file_and_port_versions() {
         .await
         .unwrap();
     world
+        .modules
+        .services
+        .installs
         .install_service(player, greyhack_behaviour::ServiceId::Ssh, "1.0.0")
         .await
         .unwrap();
 
     assert!(
         world
+            .modules
+            .core
+            .computers
+            .hardware
             .set_library_version(player, "/lib/libssh.so", "9.8.7")
             .await
             .unwrap()
     );
     assert!(
         world
+            .modules
+            .core
+            .computers
+            .hardware
             .set_port_library_version(player, 22, "8.7.6")
             .await
             .unwrap()
     );
 
     let file = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player, "/lib/libssh.so", false)
         .await
         .unwrap()
@@ -73,7 +127,10 @@ async fn should_change_library_file_and_port_versions() {
 
     assert_eq!(
         world
-            .library_of(&file)
+            .modules
+            .libraries
+            .generator
+            .full_library_of(&file)
             .await
             .unwrap()
             .map(|library| library.version),
@@ -81,6 +138,10 @@ async fn should_change_library_file_and_port_versions() {
     );
     assert_eq!(
         world
+            .modules
+            .core
+            .computers
+            .hardware
             .port(player, 22)
             .await
             .unwrap()
@@ -89,12 +150,20 @@ async fn should_change_library_file_and_port_versions() {
     );
     assert!(
         !world
+            .modules
+            .core
+            .computers
+            .hardware
             .set_library_version(player, "/lib/missing.so", "1.0.0")
             .await
             .unwrap()
     );
     assert!(
         !world
+            .modules
+            .core
+            .computers
+            .hardware
             .set_port_library_version(player, 65535, "1.0.0")
             .await
             .unwrap()
@@ -104,11 +173,25 @@ async fn should_change_library_file_and_port_versions() {
 #[tokio::test]
 async fn should_register_a_password_without_an_account() {
     let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let hash = world.register_password("standalone").await.unwrap();
+    let hash = world
+        .modules
+        .core
+        .computers
+        .users
+        .register_password("standalone")
+        .await
+        .unwrap();
 
     assert_eq!(hash, hash_password("standalone"));
     assert_eq!(
-        world.password_of_hash(&hash).await.unwrap(),
+        world
+            .modules
+            .core
+            .computers
+            .users
+            .password_of_hash(&hash)
+            .await
+            .unwrap(),
         Some("standalone".to_owned())
     );
 
@@ -116,7 +199,14 @@ async fn should_register_a_password_without_an_account() {
     let restored = World::load(&database).await.unwrap();
 
     assert_eq!(
-        restored.password_of_hash(&hash).await.unwrap(),
+        restored
+            .modules
+            .core
+            .computers
+            .users
+            .password_of_hash(&hash)
+            .await
+            .unwrap(),
         Some("standalone".to_owned())
     );
 }

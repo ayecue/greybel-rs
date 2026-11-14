@@ -1,0 +1,28 @@
+[package]
+name = "greyhack-world-intrusion"
+description = "Grey Hack cryptography, packet sniffers, and network floods"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greyhack-behaviour.workspace = true
+greyhack-world-core.workspace = true
+greyhack-world-guilds.workspace = true
+greyhack-world-modules.workspace = true
+greyhack-world-npcs.workspace = true
+greyhack-world-router.workspace = true
+greyhack-world-services.workspace = true
+greyhack-world-storage.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+turso.workspace = true
+
+[lints]
+workspace = true

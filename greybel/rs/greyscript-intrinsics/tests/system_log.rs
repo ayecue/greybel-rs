@@ -14,10 +14,13 @@ use crate::support::system_log::{
 fn should_log_a_connection_on_the_target_the_player_and_the_router() {
     // Arrange
     let (world, target) = world_with_service();
-    let player = world.player();
+    let player = world.handle.player();
     let player_ip = public_ip(&world, player);
     let router = router_computer(&world, player);
-    let local_ip = block_on(world.computer(player)).unwrap().unwrap().local_ip;
+    let local_ip = block_on(world.modules.core.networks.topology.computer(player))
+        .unwrap()
+        .unwrap()
+        .local_ip;
     let target_ip = public_ip(&world, target.computer);
     let script = connect_script(
         &target.address,
@@ -66,7 +69,7 @@ fn should_log_a_connection_on_the_target_the_player_and_the_router() {
 fn should_log_nothing_for_a_wrong_password() {
     // Arrange
     let (world, target) = world_with_service();
-    let player = world.player();
+    let player = world.handle.player();
     let script = connect_script(
         &target.address,
         target.port,
@@ -90,7 +93,7 @@ fn should_log_nothing_for_a_wrong_password() {
 fn should_log_a_deleted_file_with_its_path() {
     // Arrange
     let world = block_on(World::new(&greyhack_world::PlayerOptions::default())).expect("a world");
-    let player = world.player();
+    let player = world.handle.player();
     let player_ip = public_ip(&world, player);
     let script = "pc = get_shell.host_computer\npc.touch(home_dir, \"gone.txt\")\nprint pc.File(home_dir + \"/gone.txt\").delete\nprint pc.File(home_dir + \"/missing.txt\") == null";
 
@@ -121,7 +124,7 @@ fn should_log_a_deleted_file_with_its_path() {
 fn should_log_a_file_deleted_through_a_remote_shell() {
     // Arrange
     let (world, target) = world_with_service();
-    let player = world.player();
+    let player = world.handle.player();
     let player_ip = public_ip(&world, player);
     let script = format!(
         "shell = get_shell.connect_service(\"{}\", {}, \"{}\", \"{}\", \"{}\")\npc = shell.host_computer\npc.touch(\"/home/guest\", \"gone.txt\")\nprint pc.File(\"/home/guest/gone.txt\").delete",
@@ -151,7 +154,7 @@ fn should_log_a_file_deleted_through_a_remote_shell() {
 fn should_log_a_net_session_on_a_service() {
     // Arrange
     let (world, target) = world_with_service();
-    let player = world.player();
+    let player = world.handle.player();
     let player_ip = public_ip(&world, player);
     let script = format!(
         "mx = include_lib(\"/lib/metaxploit.so\")\nsession = mx.net_use(\"{}\", {})\nprint typeof(session)\nrouter = mx.net_use(\"{}\", 0)\nprint typeof(router)",
@@ -186,10 +189,13 @@ fn should_log_a_net_session_on_a_service() {
 fn should_log_a_shell_from_an_overflow() {
     // Arrange
     let (world, target) = world_with_shell_weakness();
-    let player = world.player();
+    let player = world.handle.player();
     let player_ip = public_ip(&world, player);
     let router = router_computer(&world, player);
-    let local_ip = block_on(world.computer(player)).unwrap().unwrap().local_ip;
+    let local_ip = block_on(world.modules.core.networks.topology.computer(player))
+        .unwrap()
+        .unwrap()
+        .local_ip;
     let target_ip = public_ip(&world, target.computer);
     let script = format!(
         "mx = include_lib(\"/lib/metaxploit.so\")\nsession = mx.net_use(\"{}\", {})\nlib = session.dump_lib\nshell = lib.overflow(\"{ADDRESS}\", \"{UNSEC_VALUE}\")\nprint typeof(shell)",
@@ -237,7 +243,7 @@ fn should_log_a_shell_from_an_overflow() {
 fn should_log_a_terminal_left_with_exit() {
     // Arrange
     let (world, target) = world_with_service();
-    let player = world.player();
+    let player = world.handle.player();
     let player_ip = public_ip(&world, player);
     let script = format!(
         "shell = get_shell.connect_service(\"{}\", {}, \"{}\", \"{}\", \"{}\")\nprint shell.start_terminal\nprint \"back\"",
@@ -266,7 +272,7 @@ fn should_log_a_terminal_left_with_exit() {
 fn should_not_log_a_local_terminal_or_one_that_runs_out_of_code() {
     // Arrange
     let (world, target) = world_with_service();
-    let player = world.player();
+    let player = world.handle.player();
     let local = "print get_shell.start_terminal";
     let custom = format!(
         "shell = get_shell.connect_service(\"{}\", {}, \"{}\", \"{}\", \"{}\")\npc = shell.host_computer\npc.touch(\"/home/guest\", \"bash.src\")\npc.File(\"/home/guest/bash.src\").set_content(\"print 1\")\nprint shell.build(\"/home/guest/bash.src\", \"/bin\")\nprint shell.start_terminal",

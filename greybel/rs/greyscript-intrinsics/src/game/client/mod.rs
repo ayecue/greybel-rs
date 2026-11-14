@@ -6,6 +6,7 @@ pub(super) mod game;
 pub(super) mod login_encryption;
 pub(super) mod object;
 pub(super) mod options;
+pub(crate) mod print;
 pub(super) mod receiver;
 mod response;
 pub(super) mod server;

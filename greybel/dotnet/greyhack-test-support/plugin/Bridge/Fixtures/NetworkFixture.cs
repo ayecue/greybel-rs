@@ -85,7 +85,9 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore)
         for (int attempt = 0; attempt < 64; attempt++)
         {
             string address = IpGenerator.GenerateRandomIpForType(kind, random);
-            if (Database.Singleton.GetRouterNode(address) != null)
+            // The game's reserved ranges (`IP.reservedIPs`) omit 192.168.0.0/16, so a network can get a public
+            // address `IP.IsLanIp` takes for a LAN one, which no script reaches as public.
+            if (Database.Singleton.GetRouterNode(address) != null || IP.IsLanIp(address))
             {
                 continue;
             }
@@ -150,8 +152,9 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore)
     /// </summary>
     public Reply InstallLibrary(InstallLibraryRpc request)
     {
-        Library.Vulnerabilidad.HackResult reward = (Library.Vulnerabilidad.HackResult)
-            request.Reward;
+        List<Library.Vulnerabilidad.HackResult> rewards = request
+            .Rewards.Select(reward => (Library.Vulnerabilidad.HackResult)reward)
+            .ToList();
         string selection = null;
         int fewest = int.MaxValue;
 
@@ -165,27 +168,35 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore)
             {
                 continue;
             }
-            foreach (
-                Library.Vulnerabilidad weakness in library
-                    .GetMemoryZones()
-                    .Values.SelectMany(zone => zone.vulnerabs)
-            )
-            {
-                if (
-                    weakness.GetHackResult().hackResult == reward
-                    && weakness.requiredActions.Count < fewest
+            List<Library.Vulnerabilidad> weaknesses = library
+                .GetMemoryZones()
+                .Values.SelectMany(zone => zone.vulnerabs)
+                .ToList();
+            // The version's weakness for each reward with the fewest requirements; a version without one is skipped.
+            List<int> requirements = rewards
+                .Select(reward =>
+                    weaknesses
+                        .Where(weakness => weakness.GetHackResult().hackResult == reward)
+                        .Select(weakness => weakness.requiredActions.Count)
+                        .DefaultIfEmpty(-1)
+                        .Min()
                 )
-                {
-                    selection = content;
-                    fewest = weakness.requiredActions.Count;
-                }
+                .ToList();
+            if (requirements.Contains(-1))
+            {
+                continue;
+            }
+            if (requirements.Sum() < fewest)
+            {
+                selection = content;
+                fewest = requirements.Sum();
             }
         }
 
         if (selection == null)
         {
             throw new InvalidOperationException(
-                "No generated " + request.Name + " has that reward"
+                "No generated " + request.Name + " has those rewards"
             );
         }
 

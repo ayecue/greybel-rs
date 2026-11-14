@@ -5,6 +5,7 @@ use greybel_test_support::future::block_on;
 use greybel_test_support::greyhack;
 use greybel_test_support::interpreter::{constant_clock, snapshot_options};
 use greybel_test_support::world::persistent_fingerprint;
+use greyhack_world::prelude::*;
 use greyhack_world::{Database, PlayerOptions, World};
 use greyhack_world_operations::WorldServer;
 

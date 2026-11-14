@@ -33,10 +33,10 @@ async fn should_match_intrinsics_for_apt_repositories() {
         .unwrap();
 
     let snapshot = client.network_state().await.unwrap();
-    let scripts = vec![
-        "apt = include_lib(\"/lib/aptclient.so\"); print typeof(apt); print apt.update; print apt.show(\"official_server\"); print apt.show(\"unknown.org\"); print apt.search(\"blockchain\"); print apt.search(\"nope\"); print apt.add_repo(\"\"); print apt.add_repo(\"hackshop.org\"); print apt.add_repo(\"ghost.org\"); home = get_shell.host_computer; print apt.install(\"nmap\", home_dir); print home.File(home_dir + \"/nmap\") == null; print apt.install(\"blockchain.so\", home_dir); f = home.File(home_dir + \"/blockchain.so\"); print f != null; print f.is_binary; print apt.check_upgrade(home_dir + \"/blockchain.so\"); print apt.install(\"ghostpkg\"); print apt.del_repo(\"hackshop.org\"); print apt.del_repo(\"missing.org\"); print apt.search(\"blockchain\"); print apt.add_repo(\"45.45.45.45\", 9999); print apt.update"
-            .to_owned(),
-    ];
+    let scripts = vec![format!(
+        "apt = include_lib(\"/lib/aptclient.so\"); print typeof(apt); print apt.update; print apt.show(\"official_server\"); print apt.show(\"unknown.org\"); print apt.search(\"blockchain\"); print apt.search(\"nope\"); print apt.add_repo(\"\"); print apt.add_repo(\"hackshop.org\"); print apt.add_repo(\"ghost.org\"); home = get_shell.host_computer; print apt.install(\"nmap\", home_dir); print home.File(home_dir + \"/nmap\") == null; print apt.install(\"blockchain.so\", home_dir); f = home.File(home_dir + \"/blockchain.so\"); print f != null; print f.is_binary; print apt.check_upgrade(home_dir + \"/blockchain.so\"); print apt.install(\"ghostpkg\"); print apt.del_repo(\"hackshop.org\"); print apt.del_repo(\"missing.org\"); print apt.search(\"blockchain\"); print apt.add_repo(\"{address}\", 9999); print apt.update",
+        address = snapshot.public_ip
+    )];
 
     compare_in(&client, &user, &snapshot, &scripts).await;
     client.shutdown();
@@ -96,5 +96,41 @@ async fn should_match_intrinsics_for_a_custom_apt_repository() {
     );
 
     assert_succeeded(&compare_in(&client, &user, &snapshot, &[script]).await);
+    client.shutdown();
+}
+
+/// The failures of `check_upgrade` in the order of its checks (`AptClientIntrinsics.check_upgrade`): no cache yet, an
+/// empty name, a library the official server has and the computer does not, and a name no source has. The no-network
+/// refusal comes first of all and needs a computer without a network, which the game fixtures do not make.
+#[tokio::test]
+async fn should_match_intrinsics_for_the_failures_of_check_upgrade() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+
+    client
+        .install_library(
+            "",
+            "aptclient.so",
+            u8::try_from(Reward::Shell.code()).unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+    let script = "apt = include_lib(\"/lib/aptclient.so\"); print apt.check_upgrade(home_dir + \"/blockchain.so\"); print apt.update; print apt.check_upgrade(\"\"); print apt.check_upgrade(home_dir + \"/blockchain.so\"); print apt.check_upgrade(home_dir + \"/ghostpkg.so\")";
+    let outcomes = compare_in(&client, &user, &snapshot, &[script.to_owned()]).await;
+    let output = outcomes[0].output.as_deref().expect("the script ran");
+
+    assert!(output.contains("aptcache.bin not found"), "{output}");
+    assert!(output.contains("package name can not be empty"), "{output}");
+    assert!(
+        output.contains("blockchain.so does not exist in this filesystem"),
+        "{output}"
+    );
+    assert!(
+        output.contains("ghostpkg.so not found in the server"),
+        "{output}"
+    );
     client.shutdown();
 }

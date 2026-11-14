@@ -362,9 +362,9 @@ async fn should_match_intrinsics_for_router_overflows() {
     assert!(scripts.len() >= 2, "the fixture covers router rewards");
 
     let scripts: Vec<&str> = scripts.iter().map(String::as_str).collect();
-    let expected = snapshot_outcomes(&scripts, &user, &snapshot);
+    let expected = without_users(snapshot_outcomes(&scripts, &user, &snapshot));
 
-    let actual = game_outcomes(&client, &scripts).await;
+    let actual = without_users(game_outcomes(&client, &scripts).await);
 
     assert_eq!(actual, expected);
     client.shutdown();

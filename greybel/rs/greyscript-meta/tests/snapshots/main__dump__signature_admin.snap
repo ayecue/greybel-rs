@@ -25,6 +25,8 @@ definitionOrder:
   - create_ctf_event
   - rate_ctf_event
   - create_guild
+  - release_library_version
+  - report_exploit
 definitions:
   accept_mission:
     argStrings:
@@ -694,6 +696,86 @@ definitions:
     typeString: function
     variations:
       ok: []
+  release_library_version:
+    argStrings:
+      - - string
+    id: release_library_version
+    json:
+      arguments:
+        - default: ~
+          label: library
+          opt: false
+          types:
+            - string
+      description: "Releases the next version of the library file `library` (such as `\"libssh.so\"`) now, as the game does for the first versions of a world: every visible weakness of its newest version counts as used up, the check for library versions patches them, and the exploits made from them target their version only. The new version appears on the official apt server and in `check_upgrade`, the hack shop's downloads follow, and metaxploit gets a version too (two for its own release). Returns the new version as a `string`, or `\"Error: Unknown lib <library>\"` when the world has no such library. A non-string `library` raises `release_library_version: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "print(admin.release_library_version(\"libssh.so\"))"
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
+  report_exploit:
+    argStrings:
+      - - string
+      - - string
+      - - string
+    id: report_exploit
+    json:
+      arguments:
+        - default: ~
+          label: library
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: zone
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: unsec_value
+          opt: false
+          types:
+            - string
+      description: "Reports the weakness `unsec_value` of the memory zone `zone` of the newest version of the library file `library` as used up, as the exploit report window does, so the next check for library versions (every fifteen minutes of real time) releases a version that patches it. Libraries `metaxploit.so`, `crypto.so` and `librshell.so` cannot be reported. A second report before that check counts the weakness all the same and returns `\"Your previous report is still processing. Please wait a few minutes before sending a new report.\"`. Returns `1`, or the failure as a `string`. Non-string arguments raise `report_exploit: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
+      example:
+        - "admin = include_lib(\"admin.so\")"
+        - "print(admin.report_exploit(\"libssh.so\", \"0x1A2B3C\", \"buffer\"))"
+      isProtected: false
+      returns:
+        - number
+        - string
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel only
+    typeString: function
+    variations:
+      ok: []
   seed:
     argStrings: []
     id: seed
@@ -895,6 +977,8 @@ descriptionOrder:
   - create_ctf_event
   - rate_ctf_event
   - create_guild
+  - release_library_version
+  - report_exploit
 descriptions:
   $meta:
     description: "The `admin` object belongs to Greybel's interpreter, not to the game: `include_lib(\"admin.so\")` returns it in Greybel's simulated world, and `null` in Grey Hack. Its methods build and change the world for tests and sandboxes, such as creating networks, moving the clock and doing what the game only does from its own interface. The `classID` used for this object is `\"admin\"`."
@@ -992,6 +1076,16 @@ descriptions:
       - "admin = include_lib(\"admin.so\")"
       - "hash = admin.register_password(\"secret\")"
       - "print(include_lib(\"/lib/crypto.so\").decipher(hash))"
+  release_library_version:
+    description: "Releases the next version of the library file `library` (such as `\"libssh.so\"`) now, as the game does for the first versions of a world: every visible weakness of its newest version counts as used up, the check for library versions patches them, and the exploits made from them target their version only. The new version appears on the official apt server and in `check_upgrade`, the hack shop's downloads follow, and metaxploit gets a version too (two for its own release). Returns the new version as a `string`, or `\"Error: Unknown lib <library>\"` when the world has no such library. A non-string `library` raises `release_library_version: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "print(admin.release_library_version(\"libssh.so\"))"
+  report_exploit:
+    description: "Reports the weakness `unsec_value` of the memory zone `zone` of the newest version of the library file `library` as used up, as the exploit report window does, so the next check for library versions (every fifteen minutes of real time) releases a version that patches it. Libraries `metaxploit.so`, `crypto.so` and `librshell.so` cannot be reported. A second report before that check counts the weakness all the same and returns `\"Your previous report is still processing. Please wait a few minutes before sending a new report.\"`. Returns `1`, or the failure as a `string`. Non-string arguments raise `report_exploit: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
+    example:
+      - "admin = include_lib(\"admin.so\")"
+      - "print(admin.report_exploit(\"libssh.so\", \"0x1A2B3C\", \"buffer\"))"
   seed:
     description: "Returns the seed the simulated world was generated from. Returns `null` when called on anything but the `admin` object."
     example:

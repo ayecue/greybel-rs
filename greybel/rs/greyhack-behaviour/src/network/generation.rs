@@ -14,53 +14,64 @@ const GADGET_WEIGHT: u32 = 35;
 /// Cameras a network has at most (`NetworkLan.GetRandomTypeDevice`).
 const MAX_CAMERAS: u32 = 6;
 
-/// Draws the type of the next device of a fixed-size network: a standard computer at weight 70 and each
-/// available camera or appliance at weight 35; residential networks only have computers
-/// (`NetworkLan.GetRandomTypeDevice`).
-///
-/// This follows the game's weights but not its bookkeeping: the game considers the fridge and the
-/// microwave taken as soon as they are candidates, this marks them taken only when they are drawn
-/// (`fridge` and `microwave` say whether one is taken), and it draws one number in `1..=total` where
-/// the game draws from a loot table. Planned networks draw their devices like the game does.
-pub fn random_device_kind(
-    rng: &mut Rng,
-    network_kind: NetworkKind,
+/// What the draw of the next device's type depends on (`GlobalLan.camIndex`, `existFridge`,
+/// `existMicrowave`).
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct DeviceDraw {
     cameras: u32,
     fridge: bool,
     microwave: bool,
-) -> DeviceKind {
-    if network_kind == NetworkKind::Residential {
-        return DeviceKind::Computer;
+}
+
+impl DeviceDraw {
+    /// Returns the cameras created so far (`GlobalLan.camIndex`).
+    #[must_use]
+    pub fn cameras(&self) -> u32 {
+        self.cameras
     }
 
-    let camera = cameras < MAX_CAMERAS;
-    let mut total = COMPUTER_WEIGHT;
-
-    total += if camera { GADGET_WEIGHT } else { 0 };
-    total += if fridge { 0 } else { GADGET_WEIGHT };
-    total += if microwave { 0 } else { GADGET_WEIGHT };
-
-    let mut roll = rng.range(1, total);
-
-    if roll <= COMPUTER_WEIGHT {
-        return DeviceKind::Computer;
+    /// Counts a created camera (`NetworkLan.PreCrearServidor` increments `GlobalLan.camIndex`).
+    pub fn add_camera(&mut self) {
+        self.cameras += 1;
     }
 
-    roll -= COMPUTER_WEIGHT;
+    /// Draws the type of the next device (`NetworkLan.GetRandomTypeDevice`): a loot table that gets
+    /// a standard computer at weight 70 and, while fewer than six cameras exist and the network is
+    /// not residential, a camera, the fridge unless one was offered before and the microwave unless
+    /// one was offered before, each at weight 35, in this order. The fridge and the microwave
+    /// count as taken as soon as they are candidates, drawn or not. The table is drawn once, also
+    /// when the computer is its only entry.
+    pub fn draw(&mut self, rng: &mut Rng, network_kind: NetworkKind) -> DeviceKind {
+        let mut candidates = vec![(DeviceKind::Computer, COMPUTER_WEIGHT)];
 
-    if camera {
-        if roll <= GADGET_WEIGHT {
-            return DeviceKind::Camera;
+        if self.cameras < MAX_CAMERAS && network_kind != NetworkKind::Residential {
+            candidates.push((DeviceKind::Camera, GADGET_WEIGHT));
+
+            if !self.fridge {
+                candidates.push((DeviceKind::Fridge, GADGET_WEIGHT));
+                self.fridge = true;
+            }
+
+            if !self.microwave {
+                candidates.push((DeviceKind::Microwave, GADGET_WEIGHT));
+                self.microwave = true;
+            }
         }
 
-        roll -= GADGET_WEIGHT;
-    }
+        let total: u32 = candidates.iter().map(|(_, weight)| weight).sum();
+        let hit = rng.range(0, total - 1);
+        let mut sum = 0;
 
-    if !fridge && roll <= GADGET_WEIGHT {
-        return DeviceKind::Fridge;
-    }
+        for (kind, weight) in candidates {
+            sum += weight;
 
-    DeviceKind::Microwave
+            if hit < sum {
+                return kind;
+            }
+        }
+
+        DeviceKind::Computer
+    }
 }
 
 /// Returns the indices of the NPCs that can administer the network, given the computer of each NPC

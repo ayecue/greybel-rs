@@ -7,12 +7,24 @@ pub type Entry = (String, FileKind, String, String, String);
 pub async fn random_files(world: &World, computer: ComputerId) -> Vec<Entry> {
     let mut found = Vec::new();
 
-    for user in world.users(computer).await.unwrap() {
+    for user in world
+        .modules
+        .core
+        .computers
+        .users
+        .users(computer)
+        .await
+        .unwrap()
+    {
         if user.name == ROOT_USER {
             continue;
         }
 
         let Some(home) = world
+            .modules
+            .core
+            .files
+            .lookup
             .folder(computer, &format!("/home/{}", user.name), false)
             .await
             .unwrap()
@@ -20,7 +32,7 @@ pub async fn random_files(world: &World, computer: ComputerId) -> Vec<Entry> {
             continue;
         };
 
-        for file in world.files(&home).await.unwrap() {
+        for file in world.modules.core.files.lookup.files(&home).await.unwrap() {
             let Some(data) = file.data() else {
                 continue;
             };
@@ -46,11 +58,14 @@ pub async fn random_files(world: &World, computer: ComputerId) -> Vec<Entry> {
 }
 
 pub async fn generated(computers: u32) -> (World, Vec<ComputerId>) {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
     let mut found = Vec::new();
 
     for _ in 0..computers {
         let router = world
+            .modules
+            .creation
+            .network_generation
             .add_network(&NetworkOptions {
                 computers: Some(0),
                 ..NetworkOptions::default()
@@ -60,6 +75,9 @@ pub async fn generated(computers: u32) -> (World, Vec<ComputerId>) {
 
         found.push(
             world
+                .modules
+                .creation
+                .network_generation
                 .add_computer_to(router, &ComputerOptions::default())
                 .await
                 .unwrap()

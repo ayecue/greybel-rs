@@ -18,10 +18,17 @@ namespace GreyHackTestSupport.Plugin.Bridge.Scripts;
 /// </summary>
 internal sealed class ScriptRunner(MainThread main, Player player)
 {
+    private const int NoTerminal = -1;
+
     private readonly Dictionary<string, Execution> executions = new Dictionary<string, Execution>();
     private readonly Dictionary<string, PairExecution> pairs =
         new Dictionary<string, PairExecution>();
 
+    /// <summary>
+    /// Runs the script as typed into the terminal of the player's computer: the safe-mode terminal while the computer
+    /// runs one (the desktop isn't running then, so it is the only terminal), otherwise a terminal that isn't
+    /// protected (which needs no process to tell). The other execution requests do the same.
+    /// </summary>
     public void Execute(Requester requester, ExecuteRpc request)
     {
         main.Post(
@@ -36,6 +43,58 @@ internal sealed class ScriptRunner(MainThread main, Player player)
                     request.Source,
                     player.Computer
                 )
+        );
+    }
+
+    /// <summary>
+    /// Runs the script as typed into the safe-mode terminal that a restart in safe mode starts, or into a terminal
+    /// process of the player's computer that isn't protected (<c>Computer.AddProcess</c>, as
+    /// <c>ShellIntrinsics.StartProgram</c> adds the process of a terminal). The terminal process ends with the script.
+    /// </summary>
+    public void ExecuteInTerminal(Requester requester, ExecuteInTerminalRpc request)
+    {
+        main.Post(
+            requester,
+            () =>
+            {
+                Computer host = player.Computer;
+                int terminal = request.SafeTerminal
+                    ? FindSafeTerminal(host)
+                    : host.AddProcess(
+                        "Terminal",
+                        player.User,
+                        Computer.GetRamUsage("Terminal"),
+                        isScript: false,
+                        isTerminal: true,
+                        host.GetID(),
+                        -1,
+                        isProtected: false
+                    );
+
+                if (terminal == NoTerminal)
+                {
+                    throw new InvalidOperationException(
+                        "The player's computer runs no safe-mode terminal"
+                    );
+                }
+
+                Execution execution = new Execution
+                {
+                    Requester = requester,
+                    OwnedTerminal = request.SafeTerminal ? NoTerminal : terminal,
+                };
+
+                Start(
+                    CreateId(),
+                    execution,
+                    request.Basepath,
+                    request.Filepath,
+                    request.ProgramName,
+                    request.Source,
+                    host,
+                    terminal
+                );
+            }
         );
     }
 
@@ -199,10 +258,12 @@ internal sealed class ScriptRunner(MainThread main, Player player)
         string filepath,
         string programName,
         string source,
-        Computer host
+        Computer host,
+        int? terminal = null
     )
     {
         executions.Add(id, execution);
+        int terminalPid = terminal ?? FindSafeTerminal(host);
         try
         {
             ContextManager.CreateContext(
@@ -220,12 +281,13 @@ internal sealed class ScriptRunner(MainThread main, Player player)
                 new List<RuntimeMetadata.Breakpoint>(),
                 player.User,
                 printsCallStack: false,
-                safeTerminal: IsInSafeMode(host)
+                safeTerminal: IsProtectedTerminal(host, terminalPid)
             );
         }
         catch
         {
             executions.Remove(id);
+            CloseOwnedTerminal(execution);
             throw;
         }
         ContextManager.ContextProcess process = ContextManager.GetContext(id);
@@ -233,23 +295,47 @@ internal sealed class ScriptRunner(MainThread main, Player player)
     }
 
     /// <summary>
-    /// Whether <paramref name="host"/> runs the protected safe-mode terminal that a restart in safe mode starts
-    /// (<c>PlayerHelperServer.CheckIniErrorServerRpc</c>). The programs run on the player's computer then are the
-    /// ones typed in that terminal (<c>GreyScriptHelperServer.PrepareTerminalServerRpc</c>:
-    /// <c>GreyInterpreter.isSafeTerminal</c>).
+    /// Finds the protected terminal that a restart in safe mode starts on <paramref name="host"/>
+    /// (<c>PlayerHelperServer.CheckIniErrorServerRpc</c>), or <see cref="NoTerminal"/>.
     /// </summary>
-    private static bool IsInSafeMode(Computer host)
+    private static int FindSafeTerminal(Computer host)
     {
-        return host.GetProcesos()
-            .Any(process =>
+        Computer.Proceso terminal = host.GetProcesos()
+            .FirstOrDefault(process =>
                 process.isProtected
                 && process.isTerminal
                 && process.nombreProceso == "Terminal-safemode"
             );
+
+        return terminal?.PID ?? NoTerminal;
+    }
+
+    /// <summary>
+    /// Whether the program typed into terminal <paramref name="terminalPid"/> of <paramref name="host"/> runs in a safe
+    /// terminal: the terminal process is protected (<c>GreyScriptHelperServer.PrepareTerminalServerRpc</c> passes
+    /// <c>Proceso.isProtected</c> as <c>GreyInterpreter.isSafeTerminal</c>).
+    /// </summary>
+    private static bool IsProtectedTerminal(Computer host, int terminalPid)
+    {
+        return terminalPid != NoTerminal && host.GetProceso(terminalPid)?.isProtected == true;
+    }
+
+    /// <summary>Ends the terminal process that the execution's request added, which has no program left to type into.</summary>
+    private void CloseOwnedTerminal(Execution execution)
+    {
+        if (execution.OwnedTerminal == NoTerminal)
+        {
+            return;
+        }
+
+        player.Computer.ClosePrograms(new List<int> { execution.OwnedTerminal });
+        execution.OwnedTerminal = NoTerminal;
     }
 
     private void Finish(Execution execution, ExecutionResultReply result)
     {
+        CloseOwnedTerminal(execution);
+
         if (execution.PairId == null)
         {
             execution.Requester.Reply(new Reply.ExecutionResult(result));

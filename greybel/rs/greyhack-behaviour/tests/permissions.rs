@@ -89,6 +89,7 @@ fn should_share_home_folders_but_keep_the_trash_private() {
 
     assert_eq!(names, ["Desktop", "Downloads", "Config", ".Trash"]);
     assert_eq!(folders[0].1.as_str(), "drwxrwx---");
+    assert_eq!(folders[2].1.as_str(), "drwxrwxr-x");
     assert_eq!(folders[3].1.as_str(), "drwx------");
     assert_eq!(
         home_folders(PermissionSet::OPEN_FOLDER)[2].1.as_str(),

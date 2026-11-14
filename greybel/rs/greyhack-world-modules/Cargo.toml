@@ -1,0 +1,29 @@
+[package]
+name = "greyhack-world-modules"
+description = "Build-time module registry, upward calls, ordered events, and typed world work"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greyhack-world-programs.workspace = true
+greyhack-world-router.workspace = true
+greyhack-world-routines.workspace = true
+greyhack-world-storage.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

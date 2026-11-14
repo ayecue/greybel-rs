@@ -1,8 +1,7 @@
-use greybel_interpreter::{NativeFuture, NativeOutput, PrintOptions, Value, Vm, native};
+use greybel_interpreter::{NativeFuture, NativeOutput, Value, Vm, native};
 
 use super::access;
 use crate::error::IntrinsicError;
-use crate::game::client::failure::apt_update_text;
 use crate::game::client::server::{program, raise, server, settle};
 use crate::protocol::AptClientUpdate;
 
@@ -19,13 +18,8 @@ pub fn update(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicError>
 
     Ok(settle(
         server(vm)?.send_apt_client_update(&message),
-        |vm, update| {
-            let update = update.map_err(|failure| raise("update", failure))?;
-
-            for line in update.lines {
-                vm.stdout()
-                    .print(&apt_update_text(&line), PrintOptions::default());
-            }
+        |_vm, update| {
+            update.map_err(|failure| raise("update", failure))?;
 
             Ok::<_, IntrinsicError>(String::new())
         },

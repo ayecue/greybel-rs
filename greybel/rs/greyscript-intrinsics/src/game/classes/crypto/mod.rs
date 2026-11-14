@@ -6,10 +6,10 @@ use greybel_interpreter::{Native, Value, Vm};
 use greyhack_behaviour::check_password;
 
 use crate::error::IntrinsicError;
-use crate::game::client::{object, receiver};
-use crate::game::client::receiver::{receiver, receiver_or_crash};
 use crate::game::client::check::{Proceed, stop};
+use crate::game::client::receiver::{receiver, receiver_or_crash};
 use crate::game::client::server::refuse;
+use crate::game::client::{object, receiver};
 use crate::runtime::Handle;
 
 mod aircrack;

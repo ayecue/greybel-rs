@@ -48,7 +48,7 @@ internal sealed class TestSupportBridge : IDisposable
         KernelFixture kernels = new KernelFixture(routerKernels, restore);
         EconomyFixture economy = new EconomyFixture(player);
         exploitShop = new ExploitShopFixture(main, player);
-        MissionFixture missions = new MissionFixture();
+        MissionFixture missions = new MissionFixture(clock);
 
         Proxy.RegisterMessageListener(OnGameMessage);
         proxy.Start(

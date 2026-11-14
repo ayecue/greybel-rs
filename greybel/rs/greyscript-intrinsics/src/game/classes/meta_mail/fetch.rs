@@ -3,8 +3,8 @@ use greyhack_behaviour::MAIL_PREVIEW as PREVIEW;
 
 use super::account_after_cooldown;
 use crate::error::IntrinsicError;
-use crate::game::client::failure::failure_value;
 use crate::game::client::check::proceed;
+use crate::game::client::failure::failure_value;
 use crate::game::client::object;
 use crate::game::client::server::{program, respond, server};
 use crate::protocol::{InboxContent, MetaMailFetch};
@@ -28,9 +28,7 @@ pub fn fetch(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicError> 
         vm,
         server(vm)?.send_meta_mail_fetch(&message),
         |vm, content| match content {
-            InboxContent::Failure(failure) => {
-                failure_value("fetch", &failure)
-            }
+            InboxContent::Failure(failure) => failure_value("fetch", &failure),
             InboxContent::Emails(emails) => {
                 let heap = vm.heap();
                 let summaries = emails

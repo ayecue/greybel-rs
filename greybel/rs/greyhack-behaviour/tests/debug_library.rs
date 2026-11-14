@@ -1,6 +1,6 @@
 use greyhack_behaviour::{
     auto_patch_time, error_lines_match, fixed_payload_user, format_date, is_patch_applied,
-    parse_date,
+    is_rumor_time, parse_date,
 };
 
 #[test]
@@ -31,4 +31,20 @@ fn should_fix_the_payload_user_only_for_root_and_guest() {
     assert_eq!(fixed_payload_user("root"), Some("root"));
     assert_eq!(fixed_payload_user("guest"), Some("guest"));
     assert_eq!(fixed_payload_user("user"), None);
+}
+
+#[test]
+fn should_open_the_zero_day_rumor_in_the_first_two_weeks_of_even_months() {
+    let open: Vec<bool> = [
+        "01/Dec/2000 - 06:00",
+        "14/Dec/2000 - 23:59",
+        "15/Dec/2000 - 00:00",
+        "01/Jan/2001 - 06:00",
+        "10/Feb/2001 - 12:00",
+    ]
+    .iter()
+    .map(|date| is_rumor_time(parse_date(date)))
+    .collect();
+
+    assert_eq!(open, [true, true, false, false, true]);
 }

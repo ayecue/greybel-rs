@@ -29,12 +29,14 @@ static LAUNCH_PARAMS: &[NativeParam] = &[
 pub static LAUNCH: Native = Native::from_async_fn(None, LAUNCH_PARAMS, true, launch);
 
 fn launch(vm: &mut Vm, args: &ArgContainer) -> NativeFuture {
-    // `launch` requires a shell, a path, and text parameters (`ShellIntrinsics`).
+    // `launch` requires a receiver whose class has the method, a path, and text parameters
+    // (`ShellIntrinsics.launch`).
     let invalid =
         || NativeOutput::ready(Err::<Value, _>(IntrinsicError::InvalidArguments("launch")));
     let path = args.get("path").as_str().filter(|path| !path.is_empty());
     let Some(path) = path.filter(|_| {
-        object::game_map(vm, args.self_value()) && args.get("params").as_str().is_some()
+        object::this(vm, args.self_value(), "launch").is_some()
+            && args.get("params").as_str().is_some()
     }) else {
         return invalid();
     };
@@ -86,9 +88,10 @@ fn launch(vm: &mut Vm, args: &ArgContainer) -> NativeFuture {
                     .enter(session, paths, source, source_map, params)
                     .await
             }
-            // The terminal prints the launch refusal.
-            Ok(LaunchOutcome::Failure(failure)) => child.print_failure("launch", &failure),
-            Ok(LaunchOutcome::Refusal) | Err(_) => NativeOutput::new(false),
+            // Printed launch refusals arrive before this response.
+            Ok(LaunchOutcome::Failure(_)) | Ok(LaunchOutcome::Refusal) | Err(_) => {
+                NativeOutput::new(false)
+            }
         }
     })
 }

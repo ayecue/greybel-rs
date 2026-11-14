@@ -5,7 +5,8 @@ use greybel_test_support::greyhack;
 use greybel_test_support::interpreter::{constant_clock, snapshot_options};
 use greybel_test_support::world::{change_computer, work_ends};
 use greyhack_behaviour::{DeviceKind, ServiceId};
-use greyhack_world::{Database, PlayerOptions, WorkResult, World};
+use greyhack_world::prelude::*;
+use greyhack_world::{Database, PlayerOptions, SnifferPacket, World};
 use greyhack_world_assets::ssh_encode;
 use greyhack_world_operations::WorldServer;
 use greyscript_intrinsics::protocol::{
@@ -20,19 +21,24 @@ use crate::support::{read_routers, world_options};
 #[test]
 fn should_capture_a_connection_through_the_sniffers_network() {
     // Arrange
-    let mut world =
+    let world =
         block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
     let target = remote_service(&world);
-    let player = world.player();
+    let player = world.handle.player();
     let player_ip = format!(
         "{}/{}",
-        block_on(world.public_ip(player)).unwrap(),
-        block_on(world.computer(player)).unwrap().unwrap().local_ip
+        block_on(world.modules.core.networks.topology.public_ip(player)).unwrap(),
+        block_on(world.modules.core.networks.topology.computer(player))
+            .unwrap()
+            .unwrap()
+            .local_ip
     );
-    let sniffer = block_on(world.start_sniffer(player)).unwrap().unwrap();
+    let sniffer = block_on(world.modules.intrusion.sniffers.start_sniffer(player))
+        .unwrap()
+        .unwrap();
 
     // Act
-    block_on(world.connect_service(
+    block_on(world.modules.core.networks.connect.connect_service(
         player,
         &target.address,
         target.port,
@@ -45,14 +51,17 @@ fn should_capture_a_connection_through_the_sniffers_network() {
     .unwrap();
 
     // Assert
-    let ends = work_ends(&mut world);
+    let ends = work_ends(&world);
 
     assert_eq!(ends.len(), 1);
     assert_eq!(ends[0].id, sniffer);
 
-    let WorkResult::Capture(packet) = &ends[0].result else {
-        panic!("the sniffer captured a packet");
-    };
+    let packet = ends
+        .into_iter()
+        .next()
+        .unwrap()
+        .take::<SnifferPacket>()
+        .expect("a sniffer packet");
 
     assert_eq!(packet.source, player_ip);
     assert_eq!(packet.destination, target.address);
@@ -62,14 +71,16 @@ fn should_capture_a_connection_through_the_sniffers_network() {
 #[test]
 fn should_capture_a_failed_login() {
     // Arrange
-    let mut world =
+    let world =
         block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
     let target = remote_service(&world);
-    let player = world.player();
-    let sniffer = block_on(world.start_sniffer(player)).unwrap().unwrap();
+    let player = world.handle.player();
+    let sniffer = block_on(world.modules.intrusion.sniffers.start_sniffer(player))
+        .unwrap()
+        .unwrap();
 
     // Act
-    let result = block_on(world.connect_service(
+    let result = block_on(world.modules.core.networks.connect.connect_service(
         player,
         &target.address,
         target.port,
@@ -83,17 +94,23 @@ fn should_capture_a_failed_login() {
     // Assert
     assert!(result.is_err());
 
-    let ends = work_ends(&mut world);
+    let ends = work_ends(&world);
 
     assert_eq!(ends.len(), 1);
     assert_eq!(ends[0].id, sniffer);
-    assert!(matches!(ends[0].result, WorkResult::Capture(_)));
+    assert!(
+        ends.into_iter()
+            .next()
+            .unwrap()
+            .take::<SnifferPacket>()
+            .is_ok()
+    );
 }
 
 #[test]
 fn should_capture_only_the_devices_on_a_packets_path() {
     // Arrange
-    let mut world =
+    let world =
         block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
     let target = remote_service(&world);
     let target_computer = target.computer;
@@ -102,11 +119,15 @@ fn should_capture_only_the_devices_on_a_packets_path() {
         .iter()
         .find(|device| **device != target_computer)
         .expect("an unrelated device on the target LAN");
-    let unrelated_sniffer = block_on(world.start_sniffer(unrelated)).unwrap().unwrap();
+    let unrelated_sniffer = block_on(world.modules.intrusion.sniffers.start_sniffer(unrelated))
+        .unwrap()
+        .unwrap();
 
     // Act: the first packet goes to the target, not its sibling; the second reaches the target.
-    block_on(world.connect_service(
-        world.player(),
+    let player = world.handle.player();
+
+    block_on(world.modules.core.networks.connect.connect_service(
+        player,
         &target.address,
         target.port,
         &target.service,
@@ -116,179 +137,21 @@ fn should_capture_only_the_devices_on_a_packets_path() {
     ))
     .unwrap()
     .unwrap();
-    assert!(work_ends(&mut world).is_empty());
+    assert!(work_ends(&world).is_empty());
 
-    let target_sniffer = block_on(world.start_sniffer(target_computer))
-        .unwrap()
-        .unwrap();
-
-    block_on(world.connect_service(
-        world.player(),
-        &target.address,
-        target.port,
-        &target.service,
-        &target.user,
-        &target.password,
-        &[],
-    ))
+    let target_sniffer = block_on(
+        world
+            .modules
+            .intrusion
+            .sniffers
+            .start_sniffer(target_computer),
+    )
     .unwrap()
     .unwrap();
 
-    // Assert
-    let ends = work_ends(&mut world);
+    let player = world.handle.player();
 
-    assert_eq!(ends.len(), 1);
-    assert_eq!(ends[0].id, target_sniffer);
-    assert_ne!(ends[0].id, unrelated_sniffer);
-}
-
-#[test]
-fn should_capture_on_the_destination_router() {
-    // Arrange
-    let mut world =
-        block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
-    let target = remote_service(&world);
-    let sniffer = block_on(world.start_sniffer(target.router.computer()))
-        .unwrap()
-        .unwrap();
-
-    // Act
-    block_on(world.connect_service(
-        world.player(),
-        &target.address,
-        target.port,
-        &target.service,
-        &target.user,
-        &target.password,
-        &[],
-    ))
-    .unwrap()
-    .unwrap();
-
-    // Assert
-    let ends = work_ends(&mut world);
-
-    assert_eq!(ends.len(), 1);
-    assert_eq!(ends[0].id, sniffer);
-    assert!(matches!(ends[0].result, WorkResult::Capture(_)));
-}
-
-#[test]
-fn should_capture_on_hub_siblings() {
-    // Arrange
-    let mut world =
-        block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
-    let target = remote_service(&world);
-    let holder = block_on(world.computer(target.computer))
-        .unwrap()
-        .unwrap()
-        .parent
-        .expect("the destination's device");
-    let peer = block_on(world.add_computer_to(
-        greyhack_world::RouterId::of(holder),
-        &greyhack_world::ComputerOptions::default(),
-    ))
-    .unwrap()
-    .expect("a sibling on the destination's device");
-
-    block_on(change_computer(&mut world, holder, |row| {
-        row.kind = DeviceKind::Hub;
-    }));
-
-    let sniffer = block_on(world.start_sniffer(peer)).unwrap().unwrap();
-
-    // Act
-    block_on(world.connect_service(
-        world.player(),
-        &target.address,
-        target.port,
-        &target.service,
-        &target.user,
-        &target.password,
-        &[],
-    ))
-    .unwrap()
-    .unwrap();
-
-    // Assert
-    let ends = work_ends(&mut world);
-
-    assert_eq!(ends.len(), 1);
-    assert_eq!(ends[0].id, sniffer);
-    assert!(matches!(ends[0].result, WorkResult::Capture(_)));
-}
-
-#[test]
-fn should_keep_lan_endpoints_in_a_captured_login() {
-    // Arrange
-    let mut world =
-        block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
-    let target = remote_service(&world);
-    let target_computer = target.computer;
-    let target_ip = block_on(world.computer(target_computer))
-        .unwrap()
-        .unwrap()
-        .local_ip;
-    let source = *target
-        .devices
-        .iter()
-        .find(|device| **device != target_computer)
-        .expect("a source on the same LAN");
-    let source_ip = format!(
-        "{}/{}",
-        block_on(world.public_ip(source)).unwrap(),
-        block_on(world.computer(source)).unwrap().unwrap().local_ip
-    );
-    let sniffer = block_on(world.start_sniffer(source)).unwrap().unwrap();
-
-    // Act
-    block_on(world.connect_service(
-        source,
-        &target_ip,
-        target.port,
-        &target.service,
-        &target.user,
-        &target.password,
-        &[],
-    ))
-    .unwrap()
-    .unwrap();
-
-    // Assert
-    let ends = work_ends(&mut world);
-
-    assert_eq!(ends.len(), 1);
-    assert_eq!(ends[0].id, sniffer);
-
-    let WorkResult::Capture(packet) = &ends[0].result else {
-        panic!("the sniffer captured a packet");
-    };
-
-    assert_eq!(packet.source, source_ip);
-    assert_eq!(packet.destination, target_ip);
-    assert_eq!(packet.protocol, target.port.to_string());
-}
-
-#[test]
-fn should_not_capture_a_connection_of_other_networks() {
-    // Arrange
-    let mut world =
-        block_on(World::generate(&world_options(SERVICE_SEED, 2))).expect("a generated world");
-    let target = remote_service(&world);
-    let player = world.player();
-    let other_devices = read_routers(&world)
-        .into_iter()
-        .filter(|router| router.id != target.router)
-        .map(|router| block_on(world.devices(router.id)).unwrap())
-        .find(|devices| !devices.contains(&player))
-        .expect("a third network");
-
-    block_on(world.start_sniffer(other_devices[0]))
-        .unwrap()
-        .unwrap();
-
-    // Act
-    block_on(world.connect_service(
+    block_on(world.modules.core.networks.connect.connect_service(
         player,
         &target.address,
         target.port,
@@ -301,18 +164,241 @@ fn should_not_capture_a_connection_of_other_networks() {
     .unwrap();
 
     // Assert
-    assert!(work_ends(&mut world).is_empty());
+    let ends = work_ends(&world);
+
+    assert_eq!(ends.len(), 1);
+    assert_eq!(ends[0].id, target_sniffer);
+    assert_ne!(ends[0].id, unrelated_sniffer);
+}
+
+#[test]
+fn should_capture_on_the_destination_router() {
+    // Arrange
+    let world =
+        block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
+    let target = remote_service(&world);
+    let sniffer = block_on(
+        world
+            .modules
+            .intrusion
+            .sniffers
+            .start_sniffer(target.router.computer()),
+    )
+    .unwrap()
+    .unwrap();
+
+    // Act
+    let player = world.handle.player();
+
+    block_on(world.modules.core.networks.connect.connect_service(
+        player,
+        &target.address,
+        target.port,
+        &target.service,
+        &target.user,
+        &target.password,
+        &[],
+    ))
+    .unwrap()
+    .unwrap();
+
+    // Assert
+    let ends = work_ends(&world);
+
+    assert_eq!(ends.len(), 1);
+    assert_eq!(ends[0].id, sniffer);
+    assert!(
+        ends.into_iter()
+            .next()
+            .unwrap()
+            .take::<SnifferPacket>()
+            .is_ok()
+    );
+}
+
+#[test]
+fn should_capture_on_hub_siblings() {
+    // Arrange
+    let mut world =
+        block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
+    let target = remote_service(&world);
+    let holder = block_on(
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(target.computer),
+    )
+    .unwrap()
+    .unwrap()
+    .parent
+    .expect("the destination's device");
+    let peer = block_on(world.modules.creation.network_generation.add_computer_to(
+        greyhack_world::RouterId::of(holder),
+        &greyhack_world::ComputerOptions::default(),
+    ))
+    .unwrap()
+    .expect("a sibling on the destination's device");
+
+    block_on(change_computer(&mut world, holder, |row| {
+        row.kind = DeviceKind::Hub;
+    }));
+
+    let sniffer = block_on(world.modules.intrusion.sniffers.start_sniffer(peer))
+        .unwrap()
+        .unwrap();
+
+    // Act
+    let player = world.handle.player();
+
+    block_on(world.modules.core.networks.connect.connect_service(
+        player,
+        &target.address,
+        target.port,
+        &target.service,
+        &target.user,
+        &target.password,
+        &[],
+    ))
+    .unwrap()
+    .unwrap();
+
+    // Assert
+    let ends = work_ends(&world);
+
+    assert_eq!(ends.len(), 1);
+    assert_eq!(ends[0].id, sniffer);
+    assert!(
+        ends.into_iter()
+            .next()
+            .unwrap()
+            .take::<SnifferPacket>()
+            .is_ok()
+    );
+}
+
+#[test]
+fn should_keep_lan_endpoints_in_a_captured_login() {
+    // Arrange
+    let world =
+        block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
+    let target = remote_service(&world);
+    let target_computer = target.computer;
+    let target_ip = block_on(
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(target_computer),
+    )
+    .unwrap()
+    .unwrap()
+    .local_ip;
+    let source = *target
+        .devices
+        .iter()
+        .find(|device| **device != target_computer)
+        .expect("a source on the same LAN");
+    let source_ip = format!(
+        "{}/{}",
+        block_on(world.modules.core.networks.topology.public_ip(source)).unwrap(),
+        block_on(world.modules.core.networks.topology.computer(source))
+            .unwrap()
+            .unwrap()
+            .local_ip
+    );
+    let sniffer = block_on(world.modules.intrusion.sniffers.start_sniffer(source))
+        .unwrap()
+        .unwrap();
+
+    // Act
+    block_on(world.modules.core.networks.connect.connect_service(
+        source,
+        &target_ip,
+        target.port,
+        &target.service,
+        &target.user,
+        &target.password,
+        &[],
+    ))
+    .unwrap()
+    .unwrap();
+
+    // Assert
+    let ends = work_ends(&world);
+
+    assert_eq!(ends.len(), 1);
+    assert_eq!(ends[0].id, sniffer);
+
+    let packet = ends
+        .into_iter()
+        .next()
+        .unwrap()
+        .take::<SnifferPacket>()
+        .expect("a sniffer packet");
+
+    assert_eq!(packet.source, source_ip);
+    assert_eq!(packet.destination, target_ip);
+    assert_eq!(packet.protocol, target.port.to_string());
+}
+
+#[test]
+fn should_not_capture_a_connection_of_other_networks() {
+    // Arrange
+    let world =
+        block_on(World::generate(&world_options(SERVICE_SEED, 2))).expect("a generated world");
+    let target = remote_service(&world);
+    let player = world.handle.player();
+    let other_devices = read_routers(&world)
+        .into_iter()
+        .filter(|router| router.id != target.router)
+        .map(|router| block_on(world.modules.core.networks.topology.devices(router.id)).unwrap())
+        .find(|devices| !devices.contains(&player))
+        .expect("a third network");
+
+    block_on(
+        world
+            .modules
+            .intrusion
+            .sniffers
+            .start_sniffer(other_devices[0]),
+    )
+    .unwrap()
+    .unwrap();
+
+    // Act
+    block_on(world.modules.core.networks.connect.connect_service(
+        player,
+        &target.address,
+        target.port,
+        &target.service,
+        &target.user,
+        &target.password,
+        &[],
+    ))
+    .unwrap()
+    .unwrap();
+
+    // Assert
+    assert!(work_ends(&world).is_empty());
 }
 
 #[test]
 fn should_capture_the_clients_encoded_ssh_password_after_decode() {
     // Arrange: the remote SSH service prefixes the password with `enc_`, then decodes it successfully.
-    let mut world =
+    let world =
         block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
     let target = remote_service(&world);
     let target_computer = target.computer;
 
-    block_on(world.install_service(target_computer, ServiceId::Ssh, "1.0.0")).unwrap();
+    block_on(world.modules.services.installs.install_service(
+        target_computer,
+        ServiceId::Ssh,
+        "1.0.0",
+    ))
+    .unwrap();
 
     let address = target.address;
     let password = target.password;
@@ -332,12 +418,19 @@ fn should_capture_the_clients_encoded_ssh_password_after_decode() {
     ];
 
     for (path, content) in files {
-        let mut file = block_on(world.file(target_computer, path, false))
-            .unwrap()
-            .unwrap();
+        let mut file = block_on(
+            world
+                .modules
+                .core
+                .files
+                .lookup
+                .file(target_computer, path, false),
+        )
+        .unwrap()
+        .unwrap();
 
         file.data_mut().unwrap().content = content.to_owned();
-        block_on(world.save_node(&file)).unwrap();
+        block_on(world.modules.core.files.changes.save_node(&file)).unwrap();
     }
 
     let connecting = format!(
@@ -364,6 +457,7 @@ fn should_capture_the_clients_encoded_ssh_password_after_decode() {
             .send(&StartProgram {
                 user: user.clone().into(),
                 path: Some("/bin/sniffer".into()),
+                safe_terminal: false,
             })
             .unwrap()
             .await
@@ -410,12 +504,17 @@ fn should_capture_the_clients_encoded_ssh_password_after_decode() {
 #[test]
 fn should_wait_for_a_packet_and_save_its_encoder_when_requested() {
     // Arrange
-    let mut world =
+    let world =
         block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
     let target = remote_service(&world);
     let target_computer = target.computer;
 
-    block_on(world.install_service(target_computer, ServiceId::Ssh, "1.0.0")).unwrap();
+    block_on(world.modules.services.installs.install_service(
+        target_computer,
+        ServiceId::Ssh,
+        "1.0.0",
+    ))
+    .unwrap();
 
     let sniffing = "meta = include_lib(\"/lib/metaxploit.so\")\ncaptured = meta.sniffer(1)\nget_shell.host_computer.touch(\"/home/test\", \"captured\")\nprint captured.indexOf(\"Incoming data captured\") != null";
     let connecting = format!(
@@ -434,9 +533,13 @@ fn should_wait_for_a_packet_and_save_its_encoder_when_requested() {
     assert_eq!(captured, "1");
     assert_eq!(connected, "done");
     assert_eq!(
-        block_on(world.content(world.player(), "/home/test/encode.src", false))
-            .unwrap()
-            .as_deref(),
+        block_on(world.modules.core.files.lookup.content(
+            world.handle.player(),
+            "/home/test/encode.src",
+            false
+        ))
+        .unwrap()
+        .as_deref(),
         Some(ssh_encode())
     );
 }

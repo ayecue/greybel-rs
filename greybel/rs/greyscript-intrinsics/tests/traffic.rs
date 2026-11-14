@@ -9,7 +9,7 @@ use crate::support::traffic::{TrafficWorld, enable_override, world_with_traffic}
 #[test]
 fn should_expose_traffic_credentials_and_locate_a_vehicle() {
     let TrafficWorld { world, plate, .. } = world_with_traffic();
-    let unknown = license_plate(world.world_seed(), "1.2.3.4", "nobody").unwrap();
+    let unknown = license_plate(&world.handle.world_seed(), "1.2.3.4", "nobody").unwrap();
     let code = format!(
         "device = include_lib(\"/lib/libtrafficnet.so\")\nprint device.get_credentials_info\nprint device.locate_vehicle(\"{plate}\", \"secret\")\nprint device.locate_vehicle(\"{plate}\", \"bad\")\nprint device.locate_vehicle(\"nope\", \"secret\")\nprint device.locate_vehicle(\"{unknown}\", \"secret\")"
     );
@@ -51,11 +51,23 @@ async fn should_preserve_traffic_network_state() {
     let restored = World::load(&database).await.unwrap();
 
     assert_eq!(
-        restored.network(network).await.unwrap().unwrap().kind,
+        restored
+            .modules
+            .core
+            .networks
+            .settings
+            .network(network)
+            .await
+            .unwrap()
+            .unwrap()
+            .kind,
         NetworkKind::Police
     );
     assert_eq!(
         restored
+            .modules
+            .smart_devices
+            .traffic
             .traffic_credentials(network)
             .await
             .unwrap()
@@ -65,6 +77,9 @@ async fn should_preserve_traffic_network_state() {
     );
     assert!(
         restored
+            .modules
+            .npcs
+            .npcs
             .npc(driver)
             .await
             .unwrap()
@@ -104,10 +119,20 @@ print device.locate_vehicle("{plate}", "secret")
         output,
         "0\n1\n1\nError: This user cannot access the global camera system for another 12 hours.\nError: This user cannot access the global camera system for another 12 hours."
     );
-    assert!(restored.has_traffic_cooldown());
-    assert!(block_on(restored.traffic(network)).unwrap().override_used);
     assert!(
-        block_on(restored.npc(driver))
+        restored
+            .modules
+            .smart_devices
+            .traffic
+            .has_traffic_cooldown()
+    );
+    assert!(
+        block_on(restored.modules.smart_devices.traffic.traffic(network))
+            .unwrap()
+            .override_used
+    );
+    assert!(
+        block_on(restored.modules.npcs.npcs.npc(driver))
             .unwrap()
             .unwrap()
             .dead_at
@@ -125,16 +150,22 @@ fn should_expire_the_traffic_cooldown_after_twelve_hours() {
     } = world_with_traffic();
 
     enable_override(&mut world, network);
-    block_on(world.locate_vehicle(network, &plate, "secret", true))
-        .unwrap()
-        .unwrap();
+    block_on(
+        world
+            .modules
+            .smart_devices
+            .traffic
+            .locate_vehicle(network, &plate, "secret", true),
+    )
+    .unwrap()
+    .unwrap();
 
-    assert!(block_on(world.traffic_accident()).unwrap());
-    assert!(!block_on(world.traffic_accident()).unwrap());
+    assert!(block_on(world.modules.smart_devices.traffic.traffic_accident()).unwrap());
+    assert!(!block_on(world.modules.smart_devices.traffic.traffic_accident()).unwrap());
     block_on(world.tick(43_199)).unwrap();
-    assert!(world.has_traffic_cooldown());
+    assert!(world.modules.smart_devices.traffic.has_traffic_cooldown());
     block_on(world.tick(1)).unwrap();
-    assert!(!world.has_traffic_cooldown());
+    assert!(!world.modules.smart_devices.traffic.has_traffic_cooldown());
 }
 
 #[tokio::test]
@@ -148,20 +179,43 @@ async fn should_preserve_the_traffic_cooldown_and_override_flag() {
 
     enable_override(&mut world, network);
     world
+        .modules
+        .smart_devices
+        .traffic
         .locate_vehicle(network, &plate, "secret", true)
         .await
         .unwrap()
         .unwrap();
 
-    assert!(world.traffic_accident().await.unwrap());
+    assert!(
+        world
+            .modules
+            .smart_devices
+            .traffic
+            .traffic_accident()
+            .await
+            .unwrap()
+    );
 
     let database = save_copy(&mut world).await;
 
     let restored = World::load(&database).await.unwrap();
 
-    assert!(restored.has_traffic_cooldown());
+    assert!(
+        restored
+            .modules
+            .smart_devices
+            .traffic
+            .has_traffic_cooldown()
+    );
 
-    let traffic = restored.traffic(network).await.unwrap();
+    let traffic = restored
+        .modules
+        .smart_devices
+        .traffic
+        .traffic(network)
+        .await
+        .unwrap();
 
     assert!(traffic.override_enabled);
     assert!(traffic.override_used);

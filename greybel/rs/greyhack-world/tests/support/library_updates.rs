@@ -16,6 +16,9 @@ pub async fn world() -> World {
 /// and its public address.
 pub async fn network_of(world: &mut World, versions: &[&str]) -> (String, Vec<ComputerId>) {
     let router_id = world
+        .modules
+        .creation
+        .network_generation
         .add_network(&NetworkOptions {
             computers: Some(0),
             ..NetworkOptions::default()
@@ -27,6 +30,9 @@ pub async fn network_of(world: &mut World, versions: &[&str]) -> (String, Vec<Co
 
     for version in versions {
         let computer = world
+            .modules
+            .creation
+            .network_generation
             .add_computer_to(
                 router_id,
                 &ComputerOptions {
@@ -40,6 +46,10 @@ pub async fn network_of(world: &mut World, versions: &[&str]) -> (String, Vec<Co
 
         assert!(
             world
+                .modules
+                .core
+                .computers
+                .hardware
                 .set_library_version(computer, "/lib/libssh.so", version)
                 .await
                 .unwrap()
@@ -53,7 +63,10 @@ pub async fn network_of(world: &mut World, versions: &[&str]) -> (String, Vec<Co
 /// The version of the library file `path` of `computer`.
 pub async fn version_of(world: &World, computer: ComputerId, path: &str) -> String {
     world
-        .file_library(computer, path, false)
+        .modules
+        .libraries
+        .generator
+        .full_file_library(computer, path, false)
         .await
         .unwrap()
         .expect("a library file")
@@ -63,6 +76,10 @@ pub async fn version_of(world: &World, computer: ComputerId, path: &str) -> Stri
 /// The version `computer`'s port for the service of libssh.so reports.
 pub async fn ssh_port_version(world: &World, computer: ComputerId) -> String {
     world
+        .modules
+        .core
+        .computers
+        .processes
         .ports(computer)
         .await
         .unwrap()

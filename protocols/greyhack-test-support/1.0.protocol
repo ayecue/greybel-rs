@@ -109,13 +109,13 @@ protocol TestSupport = "greyhack_test_support" {
             request: u32,
         }
         /// Installs a game-generated version of library `name` in `/lib` on the computer at `local_ip` in the player
-        /// network, or the player computer when `local_ip` is empty. Selects a version with a weakness that has
-        /// `reward` (`Library.Vulnerabilidad.HackResult`) and the fewest requirements.
+        /// network, or the player computer when `local_ip` is empty. Selects a version with a weakness for each of
+        /// `rewards` (`Library.Vulnerabilidad.HackResult`), with the fewest requirements in total.
         message InstallLibraryRpc {
             request: u32,
             local_ip: string,
             name: string,
-            reward: u8,
+            rewards: list<u8>,
         }
         /// Uses game economy operations to create the player bank account, a custom coin, and a funded counterparty
         /// with standing offers. The first mining round for the coin is due.
@@ -337,13 +337,14 @@ protocol TestSupport = "greyhack_test_support" {
             request: u32,
             money: f64,
         }
-        /// Draws a group of addresses for procedural mission `index` of the hack shop (`police` unset) or police
-        /// source (`IPGroupManager.GetRandomGroupForMission`), builds its mission as the game does
-        /// (`MissionGen.GetProceduralMission`) and generates the networks of its group (`ServerMap.GetRouter`).
-        /// Replies with `Reply.ProceduralMission`.
-        message ProceduralMissionRpc {
+        /// Draws a group of addresses for mission `index` of `kind`, a `TypeMission` name
+        /// (`IPGroupManager.GetRandomGroupForMission`), builds its mission as the game does
+        /// (`MissionGen.GetMission`, `MissionGen.GetProceduralMission`) and generates the networks of its group
+        /// (`ServerMap.GetRouter`). A zero-day mission is only generated while the rumor is open, so the clock is
+        /// moved to the next one when it is not (`ZeroDaySystem.IsRumorTime`). Replies with `Reply.Mission`.
+        message MissionRpc {
             request: u32,
-            police: bool,
+            kind: string,
             index: u32,
         }
         /// Makes guild `name` with the game's guild types: it holds company shares under `bank_account`, which must be
@@ -385,6 +386,52 @@ protocol TestSupport = "greyhack_test_support" {
         message QueryWordListsRpc {
             request: u32,
         }
+        /// Compiles and runs a script in a new game context as typed into a terminal of the player's computer. The
+        /// game passes whether the terminal process is protected as `GreyInterpreter.isSafeTerminal`
+        /// (`GreyScriptHelperServer.PrepareTerminalServerRpc`), which every program the script launches shares. With
+        /// `safe_terminal` the terminal is the safe-mode terminal that a restart in safe mode starts (the request fails
+        /// when the computer runs none); otherwise it is a terminal process that isn't protected, added with the game's
+        /// `Computer.AddProcess` and ended with the script. Replies with `Reply.ExecutionResult`. `ExecuteRpc` types
+        /// into the safe-mode terminal while the computer runs one, and otherwise into an unprotected terminal.
+        message ExecuteInTerminalRpc {
+            request: u32,
+            source: string,
+            filepath: string,
+            basepath: string,
+            program_name: string,
+            safe_terminal: bool,
+        }
+        /// Gives the player strike `strikes` as the end of an active trace does: the player has `strikes - 1` strikes
+        /// first (`PlayerHelperServer.gameOverCont`, `Database.GameOverStrike`), then
+        /// `PlayerHelperServer.ActiveGameOver` runs for the computer at `company_ip`. The third strike ends the game
+        /// (`Database.GameOver`). Replies with `Reply.GameEnded`.
+        message EndGameRpc {
+            request: u32,
+            strikes: u32,
+            company_ip: string,
+        }
+        /// Runs the player's monthly payment `kind` (`BANK`, `RENTED` or `ADMIN`) now, as the game does when that
+        /// payment's own date comes (`BankSubs.Payment.RunPayment`); the player's other payments wait for theirs.
+        message RunPaymentRpc {
+            request: u32,
+            kind: string,
+        }
+        /// Releases the next version of the library file `library` as the game does for a world's first versions: every
+        /// visible weakness of its newest version counts as used up (`VersionsControl.MarkVisibleVulnerabilitiesAsUsed`)
+        /// and the check for library versions runs on it (`VersionsControl.CheckUpdatePrograms`). Replies with
+        /// `Reply.LibraryReleased`.
+        message ReleaseLibraryVersionRpc {
+            request: u32,
+            library: string,
+        }
+        /// Rates a CTF event through the game's event-rating path (`MissionsHelperServer.RateCTFServerRpc`,
+        /// `CTF_Event.AddScore`). Replies with `Reply.CtfRated`.
+        message RateCtfRpc {
+            request: u32,
+            event_name: string,
+            quality: i64,
+            difficulty: i64,
+        }
     }
 
     /// Rust test client that receives plugin replies.
@@ -422,10 +469,13 @@ union Reply {
     Exploits(ExploitsReply),
     ExploitBought(ExploitBoughtReply),
     LibraryReported(LibraryReportedReply),
-    ProceduralMission(ProceduralMissionReply),
+    LibraryReleased(LibraryReleasedReply),
+    Mission(MissionReply),
     Guilds(GuildsReply),
     Traces(TracesReply),
     WordLists(WordListsReply),
+    GameEnded(GameEndedReply),
+    CtfRated(CtfRatedReply),
 }
 
 /// Provides the fixture computer's network connection result.
@@ -531,12 +581,32 @@ struct LibraryReportedReply {
     content: string,
 }
 
+/// The game's libraries around a release (`VersionsControl.lastLibs`), as `JsonConvert.SerializeObject` writes them.
+struct LibraryReleasedReply {
+    /// The newest version of the library before the release.
+    before: string,
+    /// The newest version of the library after it.
+    after: string,
+    /// The newest metaxploit before the release, which every release gives a version too.
+    metaxploit_before: string,
+    /// The newest metaxploit after the release.
+    metaxploit_after: string,
+}
+
 /// The traces of the player.
 struct TracesReply {
     active: list<TraceComputer>,
     /// In the order the passive trace goes through them.
     passive: list<TraceComputer>,
     strikes: u32,
+}
+
+/// What the game has of the player after `EndGameRpc`.
+struct GameEndedReply {
+    /// Whether the player's computer is still in the game's database (`Database.GameOver` deletes it).
+    computer_exists: bool,
+    /// The player's monthly bank payments afterwards (`BankSubs.playerSubs`), in the order `SubscriptionSnapshot` has.
+    subscriptions: list<SubscriptionSnapshot>,
 }
 
 /// A computer a trace is about, by its public and LAN addresses.
@@ -753,6 +823,9 @@ struct NetworkSnapshot {
     world_secret: bytes,
     /// The player's monthly bank payments (`BankSubs.Payment`), bank fees first, then rentals, then admins.
     subscriptions: list<SubscriptionSnapshot>,
+    /// The newest version of every library, as the game's `VersionsControl.lastLibs` holds it (library JSON).
+    /// `MetaExploitIntrinsics.scan` reads hidden zones of a library that isn't the newest of its kind.
+    latest_libraries: list<string>,
 }
 
 /// Monthly bank payment of the player (`BankSubs.Payment`).
@@ -1011,19 +1084,25 @@ struct FileSnapshot {
     timestamp: u64,
 }
 
-/// A procedural mission of the game: its group of addresses, the mission as JSON (the parts
-/// `MissionGen.GetProceduralMission` returns with their computers' items, runtime tags and NPCs) and the computers
-/// of the networks it was generated in.
-struct ProceduralMissionReply {
+/// A mission of the game: its group of addresses, the mission as JSON (the parts `MissionGen.GetMission` or
+/// `MissionGen.GetProceduralMission` returns with their computers' items, runtime tags and NPCs) and the networks of
+/// its group after their generation.
+struct MissionReply {
     group: list<string>,
     mission: string,
     networks: list<MissionNetworkSnapshot>,
+    /// Game clock when the mission was generated, after opening the zero-day rumor when necessary.
+    current_date: string,
 }
 
 /// Network of a mission group after its generation.
 struct MissionNetworkSnapshot {
     public_ip: string,
     computers: list<MissionComputerSnapshot>,
+    /// Firewall rules of the main router in router order.
+    firewall_rules: list<FirewallRuleSnapshot>,
+    /// Port table of the main router (`RouterConfigOS.puertos`) in router order.
+    ports: list<TablePortSnapshot>,
 }
 
 /// Computer of a mission network with all its files.
@@ -1041,4 +1120,9 @@ struct WordListsReply {
 struct WordListSnapshot {
     name: string,
     text: string,
+}
+
+/// Result text from the game's CTF event-rating path.
+struct CtfRatedReply {
+    output: string,
 }

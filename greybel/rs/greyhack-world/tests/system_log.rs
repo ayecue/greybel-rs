@@ -12,17 +12,25 @@ use crate::support::system_log::{FIRST, SECOND, log_of, log_time, world_at, writ
 #[tokio::test]
 async fn should_append_an_entry_and_date_the_log_from_it() {
     // Arrange
-    let mut world = world_at(FIRST).await;
-    let player = world.player();
+    let world = world_at(FIRST).await;
+    let player = world.handle.player();
 
     // Act
     world
+        .modules
+        .core
+        .computers
+        .logs
         .write_log(player, &write(LogAction::Open, "1.2.3.4"))
         .await
         .unwrap();
 
-    world.set_date(SECOND);
+    world.modules.routines.set_date(SECOND);
     world
+        .modules
+        .core
+        .computers
+        .logs
         .write_log(player, &write(LogAction::Shell, "5.6.7.8"))
         .await
         .unwrap();
@@ -50,11 +58,15 @@ async fn should_append_an_entry_and_date_the_log_from_it() {
 #[tokio::test]
 async fn should_name_the_player_in_each_entry() {
     // Arrange
-    let mut world = world_at(FIRST).await;
-    let player = world.player();
+    let world = world_at(FIRST).await;
+    let player = world.handle.player();
 
     // Act
     world
+        .modules
+        .core
+        .computers
+        .logs
         .write_log(player, &write(LogAction::Open, "1.2.3.4"))
         .await
         .unwrap();
@@ -62,8 +74,14 @@ async fn should_name_the_player_in_each_entry() {
     // Assert
     let entry = &log_of(&world, player).await.content_log[0];
 
-    assert_eq!(entry.player_net_id, world.player_net_id());
-    assert_eq!(entry.token_trace, world.token_trace());
+    assert_eq!(
+        entry.player_net_id,
+        world.modules.core.computers.logs.player_net_id()
+    );
+    assert_eq!(
+        entry.token_trace,
+        world.modules.core.computers.logs.token_trace()
+    );
     assert_eq!(entry.player_net_id.len(), 32);
     assert!(!entry.tutorial);
 }
@@ -72,24 +90,43 @@ async fn should_name_the_player_in_each_entry() {
 #[tokio::test]
 async fn should_create_a_missing_log_with_the_first_entry() {
     // Arrange
-    let mut world = world_at(FIRST).await;
-    let player = world.player();
+    let world = world_at(FIRST).await;
+    let player = world.handle.player();
     let log = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player, SYSTEM_LOG_PATH, false)
         .await
         .unwrap()
         .unwrap();
 
-    world.remove_node(&log).await.unwrap();
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .remove_node(&log)
+        .await
+        .unwrap();
 
     // Act
     world
+        .modules
+        .core
+        .computers
+        .logs
         .write_log(player, &write(LogAction::Remove, "1.2.3.4"))
         .await
         .unwrap();
 
     // Assert
     let log = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player, SYSTEM_LOG_PATH, false)
         .await
         .unwrap()
@@ -108,20 +145,47 @@ async fn should_create_a_missing_log_with_the_first_entry() {
 #[tokio::test]
 async fn should_create_a_missing_var_folder() {
     // Arrange
-    let mut world = world_at(FIRST).await;
-    let player = world.player();
-    let var = world.folder(player, "/var", false).await.unwrap().unwrap();
+    let world = world_at(FIRST).await;
+    let player = world.handle.player();
+    let var = world
+        .modules
+        .core
+        .files
+        .lookup
+        .folder(player, "/var", false)
+        .await
+        .unwrap()
+        .unwrap();
 
-    world.remove_node(&var).await.unwrap();
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .remove_node(&var)
+        .await
+        .unwrap();
 
     // Act
     world
+        .modules
+        .core
+        .computers
+        .logs
         .write_log(player, &write(LogAction::Open, "1.2.3.4"))
         .await
         .unwrap();
 
     // Assert
-    let var = world.folder(player, "/var", false).await.unwrap().unwrap();
+    let var = world
+        .modules
+        .core
+        .files
+        .lookup
+        .folder(player, "/var", false)
+        .await
+        .unwrap()
+        .unwrap();
 
     assert_eq!(var.owner, "root");
     assert_eq!(var.permissions.as_str(), "drwxr-xr-x");
@@ -133,12 +197,23 @@ async fn should_create_a_missing_var_folder() {
 #[tokio::test]
 async fn should_replace_a_file_that_is_no_system_log() {
     // Arrange
-    let mut world = world_at(FIRST).await;
-    let player = world.player();
-    let var = world.folder(player, "/var", false).await.unwrap().unwrap();
+    let world = world_at(FIRST).await;
+    let player = world.handle.player();
+    let var = world
+        .modules
+        .core
+        .files
+        .lookup
+        .folder(player, "/var", false)
+        .await
+        .unwrap()
+        .unwrap();
 
     world
-        .add_node(
+        .modules
+        .libraries
+        .generator
+        .add_full_node(
             &var,
             &NodeDraft::file(
                 "system.log",
@@ -152,12 +227,20 @@ async fn should_replace_a_file_that_is_no_system_log() {
 
     // Act
     world
+        .modules
+        .core
+        .computers
+        .logs
         .write_log(player, &write(LogAction::Open, "1.2.3.4"))
         .await
         .unwrap();
 
     // Assert
     let log = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player, SYSTEM_LOG_PATH, false)
         .await
         .unwrap()
@@ -172,12 +255,16 @@ async fn should_replace_a_file_that_is_no_system_log() {
 #[tokio::test]
 async fn should_keep_only_the_newest_entries() {
     // Arrange
-    let mut world = world_at(FIRST).await;
-    let player = world.player();
+    let world = world_at(FIRST).await;
+    let player = world.handle.player();
 
     // Act
     for index in 0..MAX_LOG_ENTRIES + 2 {
         world
+            .modules
+            .core
+            .computers
+            .logs
             .write_log(player, &write(LogAction::Open, &index.to_string()))
             .await
             .unwrap();
@@ -195,15 +282,43 @@ async fn should_keep_only_the_newest_entries() {
 #[tokio::test]
 async fn should_log_a_shell_on_the_target_the_origin_and_its_router() {
     // Arrange
-    let mut world = world_at(FIRST).await;
-    let player = world.player();
-    let router = world.router_of(player).await.unwrap().unwrap();
+    let world = world_at(FIRST).await;
+    let player = world.handle.player();
+    let router = world
+        .modules
+        .core
+        .networks
+        .topology
+        .router_of(player)
+        .await
+        .unwrap()
+        .unwrap();
     let target = ComputerId::new(router.id.number());
-    let origin_ip = world.public_ip(player).await.unwrap();
-    let local_ip = world.computer(player).await.unwrap().unwrap().local_ip;
+    let origin_ip = world
+        .modules
+        .core
+        .networks
+        .topology
+        .public_ip(player)
+        .await
+        .unwrap();
+    let local_ip = world
+        .modules
+        .core
+        .networks
+        .topology
+        .computer(player)
+        .await
+        .unwrap()
+        .unwrap()
+        .local_ip;
 
     // Act
     world
+        .modules
+        .core
+        .computers
+        .logs
         .write_bounce_logs("9.9.9.9", 22, player, target)
         .await
         .unwrap();
@@ -237,7 +352,7 @@ async fn should_log_a_shell_on_the_target_the_origin_and_its_router() {
 #[tokio::test]
 async fn should_log_a_shell_across_networks() {
     // Arrange
-    let mut world = World::generate(&WorldOptions {
+    let world = World::generate(&WorldOptions {
         seed: 7,
         networks: 1,
         player: PlayerOptions::default(),
@@ -245,14 +360,29 @@ async fn should_log_a_shell_across_networks() {
     .await
     .unwrap();
 
-    world.set_date(FIRST);
+    world.modules.routines.set_date(FIRST);
 
-    let player = world.player();
-    let origin_ip = world.public_ip(player).await.unwrap();
+    let player = world.handle.player();
+    let origin_ip = world
+        .modules
+        .core
+        .networks
+        .topology
+        .public_ip(player)
+        .await
+        .unwrap();
     let mut target = None;
 
     for computer in computers(&world).await {
-        if world.public_ip(computer.id).await.unwrap() != origin_ip
+        if world
+            .modules
+            .core
+            .networks
+            .topology
+            .public_ip(computer.id)
+            .await
+            .unwrap()
+            != origin_ip
             && !greyhack_behaviour::is_device(computer.kind)
         {
             target = Some(computer.id);
@@ -262,13 +392,41 @@ async fn should_log_a_shell_across_networks() {
     }
 
     let target = target.expect("a computer of the other network");
-    let target_ip = world.public_ip(target).await.unwrap();
-    let router = world.router_of(player).await.unwrap().unwrap();
+    let target_ip = world
+        .modules
+        .core
+        .networks
+        .topology
+        .public_ip(target)
+        .await
+        .unwrap();
+    let router = world
+        .modules
+        .core
+        .networks
+        .topology
+        .router_of(player)
+        .await
+        .unwrap()
+        .unwrap();
     let router = ComputerId::new(router.id.number());
-    let local_ip = world.computer(player).await.unwrap().unwrap().local_ip;
+    let local_ip = world
+        .modules
+        .core
+        .networks
+        .topology
+        .computer(player)
+        .await
+        .unwrap()
+        .unwrap()
+        .local_ip;
 
     // Act
     world
+        .modules
+        .core
+        .computers
+        .logs
         .write_bounce_logs("9.9.9.9", 22, player, target)
         .await
         .unwrap();

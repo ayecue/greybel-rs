@@ -107,6 +107,21 @@ internal sealed class BankFixture(Player player) : IFixture
         return new Reply.Applied();
     }
 
+    /// <summary>Runs one of the player's payments, as the game does when its own date comes.</summary>
+    public Reply RunPayment(RunPaymentRpc request)
+    {
+        BankSubs.PaymentID kind = (BankSubs.PaymentID)
+            Enum.Parse(typeof(BankSubs.PaymentID), request.Kind);
+        BankSubs.Payment payment =
+            BankSubs.Singleton.GetPayment(player.Server.GetPlayerID(), kind)
+            ?? throw new InvalidOperationException(
+                "The player has no " + request.Kind + " payment"
+            );
+
+        GameField.PaymentRunPayment.Invoke(payment, null);
+        return new Reply.Applied();
+    }
+
     /// <summary>Sets the money of the player's bank account.</summary>
     public Reply SetMoney(SetPlayerMoneyRpc request)
     {

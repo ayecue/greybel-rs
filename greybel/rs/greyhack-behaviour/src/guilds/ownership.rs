@@ -42,6 +42,16 @@ pub fn reputation_level(total_exp: u32) -> u32 {
         .floor()) as u32
 }
 
+/// Experience of a guild after a member left it: the exit penalty of 275 per level, never below zero or above
+/// the experience of the highest level (`Guilds.Guild.ApplyMemberExitPenalty`, `Reputation.ClampTotalExp`).
+#[must_use]
+pub fn exp_after_member_exit(total_exp: u32) -> u32 {
+    let penalty = LEVEL_EXP_FACTOR as u32 * reputation_level(total_exp);
+    let highest = LEVEL_EXP_FACTOR as u32 * MAX_LEVEL * MAX_LEVEL;
+
+    total_exp.saturating_sub(penalty).min(highest)
+}
+
 /// Companies a guild may invest in with `perks` purchased investment licences
 /// (`GuildLevelRules.GetMaxInvestedCompaniesForPurchasedPerks`).
 #[must_use]

@@ -70,15 +70,40 @@ fn should_expose_world_setup_apis_through_operations() {
         assert_eq!(hash, Ok(hash_password("standalone")));
 
         let world = server.world().await;
-        let player = world.player();
+        let player = world.handle.player();
 
-        assert!(world.net_cards(player).await.unwrap().last().unwrap().wifi);
+        assert!(
+            world
+                .modules
+                .core
+                .networks
+                .net_cards
+                .net_cards(player)
+                .await
+                .unwrap()
+                .last()
+                .unwrap()
+                .wifi
+        );
         assert_eq!(
-            world.port(player, 22).await.unwrap().unwrap().version,
+            world
+                .modules
+                .core
+                .computers
+                .hardware
+                .port(player, 22)
+                .await
+                .unwrap()
+                .unwrap()
+                .version,
             "8.7.6"
         );
         assert_eq!(
             world
+                .modules
+                .core
+                .computers
+                .users
                 .password_of_hash(&hash_password("standalone"))
                 .await
                 .unwrap(),
@@ -90,15 +115,22 @@ fn should_expose_world_setup_apis_through_operations() {
 #[test]
 fn should_expose_sql_viewer_read_and_update_channels() {
     run_local(async {
-        let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-        let player = world.player();
+        let world = World::new(&PlayerOptions::default()).await.unwrap();
+        let player = world.handle.player();
 
         world
+            .modules
+            .services
+            .installs
             .install_service(player, ServiceId::Criminals, "1.0.0")
             .await
             .unwrap();
 
         let mut database = world
+            .modules
+            .core
+            .files
+            .lookup
             .file(player, ServiceId::Criminals.config_path(), false)
             .await
             .unwrap()
@@ -108,11 +140,36 @@ fn should_expose_sql_viewer_read_and_update_channels() {
             "records": [{"kind": 2, "person_id": "person-1", "full_name": "Before"}]
         }))
         .unwrap();
-        world.save_node(&database).await.unwrap();
+        world
+            .modules
+            .core
+            .files
+            .changes
+            .save_node(&database)
+            .await
+            .unwrap();
 
-        let public_ip = world.public_ip(player).await.unwrap();
-        let lan_ip = world.computer(player).await.unwrap().unwrap().local_ip;
-        let server = WorldServer::new(world, Rc::new(ManualClock::constant()));
+        let public_ip = world
+            .modules
+            .core
+            .networks
+            .topology
+            .public_ip(player)
+            .await
+            .unwrap();
+        let lan_ip = world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(player)
+            .await
+            .unwrap()
+            .unwrap()
+            .local_ip;
+        let server = WorldServer::new(world, Rc::new(ManualClock::constant()))
+            .await
+            .unwrap();
         let runtime = connect(&server);
         let session = runtime.start("/bin/tool").await;
 
@@ -170,17 +227,50 @@ fn should_expose_sql_viewer_read_and_update_channels() {
 #[test]
 fn should_expose_the_cctv_browser_channel() {
     run_local(async {
-        let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-        let player = world.player();
-        let mut computer = world.computer(player).await.unwrap().unwrap();
+        let world = World::new(&PlayerOptions::default()).await.unwrap();
+        let player = world.handle.player();
+        let mut computer = world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(player)
+            .await
+            .unwrap()
+            .unwrap();
 
         computer.kind = DeviceKind::Camera;
-        world.save_computer(&computer).await.unwrap();
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .save_computer(&computer)
+            .await
+            .unwrap();
 
-        let public_ip = world.public_ip(player).await.unwrap();
+        let public_ip = world
+            .modules
+            .core
+            .networks
+            .topology
+            .public_ip(player)
+            .await
+            .unwrap();
         let lan_ip = computer.local_ip.clone();
-        let password = world.users(player).await.unwrap()[0].password.clone();
-        let server = WorldServer::new(world, Rc::new(ManualClock::constant()));
+        let password = world
+            .modules
+            .core
+            .computers
+            .users
+            .users(player)
+            .await
+            .unwrap()[0]
+            .password
+            .clone();
+        let server = WorldServer::new(world, Rc::new(ManualClock::constant()))
+            .await
+            .unwrap();
         let runtime = connect(&server);
         let session = runtime.start("/bin/tool").await;
 
@@ -215,16 +305,40 @@ fn should_expose_the_cctv_browser_channel() {
 #[test]
 fn should_expose_smartphone_adb_installation() {
     run_local(async {
-        let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-        let player = world.player();
-        let mut computer = world.computer(player).await.unwrap().unwrap();
+        let world = World::new(&PlayerOptions::default()).await.unwrap();
+        let player = world.handle.player();
+        let mut computer = world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(player)
+            .await
+            .unwrap()
+            .unwrap();
 
         computer.kind = DeviceKind::Smartphone;
-        world.save_computer(&computer).await.unwrap();
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .save_computer(&computer)
+            .await
+            .unwrap();
 
-        let public_ip = world.public_ip(player).await.unwrap();
+        let public_ip = world
+            .modules
+            .core
+            .networks
+            .topology
+            .public_ip(player)
+            .await
+            .unwrap();
         let lan_ip = computer.local_ip.clone();
-        let server = WorldServer::new(world, Rc::new(ManualClock::constant()));
+        let server = WorldServer::new(world, Rc::new(ManualClock::constant()))
+            .await
+            .unwrap();
         let runtime = connect(&server);
         let session = runtime.start("/bin/tool").await;
 
@@ -243,6 +357,10 @@ fn should_expose_smartphone_adb_installation() {
             server
                 .world()
                 .await
+                .modules
+                .core
+                .computers
+                .processes
                 .has_service(player, ServiceId::Adb)
                 .await
                 .unwrap()
@@ -259,9 +377,18 @@ fn should_route_an_admin_npc_login_to_its_computer() {
         let session = runtime.start("/bin/tool").await;
         let user = server
             .change_world(async |world| {
-                let player = world.player();
+                let player = world.handle.player();
 
-                world.users(player).await.unwrap()[0].name.clone()
+                world
+                    .modules
+                    .core
+                    .computers
+                    .users
+                    .users(player)
+                    .await
+                    .unwrap()[0]
+                    .name
+                    .clone()
             })
             .await;
 

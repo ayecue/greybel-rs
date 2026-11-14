@@ -5,14 +5,27 @@ use greyhack_world::{DebugAccount, Library, NodeDraft, PlayerOptions, World};
 use super::set_library;
 
 pub fn debug_world() -> World {
-    let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
 
     // Debug accounts reference the shared password table; register the fixture password first.
-    block_on(world.add_mail_account("dbg@debug.local", "secret")).unwrap();
-    block_on(world.save_debug_account(&DebugAccount::new("dbg", "secret")))
-        .expect("the debug account is saved");
+    block_on(
+        world
+            .modules
+            .npcs
+            .mail
+            .add_mail_account("dbg@debug.local", "secret"),
+    )
+    .unwrap();
+    block_on(
+        world
+            .modules
+            .libraries
+            .debug
+            .save_debug_account(&DebugAccount::new("dbg", "secret")),
+    )
+    .expect("the debug account is saved");
 
-    let player = world.player();
+    let player = world.handle.player();
 
     set_library(
         &world,
@@ -27,12 +40,19 @@ pub fn debug_world() -> World {
 
     block_on(async {
         let root = world
+            .modules
+            .core
+            .files
+            .lookup
             .folder(player, "/root", true)
             .await
             .expect("the world reads")
             .expect("/root");
 
         let challenge = world
+            .modules
+            .libraries
+            .debug
             .debug_library(player, "/lib/metaxploit.so")
             .await
             .expect("the world reads")
@@ -40,7 +60,10 @@ pub fn debug_world() -> World {
             .challenge();
 
         world
-            .add_node(
+            .modules
+            .libraries
+            .generator
+            .add_full_node(
                 &root,
                 &NodeDraft::file(
                     "patch.src",

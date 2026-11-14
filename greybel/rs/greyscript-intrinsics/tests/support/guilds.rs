@@ -11,13 +11,21 @@ pub fn add_company(world: &mut World) -> String {
     loop {
         let address = rng.public_ip();
 
-        if kind_for_ip(world.world_seed(), &address) == NetworkKind::Supermarket
-            && block_on(world.router_at(&address)).unwrap().is_none()
+        if kind_for_ip(&world.handle.world_seed(), &address) == NetworkKind::Supermarket
+            && block_on(world.modules.core.networks.routers.router_at(&address))
+                .unwrap()
+                .is_none()
         {
-            block_on(world.add_network(&NetworkOptions {
-                public_ip: Some(address.clone()),
-                ..NetworkOptions::default()
-            }))
+            block_on(
+                world
+                    .modules
+                    .creation
+                    .network_generation
+                    .add_network(&NetworkOptions {
+                        public_ip: Some(address.clone()),
+                        ..NetworkOptions::default()
+                    }),
+            )
             .unwrap();
 
             return address;
@@ -27,7 +35,7 @@ pub fn add_company(world: &mut World) -> String {
 
 /// Makes guild `Owls` hold the Crown by letting it own the company at `address` for fifteen days.
 pub fn crown(world: &mut World, address: &str) {
-    block_on(world.create_guild(&GuildDraft {
+    block_on(world.modules.guilds.guilds.create_guild(&GuildDraft {
         name: "Owls".to_owned(),
         bank_account: "owls-bank".to_owned(),
         total_exp: 275 * 25,
@@ -37,7 +45,16 @@ pub fn crown(world: &mut World, address: &str) {
     }))
     .unwrap()
     .unwrap();
-    assert!(block_on(world.set_company_shares(address, "owls-bank", SHARES)).unwrap());
+    assert!(
+        block_on(
+            world
+                .modules
+                .guilds
+                .guilds
+                .set_company_shares(address, "owls-bank", SHARES)
+        )
+        .unwrap()
+    );
     block_on(world.tick(0)).unwrap();
     block_on(world.tick(15 * SECONDS_PER_DAY)).unwrap();
 }

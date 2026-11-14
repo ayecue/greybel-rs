@@ -7,7 +7,6 @@ use greyhack_behaviour::{self as sshd, GUEST_USER, SSH_SCRIPT_FOLDER, SSH_SCRIPT
 
 use super::{NAME, shell_output};
 use crate::error::IntrinsicError;
-use crate::game::client::failure::login_text;
 use crate::game::client::object::Access;
 use crate::game::client::server::operate;
 use crate::game::{Game, Session};
@@ -61,12 +60,7 @@ impl EncryptedLogin {
                 computer: None,
                 ftp,
             }),
-            Ok(ServiceLoginResult::Failure(failure)) => {
-                self.stdout
-                    .print(&login_text(&failure), PrintOptions::default());
-
-                NativeOutput::new(Value::Null)
-            }
+            Ok(ServiceLoginResult::Null) => NativeOutput::new(Value::Null),
             Err(error) => NativeOutput::new(Err::<Value, _>(error)),
         }
     }

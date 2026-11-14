@@ -6,6 +6,7 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use duplex_core::{Channel, Driver};
+use greybel_interpreter::Stdout;
 use greyhack_behaviour::META_MAIL_COOLDOWN;
 
 use super::handle::{Handle, HandleTable};
@@ -75,6 +76,11 @@ impl ServerConnection {
     #[must_use]
     pub(crate) fn object(&self, id: ObjectId) -> Handle {
         self.handles.object(id)
+    }
+
+    /// Routes later output of `program` to `stdout`.
+    pub(crate) fn register_output(&self, program: ProgramId, stdout: Rc<dyn Stdout>) {
+        self.programs.register_output(program, stdout);
     }
 
     /// Returns the program-end/throttle notification count used by [`ServerConnection::notice_after`].

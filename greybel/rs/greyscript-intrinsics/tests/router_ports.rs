@@ -17,7 +17,7 @@ fn should_report_a_forwarded_port_whose_service_library_was_renamed_as_unknown()
         "router = get_router(\"{}\")\nprint router.port_info(router.ping_port({}))",
         target.address, target.port
     );
-    let (before, error, mut world) = run_on_host(&code, world, true);
+    let (before, error, world) = run_on_host(&code, world, true);
 
     assert_eq!(error, None);
     assert!(
@@ -26,18 +26,33 @@ fn should_report_a_forwarded_port_whose_service_library_was_renamed_as_unknown()
     );
 
     let service = ServiceId::from_name(&target.service).expect("a service");
-    let library = block_on(world.file(
+    let library = block_on(world.modules.core.files.lookup.file(
         target.computer,
         &format!("/lib/{}", service.library()),
         false,
     ))
     .unwrap()
     .unwrap();
-    let folder = block_on(world.folder(target.computer, "/lib", false))
-        .unwrap()
-        .unwrap();
+    let folder = block_on(
+        world
+            .modules
+            .core
+            .files
+            .lookup
+            .folder(target.computer, "/lib", false),
+    )
+    .unwrap()
+    .unwrap();
 
-    block_on(world.move_node(&library, &folder, "renamed.so")).unwrap();
+    block_on(
+        world
+            .modules
+            .core
+            .files
+            .changes
+            .move_node(&library, &folder, "renamed.so"),
+    )
+    .unwrap();
 
     let (after, error, _) = run_on_host(&code, world, true);
 

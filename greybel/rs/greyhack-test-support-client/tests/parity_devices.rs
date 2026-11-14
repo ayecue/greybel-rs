@@ -11,7 +11,8 @@ use crate::support::game::{
 use crate::support::metaxploit::{computer_library, overflow_script, player_libraries, weakness};
 use crate::support::parity::{assert_succeeded, compare_in, compare_in_on_waiting_clock};
 use crate::support::remote::{
-    find_reachable_ssh_with_library, program_on_computer, script_string, simulated_login,
+    find_reachable_ssh_with_library, reachable_computer, script_string, simulated_login,
+    simulated_net_use,
 };
 
 /// The rewards only the smart-appliance and traffic libraries have: on the player's computer of the fixture network,
@@ -188,41 +189,57 @@ async fn should_match_intrinsics_for_smart_appliance_settings() {
 
         let before = client.network_state().await.unwrap();
         let Some((fridge, port)) = before.nodes.iter().find_map(|node| match &node.node {
-            LanNodeKind::Computer(computer) if computer.kind == "FRIDGE" => computer
-                .ports
-                .iter()
-                .find(|port| port.service == "smartappliance")
-                .map(|port| (node.local_ip.to_string(), port.number)),
+            LanNodeKind::Computer(computer)
+                if computer.kind == "FRIDGE" && reachable_computer(&before, node) =>
+            {
+                computer
+                    .ports
+                    .iter()
+                    .find(|port| port.service == "smartappliance")
+                    .map(|port| (node.local_ip.to_string(), port.number))
+            }
             _ => None,
         }) else {
             continue;
         };
 
-        // The fixture installs the game's generated version with the fewest requirements for a reward; one of the two
-        // may also hold the other weakness the test needs.
-        for reward in [Reward::OverrideSettings, Reward::Shell] {
+        // The fixture installs the game's generated version whose weaknesses for both rewards have the fewest
+        // requirements in total. Which versions exist changes as the game releases new ones (`VersionsControl`).
+        client
+            .install_library_with(
+                &fridge,
+                "libsmartappliance.so",
+                &[
+                    u8::try_from(Reward::OverrideSettings.code()).unwrap(),
+                    u8::try_from(Reward::Shell.code()).unwrap(),
+                ],
+            )
+            .await
+            .unwrap();
+
+        let snapshot = client.network_state().await.unwrap();
+        let library = computer_library(&snapshot, &fridge, "libsmartappliance.so");
+        let unlock = weakness(&library, |weakness| {
+            free(weakness, Reward::OverrideSettings)
+        })
+        .map(|(zone, weakness)| (zone.to_owned(), weakness.clone()));
+        let shell = weakness(&library, |weakness| free(weakness, Reward::Shell))
+            .map(|(zone, weakness)| (zone.to_owned(), weakness.clone()));
+
+        let (Some(unlock), Some(shell)) = (unlock, shell) else {
+            // Every fridge gets the same version, the one whose two weaknesses need the fewest requirements, so
+            // another network can't help when that version still needs some: the game releases a new version
+            // instead (`VersionsControl.CheckUpdatePrograms` draws new weaknesses for it).
             client
-                .install_library(
-                    &fridge,
-                    "libsmartappliance.so",
-                    u8::try_from(reward.code()).unwrap(),
-                )
+                .release_library_version("libsmartappliance.so")
                 .await
                 .unwrap();
+            continue;
+        };
 
-            let snapshot = client.network_state().await.unwrap();
-            let library = computer_library(&snapshot, &fridge, "libsmartappliance.so");
-            let unlock = weakness(&library, |weakness| {
-                free(weakness, Reward::OverrideSettings)
-            })
-            .map(|(zone, weakness)| (zone.to_owned(), weakness.clone()));
-            let shell = weakness(&library, |weakness| free(weakness, Reward::Shell))
-                .map(|(zone, weakness)| (zone.to_owned(), weakness.clone()));
-
-            if let (Some(unlock), Some(shell)) = (unlock, shell) {
-                selected = Some((snapshot, fridge, port, unlock, shell));
-                break 'networks;
-            }
+        if simulated_net_use(&snapshot, &user, &fridge, port) {
+            selected = Some((snapshot, fridge, port, unlock, shell));
+            break 'networks;
         }
     }
 
@@ -326,7 +343,23 @@ print traffic.locate_vehicle("bad", "bad")"#
         find_reachable_ssh_with_library(&snapshot, "libtrafficnet.so")
             .expect("a reachable police workstation with the library");
     let on_police = |name: &str, source: &str| {
-        program_on_computer(&address, port, &root_password, name, source)
+        let source = script_string(source);
+
+        // Print the login result and skip the remote program on failure: a failed comparison then shows why
+        // `connect_service` refused the login instead of only the later `host_computer` lookup error.
+        format!(
+            "remote = get_shell.connect_service(\"{address}\", {port}, \"root\", \"{root_password}\")
+print remote
+if typeof(remote) == \"shell\" then
+pc = remote.host_computer
+pc.touch(\"/root\", \"{name}.src\")
+pc.File(\"/root/{name}.src\").set_content({source})
+remote.build(\"/root/{name}.src\", \"/root\")
+print remote.launch(\"/root/{name}\")
+else
+print \"remote login failed\"
+end if"
+        )
     };
     let traffic = snapshot.traffic.as_ref().expect("police traffic state");
     let credentials_npc = snapshot
@@ -429,11 +462,12 @@ print traffic.locate_vehicle({unknown:?}, {password:?})"#
     assert_succeeded(&off);
     police_outcomes.extend(off);
     assert!(
-        police_outcomes.iter().all(|outcome| !outcome
-            .output
-            .as_deref()
-            .unwrap_or_default()
-            .contains("not registered on any police network")),
+        police_outcomes.iter().all(|outcome| {
+            let output = outcome.output.as_deref().unwrap_or_default();
+
+            !output.contains("not registered on any police network")
+                && !output.contains("remote login failed")
+        }),
         "a program did not run on a police computer: {police_outcomes:?}"
     );
 

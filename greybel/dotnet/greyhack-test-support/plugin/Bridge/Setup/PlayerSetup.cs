@@ -100,6 +100,13 @@ internal sealed class PlayerSetup(
         Hardware hardware = computer.GetHardware();
         hardware.rams.Clear();
         hardware.rams.Add(new Hardware.RAM(PlayerFixture.MachineName, 4096, 1, new Random(), true));
+        // A new player's CPU makes every decipher and metaxploit scan take about 48 seconds
+        // (`PlayerUtils.GetTiempoCracking`: 30 / speed × 1.65); a faster CPU lets tests that run several finish within
+        // their time limit.
+        foreach (Hardware.CPU cpu in hardware.cpus)
+        {
+            cpu.speed = PlayerFixture.CpuSpeed;
+        }
         // New computers can receive a power supply insufficient for their disks and CPUs.
         HardwareRepair.Stabilize(computer);
         player.User = PlayerFixture.TestUser;

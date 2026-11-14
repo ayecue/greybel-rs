@@ -58,9 +58,7 @@ pub fn rshell_client(
             let value = match outcome.map_err(|failure| raise("rshell_client", failure))? {
                 RshellClientOutcome::Null => Value::Null,
                 RshellClientOutcome::True => Value::from(true),
-                RshellClientOutcome::Failure(failure) => {
-                    failure_value("rshell_client", &failure)?
-                }
+                RshellClientOutcome::Failure(failure) => failure_value("rshell_client", &failure)?,
             };
 
             Ok::<_, IntrinsicError>(value)

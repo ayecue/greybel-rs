@@ -32,9 +32,7 @@ pub fn rshell_server(vm: &mut Vm, this: &Value) -> Result<NativeFuture, Intrinsi
             let response = result.map_err(|failure| raise("rshell_server", failure))?;
             let value = match response {
                 RshellServerResponse::Null => Value::Null,
-                RshellServerResponse::Failure(failure) => {
-                    failure_value("rshell_server", &failure)?
-                }
+                RshellServerResponse::Failure(failure) => failure_value("rshell_server", &failure)?,
                 RshellServerResponse::Clients(clients) => {
                     let mut shells = Vec::with_capacity(clients.len());
 

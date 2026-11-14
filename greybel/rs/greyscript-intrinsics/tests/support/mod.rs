@@ -11,6 +11,7 @@ pub mod exploit_shop;
 pub mod filesystem;
 pub mod game;
 pub mod guilds;
+pub mod library_versions;
 pub mod mail;
 pub mod network;
 pub mod processes;
@@ -57,7 +58,7 @@ pub fn copy(world: &mut World) -> World {
 
 /// The router of the player's network in `world`.
 pub fn player_router(world: &World) -> RouterId {
-    read_computer(world, world.player())
+    read_computer(world, world.handle.player())
         .router
         .expect("the player's network")
 }
@@ -95,6 +96,10 @@ pub fn add_library(
 ) {
     block_on(async {
         let folder = world
+            .modules
+            .core
+            .files
+            .lookup
             .folder(computer, "/lib", true)
             .await
             .expect("the world reads")
@@ -103,7 +108,10 @@ pub fn add_library(
 
         node.library = library.map(Box::new);
         world
-            .add_node(&folder, &node)
+            .modules
+            .libraries
+            .generator
+            .add_full_node(&folder, &node)
             .await
             .expect("the world writes");
     });
@@ -113,13 +121,20 @@ pub fn add_library(
 pub fn set_library(world: &World, computer: ComputerId, path: &str, library: Library) {
     block_on(async {
         let file = world
+            .modules
+            .core
+            .files
+            .lookup
             .file(computer, path, true)
             .await
             .expect("the world reads")
             .expect("the file");
 
         world
-            .set_library_of(&file, Some(&library))
+            .modules
+            .libraries
+            .generator
+            .set_full_library_of(&file, Some(&library))
             .await
             .expect("the world writes");
     });
@@ -134,19 +149,29 @@ pub fn change_library<T>(
 ) -> T {
     block_on(async {
         let file = world
+            .modules
+            .core
+            .files
+            .lookup
             .file(computer, path, true)
             .await
             .expect("the world reads")
             .expect("the file");
         let mut library = world
-            .library_of(&file)
+            .modules
+            .libraries
+            .generator
+            .full_library_of(&file)
             .await
             .expect("the world reads")
             .expect("a library");
         let result = change(&mut library);
 
         world
-            .set_library_of(&file, Some(&library))
+            .modules
+            .libraries
+            .generator
+            .set_full_library_of(&file, Some(&library))
             .await
             .expect("the world writes");
 

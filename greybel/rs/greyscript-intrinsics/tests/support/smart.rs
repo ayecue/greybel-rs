@@ -7,13 +7,20 @@ use super::add_library;
 /// A world whose player computer is a smart appliance with its override settings enabled, as an exploit leaves it.
 pub fn world_with_appliance() -> World {
     let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
-    let player = world.player();
+    let player = world.handle.player();
     let settings = SmartApplianceSettings {
         override_enabled: true,
         ..SmartApplianceSettings::new("ACME/FR1", 600, 20)
     };
 
-    block_on(world.save_smart(player, Some(&settings))).expect("the smart appliance is saved");
+    block_on(
+        world
+            .modules
+            .smart_devices
+            .appliances
+            .save_smart(player, Some(&settings)),
+    )
+    .expect("the smart appliance is saved");
     add_library(
         &mut world,
         player,

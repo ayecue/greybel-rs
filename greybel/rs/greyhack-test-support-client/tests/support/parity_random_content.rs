@@ -41,28 +41,54 @@ pub fn game_computers(snapshot: &NetworkSnapshot) -> Vec<Computer> {
 
 /// The computers of `networks` generated networks of the simulation.
 pub async fn simulated_computers(networks: u32) -> Vec<Computer> {
-    let mut world = World::new(&PlayerOptions::default())
+    let world = World::new(&PlayerOptions::default())
         .await
         .expect("the world generates");
     let mut computers = Vec::new();
 
     for _ in 0..networks {
         let router = world
+            .modules
+            .creation
+            .network_generation
             .add_network(&NetworkOptions::default())
             .await
             .expect("a network is generated");
 
-        for id in world.devices(router).await.expect("the devices are read") {
+        for id in world
+            .modules
+            .core
+            .networks
+            .topology
+            .devices(router)
+            .await
+            .expect("the devices are read")
+        {
             let computer = world
+                .modules
+                .core
+                .networks
+                .topology
                 .computer(id)
                 .await
                 .expect("the computer is read")
                 .expect("the computer exists");
-            let users = world.users(id).await.expect("the users are read");
+            let users = world
+                .modules
+                .core
+                .computers
+                .users
+                .users(id)
+                .await
+                .expect("the users are read");
             let mut entries = Vec::new();
 
             for user in users.iter().filter(|user| user.name != ROOT_USER) {
                 let Some(home) = world
+                    .modules
+                    .core
+                    .files
+                    .lookup
                     .folder(id, &format!("/home/{}", user.name), false)
                     .await
                     .expect("the home is read")
@@ -70,7 +96,15 @@ pub async fn simulated_computers(networks: u32) -> Vec<Computer> {
                     continue;
                 };
 
-                for file in world.files(&home).await.expect("the home is listed") {
+                for file in world
+                    .modules
+                    .core
+                    .files
+                    .lookup
+                    .files(&home)
+                    .await
+                    .expect("the home is listed")
+                {
                     let Some(data) = file.data() else {
                         continue;
                     };

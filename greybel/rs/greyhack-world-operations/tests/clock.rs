@@ -2,8 +2,10 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use duplex_test_support::local::run_local;
-use greyhack_behaviour::{START_DATE, TIME_SCALE};
-use greyhack_world_operations::TickOptions;
+use greyhack_behaviour::{START_DATE, SubscriptionKind, TIME_SCALE};
+use greyhack_world::prelude::DatabaseOpen;
+use greyhack_world::{Database, PlayerOptions, World};
+use greyhack_world_operations::{TickOptions, WorldServer};
 use scheduler::ManualClock;
 
 use crate::support::clock::current_date;
@@ -39,9 +41,9 @@ fn should_run_the_worlds_clock_fourteen_times_as_fast_as_real_time() {
         assert_eq!(
             dates[1..],
             [
-                "01/Dec/2000 - 06:01".to_owned(),
-                "01/Dec/2000 - 06:01".to_owned(),
-                "01/Dec/2000 - 20:01".to_owned(),
+                "03/Jan/2000 - 06:01".to_owned(),
+                "03/Jan/2000 - 06:01".to_owned(),
+                "03/Jan/2000 - 20:01".to_owned(),
             ]
         );
     });
@@ -57,7 +59,7 @@ fn should_go_on_ticking_after_the_date_was_set() {
 
         server.tick().await;
         server
-            .change_world(async |world| world.set_date("04/Jan/2000 - 06:00"))
+            .change_world(async |world| world.modules.routines.set_date("04/Jan/2000 - 06:00"))
             .await;
 
         let start = server.world().await.time_seconds();
@@ -150,9 +152,22 @@ fn should_run_the_daily_upkeep_when_a_world_day_passes() {
 
         let (coin, before) = server
             .change_world(async |world| {
-                let coin = world.coins().await.unwrap().swap_remove(0);
+                let coin = world
+                    .modules
+                    .economy
+                    .coins
+                    .coins()
+                    .await
+                    .unwrap()
+                    .swap_remove(0);
 
-                world.record_trade(coin.id, 500, 1).await.unwrap();
+                world
+                    .modules
+                    .economy
+                    .market
+                    .record_trade(coin.id, 500, 1)
+                    .await
+                    .unwrap();
 
                 (coin.id, coin.price)
             })
@@ -165,9 +180,77 @@ fn should_run_the_daily_upkeep_when_a_world_day_passes() {
         settle().await;
 
         let after = server
-            .change_world(async |world| world.coin(coin).await.unwrap().unwrap().price)
+            .change_world(async |world| {
+                world
+                    .modules
+                    .economy
+                    .coins
+                    .coin(coin)
+                    .await
+                    .unwrap()
+                    .unwrap()
+                    .price
+            })
             .await;
 
         assert_ne!(after, before, "the daily upkeep recalculated the price");
+    });
+}
+
+/// Loading a server restores the payment timers of persisted subscriptions.
+#[test]
+fn should_restore_payment_timers_when_a_world_server_opens() {
+    run_local(async {
+        let database = Database::in_memory().await.unwrap();
+        let world = World::new(&PlayerOptions::default()).await.unwrap();
+
+        world
+            .modules
+            .economy
+            .bank
+            .add_subscription("test", SubscriptionKind::Bank, 50, "")
+            .await
+            .unwrap();
+
+        let expected = world
+            .modules
+            .economy
+            .bank
+            .bank_subscription("test", SubscriptionKind::Bank)
+            .await
+            .unwrap()
+            .unwrap()
+            .next_payment_at;
+
+        world
+            .handle
+            .db()
+            .connection()
+            .execute("DELETE FROM routines WHERE kind = 'economy.payment'", ())
+            .await
+            .unwrap();
+        world.save_into(&database).await.unwrap();
+        drop(world);
+
+        let server = WorldServer::open(database, Rc::new(ManualClock::constant()))
+            .await
+            .unwrap();
+        let world = server.world().await;
+        let payments: Vec<_> = world
+            .modules
+            .routines
+            .scheduled_routines()
+            .await
+            .unwrap()
+            .into_iter()
+            .filter(|routine| routine.key == "economy.payment")
+            .collect();
+
+        assert_eq!(payments.len(), 1);
+        assert_eq!(payments[0].at, expected);
+        assert_eq!(
+            payments[0].data::<(String, SubscriptionKind)>(),
+            Some(&("test".to_owned(), SubscriptionKind::Bank)),
+        );
     });
 }

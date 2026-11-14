@@ -7,9 +7,9 @@ use crate::support::read_computer;
 
 #[test]
 fn should_return_a_router_only_for_a_switch_device() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
-    let router = read_computer(&world, world.player()).router.unwrap();
-    let switch = block_on(world.add_computer_to(
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let router = read_computer(&world, world.handle.player()).router.unwrap();
+    let switch = block_on(world.modules.creation.network_generation.add_computer_to(
         router,
         &ComputerOptions {
             lan_ip: Some("192.168.0.50".to_owned()),
@@ -20,7 +20,7 @@ fn should_return_a_router_only_for_a_switch_device() {
     .unwrap()
     .expect("the switch is created");
 
-    block_on(world.add_computer_to(
+    block_on(world.modules.creation.network_generation.add_computer_to(
         router,
         &ComputerOptions {
             lan_ip: Some("192.168.0.51".to_owned()),
@@ -45,8 +45,11 @@ fn should_return_a_router_only_for_a_switch_device() {
 fn should_persist_the_switch_marker() {
     block_on(async {
         let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-        let router = read_computer(&world, world.player()).router.unwrap();
+        let router = read_computer(&world, world.handle.player()).router.unwrap();
         let switch = world
+            .modules
+            .creation
+            .network_generation
             .add_computer_to(
                 router,
                 &ComputerOptions {

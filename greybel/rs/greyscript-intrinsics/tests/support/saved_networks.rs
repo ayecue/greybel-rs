@@ -13,15 +13,21 @@ use super::semantics::{PollStdin, world_with_player_router_at_origin};
 
 /// A world with two networks in range of the player's router, named `alpha` and `bravo`.
 pub fn world_with_networks() -> (World, RouterId, RouterId) {
-    let mut world = world_with_player_router_at_origin();
-    let mut add = |public_ip: &str, essid: &str, password: &str, x: f32| {
-        block_on(world.add_network(&NetworkOptions {
-            public_ip: Some(public_ip.to_owned()),
-            essid: Some(essid.to_owned()),
-            wifi_password: Some(password.to_owned()),
-            position: Some([x, 0.0]),
-            ..NetworkOptions::default()
-        }))
+    let world = world_with_player_router_at_origin();
+    let add = |public_ip: &str, essid: &str, password: &str, x: f32| {
+        block_on(
+            world
+                .modules
+                .creation
+                .network_generation
+                .add_network(&NetworkOptions {
+                    public_ip: Some(public_ip.to_owned()),
+                    essid: Some(essid.to_owned()),
+                    wifi_password: Some(password.to_owned()),
+                    position: Some([x, 0.0]),
+                    ..NetworkOptions::default()
+                }),
+        )
         .unwrap()
     };
     let alpha = add("8.8.8.8", "alpha", "pw-a", 0.1);

@@ -14,7 +14,9 @@ fn should_release_the_objects_of_a_finished_program() {
         let server = WorldServer::new(
             World::new(&PlayerOptions::default()).await.unwrap(),
             constant_clock(),
-        );
+        )
+        .await
+        .unwrap();
         let connection = connect(&server);
         let user = PlayerOptions::default().user;
         let (lines, options) = snapshot_options();

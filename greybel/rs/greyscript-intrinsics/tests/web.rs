@@ -29,7 +29,9 @@ async fn should_launch_the_games_commands_on_the_web() {
     })
     .await
     .expect("a generated world");
-    let server = WorldServer::new(world, Rc::new(ManualClock::constant()));
+    let server = WorldServer::new(world, Rc::new(ManualClock::constant()))
+        .await
+        .unwrap();
     let connection = ServerConnection::new(Channel::<Program, _>::new(
         &server.connect(WebScheduler),
         ChannelOptions::default(),

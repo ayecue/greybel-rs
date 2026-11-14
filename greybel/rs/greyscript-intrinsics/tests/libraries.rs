@@ -8,7 +8,7 @@ use crate::support::scripts::run_on_host;
 #[test]
 fn should_include_a_library_by_its_content_rather_than_its_name() {
     let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
-    let player = world.player();
+    let player = world.handle.player();
 
     add_library(
         &mut world,

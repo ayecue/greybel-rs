@@ -171,5 +171,19 @@
       "admin = include_lib(\"admin.so\")",
       "print(admin.create_guild(\"Owls\", user_bank_number, 1, 0, 0))"
     ]
+  },
+  "release_library_version": {
+    "description": "Releases the next version of the library file `library` (such as `\"libssh.so\"`) now, as the game does for the first versions of a world: every visible weakness of its newest version counts as used up, the check for library versions patches them, and the exploits made from them target their version only. The new version appears on the official apt server and in `check_upgrade`, the hack shop's downloads follow, and metaxploit gets a version too (two for its own release). Returns the new version as a `string`, or `\"Error: Unknown lib <library>\"` when the world has no such library. A non-string `library` raises `release_library_version: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
+    "example": [
+      "admin = include_lib(\"admin.so\")",
+      "print(admin.release_library_version(\"libssh.so\"))"
+    ]
+  },
+  "report_exploit": {
+    "description": "Reports the weakness `unsec_value` of the memory zone `zone` of the newest version of the library file `library` as used up, as the exploit report window does, so the next check for library versions (every fifteen minutes of real time) releases a version that patches it. Libraries `metaxploit.so`, `crypto.so` and `librshell.so` cannot be reported. A second report before that check counts the weakness all the same and returns `\"Your previous report is still processing. Please wait a few minutes before sending a new report.\"`. Returns `1`, or the failure as a `string`. Non-string arguments raise `report_exploit: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
+    "example": [
+      "admin = include_lib(\"admin.so\")",
+      "print(admin.report_exploit(\"libssh.so\", \"0x1A2B3C\", \"buffer\"))"
+    ]
   }
 }

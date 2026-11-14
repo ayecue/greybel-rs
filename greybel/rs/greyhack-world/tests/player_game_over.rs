@@ -1,0 +1,246 @@
+use greyhack_behaviour::{SubscriptionKind, exp_after_member_exit};
+use greyhack_world::{GuildDraft, TraceKind};
+
+use crate::support::guilds_active_traces::{BANK_SHARES, LEVEL_FIVE, bank};
+
+#[tokio::test]
+async fn should_end_the_game_on_the_third_strike() {
+    // Arrange
+    let (world, network, address, _, company) = bank().await;
+    let player = world.handle.player();
+
+    world
+        .modules
+        .guilds
+        .guilds
+        .create_guild(&GuildDraft {
+            name: "Owls".to_owned(),
+            bank_account: "test".to_owned(),
+            total_exp: LEVEL_FIVE,
+            investment_perks: 1,
+            admin_restore_perks: 0,
+            player_member: true,
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    world
+        .modules
+        .guilds
+        .guilds
+        .set_company_shares(&address, "test", BANK_SHARES / 2)
+        .await
+        .unwrap();
+    world
+        .modules
+        .economy
+        .bank
+        .add_subscription("test", SubscriptionKind::Bank, 50, "")
+        .await
+        .unwrap();
+    world
+        .modules
+        .economy
+        .bank
+        .add_subscription("test", SubscriptionKind::Rented, 40, &address)
+        .await
+        .unwrap();
+    world.modules.guilds.traces.set_strikes(2).await.unwrap();
+    world.deliver_events();
+    world.take_changed_computers();
+
+    // Act
+    world
+        .modules
+        .guilds
+        .traces
+        .strike_player(company, TraceKind::Active)
+        .await
+        .unwrap();
+
+    // Assert
+
+    let strikes = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
+
+    world.assembly.events.on({
+        let strikes = strikes.clone();
+
+        move |event: &greyhack_world::StrikeEvent| strikes.borrow_mut().push(*event)
+    });
+    world.assembly.events.deliver_async().await.unwrap();
+    assert!(
+        strikes
+            .borrow()
+            .iter()
+            .any(|event| event.trace == TraceKind::Active && event.strikes == 3)
+    );
+
+    let guild = world
+        .modules
+        .guilds
+        .guilds
+        .guilds()
+        .await
+        .unwrap()
+        .remove(0);
+    let subscriptions = world
+        .modules
+        .economy
+        .bank
+        .bank_subscriptions()
+        .await
+        .unwrap();
+
+    assert!(!world.has_player());
+    assert!(
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(player)
+            .await
+            .unwrap()
+            .is_none()
+    );
+    assert!(world.take_changed_computers().contains(&player));
+    assert_eq!(world.modules.guilds.traces.strikes().await.unwrap(), 0);
+    assert_eq!(guild.total_exp, exp_after_member_exit(LEVEL_FIVE));
+    assert!(!guild.player_member);
+    assert!(
+        world
+            .modules
+            .guilds
+            .guilds
+            .company_shares(network)
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(subscriptions.len(), 1);
+    assert_eq!(subscriptions[0].kind, SubscriptionKind::Rented);
+    assert!(
+        world
+            .modules
+            .core
+            .networks
+            .settings
+            .is_disabled(
+                world
+                    .modules
+                    .core
+                    .networks
+                    .routers
+                    .router_at(&address)
+                    .await
+                    .unwrap()
+                    .unwrap()
+                    .id
+                    .computer()
+            )
+            .await
+            .unwrap()
+    );
+}
+
+#[tokio::test]
+async fn should_keep_the_player_for_the_first_two_strikes() {
+    // Arrange
+    let (world, _, _, _, company) = bank().await;
+    let player = world.handle.player();
+
+    // Act
+    world
+        .modules
+        .guilds
+        .traces
+        .strike_player(company, TraceKind::Active)
+        .await
+        .unwrap();
+    world
+        .modules
+        .guilds
+        .traces
+        .strike_player(company, TraceKind::Passive)
+        .await
+        .unwrap();
+
+    // Assert
+    assert_eq!(world.modules.guilds.traces.strikes().await.unwrap(), 2);
+    assert!(world.has_player());
+    assert!(
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .computer(player)
+            .await
+            .unwrap()
+            .is_some()
+    );
+}
+
+#[tokio::test]
+async fn should_stop_every_trace_when_the_game_ends() {
+    // Arrange
+    let (world, _, _, _, company) = bank().await;
+
+    world
+        .modules
+        .guilds
+        .traces
+        .trace_action(company, 5, greyhack_behaviour::LogAction::Remove, 1)
+        .await
+        .unwrap();
+    world
+        .modules
+        .guilds
+        .traces
+        .add_passive_trace(company)
+        .await
+        .unwrap();
+    world.modules.guilds.traces.set_strikes(2).await.unwrap();
+
+    // Act
+    world
+        .modules
+        .guilds
+        .traces
+        .strike_player(company, TraceKind::Passive)
+        .await
+        .unwrap();
+    world.assembly.events.deliver_async().await.unwrap();
+
+    // Assert
+    assert!(
+        world
+            .modules
+            .guilds
+            .traces
+            .active_traces()
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        world
+            .modules
+            .guilds
+            .traces
+            .passive_traces()
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        world
+            .modules
+            .routines
+            .scheduled_routines()
+            .await
+            .unwrap()
+            .iter()
+            .all(|entry| entry.key != "guilds.active_trace")
+    );
+}

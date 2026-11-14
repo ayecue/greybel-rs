@@ -2,6 +2,7 @@ use greybel_interpreter::InterpreterOptions;
 use greybel_test_support::greyhack;
 use greybel_test_support::interpreter::{constant_clock, with_captured_stdout};
 use greybel_test_support::io::PrintLog;
+use greyhack_world::prelude::*;
 use greyhack_world::{Database, PlayerOptions, World};
 use greyhack_world_operations::WorldServer;
 

@@ -1,0 +1,27 @@
+[package]
+name = "greyhack-world-router"
+description = "World protocol and operation routes for Grey Hack runtimes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+greyhack-world-programs.workspace = true
+
+[dev-dependencies]
+duplex-ts.workspace = true
+greybel-test-support.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

@@ -15,11 +15,11 @@ pub fn ssh_target(world: &World) -> Target {
         .into_iter()
         .skip(1)
         .find_map(|router| {
-            block_on(world.devices(router.id))
+            block_on(world.modules.core.networks.topology.devices(router.id))
                 .expect("the world reads")
                 .into_iter()
                 .find_map(|id| {
-                    block_on(world.ports(id))
+                    block_on(world.modules.core.computers.processes.ports(id))
                         .expect("the world reads")
                         .iter()
                         .any(|port| port.service == ServiceId::Ssh)
@@ -35,7 +35,7 @@ pub fn ssh_target(world: &World) -> Target {
 pub fn scan_world(metaxploit_version: &str, library_version: &str) -> (World, Target, String) {
     let world = block_on(World::generate(&world_options(7, 3))).expect("a generated world");
     let target = ssh_target(&world);
-    let player = world.player();
+    let player = world.handle.player();
 
     set_library(
         &world,

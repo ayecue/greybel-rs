@@ -42,6 +42,9 @@ internal sealed class PluginRouter(
     public override void OnExecuteRpc(ExecuteRpc message) =>
         scripts.Execute(From(message.Request, message), message);
 
+    public override void OnExecuteInTerminalRpc(ExecuteInTerminalRpc message) =>
+        scripts.ExecuteInTerminal(From(message.Request, message), message);
+
     public override void OnExecuteInteractiveRpc(ExecuteInteractiveRpc message) =>
         scripts.ExecuteInteractive(From(message.Request, message), message);
 
@@ -102,6 +105,9 @@ internal sealed class PluginRouter(
     public override void OnSetupCtfRpc(SetupCtfRpc message) =>
         Respond(message.Request, message, () => accounts.CreateCtf(message));
 
+    public override void OnRateCtfRpc(RateCtfRpc message) =>
+        Respond(message.Request, message, () => accounts.WriteCtfScore(message));
+
     public override void OnSetupMailRpc(SetupMailRpc message) =>
         Respond(message.Request, message, () => accounts.CreateMail(message));
 
@@ -156,11 +162,14 @@ internal sealed class PluginRouter(
     public override void OnQueryExploitsRpc(QueryExploitsRpc message) =>
         Respond(message.Request, message, () => exploitShop.ReadExploits(message));
 
+    public override void OnReleaseLibraryVersionRpc(ReleaseLibraryVersionRpc message) =>
+        Respond(message.Request, message, () => exploitShop.ReleaseLibraryVersion(message));
+
     public override void OnQueryWordListsRpc(QueryWordListsRpc message) =>
         Respond(message.Request, message, missions.ReadWordLists);
 
-    public override void OnProceduralMissionRpc(ProceduralMissionRpc message) =>
-        Respond(message.Request, message, () => missions.ReadProceduralMission(message));
+    public override void OnMissionRpc(MissionRpc message) =>
+        Respond(message.Request, message, () => missions.ReadMission(message));
 
     public override void OnBuyExploitRpc(BuyExploitRpc message) =>
         exploitShop.CreatePurchase(From(message.Request, message), message);
@@ -191,6 +200,12 @@ internal sealed class PluginRouter(
 
     public override void OnQueryTracesRpc(QueryTracesRpc message) =>
         Respond(message.Request, message, guilds.ReadTraces);
+
+    public override void OnEndGameRpc(EndGameRpc message) =>
+        Respond(message.Request, message, () => guilds.EndGame(message));
+
+    public override void OnRunPaymentRpc(RunPaymentRpc message) =>
+        Respond(message.Request, message, () => bank.RunPayment(message));
 
     /// <summary>Executes <paramref name="operation"/> on the main thread and replies with its result.</summary>
     private void Respond(uint request, Duplex.Message message, System.Func<Reply> operation) =>

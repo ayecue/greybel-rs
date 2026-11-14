@@ -1,0 +1,33 @@
+[package]
+name = "greyhack-world-storage"
+description = "Generic database layer of the Grey Hack world: connection and transaction handling, SQL helpers, and the registry of table sets that assembles the schema"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+turso.workspace = true
+
+# Enable browser randomness for each getrandom version used by turso and uuid.
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom-v02 = { package = "getrandom", version = "0.2", features = ["js"] }
+getrandom-v03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
+getrandom-v04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
+scheduler = { workspace = true, features = ["web"] }
+uuid = { workspace = true, features = ["js"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

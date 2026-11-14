@@ -4,12 +4,13 @@
 use std::rc::Rc;
 
 use greybel_interpreter::{InterpreterOptions, RuntimeErrorKind, Stdout};
-use greybel_test_support::greyhack::run_in_at;
+use greybel_test_support::greyhack::{run_in_at, run_in_at_safe_terminal};
 use greybel_test_support::interpreter::constant_clock;
 use greybel_test_support::io::MarkedStdout;
 use greyhack_test_support_client::TestClient;
 use greyhack_test_support_client::protocol::test_support::NetworkSnapshot;
 use greyhack_world::Database;
+use greyhack_world::prelude::*;
 use greyhack_world_operations::WorldServer;
 
 use super::intrinsics::{PROGRAM_NAME, snapshot_world};
@@ -19,8 +20,14 @@ use super::parity::{Outcome, game_error, without_ack_counts};
 /// terminal connected to it (the game's client starting it again).
 #[derive(Clone, Copy)]
 pub enum Phase<'a> {
+    /// A script typed into the terminal of the player's computer: the safe-mode terminal while it runs one.
     Script(&'a str),
-    Restart { safe_mode: bool },
+    /// A script typed into the safe-mode terminal (`true`, which needs one to run), or into a terminal that isn't
+    /// protected (`false`), whichever the computer runs (`GreyInterpreter.isSafeTerminal`).
+    TerminalScript(&'a str, bool),
+    Restart {
+        safe_mode: bool,
+    },
 }
 
 /// Runs `phases` in order in the game and in one copy of `snapshot`, asserts that every script's outcome is the same
@@ -40,7 +47,7 @@ pub async fn compare_with_restarts(
     let expected: Vec<Outcome> = phases
         .iter()
         .filter_map(|phase| match phase {
-            Phase::Script(script) => Some(*script),
+            Phase::Script(script) | Phase::TerminalScript(script, _) => Some(*script),
             Phase::Restart { .. } => None,
         })
         .zip(expected)
@@ -55,11 +62,26 @@ pub async fn compare_with_restarts(
 
     for phase in phases {
         match phase {
-            Phase::Script(script) => {
-                let result = client
-                    .execute(script, "/project/test.src", "/project", PROGRAM_NAME)
-                    .await
-                    .unwrap_or_else(|error| panic!("{script}: {error}"));
+            Phase::Script(script) | Phase::TerminalScript(script, _) => {
+                let result = match phase {
+                    Phase::TerminalScript(_, safe_terminal) => {
+                        client
+                            .execute_in_terminal(
+                                script,
+                                "/project/test.src",
+                                "/project",
+                                PROGRAM_NAME,
+                                *safe_terminal,
+                            )
+                            .await
+                    }
+                    _ => {
+                        client
+                            .execute(script, "/project/test.src", "/project", PROGRAM_NAME)
+                            .await
+                    }
+                }
+                .unwrap_or_else(|error| panic!("{script}: {error}"));
                 let output = result.output.to_string();
 
                 actual.push(Outcome {
@@ -104,13 +126,32 @@ fn run_in_snapshot(
 
         for phase in phases {
             match phase {
-                Phase::Script(script) => {
+                Phase::Script(script) | Phase::TerminalScript(script, _) => {
                     let stdout = Rc::new(MarkedStdout::default());
                     let options = InterpreterOptions {
                         stdout: Rc::clone(&stdout) as Rc<dyn Stdout>,
                         ..InterpreterOptions::new(Rc::new(scheduler::TokioScheduler::new()))
                     };
-                    let error = run_in_at(&server, script, user, true, &path, options).await;
+                    let safe_terminal = match phase {
+                        Phase::TerminalScript(_, safe_terminal) => *safe_terminal,
+                        _ => {
+                            let world = server.world().await;
+
+                            world
+                                .modules
+                                .core
+                                .computers
+                                .processes
+                                .in_safe_mode(world.handle.player())
+                                .await
+                                .expect("the processes are read")
+                        }
+                    };
+                    let error = if safe_terminal {
+                        run_in_at_safe_terminal(&server, script, user, true, &path, options).await
+                    } else {
+                        run_in_at(&server, script, user, true, &path, options).await
+                    };
 
                     outcomes.push((stdout.terminal_text(), error));
                 }
@@ -119,6 +160,10 @@ fn run_in_snapshot(
                         .change_world(async |world| {
                             assert!(
                                 world
+                                    .modules
+                                    .core
+                                    .computers
+                                    .processes
                                     .reboot_player(*safe_mode)
                                     .await
                                     .expect("the player's computer restarts")

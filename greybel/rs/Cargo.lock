@@ -1638,6 +1638,7 @@ dependencies = [
  "greybel-io-web",
  "greyhack-message-hook-client",
  "greyhack-world",
+ "greyhack-world-modules",
  "greyhack-world-operations",
  "greyscript-intrinsics",
  "indexmap",
@@ -1776,6 +1777,7 @@ dependencies = [
  "greyhack-behaviour",
  "greyhack-world",
  "greyhack-world-assets",
+ "greyhack-world-missions",
  "greyhack-world-operations",
  "greyscript-intrinsics",
  "scheduler",
@@ -1800,22 +1802,34 @@ dependencies = [
 name = "greyhack-world"
 version = "0.1.0"
 dependencies = [
- "getrandom 0.2.17",
- "getrandom 0.3.4",
- "getrandom 0.4.3",
+ "duplex-core",
  "greybel-source-map",
  "greybel-test-support",
  "greyhack-behaviour",
  "greyhack-world-assets",
+ "greyhack-world-core",
+ "greyhack-world-creation",
+ "greyhack-world-economy",
+ "greyhack-world-guilds",
+ "greyhack-world-intrusion",
+ "greyhack-world-libraries",
+ "greyhack-world-missions",
+ "greyhack-world-modules",
+ "greyhack-world-npcs",
+ "greyhack-world-player",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-services",
+ "greyhack-world-shell",
+ "greyhack-world-smart-devices",
+ "greyhack-world-storage",
  "indexmap",
  "mono-random",
- "scheduler",
  "serde",
  "serde_json",
  "thiserror",
  "tokio",
  "turso",
- "uuid",
  "wasm-bindgen-test",
 ]
 
@@ -1829,19 +1843,168 @@ dependencies = [
 ]
 
 [[package]]
+name = "greyhack-world-core"
+version = "0.1.0"
+dependencies = [
+ "duplex-core",
+ "greybel-source-map",
+ "greyhack-behaviour",
+ "greyhack-world-assets",
+ "greyhack-world-modules",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-storage",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-creation"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-assets",
+ "greyhack-world-core",
+ "greyhack-world-libraries",
+ "greyhack-world-missions",
+ "greyhack-world-modules",
+ "greyhack-world-npcs",
+ "greyhack-world-router",
+ "greyhack-world-services",
+ "greyhack-world-smart-devices",
+ "greyhack-world-storage",
+ "mono-random",
+ "serde_json",
+]
+
+[[package]]
+name = "greyhack-world-economy"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-core",
+ "greyhack-world-modules",
+ "greyhack-world-programs",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-storage",
+ "tokio",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-guilds"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-core",
+ "greyhack-world-economy",
+ "greyhack-world-modules",
+ "greyhack-world-npcs",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-storage",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-intrusion"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-core",
+ "greyhack-world-guilds",
+ "greyhack-world-modules",
+ "greyhack-world-npcs",
+ "greyhack-world-router",
+ "greyhack-world-services",
+ "greyhack-world-storage",
+ "serde",
+ "serde_json",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-libraries"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-core",
+ "greyhack-world-economy",
+ "greyhack-world-guilds",
+ "greyhack-world-intrusion",
+ "greyhack-world-modules",
+ "greyhack-world-npcs",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-smart-devices",
+ "greyhack-world-storage",
+ "mono-random",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-missions"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-assets",
+ "mono-random",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "greyhack-world-modules"
+version = "0.1.0"
+dependencies = [
+ "greyhack-world-programs",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-storage",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "greyhack-world-npcs"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-assets",
+ "greyhack-world-core",
+ "greyhack-world-economy",
+ "greyhack-world-modules",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-storage",
+ "mono-random",
+ "serde",
+ "serde_json",
+ "tokio",
+ "turso",
+]
+
+[[package]]
 name = "greyhack-world-operations"
 version = "0.1.0"
 dependencies = [
  "duplex-core",
  "duplex-driver-memory",
  "duplex-test-support",
- "duplex-ts",
  "futures-util",
  "greybel-source-map",
  "greybel-test-support",
  "greyhack-behaviour",
  "greyhack-world",
  "greyhack-world-assets",
+ "greyhack-world-modules",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-storage",
  "scheduler",
  "serde_json",
  "thiserror",
@@ -1864,6 +2027,121 @@ dependencies = [
 ]
 
 [[package]]
+name = "greyhack-world-player"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-assets",
+ "greyhack-world-core",
+ "greyhack-world-creation",
+ "greyhack-world-economy",
+ "greyhack-world-guilds",
+ "greyhack-world-intrusion",
+ "greyhack-world-libraries",
+ "greyhack-world-missions",
+ "greyhack-world-modules",
+ "greyhack-world-npcs",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-services",
+ "greyhack-world-smart-devices",
+ "greyhack-world-storage",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-programs"
+version = "0.1.0"
+dependencies = [
+ "duplex-core",
+ "greybel-test-support",
+ "thiserror",
+]
+
+[[package]]
+name = "greyhack-world-router"
+version = "0.1.0"
+dependencies = [
+ "duplex-core",
+ "duplex-ts",
+ "greybel-test-support",
+ "greyhack-world-programs",
+]
+
+[[package]]
+name = "greyhack-world-routines"
+version = "0.1.0"
+dependencies = [
+ "greyhack-world-storage",
+ "tokio",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-services"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-assets",
+ "greyhack-world-core",
+ "greyhack-world-modules",
+ "greyhack-world-npcs",
+ "greyhack-world-router",
+ "greyhack-world-routines",
+ "greyhack-world-storage",
+ "indexmap",
+ "serde",
+ "serde_json",
+ "tokio",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-shell"
+version = "0.1.0"
+dependencies = [
+ "greybel-source-map",
+ "greyhack-behaviour",
+ "greyhack-world-core",
+ "greyhack-world-guilds",
+ "greyhack-world-intrusion",
+ "greyhack-world-libraries",
+ "greyhack-world-modules",
+ "greyhack-world-router",
+ "greyhack-world-services",
+ "greyhack-world-storage",
+]
+
+[[package]]
+name = "greyhack-world-smart-devices"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-core",
+ "greyhack-world-guilds",
+ "greyhack-world-modules",
+ "greyhack-world-npcs",
+ "greyhack-world-router",
+ "greyhack-world-storage",
+ "serde",
+ "serde_json",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-storage"
+version = "0.1.0"
+dependencies = [
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
+ "getrandom 0.4.3",
+ "scheduler",
+ "tokio",
+ "turso",
+ "uuid",
+]
+
+[[package]]
 name = "greyscript-intrinsics"
 version = "0.1.0"
 dependencies = [
@@ -1883,6 +2161,7 @@ dependencies = [
  "greyhack-world",
  "greyhack-world-assets",
  "greyhack-world-operations",
+ "greyhack-world-router",
  "greyscript-meta",
  "insta",
  "meta-utils",

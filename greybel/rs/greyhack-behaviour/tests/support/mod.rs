@@ -9,3 +9,4 @@ pub mod mission_groups;
 pub mod npc_schedule;
 pub mod permissions;
 pub mod system_log;
+pub mod words;

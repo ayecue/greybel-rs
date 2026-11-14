@@ -40,9 +40,7 @@ pub fn mail_login(
             ObjectOutcome::Object(account) => meta_mail::create(vm, account),
             ObjectOutcome::Null => Ok(Value::Null),
             ObjectOutcome::False => Ok(Value::FALSE),
-            ObjectOutcome::Failure(failure) => {
-                failure_value("mail_login", &failure)
-            }
+            ObjectOutcome::Failure(failure) => failure_value("mail_login", &failure),
         },
     ))
 }

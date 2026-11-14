@@ -1,13 +1,8 @@
-//! Scheduled world work and its clock: routine definitions, queue, completion handling, mine jobs,
-//! and routine implementations.
+//! Scheduled world work and its clock: queue access, completion handling, and mine jobs.
 
-mod clock;
-mod coin_round;
-mod mine_jobs;
-mod npc_switch;
-mod routine;
-mod schedule;
-mod service_restart;
-mod work;
+pub(crate) mod clock;
+pub(crate) mod routine;
+pub(crate) mod schedule;
 
-pub use routine::{Routine, RoutineFailure, ScheduledRoutine, TickReport};
+pub use routine::{RoutineFailure, ScheduledRoutine, TickReport};
+pub(crate) use schedule::RoutineService;

@@ -41,7 +41,9 @@ struct MetaMailWatch;
 /// Applies the program MetaMail cooldown, then the player's (`HelperScript.UseMetaMailCooldownOrError`).
 /// Returns the common method response while either cooldown is active, otherwise none.
 fn cooldown(vm: &mut Vm) -> Result<Option<Value>, IntrinsicError> {
-    if stopwatch::elapsed_ms::<MetaMailWatch>(vm).is_some_and(|elapsed| elapsed < META_MAIL_COOLDOWN.as_millis()) {
+    if stopwatch::elapsed_ms::<MetaMailWatch>(vm)
+        .is_some_and(|elapsed| elapsed < META_MAIL_COOLDOWN.as_millis())
+    {
         return Ok(Some(Value::from(cooldown_text())));
     }
 
@@ -93,7 +95,11 @@ struct MailTarget {
 }
 
 /// Runs the checks `MetaMailIntrinsics.read` and `delete_mail` share, in the game's order.
-fn mail_target(vm: &mut Vm, this: &Value, ids: &Value) -> Result<Proceed<MailTarget>, IntrinsicError> {
+fn mail_target(
+    vm: &mut Vm,
+    this: &Value,
+    ids: &Value,
+) -> Result<Proceed<MailTarget>, IntrinsicError> {
     if !object::game_map(vm, this) {
         return Ok(stop(Value::Null));
     }

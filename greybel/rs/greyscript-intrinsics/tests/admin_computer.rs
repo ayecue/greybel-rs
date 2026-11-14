@@ -8,20 +8,44 @@ use crate::support::scripts::run_on_host;
 
 #[test]
 fn should_reach_world_and_service_channels_through_admin_library() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).unwrap();
-    let player = world.player();
-    let public_ip = block_on(world.public_ip(player)).unwrap();
-    let lan_ip = block_on(world.computer(player)).unwrap().unwrap().local_ip;
-    let password = block_on(world.users(player)).unwrap()[0].password.clone();
-
-    block_on(world.install_service(player, ServiceId::Ssh, "1.0.0")).unwrap();
-    block_on(world.install_service(player, ServiceId::Criminals, "1.0.0")).unwrap();
-
-    let file = block_on(world.file(player, "/lib/libssh.so", false))
+    let world = block_on(World::new(&PlayerOptions::default())).unwrap();
+    let player = world.handle.player();
+    let public_ip = block_on(world.modules.core.networks.topology.public_ip(player)).unwrap();
+    let lan_ip = block_on(world.modules.core.networks.topology.computer(player))
         .unwrap()
-        .unwrap();
+        .unwrap()
+        .local_ip;
+    let password = block_on(world.modules.core.computers.users.users(player)).unwrap()[0]
+        .password
+        .clone();
 
-    block_on(world.set_library_of(
+    block_on(
+        world
+            .modules
+            .services
+            .installs
+            .install_service(player, ServiceId::Ssh, "1.0.0"),
+    )
+    .unwrap();
+    block_on(world.modules.services.installs.install_service(
+        player,
+        ServiceId::Criminals,
+        "1.0.0",
+    ))
+    .unwrap();
+
+    let file = block_on(
+        world
+            .modules
+            .core
+            .files
+            .lookup
+            .file(player, "/lib/libssh.so", false),
+    )
+    .unwrap()
+    .unwrap();
+
+    block_on(world.modules.libraries.generator.set_full_library_of(
         &file,
         Some(&Library {
             kind: LibraryKind::Ssh,
@@ -31,20 +55,34 @@ fn should_reach_world_and_service_channels_through_admin_library() {
     ))
     .unwrap();
 
-    let mut database = block_on(world.file(player, ServiceId::Criminals.config_path(), false))
-        .unwrap()
-        .unwrap();
+    let mut database = block_on(world.modules.core.files.lookup.file(
+        player,
+        ServiceId::Criminals.config_path(),
+        false,
+    ))
+    .unwrap()
+    .unwrap();
 
     database.data_mut().unwrap().content = serde_json::to_string(&json!({
         "records": [{"kind": 2, "person_id": "person-1", "full_name": "Before"}]
     }))
     .unwrap();
-    block_on(world.save_node(&database)).unwrap();
+    block_on(world.modules.core.files.changes.save_node(&database)).unwrap();
 
-    let mut computer = block_on(world.computer(player)).unwrap().unwrap();
+    let mut computer = block_on(world.modules.core.networks.topology.computer(player))
+        .unwrap()
+        .unwrap();
 
     computer.kind = DeviceKind::Camera;
-    block_on(world.save_computer(&computer)).unwrap();
+    block_on(
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .save_computer(&computer),
+    )
+    .unwrap();
 
     let update = serde_json::to_string(&json!({
         "kind": 2, "person_id": "person-1", "full_name": "After"
@@ -79,13 +117,23 @@ print computer.access_cctv({}).indexOf("local_ip") != null"#,
 
 #[test]
 fn should_install_smartphone_adb_through_admin_library() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).unwrap();
-    let player = world.player();
-    let public_ip = block_on(world.public_ip(player)).unwrap();
-    let mut computer = block_on(world.computer(player)).unwrap().unwrap();
+    let world = block_on(World::new(&PlayerOptions::default())).unwrap();
+    let player = world.handle.player();
+    let public_ip = block_on(world.modules.core.networks.topology.public_ip(player)).unwrap();
+    let mut computer = block_on(world.modules.core.networks.topology.computer(player))
+        .unwrap()
+        .unwrap();
 
     computer.kind = DeviceKind::Smartphone;
-    block_on(world.save_computer(&computer)).unwrap();
+    block_on(
+        world
+            .modules
+            .core
+            .networks
+            .topology
+            .save_computer(&computer),
+    )
+    .unwrap();
 
     let code = format!(
         "print include_lib(\"admin.so\").network({}).computer({}).install_smartphone_adb",
@@ -97,5 +145,15 @@ fn should_install_smartphone_adb_through_admin_library() {
 
     assert_eq!(error, None);
     assert_eq!(output, "1");
-    assert!(block_on(world.has_service(player, ServiceId::Adb)).unwrap());
+    assert!(
+        block_on(
+            world
+                .modules
+                .core
+                .computers
+                .processes
+                .has_service(player, ServiceId::Adb)
+        )
+        .unwrap()
+    );
 }

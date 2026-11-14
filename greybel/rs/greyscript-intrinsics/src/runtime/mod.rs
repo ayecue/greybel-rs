@@ -7,10 +7,10 @@ mod interpreter;
 mod programs;
 
 pub use child::ChildRunner;
-pub(crate) use handle::Handle;
 pub use connection::ServerConnection;
 use greybel_documents::AsyncResourceProvider;
 use greybel_interpreter::{Interpreter, Scheduler};
+pub(crate) use handle::Handle;
 pub use interpreter::{GreyHackError, GreyHackInterpreter, ProgramBinary};
 
 use crate::{GAME_API, Game};

@@ -37,9 +37,7 @@ pub fn debug_tools(
                 }
                 ObjectOutcome::Null => Value::Null,
                 ObjectOutcome::False => Value::FALSE,
-                ObjectOutcome::Failure(failure) => {
-                    failure_value("debug_tools", &failure)?
-                }
+                ObjectOutcome::Failure(failure) => failure_value("debug_tools", &failure)?,
             };
 
             Ok::<_, IntrinsicError>(value)

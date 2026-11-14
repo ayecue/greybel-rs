@@ -27,7 +27,10 @@ internal sealed class GuildFixture(Player player) : IFixture
             RestoreCompanyShares(companyIp, bankAccount);
         }
         purchases.Clear();
-        foreach (string name in guilds)
+        // Every guild in a test copy is a test's, including ones an earlier run created: another guild in the ranking
+        // makes the game revoke a test guild's Crown at its next evaluation (`Guilds.EvaluateCrownRanking`, at most
+        // 60 s later), which removes its CrownShield.
+        foreach (string name in guilds.Union(Guilds.Singleton.guilds.Keys).ToList())
         {
             Database.Singleton.DeleteCrownShieldNetwork(name);
             Guilds.Singleton.guilds.Remove(name);
@@ -121,6 +124,32 @@ internal sealed class GuildFixture(Player player) : IFixture
         return new Reply.Guilds(new GuildsReply(snapshots, companies, protectedNetworks));
     }
 
+    /// <summary>
+    /// Gives the player strike <c>Strikes</c> as the end of an active trace does: the strikes the player already has
+    /// are set as <c>Database.GameOverStrike</c> stores them, then <c>PlayerHelperServer.ActiveGameOver</c> runs for
+    /// the company at <c>CompanyIp</c>, which ends the game on the third (<c>Database.GameOver</c>).
+    /// </summary>
+    public Reply EndGame(EndGameRpc request)
+    {
+        PlayerHelperServer helper = player.Server.playerHelper;
+        PlayerComputer computer = player.Computer;
+        int before = (int)request.Strikes - 1;
+        Router company =
+            ServerMap.Singleton.GetRouter(new IP(request.CompanyIp), false)
+            ?? throw new InvalidOperationException("No company at " + request.CompanyIp);
+
+        GameField.GameOverStrikes.SetValue(helper, before);
+        Database.Singleton.GameOverStrike(computer, before);
+        helper.ActiveGameOver(company, PlayerUtils.Trace.ACTIVE);
+
+        return new Reply.GameEnded(
+            new GameEndedReply(
+                player.Server.GetComputer() != null,
+                BankFixture.Read(player.Server.GetPlayerID())
+            )
+        );
+    }
+
     /// <summary>Reads the active traces, the passive trace's queue and the strikes of the player.</summary>
     public Reply ReadTraces()
     {
@@ -161,10 +190,21 @@ internal sealed class GuildFixture(Player player) : IFixture
         }
         StocksCompany company = StocksCompany.GetCompany(router);
         company.RestoreStocksToCompany(bankAccount);
-        StocksCompany.SyncMarketData(router, company);
+        // `StocksCompany.SyncMarketData` writes only the listed kinds, and a test may buy shares of any kind.
+        Database.Singleton.SyncStocks(
+            router.GetPublicIP(),
+            company,
+            router.GetNetworkLan().GetCurrentSharePrice(router)
+        );
     }
 
-    private static void CreateCompanyShares(Guilds.Guild guild, string companyIp)
+    /// <summary>
+    /// Buys all the available shares of the company at <c>companyIp</c> for the guild's account. When that account is
+    /// the player's own, the purchase is the player's, as <c>BankHelperServer.PurchaseStockServerRpc</c> makes it: it
+    /// lists the company among the player's (<c>PlayerHelperServer.AddStocksCompany</c>), which
+    /// <c>Database.RestoreStocksToCompany</c> goes through when the game ends.
+    /// </summary>
+    private void CreateCompanyShares(Guilds.Guild guild, string companyIp)
     {
         Router router = ServerMap.Singleton.GetRouter(new IP(companyIp));
         BankAccount buyer = Database.Singleton.GetBankAccount(guild.bankAccount, out string error);
@@ -182,7 +222,9 @@ internal sealed class GuildFixture(Player player) : IFixture
             price,
             true,
             true,
-            null
+            buyer.account == player.Server.GetComputer().GetUserBank()?.userName
+                ? player.Server
+                : null
         );
         if (failure.Length > 0)
         {

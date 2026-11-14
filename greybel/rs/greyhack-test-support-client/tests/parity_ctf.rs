@@ -3,7 +3,7 @@
 use greybel_test_support::game::Game;
 
 use crate::support::game::{join_network_of_kind_where, setup_player, test_client};
-use crate::support::parity::compare_in;
+use crate::support::parity::{compare_in, snapshot_outcomes};
 use crate::support::remote::script_string;
 
 /// A CTF event created and accepted through the game's mission RPCs: credential failures, all event reads, one
@@ -56,6 +56,26 @@ print typeof(get_ctf({creator}, "newpass2", {event}))"#
     );
 
     compare_in(&client, &user, &snapshot, &[script]).await;
+
+    // `rate_ctf_event` is Greybel's admin-only intrinsic, not a game intrinsic. Exercise the game's own
+    // `CTF_Event.AddScore` path through the bridge and compare both results with the intrinsic.
+    let completed = client.network_state().await.unwrap();
+    let rating = format!(
+        r#"admin = include_lib("admin.so")
+print admin.rate_ctf_event({event}, 5, 4)
+print admin.rate_ctf_event({event}, 5, 4)"#
+    );
+    let expected = snapshot_outcomes(&[rating.as_str()], &user, &completed).remove(0);
+
+    assert!(!expected.failed, "{expected:?}");
+
+    let mut actual = Vec::new();
+
+    for _ in 0..2 {
+        actual.push(client.rate_ctf(&ctf.name, 5, 4).await.unwrap().output);
+    }
+
+    assert_eq!(actual.join("\n"), expected.output.unwrap());
     client.shutdown();
 }
 

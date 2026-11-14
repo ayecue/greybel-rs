@@ -3,7 +3,7 @@
 use greyhack_behaviour::Reward;
 use greyhack_test_support_client::TestClient;
 use greyhack_test_support_client::protocol::test_support::{
-    ComputerSnapshot, LanNodeKind, NetworkSnapshot,
+    ComputerSnapshot, LanNodeKind, LanNodeSnapshot, NetworkSnapshot,
 };
 
 use super::game::{devices_above, join_network};
@@ -50,6 +50,17 @@ pub fn find_ssh_with_library<'a>(
     })
 }
 
+/// Whether `node` is a visible computer whose gateway is a router, as `NetworkLan.Ping` requires for a connection
+/// from another subnet. A computer behind a switch is reachable only from its own subnet.
+pub fn reachable_computer(snapshot: &NetworkSnapshot, node: &LanNodeSnapshot) -> bool {
+    matches!(node.node, LanNodeKind::Computer(_))
+        && !node.hidden
+        && snapshot.nodes.iter().any(|gateway| {
+            gateway.local_ip == node.gateway
+                && matches!(&gateway.node, LanNodeKind::Router(router) if router.kind == "ROUTER")
+        })
+}
+
 /// [`find_ssh_with_library`] limited to computers the player's computer can log in to by their LAN address. A hidden
 /// computer, or one whose gateway is not a router, may be unreachable (`NetworkLan.Ping`), and `connect_service` then
 /// answers "Connection refused. Address unreachable". Gives the address, port and root password.
@@ -62,10 +73,7 @@ pub fn find_reachable_ssh_with_library(
             return None;
         };
 
-        if node.hidden || !snapshot.nodes.iter().any(|gateway| {
-            gateway.local_ip == node.gateway
-                && matches!(&gateway.node, LanNodeKind::Router(router) if router.kind == "ROUTER")
-        }) {
+        if !reachable_computer(snapshot, node) {
             return None;
         }
 
@@ -341,9 +349,23 @@ pub async fn rshell_server_network(client: &TestClient) -> NetworkSnapshot {
     client.network_state().await.unwrap()
 }
 
-/// Whether the simulated copy of `snapshot` logs `user`'s shell in to `address:port` as `account`. A computer can pass
-/// every check of the snapshot and still refuse the login (a firewall on the way, `PlayerUtils.ConnectComputer`), and a
-/// test that compares two refused logins compares nothing; the comparison itself still runs in both worlds.
+/// Whether the simulated copy of `snapshot` opens a `net_use` session to `address:port` for `user`. A computer can pass
+/// every check of the snapshot and still be out of the player's reach (a LAN router's subnet, `NetworkLan.Ping`), and
+/// a test that compares two failed `net_use` calls compares nothing; the comparison itself still runs in both worlds.
+pub fn simulated_net_use(snapshot: &NetworkSnapshot, user: &str, address: &str, port: u16) -> bool {
+    let session =
+        format!("print typeof(include_lib(\"/lib/metaxploit.so\").net_use(\"{address}\", {port}))");
+
+    snapshot_outcomes(&[&session], user, snapshot)[0]
+        .output
+        .as_deref()
+        .map(str::trim_end)
+        == Some("NetSession")
+}
+
+/// Whether the simulated copy of `snapshot` logs `user`'s shell in to `address:port` as `account` over SSH. A computer
+/// can pass every check of the snapshot and still refuse the login (a firewall on the way, `PlayerUtils.ConnectComputer`),
+/// and a test that compares two refused logins compares nothing; the comparison itself still runs in both worlds.
 pub fn simulated_login(
     snapshot: &NetworkSnapshot,
     user: &str,
@@ -352,14 +374,32 @@ pub fn simulated_login(
     account: &str,
     password: &str,
 ) -> bool {
+    simulated_service_login(snapshot, user, address, port, account, password, "ssh")
+}
+
+/// [`simulated_login`] for `service` (`"ssh"` or `"ftp"`), the protocol `ShellIntrinsics.connect_service` is asked for.
+pub fn simulated_service_login(
+    snapshot: &NetworkSnapshot,
+    user: &str,
+    address: &str,
+    port: u16,
+    account: &str,
+    password: &str,
+    service: &str,
+) -> bool {
     let login = format!(
-        "print typeof(get_shell.connect_service(\"{address}\", {port}, \"{account}\", {}))",
+        "print typeof(get_shell.connect_service(\"{address}\", {port}, \"{account}\", {}, \"{service}\"))",
         script_string(password),
     );
+    let expected = if service == "ftp" {
+        "ftpshell"
+    } else {
+        "shell"
+    };
 
     snapshot_outcomes(&[&login], user, snapshot)[0]
         .output
         .as_deref()
         .map(str::trim_end)
-        == Some("shell")
+        == Some(expected)
 }

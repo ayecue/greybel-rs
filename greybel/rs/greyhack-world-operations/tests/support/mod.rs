@@ -20,7 +20,10 @@ pub mod program {
 }
 
 use greybel_test_support::future::block_on;
-use program::{Program, ProgramEnd, ProgramRouter, ProgramSession, ProgramThrottle, StartProgram};
+use program::{
+    Program, ProgramEnd, ProgramPrint, ProgramPrintRef, ProgramRouter, ProgramSession,
+    ProgramThrottle, StartProgram,
+};
 
 /// Runtime channel and what the game server told it, in arrival order.
 pub struct Runtime {
@@ -33,6 +36,7 @@ pub struct Runtime {
 pub enum Notice {
     End(ProgramEnd),
     Throttle(ProgramThrottle),
+    Print(ProgramPrint),
 }
 
 struct Notices(Rc<RefCell<Vec<Notice>>>);
@@ -40,6 +44,16 @@ struct Notices(Rc<RefCell<Vec<Notice>>>);
 impl ProgramRouter for Notices {
     fn on_program_end(&self, message: ProgramEnd, _next: NextNotification<ProgramEnd>) {
         self.0.borrow_mut().push(Notice::End(message));
+    }
+
+    fn on_program_print(
+        &self,
+        message: ProgramPrintRef<'_>,
+        _next: NextNotification<ProgramPrint>,
+    ) {
+        self.0
+            .borrow_mut()
+            .push(Notice::Print(message.into_owned()));
     }
 
     fn on_program_throttle(
@@ -62,27 +76,35 @@ pub fn server() -> WorldServer {
 pub fn server_on(clock: Rc<dyn Clock>) -> WorldServer {
     let world = block_on(World::new(&PlayerOptions::default())).expect("the world generates");
 
-    WorldServer::new(world, clock)
+    block_on(WorldServer::new(world, clock)).expect("the server restores payments")
 }
 
 /// Creates a server for a new player world whose coin `Ether` was created by `test` with the password `test`, with
 /// its next mining round an hour of world time away.
 #[must_use]
 pub fn server_with_ether() -> WorldServer {
-    let mut world = block_on(World::new(&PlayerOptions::default())).expect("the world generates");
+    let world = block_on(World::new(&PlayerOptions::default())).expect("the world generates");
 
     block_on(async {
-        let now = world.time_seconds();
-        let mut coin = world.coin_by_name("Ether").await.unwrap().expect("Ether");
+        let now = world.handle.time_seconds();
+        let mut coin = world
+            .modules
+            .economy
+            .coins
+            .coin_by_name("Ether")
+            .await
+            .unwrap()
+            .expect("Ether");
 
         coin.creator_user = "test".to_owned();
         coin.creator_password_hash = hash_password("test");
         coin.cycle_hours = 1.0;
         coin.last_cycle_at = Some(now);
-        world.save_coin(&coin).await.unwrap();
+        world.modules.economy.coins.save_coin(&coin).await.unwrap();
     });
 
-    WorldServer::new(world, Rc::new(ManualClock::constant()))
+    block_on(WorldServer::new(world, Rc::new(ManualClock::constant())))
+        .expect("the server restores payments")
 }
 
 /// Connects a same-thread test runtime to `server`.
@@ -109,6 +131,7 @@ impl Runtime {
             .send(&StartProgram {
                 user: player().into(),
                 path: Some(path.to_owned().into()),
+                safe_terminal: false,
             })
             .expect("the program starts")
             .await
@@ -122,7 +145,7 @@ impl Runtime {
             .iter()
             .filter_map(|notice| match notice {
                 Notice::End(end) => Some(*end),
-                Notice::Throttle(_) => None,
+                Notice::Throttle(_) | Notice::Print(_) => None,
             })
             .collect()
     }
@@ -133,9 +156,13 @@ impl Runtime {
 pub fn process(server: &WorldServer, name: &str) -> Option<Process> {
     block_on(async {
         let world = server.world().await;
-        let player = world.player();
+        let player = world.handle.player();
 
         world
+            .modules
+            .core
+            .computers
+            .processes
             .processes(player)
             .await
             .expect("the world reads")
@@ -150,9 +177,13 @@ pub async fn end_process(server: &WorldServer, name: &str) {
 
     server
         .change_world(async |world| {
-            let player = world.player();
+            let player = world.handle.player();
 
             world
+                .modules
+                .core
+                .computers
+                .processes
                 .end_process(player, pid)
                 .await
                 .expect("the world writes");

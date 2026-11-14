@@ -53,21 +53,42 @@ print lib.debug_tools("dbg", "bad")
 async fn should_preserve_debug_accounts_and_patches() {
     let mut world = debug_world();
     let mut library = world
-        .debug_library(world.player(), "/lib/metaxploit.so")
+        .modules
+        .libraries
+        .debug
+        .debug_library(world.handle.player(), "/lib/metaxploit.so")
         .await
         .unwrap()
         .unwrap();
 
     library.patch_seed = Some(library.seed);
-    world.save_debug_library(&library).await.unwrap();
+    world
+        .modules
+        .libraries
+        .debug
+        .save_debug_library(&library)
+        .await
+        .unwrap();
 
     let database = save_copy(&mut world).await;
 
     let restored = World::load(&database).await.unwrap();
 
-    assert!(restored.debug_account("dbg").await.unwrap().is_some());
     assert!(
         restored
+            .modules
+            .libraries
+            .debug
+            .debug_account("dbg")
+            .await
+            .unwrap()
+            .is_some()
+    );
+    assert!(
+        restored
+            .modules
+            .libraries
+            .debug
             .debug_library(restored.player(), "/lib/metaxploit.so")
             .await
             .unwrap()

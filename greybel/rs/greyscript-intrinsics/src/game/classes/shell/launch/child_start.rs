@@ -3,17 +3,16 @@
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
-use greybel_interpreter::{ContextEntry, NativeOutput, PrintOptions, Value, Vm};
+use greybel_interpreter::{ContextEntry, NativeOutput, PrintOptions, Vm};
 
 use super::cache::{Code, launch_key};
 use super::child_end::ChildEnd;
 use super::{CachedCode, LaunchCache};
-use crate::game::client::failure::failure_text;
 use crate::game::client::object::Access;
 use crate::game::client::server::server;
 use crate::game::client::state::reset_custom_object;
 use crate::game::{Game, Session, game};
-use crate::protocol::{ClientEnd, Failure, ProgramChannel, ProgramSession, SourceMap};
+use crate::protocol::{ClientEnd, ProgramChannel, ProgramSession, SourceMap};
 use crate::runtime::ChildRunner;
 
 /// Child start directory and the values returned by `launch_path` and `program_path` within it.
@@ -43,22 +42,6 @@ impl ChildStart {
         };
 
         Some((Self::of(vm, game), server))
-    }
-
-    /// Prints `failure` as `intrinsic`'s text on the terminal and returns false, the result of a failed launch.
-    pub(in super::super) fn print_failure(
-        &self,
-        intrinsic: &'static str,
-        failure: &Failure,
-    ) -> NativeOutput {
-        match failure_text(intrinsic, failure) {
-            Ok(text) => {
-                self.stdout.print(&text, PrintOptions::default());
-
-                NativeOutput::new(false)
-            }
-            Err(error) => NativeOutput::new(Err::<Value, _>(error)),
-        }
     }
 
     /// Returns child-start state for the program running as `vm` with `game`.
@@ -91,6 +74,12 @@ impl ChildStart {
         let hit = self.launches.borrow().get(&key).cloned();
         let program = session.program;
         let path = session.path.clone();
+
+        self.game.server.register_output(
+            program,
+            Rc::clone(&self.game.output) as Rc<dyn greybel_interpreter::Stdout>,
+        );
+
         // Child `cd` updates the directory where this program resumes (`PlayerIntrinsics.cd` sets the last program state's `currentPath`).
         let launcher_folder = Rc::new(RefCell::new(None));
         let mut child = self.game.child(

@@ -105,7 +105,7 @@ async fn should_match_intrinsics_for_a_library_the_report_did_not_name() {
 }
 
 /// The administrator of a company whose guild turned Admin Restore off does not update the library
-/// (`Persona.UpdateReportedNetworks`, `Guilds.IsAdminRestoreOffForCompany`): the network is owned by a guild, with
+/// (`Persona.UpdateReportedNetworks`, `Guilds.IsAdminRestoreDisabledForCompany`): the network is owned by a guild, with
 /// the game's own `Guild.SetAdminRestoreEnabled` turning it off, and the library is reported. The game and the copy
 /// both leave the library as it was.
 #[tokio::test]

@@ -13,17 +13,18 @@ use super::request::{Request, RequestKind};
 use crate::protocol::TestClientNotification;
 use crate::protocol::test_support::{
     AdvanceClockRpc, AllowFirewallRpc, BuyExploitRpc, ConfigZeroDayInfoRpc, ConnectNetworkRpc,
-    CreateNetworkRpc, DisableNetworkRpc, ExecuteInteractiveRpc, ExecutePairRpc, ExecuteRpc,
-    ExecuteUntilInputRpc, FindNetworkRpc, FindNewNetworkRpc, FireNpcRpc, ForceAdminLoginRpc,
-    ForwardServiceRpc, FreezeClockRpc, HireRentalAdminRpc, InstallLibraryRpc, LockApplianceRpc,
-    PrimeFloodRpc, ProceduralMissionRpc, PromoteAdminRpc, QueryExploitsRpc, QueryFileRpc,
-    QueryGuildsRpc, QueryNetworkRpc, QueryPlayerRpc, QueryTracesRpc, QueryWordListsRpc,
-    RebootPlayerRpc, RefreshNpcAccountRpc, RentNetworkRpc, RentalAdminServiceRpc, Reply,
-    ReportLibraryUpdateRpc, ResetTrafficCooldownRpc, RunPaymentsRpc, SetPhoneAlarmRpc,
-    SetPlayerMoneyRpc, SetRouterKernelRequirementRpc, SetupBlockchainRpc, SetupCtfRpc,
-    SetupDebugRpc, SetupForeignCoinRpc, SetupGuildRpc, SetupMailRpc, SetupPlayerRpc,
-    SetupTrafficRpc, SetupWalletRpc, SpawnNetworkRpc, TestClient as TestProtocol,
-    TrafficAccidentRpc, TypeInputRpc, WriteFileRpc, WriteRouterKernelRpc,
+    CreateNetworkRpc, DisableNetworkRpc, EndGameRpc, ExecuteInTerminalRpc, ExecuteInteractiveRpc,
+    ExecutePairRpc, ExecuteRpc, ExecuteUntilInputRpc, FindNetworkRpc, FindNewNetworkRpc,
+    FireNpcRpc, ForceAdminLoginRpc, ForwardServiceRpc, FreezeClockRpc, HireRentalAdminRpc,
+    InstallLibraryRpc, LockApplianceRpc, MissionRpc, PrimeFloodRpc, PromoteAdminRpc,
+    QueryExploitsRpc, QueryFileRpc, QueryGuildsRpc, QueryNetworkRpc, QueryPlayerRpc,
+    QueryTracesRpc, QueryWordListsRpc, RateCtfRpc, RebootPlayerRpc, RefreshNpcAccountRpc,
+    ReleaseLibraryVersionRpc, RentNetworkRpc, RentalAdminServiceRpc, Reply, ReportLibraryUpdateRpc,
+    ResetTrafficCooldownRpc, RunPaymentRpc, RunPaymentsRpc, SetPhoneAlarmRpc, SetPlayerMoneyRpc,
+    SetRouterKernelRequirementRpc, SetupBlockchainRpc, SetupCtfRpc, SetupDebugRpc,
+    SetupForeignCoinRpc, SetupGuildRpc, SetupMailRpc, SetupPlayerRpc, SetupTrafficRpc,
+    SetupWalletRpc, SpawnNetworkRpc, TestClient as TestProtocol, TrafficAccidentRpc, TypeInputRpc,
+    WriteFileRpc, WriteRouterKernelRpc,
 };
 use crate::{TestClientError, TestClientOptions};
 
@@ -237,12 +238,12 @@ impl Connection {
                                 })
                             }
                             RequestKind::QueryNetwork => channel.send(&QueryNetworkRpc { request }),
-                            RequestKind::InstallLibrary { local_ip, name, reward } => {
+                            RequestKind::InstallLibrary { local_ip, name, rewards } => {
                                 channel.send(&InstallLibraryRpc {
                                     request,
                                     local_ip: local_ip.into(),
                                     name: name.into(),
-                                    reward,
+                                    rewards: rewards.into(),
                                 })
                             }
                             RequestKind::SetupBlockchain { coin_name, wallet_user } => {
@@ -346,8 +347,8 @@ impl Connection {
                             RequestKind::AdvanceClock { seconds } => {
                                 channel.send(&AdvanceClockRpc { request, seconds })
                             }
-                            RequestKind::ProceduralMission { police, index } => {
-                                channel.send(&ProceduralMissionRpc { request, police, index })
+                            RequestKind::Mission { kind, index } => {
+                                channel.send(&MissionRpc { request, kind: kind.into(), index })
                             }
                             RequestKind::QueryExploits { library, version } => {
                                 channel.send(&QueryExploitsRpc {
@@ -386,6 +387,12 @@ impl Connection {
                                     library: library.into(),
                                 })
                             }
+                            RequestKind::ReleaseLibraryVersion { library } => {
+                                channel.send(&ReleaseLibraryVersionRpc {
+                                    request,
+                                    library: library.into(),
+                                })
+                            }
                             RequestKind::SetupGuild(guild) => channel.send(&SetupGuildRpc {
                                 request,
                                 name: guild.name.into(),
@@ -401,10 +408,39 @@ impl Connection {
                             }),
                             RequestKind::QueryTraces => channel.send(&QueryTracesRpc { request }),
             RequestKind::QueryWordLists => channel.send(&QueryWordListsRpc { request }),
+                            RequestKind::RunPayment { kind } => channel.send(&RunPaymentRpc {
+                                request,
+                                kind: kind.as_str().into(),
+                            }),
+                            RequestKind::EndGame { strikes, company_ip } => {
+                                channel.send(&EndGameRpc {
+                                    request,
+                                    strikes,
+                                    company_ip: company_ip.as_str().into(),
+                                })
+                            }
                             RequestKind::QueryGuilds { company_ips } => {
                                 channel.send(&QueryGuildsRpc {
                                     request,
                                     company_ips: company_ips.iter().map(|ip| ip.as_str().into()).collect(),
+                                })
+                            }
+                            RequestKind::ExecuteInTerminal { source, filepath, basepath, program_name, safe_terminal } => {
+                                channel.send(&ExecuteInTerminalRpc {
+                                    request,
+                                    source: source.into(),
+                                    filepath: filepath.into(),
+                                    basepath: basepath.into(),
+                                    program_name: program_name.into(),
+                                    safe_terminal,
+                                })
+                            }
+                            RequestKind::RateCtf { event_name, quality, difficulty } => {
+                                channel.send(&RateCtfRpc {
+                                    request,
+                                    event_name: event_name.into(),
+                                    quality,
+                                    difficulty,
                                 })
                             }
                         };

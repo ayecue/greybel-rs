@@ -12,7 +12,14 @@ async fn should_find_the_worlds_entities_by_their_search_keys() {
     let all_routers = routers(&world).await;
 
     for router in all_routers.iter().filter(|router| router.is_main()) {
-        let found = world.router_at(&router.public_ip).await.unwrap();
+        let found = world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at(&router.public_ip)
+            .await
+            .unwrap();
         let domain = router.domain.to_uppercase();
         let bssid = router.bssid.clone().unwrap_or_default().to_lowercase();
 
@@ -20,13 +27,24 @@ async fn should_find_the_worlds_entities_by_their_search_keys() {
 
         if !router.domain.is_empty() {
             assert_eq!(
-                world.lookup(&domain).await.unwrap(),
+                world
+                    .modules
+                    .core
+                    .networks
+                    .routers
+                    .lookup(&domain)
+                    .await
+                    .unwrap(),
                 Some(router.public_ip.clone())
             );
         }
 
         assert_eq!(
             id(world
+                .modules
+                .core
+                .networks
+                .routers
                 .router_by_wifi(&bssid, router.essid.as_deref().unwrap_or_default())
                 .await
                 .unwrap()),
@@ -45,6 +63,10 @@ async fn should_find_the_worlds_entities_by_their_search_keys() {
             .map(|router| router.id)
             .collect();
         let mut found: Vec<_> = world
+            .modules
+            .core
+            .networks
+            .routers
             .routers_in_range(router.map)
             .await
             .unwrap()
@@ -58,15 +80,34 @@ async fn should_find_the_worlds_entities_by_their_search_keys() {
     }
 
     for computer in computers(&world).await {
-        for user in world.users(computer.id).await.unwrap() {
+        for user in world
+            .modules
+            .core
+            .computers
+            .users
+            .users(computer.id)
+            .await
+            .unwrap()
+        {
             assert_eq!(
-                world.password_of_hash(&user.password_hash).await.unwrap(),
+                world
+                    .modules
+                    .core
+                    .computers
+                    .users
+                    .password_of_hash(&user.password_hash)
+                    .await
+                    .unwrap(),
                 Some(user.password)
             );
         }
 
         assert_eq!(
             world
+                .modules
+                .core
+                .networks
+                .topology
                 .device(computer.network, &computer.local_ip)
                 .await
                 .unwrap(),
@@ -75,10 +116,28 @@ async fn should_find_the_worlds_entities_by_their_search_keys() {
     }
 
     assert_eq!(
-        world.public_addresses().await.unwrap().len(),
+        world
+            .modules
+            .core
+            .networks
+            .routers
+            .public_addresses()
+            .await
+            .unwrap()
+            .len(),
         all_routers.iter().filter(|router| router.is_main()).count()
     );
-    assert!(world.router_at("1.2.3.4").await.unwrap().is_none());
+    assert!(
+        world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at("1.2.3.4")
+            .await
+            .unwrap()
+            .is_none()
+    );
 }
 
 /// Saved changes are immediately searchable and remain searchable after a database reload.
@@ -95,12 +154,32 @@ async fn should_find_saved_changes_and_preserve_them_across_a_reload() {
     .await;
 
     assert_eq!(
-        id(world.router_at("9.9.9.9").await.unwrap()),
+        id(world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at("9.9.9.9")
+            .await
+            .unwrap()),
         Some(id_of_third)
     );
-    assert!(world.router_at(&old_address).await.unwrap().is_none());
+    assert!(
+        world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at(&old_address)
+            .await
+            .unwrap()
+            .is_none()
+    );
 
     let added = world
+        .modules
+        .creation
+        .network_generation
         .add_network(&NetworkOptions {
             public_ip: Some("8.8.4.4".to_owned()),
             domain: Some("added.com".to_owned()),
@@ -110,11 +189,23 @@ async fn should_find_saved_changes_and_preserve_them_across_a_reload() {
         .unwrap();
 
     assert_eq!(
-        world.lookup("ADDED.com").await.unwrap().as_deref(),
+        world
+            .modules
+            .core
+            .networks
+            .routers
+            .lookup("ADDED.com")
+            .await
+            .unwrap()
+            .as_deref(),
         Some("8.8.4.4")
     );
     assert!(
         world
+            .modules
+            .core
+            .networks
+            .routers
             .public_addresses()
             .await
             .unwrap()
@@ -123,15 +214,54 @@ async fn should_find_saved_changes_and_preserve_them_across_a_reload() {
 
     let removed = all_routers[3].public_ip.clone();
 
-    assert!(world.remove_network(&removed).await.unwrap());
-    assert!(world.router_at(&removed).await.unwrap().is_none());
-    assert!(!world.public_addresses().await.unwrap().contains(&removed));
+    assert!(
+        world
+            .modules
+            .economy
+            .bank
+            .remove_network(&removed)
+            .await
+            .unwrap()
+    );
+    assert!(
+        world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at(&removed)
+            .await
+            .unwrap()
+            .is_none()
+    );
+    assert!(
+        !world
+            .modules
+            .core
+            .networks
+            .routers
+            .public_addresses()
+            .await
+            .unwrap()
+            .contains(&removed)
+    );
 
-    let player = world.player();
+    let player = world.handle.player();
 
-    world.set_password(player, "root", "changed").await.unwrap();
+    world
+        .modules
+        .core
+        .computers
+        .users
+        .set_password(player, "root", "changed")
+        .await
+        .unwrap();
 
     let hash = world
+        .modules
+        .core
+        .computers
+        .users
         .user(player, "root")
         .await
         .unwrap()
@@ -139,7 +269,15 @@ async fn should_find_saved_changes_and_preserve_them_across_a_reload() {
         .password_hash;
 
     assert_eq!(
-        world.password_of_hash(&hash).await.unwrap().as_deref(),
+        world
+            .modules
+            .core
+            .computers
+            .users
+            .password_of_hash(&hash)
+            .await
+            .unwrap()
+            .as_deref(),
         Some("changed")
     );
 
@@ -147,13 +285,48 @@ async fn should_find_saved_changes_and_preserve_them_across_a_reload() {
     let world = World::load(&database).await.unwrap();
 
     assert_eq!(
-        id(world.router_at("9.9.9.9").await.unwrap()),
+        id(world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at("9.9.9.9")
+            .await
+            .unwrap()),
         Some(id_of_third)
     );
-    assert_eq!(id(world.router_at("8.8.4.4").await.unwrap()), Some(added));
-    assert!(world.router_at(&removed).await.unwrap().is_none());
     assert_eq!(
-        world.password_of_hash(&hash).await.unwrap().as_deref(),
+        id(world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at("8.8.4.4")
+            .await
+            .unwrap()),
+        Some(added)
+    );
+    assert!(
+        world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at(&removed)
+            .await
+            .unwrap()
+            .is_none()
+    );
+    assert_eq!(
+        world
+            .modules
+            .core
+            .computers
+            .users
+            .password_of_hash(&hash)
+            .await
+            .unwrap()
+            .as_deref(),
         Some("changed")
     );
     assert_eq!(router(&world, added).await.public_ip, "8.8.4.4");

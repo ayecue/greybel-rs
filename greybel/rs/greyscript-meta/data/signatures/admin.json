@@ -458,6 +458,51 @@
         "string",
         "null"
       ]
+    },
+    "release_library_version": {
+      "id": "release_library_version",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "library",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "report_exploit": {
+      "id": "report_exploit",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel only"
+      ],
+      "arguments": [
+        {
+          "label": "library",
+          "type": "string"
+        },
+        {
+          "label": "zone",
+          "type": "string"
+        },
+        {
+          "label": "unsec_value",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "string",
+        "null"
+      ]
     }
   }
 }

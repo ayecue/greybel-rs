@@ -1,11 +1,12 @@
 use super::{GuildSetup, RequestKind, TestClient};
 use crate::TestClientError;
 use crate::protocol::test_support::{
-    BlockchainReadyReply, DebugReadyReply, ExecutionResultReply, ExploitBoughtReply, ExploitsReply,
-    FileStateReply, FileWrittenReply, GuildsReply, KernelReplacedReply, LibraryReportedReply,
+    BlockchainReadyReply, CtfRatedReply, DebugReadyReply, ExecutionResultReply, ExploitBoughtReply,
+    ExploitsReply, FileStateReply, FileWrittenReply, GameEndedReply, GuildsReply,
+    KernelReplacedReply, LibraryReleasedReply, LibraryReportedReply, MissionReply,
     NetworkConnectionReply, NetworkCreatedReply, NetworkSnapshot, NetworkStateReply,
-    PairExecutionResultReply, PlayerReadyReply, PlayerStateReply, ProceduralMissionReply, Reply,
-    TracesReply, TrafficReadyReply, WordListsReply,
+    PairExecutionResultReply, PlayerReadyReply, PlayerStateReply, Reply, TracesReply,
+    TrafficReadyReply, WordListsReply,
 };
 
 impl TestClient {
@@ -79,6 +80,26 @@ impl TestClient {
         .await
     }
 
+    /// Rates a CTF event through the game's `CTF_Event.AddScore` path.
+    pub async fn rate_ctf(
+        &self,
+        event_name: &str,
+        quality: i64,
+        difficulty: i64,
+    ) -> Result<CtfRatedReply, TestClientError> {
+        match self
+            .request(RequestKind::RateCtf {
+                event_name: event_name.to_owned(),
+                quality,
+                difficulty,
+            })
+            .await?
+        {
+            Reply::CtfRated(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("CtfRated")),
+        }
+    }
+
     pub async fn execute(
         &self,
         source: &str,
@@ -92,6 +113,31 @@ impl TestClient {
                 filepath: filepath.to_owned(),
                 basepath: basepath.to_owned(),
                 program_name: program_name.to_owned(),
+            })
+            .await?
+        {
+            Reply::ExecutionResult(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("ExecutionResult")),
+        }
+    }
+
+    /// Executes a script as typed into the safe-mode terminal of the player's computer when `safe_terminal` is set,
+    /// otherwise into a terminal that isn't protected (`ExecuteInTerminalRpc`).
+    pub async fn execute_in_terminal(
+        &self,
+        source: &str,
+        filepath: &str,
+        basepath: &str,
+        program_name: &str,
+        safe_terminal: bool,
+    ) -> Result<ExecutionResultReply, TestClientError> {
+        match self
+            .request(RequestKind::ExecuteInTerminal {
+                source: source.to_owned(),
+                filepath: filepath.to_owned(),
+                basepath: basepath.to_owned(),
+                program_name: program_name.to_owned(),
+                safe_terminal,
             })
             .await?
         {
@@ -247,11 +293,22 @@ impl TestClient {
         name: &str,
         reward: u8,
     ) -> Result<(), TestClientError> {
+        self.install_library_with(local_ip, name, &[reward]).await
+    }
+
+    /// Places a game-generated library `name` with a weakness for each of `rewards` in `/lib` on `local_ip` in the
+    /// player's network, choosing the version whose weaknesses for them have the fewest requirements in total.
+    pub async fn install_library_with(
+        &self,
+        local_ip: &str,
+        name: &str,
+        rewards: &[u8],
+    ) -> Result<(), TestClientError> {
         match self
             .request(RequestKind::InstallLibrary {
                 local_ip: local_ip.to_owned(),
                 name: name.to_owned(),
-                reward,
+                rewards: rewards.to_vec(),
             })
             .await?
         {
@@ -554,6 +611,15 @@ impl TestClient {
         self.apply_fixture(RequestKind::RunPayments).await
     }
 
+    /// Runs the player's monthly payment `kind` (`BANK`, `RENTED` or `ADMIN`) alone, as the game does when its own
+    /// date comes (`BankSubs.Payment.RunPayment`).
+    pub async fn run_payment(&self, kind: &str) -> Result<(), TestClientError> {
+        self.apply_fixture(RequestKind::RunPayment {
+            kind: kind.to_owned(),
+        })
+        .await
+    }
+
     /// Sets the money of the player's bank account (`BankAccount.SetMoney`).
     pub async fn set_player_money(&self, money: f64) -> Result<(), TestClientError> {
         self.apply_fixture(RequestKind::SetPlayerMoney { money })
@@ -602,19 +668,18 @@ impl TestClient {
         .await
     }
 
-    /// Draws a group of addresses for procedural mission `index` of the hack shop (or police with `police`), and
+    /// Draws a group of addresses for mission `index` of the kind with the game's `TypeMission` name `kind`, and
     /// returns the mission the game builds for it and the networks it generated for the group.
-    pub async fn procedural_mission(
-        &self,
-        police: bool,
-        index: u32,
-    ) -> Result<ProceduralMissionReply, TestClientError> {
+    pub async fn mission(&self, kind: &str, index: u32) -> Result<MissionReply, TestClientError> {
         match self
-            .request(RequestKind::ProceduralMission { police, index })
+            .request(RequestKind::Mission {
+                kind: kind.to_owned(),
+                index,
+            })
             .await?
         {
-            Reply::ProceduralMission(result) => Ok(result),
-            _ => Err(TestClientError::UnexpectedResponse("ProceduralMission")),
+            Reply::Mission(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("Mission")),
         }
     }
 
@@ -679,6 +744,23 @@ impl TestClient {
         }
     }
 
+    /// Releases the next version of the library file `library` in the game, as it does for a world's first versions
+    /// (`VersionsControl.CheckUpdatePrograms`), and returns the game's newest library and metaxploit before and after.
+    pub async fn release_library_version(
+        &self,
+        library: &str,
+    ) -> Result<LibraryReleasedReply, TestClientError> {
+        match self
+            .request(RequestKind::ReleaseLibraryVersion {
+                library: library.to_owned(),
+            })
+            .await?
+        {
+            Reply::LibraryReleased(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("LibraryReleased")),
+        }
+    }
+
     /// Adds a guild with the game's guild types: see [`GuildSetup`].
     pub async fn setup_guild(&self, guild: GuildSetup) -> Result<(), TestClientError> {
         self.apply_fixture(RequestKind::SetupGuild(guild)).await
@@ -706,6 +788,25 @@ impl TestClient {
         match self.request(RequestKind::QueryTraces).await? {
             Reply::Traces(result) => Ok(result),
             _ => Err(TestClientError::UnexpectedResponse("Traces")),
+        }
+    }
+
+    /// Gives the player strike `strikes` as the end of an active trace on the company at `company_ip` does
+    /// (`PlayerHelperServer.ActiveGameOver`), and returns what the game has of the player afterwards.
+    pub async fn end_game(
+        &self,
+        strikes: u32,
+        company_ip: &str,
+    ) -> Result<GameEndedReply, TestClientError> {
+        match self
+            .request(RequestKind::EndGame {
+                strikes,
+                company_ip: company_ip.to_owned(),
+            })
+            .await?
+        {
+            Reply::GameEnded(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("GameEnded")),
         }
     }
 

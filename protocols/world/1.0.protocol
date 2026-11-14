@@ -28,6 +28,11 @@ protocol World = "greyhack-world" {
             user: string,
             /// Program file path, or `script` in the user home when the program has no world file.
             path?: string,
+            /// Whether the program is typed into the safe-mode terminal that restarting the player computer in safe mode
+            /// starts (`GreyScriptHelperServer.PrepareTerminalServerRpc`: `GreyInterpreter.isSafeTerminal` is the
+            /// protected flag of the terminal process). Programs that program launches share the flag. Has no effect
+            /// while the player computer runs no safe-mode terminal.
+            safe_terminal: bool,
         } -> Result<ProgramSession, ScriptFailure>
         /// Acknowledges that the runtime ended `program` for `reason` and removes its process and children. Repeated
         /// calls are safe, including after [`ProgramEnd`]. For the runtime's last program, waits for the world save and
@@ -807,9 +812,18 @@ protocol World = "greyhack-world" {
         /// company management window does (`NetworkHelperServer.AdminCompanySetAdminRestoreServerRpc`). Returns true or
         /// the game's failure.
         message AdminSetAdminRestore { program: ProgramId, guild: string, public_ip: string, enabled: bool } -> Result<Outcome, ScriptFailure>
+        /// Releases the next version of the library file `library` as the game does for a world's first versions: every
+        /// visible weakness counts as used up, and the check for library versions patches them
+        /// (`VersionsControl.ForceInitialVersionGeneration`). Returns the new version, or the failure when the world has
+        /// no such library.
+        message AdminReleaseLibraryVersion { program: ProgramId, library: string } -> Result<LibraryRelease, ScriptFailure>
+        /// Reports the weakness `unsec_value` of the memory zone `zone` of the newest library file `library` as the
+        /// exploit report window does (`FileHelperServer.ExploitReportServerRpc`): the next check releases a version that
+        /// patches it. Returns true or the game's failure.
+        message AdminReportExploit { program: ProgramId, library: string, zone: string, unsec_value: string } -> Result<Outcome, ScriptFailure>
     }
 
-    /// Program runtime that receives termination and throttle notifications.
+    /// Program runtime that receives output, termination, and throttle notifications.
     client Program {
         /// Reports server-side termination after process removal, reboot, computer removal, or parent exit.
         /// The runtime stops the program and its children, then acknowledges with [`EndProgram`].
@@ -824,6 +838,11 @@ protocol World = "greyhack-world" {
             program: ProgramId,
             milliseconds: u32,
         }
+        /// Queues one typed game-output line for `program`. Lines of an operation arrive before its response.
+        message ProgramPrint {
+            program: ProgramId,
+            line: PrintLine,
+        }
     }
 }
 
@@ -835,6 +854,38 @@ struct ProgramId {
 /// Connection-local script-object handle valid until [`ReleaseObjects`] or disconnection.
 struct ObjectId {
     id: u32,
+}
+
+/// One line a game intrinsic prints, carrying its typed data rather than rendered text.
+union PrintLine {
+    /// One repository update result (`AptClientIntrinsics.update`).
+    AptUpdate(AptUpdateLine),
+    /// Wi-Fi capture handshake (`CryptoIntrinsics.aireplay`).
+    CaptureHandshake { bssid: string },
+    /// Final Wi-Fi capture counts (`Terminal.CollectData`).
+    CaptureProgress { packets: i32, acks: i32 },
+    /// Failure to save a completed Wi-Fi capture (`Terminal.CloseConnection`).
+    CaptureSaveFailure(Failure),
+    /// Failure to recover a Wi-Fi key (`CryptoIntrinsics.aircrack`).
+    KeyRecoveryFailure(Failure),
+    /// Failure to execute a zero-day payload (`DebugLibraryIntrinsics.payload`).
+    PayloadFailure(Failure),
+    /// Overflow attack log (`MetaLibIntrinsics.overflow`).
+    ExploitLog(ExploitLog),
+    /// Failure to open a net session (`MetaExploitIntrinsics.net_use`).
+    NetUseFailure { failure: NetUseFailure, address: string },
+    /// Unscanned library zones (`MetaExploitIntrinsics.scan`).
+    HiddenZonesWarning,
+    /// Flood start and its warning (`NetSessionIntrinsics.flood_connection`).
+    FloodStart { address: string, warning: FloodWarning },
+    /// Flood-induced interruption (`NetSessionIntrinsics.flood_connection`).
+    FloodInterrupted,
+    /// Login failure printed after reaching a computer (`PlayerUtils.ConnectService`).
+    LoginFailure(LoginFailure),
+    /// Encrypted-connection notice (`ShellIntrinsics.connect_service`).
+    EncryptionEnabled,
+    /// Launch refusal (`ShellIntrinsics.launch` and `ShellIntrinsics.start_terminal`).
+    LaunchFailure(Failure),
 }
 
 /// Session and file details for a program that has started.
@@ -1045,8 +1096,6 @@ union WifiScan {
 /// Weak addresses of a library found by `scan`.
 struct LibraryScan {
     addresses: list<string>,
-    /// A zone that may hold weaknesses could not be scanned.
-    hidden_zones: bool,
 }
 
 /// Weaknesses at a library address found by `scan_address`.
@@ -1168,6 +1217,8 @@ union CtfFailure {
     Incomplete,
     /// Rater rated the event already.
     RepeatScore,
+    /// Rater created the event.
+    OwnEvent,
 }
 
 /// Failure of a mail account to perform a script request (`MetaMailIntrinsics`, `PlayerIntrinsics.mail_login`).
@@ -1188,35 +1239,19 @@ union MailFailure {
     NotDelivered,
 }
 
-/// Result of `aireplay`. The intrinsic returns null unless the capture did not start.
+/// Result of `aireplay`. Capture output arrives separately as [`ProgramPrint`] notifications.
 union Capture {
-    /// The computer is gone.
+    /// The computer is gone or the capture ran; the intrinsic returns null.
     Null,
-    /// The capture ran and was saved; the terminal prints its progress.
-    Captured(CaptureProgress),
-    /// Capture ran but was not saved; the terminal prints its progress, then the reason.
-    Unsaved { progress: CaptureProgress, failure: Failure },
     /// Reason the capture did not start; the intrinsic returns it.
     Failure(Failure),
 }
 
-/// What a Wi-Fi capture collected.
-struct CaptureProgress {
-    /// BSSID of the captured network.
-    bssid: string,
-    /// Packets read.
-    packets: i32,
-    /// ACKs received.
-    acks: i32,
-}
-
 /// Password recovered by `aircrack`.
 union KeyRecovery {
-    /// Null when the computer or the file is gone, or no router has the captured Wi-Fi.
+    /// Null when the computer or the file is gone, no router has the captured Wi-Fi, or recovery failed.
     Null,
     Password(string),
-    /// Reason no password was recovered; the terminal prints it.
-    Failure(Failure),
 }
 
 /// Failure of `crypto.so` to perform a script request (`CryptoIntrinsics`).
@@ -1476,6 +1511,22 @@ union AptFailure {
     NoPermission,
     /// The package could not be copied from its server.
     Copy(FileFailure),
+    /// The computer has no network access (`Computer.IsNetworkActive`).
+    NoInternet,
+    /// The package name is empty.
+    EmptyPackageName,
+    /// The cache is not made as `update` makes it.
+    MalformedCache,
+    /// The file the library or program is checked at is not in the computer's file system.
+    MissingLocalFile(string),
+    /// The cache lists a server that cannot be connected to.
+    Connection(ConnectionFailure),
+    /// The cache lists a server whose repository service does not answer.
+    Service(ServiceFailure),
+    /// The server has no repository configuration file.
+    MissingConfig,
+    /// The server's repository folder does not exist.
+    MissingRepositoryFolder,
 }
 
 /// Arguments rejected by a rule (greyhack-behaviour `Refusal`). The intrinsic raises some as runtime errors and
@@ -1687,11 +1738,10 @@ struct Port {
 
 /// Result of a `net_use` session.
 union NetUseTarget {
+    /// No session opened; any printed failure arrives separately as [`ProgramPrint`].
     Null,
     /// Newly opened `netSession`.
     Session(ObjectId),
-    /// Reason no session opened; the script prints it before receiving null.
-    Failure(NetUseFailure),
 }
 
 /// Reason `net_use` cannot open a session (`MetaExploitIntrinsics.net_use`).
@@ -1767,9 +1817,8 @@ union ExploitObject {
     File(ObjectId),
 }
 
-/// Overflow attack output printed by the intrinsic and the object it returns.
+/// Object produced by an overflow attack; its printed log arrives separately as [`ProgramPrint`].
 struct Exploit {
-    log: ExploitLog,
     object: ExploitObject,
 }
 
@@ -1899,7 +1948,9 @@ enum ZeroDayObjectKind {
 
 /// Result of a debug-library payload.
 union ZeroDayPayload {
-    /// Reason the payload failed to run.
+    /// No objects; an outside-library failure arrives separately as [`ProgramPrint`].
+    Null,
+    /// Reason the payload failed to run, returned by the intrinsic.
     Failure(Failure),
     /// Partial objects returned by the payload.
     Objects(list<PartialObject>),
@@ -2029,10 +2080,8 @@ union SmtpFailure {
 
 // AptClient data types
 
-/// One `update` source and its connection result.
-struct AptUpdate {
-    lines: list<AptUpdateLine>,
-}
+/// No return data from `update`; its source lines arrive separately as [`ProgramPrint`] notifications.
+struct AptUpdate {}
 
 union AptUpdateLine {
     /// Source identified by address is being updated.
@@ -2287,6 +2336,8 @@ struct GlobalOffer {
 
 /// `connect_service` result containing a shell or login handshake.
 union ServiceConnection {
+    /// No shell; a login failure that reached a computer arrives separately as [`ProgramPrint`].
+    Null,
     /// Shell opened with fewer methods when connected through FTP.
     Shell { shell: ObjectId, ftp: bool },
     /// Encrypted SSH or FTP login with its initial result. The client runs `encode` with the password, then `decode`
@@ -2294,21 +2345,20 @@ union ServiceConnection {
     Encrypted {
         user: string,
         guest_shell: ObjectId,
-        message: bool,
         failure: LoginFailure?,
         encode: SourceFile,
         decode: SourceFile,
     },
-    /// Reason login failed, formatted by the game for the script.
+    /// Reason login failed, returned by the intrinsic when it does not print it.
     Failure(Failure),
 }
 
 /// Final result of an encrypted service login.
 union ServiceLoginResult {
+    /// No shell; the login failure arrives separately as [`ProgramPrint`].
+    Null,
     /// Shell opened with fewer methods when connected through FTP.
     Shell { shell: ObjectId, ftp: bool },
-    /// Initial login failure or decoded-password retry failure.
-    Failure(LoginFailure),
 }
 
 /// SSH or FTP login failure from `PlayerUtils.ConnectToService`.
@@ -2398,14 +2448,14 @@ union ServiceFailure {
 }
 
 /// `flood_connection` result, including LAN rejection after reaching a computer (`PlayerUtils.FirewallPingStatus`).
+/// Flood output arrives separately as [`ProgramPrint`] notifications.
 union FloodResult {
     /// Session's computer is gone.
     Gone,
-    /// Computer reboots and the script continues. Contains the flooded public address and the warning shown.
-    Reboot { address: string, warning: FloodWarning },
-    /// Computer remains active and the script waits until stopped. Contains the flooded public address and the
-    /// warning shown.
-    Active { address: string, warning: FloodWarning },
+    /// Computer reboots and the script continues.
+    Reboot,
+    /// Computer remains active and the script waits until stopped.
+    Active,
 }
 
 /// Warning shown before a flood starts.
@@ -2456,9 +2506,9 @@ struct SourceMapping {
 
 /// Program started by `launch`, or the launch refusal.
 union LaunchOutcome {
-    /// Launch refused without a message because the shell computer is gone.
+    /// Launch refused; any printed reason arrives separately as [`ProgramPrint`].
     Refusal,
-    /// Reason the launch was refused; the terminal prints it.
+    /// `start_terminal` returns the unavailable-computer failure instead of printing it.
     Failure(Failure),
     /// Program session, source, and line source map for the launched program.
     Program { session: ProgramSession, source: string, source_map: SourceMap },
@@ -2607,6 +2657,22 @@ union AdminFailure {
     /// The company's guild turned Admin Restore off, so its administrator does not update the libraries
     /// (`Persona.UpdateReportedNetworks`).
     LibraryUpdateSkipped,
+    /// The world has no library with the file name (`FileHelperServer.ExploitReport`).
+    UnknownLibrary(string),
+    /// Players cannot report weaknesses of the library (`FileHelperServer.ExploitReportServerRpc`).
+    UnreportableLibrary,
+    /// The newest version of the library has no memory zone at the address.
+    UnknownReportedZone,
+    /// The memory zone has no weakness with the value.
+    UnknownReportedValue { value: string, zone: string },
+    /// The player reported a weakness since the last check for library versions.
+    ReportPending,
+}
+
+/// The version a library release made, or why there is none.
+union LibraryRelease {
+    Released(string),
+    Failure(Failure),
 }
 
 /// Packet captured by `sniffer` (`HelperScript.GetPendingSniffers`).

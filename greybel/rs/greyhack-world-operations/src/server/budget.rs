@@ -5,9 +5,10 @@
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
+use greyhack_world_router::TreeId;
 use tokio::sync::Notify;
 
-use super::programs::Tree;
+type Tree = TreeId;
 
 /// World claimant: a program tree or world routines.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -87,14 +88,14 @@ impl BudgetTable {
         self.throttles.borrow_mut().remove(&tree)
     }
 
-    /// Removes budget and throttle state for all trees on `connection`.
-    pub(super) fn remove_connection(&self, connection: u32) {
+    /// Removes budget and throttle state for `trees`.
+    pub(super) fn remove(&self, trees: &[Tree]) {
         self.tokens
             .borrow_mut()
-            .retain(|tree, _| tree.connection != connection);
+            .retain(|tree, _| !trees.contains(tree));
         self.throttles
             .borrow_mut()
-            .retain(|tree| tree.connection != connection);
+            .retain(|tree| !trees.contains(tree));
     }
 }
 

@@ -13,15 +13,43 @@ async fn should_build_the_players_network_as_laid_out() {
     })
     .await
     .unwrap();
-    let player = world.computer(world.player()).await.unwrap().unwrap();
-    let lan = world.lan(player.network).await.unwrap().unwrap();
+    let player = world
+        .modules
+        .core
+        .networks
+        .topology
+        .computer(world.handle.player())
+        .await
+        .unwrap()
+        .unwrap();
+    let lan = world
+        .modules
+        .core
+        .networks
+        .lan
+        .lan(player.network)
+        .await
+        .unwrap()
+        .unwrap();
     let order: Vec<(DeviceKind, String)> = lan
         .search_order()
         .into_iter()
         .map(|id| (lan.node(id).kind, lan.node(id).local_ip.clone()))
         .collect();
-    let main = world.main_router(player.network).await.unwrap().unwrap();
+    let main = world
+        .modules
+        .core
+        .networks
+        .topology
+        .main_router(player.network)
+        .await
+        .unwrap()
+        .unwrap();
     let forwards: Vec<(u16, String, u16)> = world
+        .modules
+        .core
+        .networks
+        .router_config
         .port_forwards(main.id)
         .await
         .unwrap()
@@ -99,11 +127,27 @@ async fn should_save_a_laid_out_networks_administrator() {
     })
     .await
     .unwrap();
-    let player = world.computer(world.player()).await.unwrap().unwrap();
+    let player = world
+        .modules
+        .core
+        .networks
+        .topology
+        .computer(world.handle.player())
+        .await
+        .unwrap()
+        .unwrap();
     let database = greybel_test_support::world::save_copy(&mut world).await;
     let restored = World::load(&database).await.unwrap();
 
-    assert!(restored.has_super_admin(player.network).await.unwrap());
+    assert!(
+        restored
+            .modules
+            .npcs
+            .jobs
+            .has_super_admin(player.network)
+            .await
+            .unwrap()
+    );
 }
 
 /// The files of a laid-out computer keep their dates when its file system has absolute dates, and are shifted by the
@@ -144,11 +188,19 @@ async fn should_keep_the_dates_of_a_laid_out_file_system_with_absolute_dates() {
         .await
         .unwrap();
         let computer = world
+            .modules
+            .core
+            .networks
+            .routers
             .computer_at("45.45.45.45", "172.16.3.7")
             .await
             .unwrap()
             .unwrap();
         let node = world
+            .modules
+            .core
+            .files
+            .lookup
             .file(computer, "/dated", false)
             .await
             .unwrap()

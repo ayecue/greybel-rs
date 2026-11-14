@@ -18,7 +18,10 @@ fn should_refuse_to_hire_an_admin_the_bank_account_cannot_pay() {
         "1\n1\nYou don't have any administrator hired on this network.\nThe purchase could not be completed. Insufficient funds"
     );
     assert_eq!(
-        block_on(world.bank_account("test")).unwrap().unwrap().money,
+        block_on(world.modules.economy.bank.bank_account("test"))
+            .unwrap()
+            .unwrap()
+            .money,
         500.0
     );
 }

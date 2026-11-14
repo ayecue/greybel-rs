@@ -235,7 +235,9 @@ async fn own_world<H: Host>(host: &H, seed: &str) -> (ServerConnection, WorldSer
     let world = World::from_seed(seed, &PlayerOptions::default())
         .await
         .expect("the world generates");
-    let server = WorldServer::new(world, host.clock());
+    let server = WorldServer::new(world, host.clock())
+        .await
+        .expect("the server restores payments");
 
     (host.connect(&server), server)
 }

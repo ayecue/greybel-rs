@@ -5,7 +5,8 @@ use greybel_test_support::future::block_on;
 use greybel_test_support::greyhack;
 use greybel_test_support::interpreter::snapshot_options;
 use greyhack_behaviour::ServiceId;
-use greyhack_world::{Database, PlayerOptions, Routine, TransferFailure, World};
+use greyhack_world::prelude::*;
+use greyhack_world::{Database, PlayerOptions, TransferFailure, World};
 use greyhack_world_operations::WorldServer;
 use scheduler::ManualClock;
 
@@ -22,33 +23,45 @@ fn should_transfer_balance_and_record_both_transaction_sides() {
     add_subwallet(&mut world, &subwallet(coin, "alice", 10.0));
     add_subwallet(&mut world, &subwallet(coin, "bob", 0.0));
 
-    let result =
-        block_on(world.transaction(coin, "alice", "bob", 3, "01/Jan/2000 - 00:00")).unwrap();
+    let result = block_on(world.modules.economy.wallets.transaction(
+        coin,
+        "alice",
+        "bob",
+        3,
+        "01/Jan/2000 - 00:00",
+    ))
+    .unwrap();
 
     assert_eq!(result, Ok(()));
     assert_eq!(
-        block_on(world.subwallet(coin, "alice"))
+        block_on(world.modules.economy.wallets.subwallet(coin, "alice"))
             .unwrap()
             .unwrap()
             .balance,
         7.0
     );
     assert_eq!(
-        block_on(world.subwallet(coin, "bob"))
+        block_on(world.modules.economy.wallets.subwallet(coin, "bob"))
             .unwrap()
             .unwrap()
             .balance,
         3.0
     );
     assert_eq!(
-        block_on(world.last_transaction(coin, "alice"))
-            .unwrap()
-            .unwrap()
-            .direction,
+        block_on(
+            world
+                .modules
+                .economy
+                .wallets
+                .last_transaction(coin, "alice")
+        )
+        .unwrap()
+        .unwrap()
+        .direction,
         1
     );
     assert_eq!(
-        block_on(world.last_transaction(coin, "bob"))
+        block_on(world.modules.economy.wallets.last_transaction(coin, "bob"))
             .unwrap()
             .unwrap()
             .direction,
@@ -64,7 +77,14 @@ fn should_reject_a_transaction_with_insufficient_funds() {
     add_subwallet(&mut world, &subwallet(coin, "alice", 1.0));
     add_subwallet(&mut world, &subwallet(coin, "bob", 0.0));
 
-    let result = block_on(world.transaction(coin, "alice", "bob", 2, "date")).unwrap();
+    let result = block_on(
+        world
+            .modules
+            .economy
+            .wallets
+            .transaction(coin, "alice", "bob", 2, "date"),
+    )
+    .unwrap();
 
     assert_eq!(result, Err(TransferFailure::InsufficientCoins));
 }
@@ -73,19 +93,21 @@ fn should_reject_a_transaction_with_insufficient_funds() {
 fn should_mine_into_the_subwallet_and_stop_at_the_supply_limit() {
     let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
     let coin = ether(&world);
-    let mut target = block_on(world.coin(coin)).unwrap().unwrap();
+    let mut target = block_on(world.modules.economy.coins.coin(coin))
+        .unwrap()
+        .unwrap();
 
     add_subwallet(&mut world, &subwallet(coin, "alice", 0.0));
     target.max_supply = target.mined_coins + target.reward;
-    block_on(world.save_coin(&target)).unwrap();
+    block_on(world.modules.economy.coins.save_coin(&target)).unwrap();
 
-    let first = block_on(world.mine(coin, "alice")).unwrap();
-    let second = block_on(world.mine(coin, "alice")).unwrap();
+    let first = block_on(world.modules.economy.coins.mine(coin, "alice")).unwrap();
+    let second = block_on(world.modules.economy.coins.mine(coin, "alice")).unwrap();
 
     assert_eq!(first, Ok(()));
     assert!(second.is_err());
     assert_eq!(
-        block_on(world.subwallet(coin, "alice"))
+        block_on(world.modules.economy.wallets.subwallet(coin, "alice"))
             .unwrap()
             .unwrap()
             .balance,
@@ -97,31 +119,58 @@ fn should_mine_into_the_subwallet_and_stop_at_the_supply_limit() {
 fn should_delete_a_subwallet_and_reduce_the_mined_total() {
     let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
     let coin = ether(&world);
-    let before = block_on(world.coin(coin)).unwrap().unwrap().mined_coins;
+    let before = block_on(world.modules.economy.coins.coin(coin))
+        .unwrap()
+        .unwrap()
+        .mined_coins;
 
     add_subwallet(&mut world, &subwallet(coin, "alice", 4.0));
 
-    let deleted = block_on(world.delete_subwallet(coin, "alice")).unwrap();
+    let deleted = block_on(
+        world
+            .modules
+            .economy
+            .mine_jobs
+            .delete_subwallet(coin, "alice"),
+    )
+    .unwrap();
 
     assert!(deleted);
-    assert!(block_on(world.subwallet(coin, "alice")).unwrap().is_none());
+    assert!(
+        block_on(world.modules.economy.wallets.subwallet(coin, "alice"))
+            .unwrap()
+            .is_none()
+    );
     assert_eq!(
-        block_on(world.coin(coin)).unwrap().unwrap().mined_coins,
+        block_on(world.modules.economy.coins.coin(coin))
+            .unwrap()
+            .unwrap()
+            .mined_coins,
         before - 4.0
     );
 }
 
 #[test]
 fn should_keep_other_coin_handles_stable_after_deleting_a_coin() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
     let ether = ether(&world);
-    let bitcoin = block_on(world.coin_by_name("Bitcoin")).unwrap().unwrap().id;
-    let deleted = block_on(world.delete_coin("Ether")).unwrap();
+    let bitcoin = block_on(world.modules.economy.coins.coin_by_name("Bitcoin"))
+        .unwrap()
+        .unwrap()
+        .id;
+    let deleted = block_on(world.modules.economy.mine_jobs.delete_coin("Ether")).unwrap();
 
     assert!(deleted);
-    assert!(block_on(world.coin(ether)).unwrap().is_none());
+    assert!(
+        block_on(world.modules.economy.coins.coin(ether))
+            .unwrap()
+            .is_none()
+    );
     assert_eq!(
-        block_on(world.coin(bitcoin)).unwrap().unwrap().name,
+        block_on(world.modules.economy.coins.coin(bitcoin))
+            .unwrap()
+            .unwrap()
+            .name,
         "Bitcoin"
     );
 }
@@ -150,16 +199,14 @@ include_lib("admin.so").tick(86401)
 print wallet.reset_password("newpass")
 print chain.login_wallet("test", "newpass") != null
 "#;
-    let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
 
     block_on(world.tick(86_401)).unwrap();
     // Keep the unrelated empty-queue next_due_at conversion failure out of this native API test.
-    block_on(world.schedule(
-        world.time_seconds() + 86_402,
-        Routine::ServiceRestart {
-            computer: world.player(),
-            service: ServiceId::Ssh,
-        },
+    block_on(world.modules.services.restart.schedule(
+        world.handle.time_seconds() + 86_402,
+        world.handle.player(),
+        ServiceId::Ssh,
     ))
     .unwrap();
 
@@ -217,22 +264,28 @@ fn should_delete_a_coin_through_the_native_api() {
 
     assert_eq!(error, None);
     assert_eq!(output, "1");
-    assert!(block_on(world.coin_by_name("Ether")).unwrap().is_none());
+    assert!(
+        block_on(world.modules.economy.coins.coin_by_name("Ether"))
+            .unwrap()
+            .is_none()
+    );
 }
 
 /// `mining` responds once its job wins one of the coin's rounds: with the round due in an hour of world time, the
 /// program waits while the world ticks there.
 #[test]
 fn should_respond_to_mining_once_its_job_wins_a_round() {
-    let mut world = world_with_ether_created_by_test();
+    let world = world_with_ether_created_by_test();
     let coin = ether(&world);
     let start = world.date();
-    let now = world.time_seconds();
-    let mut target = block_on(world.coin(coin)).unwrap().unwrap();
+    let now = world.handle.time_seconds();
+    let mut target = block_on(world.modules.economy.coins.coin(coin))
+        .unwrap()
+        .unwrap();
 
     target.cycle_hours = 1.0;
     target.last_cycle_at = Some(now);
-    block_on(world.save_coin(&target)).unwrap();
+    block_on(world.modules.economy.coins.save_coin(&target)).unwrap();
 
     let code = r#"
 chain = include_lib("/lib/blockchain.so")

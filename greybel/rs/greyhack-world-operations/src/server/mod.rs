@@ -4,12 +4,12 @@
 
 mod budget;
 mod cycle;
+mod cycles;
 mod deferred_jobs;
 mod lifecycle;
 mod local;
-mod programs;
-mod programs_view;
 mod ticks;
+mod trees;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -18,15 +18,15 @@ use std::rc::Rc;
 use budget::BudgetTable;
 use deferred_jobs::DeferredJob;
 use duplex_core::{Channel, ChannelOptions, Driver, Transport};
-use greyhack_world::{Database, WorkEnd, World, WorldError};
-use programs::ProgramTable;
-pub(crate) use programs::TerminalInfo;
+use greyhack_world::{ComputerId, Database, RebootEvent, WorkEnvelope, World, WorldError};
+use greyhack_world_modules::WorkCompletion;
+use greyhack_world_router::{PrintQueue, ProgramTree, ProgramTreePool, TreeId};
 use scheduler::Clock;
 pub use ticks::TickOptions;
 use ticks::TickState;
 use tokio::sync::{Mutex, MutexGuard};
+use trees::TreeIndex;
 
-use crate::connection::objects::ObjectTable;
 use crate::connection::{self};
 use crate::protocol::{GameServer, GameServerChannel, ProgramEnd};
 
@@ -34,11 +34,26 @@ use crate::protocol::{GameServer, GameServerChannel, ProgramEnd};
 #[derive(Clone)]
 pub struct WorldServer(Rc<ServerState>);
 
+/// Read-only world access while the server is locked.
+pub struct WorldView<'a>(MutexGuard<'a, WorldState>);
+
+impl std::ops::Deref for WorldView<'_> {
+    type Target = World;
+
+    fn deref(&self) -> &World {
+        self.0.world.as_ref()
+    }
+}
+
 pub(crate) struct ServerState {
     /// World and connection object tables locked for an entire cycle, including awaits. Lock waiters are
     /// served in request order.
-    world: Mutex<WorldState>,
-    programs: RefCell<ProgramTable>,
+    pub(crate) world: Mutex<WorldState>,
+    pub(crate) index: RefCell<TreeIndex>,
+    /// Program trees shared with route contexts and indexed before a cycle is locked.
+    pub(crate) trees: Rc<ProgramTreePool<ComputerId>>,
+    /// Domain routes installed on every connection.
+    pub(crate) routes: Rc<greyhack_world_router::RouteTable>,
     /// Optional persistent world database.
     database: Option<Database>,
     /// Deferred database error returned by the next [`WorldServer::save`].
@@ -48,51 +63,106 @@ pub(crate) struct ServerState {
     ticks: TickState,
     /// Program-tree budgets and active world claims.
     budgets: BudgetTable,
+    /// Typed output lines queued by routes, sent before their cycle's responses.
+    pub(crate) prints: PrintQueue,
     /// Program termination notices queued for the end of the cycle, after operation responses.
     program_ends: RefCell<Vec<(ProgramEnd, ConnectionChannel)>>,
     /// Deferred operations keyed by scheduled work ID.
     deferred_jobs: RefCell<HashMap<u64, DeferredJob>>,
     /// Work results stored until a successful commit resolves their deferred jobs.
-    pending_ends: RefCell<Vec<WorkEnd>>,
+    pending_ends: RefCell<Vec<WorkEnvelope>>,
+    /// RebootEvent computers whose programs end after object interruption.
+    pending_reboots: RefCell<Vec<ComputerId>>,
 }
 
-/// World and connection object tables the current cycle exclusively owns.
+/// World, program trees, and connection object tables the current cycle exclusively owns.
 pub(crate) struct WorldState {
-    pub(crate) world: World,
-    objects: HashMap<u32, ObjectTable>,
+    pub(crate) world: Rc<World>,
+    pub(crate) trees: Rc<ProgramTreePool<ComputerId>>,
 }
 
 impl WorldState {
-    /// Returns mutable world access and the object table for `connection`.
-    pub(crate) fn of(&mut self, connection: u32) -> (&mut World, &mut ObjectTable) {
-        (&mut self.world, self.objects.entry(connection).or_default())
+    /// Returns the tree identified by `key`.
+    pub(crate) fn tree(&self, key: TreeId) -> Option<std::cell::Ref<'_, ProgramTree<ComputerId>>> {
+        self.trees.get(key)
+    }
+
+    /// Returns the mutable tree identified by `key`.
+    pub(crate) fn tree_mut(
+        &self,
+        key: TreeId,
+    ) -> Option<std::cell::RefMut<'_, ProgramTree<ComputerId>>> {
+        self.trees.get_mut(key)
     }
 }
 
 impl WorldServer {
     /// Creates a server for `world` using `clock`. Generated worlds use their in-memory database, so
     /// [`WorldServer::save`] reports that nothing was saved.
-    #[must_use]
-    pub fn new(world: World, clock: Rc<dyn Clock>) -> Self {
-        Self::on(world, clock, None)
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if subscription payment timers cannot be restored.
+    pub async fn new(world: World, clock: Rc<dyn Clock>) -> greyhack_world::Result<Self> {
+        Self::on(world, clock, None).await
     }
 
-    fn on(world: World, clock: Rc<dyn Clock>, database: Option<Database>) -> Self {
-        Self(Rc::new(ServerState {
+    async fn on(
+        world: World,
+        clock: Rc<dyn Clock>,
+        database: Option<Database>,
+    ) -> greyhack_world::Result<Self> {
+        world.modules.economy.bank.restore_payments().await?;
+
+        let trees = Rc::new(ProgramTreePool::default());
+
+        let events = world.assembly.events.clone();
+        let routes = world.assembly.routes.clone();
+        let state = Rc::new(ServerState {
+            trees: trees.clone(),
+            routes,
             database,
             world: Mutex::new(WorldState {
-                world,
-                objects: HashMap::new(),
+                world: Rc::new(world),
+                trees,
             }),
-            programs: RefCell::new(ProgramTable::default()),
+            index: RefCell::new(TreeIndex::default()),
             failure: RefCell::new(None),
             clock,
             ticks: TickState::default(),
             budgets: BudgetTable::default(),
+            prints: PrintQueue::default(),
             program_ends: RefCell::new(Vec::new()),
             deferred_jobs: RefCell::new(HashMap::new()),
             pending_ends: RefCell::new(Vec::new()),
-        }))
+            pending_reboots: RefCell::new(Vec::new()),
+        });
+
+        events.on({
+            let state = Rc::downgrade(&state);
+
+            move |event: &RebootEvent| {
+                if let Some(state) = state.upgrade() {
+                    state.trees.interrupt(event.computer);
+                    state.pending_reboots.borrow_mut().push(event.computer);
+                }
+            }
+        });
+        events.on({
+            let state = Rc::downgrade(&state);
+
+            move |event: &WorkCompletion| {
+                if let Some(state) = state.upgrade()
+                    && let Some(end) = event.take_envelope()
+                {
+                    state.pending_ends.borrow_mut().push(end);
+                }
+            }
+        });
+        events.on(|_: &greyhack_world::StrikeEvent| {});
+        events.on(|_: &greyhack_world::GameOverEvent| {});
+
+        Ok(Self(state))
     }
 
     /// Updates tick rate and work limits starting with the next tick.
@@ -111,17 +181,13 @@ impl WorldServer {
     ///
     /// Returns errors produced while copying the world.
     pub async fn with_database(
-        mut world: World,
+        world: World,
         database: Database,
         clock: Rc<dyn Clock>,
     ) -> greyhack_world::Result<Self> {
         world.save_into(&database).await?;
 
-        Ok(Self::on(
-            World::load(&database).await?,
-            clock,
-            Some(database),
-        ))
+        Self::on(World::load(&database).await?, clock, Some(database)).await
     }
 
     /// Loads a world from `database` and persists later changes while using `clock`.
@@ -132,7 +198,7 @@ impl WorldServer {
     pub async fn open(database: Database, clock: Rc<dyn Clock>) -> greyhack_world::Result<Self> {
         let world = World::load(&database).await?;
 
-        Ok(Self::on(world, clock, Some(database)))
+        Self::on(world, clock, Some(database)).await
     }
 
     /// Returns the persistent world database, if configured.
@@ -147,7 +213,7 @@ impl WorldServer {
     ///
     /// Returns a pending commit failure or the current write error.
     pub async fn save(&self) -> greyhack_world::Result<()> {
-        self.0.cycle(async |_| ()).await;
+        self.0.cycle(async |_| (), true).await;
 
         match self.0.failure.take() {
             Some(error) => Err(error),
@@ -160,7 +226,7 @@ impl WorldServer {
         let channel = Channel::new(transport, ChannelOptions::default());
         let connection = self
             .0
-            .programs
+            .index
             .borrow_mut()
             .add_connection(Rc::new(channel.clone()));
         let state = Rc::downgrade(&self.0);
@@ -179,27 +245,38 @@ impl WorldServer {
 
     /// Waits for active operations and counts objects across all connections.
     pub async fn object_count(&self) -> usize {
-        self.0
-            .world
-            .lock()
-            .await
-            .objects
-            .values()
-            .map(ObjectTable::len)
-            .sum()
+        let state = self.0.world.lock().await;
+
+        state.trees.object_count()
     }
 
     /// Locks out other cycles and returns read-only world access. Writes outside a cycle would enter the
     /// transaction rolled back by the next cycle ([`World::begin`]); use [`WorldServer::change_world`] for changes.
-    pub async fn world(&self) -> impl std::ops::Deref<Target = World> + '_ {
-        MutexGuard::map(self.0.world.lock().await, |state| &mut state.world)
+    pub async fn world(&self) -> WorldView<'_> {
+        WorldView(self.0.world.lock().await)
+    }
+
+    /// Runs a read-only world operation and rolls back its transaction.
+    pub async fn read_world<T>(&self, read: impl AsyncFnOnce(&World) -> T) -> T {
+        self.0
+            .cycle(
+                async |state| {
+                    state
+                        .world
+                        .handle
+                        .read_route(async || read(&state.world).await)
+                        .await
+                },
+                false,
+            )
+            .await
     }
 
     /// Runs a world change after active operations finish. Ended program processes produce termination
     /// notifications.
-    pub async fn change_world<T>(&self, change: impl AsyncFnOnce(&mut World) -> T) -> T {
+    pub async fn change_world<T>(&self, change: impl AsyncFnOnce(&World) -> T) -> T {
         self.0
-            .cycle(async |state| change(&mut state.world).await)
+            .cycle(async |state| change(&state.world).await, true)
             .await
     }
 }

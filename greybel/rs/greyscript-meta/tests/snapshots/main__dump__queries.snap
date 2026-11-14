@@ -5157,6 +5157,24 @@ register_password:
       origin: admin
       search:
         - admin
+release_library_version:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 remove:
   all:
     origin: any
@@ -5473,6 +5491,24 @@ replace_regex:
       origin: general
       search:
         - general
+report_exploit:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 report_library_update:
   all:
     origin: adminNetwork

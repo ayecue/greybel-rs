@@ -110,17 +110,6 @@ pub(in crate::game) fn smtp_text(failure: &SmtpFailure) -> String {
     }
 }
 
-/// Tracks whether login reached a computer.
-/// On failure after that point, `connect_service` prints the error and returns null instead of the computer (`PlayerUtils.ConnectService`).
-pub(in crate::game) const fn login_reaches_computer(failure: &LoginFailure) -> bool {
-    matches!(
-        failure,
-        LoginFailure::Connection(ConnectionFailure::Lan(_) | ConnectionFailure::Startup(_))
-            | LoginFailure::IncorrectPassword
-            | LoginFailure::AccountInactive
-    )
-}
-
 /// Returns Grey Hack's `ACCOUNT_DISABLED` text when the account's NPC is dead or fired.
 pub(in crate::game) fn inactive_account() -> String {
     GameTextTable::english()

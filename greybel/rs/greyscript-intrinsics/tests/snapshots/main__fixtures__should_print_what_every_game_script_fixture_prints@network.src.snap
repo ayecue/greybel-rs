@@ -1,6 +1,5 @@
 ---
 source: greyscript-intrinsics/tests/fixtures.rs
-assertion_line: 39
 expression: output
 input_file: greyscript-intrinsics/tests/fixtures/game/network.src
 ---
@@ -11,9 +10,9 @@ Domain name: www.target.com
 4
 No Info available
 Domain name: www.zurobuxin.org
-Administrative contact: Korrie Heritosh
-Email address: Heritosh@zurobuxin.org
-Phone: 142600119
+Administrative contact: Averil Bornb
+Email address: Bornb@zurobuxin.org
+Phone: 723146239
 Error: the IP address must be public
 Invalid IP address: nope
 1

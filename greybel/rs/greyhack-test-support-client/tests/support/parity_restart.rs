@@ -72,3 +72,14 @@ pub const LAUNCH: &str = "sh = get_shell(\"other\", \"pw\")
 print sh.launch(\"/home/other/child\")
 print sh.launch(\"/home/other/locked/child\")
 print sh.launch(\"/home/other/missing\")";
+
+/// A program in `other`'s home that launches `SETUP`'s child as `other`: what a program launches runs in the terminal
+/// of the program that launched it (`ShellIntrinsics.launch`, `GreyInterpreter.isSafeTerminal`).
+pub const SETUP_PARENT: &str = "root = get_shell(\"root\", \"test\")
+pc = root.host_computer
+pc.touch(home_dir, \"parent.src\")
+pc.File(home_dir + \"/parent.src\").set_content(\"sh = get_shell(\"\"other\"\", \"\"pw\"\")\" + char(10) + \"print sh.launch(\"\"/home/other/child\"\")\")
+print \"build=\" + root.build(home_dir + \"/parent.src\", \"/home/other\")";
+
+pub const LAUNCH_PARENT: &str = "sh = get_shell(\"other\", \"pw\")
+print sh.launch(\"/home/other/parent\")";

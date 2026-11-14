@@ -10,7 +10,9 @@ use greyhack_test_support_client::protocol::test_support::{
 };
 use greyhack_world::World;
 
-use super::intrinsics::{PROGRAM_NAME, run_in_snapshot_world, run_interactive_in_snapshot_world};
+use super::intrinsics::{
+    PROGRAM_NAME, run_in_snapshot_world_async, run_interactive_in_snapshot_world_async,
+};
 use super::parity::{Outcome, game_error, game_outcomes, without_ack_counts, without_users};
 
 /// What the entries a script writes are named after the comparison replaces the game's random values.
@@ -144,9 +146,21 @@ pub fn world_logs(world: &World, snapshot: &NetworkSnapshot, old: &Entries) -> L
         .iter()
         .filter(|node| !matches!(node.node, LanNodeKind::Hub))
         .filter_map(|node| {
-            let computer = block_on(world.computer_at(&snapshot.public_ip, &node.local_ip))
-                .expect("a read")?;
-            let file = block_on(world.file(computer, SYSTEM_LOG_PATH, false)).expect("a read")?;
+            let computer = block_on(
+                world
+                    .modules
+                    .core
+                    .networks
+                    .routers
+                    .computer_at(&snapshot.public_ip, &node.local_ip),
+            )
+            .expect("a read")?;
+            let file = block_on(world.modules.core.files.lookup.file(
+                computer,
+                SYSTEM_LOG_PATH,
+                false,
+            ))
+            .expect("a read")?;
             let log = SystemLog::parse(&file.data()?.content).expect("the world's log is a log");
             let old = old.get(&*node.local_ip).map_or(&[][..], Vec::as_slice);
 
@@ -182,18 +196,15 @@ pub async fn compare_typed_logs(
     inputs: &[String],
 ) -> (Outcome, Logs) {
     let before = client.network_state().await.expect("the network is read");
-    let (terminal, error, world) = std::thread::scope(|scope| {
-        scope
-            .spawn(|| {
-                if inputs.is_empty() {
-                    run_in_snapshot_world(script, user, &before)
-                } else {
-                    run_interactive_in_snapshot_world(script, user, &before, inputs)
-                }
-            })
-            .join()
-            .expect("the intrinsics run")
-    });
+    let (terminal, error, world) = tokio::task::LocalSet::new()
+        .run_until(async {
+            if inputs.is_empty() {
+                run_in_snapshot_world_async(script, user, &before).await
+            } else {
+                run_interactive_in_snapshot_world_async(script, user, &before, inputs).await
+            }
+        })
+        .await;
     let expected = without_users(vec![Outcome {
         script: script.to_owned(),
         failed: error.is_some(),

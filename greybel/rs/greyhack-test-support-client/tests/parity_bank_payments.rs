@@ -100,7 +100,7 @@ async fn should_match_the_game_when_an_admin_is_hired_and_removed_through_the_ba
     // Removing an administrator that is not hired.
     client.serve_rental_admin(&address, false).await.unwrap();
     assert!(
-        block_on(world.fire_rental_admin(&address))
+        block_on(world.modules.npcs.jobs.fire_rental_admin(&address))
             .unwrap()
             .unwrap()
             .is_err()
@@ -113,7 +113,7 @@ async fn should_match_the_game_when_an_admin_is_hired_and_removed_through_the_ba
     // Hiring one, then hiring another over him.
     client.serve_rental_admin(&address, true).await.unwrap();
     assert!(
-        block_on(world.hire_rental_admin(&address))
+        block_on(world.modules.npcs.jobs.hire_rental_admin(&address))
             .unwrap()
             .unwrap()
             .is_ok()
@@ -126,7 +126,7 @@ async fn should_match_the_game_when_an_admin_is_hired_and_removed_through_the_ba
 
     client.serve_rental_admin(&address, true).await.unwrap();
     assert!(
-        block_on(world.hire_rental_admin(&address))
+        block_on(world.modules.npcs.jobs.hire_rental_admin(&address))
             .unwrap()
             .unwrap()
             .is_err()
@@ -139,7 +139,7 @@ async fn should_match_the_game_when_an_admin_is_hired_and_removed_through_the_ba
     // Removing him.
     client.serve_rental_admin(&address, false).await.unwrap();
     assert!(
-        block_on(world.fire_rental_admin(&address))
+        block_on(world.modules.npcs.jobs.fire_rental_admin(&address))
             .unwrap()
             .unwrap()
             .is_ok()
@@ -154,7 +154,7 @@ async fn should_match_the_game_when_an_admin_is_hired_and_removed_through_the_ba
     set_money(&client, &mut world, &number, 100.0).await;
     client.serve_rental_admin(&address, true).await.unwrap();
     assert!(
-        block_on(world.hire_rental_admin(&address))
+        block_on(world.modules.npcs.jobs.hire_rental_admin(&address))
             .unwrap()
             .unwrap()
             .is_err()
@@ -181,7 +181,7 @@ async fn should_match_the_game_when_the_admin_has_no_registered_charge() {
 
     let before = client.network_state().await.unwrap();
     let number = before.player_bank.as_ref().unwrap().to_string();
-    let mut world = snapshot_world(&user, &before);
+    let world = snapshot_world(&user, &before);
     let hired: Observed = observed_game(&before);
 
     assert!(hired.admin);
@@ -190,7 +190,7 @@ async fn should_match_the_game_when_the_admin_has_no_registered_charge() {
 
     client.serve_rental_admin(&address, false).await.unwrap();
     assert!(
-        block_on(world.fire_rental_admin(&address))
+        block_on(world.modules.npcs.jobs.fire_rental_admin(&address))
             .unwrap()
             .unwrap()
             .is_err()

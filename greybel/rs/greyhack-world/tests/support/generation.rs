@@ -14,8 +14,11 @@ pub async fn add_typed_network(
     kind: NetworkKind,
     domain: &str,
 ) -> (RouterId, ComputerId) {
-    let address = address_for_kind(world.world_seed(), kind);
+    let address = address_for_kind(&world.handle.world_seed(), kind);
     let router = world
+        .modules
+        .creation
+        .network_generation
         .add_network(&NetworkOptions {
             public_ip: Some(address),
             domain: Some(domain.to_owned()),
@@ -24,7 +27,14 @@ pub async fn add_typed_network(
         })
         .await
         .unwrap();
-    let computer = world.devices(router).await.unwrap()[0];
+    let computer = world
+        .modules
+        .core
+        .networks
+        .topology
+        .devices(router)
+        .await
+        .unwrap()[0];
 
     (router, computer)
 }

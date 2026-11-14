@@ -15,7 +15,7 @@ mod npcs;
 pub mod path;
 mod player;
 
-// Foundations the other rules build on: the seeded generator, the clock, the world seed, refusals, and versions.
+// Foundations the other rules build on: the seeded generator, the clock, the world seed, refusals, versions, and generated words.
 pub use base::clock::{
     MILLIS_PER_SECOND, SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE, START_DATE,
     TIME_SCALE, add_month, add_months, advance_ticks, date_parts, day_of_year,
@@ -25,6 +25,7 @@ pub use base::clock::{
 pub use base::refusal::{Credential, NameKind, Refusal, RuleResult};
 pub use base::rng::{ALPHANUMERIC, HEX_DIGITS, LOWERCASE_ALPHANUMERIC, Rng, fnv1a_64};
 pub use base::versions::{FIRST_VERSION, compare_versions, is_valid_version};
+pub use base::words::{Gender, Word};
 pub use base::world_seed::{WORLD_SECRET_LENGTH, WorldSeed};
 // Computers: processes, accounts, permissions, files, startup, logs, libraries, packages, and firewalls.
 pub use computer::apt::{
@@ -48,7 +49,7 @@ pub use computer::credentials::{
     validate_credential, validate_wallet_credential, verify_password,
 };
 pub use computer::debug_library::{
-    auto_patch_time, error_lines_match, fixed_payload_user, is_patch_applied,
+    auto_patch_time, error_lines_match, fixed_payload_user, is_patch_applied, is_rumor_time,
 };
 pub use computer::filesystem::file_data::FileData;
 pub use computer::filesystem::kinds::{Command, FileKind};
@@ -70,6 +71,11 @@ pub use computer::imports::{
 pub use computer::libraries::{
     KERNEL_ROUTER_PATH, LIBRARY_FOLDER, LibraryClass, LibraryKind, LibraryRole, Requirement,
     Reward, library_path,
+};
+pub use computer::library_versions::{
+    LIBRARY_CHECK_MILLIS, MAX_GENERATED_ZONES, MAX_SAVED_LIBRARIES, MAX_WEAKNESS_USES,
+    MAX_ZONE_PATCHES, count_use, is_worn_out, is_zone_exhausted, library_check_seconds,
+    next_version, replacement_zone_count, saved_versions_to_prune,
 };
 pub use computer::permissions::{FileOwnership, Permission, PermissionSet, Principal};
 pub use computer::smart_appliance::SmartApplianceSettings;
@@ -103,19 +109,19 @@ pub use economy::market::{
 };
 pub use economy::shop_items::{HACK_SHOP_LIBRARIES, detail_key, shop_programs};
 pub use enum_def::UnknownCode;
-pub use guilds::ranked_company::{RankedCompany, company_weight, guild_points, order_companies};
-pub use guilds::ranked_guild::{RankedGuild, crown_leader, sort_leaderboard};
 // Guilds, company rankings, and traces.
 pub use guilds::ownership::{
     ADMIN_ABSENCE_DAILY_RECOVERY_PERCENT, ADMIN_ABSENCE_PENALTY_PERCENT, CROWN_QUALIFICATION_DAYS,
     CROWN_SHIELD_PRICE, DDOS_LEADERBOARD_FACTOR, DDOS_LEADERBOARD_PENALTY_HOURS,
     DDOS_LEADERBOARD_PENALTY_SECONDS, MAJORITY_PERCENT, add_days, company_share_price,
     default_company_seed, effective_max_admin_restore_disabled_companies,
-    effective_max_invested_companies, is_listed_on_stock_market, leaderboard_points,
-    majority_owner, max_admin_restore_companies_for_level, max_admin_restore_companies_for_perks,
-    max_invested_companies_for_level, max_invested_companies_for_perks, max_share_price,
-    max_stocks, next_day, reputation_level,
+    effective_max_invested_companies, exp_after_member_exit, is_listed_on_stock_market,
+    leaderboard_points, majority_owner, max_admin_restore_companies_for_level,
+    max_admin_restore_companies_for_perks, max_invested_companies_for_level,
+    max_invested_companies_for_perks, max_share_price, max_stocks, next_day, reputation_level,
 };
+pub use guilds::ranked_company::{RankedCompany, company_weight, guild_points, order_companies};
+pub use guilds::ranked_guild::{RankedGuild, crown_leader, sort_leaderboard};
 pub use guilds::traces::{
     ACTIVE_TRACE_SECONDS, MAX_PASSIVE_TRACES, MAX_STRIKES, PASSIVE_BASE_MS, PASSIVE_BOUNCE_MS,
     PASSIVE_NEXT_ADMIN_MS, PassiveStage, StrikeCount, active_trace_end, active_trace_seconds,
@@ -132,7 +138,7 @@ pub use network::domains::{
     LetterTableSet, ROUTER_NODE_LABEL, TOP_LEVEL_DOMAINS, WEB_PREFIX, clean_domain_name,
     network_domain, unique_name_to_ip, web_domain,
 };
-pub use network::generation::{NPCS_PER_NETWORK, admin_candidates, random_device_kind};
+pub use network::generation::{DeviceDraw, NPCS_PER_NETWORK, admin_candidates};
 pub use network::lan::{Lan, LanFailure, LanNode, LanNodeId, LanPort, is_device};
 pub use network::networks::{
     DEFAULT_NET_SPEED, KERNEL_ROUTER, MAX_NETWORK_COMPUTERS, NET_SPEEDS, NetworkKind,

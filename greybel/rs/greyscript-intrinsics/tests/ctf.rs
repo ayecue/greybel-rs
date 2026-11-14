@@ -31,20 +31,26 @@ print get_ctf("ctfuser", "new", "mission") != null
 #[tokio::test]
 async fn should_preserve_ctf_accounts_events_and_completion() {
     let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
+    let player = world.handle.player();
 
     world
+        .modules
+        .player
+        .ctf
         .create_ctf_account(player, "ctfuser", "old")
         .await
         .unwrap();
     world
+        .modules
+        .player
+        .ctf
         .create_ctf_event(&CtfEvent {
             name: "mission".to_owned(),
             user: "ctfuser".to_owned(),
             password_hash: hash_password("old"),
             description: "desc".to_owned(),
             public_address: "1.2.3.4".to_owned(),
-            creator: world.player_person(),
+            creator: world.handle.player_person(),
             creator_name: "creator".to_owned(),
             mail_content: "mail".to_owned(),
             creator_bank_user: "test".to_owned(),
@@ -55,21 +61,64 @@ async fn should_preserve_ctf_accounts_events_and_completion() {
         })
         .await
         .unwrap();
-    assert!(world.add_ctf_player("mission", player).await.unwrap());
-    assert!(world.player_success("mission", player).await.unwrap());
-    assert!(world.reset_ctf_password(player, "new").await.unwrap());
+    assert!(
+        world
+            .modules
+            .player
+            .ctf
+            .add_ctf_player("mission", player)
+            .await
+            .unwrap()
+    );
+    assert!(
+        world
+            .modules
+            .player
+            .ctf
+            .player_success("mission", player)
+            .await
+            .unwrap()
+    );
+    assert!(
+        world
+            .modules
+            .player
+            .ctf
+            .reset_ctf_password(player, "new")
+            .await
+            .unwrap()
+    );
 
     let database = save_copy(&mut world).await;
 
     let restored = World::load(&database).await.unwrap();
 
-    let event = restored.ctf_event("mission").await.unwrap().unwrap();
+    let event = restored
+        .modules
+        .player
+        .ctf
+        .ctf_event("mission")
+        .await
+        .unwrap()
+        .unwrap();
 
     assert_eq!(event.description, "desc");
-    assert!(restored.ctf_players("mission").await.unwrap()[0].completed);
+    assert!(
+        restored
+            .modules
+            .player
+            .ctf
+            .ctf_players("mission")
+            .await
+            .unwrap()[0]
+            .completed
+    );
     assert_eq!(event.password_hash, hash_password("new"));
     assert_eq!(
         restored
+            .modules
+            .player
+            .ctf
             .ctf_account(player)
             .await
             .unwrap()

@@ -27,7 +27,11 @@ fn should_generate_a_router_for_an_unknown_public_address_once() {
 
     assert_eq!(error, None);
     assert_eq!(output, "1\n1");
-    assert!(block_on(world.router_at("7.7.7.7")).unwrap().is_some());
+    assert!(
+        block_on(world.modules.core.networks.routers.router_at("7.7.7.7"))
+            .unwrap()
+            .is_some()
+    );
 }
 
 #[test]
@@ -61,12 +65,20 @@ print nslookup("nowhere.org")"#;
 
 #[test]
 fn should_refuse_a_service_connection_matching_a_firewall_deny_rule() {
-    let mut world =
+    let world =
         block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
     let target = first_remote_service(&world);
 
-    block_on(world.clear_firewall(target.router)).unwrap();
-    block_on(world.add_firewall_rule(
+    block_on(
+        world
+            .modules
+            .core
+            .networks
+            .router_config
+            .clear_firewall(target.router),
+    )
+    .unwrap();
+    block_on(world.modules.core.networks.router_config.add_firewall_rule(
         target.router,
         &FirewallRule {
             allow: false,
@@ -77,8 +89,9 @@ fn should_refuse_a_service_connection_matching_a_firewall_deny_rule() {
     ))
     .unwrap();
 
-    let result = block_on(world.connect_service(
-        world.player(),
+    let player = world.handle.player();
+    let result = block_on(world.modules.core.networks.connect.connect_service(
+        player,
         &target.address,
         target.port,
         &target.service,
@@ -98,13 +111,21 @@ fn should_refuse_a_service_connection_matching_a_firewall_deny_rule() {
 
 #[test]
 fn should_allow_a_service_connection_when_an_allow_rule_overrides_the_deny() {
-    let mut world =
+    let world =
         block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
     let target = first_remote_service(&world);
 
-    block_on(world.clear_firewall(target.router)).unwrap();
+    block_on(
+        world
+            .modules
+            .core
+            .networks
+            .router_config
+            .clear_firewall(target.router),
+    )
+    .unwrap();
     for allow in [false, true] {
-        block_on(world.add_firewall_rule(
+        block_on(world.modules.core.networks.router_config.add_firewall_rule(
             target.router,
             &FirewallRule {
                 allow,
@@ -116,8 +137,9 @@ fn should_allow_a_service_connection_when_an_allow_rule_overrides_the_deny() {
         .unwrap();
     }
 
-    let result = block_on(world.connect_service(
-        world.player(),
+    let player = world.handle.player();
+    let result = block_on(world.modules.core.networks.connect.connect_service(
+        player,
         &target.address,
         target.port,
         &target.service,
@@ -159,7 +181,15 @@ fn should_reset_processes_on_reboot() {
     assert_eq!(output, "1");
 
     // The game keeps the player's protected system processes (`kernel_task`, `Xorg`) across a reboot.
-    let processes = block_on(world.processes(world.player())).unwrap();
+    let processes = block_on(
+        world
+            .modules
+            .core
+            .computers
+            .processes
+            .processes(world.handle.player()),
+    )
+    .unwrap();
 
     assert!(!processes.is_empty());
     assert!(processes.iter().all(|process| process.protected));
@@ -202,35 +232,46 @@ fn should_connect_a_wifi_card_to_a_router() {
     assert_eq!(error, None);
     assert_eq!(output, "1");
 
-    let player = read_computer(&world, world.player());
+    let player = read_computer(&world, world.handle.player());
 
     assert_eq!(player.router, Some(router_id));
     assert!(
-        block_on(world.active_net_card(player.id))
-            .unwrap()
-            .unwrap()
-            .wifi
+        block_on(
+            world
+                .modules
+                .core
+                .networks
+                .net_cards
+                .active_net_card(player.id)
+        )
+        .unwrap()
+        .unwrap()
+        .wifi
     );
 }
 
 #[test]
 fn should_only_list_routers_within_wifi_range() {
-    let mut world = world_with_player_router_at_origin();
-    let player = world.player();
-    let near = block_on(world.add_network(&greyhack_world::NetworkOptions {
-        public_ip: Some("8.8.8.8".to_owned()),
-        position: Some([0.4, 0.0]),
-        ..Default::default()
-    }))
+    let world = world_with_player_router_at_origin();
+    let player = world.handle.player();
+    let near = block_on(world.modules.creation.network_generation.add_network(
+        &greyhack_world::NetworkOptions {
+            public_ip: Some("8.8.8.8".to_owned()),
+            position: Some([0.4, 0.0]),
+            ..Default::default()
+        },
+    ))
     .unwrap();
-    let far = block_on(world.add_network(&greyhack_world::NetworkOptions {
-        public_ip: Some("9.9.9.9".to_owned()),
-        position: Some([0.6, 0.0]),
-        ..Default::default()
-    }))
+    let far = block_on(world.modules.creation.network_generation.add_network(
+        &greyhack_world::NetworkOptions {
+            public_ip: Some("9.9.9.9".to_owned()),
+            position: Some([0.6, 0.0]),
+            ..Default::default()
+        },
+    ))
     .unwrap();
 
-    let networks = block_on(world.wifi_networks(player)).unwrap();
+    let networks = block_on(world.modules.core.networks.net_cards.wifi_networks(player)).unwrap();
 
     assert_eq!(networks.len(), 2);
     assert_eq!(networks[1].1, 20);
@@ -248,14 +289,16 @@ fn should_only_list_routers_within_wifi_range() {
 
 #[test]
 fn should_reject_a_wifi_router_out_of_range() {
-    let mut world = world_with_player_router_at_origin();
-    let router = block_on(world.add_network(&greyhack_world::NetworkOptions {
-        public_ip: Some("9.9.9.9".to_owned()),
-        position: Some([0.6, 0.0]),
-        essid: Some("far".to_owned()),
-        wifi_password: Some("pw".to_owned()),
-        ..Default::default()
-    }))
+    let world = world_with_player_router_at_origin();
+    let router = block_on(world.modules.creation.network_generation.add_network(
+        &greyhack_world::NetworkOptions {
+            public_ip: Some("9.9.9.9".to_owned()),
+            position: Some([0.6, 0.0]),
+            essid: Some("far".to_owned()),
+            wifi_password: Some("pw".to_owned()),
+            ..Default::default()
+        },
+    ))
     .unwrap();
     let router = read_router(&world, router);
     let code = format!(
@@ -272,13 +315,15 @@ fn should_reject_a_wifi_router_out_of_range() {
 
 #[test]
 fn should_throttle_wifi_reconnection() {
-    let mut world = world_with_player_router_at_origin();
-    let router = block_on(world.add_network(&greyhack_world::NetworkOptions {
-        public_ip: Some("8.8.8.8".to_owned()),
-        position: Some([0.1, 0.0]),
-        wifi_password: Some("pw".to_owned()),
-        ..Default::default()
-    }))
+    let world = world_with_player_router_at_origin();
+    let router = block_on(world.modules.creation.network_generation.add_network(
+        &greyhack_world::NetworkOptions {
+            public_ip: Some("8.8.8.8".to_owned()),
+            position: Some([0.1, 0.0]),
+            wifi_password: Some("pw".to_owned()),
+            ..Default::default()
+        },
+    ))
     .unwrap();
     let router = read_router(&world, router);
     let code = format!(
@@ -335,23 +380,31 @@ fn should_return_the_same_custom_object_for_each_call() {
 
 #[test]
 fn should_connect_an_ethernet_card_with_a_valid_address() {
-    let mut world = block_on(World::generate(&world_options(7, 1))).expect("a generated world");
+    let world = block_on(World::generate(&world_options(7, 1))).expect("a generated world");
     let router = read_routers(&world).swap_remove(1);
     let gateway = router.local_ip.clone();
     let address = format!("{}.20", gateway.rsplit_once('.').unwrap().0);
     let router_id = router.id;
-    let computer = block_on(world.devices(router_id))
+    let computer = block_on(world.modules.core.networks.topology.devices(router_id))
         .unwrap()
         .into_iter()
         .find(|computer| {
-            block_on(world.net_cards(*computer))
+            block_on(world.modules.core.networks.net_cards.net_cards(*computer))
                 .unwrap()
                 .iter()
                 .any(|card| !card.wifi)
         })
         .expect("a computer with an Ethernet card");
 
-    let result = block_on(world.connect_ethernet(computer, &address, &gateway)).unwrap();
+    let result = block_on(
+        world
+            .modules
+            .core
+            .networks
+            .net_cards
+            .connect_ethernet(computer, &address, &gateway),
+    )
+    .unwrap();
 
     assert_eq!(result, Ok(()));
 
@@ -360,10 +413,17 @@ fn should_connect_an_ethernet_card_with_a_valid_address() {
     assert_eq!(computer_row.router, Some(router_id));
     assert_eq!(computer_row.local_ip, address);
     assert!(
-        !block_on(world.active_net_card(computer))
-            .unwrap()
-            .unwrap()
-            .wifi
+        !block_on(
+            world
+                .modules
+                .core
+                .networks
+                .net_cards
+                .active_net_card(computer)
+        )
+        .unwrap()
+        .unwrap()
+        .wifi
     );
 }
 

@@ -6,11 +6,16 @@ use crate::support::scripts::run_code_in;
 
 #[test]
 fn should_log_an_npc_in_and_out_on_due_ticks() {
-    let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
-    let player = world.player();
-    let npc = block_on(world.add_npc(player, "test", "test npc", world.time_seconds() + 60))
-        .unwrap()
-        .unwrap();
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let player = world.handle.player();
+    let npc = block_on(world.modules.npcs.npcs.add_npc(
+        player,
+        "test",
+        "test npc",
+        world.handle.time_seconds() + 60,
+    ))
+    .unwrap()
+    .unwrap();
 
     // Presence follows the NPC's work schedule: at every point the session exists exactly when the NPC is online.
     let mut online_seen = false;
@@ -19,8 +24,11 @@ fn should_log_an_npc_in_and_out_on_due_ticks() {
     for _ in 0..24 {
         block_on(world.tick(3_600)).unwrap();
 
-        let online = block_on(world.npc(npc)).unwrap().unwrap().online;
-        let sessions = block_on(world.sessions(player)).unwrap();
+        let online = block_on(world.modules.npcs.npcs.npc(npc))
+            .unwrap()
+            .unwrap()
+            .online;
+        let sessions = block_on(world.modules.core.computers.users.sessions(player)).unwrap();
 
         assert_eq!(sessions.contains(&"test".to_owned()), online);
         online_seen |= online;
@@ -34,9 +42,12 @@ fn should_log_an_npc_in_and_out_on_due_ticks() {
 #[tokio::test]
 async fn should_preserve_npcs_and_their_next_action_across_a_reload() {
     let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let player = world.player();
+    let player = world.handle.player();
     let npc = world
-        .add_npc(player, "test", "test npc", world.time_seconds() + 60)
+        .modules
+        .npcs
+        .npcs
+        .add_npc(player, "test", "test npc", world.handle.time_seconds() + 60)
         .await
         .unwrap()
         .unwrap();
@@ -45,16 +56,28 @@ async fn should_preserve_npcs_and_their_next_action_across_a_reload() {
 
     let database = save_copy(&mut world).await;
 
-    let mut restored = World::load(&database).await.unwrap();
+    let restored = World::load(&database).await.unwrap();
 
     // After a reload the NPC keeps following its schedule: the next switch leaves its session matching its online
     // state.
     restored.tick(3_600).await.unwrap();
 
-    let online = restored.npc(npc).await.unwrap().unwrap().online;
+    let online = restored
+        .modules
+        .npcs
+        .npcs
+        .npc(npc)
+        .await
+        .unwrap()
+        .unwrap()
+        .online;
 
     assert_eq!(
         restored
+            .modules
+            .core
+            .computers
+            .users
             .sessions(player)
             .await
             .unwrap()

@@ -11,6 +11,8 @@ mod parity_blockchain;
 #[cfg(feature = "game")]
 mod parity_builds;
 #[cfg(feature = "game")]
+mod parity_close_logs;
+#[cfg(feature = "game")]
 mod parity_computers;
 #[cfg(feature = "game")]
 mod parity_crypto;
@@ -23,11 +25,17 @@ mod parity_devices;
 #[cfg(feature = "game")]
 mod parity_exploit_shop;
 #[cfg(feature = "game")]
+mod parity_game_over;
+#[cfg(feature = "game")]
 mod parity_guilds;
+#[cfg(feature = "game")]
+mod parity_lan_devices;
 #[cfg(feature = "game")]
 mod parity_language;
 #[cfg(feature = "game")]
 mod parity_library_updates;
+#[cfg(feature = "game")]
+mod parity_library_versions;
 #[cfg(feature = "game")]
 mod parity_logs;
 #[cfg(feature = "game")]
@@ -44,6 +52,8 @@ mod parity_npc_mail;
 mod parity_npcs;
 #[cfg(feature = "game")]
 mod parity_objects;
+#[cfg(feature = "game")]
+mod parity_payment_timing;
 #[cfg(feature = "game")]
 mod parity_programs;
 #[cfg(feature = "game")]

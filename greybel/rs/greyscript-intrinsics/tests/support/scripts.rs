@@ -6,6 +6,7 @@ use greybel_test_support::greyhack;
 use greybel_test_support::interpreter::{
     constant_clock, constant_clock_options, inline, run_to_end, runtime_error_of, snapshot_options,
 };
+use greyhack_world::prelude::*;
 use greyhack_world::{Database, PlayerOptions, World, WorldOptions};
 use greyhack_world_operations::WorldServer;
 use greyscript_intrinsics::API;
@@ -38,6 +39,20 @@ pub fn run_code_in(code: &str, game: bool) -> (String, Option<String>) {
 pub fn run_on_host(code: &str, world: World, admin: bool) -> (String, Option<String>, World) {
     let user = PlayerOptions::default().user;
     let run = greyhack::run_on_host(code, world, &user, admin, constant_clock_options());
+
+    (run.output, run.error, run.world)
+}
+
+/// Runs GreyScript as the default player typed into the safe-mode terminal the world runs, and returns its output,
+/// error, and resulting world.
+pub fn run_in_safe_terminal(
+    code: &str,
+    world: World,
+    admin: bool,
+) -> (String, Option<String>, World) {
+    let user = PlayerOptions::default().user;
+    let run =
+        greyhack::run_on_host_in_safe_terminal(code, world, &user, admin, constant_clock_options());
 
     (run.output, run.error, run.world)
 }

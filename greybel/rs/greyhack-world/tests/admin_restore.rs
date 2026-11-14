@@ -19,19 +19,37 @@ async fn should_turn_admin_restore_off_for_no_more_companies_than_the_perks_allo
 
     // Act
     let off = world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", &first, false)
         .await
         .unwrap();
     let again = world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", &first, false)
         .await
         .unwrap();
     let beyond = world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", &second, false)
         .await
         .unwrap();
-    let on = world.set_admin_restore("Owls", &first, true).await.unwrap();
+    let on = world
+        .modules
+        .guilds
+        .guilds
+        .set_admin_restore("Owls", &first, true)
+        .await
+        .unwrap();
     let after = world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", &second, false)
         .await
         .unwrap();
@@ -42,8 +60,24 @@ async fn should_turn_admin_restore_off_for_no_more_companies_than_the_perks_allo
     assert_eq!(beyond, Err(AdminRestoreFailure::OverLimit));
     assert_eq!(on, Ok(()));
     assert_eq!(after, Ok(()));
-    assert!(!world.is_admin_restore_disabled(&first).await.unwrap());
-    assert!(world.is_admin_restore_disabled(&second).await.unwrap());
+    assert!(
+        !world
+            .modules
+            .guilds
+            .guilds
+            .is_admin_restore_disabled(&first)
+            .await
+            .unwrap()
+    );
+    assert!(
+        world
+            .modules
+            .guilds
+            .guilds
+            .is_admin_restore_disabled(&second)
+            .await
+            .unwrap()
+    );
 }
 
 /// The perks are capped at five and the level caps them again (`GuildLevelRules.GetMaxAdminRestoreCompanies`).
@@ -59,8 +93,17 @@ async fn should_not_turn_admin_restore_off_below_the_level_that_may_invest() {
     let (hawks, _) = company(&mut world, "hawks-bank").await;
 
     // Act
-    let low_level = world.set_admin_restore("Owls", &owls, false).await.unwrap();
+    let low_level = world
+        .modules
+        .guilds
+        .guilds
+        .set_admin_restore("Owls", &owls, false)
+        .await
+        .unwrap();
     let no_perks = world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Hawks", &hawks, false)
         .await
         .unwrap();
@@ -83,18 +126,30 @@ async fn should_refuse_a_company_the_guild_does_not_own() {
 
     // Act
     let nobody = world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Nobody", &foreign, false)
         .await
         .unwrap();
     let invalid = world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", "not an address", false)
         .await
         .unwrap();
     let missing = world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", "1.2.3.4", false)
         .await
         .unwrap();
     let foreign_company = world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", &foreign, false)
         .await
         .unwrap();
@@ -120,11 +175,25 @@ async fn should_turn_admin_restore_on_for_a_company_that_has_it_on() {
     let (owned, _) = company(&mut world, "owls-bank").await;
 
     // Act
-    let on = world.set_admin_restore("Owls", &owned, true).await.unwrap();
+    let on = world
+        .modules
+        .guilds
+        .guilds
+        .set_admin_restore("Owls", &owned, true)
+        .await
+        .unwrap();
 
     // Assert
     assert_eq!(on, Ok(()));
-    assert!(!world.is_admin_restore_disabled(&owned).await.unwrap());
+    assert!(
+        !world
+            .modules
+            .guilds
+            .guilds
+            .is_admin_restore_disabled(&owned)
+            .await
+            .unwrap()
+    );
 }
 
 /// A guild that lost the company no longer has it off (`Guild.RemoveInvestedCompany`).
@@ -138,6 +207,9 @@ async fn should_forget_the_switch_of_a_company_the_guild_sold() {
     let (owned, _) = company(&mut world, "owls-bank").await;
 
     world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", &owned, false)
         .await
         .unwrap()
@@ -145,16 +217,30 @@ async fn should_forget_the_switch_of_a_company_the_guild_sold() {
 
     // Act
     world
+        .modules
+        .guilds
+        .guilds
         .set_company_shares(&owned, "owls-bank", 0)
         .await
         .unwrap();
     world
+        .modules
+        .guilds
+        .guilds
         .set_company_shares(&owned, "owls-bank", 2_000_000)
         .await
         .unwrap();
 
     // Assert
-    assert!(!world.is_admin_restore_disabled(&owned).await.unwrap());
+    assert!(
+        !world
+            .modules
+            .guilds
+            .guilds
+            .is_admin_restore_disabled(&owned)
+            .await
+            .unwrap()
+    );
 }
 
 /// An administrator whose company's guild turned Admin Restore off does not update, and nothing is stored: the
@@ -170,26 +256,47 @@ async fn should_skip_the_library_update_while_the_guild_has_admin_restore_off() 
     let before = versions(&world, &computers).await;
 
     world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", &owned, false)
         .await
         .unwrap()
         .unwrap();
 
     // Act
-    let skipped = world.report_library_update(&owned, SSH).await.unwrap();
+    let skipped = world
+        .modules
+        .libraries
+        .updates
+        .report_library_update(&owned, SSH)
+        .await
+        .unwrap();
     let skipped_unknown = world
+        .modules
+        .libraries
+        .updates
         .report_library_update(&owned, "libnothing.so")
         .await
         .unwrap();
     let kept = versions(&world, &computers).await;
 
     world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", &owned, true)
         .await
         .unwrap()
         .unwrap();
 
-    let reported = world.report_library_update(&owned, SSH).await.unwrap();
+    let reported = world
+        .modules
+        .libraries
+        .updates
+        .report_library_update(&owned, SSH)
+        .await
+        .unwrap();
     let after = versions(&world, &computers).await;
 
     // Assert
@@ -215,13 +322,22 @@ async fn should_not_skip_the_update_of_a_company_another_guild_turned_off() {
     let (foreign, _) = company(&mut world, "someone").await;
 
     world
+        .modules
+        .guilds
+        .guilds
         .set_admin_restore("Owls", &owned, false)
         .await
         .unwrap()
         .unwrap();
 
     // Act
-    let skipped = world.report_library_update(&foreign, SSH).await.unwrap();
+    let skipped = world
+        .modules
+        .libraries
+        .updates
+        .report_library_update(&foreign, SSH)
+        .await
+        .unwrap();
 
     // Assert
     assert_eq!(skipped, Some(Ok(())));
@@ -252,13 +368,36 @@ async fn should_mirror_the_admin_restore_state_of_the_guilds() {
     };
 
     // Act
-    world.mirror_guilds(&layout).await.unwrap();
+    world
+        .modules
+        .guilds
+        .guilds
+        .mirror_guilds(&layout)
+        .await
+        .unwrap();
 
     // Assert
-    assert!(world.is_admin_restore_disabled(&owned).await.unwrap());
-    assert_eq!(world.guilds().await.unwrap()[0].admin_restore_perks, 1);
+    assert!(
+        world
+            .modules
+            .guilds
+            .guilds
+            .is_admin_restore_disabled(&owned)
+            .await
+            .unwrap()
+    );
     assert_eq!(
-        world.report_library_update(&owned, SSH).await.unwrap(),
+        world.modules.guilds.guilds.guilds().await.unwrap()[0].admin_restore_perks,
+        1
+    );
+    assert_eq!(
+        world
+            .modules
+            .libraries
+            .updates
+            .report_library_update(&owned, SSH)
+            .await
+            .unwrap(),
         Some(Err(LibraryReportFailure::AdminRestoreOff))
     );
     assert_eq!(versions(&world, &computers).await, before);

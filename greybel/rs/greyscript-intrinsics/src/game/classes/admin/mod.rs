@@ -22,6 +22,8 @@ mod network;
 mod networks;
 mod rate_ctf_event;
 mod register_password;
+mod release_library_version;
+mod report_exploit;
 mod seed;
 mod set_date;
 mod snapshot;
@@ -73,6 +75,11 @@ pub(crate) const METHODS: &[(&str, &Native)] = &[
     ),
     ("rate_ctf_event", &rate_ctf_event::rate_ctf_event::NATIVE),
     ("create_guild", &create_guild::create_guild::NATIVE),
+    (
+        "release_library_version",
+        &release_library_version::release_library_version::NATIVE,
+    ),
+    ("report_exploit", &report_exploit::report_exploit::NATIVE),
 ];
 
 pub(crate) fn create(vm: &mut Vm) -> Value {

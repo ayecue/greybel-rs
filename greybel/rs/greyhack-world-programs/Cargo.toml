@@ -1,0 +1,26 @@
+[package]
+name = "greyhack-world-programs"
+description = "Program launch trees, typed object handles, and tree-local state for Grey Hack runtimes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+greybel-test-support.workspace = true
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

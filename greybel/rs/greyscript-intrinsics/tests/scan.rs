@@ -21,7 +21,7 @@ fn should_hide_weaknesses_from_an_outdated_metaxploit() {
 fn should_scan_weaknesses_with_a_current_metaxploit() {
     let (world, _, code) = scan_world("1.0.0", "1.0.0");
     // The world's newest SSH library is newer than this 1.0.0 file, so hidden zones are included.
-    let expected = library(&world, world.player(), "/lib/libssh.so")
+    let expected = library(&world, world.handle.player(), "/lib/libssh.so")
         .zones
         .len();
 
@@ -33,10 +33,10 @@ fn should_scan_weaknesses_with_a_current_metaxploit() {
 }
 
 #[test]
-fn should_include_hidden_zones_of_an_outdated_library_and_warn() {
+fn should_print_a_hidden_zone_warning_despite_the_read_routes_rollback() {
     let (world, _, code) = scan_world("1.0.0", "0.9.0");
 
-    let mut outdated = library(&world, world.player(), "/lib/libssh.so");
+    let mut outdated = library(&world, world.handle.player(), "/lib/libssh.so");
 
     outdated.version = "0.8.0".to_owned();
     outdated
@@ -46,9 +46,9 @@ fn should_include_hidden_zones_of_an_outdated_library_and_warn() {
         .unwrap()
         .weaknesses[0]
         .metaxploit_version = "9.9.9".to_owned();
-    set_library(&world, world.player(), "/lib/libssh.so", outdated);
+    set_library(&world, world.handle.player(), "/lib/libssh.so", outdated);
 
-    let expected = library(&world, world.player(), "/lib/libssh.so")
+    let expected = library(&world, world.handle.player(), "/lib/libssh.so")
         .zones
         .len();
 

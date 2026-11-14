@@ -1,28 +1,9 @@
-//! World persistence: schema, connection, and table-group queries implemented as `impl Database`
-//! blocks.
+//! Persistence of the domains above core: schemas and one repository per table area.
 
-mod computers;
-mod ctf;
-mod database;
-mod debug;
-mod economy;
-mod exploits;
-mod guilds;
-mod hardware;
-mod libraries;
-mod mail;
-pub(crate) mod nodes;
-mod npcs;
-mod repositories;
-mod routers;
-mod routines;
+pub(crate) mod open;
+pub(crate) mod routines;
 pub(crate) mod schema;
-pub(crate) mod sql;
-mod subscribers;
-mod traces;
-mod users;
-#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
-mod web_io;
-pub(crate) mod world_meta;
 
-pub use database::Database;
+pub use greyhack_world_core::Database;
+pub use open::DatabaseOpen;
+pub(crate) use routines::RoutineRepository;

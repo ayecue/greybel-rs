@@ -1,5 +1,5 @@
-//! Procedural missions (`ProcMissionBuilder.BuildMission`, `MissionGen.GetProceduralMission`,
-//! `IPGroupManager.GetRandomGroupForMission`, `Router.PostGenMission`).
+//! Missions of every kind (`MissionGen.GetMission`, `MissionGen.GetProceduralMission`, `ProcMissionBuilder.BuildMission`,
+//! `IPGroupManager.GetRandomGroupForMission`, `NetworkLan.CreateMission`, `Router.PostGenMission`).
 //!
 //! The game draws the group of a mission with a random start, so each test asks the game for a group and builds the
 //! same mission in the simulation from the group's addresses and the world secret, which fix it. The network the game
@@ -10,16 +10,18 @@
 
 use greybel_test_support::game::Game;
 use greyhack_behaviour::{MissionKind, WorldSeed, mission_for_group};
-use greyhack_world::{PlayerOptions, World, procedural_mission_json};
+use greyhack_world::{PlayerOptions, World, mission_json};
 use serde_json::Value;
 
 use crate::support::game::{setup_player, test_client};
 use crate::support::parity_missions::{
-    mission_files, names_and_permissions, simulated_files, use_game_word_lists,
+    GENERATED, KINDS, Observed, mission_files, mission_found, mission_rule_count, mission_websites,
+    simulated_files, use_game_word_lists, zero_day_services,
 };
 
-/// Both the game and the simulation build the same procedural mission for a group of addresses: archetype, beats,
-/// items, runtime tags, NPCs and file names (`ProcMissionBuilder.BuildMission`).
+/// Both the game and the simulation build the same mission of every kind for a group of addresses: the authored
+/// mission with its NPCs drawn from the seed of the group, or the procedural archetype, beats, items, runtime tags,
+/// NPCs and file names (`MissionGen.GetMission`, `ProcMissionBuilder.BuildMission`).
 #[tokio::test]
 async fn should_build_the_missions_the_game_builds() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
@@ -31,21 +33,15 @@ async fn should_build_the_missions_the_game_builds() {
     let secret = client.network_state().await.unwrap().world_secret.to_vec();
     let seed = WorldSeed::new(secret);
 
-    for police in [false, true] {
-        let kind = if police {
-            MissionKind::PoliceProcedural
-        } else {
-            MissionKind::Procedural
-        };
-
+    for kind in KINDS {
         for index in 0..kind.count() {
-            let reply = client.procedural_mission(police, index).await.unwrap();
+            let reply = client.mission(kind.name(), index).await.unwrap();
             let group: Vec<String> = reply.group.iter().map(ToString::to_string).collect();
             let in_game: Value = serde_json::from_str(&reply.mission).unwrap();
 
             assert_eq!(mission_for_group(&seed, &group), Some((kind, index)));
             assert_eq!(
-                procedural_mission_json(&seed, &group, police),
+                mission_json(&seed, &group, kind, index),
                 Some(in_game),
                 "mission {index} of {}",
                 kind.name()
@@ -57,7 +53,7 @@ async fn should_build_the_missions_the_game_builds() {
 }
 
 /// The networks of a mission hold the files its items name, with the permissions and texts the mission fixes, in the
-/// game and in the simulation (`NetworkLan.CreateMission`, `Router.PostGenMission`).
+/// game and in the simulation (`NetworkLan.CreateMission`, `Router.PostGenMission`), for every kind of mission.
 #[tokio::test]
 async fn should_give_the_mission_networks_the_files_the_game_does() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
@@ -68,50 +64,184 @@ async fn should_give_the_mission_networks_the_files_the_game_does() {
 
     let secret = client.network_state().await.unwrap().world_secret.to_vec();
 
-    for police in [false, true] {
-        let reply = client.procedural_mission(police, 0).await.unwrap();
+    for (kind, mission_index) in GENERATED {
+        let reply = client.mission(kind.name(), mission_index).await.unwrap();
         let mission: Value = serde_json::from_str(&reply.mission).unwrap();
-        let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+        let world = World::new(&PlayerOptions::default()).await.unwrap();
 
         world.set_world_secret(secret.clone());
+        assert!(world.modules.routines.set_date(&reply.current_date));
 
         for (index, network) in reply.networks.iter().enumerate() {
             let wanted = mission_files(&mission, index);
-            let in_game = names_and_permissions(
+            let websites = mission_websites(&mission, index);
+            let in_game = mission_found(
                 network
                     .computers
                     .iter()
                     .flat_map(|computer| computer.files.iter())
-                    .map(|file| {
-                        (
-                            file.path.to_string(),
-                            file.permissions.to_string(),
-                            file.content.to_string(),
-                            file.binary,
-                        )
+                    .filter(|file| !file.folder)
+                    .map(|file| Observed {
+                        path: file.path.to_string(),
+                        owner: file.owner.to_string(),
+                        permissions: file.permissions.to_string(),
+                        content: file.content.to_string(),
+                        binary: file.binary,
                     }),
                 &wanted,
+                &websites,
             );
 
             world.begin().await.unwrap();
-            world.router_or_generate(&network.public_ip).await.unwrap();
+            world
+                .modules
+                .creation
+                .network_generation
+                .router_or_generate(&network.public_ip)
+                .await
+                .unwrap();
             world.commit().await.unwrap();
 
-            let router = world.router_at(&network.public_ip).await.unwrap().unwrap();
+            let router = world
+                .modules
+                .core
+                .networks
+                .routers
+                .router_at(&network.public_ip)
+                .await
+                .unwrap()
+                .unwrap();
             let mut files = Vec::new();
+            let computers = world
+                .modules
+                .core
+                .networks
+                .topology
+                .devices(router.id)
+                .await
+                .unwrap();
 
-            for computer in world.devices(router.id).await.unwrap() {
-                files.extend(simulated_files(&world, computer).await);
+            for computer in &computers {
+                files.extend(simulated_files(&world, *computer).await);
             }
 
-            let simulated = names_and_permissions(files.into_iter(), &wanted);
+            let simulated = mission_found(files.into_iter(), &wanted, &websites);
 
+            // The two sides generate networks of different sizes (each draws its own computers), so the count of
+            // computers is only reported.
             assert_eq!(
                 in_game,
                 simulated,
-                "network {index} of the {} mission",
-                if police { "police" } else { "hack shop" }
+                "network {index} of mission {mission_index} of {} ({} computers in the game, {} in the simulation)",
+                kind.name(),
+                network.computers.len(),
+                computers.len() + 1
             );
+        }
+    }
+
+    client.shutdown();
+}
+
+/// The firewall rules a mission gives the main router of a network come first and are the game's, repeated as the
+/// game repeats them, and the zero-day services are forwarded from their own ports
+/// (`NetworkLan.ConfigureChainMission`, `NetworkLan.ConfigurePendingFwItems`, `NetworkLan.ConfigMainFirewall`).
+#[tokio::test]
+async fn should_give_the_main_routers_the_rules_and_forwards_the_game_does() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+
+    use_game_word_lists(&client).await;
+    setup_player(&client).await;
+
+    let secret = client.network_state().await.unwrap().world_secret.to_vec();
+
+    for (kind, mission_index) in [(MissionKind::Secret, 4), (MissionKind::ZeroDay, 0)] {
+        let reply = client.mission(kind.name(), mission_index).await.unwrap();
+        let mission: Value = serde_json::from_str(&reply.mission).unwrap();
+        let world = World::new(&PlayerOptions::default()).await.unwrap();
+
+        world.set_world_secret(secret.clone());
+        assert!(world.modules.routines.set_date(&reply.current_date));
+
+        for (index, network) in reply.networks.iter().enumerate() {
+            world.begin().await.unwrap();
+            world
+                .modules
+                .creation
+                .network_generation
+                .router_or_generate(&network.public_ip)
+                .await
+                .unwrap();
+            world.commit().await.unwrap();
+
+            let router = world
+                .modules
+                .core
+                .networks
+                .routers
+                .router_at(&network.public_ip)
+                .await
+                .unwrap()
+                .unwrap();
+            let simulated: Vec<(String, String, String, String)> = world
+                .modules
+                .core
+                .networks
+                .router_config
+                .firewall_rules(router.id)
+                .await
+                .unwrap()
+                .into_iter()
+                .map(|rule| {
+                    let any = |value: Option<String>| value.unwrap_or_else(|| "Any".to_owned());
+
+                    (
+                        if rule.allow { "ALLOW" } else { "DENY" }.to_owned(),
+                        any(rule.port.map(|port| port.to_string())),
+                        any(rule.source),
+                        any(rule.destination),
+                    )
+                })
+                .collect();
+            let in_game: Vec<(String, String, String, String)> = network
+                .firewall_rules
+                .iter()
+                .map(|rule| {
+                    (
+                        rule.action.to_string(),
+                        rule.port.to_string(),
+                        rule.source.to_string(),
+                        rule.destination.to_string(),
+                    )
+                })
+                .collect();
+            let mission_rules = mission_rule_count(&mission, index);
+
+            assert!(in_game.len() >= mission_rules);
+            assert_eq!(
+                simulated[..mission_rules],
+                in_game[..mission_rules],
+                "network {index} of mission {mission_index} of {}",
+                kind.name()
+            );
+
+            // `ConfigMainFirewall`: a main router with rules allows each forwarded port of the table.
+            assert_eq!(simulated.is_empty(), in_game.is_empty());
+
+            if kind != MissionKind::ZeroDay || index == 0 {
+                continue;
+            }
+
+            for service in zero_day_services(&mission, index) {
+                let forwards: Vec<&_> = network
+                    .ports
+                    .iter()
+                    .filter(|port| port.number == service.default_port())
+                    .collect();
+
+                assert_eq!(forwards.len(), 1, "{service:?} of network {index}");
+            }
         }
     }
 

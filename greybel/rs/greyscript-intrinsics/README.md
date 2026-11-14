@@ -341,7 +341,7 @@ World-level helpers are `seed`, `snapshot`, `tick`, `set_date`,
 `create_program`, `exploit_shop`, `buy_exploit`, `register_password`,
 `create_mail_account`, `create_ctf_account`, `accept_mission`,
 `create_debug_account`, `deposit`, `grant_coins`, `create_ctf_event`,
-`rate_ctf_event`, and `create_guild`.
+`rate_ctf_event`, `create_guild`, `release_library_version`, and `report_exploit`.
 
 `admin.network(public_ip)` returns an `adminNetwork` with `computer`,
 `add_computer`, `fire_npc`, `hire_npc`, `hire_admin`, `fire_admin`, `remove`,

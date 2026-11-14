@@ -5,7 +5,9 @@ use greybel_test_support::game::Game;
 use greyhack_behaviour::SAFE_MODE_TERMINAL;
 
 use crate::support::game::{join_network_where, setup_player, test_client};
-use crate::support::parity_restart::{LAUNCH, SETUP, STATE, connect, routers};
+use crate::support::parity_restart::{
+    LAUNCH, LAUNCH_PARENT, SETUP, SETUP_PARENT, STATE, connect, routers,
+};
 use crate::support::restart::{Phase, compare_with_restarts};
 
 /// The network the player connected to last is the one it connects to when its computer starts again: first the main
@@ -70,6 +72,57 @@ async fn should_match_intrinsics_for_launching_in_the_safe_mode_terminal() {
     let output = |index: usize| outcomes[index].output.clone().unwrap_or_default();
 
     assert!(!output(1).contains("ran"), "{}", output(1));
+    assert!(output(2).contains("ran"), "{}", output(2));
+    assert!(!output(3).contains("ran"), "{}", output(3));
+    client.shutdown();
+}
+
+/// The safe-mode terminal's flag belongs to the terminal a program is typed into: a program typed into it launches
+/// what it has no execute permission for, one typed into a terminal that isn't protected doesn't, while the computer
+/// runs the safe-mode terminal (`GreyScriptHelperServer.PrepareTerminalServerRpc`: `Proceso.isProtected` is
+/// `GreyInterpreter.isSafeTerminal`).
+#[tokio::test]
+async fn should_match_intrinsics_for_programs_typed_into_and_outside_the_safe_mode_terminal() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let snapshot = client.network_state().await.unwrap();
+    let phases = [
+        Phase::Script(SETUP),
+        Phase::Restart { safe_mode: true },
+        Phase::TerminalScript(LAUNCH, true),
+        Phase::TerminalScript(LAUNCH, false),
+        Phase::TerminalScript(LAUNCH, true),
+    ];
+
+    let outcomes = compare_with_restarts(&client, &user, &snapshot, &phases).await;
+    let output = |index: usize| outcomes[index].output.clone().unwrap_or_default();
+
+    assert!(output(1).contains("ran"), "{}", output(1));
+    assert!(!output(2).contains("ran"), "{}", output(2));
+    assert!(output(3).contains("ran"), "{}", output(3));
+    client.shutdown();
+}
+
+/// What a program of the safe-mode terminal launches runs in that terminal too, and what a program outside it launches
+/// doesn't (`ShellIntrinsics.launch` continues the launching interpreter, which keeps `isSafeTerminal`).
+#[tokio::test]
+async fn should_match_intrinsics_for_programs_launched_by_a_safe_mode_terminal_program() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let snapshot = client.network_state().await.unwrap();
+    let phases = [
+        Phase::Script(SETUP),
+        Phase::Script(SETUP_PARENT),
+        Phase::Restart { safe_mode: true },
+        Phase::TerminalScript(LAUNCH_PARENT, true),
+        Phase::TerminalScript(LAUNCH_PARENT, false),
+    ];
+
+    let outcomes = compare_with_restarts(&client, &user, &snapshot, &phases).await;
+    let output = |index: usize| outcomes[index].output.clone().unwrap_or_default();
+
     assert!(output(2).contains("ran"), "{}", output(2));
     assert!(!output(3).contains("ran"), "{}", output(3));
     client.shutdown();

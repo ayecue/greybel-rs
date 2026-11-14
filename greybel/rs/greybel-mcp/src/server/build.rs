@@ -61,7 +61,7 @@ pub struct BuildRequest {
 #[tool_router(router = build_router, vis = "pub(super)")]
 impl Server {
     #[tool(
-        description = "Builds a GreyScript file with the files it imports, as Grey Hack runs them from a folder in the game, with the settings of its project's greybel.json; optionally with installer scripts. Writes the files into an output folder, or returns their code."
+        description = "BuildService a GreyScript file with the files it imports, as Grey Hack runs them from a folder in the game, with the settings of its project's greybel.json; optionally with installer scripts. Writes the files into an output folder, or returns their code."
     )]
     async fn build(
         &self,

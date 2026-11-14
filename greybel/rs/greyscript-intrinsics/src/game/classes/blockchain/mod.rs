@@ -10,13 +10,13 @@ use crate::game::client::receiver;
 use crate::game::client::receiver::receiver;
 use crate::protocol::{Figure, ObjectId, WalletLogin};
 
-mod mine_amount;
 mod coin_price;
 mod create_wallet;
 mod delete_coin;
 mod get_coin;
 mod get_coin_name;
 mod login_wallet;
+mod mine_amount;
 mod show_history;
 
 pub(crate) const METHODS: &[(&str, &Native)] = &[

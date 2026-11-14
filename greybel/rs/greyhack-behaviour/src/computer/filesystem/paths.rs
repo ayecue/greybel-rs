@@ -33,17 +33,23 @@ pub fn bank_config_path(user: &str) -> String {
     format!("{}/Config/Bank.txt", path::home(user))
 }
 
-/// Returns the folders and permissions of a new home folder: [`HOME_FOLDERS`] with `folder_permissions`
-/// permissions, then the private [`TRASH_FOLDER`] (`FileSystem.GenerateHomeFolders`). Regular
-/// users use [`PermissionSet::GROUP_FOLDER`] and `guest` [`PermissionSet::OPEN_FOLDER`].
+/// Returns the folders and permissions of a new home folder: Desktop and Downloads with
+/// `folder_permissions`, Config with [`PermissionSet::HOME_FOLDER`] unless the home is open, then the
+/// private [`TRASH_FOLDER`] (`FileSystem.GenerateHomeFolders`). Regular users use
+/// [`PermissionSet::GROUP_FOLDER`] and `guest` [`PermissionSet::OPEN_FOLDER`].
 #[must_use]
 pub fn home_folders(folder_permissions: PermissionSet) -> [(&'static str, PermissionSet); 4] {
     let [desktop, downloads, config] = HOME_FOLDERS;
+    let config_permissions = if folder_permissions == PermissionSet::OPEN_FOLDER {
+        PermissionSet::OPEN_FOLDER
+    } else {
+        PermissionSet::HOME_FOLDER
+    };
 
     [
         (desktop, folder_permissions),
         (downloads, folder_permissions),
-        (config, folder_permissions),
+        (config, config_permissions),
         (TRASH_FOLDER, PermissionSet::PRIVATE_FOLDER),
     ]
 }

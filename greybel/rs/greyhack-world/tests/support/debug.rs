@@ -4,22 +4,39 @@ use greyhack_world::{ComputerId, DebugAccount, NodeDraft, PlayerOptions, World};
 pub const LIBRARY_PATH: &str = "/lib/metaxploit.so";
 
 pub async fn debug_world() -> (World, ComputerId) {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
-    let computer = world.player();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
 
-    world.register_password("secret").await.unwrap();
     world
+        .modules
+        .core
+        .computers
+        .users
+        .register_password("secret")
+        .await
+        .unwrap();
+    world
+        .modules
+        .libraries
+        .debug
         .save_debug_account(&DebugAccount::new("dbg", "secret"))
         .await
         .unwrap();
 
     let root = world
+        .modules
+        .core
+        .files
+        .lookup
         .folder(computer, "/root", true)
         .await
         .unwrap()
         .unwrap();
 
     let challenge = world
+        .modules
+        .libraries
+        .debug
         .debug_library(computer, LIBRARY_PATH)
         .await
         .unwrap()
@@ -27,7 +44,10 @@ pub async fn debug_world() -> (World, ComputerId) {
         .challenge();
 
     world
-        .add_node(
+        .modules
+        .libraries
+        .generator
+        .add_full_node(
             &root,
             &NodeDraft::file(
                 "patch.src",

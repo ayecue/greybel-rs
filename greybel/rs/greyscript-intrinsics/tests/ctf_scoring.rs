@@ -21,22 +21,24 @@ print admin.rate_ctf_event("mission", 5, 4)
     assert_eq!(error, None);
     assert_eq!(output, "675\n160\nYou have already rated this mission");
     assert_eq!(
-        block_on(restored.bank_account("test"))
+        block_on(restored.modules.economy.bank.bank_account("test"))
             .unwrap()
             .unwrap()
             .money,
         3675.0
     );
     assert_eq!(
-        block_on(restored.bank_account("owner"))
+        block_on(restored.modules.economy.bank.bank_account("owner"))
             .unwrap()
             .unwrap()
             .money,
         160.0
     );
 
-    let event = block_on(restored.ctf_event("mission")).unwrap().unwrap();
-    let players = block_on(restored.ctf_players("mission")).unwrap();
+    let event = block_on(restored.modules.player.ctf.ctf_event("mission"))
+        .unwrap()
+        .unwrap();
+    let players = block_on(restored.modules.player.ctf.ctf_players("mission")).unwrap();
 
     assert_eq!(event.quality_rank, 5);
     assert_eq!(event.difficulty_rank, 4);
@@ -44,7 +46,10 @@ print admin.rate_ctf_event("mission", 5, 4)
     assert!(event.is_rated);
     assert_eq!(players[0].quality_rate, 5);
     assert_eq!(players[0].difficulty_rate, 4);
-    assert_eq!(block_on(restored.ctf_creator_score(owner)).unwrap(), 4.0);
+    assert_eq!(
+        block_on(restored.modules.player.ctf.ctf_creator_score(owner)).unwrap(),
+        4.0
+    );
 }
 
 #[tokio::test]
@@ -52,7 +57,10 @@ async fn should_preserve_ctf_ratings() {
     let (mut world, _) = scoring_world();
 
     world
-        .add_ctf_score("mission", world.player(), 5, 4)
+        .modules
+        .player
+        .ctf
+        .add_ctf_score("mission", world.handle.player(), 5, 4)
         .await
         .unwrap()
         .unwrap();
@@ -61,8 +69,21 @@ async fn should_preserve_ctf_ratings() {
 
     let restored = World::load(&database).await.unwrap();
 
-    let event = restored.ctf_event("mission").await.unwrap().unwrap();
-    let players = restored.ctf_players("mission").await.unwrap();
+    let event = restored
+        .modules
+        .player
+        .ctf
+        .ctf_event("mission")
+        .await
+        .unwrap()
+        .unwrap();
+    let players = restored
+        .modules
+        .player
+        .ctf
+        .ctf_players("mission")
+        .await
+        .unwrap();
 
     assert!(event.is_rated);
     assert_eq!(event.quality_rank, 5);
@@ -72,63 +93,99 @@ async fn should_preserve_ctf_ratings() {
     assert_eq!(players[0].difficulty_rate, 4);
     assert_eq!(event.creator_bank_user, "owner");
     assert_eq!(
-        restored.bank_account("test").await.unwrap().unwrap().money,
+        restored
+            .modules
+            .economy
+            .bank
+            .bank_account("test")
+            .await
+            .unwrap()
+            .unwrap()
+            .money,
         3675.0
     );
 }
 
 #[test]
 fn should_reject_invalid_and_incomplete_ctf_ratings() {
-    let (mut world, owner) = scoring_world();
+    let (world, owner) = scoring_world();
 
     assert_eq!(
-        block_on(world.add_ctf_score("mission", world.player(), 0, 4)).unwrap(),
+        block_on(
+            world
+                .modules
+                .player
+                .ctf
+                .add_ctf_score("mission", world.handle.player(), 0, 4)
+        )
+        .unwrap(),
         Err(CtfFailure::InvalidScore)
     );
     assert_eq!(
-        block_on(world.add_ctf_score("mission", owner, 5, 4)).unwrap(),
+        block_on(
+            world
+                .modules
+                .player
+                .ctf
+                .add_ctf_score("mission", owner, 5, 4)
+        )
+        .unwrap(),
         Err(CtfFailure::Incomplete)
     );
 }
 
-/// A creator may rate their own event (`CTF_Event.AddScore`): the rating counts, both rewards go to them, and they
-/// leave its players, so rating again needs completing it again.
+/// A creator cannot rate their own event (`CTF_Event.AddScore`), and the refusal neither changes
+/// its ratings nor removes their completed participation.
 #[test]
-fn should_count_a_creators_own_ctf_rating_and_remove_them_from_its_players() {
-    let (mut world, owner) = scoring_world();
+fn should_refuse_a_creators_own_ctf_rating_and_keep_them_in_its_players() {
+    let (world, owner) = scoring_world();
 
-    assert!(block_on(world.add_ctf_player("mission", owner)).unwrap());
-    assert!(block_on(world.player_success("mission", owner)).unwrap());
+    assert!(block_on(world.modules.player.ctf.add_ctf_player("mission", owner)).unwrap());
+    assert!(block_on(world.modules.player.ctf.player_success("mission", owner)).unwrap());
     assert_eq!(
-        block_on(world.add_ctf_score("mission", owner, 5, 4)).unwrap(),
-        Ok((675, 160))
+        block_on(
+            world
+                .modules
+                .player
+                .ctf
+                .add_ctf_score("mission", owner, 5, 4)
+        )
+        .unwrap(),
+        Err(CtfFailure::OwnEvent)
     );
 
-    let event = block_on(world.ctf_event("mission")).unwrap().unwrap();
+    let event = block_on(world.modules.player.ctf.ctf_event("mission"))
+        .unwrap()
+        .unwrap();
 
-    assert!(event.is_rated);
+    assert!(!event.is_rated);
     assert_eq!(
         (event.quality_rank, event.difficulty_rank, event.num_votes),
-        (5, 4, 1)
+        (3, 3, 1)
     );
 
-    let creator = block_on(world.person_on(owner)).unwrap().unwrap();
+    let creator = block_on(world.modules.npcs.npcs.person_on(owner))
+        .unwrap()
+        .unwrap();
+    let players = block_on(world.modules.player.ctf.ctf_players("mission")).unwrap();
 
-    assert!(
-        block_on(world.ctf_players("mission"))
-            .unwrap()
-            .iter()
-            .all(|player| player.person != creator)
-    );
+    assert!(players.iter().any(|player| player.person == creator));
     assert_eq!(
-        block_on(world.bank_account("owner"))
+        block_on(world.modules.economy.bank.bank_account("owner"))
             .unwrap()
             .unwrap()
             .money,
-        835.0
+        0.0
     );
     assert_eq!(
-        block_on(world.add_ctf_score("mission", owner, 5, 4)).unwrap(),
-        Err(CtfFailure::Incomplete)
+        block_on(
+            world
+                .modules
+                .player
+                .ctf
+                .add_ctf_score("mission", owner, 5, 4)
+        )
+        .unwrap(),
+        Err(CtfFailure::OwnEvent)
     );
 }

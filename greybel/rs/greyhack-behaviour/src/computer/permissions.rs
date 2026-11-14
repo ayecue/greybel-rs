@@ -77,6 +77,8 @@ impl PermissionSet {
     pub const GROUP_FOLDER: Self = Self(*b"drwxrwx---");
     /// `-rw-r-----`: the owner reads and writes the file and the group reads it.
     pub const GROUP_READ_FILE: Self = Self(*b"-rw-r-----");
+    /// `drwxrwxr-x`: the owner and group use the folder; others read and enter it.
+    pub const HOME_FOLDER: Self = Self(*b"drwxrwxr-x");
     /// `-rwxrwxrwx`: every user reads, writes, and runs the file.
     pub const OPEN_FILE: Self = Self(*b"-rwxrwxrwx");
     /// `drwxrwxrwx`: every user reads, writes, and enters the folder.

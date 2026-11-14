@@ -26,9 +26,7 @@ pub fn get_global_offers(
         vm,
         server(vm)?.send_wallet_get_global_offers(&message),
         |vm, offers| match offers {
-            GlobalOffers::Failure(failure) => {
-                failure_value("get_global_offers", &failure)
-            }
+            GlobalOffers::Failure(failure) => failure_value("get_global_offers", &failure),
             GlobalOffers::Offers(offers) => {
                 let heap = vm.heap_mut();
                 let entries: Vec<(Value, Value)> = offers

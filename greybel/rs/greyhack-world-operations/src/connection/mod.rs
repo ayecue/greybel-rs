@@ -1,42 +1,32 @@
 //! Runtime connection state, operation routing, and script-object storage.
 
 mod lifecycle;
-pub(crate) mod objects;
-mod operation;
 
 use std::rc::{Rc, Weak};
 
 use duplex_core::{
-    Channel, Driver, Exchange, Message, Responder, ValidatedDecode, ValidatedEncode, ValueResponse,
+    Channel, Dispatch, Driver, NextMessage, NextNotification, NotificationMessage, Responder,
+    ValidatedDecode, ValidatedEncode,
 };
-use greyhack_world::{ComputerId, World};
-use objects::ObjectTable;
-pub(crate) use operation::Operation;
+use greyhack_world::{World, WorldError};
+use greyhack_world_router::{
+    Call, CycleDriverRef, Cycles, Operation, OperationResponse, ResponderOf, RouteCall,
+    RouteContext, RouteKind,
+};
 use scheduler::{LocalTask, Scheduler};
 
-use crate::protocol::{
-    GameServer, ObjectId, ProgramId, ProgramThrottle, ReleaseObjects, ScriptFailure,
-};
-use crate::server::{ServerState, WorldState};
-use crate::{OperationError, Result, classes};
+use crate::protocol::{GameServer, ProgramId, ProgramThrottle, ReleaseObjects, ScriptFailure};
+use crate::server::ServerState;
+use crate::{OperationError, Result};
 
-/// Runtime connection with its programs' script objects.
+/// Runtime connection with its program trees.
 pub(crate) struct Connection {
     state: Weak<ServerState>,
     pub(crate) id: u32,
     /// Task spawner bound to the connection transport's scheduler.
     spawn: Spawn,
-}
-
-/// Running program context: its shell object, terminal computers, and root process.
-pub(crate) struct Caller {
-    /// The program that sent the operation.
-    pub(crate) program: u32,
-    pub(crate) session: ObjectId,
-    pub(crate) terminal_computers: Vec<ComputerId>,
-    pub(crate) root_process: Option<(ComputerId, u32)>,
-    /// The caller's process when it is a command a terminal runs (`HelperScript.subPID`).
-    pub(crate) terminal_command_process: Option<(ComputerId, u32)>,
+    /// Sends throttling notices through the connection's channel.
+    throttle: Rc<dyn Fn(ProgramThrottle)>,
 }
 
 /// Task-spawning callback for a transport scheduler.
@@ -55,10 +45,18 @@ pub(crate) fn attach<D: Driver>(
     id: u32,
     channel: &Channel<GameServer, D>,
 ) {
+    let throttle = {
+        let channel = channel.clone();
+
+        move |notice| {
+            let _ = channel.send(&notice);
+        }
+    };
     let connection = Rc::new(Connection {
         state: Rc::downgrade(state),
         id,
         spawn: spawner(channel),
+        throttle: Rc::new(throttle),
     });
     let releases = Rc::clone(&connection);
 
@@ -72,20 +70,11 @@ pub(crate) fn attach<D: Driver>(
         }));
     });
     lifecycle::attach(&connection, channel);
-    classes::attach(&connection, channel);
+    crate::protocol::attach_dispatch(channel, connection.clone());
 }
 
-/// Client peer used to send operation messages.
-type Client = <GameServer as duplex_core::Peer>::Remote;
-
-/// Operation result `R` or raised script failure.
-type OperationResponse<R> = ValueResponse<R, ScriptFailure>;
-
-/// Responder associated with message `M`.
-type ResponderOf<M> = <<M as Message>::Exchange as Exchange>::Responder;
-
-/// Handlers resolve object IDs in the connection table and register returned objects. Messages with
-/// unknown objects are dropped. Database failures also drop the message after recording the error for
+/// Handlers resolve object IDs in their program tree and register returned objects. Messages with unknown
+/// objects are dropped. Database failures also drop the message after recording the error for
 /// [`WorldServer::save`](crate::WorldServer::save).
 impl Connection {
     /// Upgrades the server reference, returning `None` after the server is dropped.
@@ -93,17 +82,17 @@ impl Connection {
         self.state.upgrade()
     }
 
-    /// Handles each message `M` in a separate task and returns `run`'s result or
-    /// script failure. Used for operations that wait outside cycles, such as deferred jobs; `run` manages
-    /// its own cycles.
+    /// Runs a lifecycle message in its own task and returns its typed response.
     pub(crate) fn operate<D, M, R>(
         self: &Rc<Self>,
         channel: &Channel<GameServer, D>,
         run: impl AsyncFn(&Rc<ServerState>, &Self, M) -> Result<R> + 'static,
     ) where
         D: Driver,
-        M: Message<Sender = Client, Exchange = OperationResponse<R>>
-            + Operation
+        M: duplex_core::Message<
+                Sender = greyhack_world_router::Client,
+                Exchange = OperationResponse<R>,
+            > + Operation
             + ValidatedDecode
             + 'static,
         R: ValidatedEncode + ValidatedDecode + 'static,
@@ -124,128 +113,216 @@ impl Connection {
                 let program = message.program();
                 let result = run(&state, &connection, message).await;
 
-                respond(&state, &output, (connection.id, program), responder, result);
+                if let Some(program) = program
+                    && matches!(
+                        result,
+                        Err(OperationError::Script(ScriptFailure::ConnectionInterrupted))
+                    )
+                {
+                    state
+                        .cycle(
+                            async |world_state| {
+                                state
+                                    .close_lost_terminal(
+                                        world_state,
+                                        connection.id,
+                                        program,
+                                        &result,
+                                        false,
+                                    )
+                                    .await;
+                            },
+                            true,
+                        )
+                        .await;
+                }
+
+                respond_lifecycle(&state, &output, (connection.id, program), responder, result);
             }));
         });
     }
 
-    /// Runs `read` in a separate world cycle for each message `M`, using the running program's caller
-    /// context, and returns its result.
-    pub(crate) fn read<D, M, R>(
-        self: &Rc<Self>,
-        channel: &Channel<GameServer, D>,
-        read: impl AsyncFn(&World, &mut ObjectTable, M, &Caller) -> Result<R> + 'static,
-    ) where
-        D: Driver,
-        M: Message<Sender = Client, Exchange = OperationResponse<R>>
-            + Operation
-            + ValidatedDecode
-            + 'static,
-        R: ValidatedEncode + ValidatedDecode + 'static,
-    {
-        let read = Rc::new(read);
-
-        self.cycle(
-            channel,
-            async move |state, connection, message: M, caller| {
-                let (world, objects) = state.of(connection);
-
-                read(world, objects, message, caller).await
-            },
-        );
-    }
-
-    /// Runs `change` in a separate world cycle for each message `M`, using the running program's caller
-    /// context, and returns its result.
-    pub(crate) fn change<D, M, R>(
-        self: &Rc<Self>,
-        channel: &Channel<GameServer, D>,
-        change: impl AsyncFn(&mut World, &mut ObjectTable, M, &Caller) -> Result<R> + 'static,
-    ) where
-        D: Driver,
-        M: Message<Sender = Client, Exchange = OperationResponse<R>>
-            + Operation
-            + ValidatedDecode
-            + 'static,
-        R: ValidatedEncode + ValidatedDecode + 'static,
-    {
-        let change = Rc::new(change);
-
-        self.cycle(
-            channel,
-            async move |state, connection, message: M, caller| {
-                let (world, objects) = state.of(connection);
-
-                change(world, objects, message, caller).await
-            },
-        );
-    }
-
-    /// Runs `apply` for each message `M` in its own cycle. The source program must still be running, and
-    /// the response is sent before the cycle ends.
-    fn cycle<D, M, R>(
-        self: &Rc<Self>,
-        channel: &Channel<GameServer, D>,
-        apply: impl AsyncFn(&mut WorldState, u32, M, &Caller) -> Result<R> + 'static,
-    ) where
-        D: Driver,
-        M: Message<Sender = Client, Exchange = OperationResponse<R>>
-            + Operation
-            + ValidatedDecode
-            + 'static,
-        R: ValidatedEncode + ValidatedDecode + 'static,
-    {
+    /// Runs a one-cycle typed route package and responds after its effects settle.
+    fn cycle_route(self: &Rc<Self>, route: Box<dyn RouteCall<World, WorldError>>, commit: bool) {
         let connection = Rc::clone(self);
-        let apply = Rc::new(apply);
-        let output = channel.clone();
+        let spawn = Rc::clone(&connection.spawn);
 
-        channel.handle(move |message: M, responder: ResponderOf<M>, _next| {
-            let (connection, apply, output) =
-                (Rc::clone(&connection), Rc::clone(&apply), output.clone());
-            let spawn = Rc::clone(&connection.spawn);
+        spawn(Box::pin(async move {
+            let Some(state) = connection.state() else {
+                return;
+            };
+            let program = route.program();
+            let key = program.and_then(|program| state.trees.of_program(program));
 
-            spawn(Box::pin(async move {
-                let Some(state) = connection.state() else {
-                    return;
-                };
-                let program = message.program();
+            state
+                .respond(
+                    connection.id,
+                    program,
+                    async |world_state| {
+                        async {
+                            let program = program
+                                .ok_or(OperationError::Script(ScriptFailure::ProgramEnded))?;
+                            let key =
+                                key.ok_or(OperationError::Script(ScriptFailure::ProgramEnded))?;
 
-                state
-                    .respond(
-                        connection.id,
-                        program,
-                        async |world_state| {
-                            async {
-                                let program = program
-                                    .ok_or(OperationError::Script(ScriptFailure::ProgramEnded))?;
-                                let caller = Caller {
-                                    program: program.id,
-                                    session: state.session(connection.id, program)?,
-                                    terminal_computers: state
-                                        .terminal_computers(connection.id, program),
-                                    root_process: state.root_process(connection.id, program),
-                                    terminal_command_process: state
-                                        .terminal_command_process(connection.id, program),
-                                };
-
-                                apply(world_state, connection.id, message, &caller).await
+                            if !world_state
+                                .tree(key)
+                                .is_some_and(|tree| tree.active(program).is_some())
+                            {
+                                return Err(OperationError::Script(ScriptFailure::ProgramEnded));
                             }
-                            .await
+
+                            world_state
+                                .tree_mut(key)
+                                .expect("the indexed tree exists")
+                                .begin_route();
+
+                            let call = Call { tree: key, program };
+                            let context = RouteContext::new(
+                                world_state.world.clone(),
+                                world_state.trees.clone(),
+                            )
+                            .with_prints(state.prints.clone());
+                            let result = if route.kind() == RouteKind::Read {
+                                world_state
+                                    .world
+                                    .handle
+                                    .read_route(async || route.run(&context, call).await)
+                                    .await
+                            } else {
+                                route.run(&context, call).await
+                            };
+                            let terminal_reboot = world_state
+                                .tree_mut(key)
+                                .expect("the indexed tree exists")
+                                .take_effects()
+                                .terminal_rebooted;
+
+                            state
+                                .close_lost_terminal(
+                                    world_state,
+                                    connection.id,
+                                    program,
+                                    &result,
+                                    terminal_reboot,
+                                )
+                                .await;
+
+                            result
+                        }
+                        .await
+                    },
+                    |result| respond(&state, &connection, program, &*route, result),
+                    commit,
+                )
+                .await;
+        }));
+    }
+
+    /// Runs a wait route in tasks and cycles managed by its handlers.
+    fn operate_route(self: &Rc<Self>, route: Box<dyn RouteCall<World, WorldError>>) {
+        let connection = Rc::clone(self);
+        let spawn = Rc::clone(&connection.spawn);
+
+        spawn(Box::pin(async move {
+            let Some(state) = connection.state() else {
+                return;
+            };
+            let program = route.program();
+            let result = async {
+                let program = program.ok_or(OperationError::Script(ScriptFailure::ProgramEnded))?;
+                let tree = state
+                    .trees
+                    .of_program(program)
+                    .ok_or(OperationError::Script(ScriptFailure::ProgramEnded))?;
+                let (modules, trees) = {
+                    let world = state.world.lock().await;
+
+                    (world.world.clone(), world.trees.clone())
+                };
+                let driver = CycleDriverRef::<World, WorldError>::new(state.clone());
+                let context = RouteContext::with_cycles(
+                    modules,
+                    trees,
+                    Cycles::new(state.as_ref(), connection.id, &driver),
+                )
+                .with_prints(state.prints.clone());
+
+                route.run(&context, Call { tree, program }).await
+            }
+            .await;
+
+            if let Some(program) = program
+                && matches!(
+                    result,
+                    Err(OperationError::Script(ScriptFailure::ConnectionInterrupted))
+                )
+            {
+                state
+                    .cycle(
+                        async |world_state| {
+                            state
+                                .close_lost_terminal(
+                                    world_state,
+                                    connection.id,
+                                    program,
+                                    &result,
+                                    false,
+                                )
+                                .await;
                         },
-                        |result| {
-                            respond(&state, &output, (connection.id, program), responder, result);
-                        },
+                        true,
                     )
                     .await;
-            }));
-        });
+            }
+
+            state.send_program_prints();
+            respond(&state, &connection, program, &*route, result);
+        }));
     }
 }
 
-/// Returns `result` or its script failure.
-/// Database errors are recorded and drop the response. Programs whose trees waited for budget receive a
-/// throttle afterward.
-fn respond<D: Driver, R: ValidatedEncode>(
+impl Dispatch for Connection {
+    fn message<M: duplex_core::Message + ValidatedDecode + 'static>(
+        self: Rc<Self>,
+        message: M,
+        responder: ResponderOf<M>,
+        next: NextMessage<M>,
+    ) {
+        let Some(state) = self.state() else {
+            return;
+        };
+
+        if !state.routes.contains::<M>() {
+            next.call(message, responder);
+
+            return;
+        }
+
+        let route = state
+            .routes
+            .call::<M, World, WorldError>(message, responder)
+            .expect("the route table contains the message");
+        let kind = route.kind();
+
+        match kind {
+            RouteKind::Read => self.cycle_route(route, false),
+            RouteKind::Change => self.cycle_route(route, true),
+            RouteKind::Wait => self.operate_route(route),
+        }
+    }
+
+    fn notification<N: NotificationMessage + 'static>(
+        &self,
+        message: N::Ref<'_>,
+        next: NextNotification<N>,
+    ) {
+        next.call(message);
+    }
+}
+
+/// Responds to a lifecycle message and applies the tree's throttle.
+fn respond_lifecycle<D: Driver, R: ValidatedEncode>(
     state: &ServerState,
     channel: &Channel<GameServer, D>,
     (connection, program): (u32, Option<ProgramId>),
@@ -263,6 +340,32 @@ fn respond<D: Driver, R: ValidatedEncode>(
         && let Some(milliseconds) = state.take_throttle(connection, program)
     {
         let _ = channel.send(&ProgramThrottle {
+            program,
+            milliseconds,
+        });
+    }
+}
+
+/// Returns `result` or its script failure. Database errors are recorded and drop the response. Programs whose
+/// trees waited for budget receive a throttle afterward.
+fn respond(
+    state: &ServerState,
+    connection: &Connection,
+    program: Option<ProgramId>,
+    route: &dyn RouteCall<World, WorldError>,
+    result: Result<Box<dyn std::any::Any>>,
+) {
+    match result {
+        Ok(value) => route.respond(Ok(value)),
+        Err(OperationError::Script(failure)) => route.respond(Err(failure)),
+        Err(OperationError::World(error)) => state.record_failure(error),
+        Err(OperationError::UnknownObject) => {}
+    }
+
+    if let Some(program) = program
+        && let Some(milliseconds) = state.take_throttle(connection.id, program)
+    {
+        (connection.throttle)(ProgramThrottle {
             program,
             milliseconds,
         });

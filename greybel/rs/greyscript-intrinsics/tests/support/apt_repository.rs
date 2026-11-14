@@ -4,18 +4,24 @@ use greyhack_world::{NetworkOptions, PlayerOptions, World};
 
 /// A world with a generated HackShop, and the address of its router.
 pub fn world_with_hackshop() -> (World, String) {
-    let mut world = block_on(World::new(&PlayerOptions::default())).unwrap();
+    let world = block_on(World::new(&PlayerOptions::default())).unwrap();
     let address = (1..=u16::MAX)
         .map(|n| format!("8.8.{}.{}", n >> 8, n & 0xff))
-        .find(|address| kind_for_ip(world.world_seed(), address) == NetworkKind::HackShop)
+        .find(|address| kind_for_ip(&world.handle.world_seed(), address) == NetworkKind::HackShop)
         .expect("an address of a HackShop");
 
-    block_on(world.add_network(&NetworkOptions {
-        public_ip: Some(address.clone()),
-        domain: Some("shop.test".to_owned()),
-        computers: Some(1),
-        ..NetworkOptions::default()
-    }))
+    block_on(
+        world
+            .modules
+            .creation
+            .network_generation
+            .add_network(&NetworkOptions {
+                public_ip: Some(address.clone()),
+                domain: Some("shop.test".to_owned()),
+                computers: Some(1),
+                ..NetworkOptions::default()
+            }),
+    )
     .unwrap();
 
     (world, address)

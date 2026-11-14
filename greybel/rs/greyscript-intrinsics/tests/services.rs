@@ -58,7 +58,7 @@ fn should_interrupt_the_objects_of_a_computer_that_rebooted() {
     let world =
         block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a generated world");
     let target = first_remote_service(&world);
-    let device = block_on(world.devices(target.router)).unwrap()[0];
+    let device = block_on(world.modules.core.networks.topology.devices(target.router)).unwrap()[0];
     let computer = read_computer(&world, device);
     let code = format!(
         "admin = include_lib(\"admin.so\")\nadmin.sudo\ncomputer = admin.network({}).computer({}).shell.host_computer\nprint computer.reboot\nprint computer.get_name",

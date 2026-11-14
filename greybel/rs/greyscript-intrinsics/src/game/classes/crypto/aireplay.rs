@@ -1,12 +1,12 @@
-use greybel_interpreter::{NativeFuture, NativeOutput, PrintOptions, Value, Vm, native};
+use greybel_interpreter::{NativeFuture, NativeOutput, Value, Vm, native};
 
 use super::access_or_crash;
 use crate::error::IntrinsicError;
-use crate::game::client::failure::{failure_text, failure_value};
+use crate::game::client::failure::failure_value;
 use crate::game::client::object;
 use crate::game::client::server::{program, respond, server};
 use crate::game::{game, send_output};
-use crate::protocol::{Capture, CaptureProgress, CryptoAireplay};
+use crate::protocol::{Capture, CryptoAireplay};
 
 /// Captures Wi-Fi ACKs into `file.cap` for `aircrack` (`aireplay`).
 #[native(method)]
@@ -57,43 +57,8 @@ pub fn aireplay(
 
                     Value::Null
                 }
-                Capture::Captured(progress) => {
-                    print_progress(vm, &progress);
-                    send_output(vm);
-
-                    Value::Null
-                }
-                // `FileCapServerRpc` closes the connection with the capture-save failure.
-                Capture::Unsaved { progress, failure } => {
-                    let text = failure_text("aireplay", &failure)?;
-
-                    print_progress(vm, &progress);
-                    vm.stdout().print(&text, PrintOptions::default());
-                    send_output(vm);
-
-                    Value::Null
-                }
                 Capture::Failure(failure) => failure_value("aireplay", &failure)?,
             })
         },
     ))
-}
-
-/// Prints the capture handshake and the final progress line (`Terminal.CollectData`), which stays updated
-/// in place during capture.
-fn print_progress(vm: &Vm, progress: &CaptureProgress) {
-    vm.stdout().print(
-        &format!(
-            "Waiting for beacon frame (BSSID: {})\nSending Authentication Request (Open system) [ACK]\nAuthentication successful\nSending Association Request\nAssociation successful :-)",
-            progress.bssid
-        ),
-        PrintOptions::default(),
-    );
-    vm.stdout().print(
-        &format!(
-            "Read {} packets (got {} ACKs)",
-            progress.packets, progress.acks
-        ),
-        PrintOptions::default(),
-    );
 }

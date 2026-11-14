@@ -1,6 +1,7 @@
-use greyhack_behaviour::{DeviceKind, is_lan_ip, same_subnet};
-use greyhack_world::ComputerId;
+use greyhack_behaviour::{DeviceKind, NetworkKind, is_lan_ip, same_subnet};
+use greyhack_world::{ComputerId, NetworkOptions, PlayerOptions, World};
 
+use crate::support::generation::address_for_kind;
 use crate::support::lan::world;
 
 /// Generated networks have the game's devices: LAN routers, switches and hubs under the main router, each router
@@ -17,7 +18,15 @@ async fn should_generate_lan_routers_switches_and_hubs() {
             main.local_ip
         );
 
-        let lan = world.lan(main.network).await.unwrap().unwrap();
+        let lan = world
+            .modules
+            .core
+            .networks
+            .lan
+            .lan(main.network)
+            .await
+            .unwrap()
+            .unwrap();
 
         for (id, node) in lan.nodes() {
             if !node.is_device() || id == lan.root() {
@@ -46,7 +55,15 @@ async fn should_give_computers_gateways_of_their_subnet() {
     let (world, mains) = world().await;
 
     for main in &mains {
-        let lan = world.lan(main.network).await.unwrap().unwrap();
+        let lan = world
+            .modules
+            .core
+            .networks
+            .lan
+            .lan(main.network)
+            .await
+            .unwrap()
+            .unwrap();
 
         for (_, node) in lan.nodes() {
             if node.is_device() || node.gateway == "0.0.0.0" {
@@ -68,8 +85,23 @@ async fn should_give_computers_gateways_of_their_subnet() {
             );
         }
 
-        for router in world.routers_in(main.network).await.unwrap() {
-            let table = world.port_table(router.id).await.unwrap();
+        for router in world
+            .modules
+            .core
+            .networks
+            .routers
+            .routers_in(main.network)
+            .await
+            .unwrap()
+        {
+            let table = world
+                .modules
+                .core
+                .networks
+                .lan
+                .port_table(router.id)
+                .await
+                .unwrap();
             let own = table.first().expect("the configuration page");
 
             assert_eq!(
@@ -91,8 +123,23 @@ async fn should_firewall_only_lan_routers_and_switches() {
     let mut firewalled = 0;
 
     for main in &mains {
-        for router in world.routers_in(main.network).await.unwrap() {
-            let rules = world.firewall_rules(router.id).await.unwrap();
+        for router in world
+            .modules
+            .core
+            .networks
+            .routers
+            .routers_in(main.network)
+            .await
+            .unwrap()
+        {
+            let rules = world
+                .modules
+                .core
+                .networks
+                .router_config
+                .firewall_rules(router.id)
+                .await
+                .unwrap();
 
             if router.is_main() {
                 assert!(rules.is_empty());
@@ -114,11 +161,19 @@ async fn should_firewall_only_lan_routers_and_switches() {
 /// own subnet.
 #[tokio::test]
 async fn should_ping_across_lan_routers_and_only_within_a_switch() {
-    let (mut world, mains) = world().await;
+    let (world, mains) = world().await;
     let mut checked = (false, false);
 
     for main in &mains {
-        let lan = world.lan(main.network).await.unwrap().unwrap();
+        let lan = world
+            .modules
+            .core
+            .networks
+            .lan
+            .lan(main.network)
+            .await
+            .unwrap()
+            .unwrap();
         let first = lan
             .nodes()
             .find(|(_, node)| !node.is_device() && node.gateway == main.local_ip)
@@ -139,7 +194,14 @@ async fn should_ping_across_lan_routers_and_only_within_a_switch() {
             .collect();
 
         for (_, address, behind_router) in targets {
-            let answers = world.ping(from, &address).await.unwrap();
+            let answers = world
+                .modules
+                .core
+                .networks
+                .reach
+                .ping(from, &address)
+                .await
+                .unwrap();
 
             assert_eq!(answers, behind_router, "{address}");
 
@@ -159,28 +221,136 @@ async fn should_ping_across_lan_routers_and_only_within_a_switch() {
 /// interpreter, `NetworkLan.ReversePing`).
 #[tokio::test]
 async fn should_need_the_devices_up_to_the_scripts_computer_for_network() {
-    let (mut world, mains) = world().await;
-    let player = world.player();
-    let home = world.computer(player).await.unwrap().unwrap().network;
+    let (world, mains) = world().await;
+    let player = world.handle.player();
+    let home = world
+        .modules
+        .core
+        .networks
+        .topology
+        .computer(player)
+        .await
+        .unwrap()
+        .unwrap()
+        .network;
     let main = mains
         .iter()
         .find(|main| main.network != home)
         .expect("a network other than the player's");
-    let lan = world.lan(main.network).await.unwrap().unwrap();
+    let lan = world
+        .modules
+        .core
+        .networks
+        .lan
+        .lan(main.network)
+        .await
+        .unwrap()
+        .unwrap();
     let remote = lan
         .nodes()
         .find(|(_, node)| node.kind == DeviceKind::Computer)
         .map(|(_, node)| node.key)
         .expect("the network has a computer");
 
-    let before = world.is_network_active(player, &[remote]).await.unwrap();
+    let before = world
+        .modules
+        .core
+        .networks
+        .reach
+        .is_network_active(player, &[remote])
+        .await
+        .unwrap();
 
-    world.reboot(main.id.computer(), false).await.unwrap();
+    world
+        .modules
+        .core
+        .computers
+        .processes
+        .reboot(main.id.computer(), false)
+        .await
+        .unwrap();
 
-    let after = world.is_network_active(player, &[remote]).await.unwrap();
-    let holding_none = world.is_network_active(player, &[]).await.unwrap();
+    let after = world
+        .modules
+        .core
+        .networks
+        .reach
+        .is_network_active(player, &[remote])
+        .await
+        .unwrap();
+    let holding_none = world
+        .modules
+        .core
+        .networks
+        .reach
+        .is_network_active(player, &[])
+        .await
+        .unwrap();
 
     assert!(before);
     assert!(!after);
     assert!(holding_none);
+}
+
+/// A fixed-size network draws the kinds of its devices like the planner (`NetworkLan.GetRandomTypeDevice`): at most
+/// six cameras, one fridge and one microwave, and only computers in a residential network.
+#[tokio::test]
+async fn should_draw_the_devices_of_a_fixed_size_network_by_the_games_rule() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+
+    for kind in [
+        NetworkKind::Bank,
+        NetworkKind::Supermarket,
+        NetworkKind::Residential,
+    ] {
+        let address = address_for_kind(&world.handle.world_seed(), kind);
+
+        world
+            .modules
+            .creation
+            .network_generation
+            .add_network(&NetworkOptions {
+                public_ip: Some(address.clone()),
+                computers: Some(40),
+                ..NetworkOptions::default()
+            })
+            .await
+            .unwrap();
+
+        let network = world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at(&address)
+            .await
+            .unwrap()
+            .unwrap()
+            .network;
+        let lan = world
+            .modules
+            .core
+            .networks
+            .lan
+            .lan(network)
+            .await
+            .unwrap()
+            .unwrap();
+        let count = |wanted: DeviceKind| {
+            lan.nodes()
+                .filter(|(_, node)| !node.is_device() && node.kind == wanted)
+                .count()
+        };
+        let gadgets =
+            count(DeviceKind::Camera) + count(DeviceKind::Fridge) + count(DeviceKind::Microwave);
+
+        assert!(count(DeviceKind::Camera) <= 6, "{kind:?}");
+        assert!(count(DeviceKind::Fridge) <= 1, "{kind:?}");
+        assert!(count(DeviceKind::Microwave) <= 1, "{kind:?}");
+        assert_eq!(count(DeviceKind::Computer) + gadgets, 40, "{kind:?}");
+
+        if kind == NetworkKind::Residential {
+            assert_eq!(gadgets, 0);
+        }
+    }
 }

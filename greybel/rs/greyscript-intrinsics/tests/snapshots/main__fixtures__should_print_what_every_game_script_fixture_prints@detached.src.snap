@@ -61,7 +61,7 @@ null
 [null, null, null]
 ["load: Invalid arguments", "overflow: Invalid arguments"]
 ["error: file not found", "error: file not found", "error: file not found", null, null]
-["Invalid shell", "launch: Invalid arguments"]
+["launch: Invalid arguments", "launch: Invalid arguments"]
 ["aircrack: Invalid arguments", 0, "aireplay: Invalid arguments"]
 ["Error: Invalid ip address", "Error: only alphanumeric allowed as password.", "rshell_client: Invalid IP address"]
 Invalid ip address: bad

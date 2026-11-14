@@ -26,7 +26,9 @@ pub fn serve() -> String {
             let world = World::from_seed("test", &PlayerOptions::default())
                 .await
                 .expect("the world generates");
-            let server = WorldServer::new(world, Rc::new(TokioScheduler::new()));
+            let server = WorldServer::new(world, Rc::new(TokioScheduler::new()))
+                .await
+                .expect("the server restores payments");
             let listener = TcpListener::bind(("127.0.0.1", 0)).await.expect("binds");
             let port = listener.local_addr().expect("an address").port();
 

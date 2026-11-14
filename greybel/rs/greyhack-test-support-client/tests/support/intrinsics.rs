@@ -4,10 +4,11 @@ use std::rc::Rc;
 
 use greybel_interpreter::{Clock, InputFuture, InterpreterOptions, Key, Stdin, Stdout};
 use greybel_test_support::future::block_on;
-use greybel_test_support::greyhack::{run_in, run_on_host_at};
+use greybel_test_support::greyhack::{run_in, run_on_host_at, run_on_host_at_async};
 use greybel_test_support::interpreter::{constant_clock, constant_clock_options};
 use greybel_test_support::io::MarkedStdout;
 use greyhack_test_support_client::protocol::test_support::{MailSnapshot, NetworkSnapshot};
+use greyhack_world::prelude::*;
 use greyhack_world::{
     AlarmConfig, CompanyAlign, CtfEvent, Database, DebugAccount, Email, JobRole, NpcSchedule,
     PlayerOptions, TrafficNet, WorkPerformance, World,
@@ -66,14 +67,28 @@ pub fn run_in_snapshot_flooded(
     snapshot: &NetworkSnapshot,
     floods: &[(String, String, u32)],
 ) -> (String, Option<String>) {
-    let mut world = snapshot_world(user, snapshot);
+    let world = snapshot_world(user, snapshot);
 
     for (address, origin, threshold) in floods {
-        let computer = block_on(world.computer_at(&snapshot.public_ip, address))
-            .expect("the flooded computer is read")
-            .expect("the flooded computer exists");
+        let computer = block_on(
+            world
+                .modules
+                .core
+                .networks
+                .routers
+                .computer_at(&snapshot.public_ip, address),
+        )
+        .expect("the flooded computer is read")
+        .expect("the flooded computer exists");
 
-        block_on(world.flood(computer, origin, *threshold)).expect("the flood is primed");
+        block_on(
+            world
+                .modules
+                .intrusion
+                .floods
+                .flood(computer, origin, *threshold),
+        )
+        .expect("the flood is primed");
     }
 
     let path = format!("/home/{user}/{PROGRAM_NAME}");
@@ -96,25 +111,23 @@ pub fn run_in_snapshot_real_time(
     )
 }
 
-/// Runs `code` in a simulated copy of `snapshot` and returns its terminal text, its runtime error and the world it
-/// leaves.
-pub fn run_in_snapshot_world(
+/// Async snapshot run for a `LocalSet`, without moving the non-`Send` world to another thread.
+pub async fn run_in_snapshot_world_async(
     code: &str,
     user: &str,
     snapshot: &NetworkSnapshot,
 ) -> (String, Option<String>, World) {
-    run_in_snapshot_world_with(code, user, snapshot, constant_clock_options())
+    run_in_snapshot_world_with_async(code, user, snapshot, constant_clock_options()).await
 }
 
-/// [`run_in_snapshot_world`] typing `inputs` into the terminals the script starts, like
-/// [`run_interactive_in_snapshot`].
-pub fn run_interactive_in_snapshot_world(
+/// Async interactive snapshot run for a `LocalSet`.
+pub async fn run_interactive_in_snapshot_world_async(
     code: &str,
     user: &str,
     snapshot: &NetworkSnapshot,
     inputs: &[String],
 ) -> (String, Option<String>, World) {
-    run_in_snapshot_world_with(
+    run_in_snapshot_world_with_async(
         code,
         user,
         snapshot,
@@ -123,9 +136,10 @@ pub fn run_interactive_in_snapshot_world(
             ..InterpreterOptions::new(Rc::new(scheduler::TokioScheduler::new()))
         },
     )
+    .await
 }
 
-fn run_in_snapshot_world_with(
+async fn run_in_snapshot_world_with_async(
     code: &str,
     user: &str,
     snapshot: &NetworkSnapshot,
@@ -133,7 +147,7 @@ fn run_in_snapshot_world_with(
 ) -> (String, Option<String>, World) {
     let world = snapshot_world(user, snapshot);
     let path = format!("/home/{user}/{PROGRAM_NAME}");
-    let run = run_on_host_at(code, world, user, true, &path, options);
+    let run = run_on_host_at_async(code, world, user, true, &path, options).await;
 
     (run.terminal, run.error, run.world)
 }
@@ -244,29 +258,54 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
         network: Some(super::mirror::layout(snapshot)),
         ..PlayerOptions::default()
     };
-    let mut world = block_on(World::new(&player)).expect("a world");
+    let world = block_on(World::new(&player)).expect("a world");
 
     world.set_world_secret(snapshot.world_secret.to_vec());
+    super::mirror::register_latest_libraries(&world, snapshot);
 
     if let Some(debug) = &snapshot.debug {
-        block_on(world.register_password(&debug.password))
-            .expect("the debug password is registered");
-        block_on(world.save_debug_account(&DebugAccount::new(&debug.user, &debug.password)))
-            .expect("the mirrored debug account");
+        block_on(
+            world
+                .modules
+                .core
+                .computers
+                .users
+                .register_password(&debug.password),
+        )
+        .expect("the debug password is registered");
+        block_on(
+            world
+                .modules
+                .libraries
+                .debug
+                .save_debug_account(&DebugAccount::new(&debug.user, &debug.password)),
+        )
+        .expect("the mirrored debug account");
         if debug.user != user {
             // Greybel stores the game player's `ZeroDayPlayerInfo` on the player user's row, separately from the NPC
             // credentials used to open the tools.
-            block_on(world.register_password("")).expect("the player debug-state password");
-            block_on(world.save_debug_account(&DebugAccount::new(user, "")))
-                .expect("the mirrored player debug state");
+            block_on(world.modules.core.computers.users.register_password(""))
+                .expect("the player debug-state password");
+            block_on(
+                world
+                    .modules
+                    .libraries
+                    .debug
+                    .save_debug_account(&DebugAccount::new(user, "")),
+            )
+            .expect("the mirrored player debug state");
         }
     }
 
     if let Some(ctf) = &snapshot.ctf {
-        block_on(world.create_ctf_account(world.player(), &ctf.user, &ctf.password))
-            .expect("the mirrored CTF account");
+        block_on(world.modules.player.ctf.create_ctf_account(
+            world.handle.player(),
+            &ctf.user,
+            &ctf.password,
+        ))
+        .expect("the mirrored CTF account");
         block_on(
-            world.create_ctf_event(&CtfEvent {
+            world.modules.player.ctf.create_ctf_event(&CtfEvent {
                 name: ctf.name.to_string(),
                 user: ctf.user.to_string(),
                 password_hash: greyhack_behaviour::hash_password(&ctf.password),
@@ -274,7 +313,7 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
                 public_address: ctf.public_address.to_string(),
                 creator_name: ctf.creator_name.to_string(),
                 mail_content: ctf.mail_content.to_string(),
-                creator: world.player_person(),
+                creator: world.handle.player_person(),
                 creator_bank_user: snapshot
                     .player_bank
                     .as_ref()
@@ -286,31 +325,55 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
             }),
         )
         .expect("the mirrored CTF event");
-        block_on(world.add_ctf_player(&ctf.name, world.player()))
-            .expect("the mirrored CTF participant");
+        block_on(
+            world
+                .modules
+                .player
+                .ctf
+                .add_ctf_player(&ctf.name, world.handle.player()),
+        )
+        .expect("the mirrored CTF participant");
         if ctf.completed {
-            block_on(world.player_success(&ctf.name, world.player()))
-                .expect("the mirrored CTF completion");
+            block_on(
+                world
+                    .modules
+                    .player
+                    .ctf
+                    .player_success(&ctf.name, world.handle.player()),
+            )
+            .expect("the mirrored CTF completion");
         }
     }
 
     let mut npc_ids = std::collections::HashMap::new();
 
     for npc in &snapshot.npcs {
-        let computer = block_on(world.computer_at(&snapshot.public_ip, &npc.local_ip))
-            .expect("the NPC workstation is read")
-            .expect("the mirrored NPC workstation");
-        let person = block_on(world.add_npc(computer, &npc.user, &npc.name, world.time_seconds()))
-            .expect("the mirrored NPC is added")
-            .expect("the mirrored NPC account");
+        let computer = block_on(
+            world
+                .modules
+                .core
+                .networks
+                .routers
+                .computer_at(&snapshot.public_ip, &npc.local_ip),
+        )
+        .expect("the NPC workstation is read")
+        .expect("the mirrored NPC workstation");
+        let person = block_on(world.modules.npcs.npcs.add_npc(
+            computer,
+            &npc.user,
+            &npc.name,
+            world.handle.time_seconds(),
+        ))
+        .expect("the mirrored NPC is added")
+        .expect("the mirrored NPC account");
 
-        block_on(world.set_npc_job(
+        block_on(world.modules.npcs.jobs.set_npc_job(
             person,
             JobRole::from_code(npc.job_role).expect("the game's job role"),
             (!npc.license_plate.is_empty()).then(|| npc.license_plate.to_string()),
         ))
         .expect("the mirrored NPC job");
-        block_on(world.set_npc_schedule(
+        block_on(world.modules.npcs.schedules.set_npc_schedule(
             person,
             NpcSchedule::from_schedule(
                 npc.schedule_work1_start,
@@ -319,7 +382,7 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
             ),
         ))
         .expect("the mirrored NPC schedule");
-        block_on(world.set_npc_alarm_state(
+        block_on(world.modules.npcs.schedules.set_npc_alarm_state(
             person,
             AlarmConfig {
                 hour: npc.alarm_hour,
@@ -335,20 +398,33 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
         .expect("the mirrored NPC alarm");
         // Logged in as in the game: otherwise the first switch would log them in again, which for the network's
         // administrator runs the network restore the game ran when they came in (`Persona.NextCita`).
-        block_on(world.set_npc_login(person, npc.logged)).expect("the mirrored NPC login");
+        block_on(
+            world
+                .modules
+                .npcs
+                .schedules
+                .set_npc_login(person, npc.logged),
+        )
+        .expect("the mirrored NPC login");
 
         let forced_until = npc
             .forced_login_seconds
-            .map(|seconds| world.time_seconds() + seconds);
+            .map(|seconds| world.handle.time_seconds() + seconds);
 
-        block_on(world.set_npc_forced_login(person, forced_until))
-            .expect("the mirrored forced login");
-        block_on(world.set_npc_work_performance(
+        block_on(
+            world
+                .modules
+                .npcs
+                .schedules
+                .set_npc_forced_login(person, forced_until),
+        )
+        .expect("the mirrored forced login");
+        block_on(world.modules.npcs.jobs.set_npc_work_performance(
             person,
             WorkPerformance::from_code(npc.work_performance).expect("the game's work performance"),
         ))
         .expect("the mirrored work performance");
-        block_on(world.set_npc_company_align(
+        block_on(world.modules.npcs.jobs.set_npc_company_align(
             person,
             CompanyAlign::from_code(npc.company_align).expect("the game's company alignment"),
             (!npc.day_zero_contact.is_empty()).then(|| npc.day_zero_contact.to_string()),
@@ -357,9 +433,15 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
         if let Some(mail) = &npc.mail {
             // The game's address is `surname@domain` except for a mission NPC that is already on another computer of
             // the network, which keeps the address of the NPC it replaced (`NpcInfo.UpdateNpcInfo`'s `mailUserAlias`).
-            block_on(world.set_person_mail_address(person, &mail.address))
-                .expect("the mirrored NPC mail address");
-            block_on(world.restore_mail_account(
+            block_on(
+                world
+                    .modules
+                    .npcs
+                    .npcs
+                    .set_person_mail_address(person, &mail.address),
+            )
+            .expect("the mirrored NPC mail address");
+            block_on(world.modules.npcs.mail.restore_mail_account(
                 &mail.address,
                 &mail.password,
                 mail.generated,
@@ -373,7 +455,7 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
             .as_ref()
             .is_some_and(|admin| admin.user == npc.user)
         {
-            block_on(world.appoint_network_admin(person))
+            block_on(world.modules.npcs.npcs.appoint_network_admin(person))
                 .expect("the mirrored network administrator");
         }
 
@@ -381,10 +463,16 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
     }
 
     if let Some(traffic) = &snapshot.traffic {
-        let router = block_on(world.router_or_generate(&snapshot.public_ip))
-            .expect("the police router is read")
-            .expect("the mirrored police router");
-        let network = block_on(world.router(router))
+        let router = block_on(
+            world
+                .modules
+                .creation
+                .network_generation
+                .router_or_generate(&snapshot.public_ip),
+        )
+        .expect("the police router is read")
+        .expect("the mirrored police router");
+        let network = block_on(world.modules.core.networks.routers.router(router))
             .expect("the police network is read")
             .expect("the mirrored police network")
             .network;
@@ -395,11 +483,18 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
             override_used: false,
         };
 
-        block_on(world.save_traffic(network, &initial)).expect("the mirrored traffic state");
+        block_on(
+            world
+                .modules
+                .smart_devices
+                .traffic
+                .save_traffic(network, &initial),
+        )
+        .expect("the mirrored traffic state");
 
         if traffic.override_used {
             if let Some(accident_at) = &traffic.accident_at {
-                world.set_date(accident_at);
+                world.modules.routines.set_date(accident_at);
             }
 
             let npc = snapshot
@@ -418,20 +513,41 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
                 .iter()
                 .find(|npc| npc.user == traffic.credentials_user)
                 .expect("the traffic credentials NPC");
-            let workstation =
-                block_on(world.computer_at(&snapshot.public_ip, &credentials_npc.local_ip))
-                    .expect("the traffic workstation is read")
-                    .expect("the traffic workstation");
-            let password = block_on(world.user(workstation, &traffic.credentials_user))
-                .expect("the traffic account is read")
-                .expect("the traffic account")
-                .password;
+            let workstation = block_on(
+                world
+                    .modules
+                    .core
+                    .networks
+                    .routers
+                    .computer_at(&snapshot.public_ip, &credentials_npc.local_ip),
+            )
+            .expect("the traffic workstation is read")
+            .expect("the traffic workstation");
+            let password = block_on(
+                world
+                    .modules
+                    .core
+                    .computers
+                    .users
+                    .user(workstation, &traffic.credentials_user),
+            )
+            .expect("the traffic account is read")
+            .expect("the traffic account")
+            .password;
 
-            block_on(world.locate_vehicle(network, &npc.license_plate, &password, true))
-                .expect("the mirrored accident vehicle is located")
-                .expect("the mirrored accident vehicle is on camera");
-            assert!(block_on(world.traffic_accident()).expect("the mirrored traffic accident"));
-            world.set_date(&snapshot.current_date);
+            block_on(world.modules.smart_devices.traffic.locate_vehicle(
+                network,
+                &npc.license_plate,
+                &password,
+                true,
+            ))
+            .expect("the mirrored accident vehicle is located")
+            .expect("the mirrored accident vehicle is on camera");
+            assert!(
+                block_on(world.modules.smart_devices.traffic.traffic_accident())
+                    .expect("the mirrored traffic accident")
+            );
+            world.modules.routines.set_date(&snapshot.current_date);
         }
 
         let state = TrafficNet {
@@ -440,37 +556,73 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
             override_used: traffic.override_used,
         };
 
-        block_on(world.save_traffic(network, &state)).expect("the final mirrored traffic state");
+        block_on(
+            world
+                .modules
+                .smart_devices
+                .traffic
+                .save_traffic(network, &state),
+        )
+        .expect("the final mirrored traffic state");
     }
 
     if let Some(mail) = &snapshot.player_mail {
-        let generated = block_on(world.mail_account(&mail.address))
+        let generated = block_on(world.modules.npcs.mail.mail_account(&mail.address))
             .expect("the generated mail account")
             .expect("the player's mail account");
 
         // World generation includes the ordinary welcome message. Replace it with the inbox the game actually has.
         for email in generated.inbox {
-            block_on(world.delete_mail(&mail.address, &email.id))
-                .expect("the generated mail is removed");
+            block_on(
+                world
+                    .modules
+                    .npcs
+                    .mail
+                    .delete_mail(&mail.address, &email.id),
+            )
+            .expect("the generated mail is removed");
         }
 
         // The game lists the newest mail first, as the world does.
         for email in mail.emails.iter().rev() {
-            block_on(world.deliver_mail(&mail.address, &email.from, &email.subject, &email.body))
-                .expect("the mirrored mail is delivered");
+            block_on(world.modules.npcs.mail.deliver_mail(
+                &mail.address,
+                &email.from,
+                &email.subject,
+                &email.body,
+            ))
+            .expect("the mirrored mail is delivered");
         }
     }
 
     if let Some(mail) = &snapshot.recipient_mail {
-        block_on(world.add_mail_account(&mail.address, &mail.password))
-            .expect("the recipient mail account");
+        block_on(
+            world
+                .modules
+                .npcs
+                .mail
+                .add_mail_account(&mail.address, &mail.password),
+        )
+        .expect("the recipient mail account");
         for email in mail.emails.iter().rev() {
-            block_on(world.deliver_mail(&mail.address, &email.from, &email.subject, &email.body))
-                .expect("the recipient mail is mirrored");
+            block_on(world.modules.npcs.mail.deliver_mail(
+                &mail.address,
+                &email.from,
+                &email.subject,
+                &email.body,
+            ))
+            .expect("the recipient mail is mirrored");
         }
     }
 
-    block_on(world.mirror_economy(&economy(snapshot))).expect("the mirrored economy");
+    block_on(
+        world
+            .modules
+            .economy
+            .bank
+            .mirror_economy(&economy(snapshot)),
+    )
+    .expect("the mirrored economy");
 
     world
 }

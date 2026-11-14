@@ -8,6 +8,7 @@ use std::rc::Rc;
 
 use clap::Parser;
 use duplex_driver_stdio::StreamDriver;
+use greyhack_world::prelude::*;
 use greyhack_world::{Database, PlayerOptions, World, WorldError};
 use greyhack_world_operations::WorldServer;
 use scheduler::{Clock, TokioScheduler};
@@ -25,7 +26,7 @@ struct Options {
     /// Seed used to generate a new world.
     #[arg(long, default_value = "test")]
     seed: String,
-    /// Load and save this database file; keep the world in memory when omitted.
+    /// Load and save this database file; use an in-memory world when omitted.
     #[arg(long)]
     database: Option<PathBuf>,
 }
@@ -139,7 +140,7 @@ async fn open(options: &Options) -> Result<WorldServer, OpenError> {
     let world = async || World::from_seed(&options.seed, &PlayerOptions::default()).await;
     let clock = || -> Rc<dyn Clock> { Rc::new(TokioScheduler::new()) };
     let Some(path) = &options.database else {
-        return Ok(WorldServer::new(world().await?, clock()));
+        return Ok(WorldServer::new(world().await?, clock()).await?);
     };
     let exists = path.exists();
     let database = Database::open(&path.to_string_lossy())

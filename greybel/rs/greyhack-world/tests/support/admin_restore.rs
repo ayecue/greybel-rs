@@ -14,6 +14,9 @@ pub const LEVEL_FOUR: u32 = 275 * 16;
 /// Creates guild `name` holding company shares under `account`.
 pub async fn guild(world: &mut World, name: &str, account: &str, total_exp: u32, perks: u32) {
     world
+        .modules
+        .guilds
+        .guilds
         .create_guild(&GuildDraft {
             name: name.to_owned(),
             bank_account: account.to_owned(),
@@ -33,6 +36,9 @@ pub async fn company(world: &mut World, account: &str) -> (String, Vec<ComputerI
 
     assert!(
         world
+            .modules
+            .guilds
+            .guilds
             .set_company_shares(&public_ip, account, ALL_SHARES)
             .await
             .unwrap()

@@ -13,7 +13,9 @@ pub fn create_user(
     user: &Value,
     password: &Value,
 ) -> Result<NativeFuture, IntrinsicError> {
-    let Some((access, user, password)) = computer_with_strings(vm, this, "create_user", user, password) else {
+    let Some((access, user, password)) =
+        computer_with_strings(vm, this, "create_user", user, password)
+    else {
         return Ok(NativeOutput::ready(Value::Null));
     };
 

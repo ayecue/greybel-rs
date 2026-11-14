@@ -1,13 +1,7 @@
-use crate::server::programs::Tree;
+use greyhack_world_router::TreeId as Tree;
 
 /// A program tree.
-pub(super) const TREE: Tree = Tree {
-    connection: 0,
-    root: 0,
-};
+pub(super) const TREE: Tree = Tree::new(0);
 
-/// A program tree of another connection.
-pub(super) const OTHER: Tree = Tree {
-    connection: 1,
-    root: 0,
-};
+/// Another program tree.
+pub(super) const OTHER: Tree = Tree::new(1);

@@ -13,7 +13,9 @@ pub fn create_group(
     username: &Value,
     groupname: &Value,
 ) -> Result<NativeFuture, IntrinsicError> {
-    let Some((access, user, group)) = computer_with_strings(vm, this, "create_group", username, groupname) else {
+    let Some((access, user, group)) =
+        computer_with_strings(vm, this, "create_group", username, groupname)
+    else {
         return Ok(NativeOutput::ready(Value::Null));
     };
 

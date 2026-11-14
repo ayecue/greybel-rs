@@ -45,7 +45,7 @@ pub fn time_after_ticks(seconds: u64, ticks: u64, rate: u32) -> u64 {
 }
 
 /// Starting world date from `Clock`'s `iniDia`, `iniMes`, `iniYear`, and `iniHora`.
-pub const START_DATE: &str = "01/Dec/2000 - 06:00";
+pub const START_DATE: &str = "03/Jan/2000 - 06:00";
 
 const MONTHS: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",

@@ -66,7 +66,16 @@ pub fn format_apt_sources(repositories: &[AptSource], official: bool) -> String 
         .collect::<Vec<_>>()
         .join(",\n");
 
-    format!("{{\n  \"sourceList\": {{\n{entries}\n  }},\n  \"official_server\": {official}\n}}")
+    // `Service_repod.ClientConfigInfo` written with `JsonConvert.SerializeObject(…, Formatting.Indented)`: its fields
+    // in declaration order, and an empty dictionary as `{}`. A new computer's file (`configGeneration["sources"]`) is
+    // the same text as the default object written this way.
+    let sources = if entries.is_empty() {
+        String::from("{}")
+    } else {
+        format!("{{\n{entries}\n  }}")
+    };
+
+    format!("{{\n  \"official_server\": {official},\n  \"sourceList\": {sources}\n}}")
 }
 
 /// Checks whether `sources.txt` selects the game's official package server.

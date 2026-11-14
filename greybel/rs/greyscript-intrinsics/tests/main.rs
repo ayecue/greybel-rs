@@ -14,6 +14,7 @@ mod fixtures;
 mod guilds;
 mod interpreter;
 mod libraries;
+mod library_versions;
 mod mail;
 mod npcs;
 mod objects;

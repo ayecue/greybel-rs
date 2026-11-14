@@ -1,8 +1,8 @@
 use greybel_interpreter::{NativeFuture, NativeOutput, Value, Vm, native};
 
 use super::coin_id;
-use crate::game::classes::wallet::reset_password_argument;
 use crate::error::IntrinsicError;
+use crate::game::classes::wallet::reset_password_argument;
 use crate::game::client::check::proceed;
 use crate::game::client::server::{program, respond, server};
 use crate::protocol::CoinResetPasswordCoin;

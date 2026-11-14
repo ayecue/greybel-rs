@@ -2,22 +2,19 @@
 //! Hand-written because those scripts execute asynchronously after the game-server response.
 
 use greybel_interpreter::{
-    ArgContainer, Native, NativeDefault, NativeFuture, NativeOutput, NativeParam, PrintOptions,
-    Value, Vm,
+    ArgContainer, Native, NativeDefault, NativeFuture, NativeOutput, NativeParam, Value, Vm,
 };
 use greyhack_behaviour::forbidden_param_token;
 
 use self::encryption::EncryptedLogin;
 use super::shell;
 use crate::error::IntrinsicError;
-use crate::game::client::failure::{
-    failure_text, invalid_password_text, login_reaches_computer, login_text,
-};
+use crate::game::client::failure::{failure_text, invalid_password_text};
 use crate::game::client::login_encryption::LoginEncryption;
 use crate::game::client::object::{self, Access};
 use crate::game::client::server::{operate, program, server};
 use crate::game::game;
-use crate::protocol::{Failure, ServiceConnection, ShellConnectService};
+use crate::protocol::{ServiceConnection, ShellConnectService};
 use crate::runtime::ChildRunner;
 
 mod encryption;
@@ -83,17 +80,7 @@ fn send(vm: &mut Vm, args: &ArgContainer) -> Result<NativeFuture, IntrinsicError
         };
 
         match connection {
-            ServiceConnection::Failure(Failure::Login(failure)) => {
-                let text = login_text(&failure);
-
-                if login_reaches_computer(&failure) {
-                    stdout.print(&text, PrintOptions::default());
-
-                    NativeOutput::new(Value::Null)
-                } else {
-                    NativeOutput::new(Value::from(text))
-                }
-            }
+            ServiceConnection::Null => NativeOutput::new(Value::Null),
             ServiceConnection::Failure(failure) => {
                 NativeOutput::new(failure_text("connect_service", &failure).map(Value::from))
             }
@@ -105,15 +92,10 @@ fn send(vm: &mut Vm, args: &ArgContainer) -> Result<NativeFuture, IntrinsicError
             ServiceConnection::Encrypted {
                 user,
                 guest_shell,
-                message,
                 failure,
                 encode,
                 decode,
             } => {
-                if message {
-                    stdout.print("Encryption enabled...", PrintOptions::default());
-                }
-
                 let guest = Access::new(game.server.object(guest_shell));
                 let Some(runner) = runner else {
                     return NativeOutput::new(Err::<Value, _>(IntrinsicError::NoChildRunner));

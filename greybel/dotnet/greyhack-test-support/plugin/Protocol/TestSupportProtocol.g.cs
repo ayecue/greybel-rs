@@ -12,7 +12,7 @@ public abstract class Reply
     public static readonly global::Duplex.UnionType UnionType = new global::Duplex.UnionType(
         "Reply",
         global::System.Array.Empty<global::Duplex.Tag>(),
-        new global::Duplex.VariantType[] { new global::Duplex.VariantType("NetworkConnection", typeof(NetworkConnection), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkConnectionReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkConnection)holder).Value) }), new global::Duplex.VariantType("PlayerReady", typeof(PlayerReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PlayerReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PlayerReady)holder).Value) }), new global::Duplex.VariantType("DebugReady", typeof(DebugReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(DebugReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((DebugReady)holder).Value) }), new global::Duplex.VariantType("FileWritten", typeof(FileWritten), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FileWrittenReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FileWritten)holder).Value) }), new global::Duplex.VariantType("NetworkCreated", typeof(NetworkCreated), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkCreatedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkCreated)holder).Value) }), new global::Duplex.VariantType("ExecutionResult", typeof(ExecutionResult), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExecutionResultReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecutionResult)holder).Value) }), new global::Duplex.VariantType("InputRequested", typeof(InputRequested), global::System.Array.Empty<global::Duplex.Tag>(), global::System.Array.Empty<global::Duplex.FieldType>()), new global::Duplex.VariantType("PairExecutionResult", typeof(PairExecutionResult), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PairExecutionResultReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PairExecutionResult)holder).Value) }), new global::Duplex.VariantType("PlayerState", typeof(PlayerState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PlayerStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PlayerState)holder).Value) }), new global::Duplex.VariantType("FileState", typeof(FileState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FileStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FileState)holder).Value) }), new global::Duplex.VariantType("TestFailure", typeof(TestFailure), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TestFailureReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((TestFailure)holder).Value) }), new global::Duplex.VariantType("NetworkState", typeof(NetworkState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkState)holder).Value) }), new global::Duplex.VariantType("BlockchainReady", typeof(BlockchainReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(BlockchainReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((BlockchainReady)holder).Value) }), new global::Duplex.VariantType("Applied", typeof(Applied), global::System.Array.Empty<global::Duplex.Tag>(), global::System.Array.Empty<global::Duplex.FieldType>()), new global::Duplex.VariantType("TrafficReady", typeof(TrafficReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TrafficReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((TrafficReady)holder).Value) }), new global::Duplex.VariantType("KernelReplaced", typeof(KernelReplaced), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(KernelReplacedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((KernelReplaced)holder).Value) }), new global::Duplex.VariantType("Exploits", typeof(Exploits), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExploitsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Exploits)holder).Value) }), new global::Duplex.VariantType("ExploitBought", typeof(ExploitBought), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExploitBoughtReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExploitBought)holder).Value) }), new global::Duplex.VariantType("LibraryReported", typeof(LibraryReported), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(LibraryReportedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReported)holder).Value) }), new global::Duplex.VariantType("ProceduralMission", typeof(ProceduralMission), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ProceduralMissionReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ProceduralMission)holder).Value) }), new global::Duplex.VariantType("Guilds", typeof(Guilds), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(GuildsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Guilds)holder).Value) }), new global::Duplex.VariantType("Traces", typeof(Traces), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TracesReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Traces)holder).Value) }), new global::Duplex.VariantType("WordLists", typeof(WordLists), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(WordListsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((WordLists)holder).Value) }) });
+        new global::Duplex.VariantType[] { new global::Duplex.VariantType("NetworkConnection", typeof(NetworkConnection), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkConnectionReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkConnection)holder).Value) }), new global::Duplex.VariantType("PlayerReady", typeof(PlayerReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PlayerReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PlayerReady)holder).Value) }), new global::Duplex.VariantType("DebugReady", typeof(DebugReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(DebugReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((DebugReady)holder).Value) }), new global::Duplex.VariantType("FileWritten", typeof(FileWritten), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FileWrittenReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FileWritten)holder).Value) }), new global::Duplex.VariantType("NetworkCreated", typeof(NetworkCreated), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkCreatedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkCreated)holder).Value) }), new global::Duplex.VariantType("ExecutionResult", typeof(ExecutionResult), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExecutionResultReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecutionResult)holder).Value) }), new global::Duplex.VariantType("InputRequested", typeof(InputRequested), global::System.Array.Empty<global::Duplex.Tag>(), global::System.Array.Empty<global::Duplex.FieldType>()), new global::Duplex.VariantType("PairExecutionResult", typeof(PairExecutionResult), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PairExecutionResultReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PairExecutionResult)holder).Value) }), new global::Duplex.VariantType("PlayerState", typeof(PlayerState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PlayerStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PlayerState)holder).Value) }), new global::Duplex.VariantType("FileState", typeof(FileState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FileStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FileState)holder).Value) }), new global::Duplex.VariantType("TestFailure", typeof(TestFailure), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TestFailureReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((TestFailure)holder).Value) }), new global::Duplex.VariantType("NetworkState", typeof(NetworkState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkState)holder).Value) }), new global::Duplex.VariantType("BlockchainReady", typeof(BlockchainReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(BlockchainReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((BlockchainReady)holder).Value) }), new global::Duplex.VariantType("Applied", typeof(Applied), global::System.Array.Empty<global::Duplex.Tag>(), global::System.Array.Empty<global::Duplex.FieldType>()), new global::Duplex.VariantType("TrafficReady", typeof(TrafficReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TrafficReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((TrafficReady)holder).Value) }), new global::Duplex.VariantType("KernelReplaced", typeof(KernelReplaced), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(KernelReplacedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((KernelReplaced)holder).Value) }), new global::Duplex.VariantType("Exploits", typeof(Exploits), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExploitsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Exploits)holder).Value) }), new global::Duplex.VariantType("ExploitBought", typeof(ExploitBought), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExploitBoughtReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExploitBought)holder).Value) }), new global::Duplex.VariantType("LibraryReported", typeof(LibraryReported), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(LibraryReportedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReported)holder).Value) }), new global::Duplex.VariantType("LibraryReleased", typeof(LibraryReleased), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(LibraryReleasedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReleased)holder).Value) }), new global::Duplex.VariantType("Mission", typeof(Mission), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(MissionReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Mission)holder).Value) }), new global::Duplex.VariantType("Guilds", typeof(Guilds), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(GuildsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Guilds)holder).Value) }), new global::Duplex.VariantType("Traces", typeof(Traces), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TracesReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Traces)holder).Value) }), new global::Duplex.VariantType("WordLists", typeof(WordLists), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(WordListsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((WordLists)holder).Value) }), new global::Duplex.VariantType("GameEnded", typeof(GameEnded), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(GameEndedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEnded)holder).Value) }), new global::Duplex.VariantType("CtfRated", typeof(CtfRated), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(CtfRatedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((CtfRated)holder).Value) }) });
 
     private protected Reply() { }
 
@@ -42,10 +42,13 @@ public abstract class Reply
             case 16: return Exploits.Read(reader);
             case 17: return ExploitBought.Read(reader);
             case 18: return LibraryReported.Read(reader);
-            case 19: return ProceduralMission.Read(reader);
-            case 20: return Guilds.Read(reader);
-            case 21: return Traces.Read(reader);
-            case 22: return WordLists.Read(reader);
+            case 19: return LibraryReleased.Read(reader);
+            case 20: return Mission.Read(reader);
+            case 21: return Guilds.Read(reader);
+            case 22: return Traces.Read(reader);
+            case 23: return WordLists.Read(reader);
+            case 24: return GameEnded.Read(reader);
+            case 25: return CtfRated.Read(reader);
             default: throw new global::Duplex.MalformedException($"no variant {index} of `Reply`");
         }
     }
@@ -460,14 +463,14 @@ public abstract class Reply
         }
     }
 
-    public sealed class ProceduralMission : Reply
+    public sealed class LibraryReleased : Reply
     {
-        public ProceduralMission(ProceduralMissionReply value)
+        public LibraryReleased(LibraryReleasedReply value)
         {
             Value = value;
         }
 
-        public ProceduralMissionReply Value { get; }
+        public LibraryReleasedReply Value { get; }
 
         public override void Write(global::Duplex.DuplexWriter writer)
         {
@@ -475,10 +478,32 @@ public abstract class Reply
             this.Value.Write(writer);
         }
 
-        public static new ProceduralMission Read(global::Duplex.DuplexReader reader)
+        public static new LibraryReleased Read(global::Duplex.DuplexReader reader)
         {
-            var value = ProceduralMissionReply.Read(reader);
-            return new ProceduralMission(value);
+            var value = LibraryReleasedReply.Read(reader);
+            return new LibraryReleased(value);
+        }
+    }
+
+    public sealed class Mission : Reply
+    {
+        public Mission(MissionReply value)
+        {
+            Value = value;
+        }
+
+        public MissionReply Value { get; }
+
+        public override void Write(global::Duplex.DuplexWriter writer)
+        {
+            writer.WriteU32(20);
+            this.Value.Write(writer);
+        }
+
+        public static new Mission Read(global::Duplex.DuplexReader reader)
+        {
+            var value = MissionReply.Read(reader);
+            return new Mission(value);
         }
     }
 
@@ -493,7 +518,7 @@ public abstract class Reply
 
         public override void Write(global::Duplex.DuplexWriter writer)
         {
-            writer.WriteU32(20);
+            writer.WriteU32(21);
             this.Value.Write(writer);
         }
 
@@ -515,7 +540,7 @@ public abstract class Reply
 
         public override void Write(global::Duplex.DuplexWriter writer)
         {
-            writer.WriteU32(21);
+            writer.WriteU32(22);
             this.Value.Write(writer);
         }
 
@@ -537,7 +562,7 @@ public abstract class Reply
 
         public override void Write(global::Duplex.DuplexWriter writer)
         {
-            writer.WriteU32(22);
+            writer.WriteU32(23);
             this.Value.Write(writer);
         }
 
@@ -545,6 +570,50 @@ public abstract class Reply
         {
             var value = WordListsReply.Read(reader);
             return new WordLists(value);
+        }
+    }
+
+    public sealed class GameEnded : Reply
+    {
+        public GameEnded(GameEndedReply value)
+        {
+            Value = value;
+        }
+
+        public GameEndedReply Value { get; }
+
+        public override void Write(global::Duplex.DuplexWriter writer)
+        {
+            writer.WriteU32(24);
+            this.Value.Write(writer);
+        }
+
+        public static new GameEnded Read(global::Duplex.DuplexReader reader)
+        {
+            var value = GameEndedReply.Read(reader);
+            return new GameEnded(value);
+        }
+    }
+
+    public sealed class CtfRated : Reply
+    {
+        public CtfRated(CtfRatedReply value)
+        {
+            Value = value;
+        }
+
+        public CtfRatedReply Value { get; }
+
+        public override void Write(global::Duplex.DuplexWriter writer)
+        {
+            writer.WriteU32(25);
+            this.Value.Write(writer);
+        }
+
+        public static new CtfRated Read(global::Duplex.DuplexReader reader)
+        {
+            var value = CtfRatedReply.Read(reader);
+            return new CtfRated(value);
         }
     }
 }
@@ -1135,6 +1204,63 @@ public sealed class LibraryReportedReply
 }
 
 /// <summary>
+/// The game's libraries around a release (`VersionsControl.lastLibs`), as `JsonConvert.SerializeObject` writes them.
+/// </summary>
+public sealed class LibraryReleasedReply
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "LibraryReleasedReply",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("before", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReleasedReply)holder).Before), new global::Duplex.FieldType("after", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReleasedReply)holder).After), new global::Duplex.FieldType("metaxploit_before", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReleasedReply)holder).MetaxploitBefore), new global::Duplex.FieldType("metaxploit_after", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReleasedReply)holder).MetaxploitAfter) },
+        values => new LibraryReleasedReply((string)values[0]!, (string)values[1]!, (string)values[2]!, (string)values[3]!));
+
+    public LibraryReleasedReply(string before, string after, string metaxploitBefore, string metaxploitAfter)
+    {
+        Before = before;
+        After = after;
+        MetaxploitBefore = metaxploitBefore;
+        MetaxploitAfter = metaxploitAfter;
+    }
+
+    /// <summary>
+    /// The newest version of the library before the release.
+    /// </summary>
+    public string Before { get; }
+
+    /// <summary>
+    /// The newest version of the library after it.
+    /// </summary>
+    public string After { get; }
+
+    /// <summary>
+    /// The newest metaxploit before the release, which every release gives a version too.
+    /// </summary>
+    public string MetaxploitBefore { get; }
+
+    /// <summary>
+    /// The newest metaxploit after the release.
+    /// </summary>
+    public string MetaxploitAfter { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteString(this.Before);
+        writer.WriteString(this.After);
+        writer.WriteString(this.MetaxploitBefore);
+        writer.WriteString(this.MetaxploitAfter);
+    }
+
+    public static LibraryReleasedReply Read(global::Duplex.DuplexReader reader)
+    {
+        string fieldBefore = reader.ReadString();
+        string fieldAfter = reader.ReadString();
+        string fieldMetaxploitBefore = reader.ReadString();
+        string fieldMetaxploitAfter = reader.ReadString();
+        return new LibraryReleasedReply(fieldBefore, fieldAfter, fieldMetaxploitBefore, fieldMetaxploitAfter);
+    }
+}
+
+/// <summary>
 /// The traces of the player.
 /// </summary>
 public sealed class TracesReply
@@ -1196,6 +1322,59 @@ public sealed class TracesReply
         global::System.Collections.Generic.IReadOnlyList<TraceComputer> fieldPassive = value3;
         uint fieldStrikes = reader.ReadU32();
         return new TracesReply(fieldActive, fieldPassive, fieldStrikes);
+    }
+}
+
+/// <summary>
+/// What the game has of the player after `EndGameRpc`.
+/// </summary>
+public sealed class GameEndedReply
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "GameEndedReply",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("computer_exists", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEndedReply)holder).ComputerExists), new global::Duplex.FieldType("subscriptions", typeof(global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEndedReply)holder).Subscriptions) },
+        values => new GameEndedReply((bool)values[0]!, (global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>)values[1]!));
+
+    public GameEndedReply(bool computerExists, global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> subscriptions)
+    {
+        ComputerExists = computerExists;
+        Subscriptions = subscriptions;
+    }
+
+    /// <summary>
+    /// Whether the player's computer is still in the game's database (`Database.GameOver` deletes it).
+    /// </summary>
+    public bool ComputerExists { get; }
+
+    /// <summary>
+    /// The player's monthly bank payments afterwards (`BankSubs.playerSubs`), in the order `SubscriptionSnapshot` has.
+    /// </summary>
+    public global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> Subscriptions { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteByte((byte)((this.ComputerExists ? 1 : 0)));
+        var items0 = this.Subscriptions;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            item1.Write(writer);
+        }
+    }
+
+    public static GameEndedReply Read(global::Duplex.DuplexReader reader)
+    {
+        var flags0 = reader.ReadFlags(1);
+        bool fieldComputerExists = (flags0 & 1) != 0;
+        var value1 = new global::System.Collections.Generic.List<SubscriptionSnapshot>();
+        var count2 = reader.ReadLength();
+        for (var index3 = 0; index3 < count2; index3++)
+        {
+            value1.Add(SubscriptionSnapshot.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> fieldSubscriptions = value1;
+        return new GameEndedReply(fieldComputerExists, fieldSubscriptions);
     }
 }
 
@@ -2171,10 +2350,10 @@ public sealed class NetworkSnapshot
     public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
         "NetworkSnapshot",
         global::System.Array.Empty<global::Duplex.Tag>(),
-        new global::Duplex.FieldType[] { new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PublicIp), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Kind), new global::Duplex.FieldType("domain", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Domain), new global::Duplex.FieldType("nodes", typeof(global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Nodes), new global::Duplex.FieldType("admin", typeof(AdminSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Admin), new global::Duplex.FieldType("npcs", typeof(global::System.Collections.Generic.IReadOnlyList<NpcSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Npcs), new global::Duplex.FieldType("traffic", typeof(TrafficSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Traffic), new global::Duplex.FieldType("player_bank", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PlayerBank), new global::Duplex.FieldType("player_mail", typeof(MailAccountSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PlayerMail), new global::Duplex.FieldType("recipient_mail", typeof(MailAccountSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RecipientMail), new global::Duplex.FieldType("current_date", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).CurrentDate), new global::Duplex.FieldType("debug", typeof(DebugSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Debug), new global::Duplex.FieldType("ctf", typeof(CtfSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Ctf), new global::Duplex.FieldType("banks", typeof(global::System.Collections.Generic.IReadOnlyList<BankSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Banks), new global::Duplex.FieldType("coins", typeof(global::System.Collections.Generic.IReadOnlyList<CoinSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Coins), new global::Duplex.FieldType("wallets", typeof(global::System.Collections.Generic.IReadOnlyList<WalletSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Wallets), new global::Duplex.FieldType("offers", typeof(global::System.Collections.Generic.IReadOnlyList<OfferSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Offers), new global::Duplex.FieldType("disabled", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Disabled), new global::Duplex.FieldType("rental_admin", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RentalAdmin), new global::Duplex.FieldType("net_speed", typeof(byte), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).NetSpeed), new global::Duplex.FieldType("world_secret", typeof(byte[]), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).WorldSecret), new global::Duplex.FieldType("subscriptions", typeof(global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Subscriptions) },
-        values => new NetworkSnapshot((string)values[0]!, (string)values[1]!, (string)values[2]!, (global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot>)values[3]!, (AdminSnapshot?)values[4], (global::System.Collections.Generic.IReadOnlyList<NpcSnapshot>)values[5]!, (TrafficSnapshot?)values[6], (string?)values[7], (MailAccountSnapshot?)values[8], (MailAccountSnapshot?)values[9], (string)values[10]!, (DebugSnapshot?)values[11], (CtfSnapshot?)values[12], (global::System.Collections.Generic.IReadOnlyList<BankSnapshot>)values[13]!, (global::System.Collections.Generic.IReadOnlyList<CoinSnapshot>)values[14]!, (global::System.Collections.Generic.IReadOnlyList<WalletSnapshot>)values[15]!, (global::System.Collections.Generic.IReadOnlyList<OfferSnapshot>)values[16]!, (bool)values[17]!, (bool)values[18]!, (byte)values[19]!, (byte[])values[20]!, (global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>)values[21]!));
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PublicIp), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Kind), new global::Duplex.FieldType("domain", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Domain), new global::Duplex.FieldType("nodes", typeof(global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Nodes), new global::Duplex.FieldType("admin", typeof(AdminSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Admin), new global::Duplex.FieldType("npcs", typeof(global::System.Collections.Generic.IReadOnlyList<NpcSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Npcs), new global::Duplex.FieldType("traffic", typeof(TrafficSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Traffic), new global::Duplex.FieldType("player_bank", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PlayerBank), new global::Duplex.FieldType("player_mail", typeof(MailAccountSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PlayerMail), new global::Duplex.FieldType("recipient_mail", typeof(MailAccountSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RecipientMail), new global::Duplex.FieldType("current_date", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).CurrentDate), new global::Duplex.FieldType("debug", typeof(DebugSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Debug), new global::Duplex.FieldType("ctf", typeof(CtfSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Ctf), new global::Duplex.FieldType("banks", typeof(global::System.Collections.Generic.IReadOnlyList<BankSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Banks), new global::Duplex.FieldType("coins", typeof(global::System.Collections.Generic.IReadOnlyList<CoinSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Coins), new global::Duplex.FieldType("wallets", typeof(global::System.Collections.Generic.IReadOnlyList<WalletSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Wallets), new global::Duplex.FieldType("offers", typeof(global::System.Collections.Generic.IReadOnlyList<OfferSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Offers), new global::Duplex.FieldType("disabled", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Disabled), new global::Duplex.FieldType("rental_admin", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RentalAdmin), new global::Duplex.FieldType("net_speed", typeof(byte), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).NetSpeed), new global::Duplex.FieldType("world_secret", typeof(byte[]), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).WorldSecret), new global::Duplex.FieldType("subscriptions", typeof(global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Subscriptions), new global::Duplex.FieldType("latest_libraries", typeof(global::System.Collections.Generic.IReadOnlyList<string>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).LatestLibraries) },
+        values => new NetworkSnapshot((string)values[0]!, (string)values[1]!, (string)values[2]!, (global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot>)values[3]!, (AdminSnapshot?)values[4], (global::System.Collections.Generic.IReadOnlyList<NpcSnapshot>)values[5]!, (TrafficSnapshot?)values[6], (string?)values[7], (MailAccountSnapshot?)values[8], (MailAccountSnapshot?)values[9], (string)values[10]!, (DebugSnapshot?)values[11], (CtfSnapshot?)values[12], (global::System.Collections.Generic.IReadOnlyList<BankSnapshot>)values[13]!, (global::System.Collections.Generic.IReadOnlyList<CoinSnapshot>)values[14]!, (global::System.Collections.Generic.IReadOnlyList<WalletSnapshot>)values[15]!, (global::System.Collections.Generic.IReadOnlyList<OfferSnapshot>)values[16]!, (bool)values[17]!, (bool)values[18]!, (byte)values[19]!, (byte[])values[20]!, (global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>)values[21]!, (global::System.Collections.Generic.IReadOnlyList<string>)values[22]!));
 
-    public NetworkSnapshot(string publicIp, string kind, string domain, global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot> nodes, AdminSnapshot? admin, global::System.Collections.Generic.IReadOnlyList<NpcSnapshot> npcs, TrafficSnapshot? traffic, string? playerBank, MailAccountSnapshot? playerMail, MailAccountSnapshot? recipientMail, string currentDate, DebugSnapshot? debug, CtfSnapshot? ctf, global::System.Collections.Generic.IReadOnlyList<BankSnapshot> banks, global::System.Collections.Generic.IReadOnlyList<CoinSnapshot> coins, global::System.Collections.Generic.IReadOnlyList<WalletSnapshot> wallets, global::System.Collections.Generic.IReadOnlyList<OfferSnapshot> offers, bool disabled, bool rentalAdmin, byte netSpeed, byte[] worldSecret, global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> subscriptions)
+    public NetworkSnapshot(string publicIp, string kind, string domain, global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot> nodes, AdminSnapshot? admin, global::System.Collections.Generic.IReadOnlyList<NpcSnapshot> npcs, TrafficSnapshot? traffic, string? playerBank, MailAccountSnapshot? playerMail, MailAccountSnapshot? recipientMail, string currentDate, DebugSnapshot? debug, CtfSnapshot? ctf, global::System.Collections.Generic.IReadOnlyList<BankSnapshot> banks, global::System.Collections.Generic.IReadOnlyList<CoinSnapshot> coins, global::System.Collections.Generic.IReadOnlyList<WalletSnapshot> wallets, global::System.Collections.Generic.IReadOnlyList<OfferSnapshot> offers, bool disabled, bool rentalAdmin, byte netSpeed, byte[] worldSecret, global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> subscriptions, global::System.Collections.Generic.IReadOnlyList<string> latestLibraries)
     {
         PublicIp = publicIp;
         Kind = kind;
@@ -2198,6 +2377,7 @@ public sealed class NetworkSnapshot
         NetSpeed = netSpeed;
         WorldSecret = worldSecret;
         Subscriptions = subscriptions;
+        LatestLibraries = latestLibraries;
     }
 
     public string PublicIp { get; }
@@ -2305,6 +2485,12 @@ public sealed class NetworkSnapshot
     /// </summary>
     public global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> Subscriptions { get; }
 
+    /// <summary>
+    /// The newest version of every library, as the game's `VersionsControl.lastLibs` holds it (library JSON).
+    /// `MetaExploitIntrinsics.scan` reads hidden zones of a library that isn't the newest of its kind.
+    /// </summary>
+    public global::System.Collections.Generic.IReadOnlyList<string> LatestLibraries { get; }
+
     public void Write(global::Duplex.DuplexWriter writer)
     {
         writer.WriteByte((byte)((this.Admin != null ? 1 : 0) | (this.Traffic != null ? 2 : 0) | (this.PlayerBank != null ? 4 : 0) | (this.PlayerMail != null ? 8 : 0) | (this.RecipientMail != null ? 16 : 0) | (this.Debug != null ? 32 : 0) | (this.Ctf != null ? 64 : 0) | (this.Disabled ? 128 : 0)));
@@ -2384,6 +2570,12 @@ public sealed class NetworkSnapshot
         foreach (var item13 in items12)
         {
             item13.Write(writer);
+        }
+        var items14 = this.LatestLibraries;
+        writer.WriteLength(items14.Count);
+        foreach (var item15 in items14)
+        {
+            writer.WriteString(item15);
         }
     }
 
@@ -2490,7 +2682,14 @@ public sealed class NetworkSnapshot
             value27.Add(SubscriptionSnapshot.Read(reader));
         }
         global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> fieldSubscriptions = value27;
-        return new NetworkSnapshot(fieldPublicIp, fieldKind, fieldDomain, fieldNodes, fieldAdmin, fieldNpcs, fieldTraffic, fieldPlayerBank, fieldPlayerMail, fieldRecipientMail, fieldCurrentDate, fieldDebug, fieldCtf, fieldBanks, fieldCoins, fieldWallets, fieldOffers, fieldDisabled, fieldRentalAdmin, fieldNetSpeed, fieldWorldSecret, fieldSubscriptions);
+        var value30 = new global::System.Collections.Generic.List<string>();
+        var count31 = reader.ReadLength();
+        for (var index32 = 0; index32 < count31; index32++)
+        {
+            value30.Add(reader.ReadString());
+        }
+        global::System.Collections.Generic.IReadOnlyList<string> fieldLatestLibraries = value30;
+        return new NetworkSnapshot(fieldPublicIp, fieldKind, fieldDomain, fieldNodes, fieldAdmin, fieldNpcs, fieldTraffic, fieldPlayerBank, fieldPlayerMail, fieldRecipientMail, fieldCurrentDate, fieldDebug, fieldCtf, fieldBanks, fieldCoins, fieldWallets, fieldOffers, fieldDisabled, fieldRentalAdmin, fieldNetSpeed, fieldWorldSecret, fieldSubscriptions, fieldLatestLibraries);
     }
 }
 
@@ -4066,23 +4265,24 @@ public sealed class FileSnapshot
 }
 
 /// <summary>
-/// A procedural mission of the game: its group of addresses, the mission as JSON (the parts
-/// `MissionGen.GetProceduralMission` returns with their computers' items, runtime tags and NPCs) and the computers
-/// of the networks it was generated in.
+/// A mission of the game: its group of addresses, the mission as JSON (the parts `MissionGen.GetMission` or
+/// `MissionGen.GetProceduralMission` returns with their computers' items, runtime tags and NPCs) and the networks of
+/// its group after their generation.
 /// </summary>
-public sealed class ProceduralMissionReply
+public sealed class MissionReply
 {
     public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
-        "ProceduralMissionReply",
+        "MissionReply",
         global::System.Array.Empty<global::Duplex.Tag>(),
-        new global::Duplex.FieldType[] { new global::Duplex.FieldType("group", typeof(global::System.Collections.Generic.IReadOnlyList<string>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ProceduralMissionReply)holder).Group), new global::Duplex.FieldType("mission", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ProceduralMissionReply)holder).Mission), new global::Duplex.FieldType("networks", typeof(global::System.Collections.Generic.IReadOnlyList<MissionNetworkSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ProceduralMissionReply)holder).Networks) },
-        values => new ProceduralMissionReply((global::System.Collections.Generic.IReadOnlyList<string>)values[0]!, (string)values[1]!, (global::System.Collections.Generic.IReadOnlyList<MissionNetworkSnapshot>)values[2]!));
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("group", typeof(global::System.Collections.Generic.IReadOnlyList<string>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionReply)holder).Group), new global::Duplex.FieldType("mission", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionReply)holder).Mission), new global::Duplex.FieldType("networks", typeof(global::System.Collections.Generic.IReadOnlyList<MissionNetworkSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionReply)holder).Networks), new global::Duplex.FieldType("current_date", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionReply)holder).CurrentDate) },
+        values => new MissionReply((global::System.Collections.Generic.IReadOnlyList<string>)values[0]!, (string)values[1]!, (global::System.Collections.Generic.IReadOnlyList<MissionNetworkSnapshot>)values[2]!, (string)values[3]!));
 
-    public ProceduralMissionReply(global::System.Collections.Generic.IReadOnlyList<string> group, string mission, global::System.Collections.Generic.IReadOnlyList<MissionNetworkSnapshot> networks)
+    public MissionReply(global::System.Collections.Generic.IReadOnlyList<string> group, string mission, global::System.Collections.Generic.IReadOnlyList<MissionNetworkSnapshot> networks, string currentDate)
     {
         Group = group;
         Mission = mission;
         Networks = networks;
+        CurrentDate = currentDate;
     }
 
     public global::System.Collections.Generic.IReadOnlyList<string> Group { get; }
@@ -4090,6 +4290,11 @@ public sealed class ProceduralMissionReply
     public string Mission { get; }
 
     public global::System.Collections.Generic.IReadOnlyList<MissionNetworkSnapshot> Networks { get; }
+
+    /// <summary>
+    /// Game clock when the mission was generated, after opening the zero-day rumor when necessary.
+    /// </summary>
+    public string CurrentDate { get; }
 
     public void Write(global::Duplex.DuplexWriter writer)
     {
@@ -4106,9 +4311,10 @@ public sealed class ProceduralMissionReply
         {
             item3.Write(writer);
         }
+        writer.WriteString(this.CurrentDate);
     }
 
-    public static ProceduralMissionReply Read(global::Duplex.DuplexReader reader)
+    public static MissionReply Read(global::Duplex.DuplexReader reader)
     {
         var value0 = new global::System.Collections.Generic.List<string>();
         var count1 = reader.ReadLength();
@@ -4125,7 +4331,8 @@ public sealed class ProceduralMissionReply
             value3.Add(MissionNetworkSnapshot.Read(reader));
         }
         global::System.Collections.Generic.IReadOnlyList<MissionNetworkSnapshot> fieldNetworks = value3;
-        return new ProceduralMissionReply(fieldGroup, fieldMission, fieldNetworks);
+        string fieldCurrentDate = reader.ReadString();
+        return new MissionReply(fieldGroup, fieldMission, fieldNetworks, fieldCurrentDate);
     }
 }
 
@@ -4137,18 +4344,30 @@ public sealed class MissionNetworkSnapshot
     public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
         "MissionNetworkSnapshot",
         global::System.Array.Empty<global::Duplex.Tag>(),
-        new global::Duplex.FieldType[] { new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionNetworkSnapshot)holder).PublicIp), new global::Duplex.FieldType("computers", typeof(global::System.Collections.Generic.IReadOnlyList<MissionComputerSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionNetworkSnapshot)holder).Computers) },
-        values => new MissionNetworkSnapshot((string)values[0]!, (global::System.Collections.Generic.IReadOnlyList<MissionComputerSnapshot>)values[1]!));
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionNetworkSnapshot)holder).PublicIp), new global::Duplex.FieldType("computers", typeof(global::System.Collections.Generic.IReadOnlyList<MissionComputerSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionNetworkSnapshot)holder).Computers), new global::Duplex.FieldType("firewall_rules", typeof(global::System.Collections.Generic.IReadOnlyList<FirewallRuleSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionNetworkSnapshot)holder).FirewallRules), new global::Duplex.FieldType("ports", typeof(global::System.Collections.Generic.IReadOnlyList<TablePortSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionNetworkSnapshot)holder).Ports) },
+        values => new MissionNetworkSnapshot((string)values[0]!, (global::System.Collections.Generic.IReadOnlyList<MissionComputerSnapshot>)values[1]!, (global::System.Collections.Generic.IReadOnlyList<FirewallRuleSnapshot>)values[2]!, (global::System.Collections.Generic.IReadOnlyList<TablePortSnapshot>)values[3]!));
 
-    public MissionNetworkSnapshot(string publicIp, global::System.Collections.Generic.IReadOnlyList<MissionComputerSnapshot> computers)
+    public MissionNetworkSnapshot(string publicIp, global::System.Collections.Generic.IReadOnlyList<MissionComputerSnapshot> computers, global::System.Collections.Generic.IReadOnlyList<FirewallRuleSnapshot> firewallRules, global::System.Collections.Generic.IReadOnlyList<TablePortSnapshot> ports)
     {
         PublicIp = publicIp;
         Computers = computers;
+        FirewallRules = firewallRules;
+        Ports = ports;
     }
 
     public string PublicIp { get; }
 
     public global::System.Collections.Generic.IReadOnlyList<MissionComputerSnapshot> Computers { get; }
+
+    /// <summary>
+    /// Firewall rules of the main router in router order.
+    /// </summary>
+    public global::System.Collections.Generic.IReadOnlyList<FirewallRuleSnapshot> FirewallRules { get; }
+
+    /// <summary>
+    /// Port table of the main router (`RouterConfigOS.puertos`) in router order.
+    /// </summary>
+    public global::System.Collections.Generic.IReadOnlyList<TablePortSnapshot> Ports { get; }
 
     public void Write(global::Duplex.DuplexWriter writer)
     {
@@ -4158,6 +4377,18 @@ public sealed class MissionNetworkSnapshot
         foreach (var item1 in items0)
         {
             item1.Write(writer);
+        }
+        var items2 = this.FirewallRules;
+        writer.WriteLength(items2.Count);
+        foreach (var item3 in items2)
+        {
+            item3.Write(writer);
+        }
+        var items4 = this.Ports;
+        writer.WriteLength(items4.Count);
+        foreach (var item5 in items4)
+        {
+            item5.Write(writer);
         }
     }
 
@@ -4171,7 +4402,21 @@ public sealed class MissionNetworkSnapshot
             value0.Add(MissionComputerSnapshot.Read(reader));
         }
         global::System.Collections.Generic.IReadOnlyList<MissionComputerSnapshot> fieldComputers = value0;
-        return new MissionNetworkSnapshot(fieldPublicIp, fieldComputers);
+        var value3 = new global::System.Collections.Generic.List<FirewallRuleSnapshot>();
+        var count4 = reader.ReadLength();
+        for (var index5 = 0; index5 < count4; index5++)
+        {
+            value3.Add(FirewallRuleSnapshot.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<FirewallRuleSnapshot> fieldFirewallRules = value3;
+        var value6 = new global::System.Collections.Generic.List<TablePortSnapshot>();
+        var count7 = reader.ReadLength();
+        for (var index8 = 0; index8 < count7; index8++)
+        {
+            value6.Add(TablePortSnapshot.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<TablePortSnapshot> fieldPorts = value6;
+        return new MissionNetworkSnapshot(fieldPublicIp, fieldComputers, fieldFirewallRules, fieldPorts);
     }
 }
 
@@ -4294,6 +4539,36 @@ public sealed class WordListSnapshot
         string fieldName = reader.ReadString();
         string fieldText = reader.ReadString();
         return new WordListSnapshot(fieldName, fieldText);
+    }
+}
+
+/// <summary>
+/// Result text from the game's CTF event-rating path.
+/// </summary>
+public sealed class CtfRatedReply
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "CtfRatedReply",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("output", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((CtfRatedReply)holder).Output) },
+        values => new CtfRatedReply((string)values[0]!));
+
+    public CtfRatedReply(string output)
+    {
+        Output = output;
+    }
+
+    public string Output { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteString(this.Output);
+    }
+
+    public static CtfRatedReply Read(global::Duplex.DuplexReader reader)
+    {
+        string fieldOutput = reader.ReadString();
+        return new CtfRatedReply(fieldOutput);
     }
 }
 
@@ -5088,8 +5363,8 @@ public sealed class QueryNetworkRpc : global::Duplex.Message
 
 /// <summary>
 /// Installs a game-generated version of library `name` in `/lib` on the computer at `local_ip` in the player
-/// network, or the player computer when `local_ip` is empty. Selects a version with a weakness that has
-/// `reward` (`Library.Vulnerabilidad.HackResult`) and the fewest requirements.
+/// network, or the player computer when `local_ip` is empty. Selects a version with a weakness for each of
+/// `rewards` (`Library.Vulnerabilidad.HackResult`), with the fewest requirements in total.
 /// </summary>
 public sealed class InstallLibraryRpc : global::Duplex.Message
 {
@@ -5103,15 +5378,15 @@ public sealed class InstallLibraryRpc : global::Duplex.Message
         streams: false,
         read: reader => Read(reader),
         tags: global::System.Array.Empty<global::Duplex.Tag>(),
-        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallLibraryRpc)holder).Request), new global::Duplex.FieldType("local_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallLibraryRpc)holder).LocalIp), new global::Duplex.FieldType("name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallLibraryRpc)holder).Name), new global::Duplex.FieldType("reward", typeof(byte), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallLibraryRpc)holder).Reward) },
-        create: values => new InstallLibraryRpc((uint)values[0]!, (string)values[1]!, (string)values[2]!, (byte)values[3]!));
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallLibraryRpc)holder).Request), new global::Duplex.FieldType("local_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallLibraryRpc)holder).LocalIp), new global::Duplex.FieldType("name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallLibraryRpc)holder).Name), new global::Duplex.FieldType("rewards", typeof(global::System.Collections.Generic.IReadOnlyList<byte>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallLibraryRpc)holder).Rewards) },
+        create: values => new InstallLibraryRpc((uint)values[0]!, (string)values[1]!, (string)values[2]!, (global::System.Collections.Generic.IReadOnlyList<byte>)values[3]!));
 
-    public InstallLibraryRpc(uint request, string localIp, string name, byte reward)
+    public InstallLibraryRpc(uint request, string localIp, string name, global::System.Collections.Generic.IReadOnlyList<byte> rewards)
     {
         Request = request;
         LocalIp = localIp;
         Name = name;
-        Reward = reward;
+        Rewards = rewards;
     }
 
     public uint Request { get; }
@@ -5120,7 +5395,7 @@ public sealed class InstallLibraryRpc : global::Duplex.Message
 
     public string Name { get; }
 
-    public byte Reward { get; }
+    public global::System.Collections.Generic.IReadOnlyList<byte> Rewards { get; }
 
     public override global::Duplex.MessageType GetMessageType() => MessageType;
 
@@ -5129,7 +5404,12 @@ public sealed class InstallLibraryRpc : global::Duplex.Message
         writer.WriteU32(this.Request);
         writer.WriteString(this.LocalIp);
         writer.WriteString(this.Name);
-        writer.WriteU8(this.Reward);
+        var items0 = this.Rewards;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            writer.WriteU8(item1);
+        }
     }
 
     public static InstallLibraryRpc Read(global::Duplex.DuplexReader reader)
@@ -5137,8 +5417,14 @@ public sealed class InstallLibraryRpc : global::Duplex.Message
         uint fieldRequest = reader.ReadU32();
         string fieldLocalIp = reader.ReadString();
         string fieldName = reader.ReadString();
-        byte fieldReward = reader.ReadU8();
-        return new InstallLibraryRpc(fieldRequest, fieldLocalIp, fieldName, fieldReward);
+        var value0 = new global::System.Collections.Generic.List<byte>();
+        var count1 = reader.ReadLength();
+        for (var index2 = 0; index2 < count1; index2++)
+        {
+            value0.Add(reader.ReadU8());
+        }
+        global::System.Collections.Generic.IReadOnlyList<byte> fieldRewards = value0;
+        return new InstallLibraryRpc(fieldRequest, fieldLocalIp, fieldName, fieldRewards);
     }
 }
 
@@ -6710,15 +6996,16 @@ public sealed class SetPlayerMoneyRpc : global::Duplex.Message
 }
 
 /// <summary>
-/// Draws a group of addresses for procedural mission `index` of the hack shop (`police` unset) or police
-/// source (`IPGroupManager.GetRandomGroupForMission`), builds its mission as the game does
-/// (`MissionGen.GetProceduralMission`) and generates the networks of its group (`ServerMap.GetRouter`).
-/// Replies with `Reply.ProceduralMission`.
+/// Draws a group of addresses for mission `index` of `kind`, a `TypeMission` name
+/// (`IPGroupManager.GetRandomGroupForMission`), builds its mission as the game does
+/// (`MissionGen.GetMission`, `MissionGen.GetProceduralMission`) and generates the networks of its group
+/// (`ServerMap.GetRouter`). A zero-day mission is only generated while the rumor is open, so the clock is
+/// moved to the next one when it is not (`ZeroDaySystem.IsRumorTime`). Replies with `Reply.Mission`.
 /// </summary>
-public sealed class ProceduralMissionRpc : global::Duplex.Message
+public sealed class MissionRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
-        "ProceduralMissionRpc",
+        "MissionRpc",
         id: 49,
         since: 0,
         sender: global::Duplex.Role.Client,
@@ -6727,19 +7014,19 @@ public sealed class ProceduralMissionRpc : global::Duplex.Message
         streams: false,
         read: reader => Read(reader),
         tags: global::System.Array.Empty<global::Duplex.Tag>(),
-        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ProceduralMissionRpc)holder).Request), new global::Duplex.FieldType("police", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ProceduralMissionRpc)holder).Police), new global::Duplex.FieldType("index", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ProceduralMissionRpc)holder).Index) },
-        create: values => new ProceduralMissionRpc((uint)values[0]!, (bool)values[1]!, (uint)values[2]!));
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionRpc)holder).Request), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionRpc)holder).Kind), new global::Duplex.FieldType("index", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((MissionRpc)holder).Index) },
+        create: values => new MissionRpc((uint)values[0]!, (string)values[1]!, (uint)values[2]!));
 
-    public ProceduralMissionRpc(uint request, bool police, uint index)
+    public MissionRpc(uint request, string kind, uint index)
     {
         Request = request;
-        Police = police;
+        Kind = kind;
         Index = index;
     }
 
     public uint Request { get; }
 
-    public bool Police { get; }
+    public string Kind { get; }
 
     public uint Index { get; }
 
@@ -6747,18 +7034,17 @@ public sealed class ProceduralMissionRpc : global::Duplex.Message
 
     public override void Write(global::Duplex.DuplexWriter writer)
     {
-        writer.WriteByte((byte)((this.Police ? 1 : 0)));
         writer.WriteU32(this.Request);
+        writer.WriteString(this.Kind);
         writer.WriteU32(this.Index);
     }
 
-    public static ProceduralMissionRpc Read(global::Duplex.DuplexReader reader)
+    public static MissionRpc Read(global::Duplex.DuplexReader reader)
     {
-        var flags0 = reader.ReadFlags(1);
         uint fieldRequest = reader.ReadU32();
-        bool fieldPolice = (flags0 & 1) != 0;
+        string fieldKind = reader.ReadString();
         uint fieldIndex = reader.ReadU32();
-        return new ProceduralMissionRpc(fieldRequest, fieldPolice, fieldIndex);
+        return new MissionRpc(fieldRequest, fieldKind, fieldIndex);
     }
 }
 
@@ -6996,6 +7282,276 @@ public sealed class QueryWordListsRpc : global::Duplex.Message
 }
 
 /// <summary>
+/// Compiles and runs a script in a new game context as typed into a terminal of the player's computer. The
+/// game passes whether the terminal process is protected as `GreyInterpreter.isSafeTerminal`
+/// (`GreyScriptHelperServer.PrepareTerminalServerRpc`), which every program the script launches shares. With
+/// `safe_terminal` the terminal is the safe-mode terminal that a restart in safe mode starts (the request fails
+/// when the computer runs none); otherwise it is a terminal process that isn't protected, added with the game's
+/// `Computer.AddProcess` and ended with the script. Replies with `Reply.ExecutionResult`. `ExecuteRpc` types
+/// into the safe-mode terminal while the computer runs one, and otherwise into an unprotected terminal.
+/// </summary>
+public sealed class ExecuteInTerminalRpc : global::Duplex.Message
+{
+    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
+        "ExecuteInTerminalRpc",
+        id: 54,
+        since: 0,
+        sender: global::Duplex.Role.Client,
+        limit: 16777216,
+        responds: false,
+        streams: false,
+        read: reader => Read(reader),
+        tags: global::System.Array.Empty<global::Duplex.Tag>(),
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecuteInTerminalRpc)holder).Request), new global::Duplex.FieldType("source", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecuteInTerminalRpc)holder).Source), new global::Duplex.FieldType("filepath", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecuteInTerminalRpc)holder).Filepath), new global::Duplex.FieldType("basepath", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecuteInTerminalRpc)holder).Basepath), new global::Duplex.FieldType("program_name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecuteInTerminalRpc)holder).ProgramName), new global::Duplex.FieldType("safe_terminal", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecuteInTerminalRpc)holder).SafeTerminal) },
+        create: values => new ExecuteInTerminalRpc((uint)values[0]!, (string)values[1]!, (string)values[2]!, (string)values[3]!, (string)values[4]!, (bool)values[5]!));
+
+    public ExecuteInTerminalRpc(uint request, string source, string filepath, string basepath, string programName, bool safeTerminal)
+    {
+        Request = request;
+        Source = source;
+        Filepath = filepath;
+        Basepath = basepath;
+        ProgramName = programName;
+        SafeTerminal = safeTerminal;
+    }
+
+    public uint Request { get; }
+
+    public string Source { get; }
+
+    public string Filepath { get; }
+
+    public string Basepath { get; }
+
+    public string ProgramName { get; }
+
+    public bool SafeTerminal { get; }
+
+    public override global::Duplex.MessageType GetMessageType() => MessageType;
+
+    public override void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteByte((byte)((this.SafeTerminal ? 1 : 0)));
+        writer.WriteU32(this.Request);
+        writer.WriteString(this.Source);
+        writer.WriteString(this.Filepath);
+        writer.WriteString(this.Basepath);
+        writer.WriteString(this.ProgramName);
+    }
+
+    public static ExecuteInTerminalRpc Read(global::Duplex.DuplexReader reader)
+    {
+        var flags0 = reader.ReadFlags(1);
+        uint fieldRequest = reader.ReadU32();
+        string fieldSource = reader.ReadString();
+        string fieldFilepath = reader.ReadString();
+        string fieldBasepath = reader.ReadString();
+        string fieldProgramName = reader.ReadString();
+        bool fieldSafeTerminal = (flags0 & 1) != 0;
+        return new ExecuteInTerminalRpc(fieldRequest, fieldSource, fieldFilepath, fieldBasepath, fieldProgramName, fieldSafeTerminal);
+    }
+}
+
+/// <summary>
+/// Gives the player strike `strikes` as the end of an active trace does: the player has `strikes - 1` strikes
+/// first (`PlayerHelperServer.gameOverCont`, `Database.GameOverStrike`), then
+/// `PlayerHelperServer.ActiveGameOver` runs for the computer at `company_ip`. The third strike ends the game
+/// (`Database.GameOver`). Replies with `Reply.GameEnded`.
+/// </summary>
+public sealed class EndGameRpc : global::Duplex.Message
+{
+    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
+        "EndGameRpc",
+        id: 55,
+        since: 0,
+        sender: global::Duplex.Role.Client,
+        limit: 16777216,
+        responds: false,
+        streams: false,
+        read: reader => Read(reader),
+        tags: global::System.Array.Empty<global::Duplex.Tag>(),
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((EndGameRpc)holder).Request), new global::Duplex.FieldType("strikes", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((EndGameRpc)holder).Strikes), new global::Duplex.FieldType("company_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((EndGameRpc)holder).CompanyIp) },
+        create: values => new EndGameRpc((uint)values[0]!, (uint)values[1]!, (string)values[2]!));
+
+    public EndGameRpc(uint request, uint strikes, string companyIp)
+    {
+        Request = request;
+        Strikes = strikes;
+        CompanyIp = companyIp;
+    }
+
+    public uint Request { get; }
+
+    public uint Strikes { get; }
+
+    public string CompanyIp { get; }
+
+    public override global::Duplex.MessageType GetMessageType() => MessageType;
+
+    public override void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteU32(this.Request);
+        writer.WriteU32(this.Strikes);
+        writer.WriteString(this.CompanyIp);
+    }
+
+    public static EndGameRpc Read(global::Duplex.DuplexReader reader)
+    {
+        uint fieldRequest = reader.ReadU32();
+        uint fieldStrikes = reader.ReadU32();
+        string fieldCompanyIp = reader.ReadString();
+        return new EndGameRpc(fieldRequest, fieldStrikes, fieldCompanyIp);
+    }
+}
+
+/// <summary>
+/// Runs the player's monthly payment `kind` (`BANK`, `RENTED` or `ADMIN`) now, as the game does when that
+/// payment's own date comes (`BankSubs.Payment.RunPayment`); the player's other payments wait for theirs.
+/// </summary>
+public sealed class RunPaymentRpc : global::Duplex.Message
+{
+    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
+        "RunPaymentRpc",
+        id: 56,
+        since: 0,
+        sender: global::Duplex.Role.Client,
+        limit: 16777216,
+        responds: false,
+        streams: false,
+        read: reader => Read(reader),
+        tags: global::System.Array.Empty<global::Duplex.Tag>(),
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RunPaymentRpc)holder).Request), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RunPaymentRpc)holder).Kind) },
+        create: values => new RunPaymentRpc((uint)values[0]!, (string)values[1]!));
+
+    public RunPaymentRpc(uint request, string kind)
+    {
+        Request = request;
+        Kind = kind;
+    }
+
+    public uint Request { get; }
+
+    public string Kind { get; }
+
+    public override global::Duplex.MessageType GetMessageType() => MessageType;
+
+    public override void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteU32(this.Request);
+        writer.WriteString(this.Kind);
+    }
+
+    public static RunPaymentRpc Read(global::Duplex.DuplexReader reader)
+    {
+        uint fieldRequest = reader.ReadU32();
+        string fieldKind = reader.ReadString();
+        return new RunPaymentRpc(fieldRequest, fieldKind);
+    }
+}
+
+/// <summary>
+/// Releases the next version of the library file `library` as the game does for a world's first versions: every
+/// visible weakness of its newest version counts as used up (`VersionsControl.MarkVisibleVulnerabilitiesAsUsed`)
+/// and the check for library versions runs on it (`VersionsControl.CheckUpdatePrograms`). Replies with
+/// `Reply.LibraryReleased`.
+/// </summary>
+public sealed class ReleaseLibraryVersionRpc : global::Duplex.Message
+{
+    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
+        "ReleaseLibraryVersionRpc",
+        id: 57,
+        since: 0,
+        sender: global::Duplex.Role.Client,
+        limit: 16777216,
+        responds: false,
+        streams: false,
+        read: reader => Read(reader),
+        tags: global::System.Array.Empty<global::Duplex.Tag>(),
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ReleaseLibraryVersionRpc)holder).Request), new global::Duplex.FieldType("library", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ReleaseLibraryVersionRpc)holder).Library) },
+        create: values => new ReleaseLibraryVersionRpc((uint)values[0]!, (string)values[1]!));
+
+    public ReleaseLibraryVersionRpc(uint request, string library)
+    {
+        Request = request;
+        Library = library;
+    }
+
+    public uint Request { get; }
+
+    public string Library { get; }
+
+    public override global::Duplex.MessageType GetMessageType() => MessageType;
+
+    public override void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteU32(this.Request);
+        writer.WriteString(this.Library);
+    }
+
+    public static ReleaseLibraryVersionRpc Read(global::Duplex.DuplexReader reader)
+    {
+        uint fieldRequest = reader.ReadU32();
+        string fieldLibrary = reader.ReadString();
+        return new ReleaseLibraryVersionRpc(fieldRequest, fieldLibrary);
+    }
+}
+
+/// <summary>
+/// Rates a CTF event through the game's event-rating path (`MissionsHelperServer.RateCTFServerRpc`,
+/// `CTF_Event.AddScore`). Replies with `Reply.CtfRated`.
+/// </summary>
+public sealed class RateCtfRpc : global::Duplex.Message
+{
+    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
+        "RateCtfRpc",
+        id: 58,
+        since: 0,
+        sender: global::Duplex.Role.Client,
+        limit: 16777216,
+        responds: false,
+        streams: false,
+        read: reader => Read(reader),
+        tags: global::System.Array.Empty<global::Duplex.Tag>(),
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RateCtfRpc)holder).Request), new global::Duplex.FieldType("event_name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RateCtfRpc)holder).EventName), new global::Duplex.FieldType("quality", typeof(long), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RateCtfRpc)holder).Quality), new global::Duplex.FieldType("difficulty", typeof(long), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RateCtfRpc)holder).Difficulty) },
+        create: values => new RateCtfRpc((uint)values[0]!, (string)values[1]!, (long)values[2]!, (long)values[3]!));
+
+    public RateCtfRpc(uint request, string eventName, long quality, long difficulty)
+    {
+        Request = request;
+        EventName = eventName;
+        Quality = quality;
+        Difficulty = difficulty;
+    }
+
+    public uint Request { get; }
+
+    public string EventName { get; }
+
+    public long Quality { get; }
+
+    public long Difficulty { get; }
+
+    public override global::Duplex.MessageType GetMessageType() => MessageType;
+
+    public override void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteU32(this.Request);
+        writer.WriteString(this.EventName);
+        writer.WriteI64(this.Quality);
+        writer.WriteI64(this.Difficulty);
+    }
+
+    public static RateCtfRpc Read(global::Duplex.DuplexReader reader)
+    {
+        uint fieldRequest = reader.ReadU32();
+        string fieldEventName = reader.ReadString();
+        long fieldQuality = reader.ReadI64();
+        long fieldDifficulty = reader.ReadI64();
+        return new RateCtfRpc(fieldRequest, fieldEventName, fieldQuality, fieldDifficulty);
+    }
+}
+
+/// <summary>
 /// Reply for the request with matching `request`. Each request has exactly one reply on its originating
 /// connection, except `ExecuteUntilInputRpc` and `TypeInputRpc`, which reply when the script next waits for
 /// input or exits.
@@ -7051,8 +7607,8 @@ public static class TestSupport
         channelId: 3416832380u,
         version: new global::Duplex.VersionNumber(1, 0),
         core: new global::Duplex.VersionNumber(1, 0),
-        versions: new[] { new global::Duplex.VersionInfo(1923624207u, null, false) },
-        messages: new[] { new[] { ReplyRpc.MessageType }, new[] { SetupPlayerRpc.MessageType, ConnectNetworkRpc.MessageType, WriteFileRpc.MessageType, CreateNetworkRpc.MessageType, SetupDebugRpc.MessageType, SetupCtfRpc.MessageType, ExecuteRpc.MessageType, ExecuteInteractiveRpc.MessageType, ExecuteUntilInputRpc.MessageType, TypeInputRpc.MessageType, ExecutePairRpc.MessageType, QueryPlayerRpc.MessageType, QueryFileRpc.MessageType, SetRouterKernelRequirementRpc.MessageType, WriteRouterKernelRpc.MessageType, QueryNetworkRpc.MessageType, InstallLibraryRpc.MessageType, SetupBlockchainRpc.MessageType, SetupMailRpc.MessageType, SetupWalletRpc.MessageType, SetupForeignCoinRpc.MessageType, ForwardServiceRpc.MessageType, LockApplianceRpc.MessageType, PrimeFloodRpc.MessageType, FreezeClockRpc.MessageType, FindNetworkRpc.MessageType, FindNewNetworkRpc.MessageType, DisableNetworkRpc.MessageType, PromoteAdminRpc.MessageType, FireNpcRpc.MessageType, RefreshNpcAccountRpc.MessageType, ConfigZeroDayInfoRpc.MessageType, SetPhoneAlarmRpc.MessageType, SetupTrafficRpc.MessageType, TrafficAccidentRpc.MessageType, ResetTrafficCooldownRpc.MessageType, AllowFirewallRpc.MessageType, SpawnNetworkRpc.MessageType, HireRentalAdminRpc.MessageType, ForceAdminLoginRpc.MessageType, AdvanceClockRpc.MessageType, QueryExploitsRpc.MessageType, BuyExploitRpc.MessageType, RebootPlayerRpc.MessageType, ReportLibraryUpdateRpc.MessageType, RentNetworkRpc.MessageType, RentalAdminServiceRpc.MessageType, RunPaymentsRpc.MessageType, SetPlayerMoneyRpc.MessageType, ProceduralMissionRpc.MessageType, SetupGuildRpc.MessageType, QueryGuildsRpc.MessageType, QueryTracesRpc.MessageType, QueryWordListsRpc.MessageType } },
+        versions: new[] { new global::Duplex.VersionInfo(1866798468u, null, false) },
+        messages: new[] { new[] { ReplyRpc.MessageType }, new[] { SetupPlayerRpc.MessageType, ConnectNetworkRpc.MessageType, WriteFileRpc.MessageType, CreateNetworkRpc.MessageType, SetupDebugRpc.MessageType, SetupCtfRpc.MessageType, ExecuteRpc.MessageType, ExecuteInteractiveRpc.MessageType, ExecuteUntilInputRpc.MessageType, TypeInputRpc.MessageType, ExecutePairRpc.MessageType, QueryPlayerRpc.MessageType, QueryFileRpc.MessageType, SetRouterKernelRequirementRpc.MessageType, WriteRouterKernelRpc.MessageType, QueryNetworkRpc.MessageType, InstallLibraryRpc.MessageType, SetupBlockchainRpc.MessageType, SetupMailRpc.MessageType, SetupWalletRpc.MessageType, SetupForeignCoinRpc.MessageType, ForwardServiceRpc.MessageType, LockApplianceRpc.MessageType, PrimeFloodRpc.MessageType, FreezeClockRpc.MessageType, FindNetworkRpc.MessageType, FindNewNetworkRpc.MessageType, DisableNetworkRpc.MessageType, PromoteAdminRpc.MessageType, FireNpcRpc.MessageType, RefreshNpcAccountRpc.MessageType, ConfigZeroDayInfoRpc.MessageType, SetPhoneAlarmRpc.MessageType, SetupTrafficRpc.MessageType, TrafficAccidentRpc.MessageType, ResetTrafficCooldownRpc.MessageType, AllowFirewallRpc.MessageType, SpawnNetworkRpc.MessageType, HireRentalAdminRpc.MessageType, ForceAdminLoginRpc.MessageType, AdvanceClockRpc.MessageType, QueryExploitsRpc.MessageType, BuyExploitRpc.MessageType, RebootPlayerRpc.MessageType, ReportLibraryUpdateRpc.MessageType, RentNetworkRpc.MessageType, RentalAdminServiceRpc.MessageType, RunPaymentsRpc.MessageType, SetPlayerMoneyRpc.MessageType, MissionRpc.MessageType, SetupGuildRpc.MessageType, QueryGuildsRpc.MessageType, QueryTracesRpc.MessageType, QueryWordListsRpc.MessageType, ExecuteInTerminalRpc.MessageType, EndGameRpc.MessageType, RunPaymentRpc.MessageType, ReleaseLibraryVersionRpc.MessageType, RateCtfRpc.MessageType } },
         security: null,
         flavours: global::System.Array.Empty<global::Duplex.Flavour>(),
         tags: global::System.Array.Empty<global::Duplex.Tag>());
@@ -7161,7 +7717,7 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
 
     public virtual void OnSetPlayerMoneyRpc(SetPlayerMoneyRpc message) { }
 
-    public virtual void OnProceduralMissionRpc(ProceduralMissionRpc message) { }
+    public virtual void OnMissionRpc(MissionRpc message) { }
 
     public virtual void OnSetupGuildRpc(SetupGuildRpc message) { }
 
@@ -7170,6 +7726,16 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
     public virtual void OnQueryTracesRpc(QueryTracesRpc message) { }
 
     public virtual void OnQueryWordListsRpc(QueryWordListsRpc message) { }
+
+    public virtual void OnExecuteInTerminalRpc(ExecuteInTerminalRpc message) { }
+
+    public virtual void OnEndGameRpc(EndGameRpc message) { }
+
+    public virtual void OnRunPaymentRpc(RunPaymentRpc message) { }
+
+    public virtual void OnReleaseLibraryVersionRpc(ReleaseLibraryVersionRpc message) { }
+
+    public virtual void OnRateCtfRpc(RateCtfRpc message) { }
 
     public override void Notify(global::Duplex.Message message)
     {
@@ -7224,11 +7790,16 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
             case RentalAdminServiceRpc received: OnRentalAdminServiceRpc(received); return;
             case RunPaymentsRpc received: OnRunPaymentsRpc(received); return;
             case SetPlayerMoneyRpc received: OnSetPlayerMoneyRpc(received); return;
-            case ProceduralMissionRpc received: OnProceduralMissionRpc(received); return;
+            case MissionRpc received: OnMissionRpc(received); return;
             case SetupGuildRpc received: OnSetupGuildRpc(received); return;
             case QueryGuildsRpc received: OnQueryGuildsRpc(received); return;
             case QueryTracesRpc received: OnQueryTracesRpc(received); return;
             case QueryWordListsRpc received: OnQueryWordListsRpc(received); return;
+            case ExecuteInTerminalRpc received: OnExecuteInTerminalRpc(received); return;
+            case EndGameRpc received: OnEndGameRpc(received); return;
+            case RunPaymentRpc received: OnRunPaymentRpc(received); return;
+            case ReleaseLibraryVersionRpc received: OnReleaseLibraryVersionRpc(received); return;
+            case RateCtfRpc received: OnRateCtfRpc(received); return;
         }
     }
 }

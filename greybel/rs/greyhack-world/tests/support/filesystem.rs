@@ -5,18 +5,33 @@ use crate::support::factory_filesystem::{npc, world as generated_world};
 
 /// Builds a small tree in a real world's filesystem, including a symlink to the user's folder.
 pub async fn tree() -> (World, ComputerId) {
-    let mut world = World::new(&PlayerOptions::default())
+    let world = World::new(&PlayerOptions::default())
         .await
         .expect("the world generates");
-    let computer = world.player();
-    let root = world.root(computer).await.unwrap().expect("a root folder");
+    let computer = world.handle.player();
+    let root = world
+        .modules
+        .core
+        .files
+        .lookup
+        .root(computer)
+        .await
+        .unwrap()
+        .expect("a root folder");
     let home = world
+        .modules
+        .core
+        .files
+        .lookup
         .folder(computer, "/home", true)
         .await
         .unwrap()
         .expect("/home");
     let user = world
-        .add_node(
+        .modules
+        .libraries
+        .generator
+        .add_full_node(
             &home,
             &NodeDraft::folder("bob", "bob", PermissionSet::default_for(true)),
         )
@@ -24,7 +39,10 @@ pub async fn tree() -> (World, ComputerId) {
         .unwrap();
 
     world
-        .add_node(
+        .modules
+        .libraries
+        .generator
+        .add_full_node(
             &user,
             &NodeDraft::file(
                 "notes.txt",
@@ -39,24 +57,41 @@ pub async fn tree() -> (World, ComputerId) {
     let mut link = NodeDraft::folder("link", ROOT_USER, PermissionSet::default_for(true));
 
     link.symlink = "/home/bob".to_owned();
-    world.add_node(&root, &link).await.unwrap();
+    world
+        .modules
+        .libraries
+        .generator
+        .add_full_node(&root, &link)
+        .await
+        .unwrap();
 
     (world, computer)
 }
 
 pub async fn computers_for_copy() -> (World, ComputerId, ComputerId) {
     let world = generated_world().await;
-    let source = world.player();
+    let source = world.handle.player();
     let destination = npc(&world).await.id;
 
     (world, source, destination)
 }
 
 pub async fn add_source_file(world: &mut World, computer: ComputerId, data: FileData) {
-    let root = world.root(computer).await.unwrap().unwrap();
+    let root = world
+        .modules
+        .core
+        .files
+        .lookup
+        .root(computer)
+        .await
+        .unwrap()
+        .unwrap();
 
     world
-        .add_node(
+        .modules
+        .libraries
+        .generator
+        .add_full_node(
             &root,
             &NodeDraft::file(
                 "source.txt",

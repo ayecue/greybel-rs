@@ -16,6 +16,9 @@ internal sealed class Execution
     /// <summary>Context program assigned after <c>ContextManager.CreateContext</c> returns.</summary>
     public int Pid;
 
+    /// <summary>Terminal process the request added for the script, ended with it, or -1.</summary>
+    public int OwnedTerminal = -1;
+
     public readonly Output Output = new Output();
 
     /// <summary>Owning script pair and whether this script is its first member.</summary>

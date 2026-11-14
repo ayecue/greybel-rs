@@ -28,9 +28,7 @@ pub fn show_history(
         server(vm)?.send_blockchain_show_history(&message),
         |vm, history| match history {
             PriceHistory::Null => Ok::<_, IntrinsicError>(Value::Null),
-            PriceHistory::Failure(failure) => {
-                failure_value("show_history", &failure)
-            }
+            PriceHistory::Failure(failure) => failure_value("show_history", &failure),
             PriceHistory::Prices(prices) => {
                 let heap = vm.heap_mut();
                 let entries: Vec<(Value, Value)> = prices

@@ -8,6 +8,7 @@ use greybel_test_support::interpreter::constant_clock;
 use greybel_test_support::io::MarkedStdout;
 use greyhack_test_support_client::protocol::test_support::NetworkSnapshot;
 use greyhack_test_support_client::{ExecutionStep, TestClient};
+use greyhack_world::prelude::*;
 use greyhack_world::{Database, World};
 use greyhack_world_operations::WorldServer;
 use tokio::sync::{mpsc, oneshot};
@@ -116,25 +117,36 @@ async fn change_game(client: &TestClient, change: &WorldChange) {
     }
 }
 
-async fn change_world(world: &mut World, snapshot: &NetworkSnapshot, change: &WorldChange) {
+async fn change_world(world: &World, snapshot: &NetworkSnapshot, change: &WorldChange) {
     match change {
         WorldChange::AdvanceClock(seconds) => {
             world.tick(*seconds).await.expect("the clock moves");
         }
         WorldChange::BreakKernel { local_ip } => {
             let router = world
+                .modules
+                .core
+                .networks
+                .routers
                 .computer_at(&snapshot.public_ip, local_ip)
                 .await
                 .expect("the device is read")
                 .expect("the device");
             let kernel = world
+                .modules
+                .core
+                .files
+                .lookup
                 .file(router, "/lib/kernel_router.so", false)
                 .await
                 .expect("the kernel is read")
                 .expect("the device's kernel");
 
             world
-                .set_library_of(&kernel, None)
+                .modules
+                .libraries
+                .generator
+                .set_full_library_of(&kernel, None)
                 .await
                 .expect("the kernel is replaced");
         }
@@ -142,8 +154,8 @@ async fn change_world(world: &mut World, snapshot: &NetworkSnapshot, change: &Wo
 }
 
 /// Input that asks the driver of [`run_stepped_in_snapshot`] for its line, which it gives after the step's changes.
-struct SteppedStdin {
-    requests: mpsc::UnboundedSender<oneshot::Sender<String>>,
+pub struct SteppedStdin {
+    pub requests: mpsc::UnboundedSender<oneshot::Sender<String>>,
 }
 
 impl SteppedStdin {

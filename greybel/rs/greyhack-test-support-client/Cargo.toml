@@ -28,6 +28,7 @@ greyhack-behaviour.workspace = true
 greyscript-intrinsics.workspace = true
 greyhack-world.workspace = true
 greyhack-world-assets.workspace = true
+greyhack-world-missions.workspace = true
 greyhack-world-operations.workspace = true
 scheduler = { workspace = true, features = ["tokio"] }
 serde_json.workspace = true

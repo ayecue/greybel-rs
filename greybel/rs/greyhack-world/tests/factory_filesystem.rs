@@ -74,8 +74,24 @@ async fn should_add_the_first_install_files_only_to_the_players_computer() {
 
     for path in files {
         present.push((
-            world.file(player.id, path, false).await.unwrap().is_some(),
-            world.file(npc.id, path, false).await.unwrap().is_some(),
+            world
+                .modules
+                .core
+                .files
+                .lookup
+                .file(player.id, path, false)
+                .await
+                .unwrap()
+                .is_some(),
+            world
+                .modules
+                .core
+                .files
+                .lookup
+                .file(npc.id, path, false)
+                .await
+                .unwrap()
+                .is_some(),
         ));
     }
 
@@ -88,6 +104,10 @@ async fn should_give_the_first_install_files_to_the_player() {
     let player = player(&world).await;
 
     let owner = world
+        .modules
+        .core
+        .files
+        .lookup
         .file(player.id, "/bin/aircrack", false)
         .await
         .unwrap()
@@ -109,6 +129,10 @@ async fn should_give_every_user_and_guest_a_home() {
     homes.sort();
 
     let mut expected: Vec<String> = world
+        .modules
+        .core
+        .computers
+        .users
         .users(npc.id)
         .await
         .unwrap()

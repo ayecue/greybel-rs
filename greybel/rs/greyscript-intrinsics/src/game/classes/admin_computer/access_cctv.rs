@@ -42,9 +42,7 @@ pub fn access_cctv(
         |_, access: CctvAccess| match access {
             CctvAccess::Prompt => Ok(Value::Null),
             CctvAccess::Data(data) => Ok(Value::from(data)),
-            CctvAccess::Failure(failure) => {
-                failure_value("access_cctv", &failure)
-            }
+            CctvAccess::Failure(failure) => failure_value("access_cctv", &failure),
         },
     ))
 }

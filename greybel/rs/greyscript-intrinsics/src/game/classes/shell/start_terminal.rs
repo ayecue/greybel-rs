@@ -63,7 +63,10 @@ fn start_terminal(vm: &mut Vm, args: &ArgContainer) -> NativeFuture {
                 Ok(text) => NativeOutput::new(text),
                 Err(error) => NativeOutput::new(Err::<Value, _>(error)),
             },
-            Ok(LaunchOutcome::Failure(failure)) => child.print_failure("start_terminal", &failure),
+            Ok(LaunchOutcome::Failure(failure)) => match failure_text("start_terminal", &failure) {
+                Ok(text) => NativeOutput::new(text),
+                Err(error) => NativeOutput::new(Err::<Value, _>(error)),
+            },
             Ok(LaunchOutcome::Refusal) | Err(_) => NativeOutput::new(false),
         }
     })

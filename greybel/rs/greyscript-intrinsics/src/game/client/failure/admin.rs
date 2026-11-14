@@ -36,5 +36,14 @@ pub(super) fn admin_text(failure: &AdminFailure) -> String {
         AdminFailure::LibraryUpdateSkipped => {
             "Thanks for the warning, but I am not going to update them for now.".to_owned()
         }
+        AdminFailure::UnknownLibrary(library) => format!("Error: Unknown lib {library}"),
+        AdminFailure::UnreportableLibrary => "This library cannot be reported".to_owned(),
+        AdminFailure::UnknownReportedZone => {
+            "This memory zone does not exist in the current version of the library".to_owned()
+        }
+        AdminFailure::UnknownReportedValue { value, zone } => {
+            format!("The unsecure value {value} does not exist in the memory zone {zone}")
+        }
+        AdminFailure::ReportPending => "Your previous report is still processing. Please wait a few minutes before sending a new report.".to_owned(),
     }
 }

@@ -13,8 +13,11 @@ pub struct Member {
 
 /// A network of `NPC_COUNT` NPC workstations whose mail passwords are `PASSWORD`.
 pub async fn network() -> (World, String, Vec<Member>) {
-    let mut world = World::new(&PlayerOptions::default()).await.unwrap();
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
     let router = world
+        .modules
+        .creation
+        .network_generation
         .add_network(&NetworkOptions {
             computers: Some(0),
             domain: Some("corp.com".to_owned()),
@@ -22,13 +25,25 @@ pub async fn network() -> (World, String, Vec<Member>) {
         })
         .await
         .unwrap();
-    let public_ip = world.router(router).await.unwrap().unwrap().public_ip;
-    let now = world.time_seconds();
+    let public_ip = world
+        .modules
+        .core
+        .networks
+        .routers
+        .router(router)
+        .await
+        .unwrap()
+        .unwrap()
+        .public_ip;
+    let now = world.handle.time_seconds();
     let mut members = Vec::new();
 
     for index in 0..NPC_COUNT {
         let user = format!("worker{index}");
         let computer = world
+            .modules
+            .creation
+            .network_generation
             .add_computer_to(
                 router,
                 &ComputerOptions {
@@ -41,6 +56,9 @@ pub async fn network() -> (World, String, Vec<Member>) {
             .unwrap()
             .unwrap();
         let person = world
+            .modules
+            .npcs
+            .npcs
             .add_npc(computer, &user, &format!("First{index} {user}"), now)
             .await
             .unwrap()
@@ -52,23 +70,33 @@ pub async fn network() -> (World, String, Vec<Member>) {
         };
 
         world
+            .modules
+            .npcs
+            .jobs
             .set_npc_work_performance(person, performance)
             .await
             .unwrap();
         world
+            .modules
+            .npcs
+            .jobs
             .set_npc_job(person, JobRole::Sales, None)
             .await
             .unwrap();
 
         let address = world
-            .person(person)
+            .modules
+            .npcs
+            .mail
+            .mail_address(person)
             .await
             .unwrap()
-            .unwrap()
-            .mail_address
             .unwrap();
 
         world
+            .modules
+            .npcs
+            .mail
             .restore_mail_account(&address, PASSWORD, false, &[])
             .await
             .unwrap();
@@ -79,7 +107,15 @@ pub async fn network() -> (World, String, Vec<Member>) {
 }
 
 pub async fn inbox(world: &World, address: &str) -> Vec<Email> {
-    world.mail_account(address).await.unwrap().unwrap().inbox
+    world
+        .modules
+        .npcs
+        .mail
+        .mail_account(address)
+        .await
+        .unwrap()
+        .unwrap()
+        .inbox
 }
 
 pub async fn inboxes(world: &World, members: &[Member]) -> Vec<Vec<Email>> {

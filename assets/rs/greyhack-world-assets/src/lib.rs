@@ -1,4 +1,5 @@
 mod address_ranges;
+mod authored_missions;
 mod bundle;
 mod exploit_parts;
 mod layout;
@@ -11,6 +12,7 @@ mod texts;
 mod world_items;
 
 pub use address_ranges::reserved_address_ranges;
+pub use authored_missions::MissionList;
 pub use exploit_parts::ExploitPart;
 pub use layout::{FileLayout, FileSystemLayout, FolderLayout};
 pub use names::NameList;

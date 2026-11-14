@@ -5,9 +5,8 @@ use std::time::Duration;
 use greybel_interpreter::{Native, Value, Vm};
 
 use crate::game::client::object::Access;
-use crate::game::client::receiver;
 use crate::game::client::receiver::receiver_for;
-use crate::game::client::stopwatch;
+use crate::game::client::{receiver, stopwatch};
 
 mod active_net_card;
 mod change_password;
