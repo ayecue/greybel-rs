@@ -4,7 +4,7 @@ use greybel_source_map::{Mapping, SourceMap};
 use greyhack_behaviour::{BASH_PATH, GUEST_USER, path};
 use greyhack_world_core::{Access, AccessHandle, AccessKind, ObjectTableExt as _};
 use greyhack_world_programs::TerminalInfo;
-use greyhack_world_router::{CycleAccess, RouteTable};
+use greyhack_world_router::RouteTable;
 
 use crate::routes::protocol::{
     BuildSource, ConnectionFailure, Failure, IntoProtocol as _, LaunchFailure, LaunchOutcome,
@@ -16,7 +16,10 @@ use crate::routes::{OperationError, Result};
 use crate::{Launch, LaunchedProgram, TerminalFailure, TerminalProgram};
 
 pub(crate) fn register<
-    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+    W: greyhack_world_router::WorldContext<
+            Computer = greyhack_world_core::ComputerId,
+            Error = greyhack_world_core::WorldError,
+        > + 'static,
 >(
     routes: &RouteTable,
 ) {
@@ -221,7 +224,10 @@ fn register_shell_builds<
 }
 
 fn register_shell_launch<
-    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+    W: greyhack_world_router::WorldContext<
+            Computer = greyhack_world_core::ComputerId,
+            Error = greyhack_world_core::WorldError,
+        > + 'static,
 >(
     routes: &RouteTable,
 ) {
@@ -232,64 +238,64 @@ fn register_shell_launch<
             let cycles = ctx.cycles();
             let program = call.program;
 
-            CycleAccess::change_dynamic(
-                cycles,
-                program,
-                true,
-                async move |ctx: &greyhack_world_router::RouteContext<'_, W>, call| {
-                    let world = &*ctx.modules;
-                    let session_id = ctx
-                        .trees
-                        .get_mut(call.tree)
-                        .expect("the indexed tree exists")
-                        .session(program)
-                        .expect("dispatch checked the active program");
-                    let session_computer =
-                        ctx.trees.objects(call.tree).session(session_id)?.computer;
-                    let shell = ctx.trees.objects(call.tree).shell(message.shell)?.clone();
-                    let launch = world
-                        .module::<crate::ShellModule>()
-                        .launches
-                        .launch_program(
-                            shell.computer,
-                            &shell.user,
-                            &message.path,
-                            &message.params,
-                            ctx.depth(call, program),
-                            ctx.safe_terminal(call),
-                        )
-                        .await?;
+            cycles
+                .change(
+                    program,
+                    true,
+                    async move |ctx: &greyhack_world_router::RouteContext<'_, W>, call| {
+                        let world = &*ctx.modules;
+                        let session_id = ctx
+                            .trees
+                            .get_mut(call.tree)
+                            .expect("the indexed tree exists")
+                            .session(program)
+                            .expect("dispatch checked the active program");
+                        let session_computer =
+                            ctx.trees.objects(call.tree).session(session_id)?.computer;
+                        let shell = ctx.trees.objects(call.tree).shell(message.shell)?.clone();
+                        let launch = world
+                            .module::<crate::ShellModule>()
+                            .launches
+                            .launch_program(
+                                shell.computer,
+                                &shell.user,
+                                &message.path,
+                                &message.params,
+                                ctx.depth(call, program),
+                                ctx.safe_terminal(call),
+                            )
+                            .await?;
 
-                    Ok(match launch {
-                        Launch::Missing => LaunchOutcome::Refusal,
-                        Launch::Refusal(failure) => {
-                            ctx.print(
-                                call,
-                                PrintLine::LaunchFailure(Failure::Launch(failure.into_protocol())),
-                            );
+                        Ok(match launch {
+                            Launch::Missing => LaunchOutcome::Refusal,
+                            Launch::Refusal(failure) => {
+                                ctx.print(
+                                    call,
+                                    PrintLine::LaunchFailure(Failure::Launch(
+                                        failure.into_protocol(),
+                                    )),
+                                );
 
-                            LaunchOutcome::Refusal
-                        }
-                        Launch::Program(LaunchedProgram {
-                            process,
-                            path,
-                            source,
-                            source_map: lines,
-                        }) => {
-                            let user = shell.user.clone();
-                            let home = if shell.computer == session_computer {
-                                message.current.to_string()
-                            } else {
-                                path::home(&shell.user)
-                            };
-                            let shell_at = (shell.computer, shell.bounces);
-                            let session = ctx.trees.objects(call.tree).insert(AccessHandle {
-                                access: shell,
-                                kind: AccessKind::Shell,
-                            });
-                            let child =
-                                CycleAccess::push_dynamic::<W, greyhack_world_core::WorldError>(
-                                    cycles,
+                                LaunchOutcome::Refusal
+                            }
+                            Launch::Program(LaunchedProgram {
+                                process,
+                                path,
+                                source,
+                                source_map: lines,
+                            }) => {
+                                let user = shell.user.clone();
+                                let home = if shell.computer == session_computer {
+                                    message.current.to_string()
+                                } else {
+                                    path::home(&shell.user)
+                                };
+                                let shell_at = (shell.computer, shell.bounces);
+                                let session = ctx.trees.objects(call.tree).insert(AccessHandle {
+                                    access: shell,
+                                    kind: AccessKind::Shell,
+                                });
+                                let child = cycles.push(
                                     call.tree,
                                     Some(process),
                                     session,
@@ -297,30 +303,30 @@ fn register_shell_launch<
                                     greyhack_world_programs::ProgramKind::Script,
                                 )?;
 
-                            // `ShellIntrinsics.launch`: the program's shell on a company's computer starts an
-                            // active trace, which ends with the program.
-                            world
-                                .module::<crate::ShellModule>()
-                                .connections
-                                .trace_shell(shell_at.0, shell_at.1, u64::from(child.id))
-                                .await?;
+                                // `ShellIntrinsics.launch`: the program's shell on a company's computer starts an
+                                // active trace, which ends with the program.
+                                world
+                                    .module::<crate::ShellModule>()
+                                    .connections
+                                    .trace_shell(shell_at.0, shell_at.1, u64::from(child.id))
+                                    .await?;
 
-                            LaunchOutcome::Program {
-                                session: ProgramSession {
-                                    program: child,
-                                    user,
-                                    home,
-                                    shell: session,
-                                    path,
-                                },
-                                source,
-                                source_map: protocol_source_map(&lines),
+                                LaunchOutcome::Program {
+                                    session: ProgramSession {
+                                        program: child,
+                                        user,
+                                        home,
+                                        shell: session,
+                                        path,
+                                    },
+                                    source,
+                                    source_map: protocol_source_map(&lines),
+                                }
                             }
-                        }
-                    })
-                },
-            )
-            .await
+                        })
+                    },
+                )
+                .await
         },
     );
 }
@@ -361,7 +367,10 @@ fn prepare_terminal<
 }
 
 fn register_shell_terminal<
-    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+    W: greyhack_world_router::WorldContext<
+            Computer = greyhack_world_core::ComputerId,
+            Error = greyhack_world_core::WorldError,
+        > + 'static,
 >(
     routes: &RouteTable,
 ) {
@@ -372,101 +381,105 @@ fn register_shell_terminal<
             let cycles = ctx.cycles();
             let program = call.program;
 
-            CycleAccess::change_dynamic(
-                cycles,
-                program,
-                true,
-                async move |ctx: &greyhack_world_router::RouteContext<'_, W>, call| {
-                    let world = &*ctx.modules;
-                    let (launcher_bounces, shell) =
-                        prepare_terminal(ctx, call, program, message.shell)?;
+            cycles
+                .change(
+                    program,
+                    true,
+                    async move |ctx: &greyhack_world_router::RouteContext<'_, W>, call| {
+                        let world = &*ctx.modules;
+                        let (launcher_bounces, shell) =
+                            prepare_terminal(ctx, call, program, message.shell)?;
 
-                    Ok(
-                        match world
-                            .module::<crate::ShellModule>()
-                            .launches
-                            .terminal_program(shell.computer, &shell.user, ctx.depth(call, program))
-                            .await?
-                        {
-                            Err(TerminalFailure::ComputerUnavailable) => LaunchOutcome::Failure(
-                                Failure::Shell(ShellFailure::ComputerUnavailable),
-                            ),
-                            Err(TerminalFailure::TooManyStackCalls) => {
-                                ctx.print(
-                                    call,
-                                    PrintLine::LaunchFailure(Failure::Launch(
-                                        LaunchFailure::TooManyStackCalls,
-                                    )),
-                                );
+                        Ok(
+                            match world
+                                .module::<crate::ShellModule>()
+                                .launches
+                                .terminal_program(
+                                    shell.computer,
+                                    &shell.user,
+                                    ctx.depth(call, program),
+                                )
+                                .await?
+                            {
+                                Err(TerminalFailure::ComputerUnavailable) => {
+                                    LaunchOutcome::Failure(Failure::Shell(
+                                        ShellFailure::ComputerUnavailable,
+                                    ))
+                                }
+                                Err(TerminalFailure::TooManyStackCalls) => {
+                                    ctx.print(
+                                        call,
+                                        PrintLine::LaunchFailure(Failure::Launch(
+                                            LaunchFailure::TooManyStackCalls,
+                                        )),
+                                    );
 
-                                LaunchOutcome::Refusal
-                            }
-                            Ok(TerminalProgram { source, source_map }) => {
-                                // A launched program becoming a terminal closes its original process
-                                // This matches `ShellIntrinsics.start_terminal`.
-                                let launched_process = ctx
-                                    .trees
-                                    .get_mut(call.tree)
-                                    .expect("the indexed tree exists")
-                                    .take_launched_process(program);
+                                    LaunchOutcome::Refusal
+                                }
+                                Ok(TerminalProgram { source, source_map }) => {
+                                    // A launched program becoming a terminal closes its original process
+                                    // This matches `ShellIntrinsics.start_terminal`.
+                                    let launched_process = ctx
+                                        .trees
+                                        .get_mut(call.tree)
+                                        .expect("the indexed tree exists")
+                                        .take_launched_process(program);
 
-                                if let Some((computer, pid)) = launched_process {
+                                    if let Some((computer, pid)) = launched_process {
+                                        world
+                                            .module::<greyhack_world_core::CoreModule>()
+                                            .computers
+                                            .processes
+                                            .end_process(computer, pid)
+                                            .await?;
+                                    }
+
+                                    let (user, home) =
+                                        (shell.user.clone(), path::home(&shell.user));
+                                    let info = TerminalInfo {
+                                        host: shell.computer,
+                                        bounces: shell.bounces,
+                                        launcher_bounces,
+                                    };
+                                    let shell_at = (shell.computer, shell.bounces);
+                                    let session =
+                                        ctx.trees.objects(call.tree).insert(AccessHandle {
+                                            access: shell,
+                                            kind: AccessKind::Shell,
+                                        });
+                                    let terminal = cycles.push(
+                                        call.tree,
+                                        None,
+                                        session,
+                                        program,
+                                        greyhack_world_programs::ProgramKind::Terminal(info),
+                                    )?;
+
+                                    // `ShellIntrinsics.start_terminal`: the terminal's shell on a company's
+                                    // computer starts an active trace for the script that started it.
                                     world
-                                        .module::<greyhack_world_core::CoreModule>()
-                                        .computers
-                                        .processes
-                                        .end_process(computer, pid)
+                                        .module::<crate::ShellModule>()
+                                        .connections
+                                        .trace_shell(shell_at.0, shell_at.1, u64::from(program.id))
                                         .await?;
+
+                                    LaunchOutcome::Program {
+                                        session: ProgramSession {
+                                            program: terminal,
+                                            user,
+                                            home,
+                                            shell: session,
+                                            path: BASH_PATH.to_owned(),
+                                        },
+                                        source,
+                                        source_map: protocol_source_map(&source_map),
+                                    }
                                 }
-
-                                let (user, home) = (shell.user.clone(), path::home(&shell.user));
-                                let info = TerminalInfo {
-                                    host: shell.computer,
-                                    bounces: shell.bounces,
-                                    launcher_bounces,
-                                };
-                                let shell_at = (shell.computer, shell.bounces);
-                                let session = ctx.trees.objects(call.tree).insert(AccessHandle {
-                                    access: shell,
-                                    kind: AccessKind::Shell,
-                                });
-                                let terminal = CycleAccess::push_dynamic::<
-                                    W,
-                                    greyhack_world_core::WorldError,
-                                >(
-                                    cycles,
-                                    call.tree,
-                                    None,
-                                    session,
-                                    program,
-                                    greyhack_world_programs::ProgramKind::Terminal(info),
-                                )?;
-
-                                // `ShellIntrinsics.start_terminal`: the terminal's shell on a company's
-                                // computer starts an active trace for the script that started it.
-                                world
-                                    .module::<crate::ShellModule>()
-                                    .connections
-                                    .trace_shell(shell_at.0, shell_at.1, u64::from(program.id))
-                                    .await?;
-
-                                LaunchOutcome::Program {
-                                    session: ProgramSession {
-                                        program: terminal,
-                                        user,
-                                        home,
-                                        shell: session,
-                                        path: BASH_PATH.to_owned(),
-                                    },
-                                    source,
-                                    source_map: protocol_source_map(&source_map),
-                                }
-                            }
-                        },
-                    )
-                },
-            )
-            .await
+                            },
+                        )
+                    },
+                )
+                .await
         },
     );
 }

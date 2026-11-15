@@ -1780,6 +1780,7 @@ name = "greyhack-world-router"
 version = "0.1.0"
 dependencies = [
  "duplex-core",
+ "greyhack-world-effects",
  "greyhack-world-programs",
 ]
 

@@ -108,6 +108,9 @@ internal sealed class PluginRouter(
     public override void OnRateCtfRpc(RateCtfRpc message) =>
         Respond(message.Request, message, () => accounts.WriteCtfScore(message));
 
+    public override void OnSpawnCtfNetworkRpc(SpawnCtfNetworkRpc message) =>
+        Respond(message.Request, message, () => networks.SpawnCtf(message));
+
     public override void OnSetupMailRpc(SetupMailRpc message) =>
         Respond(message.Request, message, () => accounts.CreateMail(message));
 

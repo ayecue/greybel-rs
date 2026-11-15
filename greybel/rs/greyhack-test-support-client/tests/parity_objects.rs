@@ -121,6 +121,7 @@ async fn should_match_intrinsics_for_detached_method_crashes() {
         "port_number(get_router.__isa)".to_owned(),
         "port_info(get_shell, get_router.used_ports[0])".to_owned(),
         "aircrack(get_shell, \"/capture.cap\")".to_owned(),
+        "rshell_remove(get_shell)".to_owned(),
         "rshell_server(get_shell)".to_owned(),
         format!("{valid_library}; scan(get_shell, lib)"),
         format!("{valid_library}; scan_address(get_shell, lib, \"0x0\")"),
@@ -143,6 +144,7 @@ async fn should_match_intrinsics_for_detached_method_crashes() {
 
     let offline = client.network_state().await.unwrap();
     let scripts = vec![
+        "mx = include_lib(\"/lib/metaxploit.so\"); print mx.rshell_remove(1)".to_owned(),
         "net_use(get_shell, \"8.8.8.8\", 22)".to_owned(),
         "net_use(get_shell, \"bad\", 22)".to_owned(),
     ];
@@ -158,7 +160,7 @@ async fn should_match_intrinsics_for_reverse_shell_identities() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = rshell_server_network(&client).await;
+    let snapshot = rshell_server_network(&client, "RentServer").await;
     let server = r#"mx = include_lib("/lib/metaxploit.so")
 wait(3)
 a = mx.rshell_server

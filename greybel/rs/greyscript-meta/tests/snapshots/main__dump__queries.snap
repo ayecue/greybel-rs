@@ -5648,6 +5648,28 @@ rshell_client:
       origin: metaxploit
       search:
         - metaxploit
+rshell_remove:
+  all:
+    origin: metaxploit
+    search:
+      - metaxploit
+  any:
+    origin: metaxploit
+    search:
+      - metaxploit
+  each:
+    any:
+      origin: metaxploit
+      search:
+        - metaxploit
+    general:
+      origin: general
+      search:
+        - general
+    metaxploit:
+      origin: metaxploit
+      search:
+        - metaxploit
 rshell_server:
   all:
     origin: metaxploit

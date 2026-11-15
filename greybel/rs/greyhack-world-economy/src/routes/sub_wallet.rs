@@ -2,7 +2,7 @@
 
 use greyhack_behaviour::verify_password;
 use greyhack_world_core::ObjectTableExt as _;
-use greyhack_world_router::{CycleAccess, RouteTable};
+use greyhack_world_router::RouteTable;
 
 use crate::objects::{ObjectTableExt, SubWalletRef};
 use crate::routes::protocol::{
@@ -15,7 +15,10 @@ use crate::routes::{OperationError, Result};
 use crate::{MineJobFailure, MineJobState, SubWallet};
 
 pub(crate) fn register<
-    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+    W: greyhack_world_router::WorldContext<
+            Computer = greyhack_world_core::ComputerId,
+            Error = greyhack_world_core::WorldError,
+        > + 'static,
 >(
     routes: &RouteTable,
 ) {
@@ -144,7 +147,10 @@ fn register_sub_wallet_details<
 }
 
 fn register_sub_wallet_miner<
-    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+    W: greyhack_world_router::WorldContext<
+            Computer = greyhack_world_core::ComputerId,
+            Error = greyhack_world_core::WorldError,
+        > + 'static,
 >(
     routes: &RouteTable,
 ) {
@@ -154,63 +160,60 @@ fn register_sub_wallet_miner<
                     message: SubWalletMining| {
             let cycles = ctx.cycles();
             let program = call.program;
-            let start = CycleAccess::change_dynamic(
-                cycles,
-                program,
-                true,
-                async move |ctx: &greyhack_world_router::RouteContext<'_, W>, call| {
-                    let world = &*ctx.modules;
+            let start = cycles
+                .change(
+                    program,
+                    true,
+                    async move |ctx: &greyhack_world_router::RouteContext<'_, W>, call| {
+                        let world = &*ctx.modules;
 
-                    if ctx
-                        .trees
-                        .get_mut(call.tree)
-                        .expect("the indexed tree exists")
-                        .state::<MineJobState>()
-                        .work
-                        .is_some()
-                    {
-                        return Ok(Err(MineJobFailure::SecondMineJob));
-                    }
-
-                    let session = ctx
-                        .trees
-                        .get_mut(call.tree)
-                        .expect("the indexed tree exists")
-                        .session(program)
-                        .expect("dispatch checked the active program");
-                    let sub_wallet = &ctx
-                        .trees
-                        .objects(call.tree)
-                        .sub_wallet(message.sub_wallet)?;
-                    let start = world
-                        .module::<crate::EconomyModule>()
-                        .mine_jobs
-                        .schedule_mine_on(
-                            sub_wallet.coin,
-                            &sub_wallet.user,
-                            ctx.trees.objects(call.tree).session(session)?.computer,
-                        )
-                        .await?;
-
-                    Ok::<_, OperationError>(start.inspect(|&job| {
-                        ctx.trees
+                        if ctx
+                            .trees
                             .get_mut(call.tree)
                             .expect("the indexed tree exists")
-                            .state_mut::<MineJobState>()
-                            .work = Some(job);
-                    }))
-                },
-            )
-            .await?;
+                            .state::<MineJobState>()
+                            .work
+                            .is_some()
+                        {
+                            return Ok(Err(MineJobFailure::SecondMineJob));
+                        }
+
+                        let session = ctx
+                            .trees
+                            .get_mut(call.tree)
+                            .expect("the indexed tree exists")
+                            .session(program)
+                            .expect("dispatch checked the active program");
+                        let sub_wallet = &ctx
+                            .trees
+                            .objects(call.tree)
+                            .sub_wallet(message.sub_wallet)?;
+                        let start = world
+                            .module::<crate::EconomyModule>()
+                            .mine_jobs
+                            .schedule_mine_on(
+                                sub_wallet.coin,
+                                &sub_wallet.user,
+                                ctx.trees.objects(call.tree).session(session)?.computer,
+                            )
+                            .await?;
+
+                        Ok::<_, OperationError>(start.inspect(|&job| {
+                            ctx.trees
+                                .get_mut(call.tree)
+                                .expect("the indexed tree exists")
+                                .state_mut::<MineJobState>()
+                                .work = Some(job);
+                        }))
+                    },
+                )
+                .await?;
 
             let end = match start {
-                Ok(work) => CycleAccess::defer_dynamic::<
-                    Result<(), MineJobFailure>,
-                    W,
-                    greyhack_world_core::WorldError,
-                >(cycles, program, work.get())
-                .await
-                .ok_or_else(|| OperationError::Script(ScriptFailure::ProgramEnded))?,
+                Ok(work) => cycles
+                    .defer::<Result<(), MineJobFailure>>(program, work)
+                    .await
+                    .ok_or_else(|| OperationError::Script(ScriptFailure::ProgramEnded))?,
                 Err(failure) => return Ok(mine_job_failure(failure)),
             };
 

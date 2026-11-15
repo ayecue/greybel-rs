@@ -270,6 +270,20 @@ impl IntoProtocol for crate::NetUseFailure {
     }
 }
 
+impl IntoProtocol for crate::RshellRemoveFailure {
+    type Output = RshellRemoveFailure;
+
+    fn into_protocol(self) -> Self::Output {
+        match self {
+            Self::NoService => RshellRemoveFailure::NoService,
+            Self::ForwardMissing => RshellRemoveFailure::ForwardMissing,
+            Self::CtfNetwork => RshellRemoveFailure::CtfNetwork,
+            Self::ExpectedList => RshellRemoveFailure::ExpectedList,
+            Self::OnlyReverseShells => RshellRemoveFailure::OnlyReverseShells,
+        }
+    }
+}
+
 pub(crate) fn rshell_failure(
     failure: crate::RshellFailure,
     address: &str,
@@ -279,5 +293,6 @@ pub(crate) fn rshell_failure(
         crate::RshellFailure::UnknownAddress => RshellFailure::UnknownAddress(address.to_owned()),
         crate::RshellFailure::MissingServer => RshellFailure::MissingServer(port),
         crate::RshellFailure::Service(failure) => RshellFailure::Service(failure.into_protocol()),
+        crate::RshellFailure::Limit => RshellFailure::Limit,
     }
 }

@@ -5,7 +5,8 @@ use greyhack_behaviour::{Requirement, Reward};
 use greyhack_test_support_client::protocol::test_support::LanNodeKind;
 
 use crate::support::game::{
-    join_fixture, join_network, router_ssh_network, setup_player, ssh_network, test_client,
+    dual_service_network, join_fixture, join_network, router_ssh_network, setup_player,
+    ssh_network, test_client,
 };
 use crate::support::metaxploit::{
     computer_library, fixture_reply_weakness, fixture_weakness, overflow_script, player_libraries,
@@ -16,7 +17,9 @@ use crate::support::parity::{
     assert_succeeded, compare_in, compare_in_any_user, compare_in_real_time, compare_pair_in,
     game_outcomes, snapshot_outcomes, without_users,
 };
-use crate::support::remote::{fixture_account, rshell_server_network, script_string};
+use crate::support::remote::{
+    fixture_account, rshell_server_network, rshell_server_network_at, script_string,
+};
 
 /// The libraries of the mirrored network, including the game-installed metaxploit, scanned and reached as in the game.
 #[tokio::test]
@@ -426,6 +429,8 @@ print mx.rshell_client("{public_ip}", 9999, "client")
 print mx.rshell_client("{public_ip}", 1222, "bad name")
 print mx.rshell_client("{public_ip}", 1222, "1234567890123456789012345")
 print mx.rshell_client("{public_ip}", 1222, "kernel_task")
+print mx.rshell_remove
+print mx.rshell_remove(1)
 print mx.rshell_server"#
     );
 
@@ -439,7 +444,11 @@ print mx.rshell_server"#
     compare_in(&client, &user, &before, &[install]).await;
 
     let installed = client.network_state().await.unwrap();
-    let no_forward = r#"print include_lib("/lib/metaxploit.so").rshell_server"#.to_owned();
+    let no_forward = r#"mx = include_lib("/lib/metaxploit.so")
+print mx.rshell_server
+print mx.rshell_remove
+print mx.rshell_remove(1)"#
+        .to_owned();
 
     compare_in(&client, &user, &installed, &[no_forward]).await;
 
@@ -499,7 +508,7 @@ async fn should_match_intrinsics_for_a_reverse_shell_from_another_program() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = rshell_server_network(&client).await;
+    let snapshot = rshell_server_network(&client, "RentServer").await;
     let server = r#"mx = include_lib("/lib/metaxploit.so")
 print "before " + mx.rshell_server.len
 wait(2)
@@ -513,6 +522,103 @@ wait(4)"#,
     );
 
     compare_pair_in(&client, &user, &snapshot, [server, &connecting]).await;
+    client.shutdown();
+}
+
+/// Sixteen clients fit on one port; the seventeenth is refused. Removal validates lists, removes selected and all
+/// shells, and listing after a client process ends prunes its registration (`RouterConfigOS`,
+/// `MetaExploitIntrinsics.rshell_remove`).
+#[tokio::test]
+async fn should_match_intrinsics_for_reverse_shell_limits_removal_and_pruning() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let snapshot = rshell_server_network(&client, "RentServer").await;
+    let script = format!(
+        r#"mx = include_lib("/lib/metaxploit.so")
+print mx.rshell_remove
+results = []
+for i in range(1, 17)
+  results.push(mx.rshell_client("{}", 1222, "client"))
+end for
+print results
+shells = []
+for i in range(0, 49)
+  shells = mx.rshell_server
+  if shells.len == 16 then break
+  wait(0.02)
+end for
+print shells.len
+print mx.rshell_remove(1)
+print mx.rshell_remove([get_shell])
+print mx.rshell_remove([shells[0], 1])
+print mx.rshell_remove([shells[0]])
+print mx.rshell_remove([shells[0]])
+print mx.rshell_server.len
+print mx.rshell_remove(null)
+print mx.rshell_remove([])
+print mx.rshell_server.len
+print mx.rshell_client("{}", 1222, "stale")
+stale_shells = []
+for i in range(0, 49)
+  stale_shells = mx.rshell_server
+  if stale_shells.len == 1 then break
+  wait(0.02)
+end for
+print stale_shells.len
+pc = get_shell.host_computer
+for line in pc.show_procs.split(char(10))[1:]
+  parts = line.split(" ")
+  if parts[-1] == "stale" then print pc.close_program(parts[1].to_int)
+end for
+print mx.rshell_server.len
+print mx.rshell_remove"#,
+        snapshot.public_ip, snapshot.public_ip
+    );
+
+    compare_in(&client, &user, &snapshot, &[script]).await;
+    client.shutdown();
+}
+
+/// A CTF rshell service refuses removal with the network error, after the online check.
+#[tokio::test]
+async fn should_match_intrinsics_for_reverse_shell_removal_on_a_ctf_network() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let network = client.spawn_ctf_network().await.unwrap();
+    let snapshot = rshell_server_network_at(&client, &network.public_ip).await;
+    let script = "mx = include_lib(\"/lib/metaxploit.so\")\nprint mx.rshell_remove(1)".to_owned();
+
+    compare_in(&client, &user, &snapshot, &[script]).await;
+    client.shutdown();
+}
+
+/// Pending SSH encryption rejects rshell removal before any world or service lookup.
+#[tokio::test]
+async fn should_match_intrinsics_for_reverse_shell_removal_during_ssh_encryption() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let network = dual_service_network(&client).await;
+    let account = fixture_account(&network, "dual", "ssh", true);
+    let address = network.public_ip.clone();
+    let port = account.port;
+    let password = account.root_password;
+    let snapshot = join_fixture(&client, &network).await;
+    let connect =
+        format!("get_shell.connect_service(\"{address}\", {port}, \"root\", \"{password}\")");
+    let encode = script_string(
+        "Encode = function(password)\n  print include_lib(\"/lib/metaxploit.so\").rshell_remove\n  return \"enc_\" + password\nend function",
+    );
+    let config = script_string(
+        "{\"encryption_enabled\":true,\"path_enc\":\"/server/conf/encode.src\",\"path_dec\":\"/server/conf/decode.bin\"}",
+    );
+    let script = format!(
+        "remote = {connect}; pc = remote.host_computer; pc.touch(\"/server/conf\", \"encode.src\"); pc.File(\"/server/conf/encode.src\").set_content({encode}); pc.File(\"/server/conf/sshd.conf\").set_content({config}); print {connect}"
+    );
+
+    compare_in(&client, &user, &snapshot, &[script]).await;
     client.shutdown();
 }
 

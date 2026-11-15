@@ -32,6 +32,15 @@
       "metax.rshell_client(\"1.1.1.1\", 1222, \"bgprocess\")"
     ]
   },
+  "rshell_remove": {
+    "description": "Removes reverse shells connected to this computer's `rshell` service. With no argument or `null`, removes every shell on the forwarded service port; with a `list` of reverse `shell` objects, removes only matching connections. Returns `1` when at least one connection was removed and `0` otherwise. Invalid arguments, a missing service or port forward, a CTF network, and unavailable internet return the game's error `string`.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "shells = metax.rshell_server",
+      "removed = metax.rshell_remove(shells)",
+      "print(removed)"
+    ]
+  },
   "rshell_server": {
     "description": "This method returns a `list` of `shell` objects that have been reverse shell connected to this computer. To manage the connections received, the `rshell` service must be installed on the machine that receives the victims' connections. In case of failure a `string` will be returned with details.",
     "example": [

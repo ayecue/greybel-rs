@@ -1,7 +1,8 @@
 //! Reverse-shell registrations stored by the libraries domain.
 
+use greyhack_behaviour::MAX_REVERSE_SHELLS_PER_PORT;
 use greyhack_world_core::{ComputerId, Database, Result, RouterId};
-use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all};
+use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_value};
 use turso::params;
 
 use crate::ReverseShell;
@@ -42,7 +43,20 @@ impl ReverseShellRepository {
         &self,
         router: RouterId,
         shell: &ReverseShell,
-    ) -> Result<()> {
+    ) -> Result<bool> {
+        // `RouterConfigOS.AddReverseShell` checks the port's count even when this key replaces an entry.
+        let count = fetch_value::<i64>(
+            &self.db.connection(),
+            "SELECT COUNT(*) FROM reverse_shells WHERE router_id = ?1 AND port = ?2",
+            params![router.0, shell.port],
+        )
+        .await?
+        .unwrap_or(0);
+
+        if u32::try_from(count).unwrap_or(u32::MAX) >= MAX_REVERSE_SHELLS_PER_PORT {
+            return Ok(false);
+        }
+
         execute(
             &self.db.connection(),
             "DELETE FROM reverse_shells WHERE router_id = ?1 AND computer_id = ?2 AND pid = ?3",
@@ -64,6 +78,21 @@ impl ReverseShellRepository {
         )
         .await?;
 
-        Ok(())
+        Ok(true)
+    }
+
+    pub(crate) async fn remove_reverse_shell(
+        &self,
+        router: RouterId,
+        computer: ComputerId,
+        pid: u32,
+    ) -> Result<bool> {
+        Ok(execute(
+            &self.db.connection(),
+            "DELETE FROM reverse_shells WHERE router_id = ?1 AND computer_id = ?2 AND pid = ?3",
+            params![router.0, computer.0, pid],
+        )
+        .await?
+            > 0)
     }
 }

@@ -144,7 +144,9 @@ pub use network::networks::{
     DEFAULT_NET_SPEED, KERNEL_ROUTER, MAX_NETWORK_COMPUTERS, NET_SPEEDS, NetworkKind,
     flood_reboot_threshold, kind_for_ip, map_distance, position_for_ip, primary_services,
 };
-pub use network::services::{COMPUTER_SERVICES, ROUTER_PORT, ServiceId};
+pub use network::services::{
+    COMPUTER_SERVICES, MAX_REVERSE_SHELLS_PER_PORT, ROUTER_PORT, ServiceId,
+};
 pub use network::traffic::{
     ACCIDENT_COOLDOWN_SECONDS, license_plate, license_plate_address, normalize_license_plate,
 };

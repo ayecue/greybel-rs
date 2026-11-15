@@ -8,14 +8,14 @@ use crate::RshellServerFailure;
 use crate::objects::{LibraryRef, MetaLibHandle, MetaLibRef, NetSessionHandle, ObjectTableExt};
 use crate::routes::protocol::{
     Failure, IntoProtocol as _, MetaxploitFailure, MetaxploitLoad, MetaxploitNetUse,
-    MetaxploitRshellClient, MetaxploitRshellServer, MetaxploitScan, MetaxploitScanAddress,
-    NetUseTarget, PrintLine, ReverseShellClient, RshellServerResponse,
+    MetaxploitRshellClient, MetaxploitRshellRemove, MetaxploitRshellServer, MetaxploitScan,
+    MetaxploitScanAddress, NetUseTarget, PrintLine, ReverseShellClient, RshellServerResponse,
 };
 
 mod rshell;
 mod scan;
 mod session;
-use self::rshell::rshell_client;
+use self::rshell::{rshell_client, rshell_remove};
 use self::scan::{scan, scan_address, scan_address_without_metaxploit};
 use self::session::net_use_with_optional_access;
 
@@ -247,6 +247,20 @@ fn register_metaxploit_server<
                     ),
                 },
             )
+        },
+    );
+    routes.change::<_, _, W, greyhack_world_core::WorldError>(
+        async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
+                    call,
+                    message: MetaxploitRshellRemove| {
+            rshell_remove(
+                &*ctx.modules,
+                &ctx.trees.objects(call.tree),
+                message.metaxploit,
+                message.shells,
+                &ctx.terminal_computers(call),
+            )
+            .await
         },
     );
 }

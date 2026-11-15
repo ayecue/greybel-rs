@@ -168,6 +168,7 @@ size
 load
 net_use
 rshell_client
+rshell_remove
 rshell_server
 scan
 scan_address

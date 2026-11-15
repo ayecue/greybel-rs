@@ -6,7 +6,7 @@ use greyhack_world_libraries::Library;
 
 use super::{add_library, player_router};
 
-pub fn prepare_rshell(world: &mut World) -> (ComputerId, RouterId) {
+pub fn prepare_rshell_service(world: &mut World) -> (ComputerId, RouterId) {
     let player = world.handle.player();
     let router = player_router(world);
 
@@ -29,6 +29,13 @@ pub fn prepare_rshell(world: &mut World) -> (ComputerId, RouterId) {
             zones: Vec::new(),
         }),
     );
+
+    (player, router)
+}
+
+pub fn prepare_rshell(world: &mut World) -> (ComputerId, RouterId) {
+    let (player, router) = prepare_rshell_service(world);
+
     assert!(
         block_on(
             world

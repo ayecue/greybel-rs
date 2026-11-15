@@ -748,6 +748,7 @@ export abstract class Failure {
       case 19: return Failure.ServiceControl.read(reader);
       case 20: return Failure.Shop.read(reader);
       case 21: return Failure.Mission.read(reader);
+      case 22: return Failure.RshellRemove.read(reader);
       default: throw new RangeError(`no variant ${index} of \`Failure\``);
     }
   }
@@ -1432,6 +1433,37 @@ export namespace Failure {
   export namespace Mission {
     export interface Fields {
       value: MissionFailure;
+    }
+  }
+  /** `rshell_remove` did not remove reverse shells. */
+  export class RshellRemove extends Failure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: Failure.RshellRemove.Fields;
+    constructor(body: Failure.RshellRemove.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): RshellRemoveFailure {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(22);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): Failure.RshellRemove {
+      const value = RshellRemoveFailure.read(reader);
+      return new Failure.RshellRemove({ value });
+    }
+  }
+  export namespace RshellRemove {
+    export interface Fields {
+      value: RshellRemoveFailure;
     }
   }
 }
@@ -8018,6 +8050,7 @@ export abstract class RshellFailure {
       case 0: return RshellFailure.UnknownAddress.read(reader);
       case 1: return RshellFailure.MissingServer.read(reader);
       case 2: return RshellFailure.Service.read(reader);
+      case 3: return RshellFailure.Limit.read(reader);
       default: throw new RangeError(`no variant ${index} of \`RshellFailure\``);
     }
   }
@@ -8113,6 +8146,17 @@ export namespace RshellFailure {
   export namespace Service {
     export interface Fields {
       value: ServiceFailure;
+    }
+  }
+  /** The server already has 16 reverse shells on this port. */
+  export class Limit extends RshellFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(3);
+    }
+    static read(reader: BinaryReader): RshellFailure.Limit {
+      return new RshellFailure.Limit();
     }
   }
 }
@@ -8255,6 +8299,167 @@ export namespace ReverseShellClient {
   export interface Fields {
     shell: ObjectId;
     computer: ObjectId;
+  }
+}
+/** Shells selected by `rshell_remove`, or its argument error deferred until after the service checks. */
+export abstract class RshellRemoveSelection {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  abstract write(writer: BinaryWriter): void;
+  static read(reader: BinaryReader): RshellRemoveSelection {
+    const index = reader.u32();
+    switch (index) {
+      case 0: return RshellRemoveSelection.All.read(reader);
+      case 1: return RshellRemoveSelection.InvalidType.read(reader);
+      case 2: return RshellRemoveSelection.InvalidItem.read(reader);
+      case 3: return RshellRemoveSelection.Shells.read(reader);
+      default: throw new RangeError(`no variant ${index} of \`RshellRemoveSelection\``);
+    }
+  }
+}
+export namespace RshellRemoveSelection {
+  /** Null: remove every reverse shell on the service port. */
+  export class All extends RshellRemoveSelection {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+    }
+    static read(reader: BinaryReader): RshellRemoveSelection.All {
+      return new RshellRemoveSelection.All();
+    }
+  }
+  /** The argument was neither null nor a list. */
+  export class InvalidType extends RshellRemoveSelection {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(1);
+    }
+    static read(reader: BinaryReader): RshellRemoveSelection.InvalidType {
+      return new RshellRemoveSelection.InvalidType();
+    }
+  }
+  /** A list item was not a reverse shell. */
+  export class InvalidItem extends RshellRemoveSelection {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(2);
+    }
+    static read(reader: BinaryReader): RshellRemoveSelection.InvalidItem {
+      return new RshellRemoveSelection.InvalidItem();
+    }
+  }
+  /** Reverse-shell objects to remove. */
+  export class Shells extends RshellRemoveSelection {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: RshellRemoveSelection.Shells.Fields;
+    constructor(body: RshellRemoveSelection.Shells.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): ObjectId[] {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(3);
+      const body = this[BODY];
+      const items0 = body.value;
+      writer.length(items0.length);
+      for (const item1 of items0) {
+        item1.write(writer);
+      }
+    }
+    static read(reader: BinaryReader): RshellRemoveSelection.Shells {
+      const value: ObjectId[] = [];
+      for (let count0 = reader.length(); count0 > 0; count0--) {
+        value.push(ObjectId.read(reader));
+      }
+      return new RshellRemoveSelection.Shells({ value });
+    }
+  }
+  export namespace Shells {
+    export interface Fields {
+      value: ObjectId[];
+    }
+  }
+}
+/** Why `rshell_remove` failed (`MetaExploitIntrinsics.rshell_remove`). */
+export abstract class RshellRemoveFailure {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  abstract write(writer: BinaryWriter): void;
+  static read(reader: BinaryReader): RshellRemoveFailure {
+    const index = reader.u32();
+    switch (index) {
+      case 0: return RshellRemoveFailure.NoService.read(reader);
+      case 1: return RshellRemoveFailure.ForwardMissing.read(reader);
+      case 2: return RshellRemoveFailure.CtfNetwork.read(reader);
+      case 3: return RshellRemoveFailure.ExpectedList.read(reader);
+      case 4: return RshellRemoveFailure.OnlyReverseShells.read(reader);
+      default: throw new RangeError(`no variant ${index} of \`RshellRemoveFailure\``);
+    }
+  }
+}
+export namespace RshellRemoveFailure {
+  /** The computer does not run the rshell service. */
+  export class NoService extends RshellRemoveFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+    }
+    static read(reader: BinaryReader): RshellRemoveFailure.NoService {
+      return new RshellRemoveFailure.NoService();
+    }
+  }
+  /** The router has no forward to the computer's rshell service. */
+  export class ForwardMissing extends RshellRemoveFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(1);
+    }
+    static read(reader: BinaryReader): RshellRemoveFailure.ForwardMissing {
+      return new RshellRemoveFailure.ForwardMissing();
+    }
+  }
+  /** The computer is on a CTF network. */
+  export class CtfNetwork extends RshellRemoveFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(2);
+    }
+    static read(reader: BinaryReader): RshellRemoveFailure.CtfNetwork {
+      return new RshellRemoveFailure.CtfNetwork();
+    }
+  }
+  /** The shells argument was neither null nor a list. */
+  export class ExpectedList extends RshellRemoveFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(3);
+    }
+    static read(reader: BinaryReader): RshellRemoveFailure.ExpectedList {
+      return new RshellRemoveFailure.ExpectedList();
+    }
+  }
+  /** A list item was not a reverse shell. */
+  export class OnlyReverseShells extends RshellRemoveFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(4);
+    }
+    static read(reader: BinaryReader): RshellRemoveFailure.OnlyReverseShells {
+      return new RshellRemoveFailure.OnlyReverseShells();
+    }
   }
 }
 /** Object produced by an exploit. */
@@ -22810,8 +23015,82 @@ export namespace MetaxploitSniffer {
     programPath: string;
   }
 }
-export class MetaLibLibName extends Message<WorldPeer.Program, MetaLibLibName.Fields, ValueResponse<string | null, ScriptFailure>> {
+/** Removes all reverse shells on the metaxploit computer's rshell port, or only the selected shells. */
+export class MetaxploitRshellRemove extends Message<WorldPeer.Program, MetaxploitRshellRemove.Fields, ValueResponse<Outcome, ScriptFailure>> {
   static readonly id = 80;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: MetaxploitRshellRemove.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "program",
+      property: "program",
+      tags: []
+    },
+    {
+      name: "metaxploit",
+      property: "metaxploit",
+      tags: []
+    },
+    {
+      name: "shells",
+      property: "shells",
+      tags: []
+    }
+  ];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get metaxploit(): ObjectId {
+    return this[BODY].metaxploit;
+  }
+  get shells(): RshellRemoveSelection {
+    return this[BODY].shells;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    body.metaxploit.write(writer);
+    body.shells.write(writer);
+  }
+  static read(reader: BinaryReader): MetaxploitRshellRemove {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldMetaxploit = ObjectId.read(reader);
+    const fieldShells = RshellRemoveSelection.read(reader);
+    return new MetaxploitRshellRemove({
+      program: fieldProgram,
+      metaxploit: fieldMetaxploit,
+      shells: fieldShells
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: Outcome): void {
+    value.write(writer);
+  }
+  static readResponseEnd(reader: BinaryReader): Outcome {
+    const value = Outcome.read(reader);
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace MetaxploitRshellRemove {
+  export interface Fields {
+    program: ProgramId;
+    metaxploit: ObjectId;
+    shells: RshellRemoveSelection;
+  }
+}
+export class MetaLibLibName extends Message<WorldPeer.Program, MetaLibLibName.Fields, ValueResponse<string | null, ScriptFailure>> {
+  static readonly id = 81;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaLibLibName.Fields) {
@@ -22875,7 +23154,7 @@ export namespace MetaLibLibName {
   }
 }
 export class MetaLibVersion extends Message<WorldPeer.Program, MetaLibVersion.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 81;
+  static readonly id = 82;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaLibVersion.Fields) {
@@ -22940,7 +23219,7 @@ export namespace MetaLibVersion {
 }
 /** Opens debug tools for `user`/`password` and returns the debug object or the game error. */
 export class MetaLibDebugTools extends Message<WorldPeer.Program, MetaLibDebugTools.Fields, ValueResponse<ObjectOutcome, ScriptFailure>> {
-  static readonly id = 82;
+  static readonly id = 83;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaLibDebugTools.Fields) {
@@ -23026,7 +23305,7 @@ export namespace MetaLibDebugTools {
 }
 /** Reports whether the library is patched, or its self-patch date when `date` is set; false without a date. */
 export class MetaLibIsPatched extends Message<WorldPeer.Program, MetaLibIsPatched.Fields, ValueResponse<PatchState, ScriptFailure>> {
-  static readonly id = 83;
+  static readonly id = 84;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaLibIsPatched.Fields) {
@@ -23105,7 +23384,7 @@ export namespace MetaLibIsPatched {
 * computer.
 */
 export class MetaLibOverflow extends Message<WorldPeer.Program, MetaLibOverflow.Fields, ValueResponse<Exploit, ScriptFailure>> {
-  static readonly id = 84;
+  static readonly id = 85;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaLibOverflow.Fields) {
@@ -23207,7 +23486,7 @@ export namespace MetaLibOverflow {
 }
 /** Gets the flawed library code or the game's error. */
 export class DebugLibraryScanDebuglib extends Message<WorldPeer.Program, DebugLibraryScanDebuglib.Fields, ValueResponse<DebugScan, ScriptFailure>> {
-  static readonly id = 85;
+  static readonly id = 86;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: DebugLibraryScanDebuglib.Fields) {
@@ -23266,7 +23545,7 @@ export namespace DebugLibraryScanDebuglib {
 }
 /** Updates the library from `path` and returns the game's result message. */
 export class DebugLibraryApplyPatch extends Message<WorldPeer.Program, DebugLibraryApplyPatch.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 86;
+  static readonly id = 87;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: DebugLibraryApplyPatch.Fields) {
@@ -23343,7 +23622,7 @@ export namespace DebugLibraryApplyPatch {
 * game's error.
 */
 export class DebugLibraryUnitTesting extends Message<WorldPeer.Program, DebugLibraryUnitTesting.Fields, ValueResponse<UnitTestReport, ScriptFailure>> {
-  static readonly id = 87;
+  static readonly id = 88;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: DebugLibraryUnitTesting.Fields) {
@@ -23424,7 +23703,7 @@ export namespace DebugLibraryUnitTesting {
 }
 /** Executes the library zero-day at `mem_zone` on `path`, defaulting to the library itself when empty. */
 export class DebugLibraryPayload extends Message<WorldPeer.Program, DebugLibraryPayload.Fields, ValueResponse<ZeroDayPayload, ScriptFailure>> {
-  static readonly id = 88;
+  static readonly id = 89;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: DebugLibraryPayload.Fields) {
@@ -23510,7 +23789,7 @@ export namespace DebugLibraryPayload {
 }
 /** Gets the account's inbox, read again (`MetaMailIntrinsics.fetch`). */
 export class MetaMailFetch extends Message<WorldPeer.Program, MetaMailFetch.Fields, ValueResponse<InboxContent, ScriptFailure>> {
-  static readonly id = 89;
+  static readonly id = 90;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaMailFetch.Fields) {
@@ -23572,7 +23851,7 @@ export namespace MetaMailFetch {
 * when an ID is not text, which reads null.
 */
 export class MetaMailRead extends Message<WorldPeer.Program, MetaMailRead.Fields, ValueResponse<MailReads, ScriptFailure>> {
-  static readonly id = 90;
+  static readonly id = 91;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaMailRead.Fields) {
@@ -23661,7 +23940,7 @@ export namespace MetaMailRead {
 }
 /** Sends `draft` using the account. */
 export class MetaMailSend extends Message<WorldPeer.Program, MetaMailSend.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 91;
+  static readonly id = 92;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaMailSend.Fields) {
@@ -23738,7 +24017,7 @@ export namespace MetaMailSend {
 * (`MetaMailIntrinsics.delete_mail`). `mail_ids` is none when an ID is not text, which returns null.
 */
 export class MetaMailDelete extends Message<WorldPeer.Program, MetaMailDelete.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 92;
+  static readonly id = 93;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaMailDelete.Fields) {
@@ -23827,7 +24106,7 @@ export namespace MetaMailDelete {
 }
 /** Removes every mail of the inbox (`MetaMailIntrinsics.delete_all`). */
 export class MetaMailDeleteAll extends Message<WorldPeer.Program, MetaMailDeleteAll.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 93;
+  static readonly id = 94;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: MetaMailDeleteAll.Fields) {
@@ -23886,7 +24165,7 @@ export namespace MetaMailDeleteAll {
 }
 /** Locates a world user's plaintext password matching `hash`. */
 export class CryptoDecipher extends Message<WorldPeer.Program, CryptoDecipher.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 94;
+  static readonly id = 95;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CryptoDecipher.Fields) {
@@ -23951,7 +24230,7 @@ export namespace CryptoDecipher {
 }
 /** Encrypts `path` using `password` and returns true or the game error. */
 export class CryptoEncrypt extends Message<WorldPeer.Program, CryptoEncrypt.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 95;
+  static readonly id = 96;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CryptoEncrypt.Fields) {
@@ -24037,7 +24316,7 @@ export namespace CryptoEncrypt {
 }
 /** Decrypts `path` if `password` matches and returns true or the game error. */
 export class CryptoDecrypt extends Message<WorldPeer.Program, CryptoDecrypt.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 96;
+  static readonly id = 97;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CryptoDecrypt.Fields) {
@@ -24123,7 +24402,7 @@ export namespace CryptoDecrypt {
 }
 /** Reports whether `path` is encrypted, or the game's error. */
 export class CryptoIsEncrypted extends Message<WorldPeer.Program, CryptoIsEncrypted.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 97;
+  static readonly id = 98;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CryptoIsEncrypted.Fields) {
@@ -24197,7 +24476,7 @@ export namespace CryptoIsEncrypted {
 }
 /** Gets users of the SMTP server at `address:port`. */
 export class CryptoSmtpUserList extends Message<WorldPeer.Program, CryptoSmtpUserList.Fields, ValueResponse<SmtpUserList, ScriptFailure>> {
-  static readonly id = 98;
+  static readonly id = 99;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CryptoSmtpUserList.Fields) {
@@ -24283,7 +24562,7 @@ export namespace CryptoSmtpUserList {
 }
 /** Activates or deactivates monitor mode on `device`, returning true, false, or the game's error. */
 export class CryptoAirmon extends Message<WorldPeer.Program, CryptoAirmon.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 99;
+  static readonly id = 100;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CryptoAirmon.Fields) {
@@ -24373,7 +24652,7 @@ export namespace CryptoAirmon {
 * `max_acks` captures the number required for cracking.
 */
 export class CryptoAireplay extends Message<WorldPeer.Program, CryptoAireplay.Fields, ValueResponse<Capture, ScriptFailure>> {
-  static readonly id = 100;
+  static readonly id = 101;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CryptoAireplay.Fields) {
@@ -24483,7 +24762,7 @@ export namespace CryptoAireplay {
 }
 /** Recovers the Wi-Fi password from capture `path`, or returns the failure reason. */
 export class CryptoAircrack extends Message<WorldPeer.Program, CryptoAircrack.Fields, ValueResponse<KeyRecovery, ScriptFailure>> {
-  static readonly id = 101;
+  static readonly id = 102;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CryptoAircrack.Fields) {
@@ -24557,7 +24836,7 @@ export namespace CryptoAircrack {
 }
 /** Registers existing `repository` in `sources.txt`, or returns the failure reason. */
 export class AptClientAddRepo extends Message<WorldPeer.Program, AptClientAddRepo.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 102;
+  static readonly id = 103;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AptClientAddRepo.Fields) {
@@ -24643,7 +24922,7 @@ export namespace AptClientAddRepo {
 }
 /** Removes `repository` from `sources.txt`, or returns the failure reason. */
 export class AptClientDelRepo extends Message<WorldPeer.Program, AptClientDelRepo.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 103;
+  static readonly id = 104;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AptClientDelRepo.Fields) {
@@ -24717,7 +24996,7 @@ export namespace AptClientDelRepo {
 }
 /** Installs `package` in `folder`, using its default folder when empty, or returns the failure reason. */
 export class AptClientInstall extends Message<WorldPeer.Program, AptClientInstall.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 104;
+  static readonly id = 105;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AptClientInstall.Fields) {
@@ -24803,7 +25082,7 @@ export namespace AptClientInstall {
 }
 /** Gets packages from the computer's sources containing `term`, or why there are none. */
 export class AptClientSearch extends Message<WorldPeer.Program, AptClientSearch.Fields, ValueResponse<PackageList, ScriptFailure>> {
-  static readonly id = 105;
+  static readonly id = 106;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AptClientSearch.Fields) {
@@ -24877,7 +25156,7 @@ export namespace AptClientSearch {
 }
 /** Gets every package in `repository`, or why not. */
 export class AptClientShow extends Message<WorldPeer.Program, AptClientShow.Fields, ValueResponse<PackageList, ScriptFailure>> {
-  static readonly id = 106;
+  static readonly id = 107;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AptClientShow.Fields) {
@@ -24951,7 +25230,7 @@ export namespace AptClientShow {
 }
 /** Refreshes package lists, prints one line per source, and returns an empty string. */
 export class AptClientUpdate extends Message<WorldPeer.Program, AptClientUpdate.Fields, ValueResponse<AptUpdate, ScriptFailure>> {
-  static readonly id = 107;
+  static readonly id = 108;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AptClientUpdate.Fields) {
@@ -25010,7 +25289,7 @@ export namespace AptClientUpdate {
 }
 /** Reports whether library `path` has a newer version available from the computer's sources. */
 export class AptClientCheckUpgrade extends Message<WorldPeer.Program, AptClientCheckUpgrade.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 108;
+  static readonly id = 109;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AptClientCheckUpgrade.Fields) {
@@ -25084,7 +25363,7 @@ export namespace AptClientCheckUpgrade {
 }
 /** Gets the appliance model or the game's error. */
 export class SmartApplianceModel extends Message<WorldPeer.Program, SmartApplianceModel.Fields, ValueResponse<ApplianceModel, ScriptFailure>> {
-  static readonly id = 109;
+  static readonly id = 110;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SmartApplianceModel.Fields) {
@@ -25143,7 +25422,7 @@ export namespace SmartApplianceModel {
 }
 /** Overwrites power and temperature, breaking the appliance. Returns true or the game's error. */
 export class SmartApplianceOverrideSettings extends Message<WorldPeer.Program, SmartApplianceOverrideSettings.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 110;
+  static readonly id = 111;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SmartApplianceOverrideSettings.Fields) {
@@ -25229,7 +25508,7 @@ export namespace SmartApplianceOverrideSettings {
 }
 /** Activates or deactivates the appliance alarm, returning true or the game's error. */
 export class SmartApplianceSetAlarm extends Message<WorldPeer.Program, SmartApplianceSetAlarm.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 111;
+  static readonly id = 112;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SmartApplianceSetAlarm.Fields) {
@@ -25304,7 +25583,7 @@ export namespace SmartApplianceSetAlarm {
 }
 /** Reports whether the global camera system is reachable, or the game's error. */
 export class TrafficNetCameraLinkSystem extends Message<WorldPeer.Program, TrafficNetCameraLinkSystem.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 112;
+  static readonly id = 113;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: TrafficNetCameraLinkSystem.Fields) {
@@ -25363,7 +25642,7 @@ export namespace TrafficNetCameraLinkSystem {
 }
 /** Gets police-network credentials in `get_credentials_info` format. */
 export class TrafficNetGetCredentialsInfo extends Message<WorldPeer.Program, TrafficNetGetCredentialsInfo.Fields, ValueResponse<CredentialsInfo, ScriptFailure>> {
-  static readonly id = 113;
+  static readonly id = 114;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: TrafficNetGetCredentialsInfo.Fields) {
@@ -25425,7 +25704,7 @@ export namespace TrafficNetGetCredentialsInfo {
 * cameras. A car found while not `throttled` (the intrinsic call rate) becomes the accident target.
 */
 export class TrafficNetLocateVehicle extends Message<WorldPeer.Program, TrafficNetLocateVehicle.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 114;
+  static readonly id = 115;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: TrafficNetLocateVehicle.Fields) {
@@ -25523,7 +25802,7 @@ export namespace TrafficNetLocateVehicle {
   }
 }
 export class CtfGetDescription extends Message<WorldPeer.Program, CtfGetDescription.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 115;
+  static readonly id = 116;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CtfGetDescription.Fields) {
@@ -25588,7 +25867,7 @@ export namespace CtfGetDescription {
 }
 /** Gets the CTF event's public address. */
 export class CtfGetTemplate extends Message<WorldPeer.Program, CtfGetTemplate.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 116;
+  static readonly id = 117;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CtfGetTemplate.Fields) {
@@ -25653,7 +25932,7 @@ export namespace CtfGetTemplate {
 }
 /** Marks the event complete for the computer player and returns whether it was previously incomplete. */
 export class CtfPlayerSuccess extends Message<WorldPeer.Program, CtfPlayerSuccess.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 117;
+  static readonly id = 118;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CtfPlayerSuccess.Fields) {
@@ -25711,7 +25990,7 @@ export namespace CtfPlayerSuccess {
   }
 }
 export class CtfGetCreatorName extends Message<WorldPeer.Program, CtfGetCreatorName.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 118;
+  static readonly id = 119;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CtfGetCreatorName.Fields) {
@@ -25775,7 +26054,7 @@ export namespace CtfGetCreatorName {
   }
 }
 export class CtfGetMailContent extends Message<WorldPeer.Program, CtfGetMailContent.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 119;
+  static readonly id = 120;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CtfGetMailContent.Fields) {
@@ -25840,7 +26119,7 @@ export namespace CtfGetMailContent {
 }
 /** Gets the current price of `coin`. Requires the library computer to be online. */
 export class BlockchainCoinPrice extends Message<WorldPeer.Program, BlockchainCoinPrice.Fields, ValueResponse<Figure, ScriptFailure>> {
-  static readonly id = 120;
+  static readonly id = 121;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: BlockchainCoinPrice.Fields) {
@@ -25914,7 +26193,7 @@ export namespace BlockchainCoinPrice {
 }
 /** Gets prices of `coin` oldest first. */
 export class BlockchainShowHistory extends Message<WorldPeer.Program, BlockchainShowHistory.Fields, ValueResponse<PriceHistory, ScriptFailure>> {
-  static readonly id = 121;
+  static readonly id = 122;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: BlockchainShowHistory.Fields) {
@@ -25988,7 +26267,7 @@ export namespace BlockchainShowHistory {
 }
 /** Gets the mined amount of `coin`. */
 export class BlockchainAmountMined extends Message<WorldPeer.Program, BlockchainAmountMined.Fields, ValueResponse<Figure, ScriptFailure>> {
-  static readonly id = 122;
+  static readonly id = 123;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: BlockchainAmountMined.Fields) {
@@ -26065,7 +26344,7 @@ export namespace BlockchainAmountMined {
 * after the online check.
 */
 export class BlockchainGetCoin extends Message<WorldPeer.Program, BlockchainGetCoin.Fields, ValueResponse<CoinLogin, ScriptFailure>> {
-  static readonly id = 123;
+  static readonly id = 124;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: BlockchainGetCoin.Fields) {
@@ -26171,7 +26450,7 @@ export namespace BlockchainGetCoin {
 }
 /** Adds a wallet for `user`/`password` using the script computer's bank account for payment. */
 export class BlockchainCreateWallet extends Message<WorldPeer.Program, BlockchainCreateWallet.Fields, ValueResponse<WalletLogin, ScriptFailure>> {
-  static readonly id = 124;
+  static readonly id = 125;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: BlockchainCreateWallet.Fields) {
@@ -26263,7 +26542,7 @@ export namespace BlockchainCreateWallet {
 }
 /** Accesses the wallet matching `user`/`password`. */
 export class BlockchainLoginWallet extends Message<WorldPeer.Program, BlockchainLoginWallet.Fields, ValueResponse<WalletLogin, ScriptFailure>> {
-  static readonly id = 125;
+  static readonly id = 126;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: BlockchainLoginWallet.Fields) {
@@ -26355,7 +26634,7 @@ export namespace BlockchainLoginWallet {
 }
 /** Removes `coin` when `user`/`password` match its creator credentials. */
 export class BlockchainDeleteCoin extends Message<WorldPeer.Program, BlockchainDeleteCoin.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 126;
+  static readonly id = 127;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: BlockchainDeleteCoin.Fields) {
@@ -26461,7 +26740,7 @@ export namespace BlockchainDeleteCoin {
 }
 /** Gets the script user's coin name when creator credentials match, or returns the failure reason. */
 export class BlockchainGetCoinName extends Message<WorldPeer.Program, BlockchainGetCoinName.Fields, ValueResponse<CoinName, ScriptFailure>> {
-  static readonly id = 127;
+  static readonly id = 128;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: BlockchainGetCoinName.Fields) {
@@ -26552,7 +26831,7 @@ export namespace BlockchainGetCoinName {
   }
 }
 export class CoinGetAddress extends Message<WorldPeer.Program, CoinGetAddress.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 128;
+  static readonly id = 129;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinGetAddress.Fields) {
@@ -26616,7 +26895,7 @@ export namespace CoinGetAddress {
   }
 }
 export class CoinSetAddress extends Message<WorldPeer.Program, CoinSetAddress.Fields, ValueResponse<boolean | null, ScriptFailure>> {
-  static readonly id = 129;
+  static readonly id = 130;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinSetAddress.Fields) {
@@ -26695,7 +26974,7 @@ export namespace CoinSetAddress {
   }
 }
 export class CoinGetMinedCoins extends Message<WorldPeer.Program, CoinGetMinedCoins.Fields, ValueResponse<number | null, ScriptFailure>> {
-  static readonly id = 130;
+  static readonly id = 131;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinGetMinedCoins.Fields) {
@@ -26759,7 +27038,7 @@ export namespace CoinGetMinedCoins {
   }
 }
 export class CoinGetReward extends Message<WorldPeer.Program, CoinGetReward.Fields, ValueResponse<number | null, ScriptFailure>> {
-  static readonly id = 131;
+  static readonly id = 132;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinGetReward.Fields) {
@@ -26823,7 +27102,7 @@ export namespace CoinGetReward {
   }
 }
 export class CoinSetReward extends Message<WorldPeer.Program, CoinSetReward.Fields, ValueResponse<boolean | null, ScriptFailure>> {
-  static readonly id = 132;
+  static readonly id = 133;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinSetReward.Fields) {
@@ -26902,7 +27181,7 @@ export namespace CoinSetReward {
   }
 }
 export class CoinGetCycleMining extends Message<WorldPeer.Program, CoinGetCycleMining.Fields, ValueResponse<number | null, ScriptFailure>> {
-  static readonly id = 133;
+  static readonly id = 134;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinGetCycleMining.Fields) {
@@ -26966,7 +27245,7 @@ export namespace CoinGetCycleMining {
   }
 }
 export class CoinSetCycleMining extends Message<WorldPeer.Program, CoinSetCycleMining.Fields, ValueResponse<boolean | null, ScriptFailure>> {
-  static readonly id = 134;
+  static readonly id = 135;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinSetCycleMining.Fields) {
@@ -27046,7 +27325,7 @@ export namespace CoinSetCycleMining {
 }
 /** Adds sub-wallet `user`/`password` for wallet `wallet` after verifying `pin`. */
 export class CoinCreateSubwallet extends Message<WorldPeer.Program, CoinCreateSubwallet.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 135;
+  static readonly id = 136;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinCreateSubwallet.Fields) {
@@ -27156,7 +27435,7 @@ export namespace CoinCreateSubwallet {
 }
 /** Gets the coin's sub-wallet for `user` when present. */
 export class CoinGetSubwallet extends Message<WorldPeer.Program, CoinGetSubwallet.Fields, ValueResponse<ObjectId | null, ScriptFailure>> {
-  static readonly id = 136;
+  static readonly id = 137;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinGetSubwallet.Fields) {
@@ -27236,7 +27515,7 @@ export namespace CoinGetSubwallet {
 }
 /** Gets the coin's sub-wallets. */
 export class CoinGetSubwallets extends Message<WorldPeer.Program, CoinGetSubwallets.Fields, ValueResponse<ObjectId[], ScriptFailure>> {
-  static readonly id = 137;
+  static readonly id = 138;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinGetSubwallets.Fields) {
@@ -27302,7 +27581,7 @@ export namespace CoinGetSubwallets {
 }
 /** Moves `amount` from sub-wallet `origin` to sub-wallet `destination`. */
 export class CoinTransaction extends Message<WorldPeer.Program, CoinTransaction.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 138;
+  static readonly id = 139;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinTransaction.Fields) {
@@ -27400,7 +27679,7 @@ export namespace CoinTransaction {
 }
 /** Updates the creator password, permitted only when the script user is the creator. */
 export class CoinResetPasswordCoin extends Message<WorldPeer.Program, CoinResetPasswordCoin.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 139;
+  static readonly id = 140;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: CoinResetPasswordCoin.Fields) {
@@ -27473,7 +27752,7 @@ export namespace CoinResetPasswordCoin {
   }
 }
 export class SubWalletGetBalance extends Message<WorldPeer.Program, SubWalletGetBalance.Fields, ValueResponse<Figure, ScriptFailure>> {
-  static readonly id = 140;
+  static readonly id = 141;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SubWalletGetBalance.Fields) {
@@ -27531,7 +27810,7 @@ export namespace SubWalletGetBalance {
   }
 }
 export class SubWalletGetUser extends Message<WorldPeer.Program, SubWalletGetUser.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 141;
+  static readonly id = 142;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SubWalletGetUser.Fields) {
@@ -27596,7 +27875,7 @@ export namespace SubWalletGetUser {
 }
 /** Reports whether `password` matches the sub-wallet password. */
 export class SubWalletCheckPassword extends Message<WorldPeer.Program, SubWalletCheckPassword.Fields, ValueResponse<boolean | null, ScriptFailure>> {
-  static readonly id = 142;
+  static readonly id = 143;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SubWalletCheckPassword.Fields) {
@@ -27675,7 +27954,7 @@ export namespace SubWalletCheckPassword {
   }
 }
 export class SubWalletGetInfo extends Message<WorldPeer.Program, SubWalletGetInfo.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 143;
+  static readonly id = 144;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SubWalletGetInfo.Fields) {
@@ -27739,7 +28018,7 @@ export namespace SubWalletGetInfo {
   }
 }
 export class SubWalletSetInfo extends Message<WorldPeer.Program, SubWalletSetInfo.Fields, ValueResponse<boolean | null, ScriptFailure>> {
-  static readonly id = 144;
+  static readonly id = 145;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SubWalletSetInfo.Fields) {
@@ -27819,7 +28098,7 @@ export namespace SubWalletSetInfo {
 }
 /** Gets the user of the wallet that created the sub-wallet. */
 export class SubWalletWalletUsername extends Message<WorldPeer.Program, SubWalletWalletUsername.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 145;
+  static readonly id = 146;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SubWalletWalletUsername.Fields) {
@@ -27883,7 +28162,7 @@ export namespace SubWalletWalletUsername {
   }
 }
 export class SubWalletLastTransaction extends Message<WorldPeer.Program, SubWalletLastTransaction.Fields, ValueResponse<Transaction | null, ScriptFailure>> {
-  static readonly id = 146;
+  static readonly id = 147;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SubWalletLastTransaction.Fields) {
@@ -27951,7 +28230,7 @@ export namespace SubWalletLastTransaction {
 * game refusal. Stopping the program or closing its connection cancels the job.
 */
 export class SubWalletMining extends Message<WorldPeer.Program, SubWalletMining.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 147;
+  static readonly id = 148;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SubWalletMining.Fields) {
@@ -28009,7 +28288,7 @@ export namespace SubWalletMining {
   }
 }
 export class SubWalletDeleteSubwallet extends Message<WorldPeer.Program, SubWalletDeleteSubwallet.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 148;
+  static readonly id = 149;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: SubWalletDeleteSubwallet.Fields) {
@@ -28068,7 +28347,7 @@ export namespace SubWalletDeleteSubwallet {
 }
 /** Gets names of coins with wallet balances. */
 export class WalletListCoins extends Message<WorldPeer.Program, WalletListCoins.Fields, ValueResponse<string[], ScriptFailure>> {
-  static readonly id = 149;
+  static readonly id = 150;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletListCoins.Fields) {
@@ -28134,7 +28413,7 @@ export namespace WalletListCoins {
 }
 /** Gets the balance for `coin`, or the total across coins when `coin` is empty. */
 export class WalletGetBalance extends Message<WorldPeer.Program, WalletGetBalance.Fields, ValueResponse<Figure, ScriptFailure>> {
-  static readonly id = 150;
+  static readonly id = 151;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletGetBalance.Fields) {
@@ -28208,7 +28487,7 @@ export namespace WalletGetBalance {
 }
 /** Gets every coin name in the world. */
 export class WalletListGlobalCoins extends Message<WorldPeer.Program, WalletListGlobalCoins.Fields, ValueResponse<string[], ScriptFailure>> {
-  static readonly id = 151;
+  static readonly id = 152;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletListGlobalCoins.Fields) {
@@ -28274,7 +28553,7 @@ export namespace WalletListGlobalCoins {
 }
 /** Gets the wallet's pending mining-job count for `coin`. */
 export class WalletShowNodes extends Message<WorldPeer.Program, WalletShowNodes.Fields, ValueResponse<Figure, ScriptFailure>> {
-  static readonly id = 152;
+  static readonly id = 153;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletShowNodes.Fields) {
@@ -28347,7 +28626,7 @@ export namespace WalletShowNodes {
   }
 }
 export class WalletGetPin extends Message<WorldPeer.Program, WalletGetPin.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 153;
+  static readonly id = 154;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletGetPin.Fields) {
@@ -28412,7 +28691,7 @@ export namespace WalletGetPin {
 }
 /** Submits a buy order for `amount` of `coin` at `price`. */
 export class WalletBuyCoin extends Message<WorldPeer.Program, WalletBuyCoin.Fields, ValueResponse<TradeOutcome, ScriptFailure>> {
-  static readonly id = 154;
+  static readonly id = 155;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletBuyCoin.Fields) {
@@ -28522,7 +28801,7 @@ export namespace WalletBuyCoin {
 }
 /** Submits a sell order for `amount` of `coin` at `price`. */
 export class WalletSellCoin extends Message<WorldPeer.Program, WalletSellCoin.Fields, ValueResponse<TradeOutcome, ScriptFailure>> {
-  static readonly id = 155;
+  static readonly id = 156;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletSellCoin.Fields) {
@@ -28632,7 +28911,7 @@ export namespace WalletSellCoin {
 }
 /** Gets the wallet's open order for `coin`. */
 export class WalletGetPendingTrade extends Message<WorldPeer.Program, WalletGetPendingTrade.Fields, ValueResponse<PendingTrade, ScriptFailure>> {
-  static readonly id = 156;
+  static readonly id = 157;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletGetPendingTrade.Fields) {
@@ -28706,7 +28985,7 @@ export namespace WalletGetPendingTrade {
 }
 /** Aborts the wallet's open order for `coin`. */
 export class WalletCancelPendingTrade extends Message<WorldPeer.Program, WalletCancelPendingTrade.Fields, ValueResponse<CancelTrade, ScriptFailure>> {
-  static readonly id = 157;
+  static readonly id = 158;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletCancelPendingTrade.Fields) {
@@ -28780,7 +29059,7 @@ export namespace WalletCancelPendingTrade {
 }
 /** Gets every standing offer for `coin`, keyed by wallet user. */
 export class WalletGetGlobalOffers extends Message<WorldPeer.Program, WalletGetGlobalOffers.Fields, ValueResponse<GlobalOffers, ScriptFailure>> {
-  static readonly id = 158;
+  static readonly id = 159;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletGetGlobalOffers.Fields) {
@@ -28854,7 +29133,7 @@ export namespace WalletGetGlobalOffers {
 }
 /** Updates the wallet password once per day, permitted only when the script user owns the wallet. */
 export class WalletResetPassword extends Message<WorldPeer.Program, WalletResetPassword.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 159;
+  static readonly id = 160;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: WalletResetPassword.Fields) {
@@ -28928,7 +29207,7 @@ export namespace WalletResetPassword {
 }
 /** Reports whether `address` responds from the shell computer's network. */
 export class ShellPing extends Message<WorldPeer.Program, ShellPing.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 160;
+  static readonly id = 161;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: ShellPing.Fields) {
@@ -29005,7 +29284,7 @@ export namespace ShellPing {
 * `upload`. Without `to`, uses the player computer as its first user.
 */
 export class ShellScp extends Message<WorldPeer.Program, ShellScp.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 161;
+  static readonly id = 162;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: ShellScp.Fields) {
@@ -29121,7 +29400,7 @@ export namespace ShellScp {
 * arguments after checking the player connection.
 */
 export class ShellConnectService extends Message<WorldPeer.Program, ShellConnectService.Fields, ValueResponse<ServiceConnection, ScriptFailure>> {
-  static readonly id = 162;
+  static readonly id = 163;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: ShellConnectService.Fields) {
@@ -29260,7 +29539,7 @@ export namespace ShellConnectService {
 * (`ShellIntrinsics.connect_service`, `PlayerUtils.ConnectService`).
 */
 export class ShellCompleteEncryptedLogin extends Message<WorldPeer.Program, ShellCompleteEncryptedLogin.Fields, ValueResponse<ServiceLoginResult, ScriptFailure>> {
-  static readonly id = 163;
+  static readonly id = 164;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: ShellCompleteEncryptedLogin.Fields) {
@@ -29437,7 +29716,7 @@ export namespace ShellCompleteEncryptedLogin {
 * script session.
 */
 export class ShellBuild extends Message<WorldPeer.Program, ShellBuild.Fields, ValueResponse<BuildSource, ScriptFailure>> {
-  static readonly id = 164;
+  static readonly id = 165;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: ShellBuild.Fields) {
@@ -29526,7 +29805,7 @@ export namespace ShellBuild {
 * reason.
 */
 export class ShellWriteBinary extends Message<WorldPeer.Program, ShellWriteBinary.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 165;
+  static readonly id = 166;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: ShellWriteBinary.Fields) {
@@ -29652,7 +29931,7 @@ export namespace ShellWriteBinary {
 * ends through [`EndProgram`] or when its parent ends.
 */
 export class ShellLaunch extends Message<WorldPeer.Program, ShellLaunch.Fields, ValueResponse<LaunchOutcome, ScriptFailure>> {
-  static readonly id = 166;
+  static readonly id = 167;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: ShellLaunch.Fields) {
@@ -29763,7 +30042,7 @@ export namespace ShellLaunch {
 * [`EndProgram`] or when its parent ends.
 */
 export class ShellStartTerminal extends Message<WorldPeer.Program, ShellStartTerminal.Fields, ValueResponse<LaunchOutcome, ScriptFailure>> {
-  static readonly id = 167;
+  static readonly id = 168;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: ShellStartTerminal.Fields) {
@@ -29822,7 +30101,7 @@ export namespace ShellStartTerminal {
 }
 /** Gets the script computer's router when `address` is empty, otherwise the network router at `address`. */
 export class PlayerGetRouter extends Message<WorldPeer.Program, PlayerGetRouter.Fields, ValueResponse<ObjectId | null, ScriptFailure>> {
-  static readonly id = 168;
+  static readonly id = 169;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerGetRouter.Fields) {
@@ -29887,7 +30166,7 @@ export namespace PlayerGetRouter {
 }
 /** Gets the router for switch `address` on the script computer's network. */
 export class PlayerGetSwitch extends Message<WorldPeer.Program, PlayerGetSwitch.Fields, ValueResponse<ObjectId | null, ScriptFailure>> {
-  static readonly id = 169;
+  static readonly id = 170;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerGetSwitch.Fields) {
@@ -29952,7 +30231,7 @@ export namespace PlayerGetSwitch {
 }
 /** Maps web `address` to its network's public IP, or `null` when it does not resolve. */
 export class PlayerNslookup extends Message<WorldPeer.Program, PlayerNslookup.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 170;
+  static readonly id = 171;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerNslookup.Fields) {
@@ -30017,7 +30296,7 @@ export namespace PlayerNslookup {
 }
 /** Gets the owner of the network at public `address`. */
 export class PlayerWhois extends Message<WorldPeer.Program, PlayerWhois.Fields, ValueResponse<Whois, ScriptFailure>> {
-  static readonly id = 171;
+  static readonly id = 172;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerWhois.Fields) {
@@ -30079,7 +30358,7 @@ export namespace PlayerWhois {
 * the computer no longer exists.
 */
 export class PlayerCd extends Message<WorldPeer.Program, PlayerCd.Fields, ValueResponse<FolderChange | null, ScriptFailure>> {
-  static readonly id = 172;
+  static readonly id = 173;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerCd.Fields) {
@@ -30159,7 +30438,7 @@ export namespace PlayerCd {
 }
 /** Gets the world date in `current_date` format. */
 export class PlayerCurrentDate extends Message<WorldPeer.Program, PlayerCurrentDate.Fields, ValueResponse<string, ScriptFailure>> {
-  static readonly id = 173;
+  static readonly id = 174;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerCurrentDate.Fields) {
@@ -30208,7 +30487,7 @@ export namespace PlayerCurrentDate {
 * filename. Returns null for other files.
 */
 export class PlayerIncludeLib extends Message<WorldPeer.Program, PlayerIncludeLib.Fields, ValueResponse<IncludedLibrary, ScriptFailure>> {
-  static readonly id = 174;
+  static readonly id = 175;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerIncludeLib.Fields) {
@@ -30267,7 +30546,7 @@ export namespace PlayerIncludeLib {
 }
 /** Gets a shell as `user` on the script computer when `password` matches. */
 export class PlayerGetShell extends Message<WorldPeer.Program, PlayerGetShell.Fields, ValueResponse<ShellLogin, ScriptFailure>> {
-  static readonly id = 175;
+  static readonly id = 176;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerGetShell.Fields) {
@@ -30341,7 +30620,7 @@ export namespace PlayerGetShell {
 }
 /** Gets the player's mail address when running on the player computer. */
 export class PlayerUserMailAddress extends Message<WorldPeer.Program, PlayerUserMailAddress.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 176;
+  static readonly id = 177;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerUserMailAddress.Fields) {
@@ -30393,7 +30672,7 @@ export namespace PlayerUserMailAddress {
 }
 /** Gets the player's bank account number when running on the player computer. */
 export class PlayerUserBankNumber extends Message<WorldPeer.Program, PlayerUserBankNumber.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 177;
+  static readonly id = 178;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerUserBankNumber.Fields) {
@@ -30445,7 +30724,7 @@ export namespace PlayerUserBankNumber {
 }
 /** Signs in to mail account `address` from the script computer, returning `metaMail` or the game's error. */
 export class PlayerMailLogin extends Message<WorldPeer.Program, PlayerMailLogin.Fields, ValueResponse<ObjectOutcome, ScriptFailure>> {
-  static readonly id = 178;
+  static readonly id = 179;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerMailLogin.Fields) {
@@ -30519,7 +30798,7 @@ export namespace PlayerMailLogin {
 }
 /** Gets CTF `event` on the script computer when `user`/`password` match its credentials. */
 export class PlayerGetCtf extends Message<WorldPeer.Program, PlayerGetCtf.Fields, ValueResponse<ObjectId | null, ScriptFailure>> {
-  static readonly id = 179;
+  static readonly id = 180;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerGetCtf.Fields) {
@@ -30611,7 +30890,7 @@ export namespace PlayerGetCtf {
 }
 /** Updates the script computer's CTF password, returning success or the missing-account error. */
 export class PlayerResetCtfPassword extends Message<WorldPeer.Program, PlayerResetCtfPassword.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 180;
+  static readonly id = 181;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: PlayerResetCtfPassword.Fields) {
@@ -30670,7 +30949,7 @@ export namespace PlayerResetCtfPassword {
 }
 /** Gets the world-generation seed. */
 export class AdminSeed extends Message<WorldPeer.Program, AdminSeed.Fields, ValueResponse<bigint, ScriptFailure>> {
-  static readonly id = 181;
+  static readonly id = 182;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSeed.Fields) {
@@ -30716,7 +30995,7 @@ export namespace AdminSeed {
 }
 /** Gets every network's public address. */
 export class AdminNetworks extends Message<WorldPeer.Program, AdminNetworks.Fields, ValueResponse<string[], ScriptFailure>> {
-  static readonly id = 182;
+  static readonly id = 183;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminNetworks.Fields) {
@@ -30769,7 +31048,7 @@ export namespace AdminNetworks {
 }
 /** Creates a network unless its public address or domain is already used. */
 export class AdminCreateNetwork extends Message<WorldPeer.Program, AdminCreateNetwork.Fields, ValueResponse<NetworkCreation, ScriptFailure>> {
-  static readonly id = 183;
+  static readonly id = 184;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminCreateNetwork.Fields) {
@@ -30828,7 +31107,7 @@ export namespace AdminCreateNetwork {
 }
 /** Creates a computer in the network at `public_ip`. */
 export class AdminAddComputer extends Message<WorldPeer.Program, AdminAddComputer.Fields, ValueResponse<ComputerCreation, ScriptFailure>> {
-  static readonly id = 184;
+  static readonly id = 185;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminAddComputer.Fields) {
@@ -30905,7 +31184,7 @@ export namespace AdminAddComputer {
 * (`PlayerHelperServer.EnableCarAccidentServerRpc`) and returns whether its driver died.
 */
 export class AdminTrafficAccident extends Message<WorldPeer.Program, AdminTrafficAccident.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 185;
+  static readonly id = 186;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminTrafficAccident.Fields) {
@@ -30951,7 +31230,7 @@ export namespace AdminTrafficAccident {
 }
 /** Dismisses NPC `user` of the network behind `public_ip` (`NetworkLan.FireNpc`). */
 export class AdminFireNpc extends Message<WorldPeer.Program, AdminFireNpc.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 186;
+  static readonly id = 187;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminFireNpc.Fields) {
@@ -31028,7 +31307,7 @@ export namespace AdminFireNpc {
 * (`NetworkLan.HireNpc`).
 */
 export class AdminHireNpc extends Message<WorldPeer.Program, AdminHireNpc.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 187;
+  static readonly id = 188;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminHireNpc.Fields) {
@@ -31105,7 +31384,7 @@ export namespace AdminHireNpc {
 * (`BankHelperServer.HireAdminRentalServerRpc`).
 */
 export class AdminHireRentalAdmin extends Message<WorldPeer.Program, AdminHireRentalAdmin.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 188;
+  static readonly id = 189;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminHireRentalAdmin.Fields) {
@@ -31167,7 +31446,7 @@ export namespace AdminHireRentalAdmin {
 * (`BankHelperServer.FireAdminRentalServerRpc`).
 */
 export class AdminFireRentalAdmin extends Message<WorldPeer.Program, AdminFireRentalAdmin.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 189;
+  static readonly id = 190;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminFireRentalAdmin.Fields) {
@@ -31226,7 +31505,7 @@ export namespace AdminFireRentalAdmin {
 }
 /** Sets up the computer at `lan_ip` behind `public_ip` as a smart appliance. */
 export class AdminAddSmartAppliance extends Message<WorldPeer.Program, AdminAddSmartAppliance.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 190;
+  static readonly id = 191;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminAddSmartAppliance.Fields) {
@@ -31315,7 +31594,7 @@ export namespace AdminAddSmartAppliance {
 * `delay` seconds, and returns its ID.
 */
 export class AdminAddNpc extends Message<WorldPeer.Program, AdminAddNpc.Fields, ValueResponse<number | null, ScriptFailure>> {
-  static readonly id = 191;
+  static readonly id = 192;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminAddNpc.Fields) {
@@ -31431,7 +31710,7 @@ export namespace AdminAddNpc {
 }
 /** Deletes network `public_ip` and its computers, excluding the player's network. */
 export class AdminRemoveNetwork extends Message<WorldPeer.Program, AdminRemoveNetwork.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 192;
+  static readonly id = 193;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminRemoveNetwork.Fields) {
@@ -31493,7 +31772,7 @@ export namespace AdminRemoveNetwork {
 * Returns false when no network exists there.
 */
 export class AdminDisableNetwork extends Message<WorldPeer.Program, AdminDisableNetwork.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 193;
+  static readonly id = 194;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminDisableNetwork.Fields) {
@@ -31571,7 +31850,7 @@ export namespace AdminDisableNetwork {
 * (`NetworkLan.netSpeed`). Returns false when no network exists there.
 */
 export class AdminSetNetSpeed extends Message<WorldPeer.Program, AdminSetNetSpeed.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 194;
+  static readonly id = 195;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSetNetSpeed.Fields) {
@@ -31645,7 +31924,7 @@ export namespace AdminSetNetSpeed {
 }
 /** Updates the alarm on NPC `user`'s phone (`FileHelperServer.ModifyClockPhoneServerRpc`). */
 export class AdminSetPhoneAlarm extends Message<WorldPeer.Program, AdminSetPhoneAlarm.Fields, ValueResponse<PhoneAlarmConfig | null, ScriptFailure>> {
-  static readonly id = 195;
+  static readonly id = 196;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSetPhoneAlarm.Fields) {
@@ -31765,7 +32044,7 @@ export namespace AdminSetPhoneAlarm {
 * (`FileHelperServer.GetConfigClockPhoneServerRpc`).
 */
 export class AdminPhoneAlarm extends Message<WorldPeer.Program, AdminPhoneAlarm.Fields, ValueResponse<PhoneAlarmConfig | null, ScriptFailure>> {
-  static readonly id = 196;
+  static readonly id = 197;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminPhoneAlarm.Fields) {
@@ -31848,7 +32127,7 @@ export namespace AdminPhoneAlarm {
 * failed write.
 */
 export class AdminSnapshot extends Message<WorldPeer.Program, AdminSnapshot.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 197;
+  static readonly id = 198;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSnapshot.Fields) {
@@ -31894,7 +32173,7 @@ export namespace AdminSnapshot {
 }
 /** Moves the world clock forward by `seconds` and returns the elapsed world time. */
 export class AdminTick extends Message<WorldPeer.Program, AdminTick.Fields, ValueResponse<bigint, ScriptFailure>> {
-  static readonly id = 198;
+  static readonly id = 199;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminTick.Fields) {
@@ -31953,7 +32232,7 @@ export namespace AdminTick {
 }
 /** Updates the date returned by `current_date`. */
 export class AdminSetDate extends Message<WorldPeer.Program, AdminSetDate.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 199;
+  static readonly id = 200;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSetDate.Fields) {
@@ -32012,7 +32291,7 @@ export namespace AdminSetDate {
 }
 /** Gets a shell as `user` on the computer at `lan_ip` behind `public_ip` when that user exists. */
 export class AdminShell extends Message<WorldPeer.Program, AdminShell.Fields, ValueResponse<ObjectId | null, ScriptFailure>> {
-  static readonly id = 200;
+  static readonly id = 201;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminShell.Fields) {
@@ -32104,7 +32383,7 @@ export namespace AdminShell {
 }
 /** Changes the script to a root shell on its computer (`sudo`). */
 export class AdminSudo extends Message<WorldPeer.Program, AdminSudo.Fields, ValueResponse<ObjectId, ScriptFailure>> {
-  static readonly id = 201;
+  static readonly id = 202;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSudo.Fields) {
@@ -32150,7 +32429,7 @@ export namespace AdminSudo {
 }
 /** Establishes a session for `user` on the computer at `lan_ip` behind `public_ip` unless already open. */
 export class AdminLogin extends Message<WorldPeer.Program, AdminLogin.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 202;
+  static readonly id = 203;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminLogin.Fields) {
@@ -32240,7 +32519,7 @@ export namespace AdminLogin {
 * mail (`Persona.ProcesaIngenieraSocial`).
 */
 export class AdminNpcLogin extends Message<WorldPeer.Program, AdminNpcLogin.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 203;
+  static readonly id = 204;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminNpcLogin.Fields) {
@@ -32329,7 +32608,7 @@ export namespace AdminNpcLogin {
 * hardware UI (`HardwareHelperServer.InstallHardware`). Returns whether the computer exists.
 */
 export class AdminAddNetCard extends Message<WorldPeer.Program, AdminAddNetCard.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 204;
+  static readonly id = 205;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminAddNetCard.Fields) {
@@ -32427,7 +32706,7 @@ export namespace AdminAddNetCard {
 }
 /** Updates an existing library file to `version`, preserving its kind and weaknesses. */
 export class AdminSetLibraryVersion extends Message<WorldPeer.Program, AdminSetLibraryVersion.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 205;
+  static readonly id = 206;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSetLibraryVersion.Fields) {
@@ -32525,7 +32804,7 @@ export namespace AdminSetLibraryVersion {
 }
 /** Updates an existing port to its service library at `version`. */
 export class AdminSetPortLibraryVersion extends Message<WorldPeer.Program, AdminSetPortLibraryVersion.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 206;
+  static readonly id = 207;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSetPortLibraryVersion.Fields) {
@@ -32623,7 +32902,7 @@ export namespace AdminSetPortLibraryVersion {
 }
 /** Stores `password` independently of an account and returns its MD5 hash (`Database.AddPassword`). */
 export class AdminRegisterPassword extends Message<WorldPeer.Program, AdminRegisterPassword.Fields, ValueResponse<string, ScriptFailure>> {
-  static readonly id = 207;
+  static readonly id = 208;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminRegisterPassword.Fields) {
@@ -32685,7 +32964,7 @@ export namespace AdminRegisterPassword {
 * than standard script intrinsics (`FileHelperServer.LeerFichaServerRpc`).
 */
 export class AdminServiceRecords extends Message<WorldPeer.Program, AdminServiceRecords.Fields, ValueResponse<string | null, ScriptFailure>> {
-  static readonly id = 208;
+  static readonly id = 209;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminServiceRecords.Fields) {
@@ -32777,7 +33056,7 @@ export namespace AdminServiceRecords {
 }
 /** Overwrites the SQL record with the same `person_id`; returns empty on success or the game UI's error. */
 export class AdminUpdateServiceRecord extends Message<WorldPeer.Program, AdminUpdateServiceRecord.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 209;
+  static readonly id = 210;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminUpdateServiceRecord.Fields) {
@@ -32878,7 +33157,7 @@ export namespace AdminUpdateServiceRecord {
 * (`NetworkHelperServer.AccessWebServerRpc`). A null password requests the password prompt.
 */
 export class AdminAccessCctv extends Message<WorldPeer.Program, AdminAccessCctv.Fields, ValueResponse<CctvAccess, ScriptFailure>> {
-  static readonly id = 210;
+  static readonly id = 211;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminAccessCctv.Fields) {
@@ -32972,7 +33251,7 @@ export namespace AdminAccessCctv {
 * the target is a smartphone.
 */
 export class AdminInstallSmartphoneAdb extends Message<WorldPeer.Program, AdminInstallSmartphoneAdb.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 211;
+  static readonly id = 212;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminInstallSmartphoneAdb.Fields) {
@@ -33046,7 +33325,7 @@ export namespace AdminInstallSmartphoneAdb {
 }
 /** Stores `source` at `path` on the script computer, owned by the script user. */
 export class AdminCreateProgram extends Message<WorldPeer.Program, AdminCreateProgram.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 212;
+  static readonly id = 213;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminCreateProgram.Fields) {
@@ -33124,7 +33403,7 @@ export namespace AdminCreateProgram {
 * (`NetworkHelperServer.GetExploitListServerRpc`). The game offers them only in that browser.
 */
 export class AdminExploitShop extends Message<WorldPeer.Program, AdminExploitShop.Fields, ValueResponse<ExploitListing, ScriptFailure>> {
-  static readonly id = 213;
+  static readonly id = 214;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminExploitShop.Fields) {
@@ -33203,7 +33482,7 @@ export namespace AdminExploitShop {
 * named `<exploit>.src`.
 */
 export class AdminBuyExploit extends Message<WorldPeer.Program, AdminBuyExploit.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 214;
+  static readonly id = 215;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminBuyExploit.Fields) {
@@ -33314,7 +33593,7 @@ export namespace AdminBuyExploit {
 }
 /** Updates `wallet_user`'s balance in `coin`. */
 export class AdminGrantCoins extends Message<WorldPeer.Program, AdminGrantCoins.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 215;
+  static readonly id = 216;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminGrantCoins.Fields) {
@@ -33400,7 +33679,7 @@ export namespace AdminGrantCoins {
 }
 /** Adds `amount` to bank account `number`. */
 export class AdminDeposit extends Message<WorldPeer.Program, AdminDeposit.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 216;
+  static readonly id = 217;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminDeposit.Fields) {
@@ -33473,7 +33752,7 @@ export namespace AdminDeposit {
   }
 }
 export class AdminCreateMailAccount extends Message<WorldPeer.Program, AdminCreateMailAccount.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 217;
+  static readonly id = 218;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminCreateMailAccount.Fields) {
@@ -33547,7 +33826,7 @@ export namespace AdminCreateMailAccount {
 }
 /** Adds a CTF account for the script computer. */
 export class AdminCreateCtfAccount extends Message<WorldPeer.Program, AdminCreateCtfAccount.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 218;
+  static readonly id = 219;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminCreateCtfAccount.Fields) {
@@ -33621,7 +33900,7 @@ export namespace AdminCreateCtfAccount {
 }
 /** Adds a CTF event owned and played by the script computer. */
 export class AdminCreateCtfEvent extends Message<WorldPeer.Program, AdminCreateCtfEvent.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 219;
+  static readonly id = 220;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminCreateCtfEvent.Fields) {
@@ -33680,7 +33959,7 @@ export namespace AdminCreateCtfEvent {
 }
 /** Scores event `name` as the script computer's player. */
 export class AdminRateCtfEvent extends Message<WorldPeer.Program, AdminRateCtfEvent.Fields, ValueResponse<CtfRating, ScriptFailure>> {
-  static readonly id = 220;
+  static readonly id = 221;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminRateCtfEvent.Fields) {
@@ -33765,7 +34044,7 @@ export namespace AdminRateCtfEvent {
   }
 }
 export class AdminCreateDebugAccount extends Message<WorldPeer.Program, AdminCreateDebugAccount.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 221;
+  static readonly id = 222;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminCreateDebugAccount.Fields) {
@@ -33845,7 +34124,7 @@ export namespace AdminCreateDebugAccount {
 * has no library of that name (the game fails on it).
 */
 export class AdminReportLibraryUpdate extends Message<WorldPeer.Program, AdminReportLibraryUpdate.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 222;
+  static readonly id = 223;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminReportLibraryUpdate.Fields) {
@@ -33923,7 +34202,7 @@ export namespace AdminReportLibraryUpdate {
 * its contract to the player. Returns the public address of that network.
 */
 export class AdminAcceptMission extends Message<WorldPeer.Program, AdminAcceptMission.Fields, ValueResponse<MissionAcceptance, ScriptFailure>> {
-  static readonly id = 223;
+  static readonly id = 224;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminAcceptMission.Fields) {
@@ -33986,7 +34265,7 @@ export namespace AdminAcceptMission {
 * script computer's player as a member when `join` is set. Guilds are made in the game's interface only.
 */
 export class AdminCreateGuild extends Message<WorldPeer.Program, AdminCreateGuild.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 224;
+  static readonly id = 225;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminCreateGuild.Fields) {
@@ -34112,7 +34391,7 @@ export namespace AdminCreateGuild {
 * (`StocksCompany.BuyStocksCompany`). Returns false when no network exists there.
 */
 export class AdminSetCompanyShares extends Message<WorldPeer.Program, AdminSetCompanyShares.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 225;
+  static readonly id = 226;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSetCompanyShares.Fields) {
@@ -34201,7 +34480,7 @@ export namespace AdminSetCompanyShares {
 * (`NetworkHelperServer.ActivateCrownShieldProtection`).
 */
 export class AdminHireCrownShield extends Message<WorldPeer.Program, AdminHireCrownShield.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 226;
+  static readonly id = 227;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminHireCrownShield.Fields) {
@@ -34279,7 +34558,7 @@ export namespace AdminHireCrownShield {
 * the game's failure.
 */
 export class AdminSetAdminRestore extends Message<WorldPeer.Program, AdminSetAdminRestore.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 227;
+  static readonly id = 228;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSetAdminRestore.Fields) {
@@ -34371,7 +34650,7 @@ export namespace AdminSetAdminRestore {
 * no such library.
 */
 export class AdminReleaseLibraryVersion extends Message<WorldPeer.Program, AdminReleaseLibraryVersion.Fields, ValueResponse<LibraryRelease, ScriptFailure>> {
-  static readonly id = 228;
+  static readonly id = 229;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminReleaseLibraryVersion.Fields) {
@@ -34434,7 +34713,7 @@ export namespace AdminReleaseLibraryVersion {
 * patches it. Returns true or the game's failure.
 */
 export class AdminReportExploit extends Message<WorldPeer.Program, AdminReportExploit.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 229;
+  static readonly id = 230;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminReportExploit.Fields) {
@@ -34688,7 +34967,7 @@ export const World = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 2955075006 }],
+  versions: [{ fingerprint: 1490798418 }],
   peers: [WorldPeer.Program, WorldPeer.GameServer],
   messages: [[
     ProgramEnd,
@@ -34775,6 +35054,7 @@ export const World = {
     MetaxploitRshellClient,
     MetaxploitRshellServer,
     MetaxploitSniffer,
+    MetaxploitRshellRemove,
     MetaLibLibName,
     MetaLibVersion,
     MetaLibDebugTools,

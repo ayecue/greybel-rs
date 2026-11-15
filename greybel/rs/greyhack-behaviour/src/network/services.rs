@@ -4,6 +4,9 @@ use greyhack_world_assets::ServiceDefinition;
 
 use crate::LibraryKind;
 
+/// Maximum reverse-shell registrations on one router port (`RouterConfigOS.MaxReverseShellsPerPort`).
+pub const MAX_REVERSE_SHELLS_PER_PORT: u32 = 16;
+
 /// Services available to generated computers in generation order; also accepted by `add_computer`.
 pub const COMPUTER_SERVICES: &[ServiceId] = &[
     ServiceId::Ssh,

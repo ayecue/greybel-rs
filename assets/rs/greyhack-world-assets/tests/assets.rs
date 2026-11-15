@@ -116,7 +116,7 @@ fn should_answer_the_usage_texts_the_scripts_ask_for_except_three_the_game_lacks
         (texts.locale(), texts.len(), missing),
         (
             "en",
-            1640,
+            1641,
             vec![
                 "CD_USAGE".to_owned(),
                 "REPOD_USAGE".to_owned(),
@@ -124,6 +124,11 @@ fn should_answer_the_usage_texts_the_scripts_ask_for_except_three_the_game_lacks
             ]
         )
     );
+}
+
+#[test]
+fn should_hold_the_reverse_shell_social_engineering_full_text() {
+    assert!(GameTextTable::english().get("ING_RSHELL_FULL").is_some());
 }
 
 #[test]

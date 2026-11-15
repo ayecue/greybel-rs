@@ -4,6 +4,7 @@ use std::any::Any;
 
 use greyhack_world::World;
 use greyhack_world_core::{ComputerId, WorldError};
+use greyhack_world_effects::WorkId;
 use greyhack_world_programs::protocol::{ObjectId, ProgramId, ScriptFailure};
 use greyhack_world_programs::{Process, ProgramKind, RouteResult, TreeId};
 use greyhack_world_router::{
@@ -13,13 +14,13 @@ use greyhack_world_router::{
 use super::{ServerState, ServerWorld};
 use crate::OperationError;
 
-impl CycleDriver<World, WorldError> for ServerState {
+impl CycleDriver<World> for ServerState {
     fn change<'a>(
         &'a self,
         connection: u32,
         program: ProgramId,
         budgeted: bool,
-        apply: Box<dyn ErasedCycleCall<World, WorldError> + 'a>,
+        apply: Box<dyn ErasedCycleCall<World> + 'a>,
     ) -> CycleFuture<'a, RouteResult<Box<dyn Any>, WorldError>> {
         Box::pin(async move {
             let run = async |world_state: &mut ServerWorld| {
@@ -91,18 +92,14 @@ impl CycleDriver<World, WorldError> for ServerState {
         &'a self,
         connection: u32,
         program: ProgramId,
-        work: u64,
+        work: WorkId,
     ) -> CycleFuture<'a, Option<Box<dyn Any>>> {
         Box::pin(async move {
-            self.defer_envelope(
-                connection,
-                program,
-                greyhack_world_effects::WorkId::new(work),
-            )
-            .await
-            .ok()?
-            .into_result()
-            .ok()
+            self.defer_envelope(connection, program, work)
+                .await
+                .ok()?
+                .into_result()
+                .ok()
         })
     }
 

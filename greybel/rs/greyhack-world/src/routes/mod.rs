@@ -2,10 +2,6 @@
 
 pub mod admin;
 
-mod cycles;
-
-pub use cycles::CyclesExt;
-
 pub(crate) fn register(routes: &greyhack_world_router::RouteTable) {
     admin::register(routes);
 }

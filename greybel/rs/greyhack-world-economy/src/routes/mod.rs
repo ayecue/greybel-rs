@@ -17,7 +17,10 @@ pub type Result<T, E = OperationError> = std::result::Result<T, E>;
 
 /// Registers every economy route for concrete world `W`.
 pub fn register<
-    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+    W: greyhack_world_router::WorldContext<
+            Computer = greyhack_world_core::ComputerId,
+            Error = greyhack_world_core::WorldError,
+        > + 'static,
 >(
     routes: &greyhack_world_router::RouteTable,
 ) {

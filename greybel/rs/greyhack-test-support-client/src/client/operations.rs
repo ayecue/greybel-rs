@@ -646,6 +646,14 @@ impl TestClient {
         }
     }
 
+    /// Creates a CTF-kind network before the player joins it and returns its addresses.
+    pub async fn spawn_ctf_network(&self) -> Result<NetworkCreatedReply, TestClientError> {
+        match self.request(RequestKind::SpawnCtfNetwork).await? {
+            Reply::NetworkCreated(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("NetworkCreated")),
+        }
+    }
+
     /// Sets every firewall rule on the router or switch at `local_ip` in the player's network to allow.
     pub async fn allow_firewall(&self, local_ip: &str) -> Result<(), TestClientError> {
         self.apply_fixture(RequestKind::AllowFirewall {

@@ -10,7 +10,7 @@ async fn should_register_every_lazy_dependency() {
         world.registry.missing_services(),
         Vec::<&'static str>::new()
     );
-    assert_eq!(world.assembly.routes.len(), 227);
+    assert_eq!(world.assembly.routes.len(), 228);
 }
 
 #[tokio::test]

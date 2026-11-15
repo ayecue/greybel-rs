@@ -217,6 +217,7 @@ pub(super) enum RequestKind {
         quality: i64,
         difficulty: i64,
     },
+    SpawnCtfNetwork,
 }
 
 /// A guild the game gets: see `SetupGuildRpc`.

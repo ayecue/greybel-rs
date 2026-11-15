@@ -14,8 +14,8 @@ use greyhack_world_programs::protocol::{
     GameServer, ProgramId, ProgramThrottle, ReleaseObjects, ScriptFailure,
 };
 use greyhack_world_router::{
-    Call, CycleAccess, CycleDriverRef, Operation, OperationResponse, ResponderOf, RouteCall,
-    RouteContext, RouteKind,
+    Call, CycleAccess, Operation, OperationResponse, ResponderOf, RouteCall, RouteContext,
+    RouteKind,
 };
 use scheduler::{LocalTask, Scheduler};
 
@@ -243,11 +243,10 @@ impl Connection {
 
                     (world.world.clone(), world.trees.clone())
                 };
-                let driver = CycleDriverRef::<World, WorldError>::new(state.clone());
                 let context = RouteContext::with_cycles(
                     modules,
                     trees,
-                    CycleAccess::new(state.as_ref(), connection.id, &driver),
+                    CycleAccess::new(connection.id, state.as_ref()),
                 )
                 .with_prints(state.prints.clone());
 

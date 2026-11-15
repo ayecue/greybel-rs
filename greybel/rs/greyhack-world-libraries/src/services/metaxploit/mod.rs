@@ -94,7 +94,11 @@ impl Metaxploit {
 
 impl Metaxploit {
     /// Registers a reverse shell on `router`.
-    pub async fn insert_reverse_shell(&self, router: RouterId, shell: &ReverseShell) -> Result<()> {
+    pub async fn insert_reverse_shell(
+        &self,
+        router: RouterId,
+        shell: &ReverseShell,
+    ) -> Result<bool> {
         self.reverse_shells
             .insert_reverse_shell(router, shell)
             .await

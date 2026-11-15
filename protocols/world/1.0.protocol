@@ -248,6 +248,12 @@ protocol World = "greyhack-world" {
             encode_source: bool,
             program_path: string,
         } -> Result<SniffedPacket?, ScriptFailure>
+        /// Removes all reverse shells on the metaxploit computer's rshell port, or only the selected shells.
+        message MetaxploitRshellRemove {
+            program: ProgramId,
+            metaxploit: ObjectId,
+            shells: RshellRemoveSelection,
+        } -> Result<Outcome, ScriptFailure>
 
         // MetaLib operation messages
 
@@ -964,6 +970,8 @@ union Failure {
     Shop(ShopFailure),
     /// A procedural mission was not accepted.
     Mission(MissionFailure),
+    /// `rshell_remove` did not remove reverse shells.
+    RshellRemove(RshellRemoveFailure),
 }
 
 /// Smart appliance or police traffic network request failure (`SmartApplianceIntrinsics`, `TrafficNetIntrinsics`).
@@ -1784,6 +1792,8 @@ union RshellFailure {
     /// Router forwards the port to no computer.
     MissingServer(u16),
     Service(ServiceFailure),
+    /// The server already has 16 reverse shells on this port.
+    Limit,
 }
 
 /// Response from `rshell_server`.
@@ -1801,6 +1811,32 @@ union RshellServerResponse {
 struct ReverseShellClient {
     shell: ObjectId,
     computer: ObjectId,
+}
+
+/// Shells selected by `rshell_remove`, or its argument error deferred until after the service checks.
+union RshellRemoveSelection {
+    /// Null: remove every reverse shell on the service port.
+    All,
+    /// The argument was neither null nor a list.
+    InvalidType,
+    /// A list item was not a reverse shell.
+    InvalidItem,
+    /// Reverse-shell objects to remove.
+    Shells(list<ObjectId>),
+}
+
+/// Why `rshell_remove` failed (`MetaExploitIntrinsics.rshell_remove`).
+union RshellRemoveFailure {
+    /// The computer does not run the rshell service.
+    NoService,
+    /// The router has no forward to the computer's rshell service.
+    ForwardMissing,
+    /// The computer is on a CTF network.
+    CtfNetwork,
+    /// The shells argument was neither null nor a list.
+    ExpectedList,
+    /// A list item was not a reverse shell.
+    OnlyReverseShells,
 }
 
 // MetaLib data types

@@ -8,4 +8,6 @@ pub enum RshellFailure {
     /// The router does not forward the port to a computer.
     MissingServer,
     Service(ServiceFailure),
+    /// The server already has 16 reverse shells on this port.
+    Limit,
 }

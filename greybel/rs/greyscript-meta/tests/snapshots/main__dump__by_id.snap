@@ -666,6 +666,9 @@ round:
 rshell_client:
   - general
   - metaxploit
+rshell_remove:
+  - general
+  - metaxploit
 rshell_server:
   - general
   - metaxploit

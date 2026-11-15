@@ -6,6 +6,7 @@ definitionOrder:
   - load
   - net_use
   - rshell_client
+  - rshell_remove
   - rshell_server
   - scan
   - scan_address
@@ -152,6 +153,7 @@ definitions:
         - Invalid target service port configuration.
         - No internet access.
         - Remote host is down
+        - "rshell_client: connection refused. The server has reached its limit of 16 connections."
         - "rshell_client: Invalid IP address"
         - "rshell_client: IP address not found: ${ip}"
         - "rshell_client: unable to find remote server at port ${port}"
@@ -162,6 +164,54 @@ definitions:
         - Unknown error
     tags:
       - method
+    typeString: function
+    variations:
+      ok: []
+  rshell_remove:
+    argStrings:
+      - - list<shell>
+        - "null"
+    id: rshell_remove
+    json:
+      arguments:
+        - default: ~
+          label: shells
+          opt: true
+          types:
+            - type: list
+              valueType: shell
+            - "null"
+      description: "Removes reverse shells connected to this computer's `rshell` service. With no argument or `null`, removes every shell on the forwarded service port; with a `list` of reverse `shell` objects, removes only matching connections. Returns `1` when at least one connection was removed and `0` otherwise. Invalid arguments, a missing service or port forward, a CTF network, and unavailable internet return the game's error `string`."
+      example:
+        - "metax = include_lib(\"/lib/metaxploit.so\")"
+        - shells = metax.rshell_server
+        - removed = metax.rshell_remove(shells)
+        - print(removed)
+      isProtected: false
+      returns:
+        - string
+        - number
+        - "null"
+      type: function
+    origin: metaxploit
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - number
+      - "null"
+    returnVariations:
+      ok:
+        - 0
+        - 1
+        - "error: rshell portforward is not configured correctly"
+        - "error: service rshelld is not running"
+        - "rshell_remove: expected a list of reverse shells or null"
+        - "rshell_remove: list must contain only reverse shells"
+        - "rshell_remove: No internet connection"
+        - "rshell_remove: The service cannot be started on this network."
+    tags:
+      - method
+      - ssh incompatible
     typeString: function
     variations:
       ok: []
@@ -327,6 +377,7 @@ descriptionOrder:
   - load
   - net_use
   - rshell_client
+  - rshell_remove
   - rshell_server
   - scan
   - scan_address
@@ -359,6 +410,13 @@ descriptions:
     example:
       - "metax = include_lib(\"/lib/metaxploit.so\")"
       - "metax.rshell_client(\"1.1.1.1\", 1222, \"bgprocess\")"
+  rshell_remove:
+    description: "Removes reverse shells connected to this computer's `rshell` service. With no argument or `null`, removes every shell on the forwarded service port; with a `list` of reverse `shell` objects, removes only matching connections. Returns `1` when at least one connection was removed and `0` otherwise. Invalid arguments, a missing service or port forward, a CTF network, and unavailable internet return the game's error `string`."
+    example:
+      - "metax = include_lib(\"/lib/metaxploit.so\")"
+      - shells = metax.rshell_server
+      - removed = metax.rshell_remove(shells)
+      - print(removed)
   rshell_server:
     description: "This method returns a `list` of `shell` objects that have been reverse shell connected to this computer. To manage the connections received, the `rshell` service must be installed on the machine that receives the victims' connections. In case of failure a `string` will be returned with details."
     example:

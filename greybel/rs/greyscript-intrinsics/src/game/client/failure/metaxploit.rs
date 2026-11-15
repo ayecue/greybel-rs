@@ -1,7 +1,9 @@
 //! Grey Hack failure text for `metaxploit.so` and `rshell_client`.
 
 use super::connection::service_text;
-use crate::protocol::{MetaxploitFailure, RshellFailure, WeaknessInfo, WeaknessRequirement};
+use crate::protocol::{
+    MetaxploitFailure, RshellFailure, RshellRemoveFailure, WeaknessInfo, WeaknessRequirement,
+};
 
 /// Formats `MetaExploitIntrinsics.rshell_server` failures.
 pub(super) const fn metaxploit_text(failure: MetaxploitFailure) -> &'static str {
@@ -23,6 +25,29 @@ pub(super) fn rshell_text(failure: &RshellFailure) -> String {
             format!("rshell_client: unable to find remote server at port {port}")
         }
         RshellFailure::Service(failure) => service_text(failure),
+        RshellFailure::Limit => {
+            "rshell_client: connection refused. The server has reached its limit of 16 connections."
+                .to_owned()
+        }
+    }
+}
+
+/// Formats `MetaExploitIntrinsics.rshell_remove` failures.
+pub(super) const fn rshell_remove_text(failure: RshellRemoveFailure) -> &'static str {
+    match failure {
+        RshellRemoveFailure::NoService => "error: service rshelld is not running",
+        RshellRemoveFailure::ForwardMissing => {
+            "error: rshell portforward is not configured correctly"
+        }
+        RshellRemoveFailure::CtfNetwork => {
+            "rshell_remove: The service cannot be started on this network."
+        }
+        RshellRemoveFailure::ExpectedList => {
+            "rshell_remove: expected a list of reverse shells or null"
+        }
+        RshellRemoveFailure::OnlyReverseShells => {
+            "rshell_remove: list must contain only reverse shells"
+        }
     }
 }
 

@@ -10,6 +10,7 @@ use crate::protocol::ObjectId;
 mod load;
 mod net_use;
 mod rshell_client;
+mod rshell_remove;
 mod rshell_server;
 mod scan;
 mod scan_address;
@@ -21,6 +22,7 @@ pub(crate) const METHODS: &[(&str, &Native)] = &[
     ("scan_address", &scan_address::scan_address::NATIVE),
     ("net_use", &net_use::net_use::NATIVE),
     ("rshell_client", &rshell_client::rshell_client::NATIVE),
+    ("rshell_remove", &rshell_remove::rshell_remove::NATIVE),
     ("rshell_server", &rshell_server::rshell_server::NATIVE),
     ("sniffer", &sniffer::sniffer::NATIVE),
 ];

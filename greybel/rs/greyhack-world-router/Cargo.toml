@@ -13,6 +13,7 @@ doctest = false
 
 [dependencies]
 duplex-core.workspace = true
+greyhack-world-effects.workspace = true
 greyhack-world-programs.workspace = true
 
 [dev-dependencies]

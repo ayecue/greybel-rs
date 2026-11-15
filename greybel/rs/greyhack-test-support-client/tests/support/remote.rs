@@ -99,10 +99,15 @@ pub fn script_string(source: &str) -> String {
 
 /// A rented server network the player joined, with the player's computer running an rshell server whose port its
 /// router forwards; the network as the game has it then.
-pub async fn rshell_server_network(client: &TestClient) -> NetworkSnapshot {
-    let network = client.spawn_network("RentServer").await.unwrap();
+pub async fn rshell_server_network(client: &TestClient, kind: &str) -> NetworkSnapshot {
+    let network = client.spawn_network(kind).await.unwrap();
 
-    join_network(client, &network.public_ip).await;
+    rshell_server_network_at(client, &network.public_ip).await
+}
+
+/// The existing network `public_ip`, joined by the player and prepared for an rshell server.
+pub async fn rshell_server_network_at(client: &TestClient, public_ip: &str) -> NetworkSnapshot {
+    join_network(client, public_ip).await;
     client
         .install_library(
             "",

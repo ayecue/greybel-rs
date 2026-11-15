@@ -8154,6 +8154,46 @@ public sealed class RateCtfRpc : global::Duplex.Message
 }
 
 /// <summary>
+/// Creates a rental layout and marks it CTF before the player joins (`Router.SetTipoRed`). Replies with
+/// `Reply.NetworkCreated` for the CTF network.
+/// </summary>
+public sealed class SpawnCtfNetworkRpc : global::Duplex.Message
+{
+    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
+        "SpawnCtfNetworkRpc",
+        id: 59,
+        since: 0,
+        sender: global::Duplex.Role.Client,
+        limit: 16777216,
+        responds: false,
+        streams: false,
+        read: reader => Read(reader),
+        tags: global::System.Array.Empty<global::Duplex.Tag>(),
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((SpawnCtfNetworkRpc)holder).Request) },
+        create: values => new SpawnCtfNetworkRpc((uint)values[0]!));
+
+    public SpawnCtfNetworkRpc(uint request)
+    {
+        Request = request;
+    }
+
+    public uint Request { get; }
+
+    public override global::Duplex.MessageType GetMessageType() => MessageType;
+
+    public override void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteU32(this.Request);
+    }
+
+    public static SpawnCtfNetworkRpc Read(global::Duplex.DuplexReader reader)
+    {
+        uint fieldRequest = reader.ReadU32();
+        return new SpawnCtfNetworkRpc(fieldRequest);
+    }
+}
+
+/// <summary>
 /// Reply for the request with matching `request`. Each request has exactly one reply on its originating
 /// connection, except `ExecuteUntilInputRpc` and `TypeInputRpc`, which reply when the script next waits for
 /// input or exits.
@@ -8209,8 +8249,8 @@ public static class TestSupport
         channelId: 3416832380u,
         version: new global::Duplex.VersionNumber(1, 0),
         core: new global::Duplex.VersionNumber(1, 0),
-        versions: new[] { new global::Duplex.VersionInfo(3537239412u, null, false) },
-        messages: new[] { new[] { ReplyRpc.MessageType }, new[] { SetupPlayerRpc.MessageType, ConnectNetworkRpc.MessageType, WriteFileRpc.MessageType, CreateNetworkRpc.MessageType, CreateFixtureNetworkRpc.MessageType, SetupDebugRpc.MessageType, SetupCtfRpc.MessageType, ExecuteRpc.MessageType, ExecuteInteractiveRpc.MessageType, ExecuteUntilInputRpc.MessageType, TypeInputRpc.MessageType, ExecutePairRpc.MessageType, QueryPlayerRpc.MessageType, QueryFileRpc.MessageType, SetRouterKernelRequirementRpc.MessageType, WriteRouterKernelRpc.MessageType, QueryNetworkRpc.MessageType, InstallLibraryRpc.MessageType, InstallFixtureLibraryRpc.MessageType, SetupBlockchainRpc.MessageType, SetupMailRpc.MessageType, SetupWalletRpc.MessageType, SetupForeignCoinRpc.MessageType, ForwardServiceRpc.MessageType, LockApplianceRpc.MessageType, PrimeFloodRpc.MessageType, FreezeClockRpc.MessageType, DisableNetworkRpc.MessageType, PromoteAdminRpc.MessageType, FireNpcRpc.MessageType, RefreshNpcAccountRpc.MessageType, ConfigZeroDayInfoRpc.MessageType, SetPhoneAlarmRpc.MessageType, SetupTrafficRpc.MessageType, TrafficAccidentRpc.MessageType, ResetTrafficCooldownRpc.MessageType, AllowFirewallRpc.MessageType, SpawnNetworkRpc.MessageType, HireRentalAdminRpc.MessageType, ForceAdminLoginRpc.MessageType, AdvanceClockRpc.MessageType, QueryExploitsRpc.MessageType, BuyExploitRpc.MessageType, RebootPlayerRpc.MessageType, ReportLibraryUpdateRpc.MessageType, RentNetworkRpc.MessageType, RentalAdminServiceRpc.MessageType, RunPaymentsRpc.MessageType, SetPlayerMoneyRpc.MessageType, MissionRpc.MessageType, SetupGuildRpc.MessageType, QueryGuildsRpc.MessageType, QueryTracesRpc.MessageType, QueryWordListsRpc.MessageType, ExecuteInTerminalRpc.MessageType, EndGameRpc.MessageType, RunPaymentRpc.MessageType, ReleaseLibraryVersionRpc.MessageType, RateCtfRpc.MessageType } },
+        versions: new[] { new global::Duplex.VersionInfo(699495409u, null, false) },
+        messages: new[] { new[] { ReplyRpc.MessageType }, new[] { SetupPlayerRpc.MessageType, ConnectNetworkRpc.MessageType, WriteFileRpc.MessageType, CreateNetworkRpc.MessageType, CreateFixtureNetworkRpc.MessageType, SetupDebugRpc.MessageType, SetupCtfRpc.MessageType, ExecuteRpc.MessageType, ExecuteInteractiveRpc.MessageType, ExecuteUntilInputRpc.MessageType, TypeInputRpc.MessageType, ExecutePairRpc.MessageType, QueryPlayerRpc.MessageType, QueryFileRpc.MessageType, SetRouterKernelRequirementRpc.MessageType, WriteRouterKernelRpc.MessageType, QueryNetworkRpc.MessageType, InstallLibraryRpc.MessageType, InstallFixtureLibraryRpc.MessageType, SetupBlockchainRpc.MessageType, SetupMailRpc.MessageType, SetupWalletRpc.MessageType, SetupForeignCoinRpc.MessageType, ForwardServiceRpc.MessageType, LockApplianceRpc.MessageType, PrimeFloodRpc.MessageType, FreezeClockRpc.MessageType, DisableNetworkRpc.MessageType, PromoteAdminRpc.MessageType, FireNpcRpc.MessageType, RefreshNpcAccountRpc.MessageType, ConfigZeroDayInfoRpc.MessageType, SetPhoneAlarmRpc.MessageType, SetupTrafficRpc.MessageType, TrafficAccidentRpc.MessageType, ResetTrafficCooldownRpc.MessageType, AllowFirewallRpc.MessageType, SpawnNetworkRpc.MessageType, HireRentalAdminRpc.MessageType, ForceAdminLoginRpc.MessageType, AdvanceClockRpc.MessageType, QueryExploitsRpc.MessageType, BuyExploitRpc.MessageType, RebootPlayerRpc.MessageType, ReportLibraryUpdateRpc.MessageType, RentNetworkRpc.MessageType, RentalAdminServiceRpc.MessageType, RunPaymentsRpc.MessageType, SetPlayerMoneyRpc.MessageType, MissionRpc.MessageType, SetupGuildRpc.MessageType, QueryGuildsRpc.MessageType, QueryTracesRpc.MessageType, QueryWordListsRpc.MessageType, ExecuteInTerminalRpc.MessageType, EndGameRpc.MessageType, RunPaymentRpc.MessageType, ReleaseLibraryVersionRpc.MessageType, RateCtfRpc.MessageType, SpawnCtfNetworkRpc.MessageType } },
         security: null,
         flavours: global::System.Array.Empty<global::Duplex.Flavour>(),
         tags: global::System.Array.Empty<global::Duplex.Tag>());
@@ -8339,6 +8379,8 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
 
     public virtual void OnRateCtfRpc(RateCtfRpc message) { }
 
+    public virtual void OnSpawnCtfNetworkRpc(SpawnCtfNetworkRpc message) { }
+
     public override void Notify(global::Duplex.Message message)
     {
         switch (message)
@@ -8402,6 +8444,7 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
             case RunPaymentRpc received: OnRunPaymentRpc(received); return;
             case ReleaseLibraryVersionRpc received: OnReleaseLibraryVersionRpc(received); return;
             case RateCtfRpc received: OnRateCtfRpc(received); return;
+            case SpawnCtfNetworkRpc received: OnSpawnCtfNetworkRpc(received); return;
         }
     }
 }

@@ -1,11 +1,11 @@
-//! Cycle operations available to wait routes.
+//! Cycle operations for wait routes. A cycle is one serialized world step; wait routes use these
+//! operations when they resume after awaiting work or advancing world time.
 
 use std::any::Any;
-use std::cell::RefCell;
 use std::future::Future;
 use std::pin::Pin;
-use std::rc::Rc;
 
+use greyhack_world_effects::WorkId;
 use greyhack_world_programs::protocol::{ObjectId, ProgramId};
 use greyhack_world_programs::{Process, ProgramKind, RouteResult, TreeId};
 
@@ -16,22 +16,22 @@ pub type CycleFuture<'a, T> = Pin<Box<dyn Future<Output = T> + 'a>>;
 
 /// A typed wait-route cycle packaged as a type-erased result.
 #[doc(hidden)]
-pub trait ErasedCycleCall<W: WorldContext, E> {
+pub trait ErasedCycleCall<W: WorldContext> {
     /// Runs the waiting route's cycle.
     fn run<'a>(
         self: Box<Self>,
         context: &'a RouteContext<'a, W>,
         call: Call,
-    ) -> CycleFuture<'a, RouteResult<Box<dyn Any>, E>>
+    ) -> CycleFuture<'a, RouteResult<Box<dyn Any>, W::Error>>
     where
         Self: 'a;
 }
 
-struct FnCycleCall<F>(RefCell<Option<F>>);
+struct FnCycleCall<F>(F);
 
-impl<F, T, W, E> ErasedCycleCall<W, E> for FnCycleCall<F>
+impl<F, T, W> ErasedCycleCall<W> for FnCycleCall<F>
 where
-    F: AsyncFnOnce(&RouteContext<'_, W>, Call) -> RouteResult<T, E>,
+    F: AsyncFnOnce(&RouteContext<'_, W>, Call) -> RouteResult<T, W::Error>,
     T: 'static,
     W: WorldContext,
 {
@@ -39,15 +39,11 @@ where
         self: Box<Self>,
         context: &'a RouteContext<'a, W>,
         call: Call,
-    ) -> CycleFuture<'a, RouteResult<Box<dyn Any>, E>>
+    ) -> CycleFuture<'a, RouteResult<Box<dyn Any>, W::Error>>
     where
         F: 'a,
     {
-        let call_fn = self
-            .0
-            .borrow_mut()
-            .take()
-            .expect("a cycle closure runs once");
+        let call_fn = self.0;
 
         Box::pin(async move {
             call_fn(context, call)
@@ -66,7 +62,7 @@ pub trait ErasedWorldCall<W> {
         Self: 'a;
 }
 
-struct FnWorldCall<F>(RefCell<Option<F>>);
+struct FnWorldCall<F>(F);
 
 impl<F, T, W> ErasedWorldCall<W> for FnWorldCall<F>
 where
@@ -77,26 +73,22 @@ where
     where
         F: 'a,
     {
-        let call = self
-            .0
-            .borrow_mut()
-            .take()
-            .expect("a world closure runs once");
+        let call = self.0;
 
         Box::pin(async move { Box::new(call(world).await) as Box<dyn Any> })
     }
 }
 
-/// Server implementation used by [`CycleAccess`] to run wait-route operations.
-pub trait CycleDriver<W: WorldContext, E>: Any {
+/// Server operations that execute cycles on behalf of a wait route.
+pub trait CycleDriver<W: WorldContext> {
     /// Runs a route cycle, optionally drawing its operation budget.
     fn change<'a>(
         &'a self,
         connection: u32,
         program: ProgramId,
         budgeted: bool,
-        apply: Box<dyn ErasedCycleCall<W, E> + 'a>,
-    ) -> CycleFuture<'a, RouteResult<Box<dyn Any>, E>>;
+        apply: Box<dyn ErasedCycleCall<W> + 'a>,
+    ) -> CycleFuture<'a, RouteResult<Box<dyn Any>, W::Error>>;
 
     /// Runs an unbudgeted world-only cycle.
     fn world<'a>(
@@ -112,14 +104,14 @@ pub trait CycleDriver<W: WorldContext, E>: Any {
         session: ObjectId,
         parent: ProgramId,
         kind: ProgramKind<W::Computer>,
-    ) -> RouteResult<ProgramId, E>;
+    ) -> RouteResult<ProgramId, W::Error>;
 
     /// Waits for typed work, returning `None` on cancellation.
     fn defer<'a>(
         &'a self,
         connection: u32,
         program: ProgramId,
-        work: u64,
+        work: WorkId,
     ) -> CycleFuture<'a, Option<Box<dyn Any>>>;
 
     /// Returns the per-tick routine limit.
@@ -129,45 +121,24 @@ pub trait CycleDriver<W: WorldContext, E>: Any {
     fn save<'a>(&'a self) -> CycleFuture<'a, bool>;
 }
 
-/// Sized shared reference used to recover a typed cycle driver from [`CycleAccess`].
-#[doc(hidden)]
-pub struct CycleDriverRef<W: WorldContext, E>(Rc<dyn CycleDriver<W, E>>);
-
-impl<W: WorldContext, E> CycleDriverRef<W, E> {
-    /// Wraps a shared cycle driver.
-    pub fn new<D: CycleDriver<W, E> + 'static>(driver: Rc<D>) -> Self {
-        Self(driver)
-    }
-}
-
-/// World-cycle access supplied to a wait route.
-#[derive(Clone, Copy)]
-pub struct CycleAccess<'a> {
-    state: &'a dyn Any,
-    driver: &'a dyn Any,
+/// Typed cycle operations supplied to a wait route.
+pub struct CycleAccess<'a, W: WorldContext> {
+    driver: &'a dyn CycleDriver<W>,
     connection: u32,
 }
 
-impl<'a> CycleAccess<'a> {
-    /// Creates cycle access for a server state and its driver.
-    pub fn new<T: 'static, W: WorldContext + 'static, E: 'static>(
-        state: &'a T,
-        connection: u32,
-        driver: &'a CycleDriverRef<W, E>,
-    ) -> Self {
-        Self {
-            state,
-            driver,
-            connection,
-        }
-    }
+impl<W: WorldContext> Copy for CycleAccess<'_, W> {}
 
-    /// Returns the concrete server state.
-    #[must_use]
-    pub fn state<T: 'static>(&self) -> &'a T {
-        self.state
-            .downcast_ref::<T>()
-            .expect("routes receive cycles of their own server")
+impl<W: WorldContext> Clone for CycleAccess<'_, W> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<'a, W: WorldContext> CycleAccess<'a, W> {
+    /// Creates cycle access for a connection and its driver.
+    pub const fn new(connection: u32, driver: &'a dyn CycleDriver<W>) -> Self {
+        Self { driver, connection }
     }
 
     /// Returns the runtime connection whose program is waiting.
@@ -176,24 +147,16 @@ impl<'a> CycleAccess<'a> {
         self.connection
     }
 
-    fn driver<W: WorldContext + 'static, E: 'static>(&self) -> &'a dyn CycleDriver<W, E> {
-        self.driver
-            .downcast_ref::<CycleDriverRef<W, E>>()
-            .expect("cycle driver matches its world")
-            .0
-            .as_ref()
-    }
-
     /// Runs a budgeted or unbudgeted cycle with a typed result.
-    pub async fn change_dynamic<T: 'static, W: WorldContext + 'static, E: 'static>(
+    pub async fn change<T: 'static>(
         self,
         program: ProgramId,
         budgeted: bool,
-        apply: impl AsyncFnOnce(&RouteContext<'_, W>, Call) -> RouteResult<T, E>,
-    ) -> RouteResult<T, E> {
-        let apply = Box::new(FnCycleCall(RefCell::new(Some(apply))));
+        apply: impl AsyncFnOnce(&RouteContext<'_, W>, Call) -> RouteResult<T, W::Error>,
+    ) -> RouteResult<T, W::Error> {
+        let apply = Box::new(FnCycleCall(apply));
 
-        self.driver::<W, E>()
+        self.driver
             .change(self.connection, program, budgeted, apply)
             .await
             .map(|value| {
@@ -204,14 +167,11 @@ impl<'a> CycleAccess<'a> {
     }
 
     /// Runs an unbudgeted world-only cycle.
-    pub async fn world_dynamic<T: 'static, W: WorldContext + 'static, E: 'static>(
-        self,
-        apply: impl AsyncFnOnce(&W) -> T,
-    ) -> T {
-        let apply = Box::new(FnWorldCall(RefCell::new(Some(apply))));
+    pub async fn world<T: 'static>(self, apply: impl AsyncFnOnce(&W) -> T) -> T {
+        let apply = Box::new(FnWorldCall(apply));
 
         *self
-            .driver::<W, E>()
+            .driver
             .world(apply)
             .await
             .downcast::<T>()
@@ -219,25 +179,20 @@ impl<'a> CycleAccess<'a> {
     }
 
     /// Allocates and pushes a child program.
-    pub fn push_dynamic<W: WorldContext + 'static, E: 'static>(
+    pub fn push(
         self,
         tree: TreeId,
         process: Option<Process<W::Computer>>,
         session: ObjectId,
         parent: ProgramId,
         kind: ProgramKind<W::Computer>,
-    ) -> RouteResult<ProgramId, E> {
-        self.driver::<W, E>()
-            .push(tree, process, session, parent, kind)
+    ) -> RouteResult<ProgramId, W::Error> {
+        self.driver.push(tree, process, session, parent, kind)
     }
 
     /// Waits for a typed result, returning `None` when cancelled.
-    pub async fn defer_dynamic<T: 'static, W: WorldContext + 'static, E: 'static>(
-        self,
-        program: ProgramId,
-        work: u64,
-    ) -> Option<T> {
-        self.driver::<W, E>()
+    pub async fn defer<T: 'static>(self, program: ProgramId, work: WorkId) -> Option<T> {
+        self.driver
             .defer(self.connection, program, work)
             .await
             .map(|value| {
@@ -248,12 +203,12 @@ impl<'a> CycleAccess<'a> {
     }
 
     /// Returns the per-tick routine limit.
-    pub fn routine_budget_dynamic<W: WorldContext + 'static, E: 'static>(self) -> usize {
-        self.driver::<W, E>().routine_budget()
+    pub fn routine_budget(self) -> usize {
+        self.driver.routine_budget()
     }
 
     /// Flushes pending world changes.
-    pub async fn save_dynamic<W: WorldContext + 'static, E: 'static>(self) -> bool {
-        self.driver::<W, E>().save().await
+    pub async fn save(self) -> bool {
+        self.driver.save().await
     }
 }

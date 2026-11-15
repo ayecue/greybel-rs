@@ -439,6 +439,11 @@ protocol TestSupport = "greyhack_test_support" {
             quality: i64,
             difficulty: i64,
         }
+        /// Creates a rental layout and marks it CTF before the player joins (`Router.SetTipoRed`). Replies with
+        /// `Reply.NetworkCreated` for the CTF network.
+        message SpawnCtfNetworkRpc {
+            request: u32,
+        }
     }
 
     /// Rust test client that receives plugin replies.

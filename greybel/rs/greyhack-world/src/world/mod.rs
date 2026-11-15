@@ -130,6 +130,7 @@ impl World {
 
 impl WorldContext for World {
     type Computer = ComputerId;
+    type Error = greyhack_world_core::WorldError;
 
     fn module<M: 'static>(&self) -> Rc<M> {
         self.registry

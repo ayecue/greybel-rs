@@ -147,6 +147,8 @@ pub trait ObjectTableExt {
     fn router(&self, id: ObjectId) -> RouteResult<RouterId, WorldError>;
     /// Returns shell access, including reverse shells.
     fn shell(&self, id: ObjectId) -> RouteResult<Access, WorldError>;
+    /// Returns a reverse shell's access and client process.
+    fn reverse_shell(&self, id: ObjectId) -> RouteResult<ReverseShellHandle, WorldError>;
     /// Returns computer access from either a computer object or a shell.
     fn computer(&self, id: ObjectId) -> RouteResult<Access, WorldError>;
     /// Returns the computer and user access for a script session.
@@ -183,6 +185,10 @@ impl ObjectTableExt for TreeObjects<ComputerId> {
         Ok(self.get::<ReverseShellHandle, WorldError>(id)?.0.clone())
     }
 
+    fn reverse_shell(&self, id: ObjectId) -> RouteResult<ReverseShellHandle, WorldError> {
+        Ok(self.get::<ReverseShellHandle, WorldError>(id)?.clone())
+    }
+
     fn computer(&self, id: ObjectId) -> RouteResult<Access, WorldError> {
         match self.get::<AccessHandle, WorldError>(id) {
             Ok(handle) => return Ok(handle.access.clone()),
@@ -217,6 +223,10 @@ impl ObjectTableExt for ObjectTableHandle<ComputerId> {
 
     fn shell(&self, id: ObjectId) -> RouteResult<Access, WorldError> {
         self.read(|objects| objects.shell(id))
+    }
+
+    fn reverse_shell(&self, id: ObjectId) -> RouteResult<ReverseShellHandle, WorldError> {
+        self.read(|objects| objects.reverse_shell(id))
     }
 
     fn computer(&self, id: ObjectId) -> RouteResult<Access, WorldError> {

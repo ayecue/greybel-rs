@@ -39,3 +39,21 @@ fn should_write_a_section_as_markdown() {
     assert!(markdown.contains("## `shell.host_computer(): computer`"));
     assert!(markdown.contains("```greyscript\n"));
 }
+
+#[test]
+fn should_include_reverse_shell_removal_in_the_metaxploit_reference() {
+    let (_, sections) = reference();
+    let metaxploit = sections
+        .iter()
+        .find(|section| section.name == "metaxploit")
+        .expect("a metaxploit section");
+    let markdown = metaxploit.markdown("greyscript");
+
+    assert!(
+        markdown.contains(
+            "## `metaxploit.rshell_remove(shells?: list<shell> | null): string | number | null`"
+        ),
+        "{markdown}"
+    );
+    assert!(markdown.contains("removes every shell on the forwarded service port"));
+}

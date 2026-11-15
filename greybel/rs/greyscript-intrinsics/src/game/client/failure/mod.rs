@@ -71,6 +71,7 @@ pub(crate) fn failure_text(
         Failure::Alarm(failure) => device::alarm_text(*failure),
         Failure::Shop(failure) => shop::shop_text(intrinsic, failure),
         Failure::Mission(failure) => mission::mission_text(*failure),
+        Failure::RshellRemove(failure) => metaxploit::rshell_remove_text(*failure).to_owned(),
         Failure::ServiceControl(failure) => {
             service_control::service_control_text(intrinsic, *failure).to_owned()
         }

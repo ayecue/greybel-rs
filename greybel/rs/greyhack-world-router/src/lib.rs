@@ -10,9 +10,7 @@ mod routes;
 mod table;
 
 pub use context::{Call, PrintQueue, RouteContext, WorldContext};
-pub use cycles::{
-    CycleAccess, CycleDriver, CycleDriverRef, CycleFuture, ErasedCycleCall, ErasedWorldCall,
-};
+pub use cycles::{CycleAccess, CycleDriver, CycleFuture, ErasedCycleCall, ErasedWorldCall};
 pub use operation::Operation;
 pub use routes::{OperationResponse, ResponderOf};
 pub use table::{Route, RouteCall, RouteFuture, RouteKind, RouteTable};

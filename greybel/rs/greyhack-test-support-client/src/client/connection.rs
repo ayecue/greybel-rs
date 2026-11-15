@@ -23,8 +23,9 @@ use crate::protocol::test_support::{
     ReportLibraryUpdateRpc, ResetTrafficCooldownRpc, RunPaymentRpc, RunPaymentsRpc,
     SetPhoneAlarmRpc, SetPlayerMoneyRpc, SetRouterKernelRequirementRpc, SetupBlockchainRpc,
     SetupCtfRpc, SetupDebugRpc, SetupForeignCoinRpc, SetupGuildRpc, SetupMailRpc, SetupPlayerRpc,
-    SetupTrafficRpc, SetupWalletRpc, SpawnNetworkRpc, TestClient as TestProtocol,
-    TrafficAccidentRpc, TypeInputRpc, WriteFileRpc, WriteRouterKernelRpc,
+    SetupTrafficRpc, SetupWalletRpc, SpawnCtfNetworkRpc, SpawnNetworkRpc,
+    TestClient as TestProtocol, TrafficAccidentRpc, TypeInputRpc, WriteFileRpc,
+    WriteRouterKernelRpc,
 };
 use crate::{TestClientError, TestClientOptions};
 
@@ -161,7 +162,7 @@ impl Connection {
                             RequestKind::SetupForeignCoin { .. } | RequestKind::ForwardService { .. } | RequestKind::LockAppliance { .. } | RequestKind::PrimeFlood { .. } | RequestKind::FreezeClock | RequestKind::DisableNetwork { .. } | RequestKind::PromoteAdmin { .. } | RequestKind::FireNpc { .. } => send_network(&channel, request, kind),
                             RequestKind::RefreshNpcAccount { .. } | RequestKind::ConfigZeroDayInfo { .. } | RequestKind::SetPhoneAlarm { .. } | RequestKind::SetupTraffic | RequestKind::TrafficAccident { .. } | RequestKind::ResetTrafficCooldown | RequestKind::HireRentalAdmin { .. } | RequestKind::SpawnNetwork { .. } | RequestKind::AllowFirewall { .. } | RequestKind::ForceAdminLogin { .. } | RequestKind::AdvanceClock { .. } => send_network_admin(&channel, request, kind),
                             RequestKind::Mission { .. } | RequestKind::QueryExploits { .. } | RequestKind::BuyExploit { .. } | RequestKind::RentNetwork { .. } | RequestKind::RentalAdminService { .. } | RequestKind::RunPayments | RequestKind::SetPlayerMoney { .. } | RequestKind::RebootPlayer { .. } | RequestKind::ReportLibraryUpdate { .. } | RequestKind::ReleaseLibraryVersion { .. } | RequestKind::SetupGuild(_) | RequestKind::QueryTraces => send_economy(&channel, request, kind),
-                            RequestKind::QueryWordLists | RequestKind::RunPayment { .. } | RequestKind::EndGame { .. } | RequestKind::QueryGuilds { .. } | RequestKind::ExecuteInTerminal { .. } | RequestKind::RateCtf { .. } => send_player(&channel, request, kind),
+                            RequestKind::QueryWordLists | RequestKind::RunPayment { .. } | RequestKind::EndGame { .. } | RequestKind::QueryGuilds { .. } | RequestKind::ExecuteInTerminal { .. } | RequestKind::RateCtf { .. } | RequestKind::SpawnCtfNetwork => send_player(&channel, request, kind),
                         };
                         if let Err(error) = result
                             && let Some(response) = replies.borrow_mut().remove(&request)
@@ -608,6 +609,7 @@ fn send_player(
             quality,
             difficulty,
         }),
+        RequestKind::SpawnCtfNetwork => channel.send(&SpawnCtfNetworkRpc { request }),
         _ => unreachable!(),
     }
     .map_err(Into::into)

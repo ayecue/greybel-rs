@@ -32,7 +32,9 @@ pub use routines::LibraryCheck;
 pub use services::debug::{DebugFailure, DebugLibraryPatch, DebugPayload, PartialObject};
 pub use services::library_updates::LibraryReportFailure;
 pub use services::library_versions::WeaknessReportFailure;
-pub use services::metaxploit::rshell::{RshellClient, RshellClientFailure, RshellServerFailure};
+pub use services::metaxploit::rshell::{
+    RshellClient, RshellClientFailure, RshellRemoveFailure, RshellServerFailure,
+};
 pub use services::metaxploit::scan::{LibraryScan, ZoneScan};
 pub use services::report::{
     AttackResult, AttackReward, ExploitLog, ExploitOutcome, ExploitReport, UnmetRequirement,

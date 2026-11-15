@@ -12,6 +12,8 @@ use crate::CycleAccess;
 pub trait WorldContext {
     /// Typed computer handle stored by connections and routes.
     type Computer: Copy + PartialEq;
+    /// Failure of world services called by routes.
+    type Error;
 
     /// Returns module `M` from this world's typed registry.
     fn module<M: 'static>(&self) -> Rc<M>;
@@ -53,7 +55,7 @@ pub struct RouteContext<'a, W: WorldContext> {
     pub modules: Rc<W>,
     /// Program trees of the world.
     pub trees: Rc<ProgramTreePool<W::Computer>>,
-    cycles: Option<CycleAccess<'a>>,
+    cycles: Option<CycleAccess<'a, W>>,
     prints: PrintQueue,
 }
 
@@ -74,7 +76,7 @@ impl<'a, W: WorldContext> RouteContext<'a, W> {
     pub fn with_cycles(
         modules: Rc<W>,
         trees: Rc<ProgramTreePool<W::Computer>>,
-        cycles: CycleAccess<'a>,
+        cycles: CycleAccess<'a, W>,
     ) -> Self {
         Self {
             modules,
@@ -99,7 +101,7 @@ impl<'a, W: WorldContext> RouteContext<'a, W> {
 
     /// Returns cycle access for a wait route.
     #[must_use]
-    pub fn cycles(&self) -> CycleAccess<'a> {
+    pub fn cycles(&self) -> CycleAccess<'a, W> {
         self.cycles.expect("only wait routes receive cycle access")
     }
 

@@ -1,6 +1,6 @@
 //! Reverse shells of the rshell service (`MetaExploitIntrinsics`, `ShellIntrinsics`).
 
-use greyhack_behaviour::{Refusal, ServiceId, check_process_name};
+use greyhack_behaviour::{NetworkKind, Refusal, ServiceId, check_process_name};
 use greyhack_world_core::systems::network::connect::ServiceCheck;
 use greyhack_world_core::{ComputerId, Result};
 
@@ -22,6 +22,21 @@ pub enum RshellServerFailure {
     NoService,
     /// The router has no forward to the computer's rshell service.
     ForwardMissing,
+}
+
+/// Why reverse shells cannot be removed (`MetaExploitIntrinsics.rshell_remove`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RshellRemoveFailure {
+    /// The computer does not run the rshell service.
+    NoService,
+    /// The router has no forward to the computer's rshell service.
+    ForwardMissing,
+    /// The computer is on a CTF network.
+    CtfNetwork,
+    /// The shells argument was neither null nor a list.
+    ExpectedList,
+    /// A list item was not a reverse shell.
+    OnlyReverseShells,
 }
 
 /// Reverse-shell client connected to a server.
@@ -87,9 +102,13 @@ impl Metaxploit {
             return Ok(Err(RshellFailure::Service(failure)));
         }
 
-        self.reverse_shells
+        if !self
+            .reverse_shells
             .insert_reverse_shell(router.id, shell)
-            .await?;
+            .await?
+        {
+            return Ok(Err(RshellFailure::Limit));
+        }
 
         Ok(Ok(()))
     }
@@ -174,34 +193,100 @@ impl Metaxploit {
                 continue;
             }
 
+            let remote = self.networks.topology.computer(shell.computer).await?;
             let has_process = self
                 .computers
                 .processes
                 .process(shell.computer, shell.pid)
                 .await?
                 .is_some();
-            // Client shells break when their computer reboots after creation (`ConfigOS.ShouldBreakConnection`).
-            let rebooted = self
-                .networks
-                .topology
-                .computer(shell.computer)
-                .await?
-                .is_none_or(|computer| shell.creation_second < computer.reboot_end);
+            // `ConfigOS.ShouldBreakConnection`: rebooting the client after creation breaks its shell.
+            let connected = remote.is_some_and(|computer| {
+                has_process && shell.creation_second >= computer.reboot_end
+            });
+            let enabled = !self.networks.settings.is_disabled(shell.computer).await?;
 
-            // `MetaExploitIntrinsics.rshell_server` includes each live client process on an enabled
-            // network as a separate shell.
-            if has_process
-                && !rebooted
-                && !self.networks.settings.is_disabled(shell.computer).await?
-            {
+            // `MetaExploitIntrinsics.rshell_server` removes every stale registration rather than only skipping it.
+            if connected && enabled {
                 clients.push(RshellClient {
                     computer: shell.computer,
                     user: shell.user,
                     pid: shell.pid,
                 });
+            } else {
+                self.reverse_shells
+                    .remove_reverse_shell(router.id, shell.computer, shell.pid)
+                    .await?;
             }
         }
 
         Ok(Some(Ok(clients)))
+    }
+
+    pub async fn remove_rshell_clients(
+        &self,
+        computer: ComputerId,
+        selection: std::result::Result<Option<&[RshellClient]>, RshellRemoveFailure>,
+    ) -> Result<Option<std::result::Result<bool, RshellRemoveFailure>>> {
+        let Some(computer) = self.networks.topology.computer(computer).await? else {
+            return Ok(None);
+        };
+
+        if computer.network_kind == NetworkKind::Ctf {
+            return Ok(Some(Err(RshellRemoveFailure::CtfNetwork)));
+        }
+
+        if !self
+            .computers
+            .processes
+            .has_service(computer.id, ServiceId::Rshell)
+            .await?
+        {
+            return Ok(Some(Err(RshellRemoveFailure::NoService)));
+        }
+
+        // The game validates the list after checking the service but before checking its port forward.
+        let selection = match selection {
+            Ok(selection) => selection,
+            Err(failure) => return Ok(Some(Err(failure))),
+        };
+        let Some(router) = (match computer.router {
+            Some(router) => self.networks.routers.router(router).await?,
+            None => None,
+        }) else {
+            return Ok(None);
+        };
+        let forward = self
+            .networks
+            .router_config
+            .port_forwards(router.id)
+            .await?
+            .into_iter()
+            .find(|forward| {
+                forward.port.service == ServiceId::Rshell && forward.lan_ip == computer.local_ip
+            })
+            .map(|forward| forward.number);
+        let Some(forward) = forward else {
+            return Ok(Some(Err(RshellRemoveFailure::ForwardMissing)));
+        };
+        let mut removed = false;
+
+        // `RouterConfigOS.RemoveReverseShells`: null selects all on the port, otherwise matching netID and PID.
+        for shell in self.reverse_shells.reverse_shells(router.id).await? {
+            let selected = selection.is_none_or(|shells| {
+                shells
+                    .iter()
+                    .any(|client| client.computer == shell.computer && client.pid == shell.pid)
+            });
+
+            if shell.port == forward && selected {
+                removed |= self
+                    .reverse_shells
+                    .remove_reverse_shell(router.id, shell.computer, shell.pid)
+                    .await?;
+            }
+        }
+
+        Ok(Some(Ok(removed)))
     }
 }

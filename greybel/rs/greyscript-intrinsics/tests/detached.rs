@@ -101,6 +101,7 @@ fn should_crash_where_a_detached_method_dereferences_another_classs_missing_help
         "decrypt(get_shell, \"/tmp/x\", \"password\")",
         "is_encrypted(get_shell, \"/tmp/x\")",
         "rshell_client(get_shell, \"8.8.8.8\", 1222, \"client\")",
+        "rshell_remove(get_shell)",
         "rshell_server(get_shell)",
         "sniffer(get_shell)",
         "net_use(get_shell, \"8.8.8.8\", 22)",

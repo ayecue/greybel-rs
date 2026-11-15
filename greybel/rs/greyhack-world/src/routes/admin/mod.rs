@@ -3,8 +3,6 @@
 use greyhack_world_programs::protocol::{AdminSeed, AdminSetDate, AdminSnapshot, AdminTick};
 use greyhack_world_router::RouteTable;
 
-use crate::routes::CyclesExt;
-
 pub(crate) fn register(routes: &RouteTable) {
     routes.read::<_, _, crate::World, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, crate::World>,
@@ -24,6 +22,7 @@ pub(crate) fn register(routes: &RouteTable) {
             let target = cycles
                 .change(
                     program,
+                    true,
                     async move |ctx: &greyhack_world_router::RouteContext<'_, crate::World>,
                                 _call| {
                         let world = &*ctx.modules;

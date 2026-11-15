@@ -38,6 +38,18 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore, Fixtur
         );
     }
 
+    /// <summary>Creates a valid rental layout and marks it CTF before the player's computer joins it.</summary>
+    public Reply SpawnCtf(SpawnCtfNetworkRpc request)
+    {
+        Router router = SpawnFresh(ServerMap.TipoRed.RentServer);
+        router.SetTipoRed(ServerMap.TipoRed.CTF);
+        store.AddNetwork(router.GetPublicIP());
+
+        return new Reply.NetworkCreated(
+            new NetworkCreatedReply(router.GetPublicIP(), router.GetLocalIP())
+        );
+    }
+
     /// <summary>Creates one fresh network and materializes each named target through the game's LAN generator.</summary>
     public Reply CreateFixture(CreateFixtureNetworkRpc request)
     {

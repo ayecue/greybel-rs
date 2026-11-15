@@ -1704,6 +1704,15 @@
       "rshell_client(metax, \"1.1.1.1\", 1222, \"bgprocess\")"
     ]
   },
+  "rshell_remove": {
+    "description": "Removes reverse shells connected to the `metaxploit` computer's `rshell` service. With no shells argument or `null`, removes every shell on the forwarded service port; with a `list` of reverse `shell` objects, removes only matching connections. Returns `1` when at least one connection was removed and `0` otherwise.",
+    "example": [
+      "metax = include_lib(\"/lib/metaxploit.so\")",
+      "shells = rshell_server(metax)",
+      "removed = rshell_remove(metax, shells)",
+      "print(removed)"
+    ]
+  },
   "rshell_server": {
     "description": "This method returns a `list` of `shell` objects that have been reverse shell connected to this computer. To manage the connections received, the `rshell` service must be installed on the machine that receives the victims' connections. In case of failure a `string` will be returned with details. If the provided object is anything other than `metaxploit` this method will return `null`.",
     "example": [

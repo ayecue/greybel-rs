@@ -271,9 +271,10 @@ is not a general packet sniffer for arbitrary protocols.
 
 `rshell_client` validates process names, reaches an installed and forwarded
 rshell service through the normal service/firewall checks, and records a shell
-owned by the client process. `rshell_server` returns shells for live client
-processes. Records persist with those processes, and reboot or process cleanup
-invalidates them.
+owned by the client process, up to 16 per server port. `rshell_server` returns
+shells for live client processes and prunes stale records. `rshell_remove`
+removes all shells on the service port or only a supplied list. Records persist
+with those processes, and reboot or process cleanup invalidates them.
 
 The crypto library also implements file encryption/decryption and the shared
 password registry, hash deciphering, Wi-Fi capture/cracking, and SMTP user

@@ -87,9 +87,46 @@
         "Error: ${programName} is a reserved process name",
         "Error: only alphanumeric allowed as proccess name.",
         "Error: proccess name cannot exceed the limit of 28 characters.",
+        "rshell_client: connection refused. The server has reached its limit of 16 connections.",
         "rshell_client: Invalid IP address",
         "rshell_client: IP address not found: ${ip}",
         "rshell_client: unable to find remote server at port ${port}"
+      ],
+      "returns": [
+        "string",
+        "number",
+        "null"
+      ]
+    },
+    "rshell_remove": {
+      "id": "rshell_remove",
+      "type": "function",
+      "tags": [
+        "method",
+        "ssh incompatible"
+      ],
+      "arguments": [
+        {
+          "label": "shells",
+          "types": [
+            {
+              "type": "list",
+              "valueType": "shell"
+            },
+            "null"
+          ],
+          "opt": true
+        }
+      ],
+      "returnVariations": [
+        0,
+        1,
+        "error: rshell portforward is not configured correctly",
+        "error: service rshelld is not running",
+        "rshell_remove: expected a list of reverse shells or null",
+        "rshell_remove: list must contain only reverse shells",
+        "rshell_remove: No internet connection",
+        "rshell_remove: The service cannot be started on this network."
       ],
       "returns": [
         "string",
