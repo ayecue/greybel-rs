@@ -1,11 +1,12 @@
 //! Overflow attacks against router kernels.
 
-use greyhack_behaviour::{LibraryKind, Requirement, Reward, is_lan_ip, same_subnet};
+use greyhack_behaviour::{LanFailure, LibraryKind, Requirement, Reward, is_lan_ip, same_subnet};
+use greyhack_world_core::{ComputerId, Result, RouterId};
 
 use super::report::{
     AttackResult, ExploitLog, ExploitOutcome, ExploitReport, UnmetRequirement, attack, report,
 };
-use crate::{ComputerId, LanFailure, OverflowService, Result, RouterId, Weakness};
+use crate::{OverflowService, Weakness};
 
 /// Methods of [`World`] for exploits overflow router.
 impl OverflowService {

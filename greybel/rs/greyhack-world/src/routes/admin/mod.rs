@@ -1,9 +1,9 @@
 //! Global `admin.so` operations for clocks, random seeds, and snapshots.
 
+use greyhack_world_programs::protocol::{AdminSeed, AdminSetDate, AdminSnapshot, AdminTick};
 use greyhack_world_router::RouteTable;
 
 use crate::routes::CyclesExt;
-use crate::routes::conversions::{AdminSeed, AdminSetDate, AdminSnapshot, AdminTick};
 
 pub(crate) fn register(routes: &RouteTable) {
     routes.read::<_, _, crate::World, greyhack_world_core::WorldError>(

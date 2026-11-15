@@ -1,8 +1,9 @@
 //! NPC phone alarms and alarm states.
 
-use greyhack_world_core::{ComputerId, PersonId};
+use greyhack_behaviour::AlarmConfig;
+use greyhack_world_core::{ComputerId, PersonId, Result};
 
-use crate::{AlarmConfig, NpcSwitch, Result, ScheduleService};
+use crate::{NpcSwitch, ScheduleService};
 
 /// Phone alarm errors (`FileHelperServer.ModifyClockPhoneServerRpc`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

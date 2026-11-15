@@ -4,7 +4,7 @@ use text_mesh_core::TerminalOutput;
 use text_mesh_layout::TextLayout;
 
 /// Renders rich `text` as ANSI matching Grey Hack's terminal. Positive `columns` wraps lines to that many font
-/// cells; zero keeps each source line on one row. Non-default foreground colors blend over the terminal background.
+/// cells; zero retains each source line on one row. Non-default foreground colors blend over the terminal background.
 #[must_use]
 pub fn ansi_text(text: &str, columns: u16) -> String {
     let theme = &*TERMINAL_THEME;

@@ -1,4 +1,4 @@
-use crate::{JobRole, WorkPerformance};
+use greyhack_behaviour::{JobRole, WorkPerformance};
 
 /// An NPC of the network (`NpcInfo`) as the mails read it.
 #[derive(Debug, Clone)]

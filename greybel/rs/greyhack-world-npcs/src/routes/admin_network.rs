@@ -1,11 +1,11 @@
 //! NPC hiring, firing, rented administrators, and alarms of the `adminNetwork` object.
 
 use greyhack_behaviour::JobRole;
-use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     AdminFireNpc, AdminFireRentalAdmin, AdminHireNpc, AdminHireRentalAdmin, AdminPhoneAlarm,
     AdminSetPhoneAlarm, Failure, JobFailure, Outcome, PhoneAlarmConfig, ScriptFailure,
 };
+use greyhack_world_router::RouteTable;
 
 use crate::PhoneAlarm;
 use crate::routes::protocol::IntoProtocol;

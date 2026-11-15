@@ -10,6 +10,21 @@ use super::failure::ScriptFileFailure;
 use crate::systems::ScriptFileService as ScriptFilesService;
 use crate::{ComputerId, FileFailure, LogWrite, Node, NodeDraft, Result};
 
+/// A deletion that may start an administrator's active trace.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TraceAction {
+    /// Computer whose file was deleted.
+    pub remote: ComputerId,
+    /// Number of bounces used by the deleting program.
+    pub bounces: u32,
+    /// Action written to the system log.
+    pub action: LogAction,
+    /// Terminal associated with the action.
+    pub terminal: u64,
+}
+
+impl greyhack_world_effects::Event for TraceAction {}
+
 /// A completed script copy.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ScriptCopy {
@@ -348,7 +363,7 @@ impl ScriptFilesService {
 
         // `HelperScript.AddActiveTraceFromAction`: only a deletion on the computer of the last shell traces.
         if computer == origin.last_shell {
-            self.world.events().publish(crate::TraceAction {
+            self.world.events().publish(TraceAction {
                 remote: computer,
                 bounces: origin.bounces,
                 action: LogAction::Remove,

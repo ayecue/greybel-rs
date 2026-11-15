@@ -1,10 +1,10 @@
 //! Operation responses deferred until scheduled work finishes.
 
-use greyhack_world_modules::WorkEnvelope;
+use greyhack_world_effects::{WorkEnvelope, WorkId};
+use greyhack_world_programs::protocol::ProgramId;
 use tokio::sync::oneshot;
 
-use super::{ServerState, WorldState};
-use crate::protocol::ProgramId;
+use super::{ServerState, ServerWorld};
 
 /// Pending operation associated with scheduled work.
 pub(crate) struct DeferredJob {
@@ -22,7 +22,7 @@ impl ServerState {
         &self,
         connection: u32,
         program: ProgramId,
-        work: u64,
+        work: WorkId,
     ) -> oneshot::Receiver<WorkEnvelope> {
         let (end, receiver) = oneshot::channel();
 
@@ -39,7 +39,7 @@ impl ServerState {
     }
 
     /// Sends each completion to its deferred operation after its owners clear tree state.
-    pub(super) fn resolve_jobs(&self, state: &mut WorldState, ends: Vec<WorkEnvelope>) {
+    pub(super) fn resolve_jobs(&self, state: &mut ServerWorld, ends: Vec<WorkEnvelope>) {
         if ends.is_empty() {
             return;
         }
@@ -48,7 +48,7 @@ impl ServerState {
             .world
             .registry
             .capabilities()
-            .all::<dyn greyhack_world_modules::WorkOwner>();
+            .all::<dyn greyhack_world_effects::WorkOwner>();
 
         state.trees.for_each_mut(|_, tree| {
             for end in &ends {
@@ -70,12 +70,12 @@ impl ServerState {
     /// Cancels jobs selected by `cancels` and their scheduled work, failing their operations.
     pub(crate) async fn cancel_jobs(
         &self,
-        state: &mut WorldState,
+        state: &mut ServerWorld,
         cancels: impl Fn(&DeferredJob) -> bool,
     ) -> greyhack_world_core::Result<()> {
-        let cancellations: Vec<u64> = {
+        let cancellations: Vec<WorkId> = {
             let mut jobs = self.deferred_jobs.borrow_mut();
-            let cancellations: Vec<u64> = jobs
+            let cancellations: Vec<WorkId> = jobs
                 .iter()
                 .filter(|(_, job)| cancels(job))
                 .map(|(&work, _)| work)
@@ -92,7 +92,7 @@ impl ServerState {
             .world
             .registry
             .capabilities()
-            .all::<dyn greyhack_world_modules::WorkOwner>();
+            .all::<dyn greyhack_world_effects::WorkOwner>();
 
         state.trees.for_each_mut(|_, tree| {
             for &id in &cancellations {

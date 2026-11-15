@@ -7,7 +7,7 @@ use crate::message::{Message, Notification, Request, RequestId};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(in crate::server) enum Expectation {
     Configuration,
-    FindFiles,
+    FileSearch,
     Read(Uri),
     ProjectFile(Uri),
 }

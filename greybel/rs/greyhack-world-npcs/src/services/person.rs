@@ -1,9 +1,11 @@
 //! Persons: records and the account owner of a computer.
 
-use greyhack_world_core::{ComputerId, Dep, NetworkId, Person, PersonId, WorldRef};
+use greyhack_behaviour::NetworkAdmin;
+use greyhack_world_core::{ComputerId, NetworkId, Person, PersonId, Result, WorldRef};
 use greyhack_world_economy::Bank;
+use greyhack_world_modules::Dep;
 
-use crate::{Mail, NetworkAdmin, NetworkCreation, Npc, Result};
+use crate::{Mail, NetworkCreation, Npc};
 
 /// NPC people, accounts, phones, and network administrators.
 pub struct NpcService {
@@ -15,7 +17,7 @@ pub struct NpcService {
     pub(crate) mail: Dep<Mail>,
     pub(crate) bank: Dep<Bank>,
     pub(crate) network_creation: Dep<dyn NetworkCreation>,
-    pub(crate) scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+    pub(crate) scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
 }
 
 pub(crate) struct NpcServiceSupport {
@@ -25,7 +27,7 @@ pub(crate) struct NpcServiceSupport {
     pub(crate) files: Dep<greyhack_world_core::FileSystemService>,
     pub(crate) mail: Dep<Mail>,
     pub(crate) bank: Dep<Bank>,
-    pub(crate) scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+    pub(crate) scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
     pub(crate) network_creation: Dep<dyn NetworkCreation>,
 }
 
@@ -97,7 +99,7 @@ impl greyhack_world_core::NpcState for NpcService {
         &'a self,
         world: &'a WorldRef,
         lookup: greyhack_world_core::NpcLookup<'a>,
-    ) -> greyhack_world_core::CallFuture<'a, Option<greyhack_world_core::NpcStatus>> {
+    ) -> greyhack_world_effects::BoxFuture<'a, Result<Option<greyhack_world_core::NpcStatus>>> {
         Box::pin(async move {
             let npc = match lookup {
                 greyhack_world_core::NpcLookup::Person(person) => self.npc(person).await?,
@@ -122,7 +124,7 @@ impl greyhack_world_core::NetworkAdminLookup for NpcService {
         &'a self,
         _: &'a WorldRef,
         network: NetworkId,
-    ) -> greyhack_world_core::CallFuture<'a, Option<PersonId>> {
+    ) -> greyhack_world_effects::BoxFuture<'a, Result<Option<PersonId>>> {
         Box::pin(async move { self.network_admin_person(network).await })
     }
 }

@@ -5,7 +5,7 @@ mod protocol;
 pub mod shell;
 
 use greyhack_world_core::WorldError;
-use greyhack_world_router::RouteError;
+use greyhack_world_programs::RouteError;
 
 /// Failure that prevents a shell route from returning a program result.
 pub type OperationError = RouteError<WorldError>;

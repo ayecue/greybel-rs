@@ -1,7 +1,8 @@
 //! Active trace, passive trace queue and trace state storage.
 
 use greyhack_behaviour::PassiveStage;
-use greyhack_world_core::Database;
+use greyhack_world_core::{ComputerId, Database, PersonId, Result};
+use greyhack_world_effects::RoutineId;
 use greyhack_world_storage::sql;
 use greyhack_world_storage::sql::{
     FromRow, RowView, execute, fetch_all, fetch_opt, fetch_value, insert,
@@ -9,7 +10,7 @@ use greyhack_world_storage::sql::{
 use turso::params;
 
 use crate::model::ActiveTrace;
-use crate::{ComputerId, PassiveState, PersonId, Result, TraceId};
+use crate::{PassiveState, TraceId};
 
 impl FromRow for ActiveTrace {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
@@ -99,14 +100,14 @@ impl TraceRepository {
         Ok(())
     }
 
-    pub(crate) async fn active_trace_routine(&self, id: TraceId) -> Result<Option<u64>> {
+    pub(crate) async fn active_trace_routine(&self, id: TraceId) -> Result<Option<RoutineId>> {
         Ok(fetch_value::<i64>(
             &self.db.connection(),
             "SELECT routine_id FROM routine_active_traces WHERE trace_id = ?1",
             params![id.0],
         )
         .await?
-        .map(i64::cast_unsigned))
+        .map(|id| RoutineId::new(id.cast_unsigned())))
     }
 
     pub(crate) async fn passive_traces(&self) -> Result<Vec<ComputerId>> {

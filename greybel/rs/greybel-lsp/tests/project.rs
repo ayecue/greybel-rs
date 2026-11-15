@@ -1,6 +1,6 @@
 //! Tests `custom/project`: the project of a document, read through the client.
 
-use greybel_lsp::{ProjectRequest, ProjectResult};
+use greybel_lsp::{Project, ProjectResult};
 use serde_json::json;
 
 use crate::support::project::project;
@@ -79,7 +79,7 @@ fn should_apply_the_requested_profile_and_read_its_variables() {
     ]);
 
     let result: ProjectResult =
-        client.request::<ProjectRequest>(json!({ "uri": uri("main.src"), "profile": "debug" }));
+        client.request::<Project>(json!({ "uri": uri("main.src"), "profile": "debug" }));
 
     assert_eq!(result.manifest.run.seed, "debug");
     assert_eq!(result.run_variables, [("DEBUG".into(), "1".into())].into());

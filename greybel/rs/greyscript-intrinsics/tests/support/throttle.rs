@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use duplex_core::{Channel, ChannelOptions};
 use duplex_driver_memory::MemoryDriver;
-use greyhack_world_operations::protocol::{
+use greyhack_world_programs::protocol::{
     EndProgram, GameServer, ObjectId, ProgramId, ProgramSession, ProgramThrottle, StartProgram,
 };
 use greyscript_intrinsics::ServerConnection;

@@ -3,7 +3,8 @@
 use greybel_source_map::{Mapping, SourceMap};
 use greyhack_behaviour::{BASH_PATH, GUEST_USER, path};
 use greyhack_world_core::{Access, AccessHandle, AccessKind, ObjectTableExt as _};
-use greyhack_world_router::{CycleAccess, RouteTable, TerminalInfo};
+use greyhack_world_programs::TerminalInfo;
+use greyhack_world_router::{CycleAccess, RouteTable};
 
 use crate::routes::protocol::{
     BuildSource, ConnectionFailure, Failure, IntoProtocol as _, LaunchFailure, LaunchOutcome,
@@ -261,7 +262,7 @@ pub(crate) fn register<
                                     Some(process),
                                     session,
                                     program,
-                                    greyhack_world_router::ProgramKind::Script,
+                                    greyhack_world_programs::ProgramKind::Script,
                                 )?;
 
                             // `ShellIntrinsics.launch`: the program's shell on a company's computer starts an
@@ -386,7 +387,7 @@ pub(crate) fn register<
                                     None,
                                     session,
                                     program,
-                                    greyhack_world_router::ProgramKind::Terminal(info),
+                                    greyhack_world_programs::ProgramKind::Terminal(info),
                                 )?;
 
                                 // `ShellIntrinsics.start_terminal`: the terminal's shell on a company's
@@ -460,7 +461,7 @@ pub async fn scp(
 
     Ok(match result {
         Ok(true) => Outcome::Failure(Failure::File(
-            crate::FileFailure::PartialCopy.into_protocol(),
+            greyhack_world_core::FileFailure::PartialCopy.into_protocol(),
         )),
         Ok(false) => Outcome::True,
         Err(failure) => Outcome::Failure(Failure::File(failure.into_protocol())),

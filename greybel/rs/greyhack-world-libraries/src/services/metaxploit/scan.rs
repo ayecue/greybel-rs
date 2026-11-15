@@ -3,8 +3,9 @@
 use std::cmp::Ordering;
 
 use greyhack_behaviour::compare_versions;
+use greyhack_world_core::{ComputerId, Result};
 
-use crate::{ComputerId, Library, Metaxploit, Result, Weakness};
+use crate::{Library, Metaxploit, Weakness};
 
 /// Weak addresses a `scan` lists (`MetaExploitIntrinsics.scan`).
 #[derive(Debug, Clone, PartialEq, Eq)]

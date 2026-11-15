@@ -2,7 +2,7 @@
 
 use greyhack_behaviour::ROOT_USER;
 use greyhack_world_core::{Access, AccessHandle, AccessKind, ComputerId, ObjectTableExt as _};
-use greyhack_world_router::protocol::AdminShell;
+use greyhack_world_programs::protocol::AdminShell;
 use greyhack_world_router::{CycleAccess, RouteContext, RouteTable};
 
 pub(crate) fn register<
@@ -35,7 +35,7 @@ pub(crate) fn register<
     routes.wait::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
-                    _message: greyhack_world_router::protocol::AdminSudo| {
+                    _message: greyhack_world_programs::protocol::AdminSudo| {
             let cycles = ctx.cycles();
             let program = call.program;
 

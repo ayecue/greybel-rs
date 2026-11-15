@@ -1,7 +1,7 @@
 //! NPC operations of the global `admin.so` program.
 
+use greyhack_world_programs::protocol::AdminCreateMailAccount;
 use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::AdminCreateMailAccount;
 
 pub(crate) fn register<
     W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,

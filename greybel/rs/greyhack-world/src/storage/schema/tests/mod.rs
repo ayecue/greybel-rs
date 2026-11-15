@@ -5,9 +5,9 @@ mod support;
 
 use greyhack_world_core::Database;
 use greyhack_world_economy::{CoinRound, DailyUpkeep, Payment};
+use greyhack_world_effects::{QUEUE_TABLES, Routine as _};
 use greyhack_world_libraries::LibraryCheck;
 use greyhack_world_npcs::NpcSwitch;
-use greyhack_world_routines::{QUEUE_TABLES, Routine as _};
 use greyhack_world_services::ServiceRestart;
 use greyhack_world_storage::sql::fetch_column;
 use greyhack_world_traces::{ActiveTrace, PassiveTrace};
@@ -196,4 +196,41 @@ fn should_match_the_baseline_schema_except_for_the_domain_state_and_account_link
                 .join(" ")
         )
     );
+}
+
+#[test]
+fn should_declare_every_cross_domain_foreign_key_as_a_direct_dependency() {
+    // Arrange
+    let schema = world_schema();
+    let owners = schema
+        .domains()
+        .iter()
+        .flat_map(|domain| {
+            domain
+                .tables
+                .iter()
+                .flat_map(move |set| set.tables().iter().map(move |table| (*table, domain.name)))
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
+
+    for domain in schema.domains() {
+        for set in &domain.tables {
+            for reference in set.schema().split("REFERENCES ").skip(1) {
+                let table = reference
+                    .chars()
+                    .take_while(|character| character.is_ascii_alphanumeric() || *character == '_')
+                    .collect::<String>();
+                let owner = owners
+                    .get(table.as_str())
+                    .unwrap_or_else(|| panic!("table `{table}` has no registered domain"));
+
+                // Act / Assert
+                assert!(
+                    *owner == domain.name || domain.depends_on.contains(owner),
+                    "domain `{}` references `{table}` from `{owner}` without declaring it",
+                    domain.name
+                );
+            }
+        }
+    }
 }

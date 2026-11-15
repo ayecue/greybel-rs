@@ -2,16 +2,13 @@
 
 use std::any::Any;
 
-use greyhack_world_router::protocol::ObjectId;
-use greyhack_world_router::{
+use greyhack_world_programs::protocol::ObjectId;
+use greyhack_world_programs::{
     Handle, ObjectClass, ObjectIdentity, ObjectReach, ObjectTable as TreeObjects,
     ObjectTableHandle, RouteError, RouteResult,
 };
 
 use crate::{ComputerId, NodeId, RouterId, WorldError};
-
-/// Result of a base route or object lookup.
-pub type RouteResultCore<T> = RouteResult<T, WorldError>;
 
 /// Object table used by computer-based program trees.
 pub type ObjectTable = TreeObjects<ComputerId>;
@@ -141,41 +138,41 @@ impl Handle<ComputerId> for RouterHandle {
 /// Typed base-object lookup on a connection's object table.
 pub trait ObjectTableExt {
     /// Returns file access.
-    fn file(&self, id: ObjectId) -> RouteResultCore<FileRef>;
+    fn file(&self, id: ObjectId) -> RouteResult<FileRef, WorldError>;
     /// Returns mutable file access for path updates.
-    fn file_mut(&mut self, id: ObjectId) -> RouteResultCore<FileRef>;
+    fn file_mut(&mut self, id: ObjectId) -> RouteResult<FileRef, WorldError>;
     /// Replaces file access after a synchronous path update.
-    fn set_file(&mut self, id: ObjectId, file: FileRef) -> RouteResultCore<()>;
+    fn set_file(&mut self, id: ObjectId, file: FileRef) -> RouteResult<(), WorldError>;
     /// Returns router identity.
-    fn router(&self, id: ObjectId) -> RouteResultCore<RouterId>;
+    fn router(&self, id: ObjectId) -> RouteResult<RouterId, WorldError>;
     /// Returns shell access, including reverse shells.
-    fn shell(&self, id: ObjectId) -> RouteResultCore<Access>;
+    fn shell(&self, id: ObjectId) -> RouteResult<Access, WorldError>;
     /// Returns computer access from either a computer object or a shell.
-    fn computer(&self, id: ObjectId) -> RouteResultCore<Access>;
+    fn computer(&self, id: ObjectId) -> RouteResult<Access, WorldError>;
     /// Returns the computer and user access for a script session.
-    fn session(&self, id: ObjectId) -> RouteResultCore<Access>;
+    fn session(&self, id: ObjectId) -> RouteResult<Access, WorldError>;
 }
 
 impl ObjectTableExt for TreeObjects<ComputerId> {
-    fn file(&self, id: ObjectId) -> RouteResultCore<FileRef> {
+    fn file(&self, id: ObjectId) -> RouteResult<FileRef, WorldError> {
         Ok(self.get::<FileHandle, WorldError>(id)?.0.clone())
     }
 
-    fn file_mut(&mut self, id: ObjectId) -> RouteResultCore<FileRef> {
+    fn file_mut(&mut self, id: ObjectId) -> RouteResult<FileRef, WorldError> {
         Ok(self.get_mut::<FileHandle, WorldError>(id)?.0.clone())
     }
 
-    fn set_file(&mut self, id: ObjectId, file: FileRef) -> RouteResultCore<()> {
+    fn set_file(&mut self, id: ObjectId, file: FileRef) -> RouteResult<(), WorldError> {
         self.get_mut::<FileHandle, WorldError>(id)?.0 = file;
 
         Ok(())
     }
 
-    fn router(&self, id: ObjectId) -> RouteResultCore<RouterId> {
+    fn router(&self, id: ObjectId) -> RouteResult<RouterId, WorldError> {
         Ok(self.get::<RouterHandle, WorldError>(id)?.0)
     }
 
-    fn shell(&self, id: ObjectId) -> RouteResultCore<Access> {
+    fn shell(&self, id: ObjectId) -> RouteResult<Access, WorldError> {
         match self.get::<AccessHandle, WorldError>(id) {
             Ok(handle) if handle.kind == AccessKind::Shell => return Ok(handle.access.clone()),
             Ok(_) => return Err(RouteError::UnknownObject),
@@ -186,7 +183,7 @@ impl ObjectTableExt for TreeObjects<ComputerId> {
         Ok(self.get::<ReverseShellHandle, WorldError>(id)?.0.clone())
     }
 
-    fn computer(&self, id: ObjectId) -> RouteResultCore<Access> {
+    fn computer(&self, id: ObjectId) -> RouteResult<Access, WorldError> {
         match self.get::<AccessHandle, WorldError>(id) {
             Ok(handle) => return Ok(handle.access.clone()),
             Err(RouteError::UnknownObject) => {}
@@ -196,37 +193,37 @@ impl ObjectTableExt for TreeObjects<ComputerId> {
         Ok(self.get::<ReverseShellHandle, WorldError>(id)?.0.clone())
     }
 
-    fn session(&self, id: ObjectId) -> RouteResultCore<Access> {
+    fn session(&self, id: ObjectId) -> RouteResult<Access, WorldError> {
         self.shell(id)
     }
 }
 
 impl ObjectTableExt for ObjectTableHandle<ComputerId> {
-    fn file(&self, id: ObjectId) -> RouteResultCore<FileRef> {
+    fn file(&self, id: ObjectId) -> RouteResult<FileRef, WorldError> {
         self.read(|objects| objects.file(id))
     }
 
-    fn file_mut(&mut self, id: ObjectId) -> RouteResultCore<FileRef> {
+    fn file_mut(&mut self, id: ObjectId) -> RouteResult<FileRef, WorldError> {
         self.write(|objects| objects.file_mut(id))
     }
 
-    fn set_file(&mut self, id: ObjectId, file: FileRef) -> RouteResultCore<()> {
+    fn set_file(&mut self, id: ObjectId, file: FileRef) -> RouteResult<(), WorldError> {
         self.write(|objects| objects.set_file(id, file))
     }
 
-    fn router(&self, id: ObjectId) -> RouteResultCore<RouterId> {
+    fn router(&self, id: ObjectId) -> RouteResult<RouterId, WorldError> {
         self.read(|objects| objects.router(id))
     }
 
-    fn shell(&self, id: ObjectId) -> RouteResultCore<Access> {
+    fn shell(&self, id: ObjectId) -> RouteResult<Access, WorldError> {
         self.read(|objects| objects.shell(id))
     }
 
-    fn computer(&self, id: ObjectId) -> RouteResultCore<Access> {
+    fn computer(&self, id: ObjectId) -> RouteResult<Access, WorldError> {
         self.read(|objects| objects.computer(id))
     }
 
-    fn session(&self, id: ObjectId) -> RouteResultCore<Access> {
+    fn session(&self, id: ObjectId) -> RouteResult<Access, WorldError> {
         self.read(|objects| objects.session(id))
     }
 }

@@ -1,8 +1,9 @@
 //! CrownShield protection of company networks (`NetworkHelperServer.ActivateCrownShieldProtection`).
 
 use greyhack_behaviour::is_public_ip;
+use greyhack_world_core::{ComputerId, Result};
 
-use crate::{ComputerId, CrownShieldFailure, GuildService, Result};
+use crate::{CrownShieldFailure, GuildService};
 
 /// Methods of [`World`] for guilds crown shield.
 impl GuildService {

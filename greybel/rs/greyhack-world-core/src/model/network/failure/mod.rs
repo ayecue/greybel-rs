@@ -6,6 +6,5 @@ mod login;
 mod service;
 
 pub use connection::ConnectionFailure;
-pub use greyhack_behaviour::LanFailure;
 pub use login::LoginFailure;
 pub use service::ServiceFailure;

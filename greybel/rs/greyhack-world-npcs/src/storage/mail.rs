@@ -1,12 +1,12 @@
 //! Mail account and email storage.
 
-use greyhack_world_core::Database;
+use greyhack_world_core::{Database, PersonId, Result};
 use greyhack_world_storage::sql::{
     FromRow, RowView, execute, fetch_all, fetch_opt, fetch_value, insert,
 };
 use turso::params;
 
-use crate::{Email, MailAccount, PersonId, Result};
+use crate::{Email, MailAccount};
 
 impl FromRow for Email {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
@@ -64,13 +64,13 @@ impl FromRow for MailAccountRow {
 /// Queries of the tables owned by this area.
 pub(crate) struct MailRepository {
     db: Database,
-    computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+    computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
 }
 
 impl MailRepository {
     pub(crate) fn new(
         db: Database,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
     ) -> Self {
         Self { db, computers }
     }

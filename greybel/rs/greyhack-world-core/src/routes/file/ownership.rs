@@ -1,7 +1,7 @@
 //! File permission and ownership changes (`FileIntrinsics`).
 
 use greyhack_behaviour::FileOwnership;
-use greyhack_world_router::protocol::{FileChange, FileFailure, ScriptFailure};
+use greyhack_world_programs::protocol::{FileChange, FileFailure, ScriptFailure};
 
 use super::{accessible_resolve, file_change};
 use crate::objects::FileRef;

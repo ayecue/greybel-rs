@@ -245,7 +245,7 @@ pub async fn strike(strikes: u32) {
     .expect("the strike is given");
     // The strike is an event the player domain ends the game on; the world server delivers events at the end of each
     // cycle, so the test does the same.
-    block_on(world.registry.events().deliver_async()).expect("the strike is delivered");
+    block_on(world.registry.events().dispatch_async()).expect("the strike is dispatched");
 
     let ended = client
         .end_game(strikes, &address)

@@ -12,13 +12,14 @@ autotests = false
 doctest = false
 
 [dependencies]
+greyhack-world-programs.workspace = true
 greyhack-behaviour.workspace = true
 greyhack-world-assets.workspace = true
 greyhack-world-core.workspace = true
 greyhack-world-economy.workspace = true
 greyhack-world-modules.workspace = true
 greyhack-world-router.workspace = true
-greyhack-world-routines.workspace = true
+greyhack-world-effects.workspace = true
 greyhack-world-storage.workspace = true
 mono-random.workspace = true
 serde.workspace = true

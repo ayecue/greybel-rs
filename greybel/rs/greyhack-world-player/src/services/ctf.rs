@@ -1,7 +1,9 @@
 //! CTF account, event, participation, and rating operations.
 
-use greyhack_behaviour::{MARK_RANGE, ROOT_USER, creator_reward, creator_score, player_reward};
-use greyhack_world_core::{ComputerId, Gender, Person, PersonId, Result};
+use greyhack_behaviour::{
+    Gender, MARK_RANGE, ROOT_USER, creator_reward, creator_score, player_reward,
+};
+use greyhack_world_core::{ComputerId, Person, PersonId, Result};
 
 use crate::model::{CtfAccount, CtfEvent, CtfFailure, CtfPlayer};
 
@@ -235,17 +237,17 @@ impl Ctf {
 /// A world service with only its declared dependencies.
 pub struct Ctf {
     pub(crate) ctf: std::rc::Rc<crate::storage::CtfRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) bank: greyhack_world_core::Dep<greyhack_world_economy::Bank>,
-    pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) bank: greyhack_world_modules::Dep<greyhack_world_economy::Bank>,
+    pub(crate) mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
 }
 
 impl Ctf {
     pub(crate) fn new(
         ctf: std::rc::Rc<crate::storage::CtfRepository>,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        bank: greyhack_world_core::Dep<greyhack_world_economy::Bank>,
-        mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        bank: greyhack_world_modules::Dep<greyhack_world_economy::Bank>,
+        mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
     ) -> Self {
         Self {
             ctf,

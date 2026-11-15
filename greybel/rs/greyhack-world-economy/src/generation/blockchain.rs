@@ -1,8 +1,8 @@
 //! Seeded generation of default `BlockchainSystem` coins.
 
-use greyhack_behaviour::hash_password;
+use greyhack_behaviour::{Rng, Word, hash_password};
 
-use crate::{Coin, PriceRecord, Rng, Word};
+use crate::{Coin, PriceRecord};
 
 const DEFAULT_COINS: &[&str] = &["Ether", "Bitcoin", "PennyBucks", "GridCoin", "AnonCash"];
 
@@ -30,7 +30,7 @@ pub fn default_coins(rng: &mut Rng, date: &str) -> Vec<CoinDraft> {
                 .to_string();
             let password = Word::Password.generate(rng);
             let coin = Coin {
-                id: crate::CoinId(index as u32),
+                id: greyhack_world_core::CoinId(index as u32),
                 name: (*name).to_owned(),
                 creator_user,
                 creator_password_hash: hash_password(&password),

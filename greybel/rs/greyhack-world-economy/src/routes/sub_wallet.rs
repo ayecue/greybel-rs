@@ -186,7 +186,7 @@ pub(crate) fn register<
                     Result<(), MineJobFailure>,
                     W,
                     greyhack_world_core::WorldError,
-                >(cycles, program, work)
+                >(cycles, program, work.get())
                 .await
                 .ok_or_else(|| OperationError::Script(ScriptFailure::ProgramEnded))?,
                 Err(failure) => return Ok(mine_job_failure(failure)),

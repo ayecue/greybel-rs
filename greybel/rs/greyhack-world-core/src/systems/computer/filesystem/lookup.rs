@@ -4,6 +4,7 @@ use std::rc::Rc;
 
 use greyhack_behaviour::MAX_SYMLINKS;
 use greyhack_behaviour::path::{self, normalize};
+use greyhack_world_modules::Dep;
 
 use crate::storage::*;
 use crate::systems::{FileLookup as FileLookupService, *};

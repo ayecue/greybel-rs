@@ -25,10 +25,10 @@ pub enum WorldError {
     Database(#[from] turso::Error),
     /// A scheduled domain routine failed.
     #[error(transparent)]
-    Routine(#[from] greyhack_world_routines::RoutineError),
+    Routine(#[from] greyhack_world_effects::RoutineError),
     /// An asynchronous event subscriber failed.
     #[error(transparent)]
-    Event(#[from] greyhack_world_modules::EventError),
+    Event(#[from] greyhack_world_effects::EventError),
     /// A `NetworkLayout` references a missing or later device, or gives a computer no
     /// parent.
     #[error("invalid network layout: {0}")]

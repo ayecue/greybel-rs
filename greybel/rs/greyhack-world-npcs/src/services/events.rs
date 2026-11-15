@@ -1,7 +1,7 @@
 //! Events published by NPC administrator activity.
 
 use greyhack_world_core::NetworkId;
-use greyhack_world_modules::Event;
+use greyhack_world_effects::Event;
 
 /// An administrator arrived at a company's network.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

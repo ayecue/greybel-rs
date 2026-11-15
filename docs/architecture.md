@@ -55,11 +55,32 @@ TypeScript packages live in [`greybel/ts`](../greybel/ts/README.md). They includ
 
 ## Grey Hack components
 
+The world crates are listed in layer order: base behavior and infrastructure, core, the eleven domains, the composition root, and finally the server.
+
 | Component | Responsibility |
 |---|---|
-| `greyhack-behaviour` | Shared path, address, password, naming, and service rules. |
-| `greyhack-world` | Seeded computers, networks, file systems, services, economy, and persistent world state. |
-| `greyhack-world-operations` | Shared-world operations and script-object lifetime management. |
+| `greyhack-behaviour` | Pure game rules, formulas, limits, validations, and deterministic algorithms. |
+| `greyhack-world-storage` | Database connections, transactions, schemas, migrations, and SQL helpers. |
+| `greyhack-world-programs` | Program trees, the tree pool, object tables, and tree-local state. |
+| `greyhack-world-effects` | Ordered events, typed waiting work, generic routine kinds, persistent scheduling, and due-work ordering. |
+| `greyhack-world-modules` | Module registration, lazy services, and capabilities. |
+| `greyhack-world-router` | The world protocol, driver-independent route table, and dispatch. |
+| `greyhack-world-core` | Shared world state and clock, computers, file systems, networks, and their routes. |
+| `greyhack-world-economy` | Banks, coins, wallets, mining, payments, and the order-book market. |
+| `greyhack-world-npcs` | People, jobs, schedules, and mail. |
+| `greyhack-world-guilds` | Guilds, companies, the Crown leaderboard, and CrownShield. |
+| `greyhack-world-traces` | Active and passive administrator traces and player strikes. |
+| `greyhack-world-services` | Apt repositories and computer-service installation and control. |
+| `greyhack-world-intrusion` | Cryptography, sniffers, floods, and their waiting work. |
+| `greyhack-world-smart-devices` | Smart appliances, traffic cameras, CCTV, and traffic state. |
+| `greyhack-world-libraries` | Library generation, versions, exploits, debugging, shops, and updates. |
+| `greyhack-world-shell` | Shells, program launches, source builds, and connections. |
+| `greyhack-world-missions` | Mission definitions, configuration, and deterministic mission building. |
+| `greyhack-world-creation` | Network generation, mission placement, and administrator restores. |
+| `greyhack-world-player` | Player accounts, CTF, mission offers, and game over. |
+| `greyhack-world` | Composition root for module assembly, world creation and loading, and object composition. |
+| `greyhack-world-operations` | Shared-world server, cycles, budgets, ticks, deferred jobs, and program lifecycle. |
+| `greyhack-world-operations-web` | WebAssembly worker adapter for the shared-world server. |
 | `greyhack-terminal-text` | Grey Hack rich text rendered as terminal output. |
 | `greyhack-terminal-web` | Browser terminal layout, meshes, and WebGL rendering. |
 | `greyhack-message-hook-client` | Client for the Grey Hack message-hook plugin. |

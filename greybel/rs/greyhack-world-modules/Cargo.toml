@@ -1,6 +1,6 @@
 [package]
 name = "greyhack-world-modules"
-description = "Build-time module registry, upward calls, ordered events, and typed world work"
+description = "Build-time module registry, lazy dependencies, and module capabilities"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -12,14 +12,9 @@ autotests = false
 doctest = false
 
 [dependencies]
-greyhack-world-programs.workspace = true
+greyhack-world-effects.workspace = true
 greyhack-world-router.workspace = true
-greyhack-world-routines.workspace = true
 greyhack-world-storage.workspace = true
-thiserror.workspace = true
-
-[dev-dependencies]
-tokio = { workspace = true, features = ["rt", "macros"] }
 
 [lints]
 workspace = true

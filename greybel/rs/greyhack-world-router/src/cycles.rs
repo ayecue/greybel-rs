@@ -6,8 +6,10 @@ use std::future::Future;
 use std::pin::Pin;
 use std::rc::Rc;
 
-use crate::protocol::{ObjectId, ProgramId};
-use crate::{Call, Process, ProgramKind, RouteContext, RouteResult, TreeId, WorldContext};
+use greyhack_world_programs::protocol::{ObjectId, ProgramId};
+use greyhack_world_programs::{Process, ProgramKind, RouteResult, TreeId};
+
+use crate::{Call, RouteContext, WorldContext};
 
 /// Future returned by an erased cycle operation.
 pub type CycleFuture<'a, T> = Pin<Box<dyn Future<Output = T> + 'a>>;

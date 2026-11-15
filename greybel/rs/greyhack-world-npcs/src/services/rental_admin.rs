@@ -1,9 +1,10 @@
 //! Administrators of rented servers (`NetworkHelperServer`, `BankHelperServer`).
 
-use greyhack_behaviour::{NetworkKind, RENTAL_ADMIN_PRICE, SubscriptionKind, kind_for_ip};
+use greyhack_behaviour::{NetworkKind, RENTAL_ADMIN_PRICE, Rng, SubscriptionKind, kind_for_ip};
+use greyhack_world_core::{NetworkId, PersonId, Result};
 use greyhack_world_economy::PurchaseFailure;
 
-use crate::{JobService, NetworkId, Npc, PersonId, Result, Rng};
+use crate::{JobService, Npc};
 
 /// Rented-server administrator hiring and firing errors
 /// (`BankHelperServer.HireAdminRentalServerRpc`, `FireAdminRentalServerRpc`).

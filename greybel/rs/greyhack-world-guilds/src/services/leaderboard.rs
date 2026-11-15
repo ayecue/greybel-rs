@@ -8,8 +8,9 @@ use greyhack_behaviour::{
     company_weight, crown_leader, effective_max_invested_companies, guild_points,
     leaderboard_points, max_stocks, next_day, order_companies, sort_leaderboard,
 };
+use greyhack_world_core::{NetworkId, Result};
 
-use crate::{CrownState, Guild, GuildId, GuildService, NetworkId, Result};
+use crate::{CrownState, Guild, GuildId, GuildService};
 
 /// Methods of [`World`] for guilds leaderboard.
 impl GuildService {

@@ -18,11 +18,9 @@ pub mod storage;
 
 use std::rc::Rc;
 
-pub use greyhack_behaviour::{Rng, Word};
-pub use greyhack_world_core::{ComputerId, NetworkId, PersonId, Result, RouterId, WorldError};
-use greyhack_world_core::{Dep, WorldRef};
-use greyhack_world_modules::{Module, Registry};
-use greyhack_world_routines::Routine;
+use greyhack_world_core::WorldRef;
+use greyhack_world_effects::Routine;
+use greyhack_world_modules::{Dep, Module, Registry};
 use greyhack_world_storage::DomainSchema;
 pub use model::*;
 pub use objects::{MailRef, MetaMailHandle, ObjectTableExt};
@@ -102,6 +100,7 @@ impl NpcModule {
                 storage::schema::VOLATILE,
             ],
         )
+        .with_dependencies(&["core"])
     }
 }
 

@@ -107,18 +107,18 @@ impl MissionOfferService {
 /// A world service with only its declared dependencies.
 pub struct MissionOfferService {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
     pub(crate) network_generation:
-        greyhack_world_core::Dep<greyhack_world_creation::NetworkGeneration>,
-    pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
+        greyhack_world_modules::Dep<greyhack_world_creation::NetworkGeneration>,
+    pub(crate) mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
 }
 
 impl MissionOfferService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        network_generation: greyhack_world_core::Dep<greyhack_world_creation::NetworkGeneration>,
-        mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        network_generation: greyhack_world_modules::Dep<greyhack_world_creation::NetworkGeneration>,
+        mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
     ) -> Self {
         Self {
             world: world.clone(),

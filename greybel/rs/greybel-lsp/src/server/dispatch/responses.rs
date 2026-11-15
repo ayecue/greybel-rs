@@ -1,7 +1,7 @@
 use gen_lsp_types as lsp;
 use greybel_documents::Uri;
 
-use crate::files::{FindFilesRequest, ReadFileRequest};
+use crate::files::{FileSearch, ReadFile};
 use crate::message::Response;
 use crate::server::Server;
 use crate::server::state::Expectation;
@@ -26,20 +26,20 @@ impl Server {
                 self.apply_settings(section);
                 self.find_files();
             }
-            Expectation::FindFiles => {
-                let uris = response.result::<FindFilesRequest>().unwrap_or_default();
+            Expectation::FileSearch => {
+                let uris = response.result::<FileSearch>().unwrap_or_default();
 
                 self.handle_find_files(
                     uris.iter().filter_map(|uri| Uri::parse(uri).ok()).collect(),
                 );
             }
             Expectation::Read(uri) => {
-                let content = response.result::<ReadFileRequest>().flatten();
+                let content = response.result::<ReadFile>().flatten();
 
                 self.handle_file_read(&uri, content);
             }
             Expectation::ProjectFile(uri) => {
-                let content = response.result::<ReadFileRequest>().flatten();
+                let content = response.result::<ReadFile>().flatten();
 
                 self.handle_project_file(&uri, content);
             }

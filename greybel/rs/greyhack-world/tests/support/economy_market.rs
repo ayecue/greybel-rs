@@ -1,6 +1,6 @@
-use greyhack_behaviour::hash_password;
+use greyhack_behaviour::{Side, hash_password};
 use greyhack_world::{PlayerOptions, World};
-use greyhack_world_economy::{Offer, Side, SubWallet, WalletId};
+use greyhack_world_economy::{Offer, SubWallet, WalletId};
 
 /// A world whose wallet `seller` has 40 Bitcoin and whose wallet `buyer` has $100000 in its bank.
 pub async fn market() -> (World, WalletId, WalletId) {

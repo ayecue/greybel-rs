@@ -5,9 +5,9 @@ use greyhack_behaviour::{
     FileKind, PermissionSet, ROOT_USER, SYSTEM_LOG_FOLDER, SYSTEM_LOG_NAME, SYSTEM_LOG_PATH,
     SystemLog,
 };
+use greyhack_world_core::NodeId;
+use greyhack_world_libraries::{ComputerDraft, FileSystemDraft, NodeDraft};
 use greyhack_world_missions::{Assignment, ComputerContent, MissionFile, PreGenNpc};
-
-use crate::{ComputerDraft, FileSystemDraft, NodeDraft, NodeId};
 
 /// The permissions of a folder the mission creates that the game gives every new folder.
 pub(super) fn default_folder() -> PermissionSet {
@@ -93,12 +93,12 @@ pub(super) fn rename_account(
     if let Some(password) = password
         && let Some(user) = draft.users.iter_mut().find(|user| user.name == new)
     {
-        *user = crate::User {
+        *user = greyhack_world_core::User {
             name: user.name.clone(),
             groups: user.groups.clone(),
             deletable: user.deletable,
             person: user.person,
-            ..crate::User::new(new, password)
+            ..greyhack_world_core::User::new(new, password)
         };
     }
 

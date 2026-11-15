@@ -1,8 +1,7 @@
 //! Mining work and its domain-owned failures.
 
-use greyhack_world_modules::WorkId;
-
-use crate::{CoinId, ComputerId};
+use greyhack_world_core::{CoinId, ComputerId};
+use greyhack_world_effects::WorkId;
 
 /// Mining failures accumulated while economy routines run.
 #[derive(Debug, Default)]

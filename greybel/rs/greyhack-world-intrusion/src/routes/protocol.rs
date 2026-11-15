@@ -1,7 +1,7 @@
 //! Conversions of crypto failures.
 
 pub(crate) use greyhack_world_core::routes::conversions::IntoProtocol;
-pub(crate) use greyhack_world_router::protocol::*;
+pub(crate) use greyhack_world_programs::protocol::*;
 
 impl IntoProtocol for crate::CryptoFailure {
     type Output = Failure;

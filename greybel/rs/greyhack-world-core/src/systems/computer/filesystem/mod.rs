@@ -4,6 +4,7 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::LibraryKind;
+use greyhack_world_modules::Dep;
 
 use crate::storage::nodes::NodeSpec;
 use crate::storage::*;
@@ -48,50 +49,6 @@ impl FileSystemService {
             libraries: registry.get(),
             scripts: registry.get(),
         }
-    }
-}
-
-impl AccountFileService for FileSystemService {
-    fn root(&self, computer: ComputerId) -> crate::CallFuture<'_, Option<crate::Node>> {
-        Box::pin(async move { self.lookup.root(computer).await })
-    }
-
-    fn file<'a>(
-        &'a self,
-        computer: ComputerId,
-        path: &'a str,
-        follow: bool,
-    ) -> crate::CallFuture<'a, Option<crate::Node>> {
-        Box::pin(async move { self.lookup.file(computer, path, follow).await })
-    }
-
-    fn folder<'a>(
-        &'a self,
-        computer: ComputerId,
-        path: &'a str,
-        follow: bool,
-    ) -> crate::CallFuture<'a, Option<crate::Node>> {
-        Box::pin(async move { self.lookup.folder(computer, path, follow).await })
-    }
-
-    fn folders<'a>(&'a self, folder: &'a crate::Node) -> crate::CallFuture<'a, Vec<crate::Node>> {
-        Box::pin(async move { self.lookup.folders(folder).await })
-    }
-
-    fn add_node<'a>(
-        &'a self,
-        folder: &'a crate::Node,
-        node: &'a crate::NodeDraft,
-    ) -> crate::CallFuture<'a, crate::Node> {
-        Box::pin(async move { self.changes.add_node(folder, node).await })
-    }
-
-    fn remove_node<'a>(&'a self, node: &'a crate::Node) -> crate::CallFuture<'a, bool> {
-        Box::pin(async move { self.changes.remove_node(node).await })
-    }
-
-    fn save_node<'a>(&'a self, node: &'a crate::Node) -> crate::CallFuture<'a, ()> {
-        Box::pin(async move { self.changes.save_node(node).await })
     }
 }
 

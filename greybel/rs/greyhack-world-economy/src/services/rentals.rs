@@ -7,9 +7,9 @@ use greyhack_behaviour::{
     DEFAULT_NET_SPEED, DeviceKind, RENTAL_ADMIN_PRICE, RentalDeviceTable, SubscriptionKind,
     rental_price, rental_price_without_admin,
 };
+use greyhack_world_core::{NetworkId, Result};
 
 use crate::services::Bank;
-use crate::{NetworkId, Result};
 
 /// Methods of [`World`] for economy rentals.
 impl Bank {

@@ -3,6 +3,8 @@
 
 use std::rc::Rc;
 
+use greyhack_world_modules::Dep;
+
 use crate::storage::*;
 use crate::systems::*;
 use crate::*;

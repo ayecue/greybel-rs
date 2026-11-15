@@ -137,9 +137,9 @@ struct Difference {
 }
 
 impl Difference {
-    fn of(capture: &Image, rendering: &Image) -> Self {
-        let width = capture.width.min(rendering.width);
-        let height = capture.height.min(rendering.height);
+    fn of(capture: &Image, image: &Image) -> Self {
+        let width = capture.width.min(image.width);
+        let height = capture.height.min(image.height);
         let mut sum = 0u64;
         let mut peak = 0;
         let mut over = 0u64;
@@ -148,7 +148,7 @@ impl Difference {
             for x in 0..width {
                 let mut pixel = 0;
 
-                for (a, b) in capture.pixel(x, y).iter().zip(rendering.pixel(x, y)) {
+                for (a, b) in capture.pixel(x, y).iter().zip(image.pixel(x, y)) {
                     let difference = a.abs_diff(*b);
 
                     sum += u64::from(difference);
@@ -223,13 +223,13 @@ impl<'o> ComparePage<'o> {
             .split("<section id=\"case-")
             .skip(1)
             .map(|section| {
-                let (index, rest) = section.split_once('"').expect("the section has an id");
-                let section = rest
+                let (index, remainder) = section.split_once('"').expect("the section has an id");
+                let section = remainder
                     .split_once("</section>")
-                    .map_or(rest, |(section, _)| section);
+                    .map_or(remainder, |(section, _)| section);
                 let capture = section
                     .split_once("class=\"unity\" src=\"data:image/png;base64,")
-                    .and_then(|(_, rest)| rest.split_once('"'))
+                    .and_then(|(_, remainder)| remainder.split_once('"'))
                     .map(|(data, _)| data);
 
                 (index.parse().expect("the section id is an index"), capture)
@@ -266,7 +266,7 @@ impl<'o> ComparePage<'o> {
         let dom = String::from_utf8(output.stdout).expect("the DOM is UTF-8");
         let json = dom
             .split_once("id=\"renderings\">")
-            .and_then(|(_, rest)| rest.split_once("</script>"))
+            .and_then(|(_, remainder)| remainder.split_once("</script>"))
             .map(|(json, _)| json)
             .expect("the page has a #renderings script");
 
@@ -312,11 +312,11 @@ impl<'o> ComparePage<'o> {
                 .as_str()
                 .and_then(|url| url.split_once(','))
                 .expect("the rendering is a data URL");
-            let rendering = Image::decode_base64(data);
+            let image = Image::decode_base64(data);
 
             if let Some(folder) = &self.options.save {
                 std::fs::create_dir_all(folder).expect("the save folder is created");
-                rendering.save(&folder.join(format!("{}.png", name.replace(' ', "-"))));
+                image.save(&folder.join(format!("{}.png", name.replace(' ', "-"))));
             }
 
             let section = entry["section"]
@@ -331,17 +331,18 @@ impl<'o> ComparePage<'o> {
                 continue;
             };
             let capture = Image::decode_base64(capture);
-            let size = if (capture.width, capture.height) == (rendering.width, rendering.height) {
+            let size = if (capture.width, capture.height) == (image.width, image.height) {
                 String::new()
             } else {
                 format!(
                     "{}×{} vs {}×{}",
-                    capture.width, capture.height, rendering.width, rendering.height
+                    capture.width, capture.height, image.width, image.height
                 )
             };
-            let difference = Difference::of(&capture, &rendering);
+            let difference = Difference::of(&capture, &image);
 
             difference.print(&name, &size);
+
             match totals.iter_mut().find(|(other, _)| *other == target) {
                 Some((_, differences)) => differences.push(difference),
                 None => totals.push((target, vec![difference])),

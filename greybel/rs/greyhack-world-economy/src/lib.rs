@@ -19,11 +19,9 @@ pub mod storage;
 use std::rc::Rc;
 
 pub use generation::{CoinDraft, default_coins};
-pub use greyhack_behaviour::{Rng, Word};
 use greyhack_world_core::WorldRef;
-pub use greyhack_world_core::{CoinId, ComputerId, NetworkId, PersonId, Result, WorldError};
+use greyhack_world_effects::Routine;
 use greyhack_world_modules::{Module, Registry};
-use greyhack_world_routines::Routine;
 use greyhack_world_storage::DomainSchema;
 pub use model::*;
 pub use objects::{
@@ -163,6 +161,7 @@ impl EconomyModule {
                 storage::schema::MINE_ROUND_VOLATILE,
             ],
         )
+        .with_dependencies(&["core"])
     }
 }
 
@@ -180,7 +179,7 @@ impl Module for EconomyModule {
         registry.register_service(module.payment.clone());
         registry.register_service(module.daily_upkeep.clone());
         registry
-            .register_capability::<dyn greyhack_world_modules::WorkOwner>(module.mine_jobs.clone());
+            .register_capability::<dyn greyhack_world_effects::WorkOwner>(module.mine_jobs.clone());
         registry.register_service(module.mine_jobs.clone());
         registry.register_service(Rc::new(module.clone()));
         registry.register_service(module.bank.clone());

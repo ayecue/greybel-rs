@@ -1,10 +1,10 @@
 //! Shared hardware-part rows and per-computer installation rows built by `parts_query`.
 
 use greyhack_behaviour::HardwareKind;
+use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_value, insert};
 use turso::{Value, params};
 
 use super::Database;
-use super::sql::{FromRow, RowView, execute, fetch_all, fetch_value, insert};
 use crate::{
     ComputerId, Cpu, Gpu, HardDisk, Hardware, Motherboard, NetCard, Part, PowerSupply, Ram, Result,
 };

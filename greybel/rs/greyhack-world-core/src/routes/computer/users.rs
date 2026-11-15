@@ -1,6 +1,6 @@
 //! Computer user, group, and password management (`ComputerIntrinsics`).
 
-use greyhack_world_router::protocol::{Outcome, UserGroups};
+use greyhack_world_programs::protocol::{Outcome, UserGroups};
 
 use crate::objects::Access;
 use crate::routes::Result;

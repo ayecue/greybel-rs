@@ -2,12 +2,13 @@ use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use greyhack_behaviour::Gender;
+use greyhack_world_effects::BoxFuture;
 use greyhack_world_storage::Schema;
 
 use crate::storage::schema::{CORE_TABLES, WORLD_META_TABLES};
 use crate::{
-    CallFuture, Database, LibraryVersionService, NetworkAdminLookup, NetworkGeneration, NpcLookup,
-    NpcState, NpcStatus, PersistentState, Person, PersonId, PlayerTraceService, RouterId, WorldRef,
+    Database, LibraryVersionService, NetworkAdminLookup, NetworkGeneration, NpcLookup, NpcState,
+    NpcStatus, PersistentState, Person, PersonId, PlayerTraceService, Result, RouterId, WorldRef,
 };
 
 /// Services of a world without higher domains: nothing is generated, no NPC exists, and the calls
@@ -23,7 +24,7 @@ impl NetworkGeneration for TestServices {
         &'a self,
         _world: &'a WorldRef,
         _public_ip: &'a str,
-    ) -> CallFuture<'a, Option<RouterId>> {
+    ) -> BoxFuture<'a, Result<Option<RouterId>>> {
         self.generated.fetch_add(1, Ordering::Relaxed);
 
         Box::pin(async { Ok(None) })
@@ -35,13 +36,13 @@ impl NpcState for TestServices {
         &'a self,
         _world: &'a WorldRef,
         _lookup: NpcLookup<'a>,
-    ) -> CallFuture<'a, Option<NpcStatus>> {
+    ) -> BoxFuture<'a, Result<Option<NpcStatus>>> {
         Box::pin(async { Ok(None) })
     }
 }
 
 impl PlayerTraceService for TestServices {
-    fn player_token_trace<'a>(&'a self, _world: &'a WorldRef) -> CallFuture<'a, String> {
+    fn player_token_trace<'a>(&'a self, _world: &'a WorldRef) -> BoxFuture<'a, Result<String>> {
         Box::pin(async { Ok(String::new()) })
     }
 }

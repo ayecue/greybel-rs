@@ -48,7 +48,7 @@ impl Number {
         self.0
     }
 
-    /// Reproduces the game's C# `(int)` cast: convert to 64 bits and keep the low 32. Values outside `i32` wrap;
+    /// Reproduces the game's C# `(int)` cast: convert to 64 bits and retain the low 32. Values outside `i32` wrap;
     /// values outside `i64` saturate first; NaN becomes 0. Measured in Grey Hack on macOS arm64; x64 returns 0 for
     /// values outside `i64`.
     #[must_use]

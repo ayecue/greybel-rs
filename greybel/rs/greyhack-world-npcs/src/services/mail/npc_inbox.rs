@@ -1,10 +1,11 @@
 //! The mail the game generates for NPC accounts.
 
 use greyhack_world_assets::GameTextTable;
+use greyhack_world_core::Result;
 use mono_random::Random;
 
 use crate::generation::npc_mail::{self, Administrator, Colleague, Owner};
-use crate::{Mail, Npc, Result};
+use crate::{Mail, Npc};
 
 /// Returns the mail view of `npc` (`NpcInfo`) named `surname` and `name`, with mail address `mail`.
 fn colleague_of(npc: &Npc, surname: &str, name: &str, mail: String) -> Colleague {

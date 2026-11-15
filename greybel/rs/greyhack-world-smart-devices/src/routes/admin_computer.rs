@@ -1,13 +1,14 @@
 //! Smart-appliance and CCTV operations of the single-computer `admin.so` object.
 
-use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{
+use greyhack_behaviour::SmartApplianceSettings;
+use greyhack_world_programs::protocol::{
     AdminAccessCctv, AdminAddSmartAppliance, AdminFailure, CctvAccess, Failure,
     SmartApplianceOptions,
 };
+use greyhack_world_router::RouteTable;
 
+use crate::CctvFailure;
 use crate::routes::Result;
-use crate::{CctvFailure, SmartApplianceSettings};
 
 pub(crate) fn register<
     W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,

@@ -3,8 +3,8 @@
 use greyhack_world::{DatabaseOpen, PlayerOptions, World, WorldOptions};
 use greyhack_world_core::{CoinId, Computer, ComputerId, Database, Router, RouterId};
 use greyhack_world_economy::SubWallet;
+use greyhack_world_effects::WorkEnvelope;
 use greyhack_world_libraries::Library;
-use greyhack_world_modules::WorkEnvelope;
 use greyhack_world_traces::StrikeEvent;
 
 /// Creates `WorldOptions` with the requested seed, network count, and default player.
@@ -264,7 +264,7 @@ pub fn work_ends(world: &World) -> Vec<WorkEnvelope> {
                 events.on({
                     let ends = ends.clone();
 
-                    move |event: &greyhack_world_modules::WorkCompletion| {
+                    move |event: &greyhack_world_effects::WorkCompletion| {
                         if let Some(end) = event.take_envelope() {
                             ends.borrow_mut().push(end);
                         }
@@ -277,7 +277,7 @@ pub fn work_ends(world: &World) -> Vec<WorkEnvelope> {
     });
 
     while !events.is_empty() {
-        crate::future::block_on(events.deliver_async()).expect("domain events deliver");
+        crate::future::block_on(events.dispatch_async()).expect("domain events dispatch");
     }
 
     ends.borrow_mut().drain(..).collect()
@@ -295,7 +295,7 @@ pub async fn strikes_async(world: &World) -> Vec<StrikeEvent> {
     world
         .assembly
         .events
-        .deliver_async()
+        .dispatch_async()
         .await
         .expect("domain events deliver");
 
@@ -311,7 +311,7 @@ pub fn strikes(world: &World) -> Vec<StrikeEvent> {
 
         move |event: &StrikeEvent| strikes.borrow_mut().push(*event)
     });
-    world.deliver_events();
+    world.dispatch_events();
 
     strikes.borrow_mut().drain(..).collect()
 }

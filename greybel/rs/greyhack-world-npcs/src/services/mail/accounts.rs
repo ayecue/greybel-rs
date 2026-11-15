@@ -1,9 +1,9 @@
 //! Mail accounts and the SMTP users of a mail server: creation, authentication, and restoring.
 
 use greyhack_behaviour::{DEFAULT_MAIL_DOMAIN, ServiceId, is_lan_ip, is_valid_ip, verify_password};
-use greyhack_world_core::{ComputerId, Login};
+use greyhack_world_core::{ComputerId, Login, Result};
 
-use crate::{Email, Mail, MailAccount, Result, SmtpFailure};
+use crate::{Email, Mail, MailAccount, SmtpFailure};
 
 /// Methods of [`World`] for npcs mail accounts.
 impl Mail {

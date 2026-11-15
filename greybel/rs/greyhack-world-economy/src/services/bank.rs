@@ -1,11 +1,9 @@
 //! Bank accounts and transfers between them (`BankAccount`).
 
 use greyhack_behaviour::{SubscriptionKind, transfer_fee, valid_transfer_amount, verify_password};
+use greyhack_world_core::{NetworkId, PersonId, Result};
 
-use crate::{
-    BankAccount, BankSubscription, BankTransaction, BankTransferFailure, NetworkId, PersonId,
-    PurchaseFailure, Result,
-};
+use crate::{BankAccount, BankSubscription, BankTransaction, BankTransferFailure, PurchaseFailure};
 
 /// Methods of [`World`] for economy bank.
 impl Bank {
@@ -128,11 +126,11 @@ pub struct Bank {
     pub(crate) rentals: std::rc::Rc<crate::storage::RentalRepository>,
     pub(crate) coins: std::rc::Rc<crate::storage::CoinRepository>,
     pub(crate) offers: std::rc::Rc<crate::storage::OfferRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) wallets: greyhack_world_core::Dep<crate::services::WalletService>,
-    pub(crate) mine_jobs: std::rc::Rc<greyhack_world_modules::WorkQueue>,
-    pub(crate) scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) wallets: greyhack_world_modules::Dep<crate::services::WalletService>,
+    pub(crate) mine_jobs: std::rc::Rc<greyhack_world_effects::WorkQueue>,
+    pub(crate) scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
 }
 
 impl Bank {

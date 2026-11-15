@@ -1,9 +1,10 @@
 //! Service records and the viewer of them (`FileHelperServer.LeerFichaServerRpc`).
 
 use greyhack_behaviour::{FileData, PermissionSet, ServiceId, path};
+use greyhack_world_core::{ComputerId, Result};
 
 use crate::services::InstallService;
-use crate::{ComputerId, Record, RecordDatabase, Result};
+use crate::{Record, RecordDatabase};
 
 /// Service record-update errors (`FileHelperServer.UpdateFichaServerRpc`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

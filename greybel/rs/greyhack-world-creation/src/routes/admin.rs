@@ -1,10 +1,10 @@
 //! Network creation through the global `admin.so` program.
 
 use greyhack_world_core::RouterId;
-use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     AdminCreateNetwork, Failure, NetworkCreation, NetworkOptions,
 };
+use greyhack_world_router::RouteTable;
 
 use super::Result;
 use super::protocol::Creation;
@@ -42,7 +42,7 @@ async fn create_network(
         && core.networks.routers.router_at(address).await?.is_some()
     {
         return Ok(Creation::Failure(
-            greyhack_world_router::protocol::AdminFailure::AddressTaken(address.clone()),
+            greyhack_world_programs::protocol::AdminFailure::AddressTaken(address.clone()),
         ));
     }
 
@@ -50,7 +50,7 @@ async fn create_network(
         && core.networks.routers.lookup(domain).await?.is_some()
     {
         return Ok(Creation::Failure(
-            greyhack_world_router::protocol::AdminFailure::DomainTaken(domain.clone()),
+            greyhack_world_programs::protocol::AdminFailure::DomainTaken(domain.clone()),
         ));
     }
 

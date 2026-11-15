@@ -3,7 +3,7 @@
 
 use greyhack_behaviour::{DeviceKind, is_lan_ip};
 use greyhack_world_core::{ComputerId, Result, RouterId};
-use greyhack_world_modules::WorkId;
+use greyhack_world_effects::WorkId;
 
 use crate::{SnifferPacket, SnifferService};
 

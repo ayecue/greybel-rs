@@ -1,7 +1,7 @@
 //! Conversions of CTF, mission, and folder results.
 
 pub(crate) use greyhack_world_core::routes::conversions::IntoProtocol;
-use greyhack_world_router::protocol::{CtfFailure, FolderChange, FolderLookup, MissionFailure};
+use greyhack_world_programs::protocol::{CtfFailure, FolderChange, FolderLookup, MissionFailure};
 
 impl IntoProtocol for crate::CtfFailure {
     type Output = CtfFailure;

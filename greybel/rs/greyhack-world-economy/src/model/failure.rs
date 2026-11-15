@@ -1,8 +1,6 @@
 //! Economy operation errors. The runtime formats each error using the intrinsic that detects it.
 
-use greyhack_behaviour::Refusal;
-
-use super::blockchain::Side;
+use greyhack_behaviour::{Refusal, Side};
 
 /// Why the player's purchase is not paid (`BankHelperServer.PagarCompra`).
 #[derive(Debug, Clone, PartialEq, Eq)]

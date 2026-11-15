@@ -3,10 +3,10 @@
 use greyhack_behaviour::{
     LOWERCASE_ALPHANUMERIC, SECONDS_PER_DAY, check_new_wallet, check_wallet_password, hash_password,
 };
+use greyhack_world_core::{ComputerId, Result};
 
 use crate::model::{Wallet, WalletId};
 use crate::services::failure::EconomyFailure;
-use crate::{ComputerId, Result};
 
 /// Characters in a wallet PIN (`BlockchainSystem.Wallet.GetPin`).
 const WALLET_PIN_LENGTH: u32 = 5;
@@ -205,8 +205,8 @@ pub struct WalletService {
     pub(crate) coins: std::rc::Rc<crate::storage::CoinRepository>,
     pub(crate) subwallets: std::rc::Rc<crate::storage::SubwalletRepository>,
     pub(crate) offers: std::rc::Rc<crate::storage::OfferRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) bank: greyhack_world_core::Dep<crate::services::Bank>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) bank: greyhack_world_modules::Dep<crate::services::Bank>,
 }
 
 impl WalletService {
@@ -216,8 +216,8 @@ impl WalletService {
         coins: std::rc::Rc<crate::storage::CoinRepository>,
         subwallets: std::rc::Rc<crate::storage::SubwalletRepository>,
         offers: std::rc::Rc<crate::storage::OfferRepository>,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        bank: greyhack_world_core::Dep<crate::services::Bank>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        bank: greyhack_world_modules::Dep<crate::services::Bank>,
     ) -> Self {
         Self {
             world: world.clone(),

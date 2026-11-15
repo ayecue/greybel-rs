@@ -4,10 +4,10 @@
 use std::collections::HashMap;
 
 use greyhack_behaviour::{
-    FIRST_VERSION, GUEST_USER, LibraryKind, LibraryRole, ROOT_USER, Requirement, Reward,
+    FIRST_VERSION, GUEST_USER, LibraryKind, LibraryRole, ROOT_USER, Requirement, Reward, Rng, Word,
 };
 
-use crate::{Library, MemoryZone, Rng, Weakness, Word};
+use crate::{Library, MemoryZone, Weakness};
 
 /// Metaxploit version a weakness needs to be seen when the library is made with none
 /// (`Library.Vulnerabilidad.metaxploitVersion`).

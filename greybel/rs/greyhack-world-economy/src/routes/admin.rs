@@ -1,9 +1,9 @@
 //! Economy operations of the global `admin.so` program.
 
-use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     AdminDeposit, AdminGrantCoins, AdminRemoveNetwork, AdminSetNetSpeed,
 };
+use greyhack_world_router::RouteTable;
 
 use crate::routes::Result;
 

@@ -181,6 +181,7 @@ async fn should_match_intrinsics_for_smart_appliance_settings() {
         weakness.reward == reward && weakness.requirements.is_empty()
     };
     let mut selected = None;
+    let mut skipped = Vec::new();
 
     'networks: for _ in 0..12 {
         let network = client.find_network("FastFood", "FRIDGE").await.unwrap();
@@ -200,6 +201,7 @@ async fn should_match_intrinsics_for_smart_appliance_settings() {
             }
             _ => None,
         }) else {
+            skipped.push(format!("{}: no reachable fridge", network.public_ip));
             continue;
         };
 
@@ -234,6 +236,10 @@ async fn should_match_intrinsics_for_smart_appliance_settings() {
                 .release_library_version("libsmartappliance.so")
                 .await
                 .unwrap();
+            skipped.push(format!(
+                "{}: {} lacks free weaknesses",
+                network.public_ip, library.version
+            ));
             continue;
         };
 
@@ -241,10 +247,24 @@ async fn should_match_intrinsics_for_smart_appliance_settings() {
             selected = Some((snapshot, fridge, port, unlock, shell));
             break 'networks;
         }
+        skipped.push(format!(
+            "{}: net_use to {fridge} refused in the copy",
+            network.public_ip
+        ));
     }
 
-    let (snapshot, fridge, port, (unlock_zone, unlock_weakness), (shell_zone, shell_weakness)) =
-        selected.expect("a fridge library with an override and a shell weakness");
+    let Some((
+        snapshot,
+        fridge,
+        port,
+        (unlock_zone, unlock_weakness),
+        (shell_zone, shell_weakness),
+    )) = selected
+    else {
+        panic!(
+            "a fridge library with an override and a shell weakness; networks tried: {skipped:#?}"
+        );
+    };
     // The shell's user decides where it may write: root and guest have fixed homes, and for a normal user the game
     // picks one at random (`ScriptsUtil.GetShellUser`), so the script takes the first home it can write in.
     let folder = match shell_weakness.user.as_str() {

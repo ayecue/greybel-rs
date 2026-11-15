@@ -5,11 +5,11 @@ use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap};
 use std::rc::Rc;
 
+use greyhack_world_effects::{Event, EventFuture, EventQueue, Routine, Scheduler, WorkQueue};
 use greyhack_world_router::RouteTable;
-use greyhack_world_routines::{Routine, Scheduler};
 use greyhack_world_storage::DomainSchema;
 
-use crate::{CapabilityRegistry, Dep, Event, EventFuture, EventQueue, WorkQueue};
+use crate::{CapabilityRegistry, Dep};
 
 /// Parts shared by the assembled world and its server.
 pub struct Assembly {

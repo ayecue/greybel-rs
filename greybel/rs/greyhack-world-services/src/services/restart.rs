@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use greyhack_behaviour::{FIRST_VERSION, ServiceId};
 use greyhack_world_core::{ComputerId, ComputerService, WorldRef};
-use greyhack_world_routines::{
+use greyhack_world_effects::{
     Result as RoutineResult, Routine, RoutineError, RoutineId, Scheduler,
 };
 use greyhack_world_storage::TableSet;
@@ -30,14 +30,14 @@ pub struct ServiceRestartReport {
 /// A service restarts on a computer.
 pub struct ServiceRestart {
     world: WorldRef,
-    computers: greyhack_world_core::Dep<ComputerService>,
+    computers: greyhack_world_modules::Dep<ComputerService>,
     scheduler: Rc<Scheduler>,
 }
 
 impl ServiceRestart {
     pub(crate) fn new(
         world: &WorldRef,
-        computers: greyhack_world_core::Dep<ComputerService>,
+        computers: greyhack_world_modules::Dep<ComputerService>,
         scheduler: Rc<Scheduler>,
     ) -> Self {
         Self {
@@ -53,14 +53,18 @@ impl ServiceRestart {
         at: u64,
         computer: ComputerId,
         service: ServiceId,
-    ) -> crate::Result<RoutineId> {
+    ) -> greyhack_world_core::Result<RoutineId> {
         Ok(self
             .scheduler
             .schedule::<Self>(&self.world.db().connection(), at, &(computer, service))
             .await?)
     }
 
-    async fn restart(&self, computer: ComputerId, service: ServiceId) -> crate::Result<()> {
+    async fn restart(
+        &self,
+        computer: ComputerId,
+        service: ServiceId,
+    ) -> greyhack_world_core::Result<()> {
         if !self.computers.has_computer(computer).await? {
             self.world
                 .world_mut()
@@ -111,7 +115,7 @@ impl Routine for ServiceRestart {
         execute(
             conn,
             "INSERT INTO routine_service_restarts (routine_id, computer_id, service) VALUES (?1, ?2, ?3)",
-            params![id.cast_signed(), computer.0, service.code()],
+            params![id.get().cast_signed(), computer.0, service.code()],
         )
         .await?;
 
@@ -122,7 +126,7 @@ impl Routine for ServiceRestart {
         let row = fetch_opt::<(u32, Code<ServiceId>)>(
             conn,
             "SELECT computer_id, service FROM routine_service_restarts WHERE routine_id = ?1",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 
@@ -149,10 +153,12 @@ impl Routine for ServiceRestart {
             .await?;
 
             for row in rows {
-                let id = row.cast_unsigned();
+                let id = RoutineId::new(row.cast_unsigned());
 
                 if self.scheduler.cancel(conn, id).await? {
-                    self.world.works().cancel(id);
+                    self.world
+                        .works()
+                        .cancel(greyhack_world_effects::WorkId::from(id));
                 }
             }
         }

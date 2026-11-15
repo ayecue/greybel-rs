@@ -1,9 +1,9 @@
 //! Operations on CTF events (`CTFIntrinsics`).
 
-use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     CtfGetCreatorName, CtfGetDescription, CtfGetMailContent, CtfGetTemplate, CtfPlayerSuccess,
 };
+use greyhack_world_router::RouteTable;
 
 use crate::routes::Result;
 use crate::{CtfEvent, CtfRef, ObjectTableExt as _};

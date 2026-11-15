@@ -6,8 +6,9 @@ use greyhack_behaviour::{
     PassiveStage, SYSTEM_LOG_PATH, SystemLog, passive_trace_delay_ms, requeues_absent_admin,
     should_start_tracking, world_seconds,
 };
+use greyhack_world_core::{ComputerId, Result, TraceKind};
 
-use crate::{ComputerId, PassiveState, PassiveTrace, Result, TraceKind, TraceService};
+use crate::{PassiveState, PassiveTrace, TraceService};
 
 /// Passive administrator traces.
 impl TraceService {

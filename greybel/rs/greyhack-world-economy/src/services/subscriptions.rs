@@ -4,8 +4,9 @@ use greyhack_behaviour::{
     NetworkEffect, RENTAL_ADMIN_PRICE, SubscriptionKind, add_month, admin_payment_ends,
     payment_ends,
 };
+use greyhack_world_core::Result;
 
-use crate::{Bank, BankSubscription, BankTransaction, Payment, Result};
+use crate::{Bank, BankSubscription, BankTransaction, Payment};
 
 /// Methods of [`World`] for economy subscriptions.
 impl Bank {

@@ -5,14 +5,15 @@ mod content;
 mod ownership;
 mod properties;
 
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::ObjectTableHandle;
+use greyhack_world_programs::protocol::{
     Failure, FileAllowImport, FileChange, FileChmod, FileCopy, FileDate, FileDelete, FileEntries,
     FileFailure, FileGetContent, FileGetFiles, FileGetFolders, FileGroup, FileHasPermission,
     FileIsBinary, FileIsFolder, FileIsSymlink, FileMove, FileName, FileOwner, FileParent, FilePath,
     FilePermissions, FileRename, FileSetContent, FileSetGroup, FileSetOwner, FileSize, FileSymlink,
     ObjectId, Outcome,
 };
-use greyhack_world_router::{ObjectTableHandle, RouteContext, RouteTable};
+use greyhack_world_router::{RouteContext, RouteTable};
 
 use self::changes::{copy, delete, r#move, rename, symlink};
 use self::content::{content, entries, set_content};

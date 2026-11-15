@@ -18,7 +18,7 @@ pub(crate) struct EvaluatedText {
 }
 
 impl EvaluatedText {
-    /// Removes surrounding string quotes and unescapes doubled quotes; leaves other rendered values unchanged.
+    /// Removes surrounding string quotes and unescapes doubled quotes; omits changes to other rendered values.
     fn log_text(&self) -> String {
         if self.type_name != "string" {
             return self.text.clone();

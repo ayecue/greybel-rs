@@ -1,9 +1,10 @@
 //! Opening a `metaxploit.net_use` session (`MetaExploitIntrinsics.net_use`).
 
-use greyhack_behaviour::{FileKind, is_device, is_lan_ip, is_valid_ip, library_path};
+use greyhack_behaviour::{FileKind, LanFailure, is_device, is_lan_ip, is_valid_ip, library_path};
 use greyhack_world_core::systems::network::reach::is_closed;
+use greyhack_world_core::{ComputerId, Result, RouterId};
 
-use crate::{ComputerId, LanFailure, Metaxploit, NetUseFailure, NetUseSession, Result, RouterId};
+use crate::{Metaxploit, NetUseFailure, NetUseSession};
 
 /// Methods of [`World`] for exploits metaxploit net use.
 impl Metaxploit {

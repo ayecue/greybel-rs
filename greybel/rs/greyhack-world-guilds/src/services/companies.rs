@@ -5,8 +5,9 @@ use greyhack_behaviour::{
     default_company_seed, effective_max_admin_restore_disabled_companies,
     is_listed_on_stock_market, is_valid_ip, majority_owner, max_stocks,
 };
+use greyhack_world_core::{NetworkId, Result};
 
-use crate::{AdminRestoreFailure, GuildId, NetworkId, Result, Stake};
+use crate::{AdminRestoreFailure, GuildId, Stake};
 
 /// Methods of [`World`] for guilds companies.
 impl GuildService {
@@ -216,18 +217,18 @@ impl GuildService {
 pub struct GuildService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) guilds: std::rc::Rc<crate::storage::GuildRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
 }
 
 impl GuildService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         guilds: std::rc::Rc<crate::storage::GuildRepository>,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
     ) -> Self {
         Self {
             world: world.clone(),

@@ -1,6 +1,6 @@
 //! Process listing, process termination, and rebooting (`ComputerIntrinsics`).
 
-use greyhack_world_router::protocol::{Outcome, ProcessUsage, ProgramClose};
+use greyhack_world_programs::protocol::{Outcome, ProcessUsage, ProgramClose};
 
 use crate::objects::Access;
 use crate::routes::Result;

@@ -1,6 +1,6 @@
 //! Operation messages that identify their originating program.
 
-use crate::protocol::*;
+use greyhack_world_programs::protocol::*;
 
 /// Program message carrying its source program ID.
 pub trait Operation {

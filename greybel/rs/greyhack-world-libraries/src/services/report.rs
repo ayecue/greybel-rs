@@ -1,6 +1,7 @@
 //! What an exploit attempt reports: its log, result, and reward.
 
-use crate::{ComputerId, LanFailure, NodeId};
+use greyhack_behaviour::LanFailure;
+use greyhack_world_core::{ComputerId, NodeId};
 
 /// Overflow attack output and granted reward.
 #[derive(Debug, Clone, PartialEq, Eq)]

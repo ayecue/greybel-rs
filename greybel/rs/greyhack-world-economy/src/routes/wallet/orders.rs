@@ -1,11 +1,13 @@
 //! Buy and sell orders (`WalletIntrinsics`).
 
+use greyhack_behaviour::Side;
+
 use crate::routes::Result;
 use crate::routes::protocol::{
     CancelTrade, EconomyFailure, Failure, GlobalOffer, GlobalOffers, IntoProtocol as _,
     PendingTrade, TradeOutcome,
 };
-use crate::{Side, Trade, WalletId};
+use crate::{Trade, WalletId};
 
 /// Places a buy order for `amount` of `coin` at `price` and returns its trade state or failure.
 ///

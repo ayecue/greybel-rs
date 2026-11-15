@@ -5,9 +5,10 @@ use greyhack_behaviour::{
     ServiceId, format_apt_sources, is_lan_ip, is_valid_ip, parse_apt_official, parse_apt_sources,
 };
 use greyhack_world_core::systems::network::connect::ServiceCheck;
+use greyhack_world_core::{ComputerId, Result};
 
 use crate::services::Apt;
-use crate::{AptFailure, ComputerId, Package, Repository, RepositoryConfig, Result};
+use crate::{AptFailure, Package, Repository, RepositoryConfig};
 
 /// Methods of [`World`] for services apt sources.
 impl Apt {

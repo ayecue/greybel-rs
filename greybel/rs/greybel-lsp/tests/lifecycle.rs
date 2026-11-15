@@ -1,6 +1,6 @@
 //! Tests initialization, shutdown, exit, and requests rejected before or after each lifecycle state.
 
-use greybel_lsp::FindFilesRequest;
+use greybel_lsp::FileSearch;
 use greybel_lsp::types::{self as lsp, ErrorCodes, Request as _};
 use serde_json::json;
 
@@ -57,7 +57,7 @@ fn should_announce_its_capabilities_on_initialize() {
         client.requests,
         [
             lsp::ConfigurationRequest::METHOD.as_str(),
-            FindFilesRequest::METHOD.as_str()
+            FileSearch::METHOD.as_str()
         ]
     );
 }

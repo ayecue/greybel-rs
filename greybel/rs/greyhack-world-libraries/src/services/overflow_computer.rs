@@ -4,12 +4,13 @@ use greyhack_behaviour::{
     CredentialError, DeviceKind, GUEST_USER, LIBRARY_FOLDER, NetworkKind, Requirement, Reward,
     compare_versions, is_device, is_valid_ip, library_path, validate_credential,
 };
+use greyhack_world_core::{ComputerId, Result, RouterId};
 
 use super::report::{
     AttackResult, AttackReward, ExploitLog, ExploitOutcome, ExploitReport, UnmetRequirement,
     attack, report, reward_report,
 };
-use crate::{ComputerId, Result, RouterId, Weakness};
+use crate::Weakness;
 
 /// Methods of [`World`] for exploits overflow computer.
 impl OverflowService {
@@ -425,15 +426,16 @@ impl OverflowService {
 /// A world service with only its declared dependencies.
 pub struct OverflowService {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
-    pub(crate) jobs: greyhack_world_core::Dep<greyhack_world_npcs::JobService>,
-    pub(crate) appliances: greyhack_world_core::Dep<greyhack_world_smart_devices::ApplianceService>,
-    pub(crate) traffic: greyhack_world_core::Dep<greyhack_world_smart_devices::Traffic>,
-    pub(crate) generator: greyhack_world_core::Dep<crate::Generator>,
-    pub(crate) versions: greyhack_world_core::Dep<crate::VersionService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) guilds: greyhack_world_modules::Dep<greyhack_world_guilds::GuildService>,
+    pub(crate) jobs: greyhack_world_modules::Dep<greyhack_world_npcs::JobService>,
+    pub(crate) appliances:
+        greyhack_world_modules::Dep<greyhack_world_smart_devices::ApplianceService>,
+    pub(crate) traffic: greyhack_world_modules::Dep<greyhack_world_smart_devices::Traffic>,
+    pub(crate) generator: greyhack_world_modules::Dep<crate::Generator>,
+    pub(crate) versions: greyhack_world_modules::Dep<crate::VersionService>,
 }
 
 impl OverflowService {

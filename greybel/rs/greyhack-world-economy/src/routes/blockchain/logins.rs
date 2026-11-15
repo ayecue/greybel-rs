@@ -1,11 +1,11 @@
 //! Coin and wallet logins, creation, and deletion (`BlockchainIntrinsics`).
 
-use greyhack_world_core::Access;
+use greyhack_world_core::{Access, CoinId, ComputerId};
 
 use super::{Login, require_online};
+use crate::WalletId;
 use crate::routes::Result;
 use crate::routes::protocol::{CoinName, EconomyFailure, Failure, IntoProtocol as _, Outcome};
-use crate::{CoinId, ComputerId, WalletId};
 
 /// Authenticates coin `name` with its creator `user` and `password`.
 pub(super) async fn get_coin(

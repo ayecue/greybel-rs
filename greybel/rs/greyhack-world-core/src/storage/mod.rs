@@ -8,7 +8,6 @@ pub mod nodes;
 mod persons;
 mod routers;
 pub mod schema;
-pub mod sql;
 mod users;
 pub mod world_meta;
 

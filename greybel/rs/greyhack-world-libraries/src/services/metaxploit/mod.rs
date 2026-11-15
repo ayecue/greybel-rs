@@ -4,17 +4,18 @@ pub(crate) mod net_use;
 pub(crate) mod rshell;
 pub(crate) mod scan;
 
+use greyhack_world_core::{ComputerId, Result, RouterId};
 use greyhack_world_intrusion::{LibraryObjectAccess, ObjectAccessFuture};
 
+use crate::ReverseShell;
 use crate::objects::{NetSessionRef, ObjectTableExt as _};
-use crate::{ComputerId, Result, ReverseShell, RouterId};
 
 impl LibraryObjectAccess for Metaxploit {
     fn metaxploit_access(
         &self,
-        objects: &greyhack_world_router::ObjectTableHandle<ComputerId>,
-        object: greyhack_world_router::protocol::ObjectId,
-    ) -> greyhack_world_router::RouteResult<
+        objects: &greyhack_world_programs::ObjectTableHandle<ComputerId>,
+        object: greyhack_world_programs::protocol::ObjectId,
+    ) -> greyhack_world_programs::RouteResult<
         greyhack_world_core::Access,
         greyhack_world_core::WorldError,
     > {
@@ -23,8 +24,8 @@ impl LibraryObjectAccess for Metaxploit {
 
     fn flood_session<'a>(
         &'a self,
-        objects: &'a greyhack_world_router::ObjectTableHandle<ComputerId>,
-        object: greyhack_world_router::protocol::ObjectId,
+        objects: &'a greyhack_world_programs::ObjectTableHandle<ComputerId>,
+        object: greyhack_world_programs::protocol::ObjectId,
     ) -> ObjectAccessFuture<'a, Option<(ComputerId, ComputerId)>> {
         Box::pin(async move {
             let session = objects.net_session(object)?;
@@ -41,23 +42,23 @@ impl LibraryObjectAccess for Metaxploit {
 pub struct Metaxploit {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) reverse_shells: std::rc::Rc<crate::storage::ReverseShellRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) generator: greyhack_world_core::Dep<crate::Generator>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) generator: greyhack_world_modules::Dep<crate::Generator>,
     pub(crate) network_generation:
-        greyhack_world_core::Dep<dyn greyhack_world_core::NetworkGeneration>,
+        greyhack_world_modules::Dep<dyn greyhack_world_core::NetworkGeneration>,
 }
 
 impl Metaxploit {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         reverse_shells: std::rc::Rc<crate::storage::ReverseShellRepository>,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        generator: greyhack_world_core::Dep<crate::Generator>,
-        network_generation: greyhack_world_core::Dep<dyn greyhack_world_core::NetworkGeneration>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        generator: greyhack_world_modules::Dep<crate::Generator>,
+        network_generation: greyhack_world_modules::Dep<dyn greyhack_world_core::NetworkGeneration>,
     ) -> Self {
         Self {
             world: world.clone(),

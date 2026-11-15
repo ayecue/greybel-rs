@@ -12,6 +12,7 @@ autotests = false
 doctest = false
 
 [dependencies]
+greyhack-world-programs.workspace = true
 duplex-core.workspace = true
 indexmap.workspace = true
 greyhack-behaviour.workspace = true
@@ -30,7 +31,7 @@ greyhack-world-services.workspace = true
 greyhack-world-shell.workspace = true
 greyhack-world-smart-devices.workspace = true
 greyhack-world-assets.workspace = true
-greyhack-world-routines.workspace = true
+greyhack-world-effects.workspace = true
 greyhack-world-storage.workspace = true
 greyhack-world-traces.workspace = true
 mono-random.workspace = true

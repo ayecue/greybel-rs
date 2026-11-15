@@ -4,34 +4,34 @@ use gen_lsp_types::{LspRequestMethod, MessageDirection, Request};
 use greybel_project::Manifest;
 use serde::{Deserialize, Serialize};
 
-/// Server request asking the client for a URI's file contents.
-pub enum ReadFileRequest {}
+/// Server request for a URI's file contents.
+pub enum ReadFile {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ReadFileParams {
+pub struct ReadFileRequest {
     pub uri: String,
 }
 
-impl Request for ReadFileRequest {
-    type Params = ReadFileParams;
+impl Request for ReadFile {
+    type Params = ReadFileRequest;
     type Result = Option<String>;
 
     const MESSAGE_DIRECTION: MessageDirection = MessageDirection::ServerToClient;
     const METHOD: LspRequestMethod<'static> = LspRequestMethod::new("custom/read-file");
 }
 
-/// Server request asking the client for file URIs matching include and exclude globs.
-pub enum FindFilesRequest {}
+/// Server request for file URIs matching include and exclude globs.
+pub enum FileSearch {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct FindFilesParams {
+pub struct FindFilesRequest {
     pub include: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exclude: Option<String>,
 }
 
-impl Request for FindFilesRequest {
-    type Params = FindFilesParams;
+impl Request for FileSearch {
+    type Params = FindFilesRequest;
     type Result = Vec<String>;
 
     const MESSAGE_DIRECTION: MessageDirection = MessageDirection::ServerToClient;
@@ -40,11 +40,11 @@ impl Request for FindFilesRequest {
 
 /// Client request for a document's project. Uses the nearest `greybel.json` at or above the document folder, or
 /// `fallback`, then applies `profile` and loads values from variable files.
-pub enum ProjectRequest {}
+pub enum Project {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProjectParams {
+pub struct ProjectRequest {
     pub uri: String,
     /// Fallback settings for documents without `greybel.json`, such as editor settings; defaults apply when omitted.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -67,8 +67,8 @@ pub struct ProjectResult {
     pub run_variables: BTreeMap<String, String>,
 }
 
-impl Request for ProjectRequest {
-    type Params = ProjectParams;
+impl Request for Project {
+    type Params = ProjectRequest;
     type Result = ProjectResult;
 
     const MESSAGE_DIRECTION: MessageDirection = MessageDirection::ClientToServer;

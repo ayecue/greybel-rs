@@ -1,11 +1,11 @@
 //! Coin prices, history, and mined amounts (`BlockchainIntrinsics`).
 
-use greyhack_world_core::Access;
+use greyhack_world_core::{Access, ComputerId};
 
 use super::require_online;
+use crate::Coin;
 use crate::routes::Result;
 use crate::routes::protocol::{CoinPrice, EconomyFailure, Failure, Figure, PriceHistory};
-use crate::{Coin, ComputerId};
 
 /// Looks up coin `name` and reads its figure with `read`, returning connection or lookup failures.
 pub(super) async fn on_coin(

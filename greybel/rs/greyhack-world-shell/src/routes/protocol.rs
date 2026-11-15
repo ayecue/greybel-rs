@@ -1,7 +1,7 @@
 //! Conversions of launch, import, and build failures.
 
 pub(crate) use greyhack_world_core::routes::conversions::{IntoProtocol, TryProtocolFrom};
-pub(crate) use greyhack_world_router::protocol::*;
+pub(crate) use greyhack_world_programs::protocol::*;
 
 impl IntoProtocol for crate::LaunchFailure {
     type Output = LaunchFailure;

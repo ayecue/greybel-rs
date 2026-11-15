@@ -5,7 +5,7 @@ use crate::error::IntrinsicError;
 use crate::game::client::server::{program, respond, server};
 use crate::protocol::WalletListCoins;
 
-/// Returns coins in which the wallet holds a balance.
+/// Returns coins for which the wallet contains a balance.
 #[native(method)]
 pub fn list_coins(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicError> {
     let Some(id) = wallet_id(vm, this) else {

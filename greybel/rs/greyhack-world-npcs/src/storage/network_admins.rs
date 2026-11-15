@@ -1,10 +1,9 @@
 //! Network administrator rows owned by the NPC domain.
 
-use greyhack_world_core::Database;
+use greyhack_behaviour::{NetworkAdmin, WorkPerformance};
+use greyhack_world_core::{Database, NetworkId, PersonId, Result};
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_opt, fetch_value};
 use turso::params;
-
-use crate::{NetworkAdmin, NetworkId, PersonId, Result, WorkPerformance};
 
 struct AdminRow(NetworkAdmin);
 

@@ -1,6 +1,6 @@
 //! File content and directory-entry operations (`FileIntrinsics`).
 
-use greyhack_world_router::protocol::{Failure, FileContent, Outcome};
+use greyhack_world_programs::protocol::{Failure, FileContent, Outcome};
 
 use super::{EntryResult, accessible_resolve};
 use crate::Node;

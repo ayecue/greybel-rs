@@ -9,13 +9,13 @@ use greyhack_world_economy::BlockchainHandle;
 use greyhack_world_intrusion::CryptoHandle;
 use greyhack_world_libraries::{MetaxploitHandle, MetaxploitRef};
 use greyhack_world_npcs::{MailRef, MetaMailHandle};
-use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     CtfFailure, Failure, IncludedLibrary, MailFailure, ObjectOutcome, Outcome, PlayerCd,
     PlayerCurrentDate, PlayerGetCtf, PlayerGetRouter, PlayerGetShell, PlayerGetSwitch,
     PlayerIncludeLib, PlayerMailLogin, PlayerNslookup, PlayerResetCtfPassword,
     PlayerUserBankNumber, PlayerUserMailAddress, PlayerWhois, ShellLogin, Whois,
 };
+use greyhack_world_router::RouteTable;
 use greyhack_world_services::ServiceRef;
 use greyhack_world_services::objects::ObjectTableExt as _;
 use greyhack_world_smart_devices::{SmartApplianceHandle, TrafficNetHandle};

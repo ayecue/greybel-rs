@@ -8,6 +8,7 @@ use greyhack_behaviour::{
     SYSTEM_LOG_FOLDER_PERMISSIONS, SYSTEM_LOG_NAME, SYSTEM_LOG_PERMISSIONS, SystemLog, format_date,
     is_device, player_net_id, template_timestamp, token_trace,
 };
+use greyhack_world_modules::Dep;
 
 use crate::systems::{LogService as LogsService, *};
 use crate::*;

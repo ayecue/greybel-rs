@@ -199,8 +199,7 @@ CREATE INDEX IF NOT EXISTS mining_subscribers_computer ON mining_subscribers (co
 );
 
 /// Deletes mining subscriptions when the world opens.
-pub(crate) const MINE_VOLATILE: TableSet =
-    TableSet::volatile("DELETE FROM mining_subscribers;\n");
+pub(crate) const MINE_VOLATILE: TableSet = TableSet::volatile("DELETE FROM mining_subscribers;\n");
 
 /// Deletes unfinished mining-round routines when the world opens.
 pub(crate) const MINE_ROUND_VOLATILE: TableSet = TableSet::volatile(

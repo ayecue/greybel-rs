@@ -6,11 +6,12 @@ use greyhack_behaviour::{
     mail_config_path, path,
 };
 use greyhack_world_core::storage::nodes::NodeSpec;
+use greyhack_world_core::{ComputerId, Node, Result, Router, User};
+use greyhack_world_libraries::ComputerDraft;
 use greyhack_world_missions::MissionPlacement;
 
 use crate::generation::ComputerOptions;
 use crate::generation::lan::{ComputerPlan, LanPlan};
-use crate::{ComputerDraft, ComputerId, Node, Result, Router, User};
 
 /// Administrator network restoration.
 impl RestoreService {
@@ -320,9 +321,9 @@ impl RestoreService {
 
     pub async fn npc_computer_needs_restore(
         &self,
-        row: &crate::Computer,
+        row: &greyhack_world_core::Computer,
         draft: &ComputerDraft,
-        npcs: &[crate::Npc],
+        npcs: &[greyhack_world_npcs::Npc],
     ) -> Result<bool> {
         if row.is_rebooting(self.world.time_seconds()) {
             return Ok(true);
@@ -465,16 +466,17 @@ fn computer_at<'p>(plan: &'p LanPlan, local_ip: &str) -> Option<&'p ComputerPlan
 /// A world service with only its declared dependencies.
 pub struct RestoreService {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) mission_placement: greyhack_world_core::Dep<crate::MissionPlacement>,
-    pub(crate) network_generation: greyhack_world_core::Dep<crate::NetworkGeneration>,
-    pub(crate) updates: greyhack_world_core::Dep<greyhack_world_libraries::UpdateService>,
-    pub(crate) installs: greyhack_world_core::Dep<greyhack_world_services::InstallService>,
-    pub(crate) libraries: greyhack_world_core::Dep<greyhack_world_libraries::LibraryService>,
-    pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
-    pub(crate) appliances: greyhack_world_core::Dep<greyhack_world_smart_devices::ApplianceService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) mission_placement: greyhack_world_modules::Dep<crate::MissionPlacement>,
+    pub(crate) network_generation: greyhack_world_modules::Dep<crate::NetworkGeneration>,
+    pub(crate) updates: greyhack_world_modules::Dep<greyhack_world_libraries::UpdateService>,
+    pub(crate) installs: greyhack_world_modules::Dep<greyhack_world_services::InstallService>,
+    pub(crate) libraries: greyhack_world_modules::Dep<greyhack_world_libraries::LibraryService>,
+    pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
+    pub(crate) appliances:
+        greyhack_world_modules::Dep<greyhack_world_smart_devices::ApplianceService>,
 }
 
 impl RestoreService {

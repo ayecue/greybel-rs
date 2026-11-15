@@ -1,6 +1,6 @@
 //! Tests open-document edits, diagnostics, and dialect selection.
 
-use greybel_lsp::ReadFileRequest;
+use greybel_lsp::ReadFile;
 use greybel_lsp::types::{self as lsp, Request as _};
 use serde_json::json;
 
@@ -137,7 +137,7 @@ fn should_check_documents_in_the_dialect_the_server_was_started_with() {
         client
             .requests
             .iter()
-            .all(|method| method != ReadFileRequest::METHOD.as_str())
+            .all(|method| method != ReadFile::METHOD.as_str())
     );
 }
 

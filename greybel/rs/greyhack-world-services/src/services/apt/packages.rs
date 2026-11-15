@@ -4,9 +4,10 @@ use greyhack_behaviour::{
     APT_PACKAGE_SIZE, FileData, FileKind, LibraryKind, OFFICIAL_OMISSIONS, OFFICIAL_SERVER,
     PermissionSet, ROOT_USER, default_apt_install_folder,
 };
+use greyhack_world_core::{ComputerId, LibraryId, NodeDraft, Result};
 
 use crate::services::Apt;
-use crate::{AptFailure, ComputerId, LibraryId, NodeDraft, PackageEntry, RepositoryConfig, Result};
+use crate::{AptFailure, PackageEntry, RepositoryConfig};
 
 /// Official-server packages: all libraries except explicit omissions.
 pub(super) fn official_packages() -> impl Iterator<Item = PackageEntry> {

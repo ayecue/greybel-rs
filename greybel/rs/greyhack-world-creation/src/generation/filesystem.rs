@@ -6,8 +6,8 @@ use greyhack_behaviour::{
     format_apt_sources, parse_date,
 };
 use greyhack_world_assets::{FileLayout, FileSystemLayout, FolderLayout, Script};
-
-use crate::{ComputerDraft, FileSystemDraft, NodeDraft, NodeId, User};
+use greyhack_world_core::{NodeId, User};
+use greyhack_world_libraries::{ComputerDraft, FileSystemDraft, NodeDraft};
 
 /// Wi-Fi tools installed by `ResumeFirstInstall`.
 const PLAYER_COMMANDS: &[&str] = &["airmon", "aireplay", "aircrack"];

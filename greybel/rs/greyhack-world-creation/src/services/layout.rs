@@ -1,9 +1,10 @@
 //! Network construction from an explicit layout, including copied Grey Hack networks.
 
-use crate::{
-    ComputerId, DeviceLayout, ForwardLayout, LanPlace, LayoutFailure, NetworkDraft,
-    NetworkGeneration, NetworkLayout, Result, RouterId, WorldError,
+use greyhack_world_core::{
+    ComputerId, LanPlace, LayoutFailure, NetworkDraft, Result, RouterId, WorldError,
 };
+
+use crate::{DeviceLayout, ForwardLayout, NetworkGeneration, NetworkLayout};
 
 /// Explicit-layout construction.
 impl NetworkGeneration {

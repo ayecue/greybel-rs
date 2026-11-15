@@ -1,7 +1,9 @@
 //! Guilds, company ownership and CrownShield: who owns a company, the guild ranking and the Crown
 //! (`Guilds`, `StocksCompany`, `Database.GetGuildRanking`, `NetworkHelperServer.ActivateCrownShieldProtection`).
 
-use crate::{Guild, GuildDraft, GuildFailure, GuildId, GuildService, GuildsLayout, Result};
+use greyhack_world_core::Result;
+
+use crate::{Guild, GuildDraft, GuildFailure, GuildId, GuildService, GuildsLayout};
 
 /// Methods of [`World`] for guilds records.
 impl GuildService {

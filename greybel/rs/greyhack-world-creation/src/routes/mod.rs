@@ -5,7 +5,7 @@ mod admin_network;
 mod protocol;
 
 use greyhack_world_core::WorldError;
-use greyhack_world_router::RouteError;
+use greyhack_world_programs::RouteError;
 
 /// Failure that prevents a creation route from returning a program result.
 pub type OperationError = RouteError<WorldError>;

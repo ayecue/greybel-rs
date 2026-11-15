@@ -1,6 +1,6 @@
-use greyhack_behaviour::NetworkKind;
-
-use crate::{ComputerDraft, NetworkAdmin, Port, RouterDraft};
+use greyhack_behaviour::{NetworkAdmin, NetworkKind};
+use greyhack_world_core::Port;
+use greyhack_world_libraries::{ComputerDraft, RouterDraft};
 
 /// Explicit node-by-node network layout used to reproduce another network, including layouts copied
 /// from Grey Hack.

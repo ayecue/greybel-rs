@@ -1,5 +1,6 @@
+use greyhack_behaviour::CompanyAlign;
+
 use super::Colleague;
-use crate::CompanyAlign;
 
 /// The NPC whose mailbox is generated.
 #[derive(Debug, Clone)]

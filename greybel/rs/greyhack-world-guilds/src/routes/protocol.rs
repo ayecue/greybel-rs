@@ -1,7 +1,7 @@
 //! Conversions of guild and admin restore failures.
 
 pub(crate) use greyhack_world_core::routes::conversions::IntoProtocol;
-use greyhack_world_router::protocol::AdminFailure;
+use greyhack_world_programs::protocol::AdminFailure;
 
 impl IntoProtocol for crate::GuildFailure {
     type Output = AdminFailure;

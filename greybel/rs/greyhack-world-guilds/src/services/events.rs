@@ -1,8 +1,7 @@
 //! EventQueue published by guild services.
 
-use greyhack_world_modules::Event;
-
-use crate::ComputerId;
+use greyhack_world_core::ComputerId;
+use greyhack_world_effects::Event;
 
 /// CrownShield clears floods targeting a computer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

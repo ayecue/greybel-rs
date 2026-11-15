@@ -10,13 +10,15 @@ use duplex_core::{
 };
 use greyhack_world::World;
 use greyhack_world_core::WorldError;
+use greyhack_world_programs::protocol::{
+    GameServer, ProgramId, ProgramThrottle, ReleaseObjects, ScriptFailure,
+};
 use greyhack_world_router::{
-    Call, CycleDriverRef, Cycles, Operation, OperationResponse, ResponderOf, RouteCall,
+    Call, CycleAccess, CycleDriverRef, Operation, OperationResponse, ResponderOf, RouteCall,
     RouteContext, RouteKind,
 };
 use scheduler::{LocalTask, Scheduler};
 
-use crate::protocol::{GameServer, ProgramId, ProgramThrottle, ReleaseObjects, ScriptFailure};
 use crate::server::ServerState;
 use crate::{OperationError, Result};
 
@@ -71,7 +73,7 @@ pub(crate) fn attach<D: Driver>(
         }));
     });
     lifecycle::attach(&connection, channel);
-    crate::protocol::attach_dispatch(channel, connection.clone());
+    greyhack_world_programs::protocol::attach_dispatch(channel, connection.clone());
 }
 
 /// Handlers resolve object IDs in their program tree and register returned objects. Messages with unknown
@@ -91,7 +93,7 @@ impl Connection {
     ) where
         D: Driver,
         M: duplex_core::Message<
-                Sender = greyhack_world_router::Client,
+                Sender = <GameServer as duplex_core::Peer>::Remote,
                 Exchange = OperationResponse<R>,
             > + Operation
             + ValidatedDecode
@@ -245,7 +247,7 @@ impl Connection {
                 let context = RouteContext::with_cycles(
                     modules,
                     trees,
-                    Cycles::new(state.as_ref(), connection.id, &driver),
+                    CycleAccess::new(state.as_ref(), connection.id, &driver),
                 )
                 .with_prints(state.prints.clone());
 

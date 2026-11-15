@@ -1,6 +1,6 @@
 //! Computer ports, addresses, network cards, Wi-Fi, and Ethernet (`ComputerIntrinsics`).
 
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     ActiveCard as CardKind, EthernetSettings, NetworkDevice, NetworkSwitch, Port, ScriptFailure,
     WifiNetwork, WifiScan as Scan,
 };

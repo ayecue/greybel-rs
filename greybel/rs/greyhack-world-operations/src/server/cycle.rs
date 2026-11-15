@@ -2,18 +2,18 @@
 
 use greyhack_behaviour::MILLIS_PER_SECOND;
 use greyhack_world_core::WorldError;
+use greyhack_world_programs::protocol::{ObjectId, ProgramId};
 use tokio::sync::MutexGuard;
 
 use super::budget::Owner;
-use super::{ServerState, WorldState};
-use crate::protocol::{ObjectId, ProgramId};
+use super::{ServerState, ServerWorld};
 
 impl ServerState {
     /// Acquires the world in cycle order, runs `apply`, settles events, sends program termination notices,
     /// and releases the world to the next cycle.
     pub(crate) async fn cycle<T>(
         &self,
-        apply: impl AsyncFnOnce(&mut WorldState) -> T,
+        apply: impl AsyncFnOnce(&mut ServerWorld) -> T,
         commit: bool,
     ) -> T {
         let mut state = self.lock_cycle().await;
@@ -32,7 +32,7 @@ impl ServerState {
         &self,
         connection: u32,
         program: Option<ProgramId>,
-        apply: impl AsyncFnOnce(&mut WorldState) -> T,
+        apply: impl AsyncFnOnce(&mut ServerWorld) -> T,
         respond: impl FnOnce(T),
         commit: bool,
     ) {
@@ -51,7 +51,7 @@ impl ServerState {
         &self,
         connection: u32,
         program: ProgramId,
-        apply: impl AsyncFnOnce(&mut WorldState) -> T,
+        apply: impl AsyncFnOnce(&mut ServerWorld) -> T,
     ) -> T {
         let _claim = self.draw(connection, Some(program)).await;
 
@@ -91,7 +91,7 @@ impl ServerState {
 
     /// Acquires the world in cycle order and begins the transaction settled by [`Self::settle`]. If the
     /// database refuses to begin, the cycle continues without a transaction.
-    pub(crate) async fn lock_cycle(&self) -> MutexGuard<'_, WorldState> {
+    pub(crate) async fn lock_cycle(&self) -> MutexGuard<'_, ServerWorld> {
         let state = self.world.lock().await;
 
         if let Err(error) = state.world.begin().await {
@@ -132,7 +132,7 @@ impl ServerState {
 
     /// Commits the cycle transaction. Failed writes are discarded and reported by the next
     /// [`WorldServer::save`]. Returns whether the commit succeeded.
-    pub(super) async fn commit(&self, state: &mut WorldState) -> bool {
+    pub(super) async fn commit(&self, state: &mut ServerWorld) -> bool {
         match state.world.commit().await {
             Ok(_) => true,
             Err(error) => {
@@ -158,8 +158,8 @@ impl ServerState {
     /// programs with ended processes, including descendants and deferred jobs; 3. pin new objects and commit
     /// unless `commit` is false; 4. resolve ended-work jobs after a successful commit. Jobs cancelled in
     /// phase 2 stay cancelled because program termination takes precedence. Returns whether commit succeeded.
-    pub(super) async fn settle(&self, state: &mut WorldState, commit: bool) -> bool {
-        if let Err(error) = state.world.assembly.events.deliver_async().await {
+    pub(super) async fn settle(&self, state: &mut ServerWorld, commit: bool) -> bool {
+        if let Err(error) = state.world.assembly.events.dispatch_async().await {
             self.record_failure(error.into());
         }
 

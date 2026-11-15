@@ -1,12 +1,15 @@
 //! Protocol conversions for base values and failures. The implementations are compiled with the
 //! base routes; downstream domains use the same conversion traits for their own values.
 
-mod common;
 mod computer;
+mod credential;
+mod file_ownership;
 mod files;
+mod name_kind;
 mod network;
-
-pub use greyhack_world_router::protocol::*;
+mod outcome;
+mod refusal;
+mod side;
 
 /// Converts a base world or behaviour value into its protocol representation.
 pub trait IntoProtocol {

@@ -1,10 +1,10 @@
 //! Storage for bank accounts and their transactions.
 
-use greyhack_world_core::Database;
+use greyhack_world_core::{Database, PersonId, Result};
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_opt, fetch_value};
 use turso::params;
 
-use crate::{BankAccount, BankTransaction, PersonId, Result};
+use crate::{BankAccount, BankTransaction};
 
 impl FromRow for BankAccount {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
@@ -33,13 +33,13 @@ impl FromRow for BankTransaction {
 /// Queries of the tables owned by this area.
 pub(crate) struct BankRepository {
     db: Database,
-    computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+    computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
 }
 
 impl BankRepository {
     pub(crate) fn new(
         db: Database,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
     ) -> Self {
         Self { db, computers }
     }

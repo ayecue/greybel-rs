@@ -12,6 +12,7 @@ autotests = false
 doctest = false
 
 [dependencies]
+greyhack-world-programs.workspace = true
 duplex-core.workspace = true
 duplex-driver-memory.workspace = true
 scheduler.workspace = true
@@ -25,7 +26,7 @@ greyhack-world-player.workspace = true
 greyhack-world-traces.workspace = true
 greyhack-world-modules.workspace = true
 greyhack-world-router.workspace = true
-greyhack-world-routines.workspace = true
+greyhack-world-effects.workspace = true
 greyhack-world-storage.workspace = true
 greyhack-world-assets.workspace = true
 serde_json.workspace = true

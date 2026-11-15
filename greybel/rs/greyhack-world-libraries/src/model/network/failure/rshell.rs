@@ -1,4 +1,4 @@
-use crate::ServiceFailure;
+use greyhack_world_core::ServiceFailure;
 
 /// `metaxploit.rshell_client` connection errors (`MetaExploitIntrinsics.rshell_client`).
 #[derive(Debug, Clone, PartialEq, Eq)]

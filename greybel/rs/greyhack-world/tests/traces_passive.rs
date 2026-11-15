@@ -157,7 +157,7 @@ async fn should_follow_a_passive_trace_back_to_the_player_and_renew_their_token(
         .add_passive_trace(computer)
         .await
         .unwrap();
-    world.deliver_events();
+    world.dispatch_events();
 
     // Act
     for _ in 0..200 {
@@ -194,7 +194,7 @@ async fn should_follow_a_passive_trace_back_to_the_player_and_renew_their_token(
 
         move |event: &greyhack_world_traces::StrikeEvent| strikes.borrow_mut().push(*event)
     });
-    world.deliver_events();
+    world.dispatch_events();
     assert!(
         strikes
             .borrow()

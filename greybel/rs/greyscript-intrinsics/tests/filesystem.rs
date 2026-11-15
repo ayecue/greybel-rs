@@ -1,5 +1,5 @@
 use greyhack_behaviour::{FileData, PermissionSet, ROOT_USER, parse_date};
-use greyhack_world_libraries::NodeDraft;
+use greyhack_world_core::NodeDraft;
 
 use crate::support::filesystem::world;
 use crate::support::scripts::run_on_host;

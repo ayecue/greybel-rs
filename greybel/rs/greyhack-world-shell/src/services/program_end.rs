@@ -2,9 +2,7 @@
 //! `HelperScript.CloseRemotePrograms`).
 
 use greyhack_behaviour::LogAction;
-use greyhack_world_core::LogWrite;
-
-use crate::{ComputerId, Result};
+use greyhack_world_core::{ComputerId, LogWrite, Result};
 
 /// Process, trace, and terminal-log effects of ending a program.
 impl ShellService {
@@ -94,16 +92,16 @@ impl ShellService {
 
 /// A world service with only its declared dependencies.
 pub struct ShellService {
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) traces: greyhack_world_modules::Dep<greyhack_world_traces::TraceService>,
 }
 
 impl ShellService {
     pub(crate) fn new(
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        traces: greyhack_world_modules::Dep<greyhack_world_traces::TraceService>,
     ) -> Self {
         Self {
             computers,

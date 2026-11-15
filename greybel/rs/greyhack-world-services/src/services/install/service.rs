@@ -4,12 +4,10 @@ use greyhack_behaviour::{
     DOWNLOADS_PATH, DeviceKind, FIRST_VERSION, FileData, ServiceId, WEBSITE_PATH, is_device, path,
 };
 use greyhack_world_assets::{Script, content_file, ssh_decode, ssh_encode, website_default};
+use greyhack_world_core::{ComputerId, Port, Result};
 
 use crate::model::service_config::config_text;
-use crate::{
-    ComputerId, DEFAULT_DECODE_PATH, DEFAULT_ENCODE_PATH, Port, RepositoryConfig, Result,
-    SshdConfig,
-};
+use crate::{DEFAULT_DECODE_PATH, DEFAULT_ENCODE_PATH, RepositoryConfig, SshdConfig};
 
 /// Methods of [`World`] for services install service.
 impl InstallService {
@@ -253,18 +251,18 @@ impl InstallService {
 
 /// A world service with only its declared dependencies.
 pub struct InstallService {
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
 }
 
 impl InstallService {
     pub(crate) fn new(
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
     ) -> Self {
         Self {
             computers,

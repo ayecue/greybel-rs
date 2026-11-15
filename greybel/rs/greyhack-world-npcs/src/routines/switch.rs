@@ -3,15 +3,15 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::Lateness;
-use greyhack_world_core::WorldRef;
-use greyhack_world_routines::{
+use greyhack_world_core::{PersonId, WorldRef};
+use greyhack_world_effects::{
     Result as RoutineResult, Routine, RoutineError, RoutineId, Scheduler,
 };
 use greyhack_world_storage::TableSet;
 use greyhack_world_storage::sql::{execute, fetch_column, fetch_value};
 use turso::{Connection, params};
 
-use crate::{Npc, NpcEvent, PersonId, ScheduleService};
+use crate::{Npc, NpcEvent, ScheduleService};
 
 /// NPC login changes emitted while routines run.
 #[derive(Default)]
@@ -23,14 +23,14 @@ pub struct NpcRoutineState {
 /// An NPC logs in or out.
 pub struct NpcSwitch {
     world: WorldRef,
-    schedules: greyhack_world_core::Dep<ScheduleService>,
+    schedules: greyhack_world_modules::Dep<ScheduleService>,
     scheduler: Rc<Scheduler>,
 }
 
 impl NpcSwitch {
     pub(crate) fn new(
         world: &WorldRef,
-        schedules: greyhack_world_core::Dep<ScheduleService>,
+        schedules: greyhack_world_modules::Dep<ScheduleService>,
         scheduler: Rc<Scheduler>,
     ) -> Self {
         Self {
@@ -45,14 +45,14 @@ impl NpcSwitch {
         scheduler: &Scheduler,
         at: u64,
         npc: PersonId,
-    ) -> crate::Result<RoutineId> {
+    ) -> greyhack_world_core::Result<RoutineId> {
         Ok(scheduler
             .schedule::<Self>(&world.db().connection(), at, &npc)
             .await?)
     }
 
     /// Schedules an NPC login change.
-    pub async fn schedule(&self, at: u64, npc: PersonId) -> crate::Result<RoutineId> {
+    pub async fn schedule(&self, at: u64, npc: PersonId) -> greyhack_world_core::Result<RoutineId> {
         Self::schedule_with(&self.world, &self.scheduler, at, npc).await
     }
 
@@ -61,7 +61,7 @@ impl NpcSwitch {
         scheduler: &Scheduler,
         npc: PersonId,
         at: u64,
-    ) -> crate::Result<()> {
+    ) -> greyhack_world_core::Result<()> {
         let conn = world.db().connection();
         let rows: Vec<i64> = fetch_column(
             &conn,
@@ -71,7 +71,9 @@ impl NpcSwitch {
         .await?;
 
         for row in rows {
-            scheduler.cancel(&conn, row.cast_unsigned()).await?;
+            scheduler
+                .cancel(&conn, RoutineId::new(row.cast_unsigned()))
+                .await?;
         }
 
         Self::schedule_with(world, scheduler, at, npc).await?;
@@ -80,7 +82,7 @@ impl NpcSwitch {
     }
 
     /// Replaces the NPC's queued login change.
-    pub async fn reschedule(&self, npc: PersonId, at: u64) -> crate::Result<()> {
+    pub async fn reschedule(&self, npc: PersonId, at: u64) -> greyhack_world_core::Result<()> {
         Self::reschedule_with(&self.world, &self.scheduler, npc, at).await
     }
 
@@ -91,7 +93,7 @@ impl NpcSwitch {
 }
 
 impl ScheduleService {
-    pub(crate) async fn switch_npc(&self, id: PersonId) -> crate::Result<()> {
+    pub(crate) async fn switch_npc(&self, id: PersonId) -> greyhack_world_core::Result<()> {
         let Some(mut npc) = self.npcs.npc(id).await? else {
             return Ok(());
         };
@@ -178,7 +180,7 @@ impl Routine for NpcSwitch {
         execute(
             conn,
             "INSERT INTO routine_npc_switches (routine_id, npc_id) VALUES (?1, ?2)",
-            params![id.cast_signed(), data.0],
+            params![id.get().cast_signed(), data.0],
         )
         .await?;
 
@@ -189,7 +191,7 @@ impl Routine for NpcSwitch {
         let npc = fetch_value::<u32>(
             conn,
             "SELECT npc_id FROM routine_npc_switches WHERE routine_id = ?1",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 
@@ -220,10 +222,12 @@ impl Routine for NpcSwitch {
             .await?;
 
             for row in rows {
-                let id = row.cast_unsigned();
+                let id = RoutineId::new(row.cast_unsigned());
 
                 if self.scheduler.cancel(conn, id).await? {
-                    self.world.works().cancel(id);
+                    self.world
+                        .works()
+                        .cancel(greyhack_world_effects::WorkId::from(id));
                 }
             }
         }

@@ -1,12 +1,11 @@
 //! Router and switch computer creation and persistence.
 
-use greyhack_behaviour::{DeviceKind, ServiceId};
+use greyhack_behaviour::{DeviceKind, Rng, ServiceId};
+use greyhack_world_core::{LanPlace, NetworkId, Result, RouterId};
+use greyhack_world_libraries::{ComputerDraft, Library, RouterDraft};
 
+use crate::NetworkGeneration;
 use crate::generation::{computer, library_version};
-use crate::{
-    ComputerDraft, LanPlace, Library, NetworkGeneration, NetworkId, Result, Rng, RouterDraft,
-    RouterId,
-};
 
 /// Router and switch creation.
 impl NetworkGeneration {

@@ -1,14 +1,14 @@
 use std::any::Any;
 use std::rc::Rc;
 
+use greyhack_world_effects::{Entry, RoutineId};
 use greyhack_world_npcs::NpcEvent;
-use greyhack_world_routines::Entry;
 
 /// Routine and its due world second.
 #[derive(Clone)]
 pub struct ScheduledRoutine {
     /// Routine database row ID.
-    pub id: u64,
+    pub id: RoutineId,
     /// World second at which the routine is due.
     pub at: u64,
     /// Stable key of its routine kind.

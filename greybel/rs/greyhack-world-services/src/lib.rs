@@ -17,12 +17,8 @@ pub mod storage;
 use std::rc::Rc;
 
 use greyhack_world_core::WorldRef;
-pub use greyhack_world_core::{
-    ComputerId, ConnectionFailure, FileFailure, LibraryId, Node, NodeDraft, Port, Result,
-    ServiceFailure, WorldError,
-};
+use greyhack_world_effects::Routine;
 use greyhack_world_modules::{Module, Registry};
-use greyhack_world_routines::Routine;
 use greyhack_world_storage::DomainSchema;
 pub use model::*;
 pub use objects::{AptClientHandle, ServiceHandle, ServiceRef};
@@ -82,6 +78,7 @@ impl ServicesModule {
             <Self as Module>::NAME,
             [storage::schema::software::GROUP, ServiceRestart::tables()],
         )
+        .with_dependencies(&["core"])
     }
 }
 

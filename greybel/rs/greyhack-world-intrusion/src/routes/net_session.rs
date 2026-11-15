@@ -52,7 +52,7 @@ pub(crate) fn register<
                                 (),
                                 W,
                                 greyhack_world_core::WorldError,
-                            >(cycles, program, work));
+                            >(cycles, program, work.get()));
 
                             FloodResult::Active
                         }

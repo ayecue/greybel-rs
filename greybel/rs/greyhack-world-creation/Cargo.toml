@@ -12,6 +12,8 @@ autotests = false
 doctest = false
 
 [dependencies]
+greyhack-world-effects.workspace = true
+greyhack-world-programs.workspace = true
 greyhack-behaviour.workspace = true
 greyhack-world-assets.workspace = true
 greyhack-world-core.workspace = true

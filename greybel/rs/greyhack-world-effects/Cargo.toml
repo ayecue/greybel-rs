@@ -1,0 +1,28 @@
+[package]
+name = "greyhack-world-effects"
+description = "Ordered events, typed waiting work, and persistent routine scheduling for the Grey Hack world"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+greyhack-world-programs.workspace = true
+greyhack-world-storage.workspace = true
+thiserror.workspace = true
+turso.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"

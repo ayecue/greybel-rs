@@ -1,12 +1,12 @@
 //! NPC user operations.
 
 use greyhack_behaviour::{
-    ALPHANUMERIC, DeviceKind, FileData, bank_config_path, hash_password, mail_config_path,
-    npc_mail_address,
+    ALPHANUMERIC, DeviceKind, FileData, Gender, NpcSchedule, Rng, Word, WorkPerformance,
+    bank_config_path, hash_password, mail_config_path, npc_mail_address,
 };
-use greyhack_world_core::{ComputerId, Gender, NetworkId, Person, PersonId};
+use greyhack_world_core::{ComputerId, NetworkId, Person, PersonId, Result};
 
-use crate::{Npc, NpcSchedule, NpcService, NpcSwitch, Result, Rng, Word, WorkPerformance};
+use crate::{Npc, NpcService, NpcSwitch};
 
 /// Methods of [`World`] for npcs people.
 impl NpcService {

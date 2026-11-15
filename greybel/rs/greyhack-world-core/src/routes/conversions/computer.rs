@@ -1,9 +1,11 @@
 //! Conversions of account, process, network card, startup, and computer failures.
 
-use super::{
-    ComputerFailure, Failure, IntoProtocol, NetCardFailure, NetworkSwitch, Outcome, ProcessFailure,
+use greyhack_world_programs::protocol::{
+    ComputerFailure, Failure, NetCardFailure, NetworkSwitch, Outcome, ProcessFailure,
     StartupFailure, UserFailure,
 };
+
+use super::IntoProtocol;
 
 impl IntoProtocol for crate::UserFailure {
     type Output = UserFailure;

@@ -1,6 +1,8 @@
 //! Conversions of file failures.
 
-use super::{Failure, FileFailure, IntoProtocol, ScriptFailure, TryProtocolFrom};
+use greyhack_world_programs::protocol::{Failure, FileFailure, ScriptFailure};
+
+use super::{IntoProtocol, TryProtocolFrom};
 
 impl IntoProtocol for crate::FileFailure {
     type Output = FileFailure;

@@ -2,9 +2,8 @@
 //! `PlayerUtils.ConnectService`).
 
 use greyhack_behaviour::{FileData, FileKind, LogAction, SSHD_CONFIG_PATH};
+use greyhack_world_core::{ComputerId, LoginFailure, Result};
 use greyhack_world_services::SshdConfig;
-
-use crate::{ComputerId, LoginFailure, Result};
 
 /// Where and as whom a script logs in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -300,20 +299,20 @@ impl ConnectionService {
 
 /// A world service with only its declared dependencies.
 pub struct ConnectionService {
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
-    pub(crate) sniffers: greyhack_world_core::Dep<greyhack_world_intrusion::SnifferService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) traces: greyhack_world_modules::Dep<greyhack_world_traces::TraceService>,
+    pub(crate) sniffers: greyhack_world_modules::Dep<greyhack_world_intrusion::SnifferService>,
 }
 
 impl ConnectionService {
     pub(crate) fn new(
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
-        sniffers: greyhack_world_core::Dep<greyhack_world_intrusion::SnifferService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        traces: greyhack_world_modules::Dep<greyhack_world_traces::TraceService>,
+        sniffers: greyhack_world_modules::Dep<greyhack_world_intrusion::SnifferService>,
     ) -> Self {
         Self {
             computers,

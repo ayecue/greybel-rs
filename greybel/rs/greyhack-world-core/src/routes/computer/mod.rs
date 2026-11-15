@@ -5,7 +5,7 @@ mod network;
 mod processes;
 mod users;
 
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     ComputerActiveNetCard, ComputerChangePassword, ComputerCloseProgram, ComputerConnectEthernet,
     ComputerConnectWifi, ComputerCreateFolder, ComputerCreateGroup, ComputerCreateUser,
     ComputerDeleteGroup, ComputerDeleteUser, ComputerFile, ComputerGetName, ComputerGetPorts,

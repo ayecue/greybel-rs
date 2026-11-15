@@ -2,12 +2,9 @@
 //! map position.
 
 pub(crate) use greyhack_behaviour::web_domain;
-use greyhack_behaviour::{LOWERCASE_ALPHANUMERIC, ServiceId, WorldSeed};
+use greyhack_behaviour::{Gender, LOWERCASE_ALPHANUMERIC, Rng, ServiceId, Word, WorldSeed};
+use greyhack_world_services::{Crime, Grade, Offense, Record, RecordDatabase, RecordKind, Subject};
 use mono_random::Random;
-
-use crate::{
-    Crime, Gender, Grade, Offense, Record, RecordDatabase, RecordKind, Rng, Subject, Word,
-};
 
 /// Generates 15–30 police or student records for `Router.CreaFichasPoliciales` and
 /// `Router.CrearFichaEstudiantes`.

@@ -116,7 +116,7 @@ pub fn assemble(world: WorldRef) -> WorldAssembly {
         registry.scheduler(),
     ));
 
-    registry.register_capability::<dyn greyhack_world_modules::WorkOwner>(routines.clone());
+    registry.register_capability::<dyn greyhack_world_effects::WorkOwner>(routines.clone());
     registry.register_service(routines.clone());
 
     let modules = Rc::new(ModuleSet {

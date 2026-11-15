@@ -17,10 +17,8 @@ pub mod storage;
 
 use std::rc::Rc;
 
-pub use greyhack_world_core::{ComputerId, Result, WorldError};
-use greyhack_world_core::{Dep, WorldRef};
-pub use greyhack_world_modules::WorkId;
-use greyhack_world_modules::{Module, Registry};
+use greyhack_world_core::WorldRef;
+use greyhack_world_modules::{Dep, Module, Registry};
 use greyhack_world_storage::DomainSchema;
 pub use model::{SnifferPacket, WifiCapture};
 pub use objects::{CryptoHandle, ObjectTableExt};
@@ -73,6 +71,7 @@ impl IntrusionModule {
             <Self as Module>::NAME,
             [storage::schema::GROUP, storage::schema::VOLATILE],
         )
+        .with_dependencies(&["core"])
     }
 }
 
@@ -96,7 +95,7 @@ impl Module for IntrusionModule {
                         .subscribers
                         .clear_floods(event.computer)
                         .await
-                        .map_err(greyhack_world_modules::EventError::new)
+                        .map_err(greyhack_world_effects::EventError::new)
                 })
             }
         });
@@ -117,14 +116,14 @@ impl Module for IntrusionModule {
                             &event.password,
                         )
                         .await
-                        .map_err(greyhack_world_modules::EventError::new)
+                        .map_err(greyhack_world_effects::EventError::new)
                 })
             }
         });
         registry
-            .register_capability::<dyn greyhack_world_modules::WorkOwner>(module.sniffers.clone());
+            .register_capability::<dyn greyhack_world_effects::WorkOwner>(module.sniffers.clone());
         registry
-            .register_capability::<dyn greyhack_world_modules::WorkOwner>(module.floods.clone());
+            .register_capability::<dyn greyhack_world_effects::WorkOwner>(module.floods.clone());
         registry.register_schema(Self::schema());
         registry.register_service(Rc::new(module.clone()));
         registry.register_service(module.crypto.clone());

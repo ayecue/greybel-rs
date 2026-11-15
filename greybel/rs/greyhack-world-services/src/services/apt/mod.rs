@@ -4,24 +4,26 @@ pub(crate) mod packages;
 pub(crate) mod sources;
 pub(crate) mod updates;
 
-use crate::{Repository, Result};
+use greyhack_world_core::Result;
+
+use crate::Repository;
 
 /// A world service with only its declared dependencies.
 pub struct Apt {
     pub(crate) repositories: std::rc::Rc<crate::storage::AptRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) installs: greyhack_world_core::Dep<crate::services::InstallService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) installs: greyhack_world_modules::Dep<crate::services::InstallService>,
 }
 
 impl Apt {
     pub(crate) fn new(
         repositories: std::rc::Rc<crate::storage::AptRepository>,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        installs: greyhack_world_core::Dep<crate::services::InstallService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        installs: greyhack_world_modules::Dep<crate::services::InstallService>,
     ) -> Self {
         Self {
             repositories,

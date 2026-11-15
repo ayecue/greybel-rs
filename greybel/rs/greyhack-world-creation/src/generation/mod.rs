@@ -9,14 +9,12 @@ mod repository;
 
 pub use computer::{assign_player_libraries, router_computer};
 pub use filesystem::{add_player_libraries, build_filesystem};
-use greyhack_behaviour::{LibraryKind, NetworkKind, ROOT_USER, SYSTEM_PROCESSES};
+use greyhack_behaviour::{LibraryKind, NetworkKind, ROOT_USER, Rng, SYSTEM_PROCESSES};
 use greyhack_world_core::{MinerHardware, Process};
 use greyhack_world_libraries::{Library, LibraryGeneration as _};
 pub use lan::{ComputerPlan, DevicePlan, LanPlan, ServicePlan};
 pub use network::WifiGenerator;
 pub use repository::RepositoryDraft;
-
-use crate::Rng;
 
 /// Returns `1.<minor>.0` with minor 0–2 so some libraries exceed base version `1.0.0`.
 pub(crate) fn library_version(rng: &mut Rng) -> String {

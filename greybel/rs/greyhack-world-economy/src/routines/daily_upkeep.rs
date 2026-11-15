@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use greyhack_behaviour::SECONDS_PER_DAY;
 use greyhack_world_core::WorldRef;
-use greyhack_world_routines::{
+use greyhack_world_effects::{
     Result as RoutineResult, Routine, RoutineError, RoutineId, Scheduler,
 };
 use greyhack_world_storage::TableSet;
@@ -17,14 +17,14 @@ use crate::storage::schema;
 /// Daily coin-price upkeep.
 pub struct DailyUpkeep {
     world: WorldRef,
-    market: greyhack_world_core::Dep<Market>,
+    market: greyhack_world_modules::Dep<Market>,
     scheduler: Rc<Scheduler>,
 }
 
 impl DailyUpkeep {
     pub(crate) fn new(
         world: &WorldRef,
-        market: greyhack_world_core::Dep<Market>,
+        market: greyhack_world_modules::Dep<Market>,
         scheduler: Rc<Scheduler>,
     ) -> Self {
         Self {
@@ -35,7 +35,7 @@ impl DailyUpkeep {
     }
 
     /// Runs upkeep when this world has none and schedules the next day.
-    pub async fn ensure(&self) -> crate::Result<()> {
+    pub async fn ensure(&self) -> greyhack_world_core::Result<()> {
         let conn = self.world.db().connection();
         let row = fetch_value::<i64>(
             &conn,
@@ -51,7 +51,7 @@ impl DailyUpkeep {
         Ok(())
     }
 
-    async fn schedule(&self, at: u64) -> crate::Result<()> {
+    async fn schedule(&self, at: u64) -> greyhack_world_core::Result<()> {
         self.scheduler
             .schedule::<Self>(&self.world.db().connection(), at, &())
             .await?;
@@ -59,7 +59,7 @@ impl DailyUpkeep {
         Ok(())
     }
 
-    async fn execute(&self) -> crate::Result<()> {
+    async fn execute(&self) -> greyhack_world_core::Result<()> {
         self.market.daily_upkeep().await?;
 
         let now = self.world.time_seconds();
@@ -83,7 +83,7 @@ impl Routine for DailyUpkeep {
         execute(
             conn,
             "INSERT INTO routine_daily_upkeep (routine_id) VALUES (?1)",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 
@@ -94,7 +94,7 @@ impl Routine for DailyUpkeep {
         let row = fetch_value::<i64>(
             conn,
             "SELECT routine_id FROM routine_daily_upkeep WHERE routine_id = ?1",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 

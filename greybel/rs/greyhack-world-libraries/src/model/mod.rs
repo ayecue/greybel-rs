@@ -1,5 +1,7 @@
 //! Library entities, exploit offers, debug state, and Metaxploit session results.
 
+use greyhack_behaviour::SmartApplianceSettings;
+
 pub mod debug;
 pub mod exploit;
 pub mod libraries;
@@ -9,7 +11,6 @@ pub use debug::{
     DebugAccount, DebugChallenge, DebugLibraryState, ZeroDay, ZeroDayObject, ZeroDayObjectKind,
 };
 pub use exploit::{Exploit, ExploitOffer};
-pub use greyhack_behaviour::SmartApplianceSettings;
 pub use libraries::{Library, MemoryZone, ReverseShell, Weakness};
 pub use network::{NetUseFailure, NetUseSession, RshellFailure};
 

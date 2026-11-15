@@ -1,9 +1,9 @@
 //! Builds the default `hackshop.org` repository using the world seed.
 
-use greyhack_behaviour::{DEFAULT_REPOSITORY, FIRST_VERSION, LibraryKind};
-use greyhack_world_libraries::{Generator, LibraryGeneration as _};
-
-use crate::{Library, Package, Repository, Result, Rng};
+use greyhack_behaviour::{DEFAULT_REPOSITORY, FIRST_VERSION, LibraryKind, Rng};
+use greyhack_world_core::Result;
+use greyhack_world_libraries::{Generator, Library, LibraryGeneration as _};
+use greyhack_world_services::{Package, Repository};
 
 /// Default repository whose generated libraries still need persistent identities.
 pub struct RepositoryDraft {

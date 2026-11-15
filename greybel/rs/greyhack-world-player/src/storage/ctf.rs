@@ -1,10 +1,10 @@
 //! CTF account, event, and player storage.
 
-use greyhack_world_core::{Database, PersonId};
+use greyhack_world_core::{Database, PersonId, Result};
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_opt};
 use turso::params;
 
-use crate::{CtfAccount, CtfEvent, CtfPlayer, Result};
+use crate::{CtfAccount, CtfEvent, CtfPlayer};
 
 impl FromRow for CtfAccount {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {

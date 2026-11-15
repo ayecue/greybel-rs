@@ -1,7 +1,7 @@
 //! Guild Admin Restore operations of the `adminNetwork` object.
 
+use greyhack_world_programs::protocol::{AdminSetAdminRestore, Failure, Outcome};
 use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{AdminSetAdminRestore, Failure, Outcome};
 
 use crate::routes::protocol::IntoProtocol as _;
 

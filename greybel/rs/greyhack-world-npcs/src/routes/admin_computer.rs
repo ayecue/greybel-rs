@@ -1,7 +1,7 @@
 //! NPC operations of the single-computer `admin.so` object.
 
+use greyhack_world_programs::protocol::{AdminAddNpc, AdminNpcLogin};
 use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{AdminAddNpc, AdminNpcLogin};
 
 use crate::routes::Result;
 

@@ -1,14 +1,14 @@
 //! Derives debug-library zero-days from seeds using Grey Hack's .NET random stream.
 
 use greyhack_behaviour::{
-    FIRST_VERSION, GUEST_USER, LibraryKind, ROOT_USER, Requirement, Reward, path,
+    FIRST_VERSION, GUEST_USER, LibraryKind, ROOT_USER, Requirement, Reward, Word, path,
 };
 use mono_random::Random;
 
 use super::library::{
     DETAILS, PATH_EXISTS, PATHS, REQUIRED_LIBS, USER_WEIGHTS, USERS, reward_weight, should_add,
 };
-use crate::{DebugLibraryState, Weakness, Word, ZeroDay, ZeroDayObject, ZeroDayObjectKind};
+use crate::{DebugLibraryState, Weakness, ZeroDay, ZeroDayObject, ZeroDayObjectKind};
 
 impl DebugLibraryState {
     /// Seed-derived zero-day: vulnerable address, exploit result objects, and weakness.

@@ -1,7 +1,7 @@
 //! Conversions of package manager results.
 
 pub(crate) use greyhack_world_core::routes::conversions::IntoProtocol;
-use greyhack_world_router::protocol::{AptFailure, AptUpdateLine};
+use greyhack_world_programs::protocol::{AptFailure, AptUpdateLine};
 
 impl IntoProtocol for crate::AptFailure {
     type Output = AptFailure;

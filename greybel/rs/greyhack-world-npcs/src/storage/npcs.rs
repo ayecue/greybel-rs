@@ -1,13 +1,11 @@
 //! NPC, job, open-position, and rented-server administrator storage.
 
-use greyhack_world_core::Database;
+use greyhack_behaviour::{AlarmConfig, CompanyAlign, JobRole, NpcSchedule, WorkPerformance};
+use greyhack_world_core::{ComputerId, Database, NetworkId, PersonId, Result};
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_opt};
 use turso::params;
 
-use crate::{
-    AlarmConfig, CompanyAlign, ComputerId, JobRole, NetworkId, Npc, NpcSchedule, PersonId, Result,
-    WorkPerformance,
-};
+use crate::Npc;
 
 impl FromRow for Npc {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {

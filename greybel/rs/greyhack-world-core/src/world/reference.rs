@@ -65,21 +65,21 @@ impl WorldRef {
 
     /// Returns the ordered event queue.
     #[must_use]
-    pub fn events(&self) -> Rc<greyhack_world_modules::EventQueue> {
+    pub fn events(&self) -> Rc<greyhack_world_effects::EventQueue> {
         self.world().events.clone()
     }
 
     /// Returns the typed work queue.
     #[must_use]
-    pub fn works(&self) -> Rc<greyhack_world_modules::WorkQueue> {
+    pub fn works(&self) -> Rc<greyhack_world_effects::WorkQueue> {
         self.world().works.clone()
     }
 
     /// Attaches the event and work queues created by module assembly.
     pub fn attach_queues(
         &self,
-        events: Rc<greyhack_world_modules::EventQueue>,
-        works: Rc<greyhack_world_modules::WorkQueue>,
+        events: Rc<greyhack_world_effects::EventQueue>,
+        works: Rc<greyhack_world_effects::WorkQueue>,
     ) {
         self.world_mut().attach_queues(events, works);
     }

@@ -1,18 +1,20 @@
 //! Conversions of LAN, connection, service, login, and firewall values.
 
-use super::{
-    ConnectionFailure, FirewallEntry, IntoProtocol, LanFailure, LoginFailure, ServiceFailure,
+use greyhack_world_programs::protocol::{
+    ConnectionFailure, FirewallEntry, LanFailure, LoginFailure, ServiceFailure,
 };
 
-impl IntoProtocol for crate::LanFailure {
+use super::IntoProtocol;
+
+impl IntoProtocol for greyhack_behaviour::LanFailure {
     type Output = LanFailure;
 
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
         match failure {
-            crate::LanFailure::Unreachable => LanFailure::Unreachable,
-            crate::LanFailure::Firewall => LanFailure::Firewall,
+            greyhack_behaviour::LanFailure::Unreachable => LanFailure::Unreachable,
+            greyhack_behaviour::LanFailure::Firewall => LanFailure::Firewall,
         }
     }
 }

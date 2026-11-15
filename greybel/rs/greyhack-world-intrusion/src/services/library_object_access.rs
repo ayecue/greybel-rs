@@ -4,8 +4,8 @@ use std::future::Future;
 use std::pin::Pin;
 
 use greyhack_world_core::{Access, ComputerId, WorldError};
-use greyhack_world_router::protocol::ObjectId;
-use greyhack_world_router::{ObjectTableHandle, RouteResult};
+use greyhack_world_programs::protocol::ObjectId;
+use greyhack_world_programs::{ObjectTableHandle, RouteResult};
 
 /// Future returned by an asynchronous library-object lookup.
 pub type ObjectAccessFuture<'a, T> = Pin<Box<dyn Future<Output = RouteResult<T, WorldError>> + 'a>>;

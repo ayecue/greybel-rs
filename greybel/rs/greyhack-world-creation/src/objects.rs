@@ -1,8 +1,8 @@
 //! Registration of router and computer objects returned by creation routes.
 
 use greyhack_world_core::{Access, AccessHandle, AccessKind, ComputerId, RouterHandle, RouterId};
-use greyhack_world_router::ObjectTableHandle;
-use greyhack_world_router::protocol::ObjectId;
+use greyhack_world_programs::ObjectTableHandle;
+use greyhack_world_programs::protocol::ObjectId;
 
 /// Registers objects produced by network creation.
 pub trait ObjectTableExt {

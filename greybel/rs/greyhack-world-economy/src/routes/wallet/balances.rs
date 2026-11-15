@@ -1,8 +1,10 @@
 //! Wallet balances, mining nodes, PIN, and password (`WalletIntrinsics`).
 
+use greyhack_world_core::ComputerId;
+
+use crate::WalletId;
 use crate::routes::Result;
 use crate::routes::protocol::{EconomyFailure, Failure, Figure, IntoProtocol as _, Outcome};
-use crate::{ComputerId, WalletId};
 
 /// Lists coins owned by the wallet.
 ///

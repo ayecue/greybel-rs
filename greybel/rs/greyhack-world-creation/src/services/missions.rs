@@ -3,9 +3,11 @@
 
 use greyhack_behaviour::{
     FileData, LogEntry, NetworkKind, PermissionSet, ROOT_USER, ROUTER_NODE_LABEL,
-    SYSTEM_LOG_FOLDER, SYSTEM_LOG_NAME, ServiceId, SystemLog, kind_for_ip, path,
+    SYSTEM_LOG_FOLDER, SYSTEM_LOG_NAME, ServiceId, SystemLog, Word, kind_for_ip, path,
 };
 use greyhack_world_assets::{GameTextTable, website_default};
+use greyhack_world_core::{ComputerId, NetworkId, Result};
+use greyhack_world_libraries::{ComputerDraft, NodeDraft};
 use greyhack_world_missions::{
     Assignment, ComputerContent, ComputerMission, Context, MissionFile,
     MissionPlacement as MissionPlan, PreGenNpc, computer_content, router_log, seed_from_ip,
@@ -15,7 +17,6 @@ use super::mission_drafts::{
     add_content, ensure_folder, mission_node, rename_account, replaced_account, system_log_data,
 };
 use crate::generation::lan::{ComputerPlan, LanPlan};
-use crate::{ComputerDraft, ComputerId, NetworkId, NodeDraft, Result, Word};
 
 /// Procedural-mission placement.
 impl MissionPlacement {
@@ -366,7 +367,7 @@ impl MissionPlacement {
         user: &str,
         name: &str,
         mail_alias: Option<&str>,
-    ) -> Result<Option<crate::PersonId>> {
+    ) -> Result<Option<greyhack_world_core::PersonId>> {
         if let Some(npc) = self
             .npcs
             .npcs_on(computer)
@@ -441,13 +442,13 @@ impl MissionPlacement {
 /// A world service with only its declared dependencies.
 pub struct MissionPlacement {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) generator: greyhack_world_core::Dep<greyhack_world_libraries::Generator>,
-    pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
-    pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
-    pub(crate) network_generation: greyhack_world_core::Dep<crate::NetworkGeneration>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) generator: greyhack_world_modules::Dep<greyhack_world_libraries::Generator>,
+    pub(crate) mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
+    pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
+    pub(crate) network_generation: greyhack_world_modules::Dep<crate::NetworkGeneration>,
 }
 
 impl MissionPlacement {

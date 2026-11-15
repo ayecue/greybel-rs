@@ -1,11 +1,11 @@
 //! Storage for bank subscriptions.
 
 use greyhack_behaviour::SubscriptionKind;
-use greyhack_world_core::Database;
+use greyhack_world_core::{Database, Result};
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_column, fetch_opt};
 use turso::params;
 
-use crate::{BankSubscription, Result};
+use crate::BankSubscription;
 
 impl FromRow for BankSubscription {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {

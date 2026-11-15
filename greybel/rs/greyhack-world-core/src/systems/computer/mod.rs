@@ -4,6 +4,7 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::ServiceId;
+use greyhack_world_modules::Dep;
 
 use crate::storage::*;
 use crate::systems::computer::hardware::Hardware;
@@ -13,8 +14,10 @@ use crate::*;
 pub mod failure;
 pub mod filesystem;
 pub mod hardware;
+pub mod library_version_service;
 pub mod logs;
 pub mod net_cards;
+pub mod player_trace_service;
 pub mod processes;
 pub mod startup;
 pub mod users;

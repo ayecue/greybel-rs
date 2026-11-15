@@ -1,14 +1,14 @@
 //! Mining subscribers owned by the economy domain.
 
-use greyhack_world_core::Database;
-use greyhack_world_modules::WorkId;
+use greyhack_world_core::{CoinId, ComputerId, Database, Result};
+use greyhack_world_effects::WorkId;
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_value, insert};
 use turso::params;
 
-use crate::{CoinId, ComputerId, MineJob, Result};
+use crate::MineJob;
 
 /// Base work ID for mining subscribers.
-const MINE_BASE: WorkId = 1 << 40;
+const MINE_BASE: WorkId = WorkId::new(1 << 40);
 
 const MINE_COLUMNS: &str = "mining_subscribers.id, mining_subscribers.coin_id, subwallets.user AS subwallet, \
      mining_subscribers.computer_id FROM mining_subscribers \
@@ -19,7 +19,7 @@ struct MineJobRow(MineJob);
 impl FromRow for MineJobRow {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
         Ok(Self(MineJob {
-            id: MINE_BASE + row.get::<i64>("id")?.cast_unsigned(),
+            id: WorkId::new(MINE_BASE.get() + row.get::<i64>("id")?.cast_unsigned()),
             coin: CoinId(row.get("coin_id")?),
             subwallet: row.get("subwallet")?,
             computer: ComputerId(row.get("computer_id")?),
@@ -59,7 +59,7 @@ impl MineJobRepository {
         )
         .await?;
 
-        Ok(Some(MINE_BASE + id.cast_unsigned()))
+        Ok(Some(WorkId::new(MINE_BASE.get() + id.cast_unsigned())))
     }
 
     pub(crate) async fn mine_subscribers(&self) -> Result<Vec<MineJob>> {
@@ -97,7 +97,8 @@ impl MineJobRepository {
 
     pub(crate) async fn remove_mine_subscriber(&self, id: WorkId) -> Result<bool> {
         let Some(row) = id
-            .checked_sub(MINE_BASE)
+            .get()
+            .checked_sub(MINE_BASE.get())
             .filter(|row| *row < (1 << 40))
             .map(u64::cast_signed)
         else {

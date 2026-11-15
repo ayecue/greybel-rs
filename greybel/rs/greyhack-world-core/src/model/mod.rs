@@ -38,10 +38,10 @@ pub use computer::{
     STANDARD_RAM_MB, SavedNetwork, SavedWifiFailure,
 };
 pub use library::{Library, LibraryId};
-pub use network::failure::{ConnectionFailure, LanFailure, LoginFailure, ServiceFailure};
+pub use network::failure::{ConnectionFailure, LoginFailure, ServiceFailure};
 pub use network::router::{Contact, NetworkDraft, Router, RouterDraft, RouterId};
 pub use network::{Network, NetworkId};
-pub use person::{Gender, Person, PersonId};
+pub use person::{Person, PersonId};
 pub use trace_kind::TraceKind;
 
 /// Coin ID, which the mining work of the world refers to.

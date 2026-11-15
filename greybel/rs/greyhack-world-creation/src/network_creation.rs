@@ -1,8 +1,7 @@
 //! Creation's implementations of core and NPC upward calls.
 
-use greyhack_world_core::{
-    CallFuture, ComputerId, NetworkGeneration, PersonId, RouterId, WorldRef,
-};
+use greyhack_world_core::{ComputerId, NetworkGeneration, PersonId, Result, RouterId, WorldRef};
+use greyhack_world_effects::BoxFuture;
 
 use crate::{ComputerOptions, NetworkGeneration as NetworkCreator, NetworkOptions, RestoreService};
 
@@ -11,13 +10,13 @@ impl NetworkGeneration for NetworkCreator {
         &'a self,
         _: &'a WorldRef,
         public_ip: &'a str,
-    ) -> CallFuture<'a, Option<RouterId>> {
+    ) -> BoxFuture<'a, Result<Option<RouterId>>> {
         Box::pin(async move { self.router_or_generate(public_ip).await })
     }
 }
 
 impl greyhack_world_npcs::NetworkCreation for NetworkCreator {
-    fn add_network<'a>(&'a self, public_ip: &'a str) -> CallFuture<'a, RouterId> {
+    fn add_network<'a>(&'a self, public_ip: &'a str) -> BoxFuture<'a, Result<RouterId>> {
         Box::pin(async move {
             NetworkCreator::add_network(
                 self,
@@ -36,7 +35,7 @@ impl greyhack_world_npcs::NetworkCreation for NetworkCreator {
         npc: PersonId,
         user: &'a str,
         password: &'a str,
-    ) -> CallFuture<'a, Option<ComputerId>> {
+    ) -> BoxFuture<'a, Result<Option<ComputerId>>> {
         Box::pin(async move {
             NetworkCreator::add_phone(
                 self,
@@ -53,7 +52,7 @@ impl greyhack_world_npcs::NetworkCreation for NetworkCreator {
 }
 
 impl greyhack_world_npcs::NetworkRestore for RestoreService {
-    fn restore_admin_network(&self, admin_computer: ComputerId) -> CallFuture<'_, ()> {
+    fn restore_admin_network(&self, admin_computer: ComputerId) -> BoxFuture<'_, Result<()>> {
         Box::pin(async move { RestoreService::restore_admin_network(self, admin_computer).await })
     }
 }

@@ -16,9 +16,7 @@ pub mod storage;
 
 use std::rc::Rc;
 
-pub use greyhack_behaviour::{Rng, SmartApplianceSettings};
 use greyhack_world_core::WorldRef;
-pub use greyhack_world_core::{ComputerId, NetworkId, PersonId, Result, WorldError};
 use greyhack_world_modules::{Module, Registry};
 use greyhack_world_storage::DomainSchema;
 pub use model::{CameraFeed, CameraNpc, LocatedVehicle, TrafficNet, TrafficState};
@@ -69,6 +67,7 @@ impl SmartDevicesModule {
     #[must_use]
     pub fn schema() -> DomainSchema {
         DomainSchema::new(<Self as Module>::NAME, [storage::schema::GROUP])
+            .with_dependencies(&["core"])
     }
 }
 

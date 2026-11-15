@@ -5,12 +5,12 @@ use std::rc::Rc;
 use duplex_core::{Channel, Driver};
 use greyhack_behaviour::path;
 use greyhack_world_core::{Access, AccessHandle, AccessKind};
+use greyhack_world_programs::protocol::{
+    EndProgram, GameServer, ObjectId, ProgramSession, ScriptFailure, StartProgram,
+};
 
 use super::Connection;
 use crate::OperationError;
-use crate::protocol::{
-    EndProgram, GameServer, ObjectId, ProgramSession, ScriptFailure, StartProgram,
-};
 
 pub(super) fn attach<D: Driver>(connection: &Rc<Connection>, channel: &Channel<GameServer, D>) {
     connection.operate(

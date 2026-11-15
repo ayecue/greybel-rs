@@ -202,16 +202,16 @@ impl ApplianceService {
 pub struct ApplianceService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) smart_devices: std::rc::Rc<crate::storage::SmartDeviceRepository>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) schedules: greyhack_world_core::Dep<greyhack_world_npcs::ScheduleService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) schedules: greyhack_world_modules::Dep<greyhack_world_npcs::ScheduleService>,
 }
 
 impl ApplianceService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         smart_devices: std::rc::Rc<crate::storage::SmartDeviceRepository>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        schedules: greyhack_world_core::Dep<greyhack_world_npcs::ScheduleService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        schedules: greyhack_world_modules::Dep<greyhack_world_npcs::ScheduleService>,
     ) -> Self {
         Self {
             world: world.clone(),

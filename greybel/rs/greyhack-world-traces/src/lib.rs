@@ -13,10 +13,9 @@ pub mod storage;
 
 use std::rc::Rc;
 
-use greyhack_world_core::{CallFuture, PlayerTraceService, WorldRef};
-pub use greyhack_world_core::{ComputerId, PersonId, Result, TraceKind, WorldError};
+use greyhack_world_core::{PlayerTraceService, Result, WorldRef};
+use greyhack_world_effects::{BoxFuture, Routine};
 use greyhack_world_modules::{Module, Registry};
-use greyhack_world_routines::Routine;
 use greyhack_world_storage::DomainSchema;
 pub use model::{PassiveState, TraceId};
 pub use routines::{ActiveTrace, PassiveTrace};
@@ -60,6 +59,7 @@ impl TracesModule {
                 storage::schema::VOLATILE,
             ],
         )
+        .with_dependencies(&["core"])
     }
 }
 
@@ -81,7 +81,7 @@ impl Module for TracesModule {
                         .trace_action(event.remote, event.bounces, event.action, event.terminal)
                         .await
                         .map(|_| ())
-                        .map_err(greyhack_world_modules::EventError::new)
+                        .map_err(greyhack_world_effects::EventError::new)
                 })
             }
         });
@@ -98,7 +98,7 @@ impl Module for TracesModule {
 }
 
 impl PlayerTraceService for TraceService {
-    fn player_token_trace<'a>(&'a self, _: &'a WorldRef) -> CallFuture<'a, String> {
+    fn player_token_trace<'a>(&'a self, _: &'a WorldRef) -> BoxFuture<'a, Result<String>> {
         Box::pin(async move { self.player_token_trace().await })
     }
 }

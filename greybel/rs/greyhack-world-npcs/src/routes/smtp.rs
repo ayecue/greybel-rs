@@ -1,8 +1,8 @@
 //! SMTP account listing (`CryptoIntrinsics.smtp_user_list`).
 
 use greyhack_world_core::Access;
+use greyhack_world_programs::protocol::{CryptoSmtpUserList, SmtpUserList};
 use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{CryptoSmtpUserList, SmtpUserList};
 
 use crate::routes::Result;
 use crate::routes::protocol::IntoProtocol as _;

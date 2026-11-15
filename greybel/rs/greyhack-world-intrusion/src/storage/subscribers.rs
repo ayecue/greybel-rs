@@ -3,18 +3,19 @@
 //! table-specific bases to avoid collisions with routine IDs.
 
 use greyhack_world_core::{ComputerId, Database, Result, RouterId};
-use greyhack_world_modules::WorkId;
+use greyhack_world_effects::WorkId;
 use greyhack_world_storage::sql::{execute, fetch_value, insert};
 use turso::params;
 
 /// Base work ID for sniffer subscribers.
-const SNIFFER_BASE: WorkId = 2 << 40;
+const SNIFFER_BASE: WorkId = WorkId::new(2 << 40);
 /// Base work ID for flood subscribers.
-const FLOOD_BASE: WorkId = 3 << 40;
+const FLOOD_BASE: WorkId = WorkId::new(3 << 40);
 
 /// Converts work `id` to a row ID using table base `base`.
 fn row_of(id: WorkId, base: WorkId) -> Option<i64> {
-    id.checked_sub(base)
+    id.get()
+        .checked_sub(base.get())
         .filter(|row| *row < (1 << 40))
         .map(u64::cast_signed)
 }
@@ -42,7 +43,7 @@ impl SubscriberRepository {
         )
         .await?;
 
-        Ok(SNIFFER_BASE + id.cast_unsigned())
+        Ok(WorkId::new(SNIFFER_BASE.get() + id.cast_unsigned()))
     }
 
     pub(crate) async fn sniffers_on(&self, routers: &[RouterId]) -> Result<Vec<WorkId>> {
@@ -58,7 +59,7 @@ impl SubscriberRepository {
 
             sniffers.extend(
                 rows.into_iter()
-                    .map(|row| SNIFFER_BASE + row.cast_unsigned()),
+                    .map(|row| WorkId::new(SNIFFER_BASE.get() + row.cast_unsigned())),
             );
         }
 
@@ -78,7 +79,7 @@ impl SubscriberRepository {
 
         Ok(rows
             .into_iter()
-            .map(|row| SNIFFER_BASE + row.cast_unsigned())
+            .map(|row| WorkId::new(SNIFFER_BASE.get() + row.cast_unsigned()))
             .collect())
     }
 
@@ -129,7 +130,7 @@ impl SubscriberRepository {
         )
         .await?;
 
-        Ok((FLOOD_BASE + id.cast_unsigned(), counted))
+        Ok((WorkId::new(FLOOD_BASE.get() + id.cast_unsigned()), counted))
     }
 
     pub(crate) async fn flood_count(&self, computer: ComputerId) -> Result<u32> {

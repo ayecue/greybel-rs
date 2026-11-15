@@ -1,5 +1,11 @@
 use std::rc::Rc;
 
+use greyhack_behaviour::Rng;
+use greyhack_world_effects::QUEUE_TABLES;
+use greyhack_world_modules::{Dep, Module, Registry};
+use greyhack_world_storage::DomainSchema;
+
+use crate::storage::schema::{CORE_TABLES, WORLD_META_TABLES};
 use crate::storage::world_meta::WorldMeta;
 use crate::storage::*;
 use crate::systems::computer::hardware::Hardware;
@@ -23,6 +29,17 @@ pub struct CoreModule {
 }
 
 impl CoreModule {
+    /// Returns the core schema in creation order.
+    #[must_use]
+    pub fn schema() -> DomainSchema {
+        DomainSchema::new(
+            <Self as Module>::NAME,
+            CORE_TABLES
+                .into_iter()
+                .chain([QUEUE_TABLES, WORLD_META_TABLES]),
+        )
+    }
+
     /// Builds every core service once for `world` using the caller's registry.
     #[must_use]
     pub fn new(world: &WorldRef, registry: &Rc<greyhack_world_modules::Registry>) -> Rc<Self> {
@@ -154,7 +171,6 @@ impl CoreModule {
 
         let networks = Rc::new(NetworkService::new(registry, router_rows.clone()));
 
-        registry.register_service::<dyn AccountFileService>(files.clone());
         registry.register_service(users.clone());
         registry.register_service(lookup.clone());
         registry.register_service(library_files.clone());
@@ -266,5 +282,21 @@ impl CoreModule {
         }
 
         Ok(())
+    }
+}
+
+impl Module for CoreModule {
+    const NAME: &'static str = "core";
+
+    fn register(registry: &Rc<Registry>) -> Self {
+        let core = CoreModule::new(registry.world(), registry);
+
+        registry.register_schema(Self::schema());
+        registry.register_service(core.clone());
+        registry.register_service(core.computers.clone());
+        registry.register_service(core.files.clone());
+        registry.register_service(core.networks.clone());
+
+        (*core).clone()
     }
 }

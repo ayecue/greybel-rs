@@ -1,18 +1,18 @@
 //! Generated LAN plans and their materialized devices and computers.
 
 use greyhack_behaviour::{
-    DeviceDraw, DeviceKind, FileData, NetworkKind, ROOT_USER, ServiceId, main_router_address, path,
+    DeviceDraw, DeviceKind, FileData, NetworkKind, ROOT_USER, Rng, ServiceId, Word,
+    main_router_address, path,
 };
+use greyhack_world_core::{ComputerId, LanPlace, NetworkId, Result, RouterId};
+use greyhack_world_libraries::{ComputerDraft, RouterDraft};
 use greyhack_world_missions::{MissionPlacement, request_for};
 use mono_random::Random;
 
 use crate::generation::lan::{self, ComputerPlan, LanPlan};
 use crate::generation::random_content::RandomContent;
 use crate::generation::{ComputerOptions, kernel_router, network};
-use crate::{
-    ComputerDraft, ComputerId, LanPlace, MissionPlacement as MissionService, NetworkGeneration,
-    NetworkId, Result, Rng, RouterDraft, RouterId, Word,
-};
+use crate::{MissionPlacement as MissionService, NetworkGeneration};
 
 /// LAN planning and materialization.
 impl NetworkGeneration {

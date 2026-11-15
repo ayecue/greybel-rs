@@ -1,6 +1,6 @@
 //! Blockchain operations (`BlockchainIntrinsics`) that require an online host computer.
 
-use greyhack_world_core::{Access, ObjectTableExt as _};
+use greyhack_world_core::{Access, ComputerId, ObjectTableExt as _};
 use greyhack_world_router::RouteTable;
 
 use crate::objects::{CoinRef, ObjectTableExt};
@@ -10,7 +10,7 @@ use crate::routes::protocol::{
     BlockchainGetCoin, BlockchainGetCoinName, BlockchainLoginWallet, BlockchainShowHistory,
     CoinLogin, EconomyFailure, Failure, WalletLogin,
 };
-use crate::{ComputerId, Connectivity, WalletId};
+use crate::{Connectivity, WalletId};
 
 mod coins;
 mod logins;
@@ -197,7 +197,7 @@ pub(crate) fn register<
 
 /// Converts `login` into a wallet object response.
 fn wallet(
-    objects: &mut greyhack_world_router::ObjectTableHandle<ComputerId>,
+    objects: &mut greyhack_world_programs::ObjectTableHandle<ComputerId>,
     login: Login<WalletId>,
 ) -> WalletLogin {
     match login {

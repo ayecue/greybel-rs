@@ -9,7 +9,7 @@ mod net_session;
 mod protocol;
 
 use greyhack_world_core::WorldError;
-use greyhack_world_router::RouteError;
+use greyhack_world_programs::RouteError;
 
 /// Failure that prevents a library route from returning a program result.
 pub type OperationError = RouteError<WorldError>;

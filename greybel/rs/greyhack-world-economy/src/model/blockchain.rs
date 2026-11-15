@@ -1,9 +1,11 @@
 //! Database-backed coins, sub-wallets, price history, order books, and bank accounts.
 
-pub use greyhack_behaviour::Side;
-use greyhack_behaviour::{GAME_ACCOUNT, MAX_BANK_TRANSACTIONS, SubscriptionKind, verify_password};
+use greyhack_behaviour::{
+    GAME_ACCOUNT, MAX_BANK_TRANSACTIONS, Side, SubscriptionKind, verify_password,
+};
+use greyhack_world_core::CoinId;
 
-use crate::{CoinId, WalletId};
+use crate::WalletId;
 
 /// Global economy state mirrored from another world without its numeric IDs.
 #[derive(Debug, Clone, Default)]

@@ -4,8 +4,7 @@ use greybel_source_map::SourceMap;
 use greyhack_behaviour::{
     MAX_LAUNCH_DEPTH, PROCESS_RAM_MB, Permission, forbidden_param_token, path,
 };
-
-use crate::{ComputerId, ProcessFailure, Result};
+use greyhack_world_core::{ComputerId, ProcessFailure, Result};
 
 /// Why a program does not start (`ShellIntrinsics.launch`).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -175,17 +174,17 @@ impl LaunchService {
 /// A world service with only its declared dependencies.
 pub struct LaunchService {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
 }
 
 impl LaunchService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
     ) -> Self {
         Self {
             world: world.clone(),

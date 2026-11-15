@@ -19,4 +19,4 @@ pub use program::{
     RouteEffect as RouteEffects, Stage, TerminalClose, TerminalInfo, TerminalStack,
 };
 pub use state::StateMap;
-pub use trees::{ProgramTreePool, ProgramTreePool as ProgramTrees, TreeId};
+pub use trees::{ProgramTreePool, TreeId};

@@ -1,7 +1,7 @@
 //! Conversions of exploit, debug, and hack shop results.
 
 pub(crate) use greyhack_world_core::routes::conversions::IntoProtocol;
-pub(crate) use greyhack_world_router::protocol::*;
+pub(crate) use greyhack_world_programs::protocol::*;
 
 impl IntoProtocol for crate::ExploitLog {
     type Output = ExploitLog;

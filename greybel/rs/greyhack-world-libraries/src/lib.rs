@@ -19,15 +19,9 @@ pub mod storage;
 use std::rc::Rc;
 
 pub use generation::{LibraryGeneration, VersionTable, WeaknessContext};
-pub use greyhack_behaviour::{Rng, Word};
 use greyhack_world_core::WorldRef;
-pub use greyhack_world_core::{
-    ComputerId, FileFailure, LanFailure, LanPlace, LibraryId, NetworkId, Node, NodeId, Result,
-    RouterId, ServiceFailure, User, WorldError,
-};
-pub use greyhack_world_economy::{BankTransaction, PurchaseFailure};
+use greyhack_world_effects::Routine;
 use greyhack_world_modules::{Module, Registry};
-use greyhack_world_routines::Routine;
 use greyhack_world_storage::DomainSchema;
 pub use model::*;
 pub use objects::{
@@ -150,6 +144,7 @@ impl LibraryModule {
                 storage::schema::VOLATILE,
             ],
         )
+        .with_dependencies(&["core"])
     }
 }
 

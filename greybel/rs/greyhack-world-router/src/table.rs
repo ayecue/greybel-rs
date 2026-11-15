@@ -8,12 +8,11 @@ use std::pin::Pin;
 use std::rc::Rc;
 
 use duplex_core::{Message, ValidatedDecode, ValidatedEncode};
+use greyhack_world_programs::RouteResult;
+use greyhack_world_programs::protocol::{GameServer, ProgramId, ScriptFailure};
 
 use crate::operation::Operation;
-use crate::protocol::{ProgramId, ScriptFailure};
-use crate::{
-    Call, Client, OperationResponse, ResponderOf, RouteContext, RouteResult, WorldContext,
-};
+use crate::{Call, OperationResponse, ResponderOf, RouteContext, WorldContext};
 
 /// How the server executes a route.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -229,8 +228,10 @@ impl RouteTable {
         &self,
         handler: impl AsyncFn(&RouteContext<'_, W>, Call, M) -> RouteResult<R, E> + 'static,
     ) where
-        M: Message<Sender = Client, Exchange = OperationResponse<R>>
-            + Operation
+        M: Message<
+                Sender = <GameServer as duplex_core::Peer>::Remote,
+                Exchange = OperationResponse<R>,
+            > + Operation
             + ValidatedDecode
             + 'static,
         R: ValidatedEncode + ValidatedDecode + 'static,
@@ -245,8 +246,10 @@ impl RouteTable {
         &self,
         handler: impl AsyncFn(&RouteContext<'_, W>, Call, M) -> RouteResult<R, E> + 'static,
     ) where
-        M: Message<Sender = Client, Exchange = OperationResponse<R>>
-            + Operation
+        M: Message<
+                Sender = <GameServer as duplex_core::Peer>::Remote,
+                Exchange = OperationResponse<R>,
+            > + Operation
             + ValidatedDecode
             + 'static,
         R: ValidatedEncode + ValidatedDecode + 'static,
@@ -261,8 +264,10 @@ impl RouteTable {
         &self,
         handler: impl AsyncFn(&RouteContext<'_, W>, Call, M) -> RouteResult<R, E> + 'static,
     ) where
-        M: Message<Sender = Client, Exchange = OperationResponse<R>>
-            + Operation
+        M: Message<
+                Sender = <GameServer as duplex_core::Peer>::Remote,
+                Exchange = OperationResponse<R>,
+            > + Operation
             + ValidatedDecode
             + 'static,
         R: ValidatedEncode + ValidatedDecode + 'static,
@@ -327,8 +332,10 @@ impl RouteTable {
         kind: RouteKind,
         handler: impl AsyncFn(&RouteContext<'_, W>, Call, M) -> RouteResult<R, E> + 'static,
     ) where
-        M: Message<Sender = Client, Exchange = OperationResponse<R>>
-            + Operation
+        M: Message<
+                Sender = <GameServer as duplex_core::Peer>::Remote,
+                Exchange = OperationResponse<R>,
+            > + Operation
             + ValidatedDecode
             + 'static,
         R: ValidatedEncode + ValidatedDecode + 'static,

@@ -1,12 +1,13 @@
 //! Exploit shop and coin grants (`admin.so`).
 
 use greyhack_behaviour::{LibraryKind, is_valid_version};
+use greyhack_world_core::ComputerId;
 
 use crate::routes::Result;
 use crate::routes::protocol::{
     AdminBuyExploit, ExploitListing, ExploitOffer, Failure, IntoProtocol as _, Outcome,
 };
-use crate::{ComputerId, ExploitPurchase, ExploitShopFailure};
+use crate::{ExploitPurchase, ExploitShopFailure};
 
 /// Lists the shop's offers for library file `library` at `version`
 /// (`NetworkHelperServer.GetExploitListServerRpc`); a library the game has no number for has no results.

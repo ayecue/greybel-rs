@@ -3,6 +3,7 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::{WEB_PREFIX, unique_name_to_ip};
+use greyhack_world_modules::Dep;
 
 use crate::storage::*;
 use crate::systems::{Dns as DnsService, *};

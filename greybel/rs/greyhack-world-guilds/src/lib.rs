@@ -15,9 +15,7 @@ pub mod storage;
 
 use std::rc::Rc;
 
-pub use greyhack_behaviour::{Rng, Word};
 use greyhack_world_core::WorldRef;
-pub use greyhack_world_core::{ComputerId, NetworkId, PersonId, Result, WorldError};
 use greyhack_world_modules::{Module, Registry};
 use greyhack_world_storage::DomainSchema;
 pub use model::{
@@ -54,6 +52,7 @@ impl GuildModule {
     #[must_use]
     pub fn schema() -> DomainSchema {
         DomainSchema::new(<Self as Module>::NAME, [storage::schema::GROUP])
+            .with_dependencies(&["core"])
     }
 }
 
@@ -73,7 +72,7 @@ impl Module for GuildModule {
                     guilds
                         .update_crown_leaderboard()
                         .await
-                        .map_err(greyhack_world_modules::EventError::new)
+                        .map_err(greyhack_world_effects::EventError::new)
                 })
             }
         });
@@ -87,7 +86,7 @@ impl Module for GuildModule {
                     guilds
                         .update_crown_leaderboard()
                         .await
-                        .map_err(greyhack_world_modules::EventError::new)
+                        .map_err(greyhack_world_effects::EventError::new)
                 })
             }
         });
@@ -101,7 +100,7 @@ impl Module for GuildModule {
                     guilds
                         .mark_company_admin_arrival(event.network)
                         .await
-                        .map_err(greyhack_world_modules::EventError::new)
+                        .map_err(greyhack_world_effects::EventError::new)
                 })
             }
         });
@@ -115,7 +114,7 @@ impl Module for GuildModule {
                     guilds
                         .apply_admin_absence_penalty(event.network)
                         .await
-                        .map_err(greyhack_world_modules::EventError::new)
+                        .map_err(greyhack_world_effects::EventError::new)
                 })
             }
         });
@@ -129,7 +128,7 @@ impl Module for GuildModule {
                     guilds
                         .sync_company_market(event.network)
                         .await
-                        .map_err(greyhack_world_modules::EventError::new)
+                        .map_err(greyhack_world_effects::EventError::new)
                 })
             }
         });

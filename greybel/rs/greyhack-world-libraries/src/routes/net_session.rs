@@ -1,5 +1,6 @@
 //! `netSession` operations (`NetSessionIntrinsics`) on service libraries and routers.
 
+use greyhack_world_core::{ComputerId, RouterId};
 use greyhack_world_router::RouteTable;
 
 use crate::objects::{LibraryRef, MetaLibHandle, MetaLibRef, NetSessionRef, ObjectTableExt};
@@ -8,7 +9,6 @@ use crate::routes::protocol::{
     NetSessionDumpLib, NetSessionGetNumConnGateway, NetSessionGetNumPortforward,
     NetSessionGetNumUsers, NetSessionIsAnyActiveUser, NetSessionIsRootActiveUser,
 };
-use crate::{ComputerId, RouterId};
 
 pub(crate) fn register<
     W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,

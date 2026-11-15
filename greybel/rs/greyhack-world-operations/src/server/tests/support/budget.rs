@@ -1,4 +1,4 @@
-use greyhack_world_router::TreeId as Tree;
+use greyhack_world_programs::TreeId as Tree;
 
 /// A program tree.
 pub(super) const TREE: Tree = Tree::new(0);

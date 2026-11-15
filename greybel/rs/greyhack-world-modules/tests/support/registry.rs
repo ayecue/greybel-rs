@@ -1,4 +1,4 @@
-use greyhack_world_modules::{Dep, Event};
+use greyhack_world_modules::Dep;
 
 pub(crate) trait Call {
     fn call(&self) -> u32;
@@ -11,12 +11,6 @@ impl Call for Provider {
         42
     }
 }
-
-pub(crate) struct First(pub(crate) u32);
-impl Event for First {}
-
-pub(crate) struct Second(pub(crate) u32);
-impl Event for Second {}
 
 pub(crate) struct FirstService {
     pub(crate) other: Dep<SecondService>,

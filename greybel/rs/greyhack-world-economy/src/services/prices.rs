@@ -1,9 +1,10 @@
 //! Coin prices, trades, and offers (`BlockchainSystem.UpdateAllPrices`, `Coin.UpdateMoneyValue`).
 
-use greyhack_behaviour::{PRICE_HISTORY_LIMIT, order_book_price, pending_trade_price};
+use greyhack_behaviour::{PRICE_HISTORY_LIMIT, Side, order_book_price, pending_trade_price};
+use greyhack_world_core::{CoinId, Result};
 
 use crate::services::Market;
-use crate::{CoinId, Offer, PriceRecord, Result, Side, WalletId};
+use crate::{Offer, PriceRecord, WalletId};
 
 /// Methods of [`World`] for economy prices.
 impl Market {

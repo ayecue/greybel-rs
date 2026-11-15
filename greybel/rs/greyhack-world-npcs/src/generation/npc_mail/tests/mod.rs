@@ -1,12 +1,12 @@
 #[path = "support/mod.rs"]
 pub(crate) mod support;
 
+use greyhack_behaviour::{CompanyAlign, JobRole, NetworkAdmin, WorkPerformance};
 use mono_random::Random;
 use support::{all, boss, colleague, network, owner, run, weak_admin};
 
 use super::draw::{BREAK_SUBJECTS, SPAM_SUBJECTS, STARTER_MISSION_SUBJECT};
 use super::{Administrator, Delivery, Owner, contents};
-use crate::{CompanyAlign, JobRole, NetworkAdmin, WorkPerformance};
 
 #[test]
 fn should_mail_the_owner_about_a_poorly_or_highly_performing_colleague() {

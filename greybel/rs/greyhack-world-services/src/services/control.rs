@@ -2,8 +2,7 @@
 //! as root.
 
 use greyhack_behaviour::{DeviceKind, FIRST_VERSION, LIBRARY_FOLDER, ROOT_USER, ServiceId};
-
-use crate::{ComputerId, Result};
+use greyhack_world_core::{ComputerId, Result};
 
 /// Why a service operation is refused (`ServicesIntrinsics`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -141,18 +140,18 @@ impl ServiceControl {
 
 /// A world service with only its declared dependencies.
 pub struct ServiceControl {
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) installs: greyhack_world_core::Dep<crate::services::InstallService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) installs: greyhack_world_modules::Dep<crate::services::InstallService>,
 }
 
 impl ServiceControl {
     pub(crate) fn new(
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        installs: greyhack_world_core::Dep<crate::services::InstallService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        installs: greyhack_world_modules::Dep<crate::services::InstallService>,
     ) -> Self {
         Self {
             computers,

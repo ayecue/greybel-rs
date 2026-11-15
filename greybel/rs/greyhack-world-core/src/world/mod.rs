@@ -1,15 +1,17 @@
 //! In-memory world state: random generator, clock, player, events, and transient work.
 
 mod events;
+mod persistent_state;
 mod reference;
 
 pub use events::{ClockAdvance, ClockAdvanceEnd, RebootEvent};
-use greyhack_behaviour::{WORLD_SECRET_LENGTH, WorldSeed};
-use greyhack_world_modules::{EventQueue, WorkQueue};
-use greyhack_world_router::StateMap;
+use greyhack_behaviour::{Rng, WORLD_SECRET_LENGTH, WorldSeed};
+use greyhack_world_effects::{EventQueue, WorkQueue};
+use greyhack_world_programs::StateMap;
+pub use persistent_state::PersistentState;
 pub use reference::WorldRef;
 
-use crate::{ComputerId, PersonId, Rng};
+use crate::{ComputerId, PersonId};
 
 /// Shared world state. Entities live in database rows and services reach this state through
 /// [`WorldRef`], never by carrying a borrow across an await or another service call.
@@ -31,7 +33,7 @@ pub struct World {
     /// World secret (`WorldSeed`) derived from its seed, or copied from Grey Hack for mirrored
     /// worlds.
     pub world_seed: WorldSeed,
-    /// Ordered domain events awaiting delivery.
+    /// Ordered domain events awaiting dispatch.
     pub events: std::rc::Rc<EventQueue>,
     /// Typed work completions published into `events`.
     pub works: std::rc::Rc<WorkQueue>,

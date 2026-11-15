@@ -1,6 +1,7 @@
 //! Why the exploit shop did not list or sell an exploit.
 
-use crate::{FileFailure, PurchaseFailure};
+use greyhack_world_core::FileFailure;
+use greyhack_world_economy::PurchaseFailure;
 
 /// Why the exploit shop did not list or sell an exploit.
 #[derive(Debug, Clone, PartialEq, Eq)]

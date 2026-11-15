@@ -1,6 +1,6 @@
 //! Computer file lookup and creation (`ComputerIntrinsics`).
 
-use greyhack_world_router::protocol::{Failure, Outcome};
+use greyhack_world_programs::protocol::{Failure, Outcome};
 
 use crate::objects::Access;
 use crate::routes::{OperationError, Result};

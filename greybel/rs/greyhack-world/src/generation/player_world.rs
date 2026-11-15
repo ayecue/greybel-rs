@@ -1,8 +1,8 @@
 use greyhack_behaviour::{
-    DeviceKind, NetworkKind, Rng, Word, main_router_address, position_for_ip,
+    DeviceKind, Gender, NetworkKind, Rng, Word, main_router_address, position_for_ip,
 };
 use greyhack_world_core::{
-    ComputerId, Database, Gender, LanPlace, LayoutFailure, NetworkDraft, Person, PersonId, Result,
+    ComputerId, Database, LanPlace, LayoutFailure, NetworkDraft, Person, PersonId, Result,
     WorldError,
 };
 use greyhack_world_creation::{

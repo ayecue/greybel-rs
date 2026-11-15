@@ -6,15 +6,15 @@ pub(crate) mod packets;
 pub(crate) mod path;
 
 use greyhack_world_core::Result;
-use greyhack_world_modules::WorkId;
+use greyhack_world_effects::WorkId;
 
 /// A world service with only its declared dependencies.
 pub struct SnifferService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) subscribers: std::rc::Rc<crate::storage::SubscriberRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
 }
 
 impl SnifferService {
@@ -57,12 +57,12 @@ impl SnifferService {
     }
 }
 
-impl greyhack_world_modules::WorkOwner for SnifferService {
-    fn cancel(&self, id: WorkId) -> greyhack_world_modules::WorkCancelFuture<'_> {
+impl greyhack_world_effects::WorkOwner for SnifferService {
+    fn cancel(&self, id: WorkId) -> greyhack_world_effects::WorkCancelFuture<'_> {
         Box::pin(async move {
             SnifferService::cancel(self, id)
                 .await
-                .map_err(greyhack_world_modules::EventError::new)
+                .map_err(greyhack_world_effects::EventError::new)
         })
     }
 }

@@ -1,7 +1,7 @@
 //! Packet sniffing through metaxploit (`MetaExploitIntrinsics.sniffer`).
 
 use greyhack_world_core::{Access, ObjectTableExt as _};
-use greyhack_world_router::protocol::ScriptFailure;
+use greyhack_world_programs::protocol::ScriptFailure;
 use greyhack_world_router::{CycleAccess, RouteTable};
 
 use crate::SnifferPacket;
@@ -38,12 +38,13 @@ pub(crate) fn register<
             let Some((access, work)) = start else {
                 return Ok(None);
             };
-            let packet =
-                CycleAccess::defer_dynamic::<SnifferPacket, W, greyhack_world_core::WorldError>(
-                    cycles, program, work,
-                )
-                .await
-                .ok_or_else(|| OperationError::Script(ScriptFailure::ProgramEnded))?;
+            let packet = CycleAccess::defer_dynamic::<
+                SnifferPacket,
+                W,
+                greyhack_world_core::WorldError,
+            >(cycles, program, work.get())
+            .await
+            .ok_or_else(|| OperationError::Script(ScriptFailure::ProgramEnded))?;
 
             CycleAccess::change_dynamic(
                 cycles,

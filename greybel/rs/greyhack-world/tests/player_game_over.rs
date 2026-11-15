@@ -47,7 +47,7 @@ async fn should_end_the_game_on_the_third_strike() {
         .await
         .unwrap();
     world.modules.traces.traces.set_strikes(2).await.unwrap();
-    world.deliver_events();
+    world.dispatch_events();
     world.take_changed_computers();
 
     // Act
@@ -68,7 +68,7 @@ async fn should_end_the_game_on_the_third_strike() {
 
         move |event: &greyhack_world_traces::StrikeEvent| strikes.borrow_mut().push(*event)
     });
-    world.assembly.events.deliver_async().await.unwrap();
+    world.assembly.events.dispatch_async().await.unwrap();
     assert!(
         strikes
             .borrow()
@@ -211,7 +211,7 @@ async fn should_stop_every_trace_when_the_game_ends() {
         .strike_player(company, TraceKind::Passive)
         .await
         .unwrap();
-    world.assembly.events.deliver_async().await.unwrap();
+    world.assembly.events.dispatch_async().await.unwrap();
 
     // Assert
     assert!(

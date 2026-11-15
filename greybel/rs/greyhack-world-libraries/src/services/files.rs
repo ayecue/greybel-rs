@@ -1,9 +1,10 @@
 //! Full library entities loaded through core's file-to-library identity links.
 
 use greyhack_behaviour::LibraryKind;
-use greyhack_world_core::{CallFuture, LibraryVersionService, WorldRef};
+use greyhack_world_core::{ComputerId, LibraryId, LibraryVersionService, Node, Result, WorldRef};
+use greyhack_world_effects::BoxFuture;
 
-use crate::{ComputerId, Library, LibraryId, Node, Result};
+use crate::Library;
 
 /// Library-domain lookups that add zones and weaknesses to core's library identities.
 impl Generator {
@@ -76,13 +77,13 @@ impl Generator {
 /// A world service with only its declared dependencies.
 pub struct Generator {
     pub(crate) libraries: std::rc::Rc<crate::storage::LibraryRepository>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
 }
 
 impl Generator {
     pub(crate) fn new(
         libraries: std::rc::Rc<crate::storage::LibraryRepository>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
     ) -> Self {
         Self { libraries, files }
     }
@@ -102,7 +103,7 @@ impl LibraryVersionService for Generator {
         computer: ComputerId,
         path: &'a str,
         version: &'a str,
-    ) -> CallFuture<'a, bool> {
+    ) -> BoxFuture<'a, Result<bool>> {
         Box::pin(async move { self.set_full_library_version(computer, path, version).await })
     }
 }

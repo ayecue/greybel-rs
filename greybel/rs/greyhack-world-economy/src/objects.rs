@@ -2,14 +2,14 @@
 
 use std::any::Any;
 
-use greyhack_world_core::{Access, ComputerId, WorldError};
-use greyhack_world_router::protocol::ObjectId;
-use greyhack_world_router::{
+use greyhack_world_core::{Access, CoinId, ComputerId, WorldError};
+use greyhack_world_programs::protocol::ObjectId;
+use greyhack_world_programs::{
     Handle, ObjectClass, ObjectIdentity, ObjectReach, ObjectTable as TreeObjects, ObjectTableHandle,
 };
 
+use crate::WalletId;
 use crate::routes::Result;
-use crate::{CoinId, WalletId};
 
 /// Coin `coin` accessed through the blockchain library on `computer`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

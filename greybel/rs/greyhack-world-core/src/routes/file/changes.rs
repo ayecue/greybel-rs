@@ -1,6 +1,6 @@
 //! File copy, move, symlink, rename, and delete operations (`FileIntrinsics`).
 
-use greyhack_world_router::protocol::{Failure, FileChange, FileFailure, Outcome};
+use greyhack_world_programs::protocol::{Failure, FileChange, FileFailure, Outcome};
 
 use super::{accessible_resolve, file_change, file_failure, resolve};
 use crate::objects::FileRef;
@@ -66,7 +66,7 @@ pub async fn copy(
 ///
 /// # Errors
 ///
-/// Returns [`greyhack_world_router::protocol::ScriptFailure::TooManyFolders`] when `folder` has more than 16 folders, or a
+/// Returns [`greyhack_world_programs::protocol::ScriptFailure::TooManyFolders`] when `folder` has more than 16 folders, or a
 /// database read/write failure.
 pub async fn r#move(
     world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
@@ -102,7 +102,7 @@ pub async fn r#move(
 ///
 /// # Errors
 ///
-/// Returns [`greyhack_world_router::protocol::ScriptFailure::TooManyFolders`] when `folder` has more than 16 folders, or a
+/// Returns [`greyhack_world_programs::protocol::ScriptFailure::TooManyFolders`] when `folder` has more than 16 folders, or a
 /// database read/write failure.
 pub async fn symlink(
     world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,

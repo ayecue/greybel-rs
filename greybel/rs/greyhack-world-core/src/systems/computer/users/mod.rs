@@ -2,10 +2,14 @@
 
 use std::rc::Rc;
 
+use greyhack_world_modules::Dep;
+
 use crate::storage::*;
 use crate::*;
 
 pub mod accounts;
+pub mod network_admin_lookup;
+pub mod npc_state;
 pub mod script_accounts;
 pub mod sessions;
 
@@ -14,7 +18,7 @@ pub struct UserService {
     pub(crate) world: WorldRef,
     pub(crate) computer_rows: Rc<ComputerRepository>,
     pub(crate) user_rows: Rc<UserRepository>,
-    pub(crate) account_files: Dep<dyn crate::AccountFileService>,
+    pub(crate) files: Dep<FileSystemService>,
     pub network_admins: Dep<dyn crate::NetworkAdminLookup>,
     pub npcs: Dep<dyn crate::NpcState>,
 }
@@ -29,7 +33,7 @@ impl UserService {
             world: registry.world::<WorldRef>().clone(),
             computer_rows,
             user_rows,
-            account_files: registry.get(),
+            files: registry.get(),
             network_admins: registry.get(),
             npcs: registry.get(),
         }

@@ -13,15 +13,13 @@ pub(crate) mod service_plan;
 
 pub use computer_plan::ComputerPlan;
 pub use device_plan::DevicePlan;
-use greyhack_behaviour::{NetworkKind, WorldSeed};
+use greyhack_behaviour::{NetworkKind, Rng, WorldSeed};
 use greyhack_world_missions::MissionRequest;
 pub use plan::LanPlan;
 use planner::Planner;
 use pool::Pool;
 use pool_service::PoolService;
 pub use service_plan::ServicePlan;
-
-use crate::Rng;
 
 /// Plans a LAN of `kind` with its main router at `router_ip`.
 pub(crate) fn plan(

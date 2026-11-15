@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
 use greybel_test_support::future::block_on;
-use greyhack_behaviour::FirewallRule;
+use greyhack_behaviour::{FirewallRule, LanFailure};
 use greyhack_world::{PlayerOptions, World};
-use greyhack_world_core::{ConnectionFailure, LanFailure, LoginFailure};
+use greyhack_world_core::{ConnectionFailure, LoginFailure};
 use scheduler::ManualClock;
 
 use crate::support::network::{SERVICE_SEED, first_remote_service, literal};

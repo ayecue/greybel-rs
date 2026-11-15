@@ -1,7 +1,7 @@
 use gen_lsp_types::{self as lsp, ErrorCodes, LspRequestMethod, Request as LspRequest};
 
 use crate::error::{ResponseError, Result};
-use crate::files::ProjectRequest;
+use crate::files::Project;
 use crate::message::{Request, Response};
 use crate::server::{Server, State};
 
@@ -104,13 +104,13 @@ impl Server {
         },
     ];
 
-    /// Returns `request`'s response, or `None` if it will be answered later.
+    /// Returns `request`'s response, or `None` if the server will respond later.
     pub(in crate::server) fn request(&mut self, request: Request) -> Option<Response> {
         if let Some(refusal) = self.refusal(&request) {
             return Some(Response::error(Some(request.id), refusal));
         }
 
-        if request.method == ProjectRequest::METHOD.as_str() {
+        if request.method == Project::METHOD.as_str() {
             return self.project(request);
         }
 

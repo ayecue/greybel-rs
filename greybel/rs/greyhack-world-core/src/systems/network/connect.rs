@@ -4,11 +4,31 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::{FileKind, ServiceId, is_lan_ip, is_valid_ip, library_path};
+use greyhack_world_modules::Dep;
 
 use super::reach::ReachFailure;
 use crate::storage::*;
 use crate::systems::{NetworkConnect as NetworkConnectService, *};
 use crate::*;
+
+/// Owned login data published to packet-capture subscribers.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LoginPacket {
+    /// Computer the login comes from.
+    pub source: ComputerId,
+    /// Computer that was logged in to.
+    pub destination: ComputerId,
+    /// Address the login connected to.
+    pub address: String,
+    /// Port the login connected to.
+    pub port: u16,
+    /// User of the login.
+    pub user: String,
+    /// Password of the login.
+    pub password: String,
+}
+
+impl greyhack_world_effects::Event for LoginPacket {}
 
 struct ServiceLogin<'a> {
     from: ComputerId,
@@ -181,7 +201,7 @@ impl NetworkConnectService {
             .await?;
 
         if let Ok(handshake) = &handshake {
-            self.world.events().publish(crate::LoginPacket {
+            self.world.events().publish(LoginPacket {
                 source: from,
                 destination: handshake.target,
                 address: address.to_owned(),

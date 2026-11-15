@@ -22,7 +22,7 @@ impl SourceMap {
         Self { sources, mappings }
     }
 
-    /// Creates a source map from per-line locations. A `None` entry leaves its generated line unmapped.
+    /// Creates a source map from per-line locations. A `None` entry omits its generated line from the map.
     #[must_use]
     pub fn of_lines<'a>(locations: impl IntoIterator<Item = Option<Location<'a>>>) -> Self {
         let mut map = Self::default();

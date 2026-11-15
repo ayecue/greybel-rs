@@ -1,7 +1,7 @@
 use greyhack_behaviour::ROOT_USER;
+use greyhack_world_core::User;
+use greyhack_world_libraries::ComputerDraft;
 use greyhack_world_missions::{Assignment, PreGenNpc};
-
-use crate::{ComputerDraft, User};
 
 pub(super) fn draft(users: &[&str]) -> ComputerDraft {
     let mut draft = ComputerDraft::new("pc", "192.168.0.2");

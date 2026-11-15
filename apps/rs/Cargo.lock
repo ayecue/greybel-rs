@@ -1524,6 +1524,7 @@ dependencies = [
  "greyhack-world-core",
  "greyhack-world-creation",
  "greyhack-world-economy",
+ "greyhack-world-effects",
  "greyhack-world-guilds",
  "greyhack-world-intrusion",
  "greyhack-world-libraries",
@@ -1531,8 +1532,8 @@ dependencies = [
  "greyhack-world-modules",
  "greyhack-world-npcs",
  "greyhack-world-player",
+ "greyhack-world-programs",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-services",
  "greyhack-world-shell",
  "greyhack-world-smart-devices",
@@ -1564,9 +1565,10 @@ dependencies = [
  "greybel-source-map",
  "greyhack-behaviour",
  "greyhack-world-assets",
+ "greyhack-world-effects",
  "greyhack-world-modules",
+ "greyhack-world-programs",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-storage",
  "serde",
  "serde_json",
@@ -1581,10 +1583,12 @@ dependencies = [
  "greyhack-behaviour",
  "greyhack-world-assets",
  "greyhack-world-core",
+ "greyhack-world-effects",
  "greyhack-world-libraries",
  "greyhack-world-missions",
  "greyhack-world-modules",
  "greyhack-world-npcs",
+ "greyhack-world-programs",
  "greyhack-world-router",
  "greyhack-world-services",
  "greyhack-world-smart-devices",
@@ -1599,11 +1603,21 @@ version = "0.1.0"
 dependencies = [
  "greyhack-behaviour",
  "greyhack-world-core",
+ "greyhack-world-effects",
  "greyhack-world-modules",
  "greyhack-world-programs",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-storage",
+ "turso",
+]
+
+[[package]]
+name = "greyhack-world-effects"
+version = "0.1.0"
+dependencies = [
+ "greyhack-world-programs",
+ "greyhack-world-storage",
+ "thiserror",
  "turso",
 ]
 
@@ -1614,10 +1628,11 @@ dependencies = [
  "greyhack-behaviour",
  "greyhack-world-core",
  "greyhack-world-economy",
+ "greyhack-world-effects",
  "greyhack-world-modules",
  "greyhack-world-npcs",
+ "greyhack-world-programs",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-storage",
  "turso",
 ]
@@ -1628,9 +1643,11 @@ version = "0.1.0"
 dependencies = [
  "greyhack-behaviour",
  "greyhack-world-core",
+ "greyhack-world-effects",
  "greyhack-world-guilds",
  "greyhack-world-modules",
  "greyhack-world-npcs",
+ "greyhack-world-programs",
  "greyhack-world-router",
  "greyhack-world-services",
  "greyhack-world-storage",
@@ -1646,12 +1663,13 @@ dependencies = [
  "greyhack-behaviour",
  "greyhack-world-core",
  "greyhack-world-economy",
+ "greyhack-world-effects",
  "greyhack-world-guilds",
  "greyhack-world-intrusion",
  "greyhack-world-modules",
  "greyhack-world-npcs",
+ "greyhack-world-programs",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-smart-devices",
  "greyhack-world-storage",
  "mono-random",
@@ -1673,11 +1691,9 @@ dependencies = [
 name = "greyhack-world-modules"
 version = "0.1.0"
 dependencies = [
- "greyhack-world-programs",
+ "greyhack-world-effects",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-storage",
- "thiserror",
 ]
 
 [[package]]
@@ -1688,9 +1704,10 @@ dependencies = [
  "greyhack-world-assets",
  "greyhack-world-core",
  "greyhack-world-economy",
+ "greyhack-world-effects",
  "greyhack-world-modules",
+ "greyhack-world-programs",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-storage",
  "mono-random",
  "serde",
@@ -1710,11 +1727,12 @@ dependencies = [
  "greyhack-world-assets",
  "greyhack-world-core",
  "greyhack-world-economy",
+ "greyhack-world-effects",
  "greyhack-world-libraries",
  "greyhack-world-modules",
  "greyhack-world-player",
+ "greyhack-world-programs",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-storage",
  "greyhack-world-traces",
  "scheduler",
@@ -1732,14 +1750,15 @@ dependencies = [
  "greyhack-world-core",
  "greyhack-world-creation",
  "greyhack-world-economy",
+ "greyhack-world-effects",
  "greyhack-world-guilds",
  "greyhack-world-intrusion",
  "greyhack-world-libraries",
  "greyhack-world-missions",
  "greyhack-world-modules",
  "greyhack-world-npcs",
+ "greyhack-world-programs",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-services",
  "greyhack-world-smart-devices",
  "greyhack-world-storage",
@@ -1761,14 +1780,6 @@ version = "0.1.0"
 dependencies = [
  "duplex-core",
  "greyhack-world-programs",
-]
-
-[[package]]
-name = "greyhack-world-routines"
-version = "0.1.0"
-dependencies = [
- "greyhack-world-storage",
- "turso",
 ]
 
 [[package]]
@@ -1796,10 +1807,11 @@ dependencies = [
  "greyhack-behaviour",
  "greyhack-world-assets",
  "greyhack-world-core",
+ "greyhack-world-effects",
  "greyhack-world-modules",
  "greyhack-world-npcs",
+ "greyhack-world-programs",
  "greyhack-world-router",
- "greyhack-world-routines",
  "greyhack-world-storage",
  "indexmap",
  "serde",
@@ -1817,6 +1829,7 @@ dependencies = [
  "greyhack-world-intrusion",
  "greyhack-world-libraries",
  "greyhack-world-modules",
+ "greyhack-world-programs",
  "greyhack-world-router",
  "greyhack-world-services",
  "greyhack-world-storage",
@@ -1829,9 +1842,11 @@ version = "0.1.0"
 dependencies = [
  "greyhack-behaviour",
  "greyhack-world-core",
+ "greyhack-world-effects",
  "greyhack-world-guilds",
  "greyhack-world-modules",
  "greyhack-world-npcs",
+ "greyhack-world-programs",
  "greyhack-world-router",
  "greyhack-world-storage",
  "serde",
@@ -1858,10 +1873,10 @@ dependencies = [
  "greyhack-behaviour",
  "greyhack-world-core",
  "greyhack-world-economy",
+ "greyhack-world-effects",
  "greyhack-world-guilds",
  "greyhack-world-modules",
  "greyhack-world-npcs",
- "greyhack-world-routines",
  "greyhack-world-storage",
  "turso",
 ]

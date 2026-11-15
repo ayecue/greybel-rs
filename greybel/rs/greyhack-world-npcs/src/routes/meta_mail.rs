@@ -1,5 +1,6 @@
 //! Operations on logged-in mail accounts (`MetaMailIntrinsics`).
 
+use greyhack_world_core::ComputerId;
 use greyhack_world_economy::Connectivity;
 use greyhack_world_router::RouteTable;
 
@@ -9,7 +10,7 @@ use crate::routes::protocol::{
     Email, Failure, InboxContent, IntoProtocol as _, MailDraft, MailFailure, MailRead, MailReads,
     MetaMailDelete, MetaMailDeleteAll, MetaMailFetch, MetaMailRead, MetaMailSend, Outcome,
 };
-use crate::{ComputerId, MailRefusal, SendMailFailure};
+use crate::{MailRefusal, SendMailFailure};
 
 pub(crate) fn register<
     W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,

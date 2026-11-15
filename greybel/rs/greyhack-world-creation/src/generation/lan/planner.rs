@@ -1,9 +1,11 @@
-use greyhack_behaviour::{DeviceDraw, DeviceKind, NetworkKind, ROUTER_PORT, ServiceId, WorldSeed};
+use greyhack_behaviour::{
+    DeviceDraw, DeviceKind, NetworkKind, ROUTER_PORT, Rng, ServiceId, WorldSeed,
+};
 use greyhack_world_missions::{MissionPlacement, MissionRequest};
 
 use self::addresses::parse;
 use super::{DevicePlan, LanPlan, PoolService};
-use crate::{ForwardLayout, Rng};
+use crate::ForwardLayout;
 
 pub(crate) mod addresses;
 pub(crate) mod computers;

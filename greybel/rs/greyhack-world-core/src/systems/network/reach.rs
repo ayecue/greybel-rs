@@ -3,6 +3,7 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::{DeviceKind, NO_ADDRESS, is_device, is_lan_ip, is_valid_ip};
+use greyhack_world_modules::Dep;
 
 use super::lan::TablePort;
 use crate::storage::*;
@@ -312,7 +313,7 @@ impl NetworkReachService {
         source: &str,
         destination: &str,
         port: u16,
-    ) -> Result<Option<LanFailure>> {
+    ) -> Result<Option<greyhack_behaviour::LanFailure>> {
         Ok(match self.lan.lan(network).await? {
             Some(lan) => lan.firewall_ping_status(source, destination, port),
             None => None,

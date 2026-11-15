@@ -1,10 +1,8 @@
 //! Rental-administrator ownership used by economy pricing (`NetworkLan.superAdminRental`).
 
-use greyhack_world_core::Database;
+use greyhack_world_core::{Database, NetworkId, PersonId, Result};
 use greyhack_world_storage::sql::{execute, fetch_value};
 use turso::params;
-
-use crate::{NetworkId, PersonId, Result};
 
 /// Queries of the `rental_admins` table owned by economy.
 pub(crate) struct RentalRepository {

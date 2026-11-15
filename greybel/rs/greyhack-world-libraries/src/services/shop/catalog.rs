@@ -4,12 +4,13 @@
 use std::cmp::Ordering;
 
 use greyhack_behaviour::{
-    ExploitPart, LibraryKind, compare_versions, exploit_part_choices, is_valid_version,
+    ExploitPart, LibraryKind, Rng, Word, compare_versions, exploit_part_choices, is_valid_version,
     unique_exploit_name,
 };
+use greyhack_world_core::{LibraryId, Result};
 
 use super::failure::ExploitShopFailure;
-use crate::{Exploit, ExploitOffer, Library, LibraryId, Result, Rng, Shop, Word};
+use crate::{Exploit, ExploitOffer, Library, Shop};
 
 /// Methods of [`World`] for exploits shop catalog.
 impl Shop {

@@ -1,16 +1,13 @@
 //! Library zones, weaknesses, requirements, and per-network update reports.
 
 use greyhack_behaviour::{LibraryKind, Requirement};
-use greyhack_world_core::Database;
+use greyhack_world_core::{ComputerId, Database, LanPlace, LibraryId, NetworkId, Result, RouterId};
 use greyhack_world_storage::sql::{
     Code, FromRow, RowView, execute, fetch_all, fetch_column, insert,
 };
 use turso::params;
 
-use crate::{
-    ComputerDraft, ComputerId, FileSystemDraft, LanPlace, Library, LibraryId, MemoryZone,
-    NetworkId, Result, RouterDraft, RouterId, Weakness,
-};
+use crate::{ComputerDraft, FileSystemDraft, Library, MemoryZone, RouterDraft, Weakness};
 
 struct ZoneRow {
     id: i64,
@@ -61,17 +58,17 @@ impl FromRow for WeaknessRow {
 /// Queries of the tables owned by this area.
 pub(crate) struct LibraryRepository {
     db: Database,
-    computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
+    computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
 }
 
 impl LibraryRepository {
     pub(crate) fn new(
         db: Database,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
     ) -> Self {
         Self {
             db,

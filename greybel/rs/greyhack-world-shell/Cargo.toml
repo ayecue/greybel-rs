@@ -12,6 +12,7 @@ autotests = false
 doctest = false
 
 [dependencies]
+greyhack-world-programs.workspace = true
 greybel-source-map.workspace = true
 greyhack-behaviour.workspace = true
 greyhack-world-core.workspace = true

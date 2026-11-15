@@ -4,12 +4,10 @@ use greyhack_behaviour::{
     FileKind, LIBRARY_FOLDER, MAX_DEBUG_LOGIN_ATTEMPTS, ROOT_USER, error_lines_match,
     fixed_payload_user, format_auto_patch_date, path,
 };
+use greyhack_world_core::{ComputerId, NodeId, Result};
 
 use crate::generation::challenge::normalized_code;
-use crate::{
-    ComputerId, DebugAccount, DebugChallenge, DebugLibraryState, NodeId, Result, ZeroDay,
-    ZeroDayObjectKind,
-};
+use crate::{DebugAccount, DebugChallenge, DebugLibraryState, ZeroDay, ZeroDayObjectKind};
 
 /// Patch status returned by debug-library inspection.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -376,16 +374,16 @@ impl Debug {
 pub struct Debug {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) debug: std::rc::Rc<crate::storage::DebugRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
 }
 
 impl Debug {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         debug: std::rc::Rc<crate::storage::DebugRepository>,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
     ) -> Self {
         Self {
             world: world.clone(),

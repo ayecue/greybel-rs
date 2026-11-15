@@ -6,9 +6,7 @@ use greyhack_behaviour::{
     FileData, FileKind, Import, MAX_IMPORTED_CODE, Permission, PermissionSet, import_paths, path,
     put_imports,
 };
-use greyhack_world_libraries::NodeDraft;
-
-use crate::{ComputerId, Result};
+use greyhack_world_core::{ComputerId, NodeDraft, Result};
 
 /// Why `import_code` does not produce a file (`PlayerUtils.ImportCode`).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -151,7 +149,7 @@ impl BuildService {
         source: &str,
         destination: &str,
         upload: bool,
-    ) -> Result<std::result::Result<bool, crate::FileFailure>> {
+    ) -> Result<std::result::Result<bool, greyhack_world_core::FileFailure>> {
         let default_user;
         let to = match to {
             Some(to) => to,
@@ -338,19 +336,19 @@ impl BuildService {
 /// A world service with only its declared dependencies.
 pub struct BuildService {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) generator: greyhack_world_core::Dep<greyhack_world_libraries::Generator>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) generator: greyhack_world_modules::Dep<greyhack_world_libraries::Generator>,
 }
 
 impl BuildService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        generator: greyhack_world_core::Dep<greyhack_world_libraries::Generator>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        generator: greyhack_world_modules::Dep<greyhack_world_libraries::Generator>,
     ) -> Self {
         Self {
             world: world.clone(),

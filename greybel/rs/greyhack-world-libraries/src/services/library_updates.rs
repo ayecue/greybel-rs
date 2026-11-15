@@ -2,8 +2,9 @@
 //! `FileSystem.ApplyReportedLibUpdates`).
 
 use greyhack_behaviour::{FileKind, LIBRARY_FOLDER, LibraryKind, compare_versions, library_path};
+use greyhack_world_core::{ComputerId, LibraryId, NetworkId, Result};
 
-use crate::{ComputerDraft, ComputerId, Library, LibraryId, NetworkId, Result};
+use crate::{ComputerDraft, Library};
 
 /// Why a library update was not reported (`Persona.UpdateReportedNetworks`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -153,22 +154,22 @@ impl UpdateService {
 pub struct UpdateService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) libraries: std::rc::Rc<crate::storage::LibraryRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
-    pub(crate) generator: greyhack_world_core::Dep<crate::Generator>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) guilds: greyhack_world_modules::Dep<greyhack_world_guilds::GuildService>,
+    pub(crate) generator: greyhack_world_modules::Dep<crate::Generator>,
 }
 
 impl UpdateService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         libraries: std::rc::Rc<crate::storage::LibraryRepository>,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
-        generator: greyhack_world_core::Dep<crate::Generator>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        guilds: greyhack_world_modules::Dep<greyhack_world_guilds::GuildService>,
+        generator: greyhack_world_modules::Dep<crate::Generator>,
     ) -> Self {
         Self {
             world: world.clone(),

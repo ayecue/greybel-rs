@@ -4,14 +4,14 @@ use std::any::Any;
 
 use greyhack_world::World;
 use greyhack_world_core::{ComputerId, WorldError};
+use greyhack_world_programs::protocol::{ObjectId, ProgramId, ScriptFailure};
+use greyhack_world_programs::{Process, ProgramKind, RouteResult, TreeId};
 use greyhack_world_router::{
-    Call, CycleDriver, CycleFuture, ErasedCycleCall, ErasedWorldCall, Process, ProgramKind,
-    RouteContext, RouteResult, TreeId,
+    Call, CycleDriver, CycleFuture, ErasedCycleCall, ErasedWorldCall, RouteContext,
 };
 
-use super::{ServerState, WorldState};
+use super::{ServerState, ServerWorld};
 use crate::OperationError;
-use crate::protocol::{ObjectId, ProgramId, ScriptFailure};
 
 impl CycleDriver<World, WorldError> for ServerState {
     fn change<'a>(
@@ -22,7 +22,7 @@ impl CycleDriver<World, WorldError> for ServerState {
         apply: Box<dyn ErasedCycleCall<World, WorldError> + 'a>,
     ) -> CycleFuture<'a, RouteResult<Box<dyn Any>, WorldError>> {
         Box::pin(async move {
-            let run = async |world_state: &mut WorldState| {
+            let run = async |world_state: &mut ServerWorld| {
                 let Some(key) = self.trees.of_program(program) else {
                     return Err(OperationError::Script(ScriptFailure::ProgramEnded));
                 };
@@ -55,7 +55,7 @@ impl CycleDriver<World, WorldError> for ServerState {
     ) -> CycleFuture<'a, Box<dyn Any>> {
         Box::pin(async move {
             self.cycle(
-                async |state: &mut WorldState| apply.run(&state.world).await,
+                async |state: &mut ServerWorld| apply.run(&state.world).await,
                 true,
             )
             .await
@@ -94,11 +94,15 @@ impl CycleDriver<World, WorldError> for ServerState {
         work: u64,
     ) -> CycleFuture<'a, Option<Box<dyn Any>>> {
         Box::pin(async move {
-            self.defer_envelope(connection, program, work)
-                .await
-                .ok()?
-                .into_result()
-                .ok()
+            self.defer_envelope(
+                connection,
+                program,
+                greyhack_world_effects::WorkId::new(work),
+            )
+            .await
+            .ok()?
+            .into_result()
+            .ok()
         })
     }
 

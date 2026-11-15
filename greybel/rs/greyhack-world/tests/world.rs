@@ -1,7 +1,6 @@
 use greyhack_behaviour::{FileData, PermissionSet, ServiceId};
 use greyhack_world::World;
-use greyhack_world_core::Login;
-use greyhack_world_libraries::NodeDraft;
+use greyhack_world_core::{Login, NodeDraft};
 
 use crate::support::world::snapshot;
 use crate::support::{

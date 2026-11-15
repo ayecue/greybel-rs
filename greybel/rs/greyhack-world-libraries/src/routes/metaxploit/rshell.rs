@@ -1,11 +1,11 @@
 //! Reverse-shell clients (`MetaExploitIntrinsics.rshell_client`).
 
-use greyhack_world_core::Access;
 use greyhack_world_core::routes::require_connection;
+use greyhack_world_core::{Access, ComputerId};
 
+use crate::RshellClientFailure;
 use crate::routes::Result;
 use crate::routes::protocol::{Failure, IntoProtocol as _, RshellClientOutcome};
-use crate::{ComputerId, RshellClientFailure};
 
 /// Starts a reverse-shell client connected to `address:port`.
 pub(super) async fn rshell_client(

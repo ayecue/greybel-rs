@@ -1,9 +1,10 @@
 //! Coin sub-wallets and the transactions between them (`Coin.Transaction`).
 
-use greyhack_behaviour::clamp_balance;
+use greyhack_behaviour::{Side, clamp_balance};
+use greyhack_world_core::{CoinId, Result};
 
 use crate::services::WalletService;
-use crate::{CoinId, Result, Side, SubWallet, Transaction, TransferFailure};
+use crate::{SubWallet, Transaction, TransferFailure};
 
 /// Methods of [`World`] for economy subwallets.
 impl WalletService {

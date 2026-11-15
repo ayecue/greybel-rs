@@ -8,7 +8,7 @@ mod protocol;
 mod smtp;
 
 use greyhack_world_core::WorldError;
-use greyhack_world_router::RouteError;
+use greyhack_world_programs::RouteError;
 
 /// Failure that prevents an NPC route from returning a program result.
 pub type OperationError = RouteError<WorldError>;

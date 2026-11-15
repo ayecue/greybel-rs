@@ -1,7 +1,6 @@
-use greyhack_behaviour::{NetworkKind, WorldSeed};
+use greyhack_behaviour::{NetworkKind, Rng, WorldSeed};
 
 use super::super::{LanPlan, plan};
-use crate::Rng;
 
 pub(super) fn plans() -> impl Iterator<Item = LanPlan> {
     (0..200).map(|seed| {

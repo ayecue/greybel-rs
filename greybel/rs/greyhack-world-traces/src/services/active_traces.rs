@@ -7,10 +7,11 @@
 use greyhack_behaviour::{
     LogAction, NetworkKind, active_trace_end, add_strike, should_start_tracking, token_trace,
 };
+use greyhack_world_core::{ComputerId, Result, TraceKind};
 use greyhack_world_npcs::Npc;
 
+use crate::StrikeEvent;
 use crate::model::ActiveTrace;
-use crate::{ComputerId, Result, StrikeEvent, TraceKind};
 
 /// Active administrator traces and their player strikes.
 impl TraceService {
@@ -207,13 +208,13 @@ impl TraceService {
 pub struct TraceService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) traces: std::rc::Rc<crate::storage::TraceRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
-    pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
-    pub(crate) bank: greyhack_world_core::Dep<greyhack_world_economy::Bank>,
-    pub(crate) scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) guilds: greyhack_world_modules::Dep<greyhack_world_guilds::GuildService>,
+    pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
+    pub(crate) bank: greyhack_world_modules::Dep<greyhack_world_economy::Bank>,
+    pub(crate) scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
 }
 
 impl TraceService {

@@ -1,12 +1,13 @@
 //! Generated network NPCs, smartphones, and administrator selection.
 
-use greyhack_behaviour::{DeviceKind, NPCS_PER_NETWORK, NetworkKind, ROOT_USER, admin_candidates};
-
-use crate::generation::{ComputerOptions, computer};
-use crate::{
-    ComputerId, Gender, JobRole, LanPlace, NetworkAdmin, NetworkGeneration, PersonId, Result, Rng,
-    RouterId,
+use greyhack_behaviour::{
+    DeviceKind, Gender, JobRole, NPCS_PER_NETWORK, NetworkAdmin, NetworkKind, ROOT_USER, Rng,
+    admin_candidates,
 };
+use greyhack_world_core::{ComputerId, LanPlace, PersonId, Result, RouterId};
+
+use crate::NetworkGeneration;
+use crate::generation::{ComputerOptions, computer};
 
 /// Network NPC, smartphone, and administrator creation.
 impl NetworkGeneration {

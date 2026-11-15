@@ -1,4 +1,4 @@
-use crate::NetworkAdmin;
+use greyhack_behaviour::NetworkAdmin;
 
 /// The network administrator (`NetworkLan.GetAdminNpcInfo`).
 #[derive(Debug, Clone)]

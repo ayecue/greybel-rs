@@ -4,12 +4,14 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use greyhack_world_core::ComputerId;
-use greyhack_world_router::{
+use greyhack_world_programs::protocol::{
+    ClientEnd, EndReason, ObjectId, ProgramEnd, ProgramId, ScriptFailure,
+};
+use greyhack_world_programs::{
     Process, ProgramEnd as TreeProgramEnd, ProgramTree, TerminalClose, TreeId,
 };
 
-use super::{ConnectionChannel, ServerState, WorldState};
-use crate::protocol::{ClientEnd, EndReason, ObjectId, ProgramEnd, ProgramId, ScriptFailure};
+use super::{ConnectionChannel, ServerState, ServerWorld};
 use crate::{OperationError, Result, connection};
 
 /// Server-side program termination and its notification channel.
@@ -27,7 +29,7 @@ impl ServerState {
     /// computers, [`EndReason::Reboot`] for computers in `reboots`, and [`EndReason::Closed`] otherwise.
     pub(super) async fn terminate_ended_programs(
         &self,
-        state: &mut WorldState,
+        state: &mut ServerWorld,
         reboots: &[ComputerId],
     ) {
         let computers = state.world.take_changed_computers();
@@ -131,7 +133,7 @@ impl ServerState {
     /// Cancels jobs and processes for `terminations`, then queues their [`ProgramEnd`] notifications.
     pub(super) async fn end_terminations(
         &self,
-        state: &mut WorldState,
+        state: &mut ServerWorld,
         terminations: Vec<Termination>,
     ) {
         for termination in &terminations {
@@ -173,7 +175,7 @@ impl ServerState {
     /// deferred jobs, and active descendants in the current cycle.
     pub(crate) async fn end_program(
         &self,
-        state: &mut WorldState,
+        state: &mut ServerWorld,
         connection: u32,
         program: ProgramId,
         reason: ClientEnd,
@@ -228,7 +230,7 @@ impl ServerState {
     /// terminal's computer or the tree's root process is programs_by_tree.
     pub(super) async fn close_terminal(
         &self,
-        state: &mut WorldState,
+        state: &mut ServerWorld,
         key: TreeId,
         program: ProgramId,
     ) -> greyhack_world_core::Result<()> {
@@ -277,7 +279,7 @@ impl ServerState {
     /// (`GreyInterpreter.exitBashReboot`). A reboot also ends the terminal's launcher and their descendants.
     pub(crate) async fn close_lost_terminal<T>(
         &self,
-        state: &mut WorldState,
+        state: &mut ServerWorld,
         _connection: u32,
         program: ProgramId,
         result: &Result<T>,
@@ -337,7 +339,7 @@ impl ServerState {
     /// Returns [`ScriptFailure::ProgramEnded`] after program IDs are exhausted.
     pub(crate) fn add_root(
         &self,
-        state: &mut WorldState,
+        state: &mut ServerWorld,
         connection: u32,
         process: Option<Process<ComputerId>>,
         session: ObjectId,

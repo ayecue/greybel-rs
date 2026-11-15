@@ -1,6 +1,5 @@
 use greyhack_behaviour::{auto_patch_time, is_patch_applied};
-
-use crate::ComputerId;
+use greyhack_world_core::ComputerId;
 
 /// Generated debug challenge (`Challenge`).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,7 +15,7 @@ pub struct DebugChallenge {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DebugLibraryState {
     pub computer: ComputerId,
-    pub node: crate::NodeId,
+    pub node: greyhack_world_core::NodeId,
     /// Library file path.
     pub path: String,
     pub seed: i64,

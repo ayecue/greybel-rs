@@ -1,11 +1,11 @@
 //! Service operations of the single-computer `admin.so` object.
 
 use greyhack_behaviour::ServiceId;
-use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     AdminFailure, AdminInstallSmartphoneAdb, AdminServiceRecords, AdminUpdateServiceRecord,
     Failure, Outcome,
 };
+use greyhack_world_router::RouteTable;
 
 use crate::routes::Result;
 use crate::{Record, RecordFailure};

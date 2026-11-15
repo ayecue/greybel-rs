@@ -2,8 +2,9 @@
 
 use greyhack_behaviour::{Refusal, check_mail};
 use greyhack_world_assets::GameTextTable;
+use greyhack_world_core::Result;
 
-use crate::{Email, Mail, Result};
+use crate::{Email, Mail};
 
 /// Why a script mail was not sent (`MetaMailIntrinsics.send`).
 #[derive(Debug, Clone, PartialEq, Eq)]

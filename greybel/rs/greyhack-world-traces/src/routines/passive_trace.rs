@@ -3,7 +3,7 @@
 use std::rc::Rc;
 
 use greyhack_world_core::WorldRef;
-use greyhack_world_routines::{
+use greyhack_world_effects::{
     Result as RoutineResult, Routine, RoutineError, RoutineId, Scheduler,
 };
 use greyhack_world_storage::TableSet;
@@ -16,14 +16,14 @@ use crate::storage::schema;
 /// The passive trace takes its next step.
 pub struct PassiveTrace {
     world: WorldRef,
-    traces: greyhack_world_core::Dep<TraceService>,
+    traces: greyhack_world_modules::Dep<TraceService>,
     scheduler: Rc<Scheduler>,
 }
 
 impl PassiveTrace {
     pub(crate) fn new(
         world: &WorldRef,
-        traces: greyhack_world_core::Dep<TraceService>,
+        traces: greyhack_world_modules::Dep<TraceService>,
         scheduler: Rc<Scheduler>,
     ) -> Self {
         Self {
@@ -37,31 +37,36 @@ impl PassiveTrace {
         world: &WorldRef,
         scheduler: &Scheduler,
         at: u64,
-    ) -> crate::Result<RoutineId> {
+    ) -> greyhack_world_core::Result<RoutineId> {
         Ok(scheduler
             .schedule::<Self>(&world.db().connection(), at, &())
             .await?)
     }
 
     /// Schedules the next passive-trace step.
-    pub async fn schedule(&self, at: u64) -> crate::Result<RoutineId> {
+    pub async fn schedule(&self, at: u64) -> greyhack_world_core::Result<RoutineId> {
         Self::schedule_with(&self.world, &self.scheduler, at).await
     }
 
-    pub(crate) async fn stop_with(world: &WorldRef, scheduler: &Scheduler) -> crate::Result<()> {
+    pub(crate) async fn stop_with(
+        world: &WorldRef,
+        scheduler: &Scheduler,
+    ) -> greyhack_world_core::Result<()> {
         let conn = world.db().connection();
         let rows: Vec<i64> =
             fetch_column(&conn, "SELECT routine_id FROM routine_passive_traces", ()).await?;
 
         for row in rows {
-            scheduler.cancel(&conn, row.cast_unsigned()).await?;
+            scheduler
+                .cancel(&conn, RoutineId::new(row.cast_unsigned()))
+                .await?;
         }
 
         Ok(())
     }
 
     /// Cancels every queued passive-trace step.
-    pub async fn stop(&self) -> crate::Result<()> {
+    pub async fn stop(&self) -> greyhack_world_core::Result<()> {
         Self::stop_with(&self.world, &self.scheduler).await
     }
 }
@@ -80,7 +85,7 @@ impl Routine for PassiveTrace {
         execute(
             conn,
             "INSERT INTO routine_passive_traces (routine_id) VALUES (?1)",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 
@@ -91,7 +96,7 @@ impl Routine for PassiveTrace {
         let row = fetch_value::<i64>(
             conn,
             "SELECT routine_id FROM routine_passive_traces WHERE routine_id = ?1",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 

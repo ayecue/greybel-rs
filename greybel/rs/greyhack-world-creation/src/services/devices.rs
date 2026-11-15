@@ -1,11 +1,12 @@
 //! Computer and device creation in existing networks.
 
 use greyhack_behaviour::{
-    CLOCK_PROGRAM_NAME, CLOCK_PROGRAM_PATH, DeviceKind, FileData, NetworkKind,
+    CLOCK_PROGRAM_NAME, CLOCK_PROGRAM_PATH, DeviceKind, FileData, NetworkKind, Rng,
 };
+use greyhack_world_core::{ComputerId, LanPlace, Result, RouterId};
 
+use crate::NetworkGeneration;
 use crate::generation::{ComputerOptions, computer};
-use crate::{ComputerId, LanPlace, NetworkGeneration, Result, Rng, RouterId};
 
 /// Computer and device creation.
 impl NetworkGeneration {

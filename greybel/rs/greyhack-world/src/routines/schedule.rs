@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use greyhack_behaviour::TIME_SCALE;
 use greyhack_world_core::{ComputerId, Result};
-use greyhack_world_routines::{Entry, Scheduler, Window};
+use greyhack_world_effects::{Entry, RoutineId, Scheduler, Window, WorkId};
 
 use super::{ScheduledRoutine, TickReport};
 
@@ -55,14 +55,14 @@ impl RoutineService {
     }
 
     /// Cancels routine `id` and reports whether it existed.
-    pub(crate) async fn cancel(&self, id: u64) -> Result<bool> {
+    pub(crate) async fn cancel(&self, id: RoutineId) -> Result<bool> {
         let present = self
             .scheduler
             .cancel(&self.world.db().connection(), id)
             .await?;
 
         if present {
-            self.world.works().cancel(id);
+            self.world.works().cancel(WorkId::from(id));
         }
 
         Ok(present)
@@ -79,7 +79,7 @@ impl RoutineService {
     }
 
     fn finish_routine(&self, entry: &Entry, report: &mut TickReport) {
-        self.world.works().finish(entry.id, ());
+        self.world.works().finish(WorkId::from(entry.id), ());
         report.routines.push(entry.key);
 
         {
@@ -132,12 +132,12 @@ impl RoutineService {
     }
 }
 
-impl greyhack_world_modules::WorkOwner for RoutineService {
-    fn cancel(&self, id: u64) -> greyhack_world_modules::WorkCancelFuture<'_> {
+impl greyhack_world_effects::WorkOwner for RoutineService {
+    fn cancel(&self, id: WorkId) -> greyhack_world_effects::WorkCancelFuture<'_> {
         Box::pin(async move {
-            RoutineService::cancel(self, id)
+            RoutineService::cancel(self, RoutineId::new(id.get()))
                 .await
-                .map_err(greyhack_world_modules::EventError::new)
+                .map_err(greyhack_world_effects::EventError::new)
         })
     }
 }

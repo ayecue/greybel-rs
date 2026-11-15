@@ -1,6 +1,4 @@
-use greyhack_behaviour::ServiceId;
-
-use super::LanFailure;
+use greyhack_behaviour::{LanFailure, ServiceId};
 
 /// Service availability errors (`Networking.CheckServiceOnline`).
 #[derive(Debug, Clone, PartialEq, Eq)]

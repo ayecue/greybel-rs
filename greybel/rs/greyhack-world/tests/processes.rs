@@ -1,7 +1,7 @@
 use greyhack_behaviour::{FileData, PermissionSet};
 use greyhack_world::{PlayerOptions, World};
 use greyhack_world_assets::Script;
-use greyhack_world_libraries::NodeDraft;
+use greyhack_world_core::NodeDraft;
 
 #[tokio::test]
 async fn should_preserve_protected_system_processes_when_the_player_reboots() {

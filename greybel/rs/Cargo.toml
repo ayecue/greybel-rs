@@ -76,7 +76,7 @@ greyhack-world-operations = { path = "greyhack-world-operations" }
 greyhack-world-player = { path = "greyhack-world-player" }
 greyhack-world-programs = { path = "greyhack-world-programs" }
 greyhack-world-router = { path = "greyhack-world-router" }
-greyhack-world-routines = { path = "greyhack-world-routines" }
+greyhack-world-effects = { path = "greyhack-world-effects" }
 greyhack-world-services = { path = "greyhack-world-services" }
 greyhack-world-shell = { path = "greyhack-world-shell" }
 greyhack-world-smart-devices = { path = "greyhack-world-smart-devices" }

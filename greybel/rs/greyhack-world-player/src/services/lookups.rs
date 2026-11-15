@@ -269,16 +269,16 @@ impl Player {
 /// A world service with only its declared dependencies.
 pub struct Player {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
     pub(crate) network_generation:
-        greyhack_world_core::Dep<greyhack_world_creation::NetworkGeneration>,
-    pub(crate) generator: greyhack_world_core::Dep<greyhack_world_libraries::Generator>,
-    pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
-    pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
-    pub(crate) bank: greyhack_world_core::Dep<greyhack_world_economy::Bank>,
-    pub(crate) ctf: greyhack_world_core::Dep<crate::Ctf>,
+        greyhack_world_modules::Dep<greyhack_world_creation::NetworkGeneration>,
+    pub(crate) generator: greyhack_world_modules::Dep<greyhack_world_libraries::Generator>,
+    pub(crate) mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
+    pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
+    pub(crate) bank: greyhack_world_modules::Dep<greyhack_world_economy::Bank>,
+    pub(crate) ctf: greyhack_world_modules::Dep<crate::Ctf>,
 }
 
 impl Player {

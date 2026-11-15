@@ -1,10 +1,9 @@
 use greyhack_behaviour::{FileData, FirewallRule, PermissionSet, ServiceId, library_check_seconds};
 use greyhack_world::{PlayerOptions, World};
-use greyhack_world_core::MinerHardware;
+use greyhack_world_core::{MinerHardware, NodeDraft};
 use greyhack_world_creation::{ComputerOptions, NetworkOptions};
 use greyhack_world_economy::MineJobFailure;
 use greyhack_world_intrusion::SnifferPacket;
-use greyhack_world_libraries::NodeDraft;
 
 use crate::support::schedule::{mining_world, scheduled_work};
 use crate::support::{computer, computers, ended, router, save_copy, work_ends};
@@ -219,7 +218,10 @@ async fn should_cancel_the_work_of_a_removed_network() {
     let ends = ended(&mut world);
 
     assert!(ends.contains(&job), "{ends:?}");
-    assert!(ends.contains(&restart), "{ends:?}");
+    assert!(
+        ends.contains(&greyhack_world_effects::WorkId::from(restart)),
+        "{ends:?}"
+    );
 }
 
 /// An NPC logs in at its randomized work start and out at the next block boundary, not every minute

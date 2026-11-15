@@ -3,10 +3,9 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::{cycle_seconds, pick_by_power, pick_machine};
-use greyhack_world_core::{ComputerService, WorldRef};
-use greyhack_world_modules::WorkId;
-use greyhack_world_routines::{
-    Result as RoutineResult, Routine, RoutineError, RoutineId, Scheduler,
+use greyhack_world_core::{CoinId, ComputerService, WorldRef};
+use greyhack_world_effects::{
+    Result as RoutineResult, Routine, RoutineError, RoutineId, Scheduler, WorkId,
 };
 use greyhack_world_storage::TableSet;
 use greyhack_world_storage::sql::{execute, fetch_value};
@@ -14,24 +13,24 @@ use turso::{Connection, params};
 
 use crate::routines::MineJobReport;
 use crate::storage::{RoutineRepository, schema};
-use crate::{CoinId, CoinService, MineJobFailure, MineJobService, WalletService};
+use crate::{CoinService, MineJobFailure, MineJobService, WalletService};
 
 /// A coin mining round that rewards one mine job.
 pub struct CoinRound {
     world: WorldRef,
-    computers: greyhack_world_core::Dep<ComputerService>,
-    coins: greyhack_world_core::Dep<CoinService>,
-    wallets: greyhack_world_core::Dep<WalletService>,
-    mine_jobs: greyhack_world_core::Dep<MineJobService>,
+    computers: greyhack_world_modules::Dep<ComputerService>,
+    coins: greyhack_world_modules::Dep<CoinService>,
+    wallets: greyhack_world_modules::Dep<WalletService>,
+    mine_jobs: greyhack_world_modules::Dep<MineJobService>,
     routines: Rc<RoutineRepository>,
     scheduler: Rc<Scheduler>,
 }
 
 pub(crate) struct CoinRoundSupport {
-    pub(crate) computers: greyhack_world_core::Dep<ComputerService>,
-    pub(crate) coins: greyhack_world_core::Dep<CoinService>,
-    pub(crate) wallets: greyhack_world_core::Dep<WalletService>,
-    pub(crate) mine_jobs: greyhack_world_core::Dep<MineJobService>,
+    pub(crate) computers: greyhack_world_modules::Dep<ComputerService>,
+    pub(crate) coins: greyhack_world_modules::Dep<CoinService>,
+    pub(crate) wallets: greyhack_world_modules::Dep<WalletService>,
+    pub(crate) mine_jobs: greyhack_world_modules::Dep<MineJobService>,
     pub(crate) routines: Rc<RoutineRepository>,
     pub(crate) scheduler: Rc<Scheduler>,
 }
@@ -49,7 +48,7 @@ impl CoinRound {
         }
     }
 
-    pub(crate) async fn schedule(&self, coin: CoinId) -> crate::Result<()> {
+    pub(crate) async fn schedule(&self, coin: CoinId) -> greyhack_world_core::Result<()> {
         let Some(data) = self.coins.coin(coin).await? else {
             return Ok(());
         };
@@ -71,14 +70,18 @@ impl CoinRound {
     }
 
     /// Schedules a mining round at an explicit world second.
-    pub async fn schedule_at(&self, at: u64, coin: CoinId) -> crate::Result<RoutineId> {
+    pub async fn schedule_at(
+        &self,
+        at: u64,
+        coin: CoinId,
+    ) -> greyhack_world_core::Result<RoutineId> {
         Ok(self
             .scheduler
             .schedule::<Self>(&self.world.db().connection(), at, &coin)
             .await?)
     }
 
-    async fn execute(&self, coin: CoinId) -> crate::Result<()> {
+    async fn execute(&self, coin: CoinId) -> greyhack_world_core::Result<()> {
         let Some(mut data) = self.coins.coin(coin).await? else {
             self.world
                 .world_mut()
@@ -157,7 +160,7 @@ impl CoinRound {
         &self,
         coin: CoinId,
         candidates: Vec<Candidate>,
-    ) -> crate::Result<Option<Candidate>> {
+    ) -> greyhack_world_core::Result<Option<Candidate>> {
         let mut wallets: Vec<WalletDraw> = Vec::new();
 
         for candidate in candidates {
@@ -191,7 +194,7 @@ impl CoinRound {
         Ok(Some(machines.swap_remove(machine)))
     }
 
-    async fn coin_jobs(&self, coin: CoinId) -> crate::Result<Vec<WorkId>> {
+    async fn coin_jobs(&self, coin: CoinId) -> greyhack_world_core::Result<Vec<WorkId>> {
         Ok(self
             .mine_jobs
             .coin_subscribers(coin)
@@ -229,7 +232,7 @@ impl Routine for CoinRound {
         execute(
             conn,
             "INSERT INTO routine_mining_rounds (routine_id, coin_id) VALUES (?1, ?2)",
-            params![id.cast_signed(), data.0],
+            params![id.get().cast_signed(), data.0],
         )
         .await?;
 
@@ -240,7 +243,7 @@ impl Routine for CoinRound {
         let coin = fetch_value::<u32>(
             conn,
             "SELECT coin_id FROM routine_mining_rounds WHERE routine_id = ?1",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 

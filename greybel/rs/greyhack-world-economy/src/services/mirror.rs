@@ -1,9 +1,10 @@
 //! Copying an economy layout into the world.
 
 use greyhack_behaviour::hash_password;
+use greyhack_world_core::{CoinId, Result};
 
 use crate::services::Bank;
-use crate::{Coin, CoinId, EconomyLayout, Offer, Result, SubWallet};
+use crate::{Coin, EconomyLayout, Offer, SubWallet};
 
 /// Methods of [`World`] for economy mirror.
 impl Bank {

@@ -3,8 +3,8 @@
 use std::any::Any;
 
 use greyhack_world_core::{Access, ComputerId, WorldError};
-use greyhack_world_router::protocol::ObjectId;
-use greyhack_world_router::{
+use greyhack_world_programs::protocol::ObjectId;
+use greyhack_world_programs::{
     Handle, ObjectClass, ObjectIdentity, ObjectReach, ObjectTable as TreeObjects, ObjectTableHandle,
 };
 

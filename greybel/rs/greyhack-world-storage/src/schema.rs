@@ -60,10 +60,10 @@ impl TableSet {
 
 use crate::{DomainSchema, SCHEMA_VERSIONS};
 
-/// The table sets of a database in registration order.
+/// The table sets of a database in dependency order.
 ///
-/// Registration order is creation order, so a set may reference the tables of sets registered
-/// before it.
+/// Domain tables follow their declared dependencies; ties use registration order. Ownerless sets
+/// use registration order, so a set may reference tables registered before it.
 #[derive(Debug, Clone, Default)]
 pub struct Schema {
     sets: Vec<TableSet>,
@@ -137,11 +137,67 @@ impl Schema {
         }
 
         self.domains.push(domain);
+        self.order_domains();
 
         self
     }
 
-    /// Returns this schema with `domain` registered after the domains and sets before it.
+    fn order_domains(&mut self) {
+        if self.domains.iter().any(|domain| {
+            domain
+                .depends_on
+                .iter()
+                .any(|dependency| !self.domains.iter().any(|other| other.name == *dependency))
+        }) {
+            return;
+        }
+
+        let mut queue = std::mem::take(&mut self.domains);
+        let mut result = Vec::with_capacity(queue.len());
+
+        while !queue.is_empty() {
+            let next = queue.iter().position(|domain| {
+                domain.depends_on.iter().all(|dependency| {
+                    result
+                        .iter()
+                        .any(|other: &DomainSchema| other.name == *dependency)
+                })
+            });
+            let Some(next) = next else {
+                let names = queue
+                    .iter()
+                    .map(|domain| domain.name)
+                    .collect::<Vec<_>>()
+                    .join("`, `");
+
+                panic!("domain schema dependency cycle involving `{names}`");
+            };
+
+            result.push(queue.remove(next));
+        }
+
+        self.domains = result;
+        self.sets = self
+            .ownerless
+            .iter()
+            .chain(self.domains.iter().flat_map(|domain| domain.tables.iter()))
+            .copied()
+            .collect();
+    }
+
+    fn validate_dependencies(&self) {
+        for domain in &self.domains {
+            for dependency in domain.depends_on {
+                assert!(
+                    self.domains.iter().any(|other| other.name == *dependency),
+                    "domain `{}` depends on unknown domain `{dependency}`",
+                    domain.name
+                );
+            }
+        }
+    }
+
+    /// Returns this schema with `domain` registered after its dependencies.
     #[must_use]
     pub fn with_domain(mut self, domain: DomainSchema) -> Self {
         self.register_domain(domain);
@@ -152,6 +208,8 @@ impl Schema {
     /// Returns registered domain schemas in layer order.
     #[must_use]
     pub fn domains(&self) -> &[DomainSchema] {
+        self.validate_dependencies();
+
         &self.domains
     }
 
@@ -164,6 +222,8 @@ impl Schema {
     /// Returns the registered sets in registration order.
     #[must_use]
     pub fn sets(&self) -> &[TableSet] {
+        self.validate_dependencies();
+
         &self.sets
     }
 
@@ -171,6 +231,8 @@ impl Schema {
     /// order, executed when a database opens.
     #[must_use]
     pub fn sql(&self) -> String {
+        self.validate_dependencies();
+
         std::iter::once(&SCHEMA_VERSIONS)
             .chain(&self.sets)
             .map(|set| set.schema)
@@ -180,6 +242,8 @@ impl Schema {
     /// Returns the table names of every set in registration order: parents before dependent rows.
     #[must_use]
     pub fn tables(&self) -> Vec<&'static str> {
+        self.validate_dependencies();
+
         std::iter::once(&SCHEMA_VERSIONS)
             .chain(&self.sets)
             .flat_map(|set| set.tables)
@@ -191,6 +255,8 @@ impl Schema {
     /// executed after [`Schema::sql`] each time a database opens.
     #[must_use]
     pub fn volatile_sql(&self) -> String {
+        self.validate_dependencies();
+
         self.sets.iter().map(|set| set.volatile).collect()
     }
 }

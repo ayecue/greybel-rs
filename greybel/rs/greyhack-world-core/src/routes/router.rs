@@ -1,6 +1,6 @@
 //! Operations on router objects (`RouterIntrinsics`).
 
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     DevicePortList, FirewallEntry, Port, PortService, RouterBssidName, RouterDevicePorts,
     RouterDevicesLanIp, RouterEssidName, RouterFirewallRules, RouterKernelVersion, RouterLocalIp,
     RouterNetSpeed, RouterPingPort, RouterPortInfo, RouterPublicIp, RouterUsedPorts, ScriptFailure,

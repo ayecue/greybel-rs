@@ -1,9 +1,9 @@
 //! Coin order-book matching and bank-settled wallet trades.
 
-use greyhack_behaviour::{check_order, clamp_balance};
+use greyhack_behaviour::{Side, check_order, clamp_balance};
+use greyhack_world_core::{CoinId, Result};
 
-use crate::model::{MarketFailure, Offer, Side, Trade, WalletId};
-use crate::{CoinId, Result};
+use crate::model::{MarketFailure, Offer, Trade, WalletId};
 
 /// Methods of [`World`] for economy market.
 impl Market {
@@ -301,9 +301,9 @@ pub struct Market {
     pub(crate) wallet_rows: std::rc::Rc<crate::storage::WalletRepository>,
     pub(crate) offers: std::rc::Rc<crate::storage::OfferRepository>,
     pub(crate) subwallets: std::rc::Rc<crate::storage::SubwalletRepository>,
-    pub(crate) bank: greyhack_world_core::Dep<crate::services::Bank>,
-    pub(crate) coins: greyhack_world_core::Dep<crate::services::CoinService>,
-    pub(crate) wallets: greyhack_world_core::Dep<crate::services::WalletService>,
+    pub(crate) bank: greyhack_world_modules::Dep<crate::services::Bank>,
+    pub(crate) coins: greyhack_world_modules::Dep<crate::services::CoinService>,
+    pub(crate) wallets: greyhack_world_modules::Dep<crate::services::WalletService>,
 }
 
 impl Market {

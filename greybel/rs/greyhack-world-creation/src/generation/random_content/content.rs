@@ -1,10 +1,9 @@
-use greyhack_behaviour::FileKind;
+use greyhack_behaviour::{FileKind, Gender, Word};
 use greyhack_world_assets::{WorldItem, WorldItemTable};
 use mono_random::Random;
 
 use super::{ContentFile, ConversationMail};
 use crate::generation::network::web_domain;
-use crate::{Gender, Word};
 
 /// What `Router.GenerateRandomContent` adds to a computer.
 #[derive(Debug, Clone, Default, PartialEq)]

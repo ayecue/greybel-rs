@@ -1,7 +1,7 @@
-use greyhack_behaviour::{GUEST_USER, LibraryKind};
+use greyhack_behaviour::{GUEST_USER, LibraryKind, Rng};
 
+use crate::Library;
 use crate::generation::LibraryGeneration;
-use crate::{Library, Rng};
 
 #[test]
 fn should_generate_libraries_deterministically() {

@@ -1,6 +1,6 @@
 //! Conversions between administrator protocol options and generation options.
 
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     AdminFailure, ComputerOptions as ComputerOptionsMessage,
     NetworkOptions as NetworkOptionsMessage,
 };

@@ -3,11 +3,11 @@
 use greyhack_behaviour::hash_password;
 use greyhack_world_core::routes::conversions::IntoProtocol as _;
 use greyhack_world_core::{ComputerId, ObjectTableExt as _};
-use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     AdminAcceptMission, AdminCreateCtfAccount, AdminCreateCtfEvent, AdminRateCtfEvent,
     CtfEventOptions, CtfRating, Failure, MissionAcceptance,
 };
+use greyhack_world_router::RouteTable;
 
 use crate::CtfEvent;
 use crate::routes::Result;

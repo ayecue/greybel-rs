@@ -1,4 +1,5 @@
-use super::LanFailure;
+use greyhack_behaviour::LanFailure;
+
 use crate::StartupFailure;
 
 /// Connection errors from `PlayerUtils.ConnectComputer` and `ConnectComputerLan`.

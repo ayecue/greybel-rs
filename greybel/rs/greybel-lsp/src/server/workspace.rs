@@ -6,13 +6,13 @@ use rustc_hash::FxHashSet;
 
 use super::Server;
 use super::state::{Expectation, FileAccess};
-use crate::files::{FindFilesParams, FindFilesRequest};
+use crate::files::{FileSearch, FindFilesRequest};
 use crate::from_lsp;
 
 impl Server {
     pub(super) fn find_files(&mut self) {
         let exclude = &self.settings.type_analyzer.exclude;
-        let params = FindFilesParams {
+        let params = FindFilesRequest {
             include: self.settings.file_pattern(),
             exclude: (!exclude.is_empty()).then(|| exclude.clone()),
         };
@@ -20,7 +20,7 @@ impl Server {
         match &self.access {
             FileAccess::Client(_) => self
                 .outbound
-                .request::<FindFilesRequest>(params, Expectation::FindFiles),
+                .request::<FileSearch>(params, Expectation::FileSearch),
             #[cfg(not(target_family = "wasm"))]
             FileAccess::Local(provider) => {
                 let uris = provider.find(&params.include, params.exclude.as_deref());

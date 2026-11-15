@@ -37,6 +37,7 @@ dotnet-regex = ["mono-regex/dotnet"]
 serde_json.workspace = true
 greyhack-world.workspace = true
 greyhack-world-operations.workspace = true
+greyhack-world-programs.workspace = true
 greyhack-world-router.workspace = true
 greyhack-world-core.workspace = true
 greyhack-world-creation.workspace = true

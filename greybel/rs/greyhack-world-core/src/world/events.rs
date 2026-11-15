@@ -1,6 +1,6 @@
 //! Core domain events.
 
-use greyhack_world_modules::Event;
+use greyhack_world_effects::Event;
 
 use crate::ComputerId;
 

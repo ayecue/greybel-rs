@@ -5,14 +5,14 @@ use super::Server;
 use super::state::projects::Progress;
 use super::state::{Expectation, FileAccess, ProjectQuery};
 use crate::error::ResponseError;
-use crate::files::{ProjectParams, ProjectRequest, ReadFileParams, ReadFileRequest};
+use crate::files::{Project, ProjectRequest, ReadFile, ReadFileRequest};
 use crate::message::{Message, Request, Response};
 
 impl Server {
     /// Starts a project request and responds after reading required files: immediately for local files or as client
     /// file responses arrive.
     pub(super) fn project(&mut self, request: Request) -> Option<Response> {
-        let params = match request.params::<ProjectRequest>() {
+        let params = match request.params::<Project>() {
             Ok(params) => params,
             Err(error) => {
                 return Some(Response::error(
@@ -21,7 +21,7 @@ impl Server {
                 ));
             }
         };
-        let ProjectParams {
+        let ProjectRequest {
             uri,
             fallback,
             profile,
@@ -65,7 +65,7 @@ impl Server {
             match query.progress() {
                 Progress::Complete(result) => {
                     return Some(match *result {
-                        Ok(project) => Response::ok::<ProjectRequest>(query.id, project),
+                        Ok(project) => Response::ok::<Project>(query.id, project),
                         Err(error) => Response::error(
                             Some(query.id),
                             ResponseError::invalid_params(error.to_string()),
@@ -80,8 +80,8 @@ impl Server {
                 Progress::Read(files) => match &self.access {
                     FileAccess::Client(_) => {
                         for file in files {
-                            self.outbound.request::<ReadFileRequest>(
-                                ReadFileParams {
+                            self.outbound.request::<ReadFile>(
+                                ReadFileRequest {
                                     uri: file.to_string(),
                                 },
                                 Expectation::ProjectFile(file),

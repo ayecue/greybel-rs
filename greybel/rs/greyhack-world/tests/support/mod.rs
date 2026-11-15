@@ -36,8 +36,9 @@ pub use greybel_test_support::world::{
     subwallet, work_ends, world_options,
 };
 use greyhack_world::World;
+use greyhack_world_effects::WorkId;
 
 /// The ids of the scheduled work that ended since the world's events were last taken.
-pub fn ended(world: &mut World) -> Vec<u64> {
+pub fn ended(world: &mut World) -> Vec<WorkId> {
     work_ends(world).into_iter().map(|end| end.id).collect()
 }

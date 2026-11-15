@@ -1,11 +1,13 @@
 //! Coin availability checks and coin changes (`CoinIntrinsics.CheckStatus`).
 
+use greyhack_world_core::{CoinId, ComputerId};
+
 use crate::objects::{CoinRef, ObjectTableExt};
 use crate::routes::protocol::{
     EconomyFailure, Failure, IntoProtocol as _, ObjectId, Outcome, ScriptFailure,
 };
 use crate::routes::{OperationError, Result};
-use crate::{Coin, CoinId, ComputerId, Connectivity, EconomyFailure as WorldFailure};
+use crate::{Coin, Connectivity, EconomyFailure as WorldFailure};
 
 /// Returns the ID of the coin object `id` after the per-method computer checks in
 /// `CoinIntrinsics.CheckStatus`.
@@ -15,7 +17,7 @@ use crate::{Coin, CoinId, ComputerId, Connectivity, EconomyFailure as WorldFailu
 /// Returns [`ScriptFailure::Refused`] for a missing or offline computer, or a database read error.
 pub(super) async fn online_coin(
     world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
-    objects: &greyhack_world_router::ObjectTableHandle<ComputerId>,
+    objects: &greyhack_world_programs::ObjectTableHandle<ComputerId>,
     terminal_computers: &[ComputerId],
     id: ObjectId,
 ) -> Result<CoinId> {

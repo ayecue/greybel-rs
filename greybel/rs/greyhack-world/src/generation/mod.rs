@@ -1,8 +1,7 @@
-//! World-generation options, the player-world builder, and world constructors.
+//! World-generation options and the player-world builder.
 
 pub(crate) mod player_world;
 pub(crate) mod preset;
-pub(crate) mod start;
 
 pub(crate) use player_world::player_world;
 pub use preset::PlayerOptions;

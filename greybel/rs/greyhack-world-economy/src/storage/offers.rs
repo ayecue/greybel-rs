@@ -1,10 +1,11 @@
 //! Storage for order books.
 
-use greyhack_world_core::Database;
+use greyhack_behaviour::Side;
+use greyhack_world_core::{CoinId, Database, Result};
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_opt};
 use turso::params;
 
-use crate::{CoinId, Offer, Result, Side, WalletId};
+use crate::{Offer, WalletId};
 
 const fn side_code(side: Side) -> i64 {
     match side {

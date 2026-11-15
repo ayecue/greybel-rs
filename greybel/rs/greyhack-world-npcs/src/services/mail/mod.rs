@@ -4,7 +4,8 @@ pub mod accounts;
 pub mod messages;
 pub mod npc_inbox;
 
-use greyhack_world_core::{Dep, PersonId, Result, WorldRef};
+use greyhack_world_core::{PersonId, Result, WorldRef};
+use greyhack_world_modules::Dep;
 pub use messages::{MailRefusal, SendMailFailure};
 
 use crate::storage::{MailRepository, NetworkAdminRepository, NpcRepository};

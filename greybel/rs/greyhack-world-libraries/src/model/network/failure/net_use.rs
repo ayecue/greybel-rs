@@ -1,6 +1,4 @@
-use greyhack_behaviour::ServiceId;
-
-use crate::LanFailure;
+use greyhack_behaviour::{LanFailure, ServiceId};
 
 /// `metaxploit.net_use` session errors (`MetaExploitIntrinsics.net_use`).
 #[derive(Debug, Clone, PartialEq, Eq)]

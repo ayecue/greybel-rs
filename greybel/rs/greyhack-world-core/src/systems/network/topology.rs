@@ -3,6 +3,7 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::{NO_ADDRESS, is_device};
+use greyhack_world_modules::Dep;
 
 use crate::storage::*;
 use crate::systems::{NetworkTopology as NetworkTopologyService, *};

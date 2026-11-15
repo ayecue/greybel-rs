@@ -1,9 +1,9 @@
 //! NPC logins and schedules: forced logins, lateness, and work hours.
 
-use greyhack_behaviour::FORCED_LOGIN_SECONDS;
-use greyhack_world_core::{ComputerId, PersonId};
+use greyhack_behaviour::{FORCED_LOGIN_SECONDS, NpcSchedule};
+use greyhack_world_core::{ComputerId, PersonId, Result};
 
-use crate::{NetworkRestore, Npc, NpcLoginCapture, NpcSchedule, NpcSwitch, Result};
+use crate::{NetworkRestore, Npc, NpcLoginCapture, NpcSwitch};
 
 /// Methods of [`World`] for npcs schedule.
 impl ScheduleService {
@@ -92,20 +92,20 @@ impl ScheduleService {
 /// NPC work schedules, logins, lateness, and phone alarms.
 pub struct ScheduleService {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) npcs: greyhack_world_core::Dep<crate::NpcService>,
-    pub(crate) jobs: greyhack_world_core::Dep<crate::JobService>,
-    pub(crate) restores: greyhack_world_core::Dep<dyn NetworkRestore>,
-    pub(crate) login_capture: greyhack_world_core::Dep<dyn NpcLoginCapture>,
-    pub(crate) scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) npcs: greyhack_world_modules::Dep<crate::NpcService>,
+    pub(crate) jobs: greyhack_world_modules::Dep<crate::JobService>,
+    pub(crate) restores: greyhack_world_modules::Dep<dyn NetworkRestore>,
+    pub(crate) login_capture: greyhack_world_modules::Dep<dyn NpcLoginCapture>,
+    pub(crate) scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
 }
 
 impl ScheduleService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         registry: &std::rc::Rc<greyhack_world_modules::Registry>,
-        scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+        scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
     ) -> Self {
         Self {
             world: world.clone(),

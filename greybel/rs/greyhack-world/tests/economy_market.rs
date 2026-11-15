@@ -1,4 +1,5 @@
-use greyhack_world_economy::{Side, Trade};
+use greyhack_behaviour::Side;
+use greyhack_world_economy::Trade;
 
 use crate::support::economy_market::{balance, market, money, offers};
 

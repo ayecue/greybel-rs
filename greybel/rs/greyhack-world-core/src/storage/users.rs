@@ -1,10 +1,12 @@
 //! Computer users, groups, and the global plaintext-password registry.
 
 use greyhack_behaviour::hash_password;
+use greyhack_world_storage::sql::{
+    FromRow, RowView, execute, fetch_all, fetch_column, fetch_opt, fetch_value,
+};
 use turso::params;
 
 use super::Database;
-use super::sql::{FromRow, RowView, execute, fetch_all, fetch_column, fetch_opt, fetch_value};
 use crate::{ComputerId, PersonId, Result, User};
 
 const USER_COLUMNS: &str = "computer_users.id, computer_users.name, computer_users.password_hash, \

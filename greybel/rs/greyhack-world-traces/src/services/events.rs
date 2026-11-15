@@ -1,8 +1,7 @@
 //! EventQueue published by administrator traces.
 
-use greyhack_world_modules::Event;
-
-use crate::{ComputerId, TraceKind};
+use greyhack_world_core::{ComputerId, TraceKind};
+use greyhack_world_effects::Event;
 
 /// A trace caught the player and added a visible strike.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

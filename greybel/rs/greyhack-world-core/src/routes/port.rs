@@ -1,6 +1,6 @@
 //! Port snapshots (`PortIntrinsics`). Programs read captured port data directly, so no operations are registered.
 
-use greyhack_world_router::protocol;
+use greyhack_world_programs::protocol;
 
 use crate::Port;
 

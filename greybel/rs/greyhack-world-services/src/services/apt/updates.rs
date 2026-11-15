@@ -5,13 +5,12 @@ use greyhack_behaviour::{
     ROOT_USER, ServiceId, compare_versions, path,
 };
 use greyhack_world_core::systems::network::connect::ServiceCheck;
+use greyhack_world_core::{ComputerId, ConnectionFailure, NodeDraft, Result, ServiceFailure};
 use indexmap::IndexMap;
 use serde::Deserialize;
 
 use crate::services::Apt;
-use crate::{
-    AptFailure, ComputerId, ConnectionFailure, NodeDraft, RepositoryConfig, Result, ServiceFailure,
-};
+use crate::{AptFailure, RepositoryConfig};
 
 /// Output line produced by `AptClientIntrinsics.update` for one source.
 #[derive(Debug, Clone, PartialEq, Eq)]

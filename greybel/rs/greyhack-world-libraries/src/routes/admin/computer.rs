@@ -2,7 +2,7 @@
 
 use greyhack_behaviour::{FileData, PermissionSet, path};
 use greyhack_world_core::{ComputerId, NodeDraft, ObjectTableExt as _};
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     AdminCreateProgram, AdminSetLibraryVersion, AdminSetPortLibraryVersion,
 };
 use greyhack_world_router::{RouteContext, RouteTable};

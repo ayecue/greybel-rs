@@ -1,10 +1,9 @@
 //! Draws the mails of an NPC account (`Persona.GenerateMailsContents`).
 
-use greyhack_behaviour::SECONDS_PER_HOUR;
+use greyhack_behaviour::{CompanyAlign, JobRole, SECONDS_PER_HOUR, Word, WorkPerformance};
 use mono_random::Random;
 
 use super::{Administrator, Colleague, Delivery, Owner};
-use crate::{CompanyAlign, JobRole, Word, WorkPerformance};
 
 pub(super) const BREAK_SUBJECTS: [&str; 3] = [
     "coffee during the break?",
@@ -25,7 +24,7 @@ pub(super) const SPAM_SUBJECTS: [&str; 3] = [
 /// (`NetworkLan.missionCreated`); without one that mail takes no random numbers.
 ///
 /// The game stops with an exception where it indexes an empty list (a network without another NPC,
-/// a mail of a network without administrator). Those steps deliver nothing here.
+/// a mail of a network without administrator). Those steps produce nothing here.
 pub(crate) fn contents(
     random: &mut Random,
     owner: &Owner,

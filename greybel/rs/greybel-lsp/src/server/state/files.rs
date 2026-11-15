@@ -2,7 +2,7 @@ use greybel_documents::Uri;
 use rustc_hash::FxHashSet;
 
 use super::{Expectation, Outbound};
-use crate::files::{ReadFileParams, ReadFileRequest};
+use crate::files::{ReadFile, ReadFileRequest};
 
 /// Tracks URIs found by client searches and URIs already requested for reading.
 #[derive(Debug, Default)]
@@ -37,11 +37,11 @@ impl ClientFileTable {
             return;
         }
 
-        let params = ReadFileParams {
+        let params = ReadFileRequest {
             uri: uri.to_string(),
         };
 
-        outbound.request::<ReadFileRequest>(params, Expectation::Read(uri.clone()));
+        outbound.request::<ReadFile>(params, Expectation::Read(uri.clone()));
     }
 
     pub(in crate::server) fn finish_read(&mut self, uri: &Uri) {

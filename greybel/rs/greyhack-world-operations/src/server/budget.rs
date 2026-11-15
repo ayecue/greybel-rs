@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
-use greyhack_world_router::TreeId;
+use greyhack_world_programs::TreeId;
 use tokio::sync::Notify;
 
 type Tree = TreeId;

@@ -1,8 +1,7 @@
 //! Guilds, company ownership and the Crown.
 
 use greyhack_behaviour::AdminAbsence;
-
-use crate::NetworkId;
+use greyhack_world_core::NetworkId;
 
 /// In-memory Crown ranking schedule (`Guilds.crownRankingDirty` and
 /// `Guilds.nextCrownRankingEvaluation`).

@@ -5,11 +5,12 @@ use greyhack_behaviour::{
     PermissionSet, ROOT_USER, ServiceId, detail_key, path, shop_programs,
 };
 use greyhack_world_assets::{GameTextTable, Script};
+use greyhack_world_core::{ComputerId, NodeDraft, Result};
 use indexmap::IndexMap;
 
 use crate::model::service_config::config_text;
 use crate::services::InstallService;
-use crate::{ComputerId, HttpConfig, NodeDraft, RepositoryConfig, Result, SoftwareInfo};
+use crate::{HttpConfig, RepositoryConfig, SoftwareInfo};
 
 /// Returns the English detail text of the program or library file `name`, or its translation key
 /// when the game has no text (`TranslationManager.GetText`).

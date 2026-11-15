@@ -1,8 +1,8 @@
 use greyhack_behaviour::{PermissionSet, path};
+use greyhack_world_libraries::{ComputerDraft, NodeDraft};
 use mono_random::Random;
 
 use super::RandomContent;
-use crate::{ComputerDraft, NodeDraft};
 
 /// Adds the random files and images of `computer` (`Router.GenerateRandomContent`) drawn from
 /// `seed`, which the game derives from the network seed and the computer's LAN address. Files

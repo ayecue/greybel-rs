@@ -9,8 +9,8 @@ use std::collections::{BTreeMap, HashMap, VecDeque};
 
 use greybel_lsp::types::{self as lsp, Notification as _, Request as _};
 use greybel_lsp::{
-    FindFilesRequest, InitializationOptions, Message, Notification, ReadFileRequest, Request,
-    RequestId, Response, Server,
+    FileSearch, InitializationOptions, Message, Notification, ReadFile, Request, RequestId,
+    Response, Server,
 };
 use greybel_test_support::lsp::{did_open_params, initialize_params};
 use serde_json::{Value, json};
@@ -157,7 +157,7 @@ impl Client {
 
                 let method = request.method.as_str();
 
-                if method == ReadFileRequest::METHOD.as_str() {
+                if method == ReadFile::METHOD.as_str() {
                     if !self.responds_to_reads {
                         self.pending_requests.push(request);
 
@@ -167,9 +167,9 @@ impl Client {
                     return Some(self.read(&request));
                 }
 
-                let result = if method == FindFilesRequest::METHOD.as_str() {
+                let result = if method == FileSearch::METHOD.as_str() {
                     let params = request
-                        .params::<FindFilesRequest>()
+                        .params::<FileSearch>()
                         .expect("find-files parameters");
 
                     assert!(params.include.starts_with("**/*."), "{}", params.include);
@@ -190,9 +190,7 @@ impl Client {
     }
 
     fn read(&self, request: &Request) -> Message {
-        let params = request
-            .params::<ReadFileRequest>()
-            .expect("read-file parameters");
+        let params = request.params::<ReadFile>().expect("read-file parameters");
 
         Message::Response(Response {
             id: Some(request.id.clone()),

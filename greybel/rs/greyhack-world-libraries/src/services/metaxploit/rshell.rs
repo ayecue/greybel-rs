@@ -2,8 +2,9 @@
 
 use greyhack_behaviour::{Refusal, ServiceId, check_process_name};
 use greyhack_world_core::systems::network::connect::ServiceCheck;
+use greyhack_world_core::{ComputerId, Result};
 
-use crate::{ComputerId, Metaxploit, Result, ReverseShell, RshellFailure};
+use crate::{Metaxploit, ReverseShell, RshellFailure};
 
 /// Why starting a reverse-shell client failed (`MetaExploitIntrinsics.rshell_client`).
 #[derive(Debug, Clone, PartialEq, Eq)]

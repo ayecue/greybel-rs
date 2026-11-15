@@ -1,4 +1,4 @@
-use crate::{Node, RouterId};
+use greyhack_world_core::{Node, RouterId};
 
 /// Target of a session opened by `metaxploit.net_use`.
 #[derive(Debug, Clone, PartialEq)]

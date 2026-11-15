@@ -1,8 +1,7 @@
 //! Traces of the player by network administrators.
 
 use greyhack_behaviour::PassiveStage;
-
-use crate::{ComputerId, PersonId};
+use greyhack_world_core::{ComputerId, PersonId};
 
 /// Active trace row ID.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

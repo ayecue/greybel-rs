@@ -3,6 +3,7 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::{DeviceKind, Lan, LanNode, LanPort};
+use greyhack_world_modules::Dep;
 
 use crate::storage::*;
 use crate::systems::NetworkLan as NetworkLanService;

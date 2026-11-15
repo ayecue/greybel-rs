@@ -1,7 +1,7 @@
 //! Tests client-hosted workspace files, includes, imports, and later file creation.
 
 use greybel_lsp::types::Request as _;
-use greybel_lsp::{FindFilesRequest, ReadFileRequest};
+use greybel_lsp::{FileSearch, ReadFile};
 use serde_json::json;
 
 use crate::support::{
@@ -62,7 +62,7 @@ fn should_read_a_missing_include_only_once() {
     let reads = client
         .requests
         .iter()
-        .filter(|method| *method == ReadFileRequest::METHOD.as_str())
+        .filter(|method| *method == ReadFile::METHOD.as_str())
         .count();
 
     assert_eq!(
@@ -125,7 +125,7 @@ fn should_take_a_created_file_only_once_the_client_lists_it() {
 
     assert_eq!(
         client.requests,
-        [FindFilesRequest::METHOD.as_str()],
+        [FileSearch::METHOD.as_str()],
         "the client lists the workspace's files again, without the excluded one"
     );
 }

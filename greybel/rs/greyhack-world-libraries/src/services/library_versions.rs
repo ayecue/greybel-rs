@@ -4,15 +4,16 @@
 use std::collections::HashMap;
 
 use greyhack_behaviour::{
-    FIRST_VERSION, LibraryKind, LibraryRole, MAX_WEAKNESS_USES, Reward, count_use, is_worn_out,
-    is_zone_exhausted, next_version, replacement_zone_count, saved_versions_to_prune,
+    FIRST_VERSION, LibraryKind, LibraryRole, MAX_WEAKNESS_USES, Reward, Rng, count_use,
+    is_worn_out, is_zone_exhausted, next_version, replacement_zone_count, saved_versions_to_prune,
 };
+use greyhack_world_core::{LibraryId, Result};
 
 use super::report::ExploitOutcome;
+use crate::Library;
 use crate::generation::LibraryGeneration;
 use crate::generation::library::{VersionTable, WeaknessContext};
 use crate::storage::UseCount;
-use crate::{Library, LibraryId, Result, Rng};
 
 /// Libraries a player cannot report weaknesses of (`FileHelperServer.ExploitReportServerRpc`).
 const UNREPORTABLE: [LibraryKind; 3] = [
@@ -417,9 +418,9 @@ pub struct VersionService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) libraries: std::rc::Rc<crate::storage::LibraryRepository>,
     pub(crate) library_versions: std::rc::Rc<crate::storage::LibraryVersionRepository>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) generator: greyhack_world_core::Dep<crate::Generator>,
-    pub(crate) shop: greyhack_world_core::Dep<crate::Shop>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) generator: greyhack_world_modules::Dep<crate::Generator>,
+    pub(crate) shop: greyhack_world_modules::Dep<crate::Shop>,
 }
 
 impl VersionService {
@@ -427,9 +428,9 @@ impl VersionService {
         world: &greyhack_world_core::WorldRef,
         libraries: std::rc::Rc<crate::storage::LibraryRepository>,
         library_versions: std::rc::Rc<crate::storage::LibraryVersionRepository>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        generator: greyhack_world_core::Dep<crate::Generator>,
-        shop: greyhack_world_core::Dep<crate::Shop>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        generator: greyhack_world_modules::Dep<crate::Generator>,
+        shop: greyhack_world_modules::Dep<crate::Shop>,
     ) -> Self {
         Self {
             world: world.clone(),

@@ -131,13 +131,14 @@ impl UsersService {
         user.deletable = true;
         self.user_rows.insert_user(computer, &user).await?;
 
-        let Some(root) = self.account_files.root(computer).await? else {
+        let Some(root) = self.files.lookup.root(computer).await? else {
             return Ok(Ok(()));
         };
-        let home = match self.account_files.folder(computer, "/home", true).await? {
+        let home = match self.files.lookup.folder(computer, "/home", true).await? {
             Some(home) => home,
             None => {
-                self.account_files
+                self.files
+                    .changes
                     .add_node(
                         &root,
                         &NodeDraft::folder("home", ROOT_USER, PermissionSet::default_for(true)),
@@ -146,7 +147,8 @@ impl UsersService {
             }
         };
         let folder = self
-            .account_files
+            .files
+            .changes
             .add_node(
                 &home,
                 &NodeDraft::folder(name, name, PermissionSet::default_for(true)),
@@ -154,7 +156,7 @@ impl UsersService {
             .await?;
 
         for child in User::home_folders(name, PermissionSet::GROUP_FOLDER) {
-            self.account_files.add_node(&folder, &child).await?;
+            self.files.changes.add_node(&folder, &child).await?;
         }
 
         self.write_passwd(computer, false).await?;
@@ -178,18 +180,18 @@ impl UsersService {
             return Ok(false);
         }
 
-        if remove_home
-            && let Some(home) = self.account_files.folder(computer, "/home", true).await?
+        if remove_home && let Some(home) = self.files.lookup.folder(computer, "/home", true).await?
         {
             let folder = self
-                .account_files
+                .files
+                .lookup
                 .folders(&home)
                 .await?
                 .into_iter()
                 .find(|folder| folder.name() == name);
 
             if let Some(folder) = folder {
-                self.account_files.remove_node(&folder).await?;
+                self.files.changes.remove_node(&folder).await?;
             }
         }
 
@@ -228,31 +230,34 @@ impl UsersService {
     pub async fn write_passwd(&self, computer: ComputerId, recreate: bool) -> Result<()> {
         let users = self.user_rows.users(computer).await?;
         let content = User::passwd_text(&users);
-        let passwd = self.account_files.file(computer, PASSWD_PATH, true).await?;
+        let passwd = self.files.lookup.file(computer, PASSWD_PATH, true).await?;
         let mut file = match passwd {
             Some(file) if User::passwd_is_reusable(file.data(), recreate) => file,
             _ => {
                 if let Some(file) = passwd {
-                    self.account_files.remove_node(&file).await?;
+                    self.files.changes.remove_node(&file).await?;
                 }
 
-                let Some(root) = self.account_files.root(computer).await? else {
+                let Some(root) = self.files.lookup.root(computer).await? else {
                     return Ok(());
                 };
                 let etc = match self
-                    .account_files
+                    .files
+                    .lookup
                     .folder(computer, PASSWD_FOLDER, true)
                     .await?
                 {
                     Some(etc) => etc,
                     None => {
-                        self.account_files
+                        self.files
+                            .changes
                             .add_node(&root, &User::etc_folder())
                             .await?
                     }
                 };
 
-                self.account_files
+                self.files
+                    .changes
                     .add_node(&etc, &User::passwd_file_draft())
                     .await?
             }
@@ -264,7 +269,7 @@ impl UsersService {
 
         file.timestamp = self.world.time_seconds();
 
-        self.account_files.save_node(&file).await
+        self.files.changes.save_node(&file).await
     }
 
     /// Returns user `name` on `computer`, including the implicit `guest` account.

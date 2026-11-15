@@ -85,18 +85,18 @@ impl Cctv {
 pub struct Cctv {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) smart_devices: std::rc::Rc<crate::storage::SmartDeviceRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
 }
 
 impl Cctv {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         smart_devices: std::rc::Rc<crate::storage::SmartDeviceRepository>,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+        npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
     ) -> Self {
         Self {
             world: world.clone(),

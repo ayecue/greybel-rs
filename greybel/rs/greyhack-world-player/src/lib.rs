@@ -17,7 +17,6 @@ pub mod storage;
 use std::rc::Rc;
 
 use greyhack_world_core::WorldRef;
-pub use greyhack_world_core::{ComputerId, PersonId, Result, RouterId, WorldError};
 use greyhack_world_modules::{Module, Registry};
 use greyhack_world_storage::DomainSchema;
 pub use model::{CtfAccount, CtfEvent, CtfFailure, CtfPlayer};
@@ -69,6 +68,7 @@ impl PlayerModule {
     #[must_use]
     pub fn schema() -> DomainSchema {
         DomainSchema::new(<Self as Module>::NAME, [storage::schema::ctf::GROUP])
+            .with_dependencies(&["core"])
     }
 }
 
@@ -87,7 +87,7 @@ impl Module for PlayerModule {
                     game_over
                         .end_game()
                         .await
-                        .map_err(greyhack_world_modules::EventError::new)?;
+                        .map_err(greyhack_world_effects::EventError::new)?;
                     game_over.world.events().publish(GameOverEvent);
                 }
 

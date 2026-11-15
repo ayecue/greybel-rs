@@ -87,7 +87,7 @@ impl Vm {
         freed
     }
 
-    // Keep out of line: inlining exposes it to `run_batch` through `collect_garbage` and alters dispatch-loop code.
+    // Out of line: inlining exposes it to `run_batch` through `collect_garbage` and alters dispatch-loop code.
     #[inline(never)]
     pub(crate) fn roots(&self) -> Vec<HeapRef> {
         let frames = self.calls.frames.iter().flat_map(frame_roots);

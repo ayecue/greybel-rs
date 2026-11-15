@@ -1,12 +1,12 @@
 //! Storage for wallets and their balances.
 
-use greyhack_world_core::Database;
+use greyhack_world_core::{CoinId, Database, Result};
 use greyhack_world_storage::sql::{
     FromRow, RowView, execute, fetch_all, fetch_opt, fetch_value, insert,
 };
 use turso::params;
 
-use crate::{CoinId, Result, Wallet, WalletId};
+use crate::{Wallet, WalletId};
 
 /// Wallet columns in [`Wallet`] [`FromRow`] order.
 macro_rules! wallet_columns {
@@ -47,13 +47,13 @@ impl FromRow for BalanceRow {
 /// Queries of the tables owned by this area.
 pub(crate) struct WalletRepository {
     db: Database,
-    computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+    computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
 }
 
 impl WalletRepository {
     pub(crate) fn new(
         db: Database,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
     ) -> Self {
         Self { db, computers }
     }

@@ -1,10 +1,10 @@
 //! Storage for sub-wallets and their last transactions.
 
-use greyhack_world_core::Database;
+use greyhack_world_core::{CoinId, Database, Result};
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_opt};
 use turso::params;
 
-use crate::{CoinId, Result, SubWallet, Transaction};
+use crate::{SubWallet, Transaction};
 
 impl FromRow for SubWallet {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
@@ -34,13 +34,13 @@ impl FromRow for Transaction {
 /// Queries of the tables owned by this area.
 pub(crate) struct SubwalletRepository {
     db: Database,
-    computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+    computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
 }
 
 impl SubwalletRepository {
     pub(crate) fn new(
         db: Database,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
     ) -> Self {
         Self { db, computers }
     }

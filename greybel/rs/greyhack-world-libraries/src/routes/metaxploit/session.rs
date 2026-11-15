@@ -2,12 +2,12 @@
 
 use greyhack_behaviour::ROOT_USER;
 use greyhack_world_core::routes::require_connection;
-use greyhack_world_core::{Access, FileRef};
+use greyhack_world_core::{Access, ComputerId, FileRef};
 
 use crate::objects::{KernelRef, NetSessionRef};
 use crate::routes::protocol::ScriptFailure;
 use crate::routes::{OperationError, Result};
-use crate::{ComputerId, NetUseFailure, NetUseSession};
+use crate::{NetUseFailure, NetUseSession};
 
 /// Opens a service session at `address:port`, or a router session when port is 0 ([`crate::Metaxploit::net_use`]).
 /// Returns `None` when no session target exists.

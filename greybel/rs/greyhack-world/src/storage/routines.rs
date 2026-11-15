@@ -1,20 +1,19 @@
 //! Queries of the generic routine queue and the data tables shared with their owning domains.
 
-use greyhack_world_core::Result;
+use greyhack_world_core::{Database, Result};
 
-use super::Database;
 use crate::ScheduledRoutine;
 
 /// Queries of the tables owned by this area.
 pub(crate) struct RoutineRepository {
     db: Database,
-    scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+    scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
 }
 
 impl RoutineRepository {
     pub(crate) fn new(
         db: Database,
-        scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+        scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
     ) -> Self {
         Self { db, scheduler }
     }

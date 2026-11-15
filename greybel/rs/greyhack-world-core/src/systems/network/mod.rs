@@ -4,6 +4,7 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::FirewallRule;
+use greyhack_world_modules::Dep;
 
 use crate::storage::*;
 use crate::systems::*;
@@ -12,6 +13,7 @@ use crate::*;
 pub mod connect;
 pub mod dns;
 pub mod gateway;
+pub mod generation;
 pub mod lan;
 pub mod reach;
 pub mod router_config;

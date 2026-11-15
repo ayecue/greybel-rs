@@ -1,8 +1,9 @@
 //! Coins: their records, passwords, creators, and mining rewards (`BlockchainSystem`).
 
 use greyhack_behaviour::{cap_balance, round_reward};
+use greyhack_world_core::{CoinId, Result};
 
-use crate::{Coin, CoinId, MineJobFailure, PriceRecord, Result};
+use crate::{Coin, MineJobFailure, PriceRecord};
 
 /// Methods of [`World`] for economy coins.
 impl CoinService {
@@ -74,23 +75,23 @@ pub struct CoinService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) coins: std::rc::Rc<crate::storage::CoinRepository>,
     pub(crate) subwallets: std::rc::Rc<crate::storage::SubwalletRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) wallets: greyhack_world_core::Dep<crate::services::WalletService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) wallets: greyhack_world_modules::Dep<crate::services::WalletService>,
     pub(crate) network_generation:
-        greyhack_world_core::Dep<dyn greyhack_world_core::NetworkGeneration>,
-    pub(crate) mine_jobs: greyhack_world_core::Dep<crate::routines::MineJobService>,
+        greyhack_world_modules::Dep<dyn greyhack_world_core::NetworkGeneration>,
+    pub(crate) mine_jobs: greyhack_world_modules::Dep<crate::routines::MineJobService>,
 }
 
 pub(crate) struct CoinServiceSupport {
     pub(crate) coins: std::rc::Rc<crate::storage::CoinRepository>,
     pub(crate) subwallets: std::rc::Rc<crate::storage::SubwalletRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) wallets: greyhack_world_core::Dep<crate::services::WalletService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) wallets: greyhack_world_modules::Dep<crate::services::WalletService>,
     pub(crate) network_generation:
-        greyhack_world_core::Dep<dyn greyhack_world_core::NetworkGeneration>,
-    pub(crate) mine_jobs: greyhack_world_core::Dep<crate::routines::MineJobService>,
+        greyhack_world_modules::Dep<dyn greyhack_world_core::NetworkGeneration>,
+    pub(crate) mine_jobs: greyhack_world_modules::Dep<crate::routines::MineJobService>,
 }
 
 impl CoinService {

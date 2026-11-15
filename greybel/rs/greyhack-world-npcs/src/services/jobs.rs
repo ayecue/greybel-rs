@@ -1,12 +1,12 @@
 //! NPC roles, death, firing, and hiring (`NetworkLan`, `NpcInfo`, `NpcHiring`).
 
-use greyhack_behaviour::{DEATH_DELAY_SECONDS, NetworkKind, assign_role, draw_plate};
-use greyhack_world_core::{ComputerId, Gender, NetworkId, PersonId};
-
-use crate::{
-    CompanyAlign, JobRole, NetworkAdmin, NetworkCreation, Npc, NpcJobChange, NpcSchedule,
-    NpcSwitch, Result, Rng, Word, WorkPerformance,
+use greyhack_behaviour::{
+    CompanyAlign, DEATH_DELAY_SECONDS, Gender, JobRole, NetworkAdmin, NetworkKind, NpcSchedule,
+    Rng, Word, WorkPerformance, assign_role, draw_plate,
 };
+use greyhack_world_core::{ComputerId, NetworkId, PersonId, Result};
+
+use crate::{NetworkCreation, Npc, NpcJobChange, NpcSwitch};
 
 /// NPC firing errors (`NetworkLan.FireNpc`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -277,19 +277,19 @@ impl JobService {
 /// NPC employment, hiring, firing, and rented-server administrators.
 pub struct JobService {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) npcs: greyhack_world_core::Dep<crate::NpcService>,
-    pub(crate) bank: greyhack_world_core::Dep<greyhack_world_economy::Bank>,
-    pub(crate) network_creation: greyhack_world_core::Dep<dyn NetworkCreation>,
-    pub(crate) scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) npcs: greyhack_world_modules::Dep<crate::NpcService>,
+    pub(crate) bank: greyhack_world_modules::Dep<greyhack_world_economy::Bank>,
+    pub(crate) network_creation: greyhack_world_modules::Dep<dyn NetworkCreation>,
+    pub(crate) scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
 }
 
 impl JobService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         registry: &std::rc::Rc<greyhack_world_modules::Registry>,
-        scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
+        scheduler: std::rc::Rc<greyhack_world_effects::Scheduler>,
     ) -> Self {
         Self {
             world: world.clone(),

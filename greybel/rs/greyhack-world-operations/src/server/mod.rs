@@ -20,8 +20,10 @@ use deferred_jobs::DeferredJob;
 use duplex_core::{Channel, ChannelOptions, Driver, Transport};
 use greyhack_world::World;
 use greyhack_world_core::{ComputerId, Database, RebootEvent, WorldError};
-use greyhack_world_modules::{WorkCompletion, WorkEnvelope};
-use greyhack_world_router::{PrintQueue, ProgramTree, ProgramTreePool, TreeId};
+use greyhack_world_effects::{WorkCompletion, WorkEnvelope};
+use greyhack_world_programs::protocol::{GameServer, GameServerChannel, ProgramEnd};
+use greyhack_world_programs::{ProgramTree, ProgramTreePool, TreeId};
+use greyhack_world_router::PrintQueue;
 use scheduler::Clock;
 pub use ticks::TickOptions;
 use ticks::TickState;
@@ -29,14 +31,13 @@ use tokio::sync::{Mutex, MutexGuard};
 use trees::TreeIndex;
 
 use crate::connection::{self};
-use crate::protocol::{GameServer, GameServerChannel, ProgramEnd};
 
 /// Shared-world server accepting runtime channels that execute operations on the same world.
 #[derive(Clone)]
 pub struct WorldServer(Rc<ServerState>);
 
 /// Read-only world access while the server is locked.
-pub struct WorldView<'a>(MutexGuard<'a, WorldState>);
+pub struct WorldView<'a>(MutexGuard<'a, ServerWorld>);
 
 impl std::ops::Deref for WorldView<'_> {
     type Target = World;
@@ -49,7 +50,7 @@ impl std::ops::Deref for WorldView<'_> {
 pub(crate) struct ServerState {
     /// World and connection object tables locked for an entire cycle, including awaits. Lock waiters are
     /// served in request order.
-    pub(crate) world: Mutex<WorldState>,
+    pub(crate) world: Mutex<ServerWorld>,
     pub(crate) index: RefCell<TreeIndex>,
     /// Program trees shared with route contexts and indexed before a cycle is locked.
     pub(crate) trees: Rc<ProgramTreePool<ComputerId>>,
@@ -69,7 +70,7 @@ pub(crate) struct ServerState {
     /// Program termination notices queued for the end of the cycle, after operation responses.
     program_ends: RefCell<Vec<(ProgramEnd, ConnectionChannel)>>,
     /// Deferred operations keyed by scheduled work ID.
-    deferred_jobs: RefCell<HashMap<u64, DeferredJob>>,
+    deferred_jobs: RefCell<HashMap<greyhack_world_effects::WorkId, DeferredJob>>,
     /// Work results stored until a successful commit resolves their deferred jobs.
     pending_ends: RefCell<Vec<WorkEnvelope>>,
     /// RebootEvent computers whose programs end after object interruption.
@@ -77,12 +78,12 @@ pub(crate) struct ServerState {
 }
 
 /// World, program trees, and connection object tables the current cycle exclusively owns.
-pub(crate) struct WorldState {
+pub(crate) struct ServerWorld {
     pub(crate) world: Rc<World>,
     pub(crate) trees: Rc<ProgramTreePool<ComputerId>>,
 }
 
-impl WorldState {
+impl ServerWorld {
     /// Returns the tree identified by `key`.
     pub(crate) fn tree(&self, key: TreeId) -> Option<std::cell::Ref<'_, ProgramTree<ComputerId>>> {
         self.trees.get(key)
@@ -123,7 +124,7 @@ impl WorldServer {
             trees: trees.clone(),
             routes,
             database,
-            world: Mutex::new(WorldState {
+            world: Mutex::new(ServerWorld {
                 world: Rc::new(world),
                 trees,
             }),

@@ -3,35 +3,34 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::{GpuFault, check_gpu};
-use greyhack_world_core::{ComputerService, WorldRef};
-use greyhack_world_modules::WorkId;
+use greyhack_world_core::{CoinId, ComputerId, ComputerService, Result, WorldRef};
+use greyhack_world_effects::WorkId;
 
 use crate::storage::{MineJobRepository, RoutineRepository};
 use crate::{
-    CoinId, CoinRound, CoinService, ComputerId, MineJob, MineJobFailure, MineJobState, Result,
-    WalletId, WalletService,
+    CoinRound, CoinService, MineJob, MineJobFailure, MineJobState, WalletId, WalletService,
 };
 
 /// Mining subscriptions and their typed work results.
 pub struct MineJobService {
     world: WorldRef,
-    computers: greyhack_world_core::Dep<ComputerService>,
-    coins: greyhack_world_core::Dep<CoinService>,
-    wallets: greyhack_world_core::Dep<WalletService>,
+    computers: greyhack_world_modules::Dep<ComputerService>,
+    coins: greyhack_world_modules::Dep<CoinService>,
+    wallets: greyhack_world_modules::Dep<WalletService>,
     jobs: Rc<MineJobRepository>,
     routines: Rc<RoutineRepository>,
-    work: Rc<greyhack_world_modules::WorkQueue>,
-    coin_round: greyhack_world_core::Dep<CoinRound>,
+    work: Rc<greyhack_world_effects::WorkQueue>,
+    coin_round: greyhack_world_modules::Dep<CoinRound>,
 }
 
 pub(crate) struct MineJobServiceSupport {
-    pub(crate) computers: greyhack_world_core::Dep<ComputerService>,
-    pub(crate) coins: greyhack_world_core::Dep<CoinService>,
-    pub(crate) wallets: greyhack_world_core::Dep<WalletService>,
+    pub(crate) computers: greyhack_world_modules::Dep<ComputerService>,
+    pub(crate) coins: greyhack_world_modules::Dep<CoinService>,
+    pub(crate) wallets: greyhack_world_modules::Dep<WalletService>,
     pub(crate) jobs: Rc<MineJobRepository>,
     pub(crate) routines: Rc<RoutineRepository>,
-    pub(crate) work: Rc<greyhack_world_modules::WorkQueue>,
-    pub(crate) coin_round: greyhack_world_core::Dep<CoinRound>,
+    pub(crate) work: Rc<greyhack_world_effects::WorkQueue>,
+    pub(crate) coin_round: greyhack_world_modules::Dep<CoinRound>,
 }
 
 impl MineJobService {
@@ -145,7 +144,7 @@ impl MineJobService {
         };
         let mut work = self.coin_jobs(coin.id).await?;
 
-        work.extend(self.routines.coin_round(coin.id).await?);
+        work.extend(self.routines.coin_round(coin.id).await?.map(WorkId::from));
         self.fail(&work, &MineJobFailure::CoinMissing).await?;
         self.coins.coins.remove_coin(coin.id).await?;
 
@@ -229,12 +228,12 @@ impl MineJobService {
     }
 }
 
-impl greyhack_world_modules::WorkOwner for MineJobService {
-    fn cancel(&self, id: WorkId) -> greyhack_world_modules::WorkCancelFuture<'_> {
+impl greyhack_world_effects::WorkOwner for MineJobService {
+    fn cancel(&self, id: WorkId) -> greyhack_world_effects::WorkCancelFuture<'_> {
         Box::pin(async move {
             MineJobService::cancel(self, id)
                 .await
-                .map_err(greyhack_world_modules::EventError::new)
+                .map_err(greyhack_world_effects::EventError::new)
         })
     }
 

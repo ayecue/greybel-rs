@@ -3,10 +3,10 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use greyhack_world_router::TreeId;
+use greyhack_world_programs::TreeId;
+use greyhack_world_programs::protocol::ProgramId;
 
 use super::ConnectionChannel;
-use crate::protocol::ProgramId;
 
 /// Connection channels and server-wide ID allocation.
 #[derive(Default)]

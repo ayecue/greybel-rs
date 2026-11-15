@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use greyhack_behaviour::SubscriptionKind;
 use greyhack_world_core::WorldRef;
-use greyhack_world_routines::{
+use greyhack_world_effects::{
     Result as RoutineResult, Routine, RoutineError, RoutineId, Scheduler,
 };
 use greyhack_world_storage::TableSet;
@@ -17,14 +17,14 @@ use crate::storage::schema;
 /// A subscription's payment falls due.
 pub struct Payment {
     world: WorldRef,
-    bank: greyhack_world_core::Dep<Bank>,
+    bank: greyhack_world_modules::Dep<Bank>,
     scheduler: Rc<Scheduler>,
 }
 
 impl Payment {
     pub(crate) fn new(
         world: &WorldRef,
-        bank: greyhack_world_core::Dep<Bank>,
+        bank: greyhack_world_modules::Dep<Bank>,
         scheduler: Rc<Scheduler>,
     ) -> Self {
         Self {
@@ -40,7 +40,7 @@ impl Payment {
         at: u64,
         bank: &str,
         kind: SubscriptionKind,
-    ) -> crate::Result<RoutineId> {
+    ) -> greyhack_world_core::Result<RoutineId> {
         Self::cancel_with(world, scheduler, bank, kind).await?;
 
         Ok(scheduler
@@ -54,7 +54,7 @@ impl Payment {
         at: u64,
         bank: &str,
         kind: SubscriptionKind,
-    ) -> crate::Result<RoutineId> {
+    ) -> greyhack_world_core::Result<RoutineId> {
         Self::schedule_with(&self.world, &self.scheduler, at, bank, kind).await
     }
 
@@ -63,7 +63,7 @@ impl Payment {
         scheduler: &Scheduler,
         bank: &str,
         kind: SubscriptionKind,
-    ) -> crate::Result<()> {
+    ) -> greyhack_world_core::Result<()> {
         let conn = world.db().connection();
         let rows: Vec<i64> = fetch_column(
             &conn,
@@ -73,7 +73,9 @@ impl Payment {
         .await?;
 
         for row in rows {
-            scheduler.cancel(&conn, row.cast_unsigned()).await?;
+            scheduler
+                .cancel(&conn, RoutineId::new(row.cast_unsigned()))
+                .await?;
         }
 
         Ok(())
@@ -101,7 +103,7 @@ impl Routine for Payment {
         execute(
             conn,
             "INSERT INTO routine_payments (routine_id, bank_number, kind) VALUES (?1, ?2, ?3)",
-            params![id.cast_signed(), bank.as_str(), kind.code()],
+            params![id.get().cast_signed(), bank.as_str(), kind.code()],
         )
         .await?;
 
@@ -112,7 +114,7 @@ impl Routine for Payment {
         let row = fetch_opt::<(String, Code<SubscriptionKind>)>(
             conn,
             "SELECT bank_number, kind FROM routine_payments WHERE routine_id = ?1",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 

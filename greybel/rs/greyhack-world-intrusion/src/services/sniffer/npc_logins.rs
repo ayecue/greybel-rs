@@ -68,7 +68,7 @@ impl greyhack_world_npcs::NpcLoginCapture for SnifferService {
         &'a self,
         computer: ComputerId,
         user: &'a str,
-    ) -> greyhack_world_core::CallFuture<'a, ()> {
+    ) -> greyhack_world_effects::BoxFuture<'a, Result<()>> {
         Box::pin(async move { SnifferService::record_npc_login(self, computer, user).await })
     }
 }

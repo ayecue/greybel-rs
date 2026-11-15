@@ -208,7 +208,7 @@ async fn should_give_a_strike_when_an_active_trace_runs_out() {
         .trace_action(computer, 1, LogAction::Remove, 1)
         .await
         .unwrap();
-    world.deliver_events();
+    world.dispatch_events();
 
     // Act
     world
@@ -224,7 +224,7 @@ async fn should_give_a_strike_when_an_active_trace_runs_out() {
 
         move |event: &greyhack_world_traces::StrikeEvent| strikes.borrow_mut().push(*event)
     });
-    world.deliver_events();
+    world.dispatch_events();
     assert!(
         strikes
             .borrow()
@@ -249,8 +249,7 @@ async fn should_give_a_strike_when_an_active_trace_runs_out() {
 #[tokio::test]
 async fn should_trace_a_deletion_only_on_the_computer_of_the_last_shell() {
     use greyhack_behaviour::{FileData, PermissionSet, ROOT_USER};
-    use greyhack_world_core::DeletionOrigin;
-    use greyhack_world_libraries::NodeDraft;
+    use greyhack_world_core::{DeletionOrigin, NodeDraft};
 
     // Arrange
     let (world, _, _, _, company) = bank().await;
@@ -304,7 +303,7 @@ async fn should_trace_a_deletion_only_on_the_computer_of_the_last_shell() {
         .await
         .unwrap()
         .unwrap();
-    world.assembly.events.deliver_async().await.unwrap();
+    world.assembly.events.dispatch_async().await.unwrap();
 
     let after_other = world
         .modules
@@ -324,7 +323,7 @@ async fn should_trace_a_deletion_only_on_the_computer_of_the_last_shell() {
         .await
         .unwrap()
         .unwrap();
-    world.assembly.events.deliver_async().await.unwrap();
+    world.assembly.events.dispatch_async().await.unwrap();
 
     // Assert
     assert_eq!(after_other, 0);

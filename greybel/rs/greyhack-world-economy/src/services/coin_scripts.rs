@@ -3,10 +3,11 @@
 use greyhack_behaviour::{
     CoinLimit, check_new_subwallet, check_wallet_password, hash_password, is_valid_ip,
 };
+use greyhack_world_core::{CoinId, ComputerId, Result};
 
 use crate::services::CoinService;
 use crate::services::failure::EconomyFailure;
-use crate::{Coin, CoinId, ComputerId, Result, SubWallet};
+use crate::{Coin, SubWallet};
 
 /// Maximum sub-wallets one wallet has for a coin (`Wallet.AddSubWallet`,
 /// `BlockchainSystem.AddSubWallet`).

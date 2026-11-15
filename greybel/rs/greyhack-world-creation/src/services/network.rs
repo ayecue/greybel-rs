@@ -2,15 +2,16 @@
 //! hub, forward, and content-seed helpers.
 
 use greyhack_behaviour::{
-    DeviceKind, NetworkKind, is_lan_ip, is_rumor_time, is_valid_unreserved_ip,
+    DeviceKind, Gender, NetworkKind, Rng, Word, is_lan_ip, is_rumor_time, is_valid_unreserved_ip,
 };
+use greyhack_world_core::{
+    ComputerId, Contact, LanPlace, NetworkDraft, NetworkId, Port, Result, RouterId,
+};
+use greyhack_world_libraries::{ComputerDraft, RouterDraft};
 
+use crate::ForwardLayout;
 use crate::generation::{
     ComputerOptions, NetworkOptions, computer, kernel_router, network, random_content,
-};
-use crate::{
-    ComputerDraft, ComputerId, Contact, ForwardLayout, Gender, LanPlace, NetworkDraft, NetworkId,
-    Port, Result, Rng, RouterDraft, RouterId, Word,
 };
 
 /// Database name for hubs, which are not computers in Grey Hack (`HubNet`).
@@ -234,18 +235,19 @@ impl NetworkGeneration {
 /// A world service with only its declared dependencies.
 pub struct NetworkGeneration {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) installs: greyhack_world_core::Dep<greyhack_world_services::InstallService>,
-    pub(crate) jobs: greyhack_world_core::Dep<greyhack_world_npcs::JobService>,
-    pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
-    pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
-    pub(crate) libraries: greyhack_world_core::Dep<greyhack_world_libraries::LibraryService>,
-    pub(crate) updates: greyhack_world_core::Dep<greyhack_world_libraries::UpdateService>,
-    pub(crate) traffic: greyhack_world_core::Dep<greyhack_world_smart_devices::Traffic>,
-    pub(crate) appliances: greyhack_world_core::Dep<greyhack_world_smart_devices::ApplianceService>,
-    pub(crate) mission_placement: greyhack_world_core::Dep<crate::MissionPlacement>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) installs: greyhack_world_modules::Dep<greyhack_world_services::InstallService>,
+    pub(crate) jobs: greyhack_world_modules::Dep<greyhack_world_npcs::JobService>,
+    pub(crate) mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
+    pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
+    pub(crate) libraries: greyhack_world_modules::Dep<greyhack_world_libraries::LibraryService>,
+    pub(crate) updates: greyhack_world_modules::Dep<greyhack_world_libraries::UpdateService>,
+    pub(crate) traffic: greyhack_world_modules::Dep<greyhack_world_smart_devices::Traffic>,
+    pub(crate) appliances:
+        greyhack_world_modules::Dep<greyhack_world_smart_devices::ApplianceService>,
+    pub(crate) mission_placement: greyhack_world_modules::Dep<crate::MissionPlacement>,
 }
 
 impl NetworkGeneration {

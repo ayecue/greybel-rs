@@ -334,12 +334,12 @@ impl Traffic {
 pub struct Traffic {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) smart_devices: std::rc::Rc<crate::storage::SmartDeviceRepository>,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) jobs: greyhack_world_core::Dep<greyhack_world_npcs::JobService>,
-    pub(crate) guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
-    pub(crate) appliances: greyhack_world_core::Dep<crate::ApplianceService>,
-    pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) jobs: greyhack_world_modules::Dep<greyhack_world_npcs::JobService>,
+    pub(crate) guilds: greyhack_world_modules::Dep<greyhack_world_guilds::GuildService>,
+    pub(crate) appliances: greyhack_world_modules::Dep<crate::ApplianceService>,
+    pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
 }
 
 impl Traffic {
@@ -364,14 +364,14 @@ impl greyhack_world_core::PersistentState for Traffic {
     fn load_state<'a>(
         &'a self,
         _: &'a greyhack_world_core::WorldRef,
-    ) -> greyhack_world_core::CallFuture<'a, ()> {
+    ) -> greyhack_world_effects::BoxFuture<'a, greyhack_world_core::Result<()>> {
         Box::pin(async move { self.load_state().await })
     }
 
     fn save_state<'a>(
         &'a self,
         _: &'a greyhack_world_core::WorldRef,
-    ) -> greyhack_world_core::CallFuture<'a, ()> {
+    ) -> greyhack_world_effects::BoxFuture<'a, greyhack_world_core::Result<()>> {
         Box::pin(async move { self.save_state().await })
     }
 }

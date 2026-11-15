@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use greyhack_behaviour::library_check_seconds;
 use greyhack_world_core::WorldRef;
-use greyhack_world_routines::{
+use greyhack_world_effects::{
     Result as RoutineResult, Routine, RoutineError, RoutineId, Scheduler,
 };
 use greyhack_world_storage::TableSet;
@@ -17,14 +17,14 @@ use crate::storage::schema;
 /// The check for library versions to release.
 pub struct LibraryCheck {
     world: WorldRef,
-    versions: greyhack_world_core::Dep<VersionService>,
+    versions: greyhack_world_modules::Dep<VersionService>,
     scheduler: Rc<Scheduler>,
 }
 
 impl LibraryCheck {
     pub(crate) fn new(
         world: &WorldRef,
-        versions: greyhack_world_core::Dep<VersionService>,
+        versions: greyhack_world_modules::Dep<VersionService>,
         scheduler: Rc<Scheduler>,
     ) -> Self {
         Self {
@@ -35,7 +35,7 @@ impl LibraryCheck {
     }
 
     /// Schedules the first version check when the world has none.
-    pub async fn ensure(&self) -> crate::Result<()> {
+    pub async fn ensure(&self) -> greyhack_world_core::Result<()> {
         if !self.versions.library_versions.has_library_check().await? {
             self.schedule().await?;
         }
@@ -43,7 +43,7 @@ impl LibraryCheck {
         Ok(())
     }
 
-    async fn schedule(&self) -> crate::Result<()> {
+    async fn schedule(&self) -> greyhack_world_core::Result<()> {
         let at = self
             .world
             .time_seconds()
@@ -71,7 +71,7 @@ impl Routine for LibraryCheck {
         execute(
             conn,
             "INSERT INTO routine_library_checks (routine_id) VALUES (?1)",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 
@@ -82,7 +82,7 @@ impl Routine for LibraryCheck {
         let row = fetch_value::<i64>(
             conn,
             "SELECT routine_id FROM routine_library_checks WHERE routine_id = ?1",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 

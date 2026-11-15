@@ -1,9 +1,9 @@
 //! Base person identities. Mail and bank links are stored by their domains.
 
+use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_opt, insert};
 use turso::params;
 
 use super::Database;
-use super::sql::{FromRow, RowView, execute, fetch_opt, insert};
 use crate::{Person, PersonId, Result};
 
 impl FromRow for Person {

@@ -36,7 +36,7 @@ pub struct ParserOptions {
     pub version: Version,
     pub filename: String,
     pub environment: HashMap<String, String>,
-    /// Keeps comments and empty lines in the AST for formatting.
+    /// Retains comments and empty lines in the AST for formatting.
     pub preserve: bool,
     /// Accepts only syntax compiled by the dialect reference: the selected MiniScript version, Grey Hack's compiler
     /// for GreyScript, or Greybel syntax without its extensions.

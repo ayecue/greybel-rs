@@ -3,7 +3,7 @@
 use std::rc::Rc;
 
 use greyhack_world_core::WorldRef;
-use greyhack_world_routines::{
+use greyhack_world_effects::{
     Result as RoutineResult, Routine, RoutineError, RoutineId, Scheduler,
 };
 use greyhack_world_storage::TableSet;
@@ -16,14 +16,14 @@ use crate::{TraceId, TraceService};
 /// An active trace runs out.
 pub struct ActiveTrace {
     world: WorldRef,
-    traces: greyhack_world_core::Dep<TraceService>,
+    traces: greyhack_world_modules::Dep<TraceService>,
     scheduler: Rc<Scheduler>,
 }
 
 impl ActiveTrace {
     pub(crate) fn new(
         world: &WorldRef,
-        traces: greyhack_world_core::Dep<TraceService>,
+        traces: greyhack_world_modules::Dep<TraceService>,
         scheduler: Rc<Scheduler>,
     ) -> Self {
         Self {
@@ -38,14 +38,18 @@ impl ActiveTrace {
         scheduler: &Scheduler,
         at: u64,
         trace: TraceId,
-    ) -> crate::Result<RoutineId> {
+    ) -> greyhack_world_core::Result<RoutineId> {
         Ok(scheduler
             .schedule::<Self>(&world.db().connection(), at, &trace)
             .await?)
     }
 
     /// Schedules the end of an active trace.
-    pub async fn schedule(&self, at: u64, trace: TraceId) -> crate::Result<RoutineId> {
+    pub async fn schedule(
+        &self,
+        at: u64,
+        trace: TraceId,
+    ) -> greyhack_world_core::Result<RoutineId> {
         Self::schedule_with(&self.world, &self.scheduler, at, trace).await
     }
 }
@@ -64,7 +68,7 @@ impl Routine for ActiveTrace {
         execute(
             conn,
             "INSERT INTO routine_active_traces (routine_id, trace_id) VALUES (?1, ?2)",
-            params![id.cast_signed(), data.0],
+            params![id.get().cast_signed(), data.0],
         )
         .await?;
 
@@ -75,7 +79,7 @@ impl Routine for ActiveTrace {
         let trace = fetch_value::<u32>(
             conn,
             "SELECT trace_id FROM routine_active_traces WHERE routine_id = ?1",
-            params![id.cast_signed()],
+            params![id.get().cast_signed()],
         )
         .await?;
 
@@ -105,10 +109,12 @@ impl Routine for ActiveTrace {
             .await?;
 
             for row in rows {
-                let id = row.cast_unsigned();
+                let id = RoutineId::new(row.cast_unsigned());
 
                 if self.scheduler.cancel(conn, id).await? {
-                    self.world.works().cancel(id);
+                    self.world
+                        .works()
+                        .cancel(greyhack_world_effects::WorkId::from(id));
                 }
             }
         }

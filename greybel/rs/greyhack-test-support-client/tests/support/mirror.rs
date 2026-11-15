@@ -3,7 +3,7 @@
 use greyhack_behaviour::{
     Command, DeviceKind, FIRST_VERSION, FileData, FileKind, FirewallRule, LibraryKind,
     NetworkAdmin, NetworkKind, PermissionSet, Requirement, Reward, SAFE_MODE_TERMINAL,
-    SAFE_MODE_TERMINAL_RAM_MB, ServiceId, SmartApplianceSettings, SubscriptionKind,
+    SAFE_MODE_TERMINAL_RAM_MB, ServiceId, Side, SmartApplianceSettings, SubscriptionKind,
     WorkPerformance,
 };
 use greyhack_test_support_client::protocol::test_support::{
@@ -16,7 +16,7 @@ use greyhack_world_core::{
 };
 use greyhack_world_creation::{DeviceLayout, ForwardLayout, LanNodeLayout, NetworkLayout};
 use greyhack_world_economy::{
-    BankLayout, BankSubscription, CoinLayout, EconomyLayout, OfferLayout, PriceRecord, Side,
+    BankLayout, BankSubscription, CoinLayout, EconomyLayout, OfferLayout, PriceRecord,
     SubWalletLayout, WalletLayout,
 };
 use greyhack_world_libraries::{

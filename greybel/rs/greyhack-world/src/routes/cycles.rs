@@ -1,14 +1,14 @@
 //! Server operations exposed to wait routes.
 
 use greyhack_world_core::WorldError;
-use greyhack_world_modules::WorkCancel;
-use greyhack_world_router::protocol::ProgramId;
-use greyhack_world_router::{Call, CycleAccess, Cycles, RouteContext};
+use greyhack_world_effects::{WorkCancel, WorkId};
+use greyhack_world_programs::protocol::ProgramId;
+use greyhack_world_router::{Call, CycleAccess, RouteContext};
 
 use super::Result;
 use crate::World;
 
-impl CyclesExt for Cycles<'_> {
+impl CyclesExt for CycleAccess<'_> {
     async fn change<T: 'static>(
         self,
         program: ProgramId,
@@ -21,8 +21,8 @@ impl CyclesExt for Cycles<'_> {
         CycleAccess::world_dynamic::<T, World, WorldError>(self, apply).await
     }
 
-    async fn defer<T: 'static>(self, program: ProgramId, work: u64) -> Result<T, WorkCancel> {
-        CycleAccess::defer_dynamic::<T, World, WorldError>(self, program, work)
+    async fn defer<T: 'static>(self, program: ProgramId, work: WorkId) -> Result<T, WorkCancel> {
+        CycleAccess::defer_dynamic::<T, World, WorldError>(self, program, work.get())
             .await
             .ok_or(WorkCancel)
     }
@@ -49,7 +49,7 @@ pub trait CyclesExt {
     async fn world<T: 'static>(self, apply: impl AsyncFnOnce(&World) -> T) -> T;
 
     /// Waits for a typed work result.
-    async fn defer<T: 'static>(self, program: ProgramId, work: u64) -> Result<T, WorkCancel>;
+    async fn defer<T: 'static>(self, program: ProgramId, work: WorkId) -> Result<T, WorkCancel>;
 
     /// Returns the configured per-tick routine limit.
     fn routine_budget(self) -> usize;

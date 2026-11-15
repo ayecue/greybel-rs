@@ -8,7 +8,7 @@ use greyhack_world_core::{ComputerId, Result};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GameOverEvent;
 
-impl greyhack_world_modules::Event for GameOverEvent {}
+impl greyhack_world_effects::Event for GameOverEvent {}
 
 /// Methods of [`World`] for player game over.
 impl GameOver {
@@ -134,14 +134,14 @@ impl GameOver {
 /// A world service with only its declared dependencies.
 pub struct GameOver {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
-    pub(crate) bank: greyhack_world_core::Dep<greyhack_world_economy::Bank>,
-    pub(crate) guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
-    pub(crate) traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
-    pub(crate) routines: std::rc::Rc<greyhack_world_routines::Scheduler>,
-    pub(crate) mine_jobs: std::rc::Rc<greyhack_world_modules::WorkQueue>,
+    pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
+    pub(crate) bank: greyhack_world_modules::Dep<greyhack_world_economy::Bank>,
+    pub(crate) guilds: greyhack_world_modules::Dep<greyhack_world_guilds::GuildService>,
+    pub(crate) traces: greyhack_world_modules::Dep<greyhack_world_traces::TraceService>,
+    pub(crate) routines: std::rc::Rc<greyhack_world_effects::Scheduler>,
+    pub(crate) mine_jobs: std::rc::Rc<greyhack_world_effects::WorkQueue>,
 }
 
 impl GameOver {

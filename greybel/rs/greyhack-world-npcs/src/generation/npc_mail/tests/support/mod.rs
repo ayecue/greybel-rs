@@ -1,7 +1,7 @@
+use greyhack_behaviour::{CompanyAlign, JobRole, NetworkAdmin, WorkPerformance};
 use mono_random::Random;
 
 use super::super::{Administrator, Colleague, Delivery, Owner, contents};
-use crate::{CompanyAlign, JobRole, NetworkAdmin, WorkPerformance};
 
 pub(super) fn colleague(surname: &str, role: JobRole, performance: WorkPerformance) -> Colleague {
     Colleague {

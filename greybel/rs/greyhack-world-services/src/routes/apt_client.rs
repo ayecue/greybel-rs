@@ -1,12 +1,12 @@
 //! Repository and package-installation operations (`AptClientIntrinsics`).
 
 use greyhack_world_core::routes::require_connection;
-use greyhack_world_router::RouteTable;
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     AptClientAddRepo, AptClientCheckUpgrade, AptClientDelRepo, AptClientInstall, AptClientSearch,
     AptClientShow, AptClientUpdate, AptUpdate, Failure, Outcome, PackageEntry, PackageList,
     PrintLine,
 };
+use greyhack_world_router::RouteTable;
 
 use crate::objects::ObjectTableExt;
 use crate::routes::protocol::IntoProtocol;

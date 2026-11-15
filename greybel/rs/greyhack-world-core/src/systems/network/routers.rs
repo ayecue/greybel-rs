@@ -6,6 +6,7 @@ use greyhack_behaviour::{
     DeviceKind, FileKind, KERNEL_ROUTER_PATH, ServiceId, WIFI_RANGE, is_lan_ip, library_path,
     map_distance,
 };
+use greyhack_world_modules::Dep;
 
 use crate::storage::*;
 use crate::systems::computer::hardware::Hardware;

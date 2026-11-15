@@ -397,15 +397,15 @@ impl Crypto {
 /// A world service with only its declared dependencies.
 pub struct Crypto {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-    pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
 }
 
 impl Crypto {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
-        networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
+        files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+        networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
     ) -> Self {
         Self {
             world: world.clone(),
@@ -418,9 +418,9 @@ impl Crypto {
 impl greyhack_world_npcs::SmtpAccess for Crypto {
     fn access(
         &self,
-        objects: &greyhack_world_router::ObjectTableHandle<ComputerId>,
-        object: greyhack_world_router::protocol::ObjectId,
-    ) -> greyhack_world_router::RouteResult<
+        objects: &greyhack_world_programs::ObjectTableHandle<ComputerId>,
+        object: greyhack_world_programs::protocol::ObjectId,
+    ) -> greyhack_world_programs::RouteResult<
         greyhack_world_core::Access,
         greyhack_world_core::WorldError,
     > {

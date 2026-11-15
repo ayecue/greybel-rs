@@ -10,8 +10,7 @@ mod to_lsp;
 
 pub use error::{ResponseError, Result};
 pub use files::{
-    FindFilesParams, FindFilesRequest, ProjectParams, ProjectRequest, ProjectResult,
-    ReadFileParams, ReadFileRequest,
+    FileSearch, FindFilesRequest, Project, ProjectRequest, ProjectResult, ReadFile, ReadFileRequest,
 };
 pub use gen_lsp_types as types;
 pub use greybel_documents::Uri;

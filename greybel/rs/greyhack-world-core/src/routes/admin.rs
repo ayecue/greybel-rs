@@ -1,6 +1,6 @@
 //! Core-owned `admin.so` operations for computers, credentials, and networks.
 
-use greyhack_world_router::protocol::{
+use greyhack_world_programs::protocol::{
     AdminAddNetCard, AdminDisableNetwork, AdminLogin, AdminNetworks, AdminRegisterPassword,
 };
 use greyhack_world_router::{RouteContext, RouteTable};

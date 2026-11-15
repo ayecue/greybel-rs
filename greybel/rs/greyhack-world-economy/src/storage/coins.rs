@@ -1,10 +1,10 @@
 //! Storage for coins, their price history, and pending trades.
 
-use greyhack_world_core::Database;
+use greyhack_world_core::{CoinId, Database, Result};
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_all, fetch_opt, insert};
 use turso::params;
 
-use crate::{Coin, CoinId, PriceRecord, Result};
+use crate::{Coin, PriceRecord};
 
 /// Coin columns in [`Coin`] [`FromRow`] order.
 macro_rules! coin_columns {
@@ -45,13 +45,13 @@ impl FromRow for PriceRecord {
 /// Queries of the tables owned by this area.
 pub(crate) struct CoinRepository {
     db: Database,
-    computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+    computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
 }
 
 impl CoinRepository {
     pub(crate) fn new(
         db: Database,
-        computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
+        computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
     ) -> Self {
         Self { db, computers }
     }
