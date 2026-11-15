@@ -7,14 +7,15 @@ use greyhack_behaviour::{LibraryKind, Reward, ServiceId};
 use greyhack_test_support_client::protocol::test_support::LanNodeKind;
 use greyhack_world::World;
 
-use crate::support::game::{join_network, join_network_of_kind_where, setup_player, test_client};
+use crate::support::game::{
+    fixture_target, hackshop_repository, join_fixture, setup_player, test_client,
+};
 use crate::support::mirror::library;
 use crate::support::parity::assert_succeeded;
 use crate::support::parity_library_updates::newest_library;
 use crate::support::parity_library_versions::{
     AFTER, BEFORE, compare_after_release, compare_with_libraries, copy_with_libraries,
 };
-use crate::support::remote::{find_service, service};
 
 /// A new library version appears on the official apt server: `check_upgrade` offers it, `install` gives it, and a
 /// library loaded from the new file has its version (`VersionsControl.lastLibs`, `AptClientIntrinsics.check_upgrade`,
@@ -73,15 +74,11 @@ async fn should_match_intrinsics_for_the_metaxploit_a_hack_shop_sells_after_a_re
         .await
         .unwrap();
 
-    let shop = client.find_network("HackShop", "").await.unwrap();
-
-    join_network(&client, &shop.public_ip).await;
-
-    let snapshot = join_network_of_kind_where(&client, &["HackShop"], "repository", |snapshot| {
-        find_service(snapshot, "repository").is_some()
-    })
-    .await;
-    let (address, port) = service(&snapshot, "repository");
+    let shop = hackshop_repository(&client).await;
+    let target = fixture_target(&shop, "repository");
+    let address = target.local_ip.clone();
+    let port = target.services[1].internal_port;
+    let snapshot = join_fixture(&client, &shop).await;
 
     assert!(
         snapshot.nodes.iter().any(|node| matches!(

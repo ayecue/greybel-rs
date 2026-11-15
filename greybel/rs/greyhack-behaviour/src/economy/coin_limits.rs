@@ -60,6 +60,10 @@ impl CoinLimit {
 
     /// Converts `number` with C# `(int)` semantics, returning `int.MinValue` for NaN and out-of-range
     /// values (`Value.IntValue`).
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Value.IntValue truncates like C# (int) after its range checks"
+    )]
     fn int_value(number: f64) -> i32 {
         if number.is_nan() || number >= 2_147_483_648.0 || number <= -2_147_483_649.0 {
             i32::MIN

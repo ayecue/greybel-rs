@@ -51,7 +51,7 @@ impl RawMode {
         Ok(mode)
     }
 
-    pub(crate) fn next(&self) -> io::Result<Press> {
+    pub(crate) fn next() -> io::Result<Press> {
         loop {
             if let Event::Key(event) = event::read()?
                 && let Some(press) = press(event)
@@ -61,7 +61,7 @@ impl RawMode {
         }
     }
 
-    pub(crate) fn poll(&self) -> io::Result<Option<Press>> {
+    pub(crate) fn poll() -> io::Result<Option<Press>> {
         if !event::poll(Duration::ZERO)? {
             return Ok(None);
         }

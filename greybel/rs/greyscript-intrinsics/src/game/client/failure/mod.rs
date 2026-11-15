@@ -68,9 +68,9 @@ pub(crate) fn failure_text(
         Failure::Metaxploit(failure) => metaxploit::metaxploit_text(*failure).to_owned(),
         Failure::Device(failure) => device::device_text(intrinsic, failure),
         Failure::Job(failure) => job::job_text(failure),
-        Failure::Alarm(failure) => device::alarm_text(failure),
+        Failure::Alarm(failure) => device::alarm_text(*failure),
         Failure::Shop(failure) => shop::shop_text(intrinsic, failure),
-        Failure::Mission(failure) => mission::mission_text(failure),
+        Failure::Mission(failure) => mission::mission_text(*failure),
         Failure::ServiceControl(failure) => {
             service_control::service_control_text(intrinsic, *failure).to_owned()
         }

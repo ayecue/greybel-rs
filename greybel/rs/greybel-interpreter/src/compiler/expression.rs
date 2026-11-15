@@ -74,7 +74,7 @@ impl Compiler<'_> {
 
                 Ok(())
             }
-            _ => Err(self.unexpected_node_error(id)),
+            _ => Err(Box::new(self.unexpected_node_error(id))),
         }
     }
 
@@ -374,7 +374,7 @@ impl Compiler<'_> {
     pub(crate) fn map(&mut self, id: NodeId, fields: &[NodeId], discard: bool) -> Result {
         for &field in fields {
             let NodeKind::MapEntry(entry) = self.kind(field) else {
-                return Err(self.unexpected_node_error(field));
+                return Err(Box::new(self.unexpected_node_error(field)));
             };
 
             self.expression(entry.key)?;
@@ -391,7 +391,7 @@ impl Compiler<'_> {
     pub(crate) fn list(&mut self, id: NodeId, fields: &[NodeId], discard: bool) -> Result {
         for &field in fields {
             let NodeKind::ListItem(item) = self.kind(field) else {
-                return Err(self.unexpected_node_error(field));
+                return Err(Box::new(self.unexpected_node_error(field)));
             };
 
             self.expression(item.value)?;

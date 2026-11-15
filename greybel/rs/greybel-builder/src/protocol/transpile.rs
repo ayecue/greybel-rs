@@ -34,7 +34,7 @@ impl From<&TranspileSettings> for TranspileOptions {
             environment: settings
                 .variables
                 .iter()
-                .map(|(name, value)| (name.to_string(), value.to_string()))
+                .map(|(name, value)| (name.clone(), value.clone()))
                 .collect(),
             strict_mode: settings.strict_mode,
             excluded_names: settings

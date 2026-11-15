@@ -61,7 +61,7 @@ pub(super) fn required_networks(mission: &Mission) -> usize {
         .map(|computer| computer.computer_index_net)
         .fold(mission.closure_network_index, i32::max);
 
-    (highest + 1).max(0) as usize
+    usize::try_from((highest + 1).max(0)).expect("the clamped index is nonnegative")
 }
 
 pub(super) fn build_candidate(
@@ -83,7 +83,7 @@ pub(super) fn build_candidate(
     }
 
     let closure = Beat {
-        index: beats.len() as i32,
+        index: i32::try_from(beats.len()).expect("value fits the target integer type"),
         network: closure_network,
         local: next_local.get(&closure_network).copied().unwrap_or(0),
         modality: Modality::File,

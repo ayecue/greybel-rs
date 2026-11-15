@@ -1,6 +1,8 @@
 //! World-secret derivation (`WorldSeed`): keyed numbers and reversible 32-bit permutations, including
 //! licence-plate address encoding.
 
+use std::fmt::Write as _;
+
 use sha2::{Digest, Sha256};
 
 /// Byte length of the generated world secret.
@@ -101,7 +103,7 @@ impl WorldSeed {
         let mut payload = String::new();
 
         for part in std::iter::once(label).chain(context.iter().copied()) {
-            payload.push_str(&format!("{}:{part}|", part.encode_utf16().count()));
+            let _ = write!(payload, "{}:{part}|", part.encode_utf16().count());
         }
 
         let mut key = [0_u8; BLOCK];
@@ -128,7 +130,12 @@ impl WorldSeed {
 
 /// Splits `value` into its high and low 16 bits, the two sides of the Feistel network.
 fn split_u32(value: u32) -> (u16, u16) {
-    ((value >> 16) as u16, value as u16)
+    let [high_low, high_high, low_low, low_high] = value.to_be_bytes();
+
+    (
+        u16::from_be_bytes([high_low, high_high]),
+        u16::from_be_bytes([low_low, low_high]),
+    )
 }
 
 /// Joins the two sides of the Feistel network back into one value; the inverse of [`split_u32`].
@@ -142,5 +149,7 @@ fn feistel_round(value: u16, key: u32) -> u16 {
     let mix = (mix ^ (mix >> 16)).wrapping_mul(2_146_121_005);
     let mix = ((mix ^ (mix >> 15)).cast_signed()).wrapping_mul(-2_073_254_261);
 
-    (mix ^ (mix.cast_unsigned() >> 16).cast_signed()) as u16
+    let [low, high, ..] = (mix ^ (mix.cast_unsigned() >> 16).cast_signed()).to_le_bytes();
+
+    u16::from_le_bytes([low, high])
 }

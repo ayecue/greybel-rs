@@ -3,9 +3,9 @@
 use greybel_test_support::game::Game;
 use greyhack_behaviour::Reward;
 
-use crate::support::game::{join_network, setup_player, test_client};
+use crate::support::game::{join_fixture, setup_player, ssh_network, test_client};
 use crate::support::parity::{compare_in, game_outcomes, intrinsics_outcomes};
-use crate::support::remote::{forwarded_root, script_string, service_account};
+use crate::support::remote::{fixture_account, script_string};
 
 /// The `File` class on files the script makes itself. A copy or move isn't read back at once: the game updates what the
 /// script sees of it some time after the call returns.
@@ -76,16 +76,13 @@ async fn should_match_intrinsics_for_libraries_and_startup_files() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let network = client
-        .find_new_network("Supermercados", "ssh")
-        .await
-        .unwrap();
-    let address = network.public_ip.to_string();
+    let network = ssh_network(&client).await;
+    let address = network.public_ip.clone();
+    let account = fixture_account(&network, "ssh", "ssh", true);
+    let port = account.port;
+    let password = account.root_password;
 
-    join_network(&client, &address).await;
-
-    let snapshot = client.network_state().await.unwrap();
-    let (port, password) = forwarded_root(&snapshot, "ssh");
+    let snapshot = join_fixture(&client, &network).await;
     let connect =
         format!("get_shell.connect_service(\"{address}\", {port}, \"root\", \"{password}\")");
     let libraries = format!(
@@ -183,16 +180,11 @@ async fn should_match_intrinsics_for_public_ips_and_a_remote_reboot() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let network = client
-        .find_new_network("Supermercados", "ssh")
-        .await
-        .unwrap();
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
 
-    join_network(&client, &network.public_ip).await;
-
-    let snapshot = client.network_state().await.unwrap();
-    let account = service_account(&snapshot, "ssh");
-    let address = network.public_ip.to_string();
+    let snapshot = join_fixture(&client, &network).await;
+    let address = network.public_ip.clone();
     let scripts = vec![
         format!(
             "print get_shell.host_computer.public_ip; remote = get_shell.connect_service(\"{}\", {}, \"root\", \"{}\"); print remote.host_computer.public_ip; print get_shell.host_computer.reboot(\"bad\")",

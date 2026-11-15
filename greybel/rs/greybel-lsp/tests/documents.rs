@@ -34,7 +34,7 @@ fn should_report_an_unresolved_reference_on_open() {
 fn should_clear_diagnostics_after_an_edit_fixing_them() {
     let mut client = project_with_a_missing_reference();
 
-    client.change("main.src", 2, insertion(0, 0, "missing = 1\n"));
+    client.change("main.src", 2, &insertion(0, 0, "missing = 1\n"));
     assert!(client.codes("main.src").is_empty());
 }
 
@@ -43,7 +43,7 @@ fn should_not_send_unchanged_diagnostics_again() {
     let mut client = project_with_the_reference_defined();
     let published = client.published.len();
 
-    client.change("main.src", 3, insertion(1, 13, " "));
+    client.change("main.src", 3, &insertion(1, 13, " "));
     assert_eq!(
         client.published.len(),
         published,
@@ -68,7 +68,7 @@ fn should_take_the_files_content_again_once_its_document_closes() {
     assert_eq!(client.codes("main.src"), ["unresolved-reference"]);
 
     client.close("lib/greet.src");
-    client.change("main.src", 2, json!([{ "text": MAIN }]));
+    client.change("main.src", 2, &json!([{ "text": MAIN }]));
 
     assert!(
         client.codes("main.src").is_empty(),

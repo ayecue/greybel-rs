@@ -6,6 +6,7 @@ using GreyHackTestSupport.Plugin.Bridge.Setup;
 using GreyHackTestSupport.Protocol;
 using Newtonsoft.Json;
 using ServiceConfig;
+using Util;
 using ServicioID = ServiceConfig.ServicioID;
 
 namespace GreyHackTestSupport.Plugin.Bridge.Fixtures;
@@ -14,13 +15,8 @@ namespace GreyHackTestSupport.Plugin.Bridge.Fixtures;
 /// Creates and locates networks and configures their computers, port forwards, libraries, firewalls, and flood
 /// counters. It can also disable networks.
 /// </summary>
-internal sealed class NetworkFixture(Player player, WorldRestore restore)
+internal sealed class NetworkFixture(Player player, WorldRestore restore, FixtureStore store)
 {
-    /// <summary>
-    /// Seeds the address sequence used by <see cref="Find"/> so tests locate the same network on each run.
-    /// </summary>
-    private const int NetworkSearchSeed = 7;
-
     public Reply Create(CreateNetworkRpc request)
     {
         Router router =
@@ -42,74 +38,235 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore)
         );
     }
 
-    /// <summary>Finds the first network with the device in the <see cref="NetworkSearchSeed"/> address sequence.</summary>
-    public Reply Find(FindNetworkRpc request)
+    /// <summary>Creates one fresh network and materializes each named target through the game's LAN generator.</summary>
+    public Reply CreateFixture(CreateFixtureNetworkRpc request)
     {
         ServerMap.TipoRed kind = (ServerMap.TipoRed)
             Enum.Parse(typeof(ServerMap.TipoRed), request.Kind);
-        Random random = new Random(NetworkSearchSeed);
+        Router router = SpawnFresh(kind);
+        string publicIp = router.GetPublicIP();
+        store.AddNetwork(publicIp);
+        NetworkLan network = router.GetNetworkLan();
+        NetworkLan.GlobalLan globalLan = (NetworkLan.GlobalLan)
+            GameField.NetworkGlobalLan.GetValue(network);
+        NetworkLan.RouterNet child = AddLayout(router, network, globalLan, request.Layout);
 
-        for (int attempt = 0; attempt < 64; attempt++)
+        if (request.OldestKernel)
         {
-            Router router = ServerMap.Singleton.GetRouter(
-                new IP(IpGenerator.GenerateRandomIpForType(kind, random)),
-                true
-            );
+            string content = ReadOldestLibrary("kernel_router.so");
+            router
+                .GetFileSystem()
+                .ForceAddFile(
+                    new FileSystem.Archivo(
+                        "kernel_router.so",
+                        content,
+                        "root",
+                        FileSystem.Fichero.TypeFile.Library,
+                        saveToDB: true,
+                        isDefaultContent: true
+                    ),
+                    "/lib"
+                );
+        }
+
+        List<(FixtureTarget Request, LanPcInfo Info)> infos =
+            new List<(FixtureTarget, LanPcInfo)>();
+        foreach (FixtureTarget target in request.Targets)
+        {
+            NetworkLan.RouterNet parent = target.Location switch
+            {
+                "main" => network.routerDevice,
+                "lan_router" => child
+                    ?? throw new InvalidOperationException("A LAN target needs the router layout"),
+                _ => throw new InvalidOperationException("Unknown fixture target location"),
+            };
             if (
-                router != null
-                && (
-                    request.Device.Length == 0
-                    || HasDevice(router.GetNetworkLan().routerDevice, request.Device)
+                target.Location != "main"
+                && target.Services.Any(service => service.PublicPort != null)
+            )
+            {
+                throw new InvalidOperationException("Only main targets can have public forwards");
+            }
+
+            IP localIp = NextAddress(network, parent.localIp);
+            Puertos ports = new Puertos();
+            Dictionary<ServicioID, LanPcInfo.LibraryInfo> libVersions =
+                new Dictionary<ServicioID, LanPcInfo.LibraryInfo>();
+            List<Servicio> services = new List<Servicio>();
+            foreach (FixtureService fixtureService in target.Services)
+            {
+                ServicioID serviceId = (ServicioID)
+                    Enum.Parse(typeof(ServicioID), fixtureService.Service, true);
+                if (
+                    fixtureService.PublicPort is ushort publicPort
+                    && router.GetConfigOS().puertos.ExistePuertoExterno(publicPort)
+                )
+                {
+                    throw new InvalidOperationException(
+                        "The requested public port is already used"
+                    );
+                }
+                Servicio service = new Servicio(
+                    XmlGlobal.Singleton.tipoServidor.GetServicio(serviceId)
+                )
+                {
+                    puerto = fixtureService.InternalPort,
+                };
+                parent.PreAddServicio(
+                    service,
+                    services,
+                    libVersions,
+                    ports,
+                    router,
+                    localIp.ToString(),
+                    fixtureService.PublicPort != null,
+                    isolated: false
+                );
+                Puerto internalPort = ports.allPorts.Last();
+                if (internalPort.internalPort != fixtureService.InternalPort)
+                {
+                    throw new InvalidOperationException(
+                        "The game assigned a different internal port"
+                    );
+                }
+                if (fixtureService.PublicPort is ushort fixedPort)
+                {
+                    internalPort.externalPort = fixedPort;
+                    Puerto forward = router
+                        .GetConfigOS()
+                        .puertos.allPorts.Last(candidate =>
+                            candidate.lanIP == localIp.ToString()
+                            && candidate.internalPort == fixtureService.InternalPort
+                        );
+                    forward.externalPort = fixedPort;
+                }
+            }
+
+            NetworkLan.TypeDevice device = (NetworkLan.TypeDevice)
+                Enum.Parse(typeof(NetworkLan.TypeDevice), target.Device);
+            LanPcInfo info = new LanPcInfo(
+                localIp.ToString(),
+                ports,
+                libVersions,
+                services,
+                router,
+                globalLan.random,
+                device
+            )
+            {
+                gateway = parent.localIp,
+            };
+            foreach (
+                FixtureService fixtureService in target.Services.Where(service =>
+                    service.OldestLibrary
                 )
             )
             {
-                return new Reply.NetworkCreated(
-                    new NetworkCreatedReply(router.GetPublicIP(), router.GetLocalIP())
+                Servicio service = XmlGlobal.Singleton.tipoServidor.GetServicio(
+                    (ServicioID)Enum.Parse(typeof(ServicioID), fixtureService.Service, true)
+                );
+                string name = service.GetLibName();
+                info.UpdateLibVersion(
+                    JsonConvert.DeserializeObject<Library>(ReadOldestLibrary(name)),
+                    ReadOldestLibrary(name)
                 );
             }
+            parent.AddPcInfo(info);
+            infos.Add((target, info));
         }
+        network.UpdateParentDevicesAndPlayers();
+        GameMethod.NetworkAllowMainServicesFw.Invoke(network, null);
+        GameMethod.NetworkUpdateNpcsLocalIps.Invoke(network, null);
+        router.GetRouterConfigOS().BackupPorts();
 
-        throw new InvalidOperationException(
-            "No " + request.Kind + " network has a " + request.Device
-        );
-    }
-
-    /// <summary>Finds an unvisited network of the requested kind whose router forwards a port to the service.</summary>
-    public Reply FindNew(FindNewNetworkRpc request)
-    {
-        ServerMap.TipoRed kind = (ServerMap.TipoRed)
-            Enum.Parse(typeof(ServerMap.TipoRed), request.Kind);
-        ServicioID service = (ServicioID)Enum.Parse(typeof(ServicioID), request.Service, true);
-        Random random = new Random(Guid.NewGuid().GetHashCode());
-
-        for (int attempt = 0; attempt < 64; attempt++)
+        List<FixtureTargetReply> replies = new List<FixtureTargetReply>();
+        foreach ((FixtureTarget target, LanPcInfo info) in infos)
         {
-            string address = IpGenerator.GenerateRandomIpForType(kind, random);
-            // The game's reserved ranges (`IP.reservedIPs`) omit 192.168.0.0/16, so a network can get a public
-            // address `IP.IsLanIp` takes for a LAN one, which no script reaches as public.
-            if (Database.Singleton.GetRouterNode(address) != null || IP.IsLanIp(address))
+            if (info.IsHidden(network))
             {
-                continue;
+                throw new InvalidOperationException("A fixture target was generated hidden");
             }
-            Router router = ServerMap.Singleton.GetRouter(new IP(address), true);
+            Computer computer =
+                router.GetComputer(info.localIp)
+                ?? throw new InvalidOperationException(
+                    "The game did not materialize a fixture target"
+                );
             if (
-                router != null
-                && router
-                    .GetConfigOS()
-                    .puertos.allPorts.Any(port =>
-                        !string.IsNullOrEmpty(port.lanIP)
-                        && router.GetPortVersion(port).Split(' ')[0] == service.ToString()
-                    )
+                kind == ServerMap.TipoRed.Comisaria
+                && target.Name == "workstation"
+                && computer.GetFileSystem().GetArchivo("/lib/libtrafficnet.so") == null
             )
             {
-                return new Reply.NetworkCreated(
-                    new NetworkCreatedReply(router.GetPublicIP(), router.GetLocalIP())
+                throw new InvalidOperationException(
+                    "The police workstation has no traffic library"
                 );
+            }
+            if (
+                kind == ServerMap.TipoRed.HackShop
+                && target.Services.Any(service =>
+                    service.Service.Equals("repository", StringComparison.OrdinalIgnoreCase)
+                )
+                && computer.GetFileSystem().GetArchivo("/server/conf/repod.conf") == null
+            )
+            {
+                throw new InvalidOperationException("The HackShop repository has no catalog");
+            }
+            Computer.User root = computer.GetUser("root");
+            if (target.RootPassword.Length > 0)
+            {
+                root.SetPassword(target.RootPassword);
+                computer.GeneratePasswdFile();
+            }
+            Computer.User user = computer.GetUsers(includeRoot: false).FirstOrDefault();
+            List<FixtureServiceReply> services = target
+                .Services.Select(service => new FixtureServiceReply(
+                    service.Service,
+                    service.InternalPort,
+                    service.PublicPort
+                ))
+                .ToList();
+            replies.Add(
+                new FixtureTargetReply(
+                    target.Name,
+                    info.localIp,
+                    root.GetPassPlano(),
+                    user?.nombreUsuario ?? "",
+                    user?.GetPassPlano() ?? "",
+                    services
+                )
+            );
+            Database.Singleton.SyncFileSystemDB(computer);
+        }
+
+        if (kind == ServerMap.TipoRed.Comisaria)
+        {
+            foreach (NpcInfo npc in network.GetNpcInfos().Values)
+            {
+                if (npc.GetLicensePlate().Length == 0)
+                {
+                    GameField.NpcLicensePlate.SetValue(
+                        npc,
+                        LicensePlateGenerator.GenerateLicensePlate(publicIp, npc.GetSurname())
+                    );
+                }
             }
         }
 
-        throw new InvalidOperationException(
-            "No new " + request.Kind + " network forwards " + request.Service
+        if (child != null)
+        {
+            Router childRouter = router.GetLanRouter(child.localIp);
+            Database.Singleton.SyncFileSystemDB(childRouter);
+            Database.Singleton.SyncConfigOS(childRouter);
+        }
+        Database.Singleton.SyncFileSystemDB(router);
+        Database.Singleton.SyncConfigOS(router);
+        return new Reply.FixtureNetwork(
+            new FixtureNetworkReply(
+                publicIp,
+                router.GetLocalIP(),
+                router.GetTipoRed().ToString(),
+                replies
+            )
         );
     }
 
@@ -146,74 +303,122 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore)
         return new Reply.Applied();
     }
 
-    /// <summary>
-    /// Stops running scripts on the player's computer or the computer at <c>request.LocalIp</c>, then installs the
-    /// game-generated library version with the requested reward and fewest requirements.
-    /// </summary>
+    /// <summary>Installs requirement-free generated weaknesses for the legacy reward-only request.</summary>
     public Reply InstallLibrary(InstallLibraryRpc request)
     {
-        List<Library.Vulnerabilidad.HackResult> rewards = request
-            .Rewards.Select(reward => (Library.Vulnerabilidad.HackResult)reward)
-            .ToList();
-        string selection = null;
-        int fewest = int.MaxValue;
+        InstallFixture(
+            new InstallFixtureLibraryRpc(
+                request.Request,
+                request.LocalIp,
+                request.Name,
+                request
+                    .Rewards.Select(reward => new FixtureWeakness(
+                        reward,
+                        Array.Empty<byte>(),
+                        "",
+                        ""
+                    ))
+                    .ToList(),
+                false
+            )
+        );
+        return new Reply.Applied();
+    }
 
-        foreach (string hash in VersionsControl.Singleton.GetAllLibs()[request.Name])
+    /// <summary>Creates a new version through Library.NewVersion and adds exactly the requested generated weaknesses.</summary>
+    public Reply InstallFixture(InstallFixtureLibraryRpc request)
+    {
+        VersionsControl versions = VersionsControl.Singleton;
+        Library latest = versions.GetLastLibs()[request.Name];
+        Library library = JsonConvert.DeserializeObject<Library>(
+            JsonConvert.SerializeObject(latest)
+        );
+        library.NewVersion();
+        Random random = new Random(Guid.NewGuid().GetHashCode());
+        List<FixtureWeaknessReply> replies = new List<FixtureWeaknessReply>();
+
+        foreach (FixtureWeakness weaknessSpec in request.Weaknesses)
         {
-            string content = Database.Singleton.GetContenido(hash);
-            Library library = string.IsNullOrEmpty(content)
-                ? null
-                : JsonConvert.DeserializeObject<Library>(content);
-            if (library == null)
-            {
-                continue;
-            }
-            List<Library.Vulnerabilidad> weaknesses = library
-                .GetMemoryZones()
-                .Values.SelectMany(zone => zone.vulnerabs)
+            VersionsControl.IdLib idLib = library.GetIdLib();
+            Library.Vulnerabilidad.HackResult reward = (Library.Vulnerabilidad.HackResult)
+                weaknessSpec.Reward;
+            List<Library.Vulnerabilidad.Required> requirements = weaknessSpec
+                .Requirements.Select(requirement => (Library.Vulnerabilidad.Required)requirement)
                 .ToList();
-            // The version's weakness for each reward with the fewest requirements; a version without one is skipped.
-            List<int> requirements = rewards
-                .Select(reward =>
-                    weaknesses
-                        .Where(weakness => weakness.GetHackResult().hackResult == reward)
-                        .Select(weakness => weakness.requiredActions.Count)
-                        .DefaultIfEmpty(-1)
-                        .Min()
+            ValidateWeakness(idLib, reward, requirements, weaknessSpec.User);
+            List<Library.Vulnerabilidad.Required> excludedRequirements = Enum.GetValues(
+                    typeof(Library.Vulnerabilidad.Required)
                 )
+                .Cast<Library.Vulnerabilidad.Required>()
+                .Except(requirements)
                 .ToList();
-            if (requirements.Contains(-1))
+            string address;
+            do
             {
-                continue;
-            }
-            if (requirements.Sum() < fewest)
+                address = "0x" + random.Next(int.MaxValue).ToString("X");
+            } while (library.GetMemoryZones().ContainsKey(address));
+            // With reqNotAllowed, Vulnerabilidad.Configure adds every allowed requirement, except that a router kernel
+            // draws its reward first and drops all requirements when that draw is SHELL, RANDOM_FOLDER or
+            // FIREWALL_DISABLE (the reward is replaced below). Seed 1 draws a reward that retains them; the check below
+            // fails loudly if a game update changes that draw.
+            Random weaknessRandom =
+                idLib == VersionsControl.IdLib.KERNEL_ROUTER && requirements.Count > 0
+                    ? new Random(1)
+                    : random;
+            Library.MemoryZone zone = new Library.MemoryZone(
+                weaknessRandom,
+                address,
+                idLib,
+                excludedRequirements,
+                out Library.Vulnerabilidad weakness
+            );
+            if (
+                weakness.requiredActions.Count != requirements.Count
+                || weakness.requiredActions.Any(requirement => !requirements.Contains(requirement))
+            )
             {
-                selection = content;
-                fewest = requirements.Sum();
+                throw new InvalidOperationException(
+                    "The game generated different weakness requirements"
+                );
             }
-        }
-
-        if (selection == null)
-        {
-            throw new InvalidOperationException(
-                "No generated " + request.Name + " has those rewards"
+            weakness.helperHackResult.hackResult = reward;
+            if (weaknessSpec.User.Length > 0)
+            {
+                weakness.helperHackResult.user = weaknessSpec.User;
+            }
+            if (weaknessSpec.PathExist.Length > 0)
+            {
+                weakness.helperHackResult.pathExist = weaknessSpec.PathExist;
+            }
+            library.GetMemoryZones().Add(address, zone);
+            replies.Add(
+                new FixtureWeaknessReply(
+                    address,
+                    weakness.unsecValue,
+                    weaknessSpec.Reward,
+                    weakness.requiredActions.Select(requirement => (byte)requirement).ToList(),
+                    weakness.helperHackResult.user
+                )
             );
         }
 
         Computer computer =
-            request.LocalIp.Length == 0 ? player.Computer : player.GetLanComputer(request.LocalIp);
+            request.LocalIp.Length == 0
+                ? player.Server.GetComputer()
+                : player.GetLanComputer(request.LocalIp);
         List<int> staleScripts = computer
             .GetProcesos()
             .Where(process => process.isScript && !process.isProtected)
             .Select(process => process.PID)
             .ToList();
         computer.ClosePrograms(staleScripts);
+        string content = JsonConvert.SerializeObject(library);
         computer
             .GetFileSystem()
             .ForceAddFile(
                 new FileSystem.Archivo(
                     request.Name,
-                    selection,
+                    content,
                     "root",
                     FileSystem.Fichero.TypeFile.Library,
                     saveToDB: true,
@@ -222,7 +427,27 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore)
                 "/lib"
             );
         Database.Singleton.SyncFileSystemDB(computer, onlyFileSystem: true);
-        return new Reply.Applied();
+
+        if (request.RegisterExploits)
+        {
+            GameMethod.VersionsGeneraExploit.Invoke(
+                versions,
+                new object[] { new KeyValuePair<string, Library>(request.Name, library), false }
+            );
+            Dictionary<string, Dictionary<string, List<Exploit>>> exploits =
+                (Dictionary<string, Dictionary<string, List<Exploit>>>)
+                    GameField.VersionsExploits.GetValue(versions);
+            Database.Singleton.UpdateExploits(
+                versions.GetLastLibs(),
+                exploits,
+                versions.GetAllLibs()
+            );
+            store.AddExploit(request.Name, library.GetStrVersion());
+        }
+
+        return new Reply.FixtureLibrary(
+            new FixtureLibraryReply(request.Name, library.GetStrVersion(), content, replies)
+        );
     }
 
     /// <summary>Changes all firewall rules at <c>request.LocalIp</c> to allow; the next setup restores them.</summary>
@@ -287,9 +512,157 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore)
         return new Reply.Applied();
     }
 
-    private static bool HasDevice(NetworkLan.Device device, string kind)
+    private static void ValidateWeakness(
+        VersionsControl.IdLib idLib,
+        Library.Vulnerabilidad.HackResult reward,
+        List<Library.Vulnerabilidad.Required> requirements,
+        string user
+    )
     {
-        return device.GetLanPcInfos().Any(computer => computer.typeDevice.ToString() == kind)
-            || device.GetDevices().Any(child => HasDevice(child, kind));
+        bool router = idLib == VersionsControl.IdLib.KERNEL_ROUTER;
+        bool validReward =
+            reward
+                is Library.Vulnerabilidad.HackResult.SHELL
+                    or Library.Vulnerabilidad.HackResult.RANDOM_FOLDER
+                    or Library.Vulnerabilidad.HackResult.COMPUTER
+            || (router && reward == Library.Vulnerabilidad.HackResult.FIREWALL_DISABLE)
+            || (!router && reward == Library.Vulnerabilidad.HackResult.CHANGE_PASS)
+            || (
+                idLib == VersionsControl.IdLib.LIBSMARTAPPLIANCE
+                && reward == Library.Vulnerabilidad.HackResult.OVERRIDE_SETTINGS
+            )
+            || (
+                idLib == VersionsControl.IdLib.LIBTRAFFICNET
+                && reward == Library.Vulnerabilidad.HackResult.TRAFFIC_LIGHT_CONTROL
+            );
+        if (!validReward)
+        {
+            throw new InvalidOperationException("The requested reward is invalid for this library");
+        }
+        if (user.Length > 0 && user != "guest" && user != "root" && user != "normal_user")
+        {
+            throw new InvalidOperationException("Unknown weakness user");
+        }
+        if (
+            requirements.Contains(Library.Vulnerabilidad.Required.ANY_ACTIVE_USER)
+            && requirements.Contains(Library.Vulnerabilidad.Required.ROOT_ACTIVE_USER)
+        )
+        {
+            throw new InvalidOperationException("Active-user requirements are mutually exclusive");
+        }
+        List<Library.Vulnerabilidad.Required> validRequirements = router
+            ? new List<Library.Vulnerabilidad.Required>
+            {
+                Library.Vulnerabilidad.Required.LOCAL_NETWORK,
+                Library.Vulnerabilidad.Required.CONN_GATEWAY,
+            }
+            : Enum.GetValues(typeof(Library.Vulnerabilidad.Required))
+                .Cast<Library.Vulnerabilidad.Required>()
+                .Where(requirement =>
+                    requirement != Library.Vulnerabilidad.Required.CONN_GATEWAY
+                    && requirement != Library.Vulnerabilidad.Required.LOCAL_NETWORK
+                    && (
+                        idLib <= VersionsControl.IdLib.APTCLIENT
+                        || requirement != Library.Vulnerabilidad.Required.PORT_FORWARD
+                    )
+                )
+                .ToList();
+        if (requirements.Any(requirement => !validRequirements.Contains(requirement)))
+        {
+            throw new InvalidOperationException("A requirement is invalid for this library");
+        }
+    }
+
+    private static IP NextAddress(NetworkLan network, string gateway)
+    {
+        IP address = (IP)GameMethod.NetworkGetNextIp.Invoke(network, new object[] { gateway });
+        while (
+            HasAddress(network.routerDevice, address.ToString())
+            || network.FindDevice(address.ToString()) != null
+        )
+        {
+            address.NextIP();
+        }
+        return address;
+    }
+
+    private static bool HasAddress(NetworkLan.Device device, string address) =>
+        device.localIp == address
+        || device.GetLanPcInfos().Any(computer => computer.localIp == address)
+        || device.GetDevices().Any(child => HasAddress(child, address));
+
+    private static Router SpawnFresh(ServerMap.TipoRed kind)
+    {
+        for (int attempt = 0; attempt < 64; attempt++)
+        {
+            Router router = ServerMap.Singleton.SpawnRouter(
+                kind,
+                NetworkLan.AccessType.NORMAL,
+                null,
+                allowMission: false,
+                "",
+                ServerMap.GenerationProfile.Default,
+                preserveTipoRed: true
+            );
+            string publicIp = router.GetPublicIP();
+            if (!IP.IsLanIp(publicIp) && Database.Singleton.GetRouterNode(publicIp) != null)
+            {
+                return router;
+            }
+            if (IP.IsLanIp(publicIp))
+            {
+                Database.Singleton.DeleteNetworks(new List<string> { publicIp });
+            }
+        }
+        throw new InvalidOperationException("The game could not allocate a fresh public address");
+    }
+
+    private static NetworkLan.RouterNet AddLayout(
+        Router router,
+        NetworkLan network,
+        NetworkLan.GlobalLan globalLan,
+        string layout
+    )
+    {
+        if (layout == "flat")
+        {
+            return null;
+        }
+        if (layout != "router" && layout != "router_switch")
+        {
+            throw new InvalidOperationException("Unknown fixture network layout");
+        }
+
+        // RouterNet.ConfigPendingRouter already allocates the child's game-style LAN address.
+        NetworkLan.RouterNet child = new NetworkLan.RouterNet(globalLan);
+        child.wifiEnabled = true;
+        Random wifiRandom = new Random(
+            WorldSeed.DeriveInt("wifi-public-v1", router.GetPublicIP(), child.localIp)
+        );
+        child.bssid = Networking.GeneraMacAddress(wifiRandom);
+        child.essid = ServerMap.GeneraWifiName(wifiRandom);
+        network.routerDevice.routers.Add(child);
+
+        if (layout == "router_switch")
+        {
+            NetworkLan.HubNet hub = new NetworkLan.HubNet(
+                NetworkLan.Device.PlayerModif.NONE,
+                NetworkLan.TypeDevice.SWITCH
+            );
+            hub.ID = router.GetPublicIP() + ":" + globalLan.random.Next(int.MaxValue);
+            hub.localIp = NextAddress(network, network.routerDevice.localIp).ToString();
+            network.routerDevice.hubs.Add(hub);
+        }
+        return child;
+    }
+
+    private static string ReadOldestLibrary(string name)
+    {
+        List<string> versions = VersionsControl.Singleton.GetAllLibs()[name];
+        if (versions.Count < 2)
+        {
+            throw new InvalidOperationException("The world has no older version of " + name);
+        }
+        return Database.Singleton.GetContenido(versions[0]);
     }
 }

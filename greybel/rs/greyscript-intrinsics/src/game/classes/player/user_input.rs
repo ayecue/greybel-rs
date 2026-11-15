@@ -52,10 +52,10 @@ pub async fn user_input(
 
     terminal.send();
 
-    let read = if any_key != 0.0 {
-        read_key(&*stdin, &terminal, message).await
-    } else {
+    let read = if any_key == 0.0 {
         stdin.read_line(message, echo).await
+    } else {
+        read_key(&*stdin, &terminal, message).await
     };
 
     Ok(read.unwrap_or_default())

@@ -59,8 +59,8 @@ impl<'a> Installer<'a> {
                         });
                     }
 
-                    chunks.push(current + Self::SELF_DELETE);
-                    current = header.clone();
+                    chunks.push(std::mem::take(&mut current) + Self::SELF_DELETE);
+                    current.clone_from(&header);
                     continue;
                 }
 
@@ -73,15 +73,15 @@ impl<'a> Installer<'a> {
                     break;
                 }
 
-                chunks.push(current + Self::SELF_DELETE);
-                current = header.clone();
+                chunks.push(std::mem::take(&mut current) + Self::SELF_DELETE);
+                current.clone_from(&header);
             }
         }
 
         let footer = self.footer();
 
         if CharCount::of(&current) + CharCount::of(&footer) > self.max_chars {
-            chunks.push(current + Self::SELF_DELETE);
+            chunks.push(std::mem::take(&mut current) + Self::SELF_DELETE);
             current = header + &footer;
         } else {
             current.push_str(&footer);

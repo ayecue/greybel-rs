@@ -63,6 +63,11 @@ async fn should_not_count_a_company_beyond_the_guilds_licences() {
 }
 
 #[tokio::test]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    reason = "Database.GetGuildRanking applies the DDoS factor with C# floats and Math.Round"
+)]
 async fn should_lower_a_guilds_points_by_a_fifth_for_a_day_after_a_ddos() {
     // Arrange
     let (mut world, addresses) = world_with_companies(1).await;

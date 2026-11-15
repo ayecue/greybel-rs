@@ -2,15 +2,12 @@
 
 use greybel_test_support::game::Game;
 use greyhack_behaviour::Reward;
-use greyhack_test_support_client::protocol::test_support::LanNodeKind;
 
-use crate::support::game::{
-    join_network_of_kind_where, join_network_where, setup_player, test_client,
-};
+use crate::support::game::{ftp_network, join_fixture, setup_player, smtp_network, test_client};
 use crate::support::parity::{
     assert_succeeded, compare_in, compare_pair_in, game_outcomes, snapshot_outcomes,
 };
-use crate::support::remote::{forwarded_root, rshell_server_network, script_string};
+use crate::support::remote::{fixture_account, rshell_server_network, script_string};
 
 /// Game methods are also globals taking the object first. Their `self` checks accept any game map, or only an object
 /// whose type has the method key where the game requests it; a missing helper then returns null or text, or crashes, in
@@ -51,11 +48,9 @@ async fn should_match_intrinsics_for_detached_shared_keys() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
+    let mail_network = smtp_network(&client).await;
 
-    join_network_of_kind_where(&client, &["MailServices"], "smtp", |snapshot| {
-        snapshot.kind == "MailServices" && !snapshot.disabled
-    })
-    .await;
+    join_fixture(&client, &mail_network).await;
     client.setup_mail("parity", "mailpass1").await.unwrap();
     client
         .install_library(
@@ -69,28 +64,18 @@ async fn should_match_intrinsics_for_detached_shared_keys() {
     let suffix = std::process::id() % 10000;
     let coin = format!("Gb{suffix}");
     let wallet = format!("n{suffix}");
+    let ftp_network = ftp_network(&client).await;
+    let ftp_account = fixture_account(&ftp_network, "ftp", "ftp", true);
 
-    join_network_where(&client, "ftp", |snapshot| {
-        snapshot.nodes.iter().any(|node| {
-            let LanNodeKind::Router(router) = &node.node else {
-                return false;
-            };
-
-            node.parent.is_none()
-                && router
-                    .ports
-                    .iter()
-                    .any(|port| port.service == "ftp" && !port.local_ip.is_empty())
-        })
-    })
-    .await;
+    join_fixture(&client, &ftp_network).await;
     client.setup_blockchain(&coin, &wallet).await.unwrap();
     client.freeze_clock().await.unwrap();
 
     let snapshot = client.network_state().await.unwrap();
-    let mail = snapshot.player_mail.as_ref().unwrap().address.to_string();
-    let public_ip = snapshot.public_ip.to_string();
-    let (ftp_port, ftp_password) = forwarded_root(&snapshot, "ftp");
+    let mail = snapshot.player_mail.as_ref().unwrap().address.clone();
+    let public_ip = snapshot.public_ip.clone();
+    let ftp_port = ftp_account.port;
+    let ftp_password = ftp_account.root_password;
     let mail_login = format!("mail_login(\"{mail}\", \"mailpass1\")");
     let scripts = vec![
         format!(
@@ -116,17 +101,15 @@ async fn should_match_intrinsics_for_detached_method_crashes() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
+    let mail_network = smtp_network(&client).await;
 
-    join_network_of_kind_where(&client, &["MailServices"], "smtp", |snapshot| {
-        snapshot.kind == "MailServices" && !snapshot.disabled
-    })
-    .await;
+    join_fixture(&client, &mail_network).await;
     client.setup_mail("parity", "mailpass1").await.unwrap();
     client.setup_debug().await.unwrap();
     client.freeze_clock().await.unwrap();
 
     let snapshot = client.network_state().await.unwrap();
-    let mail = snapshot.player_mail.as_ref().unwrap().address.to_string();
+    let mail = snapshot.player_mail.as_ref().unwrap().address.clone();
     let debug = snapshot.debug.as_ref().unwrap();
     let debug_user = script_string(&debug.user);
     let debug_password = script_string(&debug.password);

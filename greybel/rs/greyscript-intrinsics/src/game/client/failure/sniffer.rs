@@ -1,5 +1,7 @@
 //! Grey Hack text for packets captured by `sniffer`.
 
+use std::fmt::Write as _;
+
 use crate::protocol::{FileFailure, SniffedPacket};
 
 /// Formats a captured packet for `sniffer` (`HelperScript.GetPendingSniffers`).
@@ -20,7 +22,7 @@ pub(in crate::game) fn sniffed_text(packet: &SniffedPacket) -> String {
             _ => "computer not found".to_owned(),
         };
 
-        text.push_str(&format!("\nWarning: Unable to create encode.src\n{reason}"));
+        let _ = write!(text, "\nWarning: Unable to create encode.src\n{reason}");
     }
 
     text

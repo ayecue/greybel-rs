@@ -20,12 +20,15 @@ fn should_read_tags_and_text() {
         Some("Hello world\nI am **bold**")
     );
     assert_eq!(doc.params.len(), 2);
-    assert_eq!(written(&doc.params[1].ty).as_deref(), Some("string|number"));
+    assert_eq!(
+        written(doc.params[1].ty.as_ref()).as_deref(),
+        Some("string|number")
+    );
     assert_eq!(
         doc.params[1].description.as_deref(),
         Some("The author\nof the book.")
     );
-    assert_eq!(written(&doc.returns).as_deref(), Some("crypto"));
+    assert_eq!(written(doc.returns.as_ref()).as_deref(), Some("crypto"));
     assert_eq!(doc.returns_description.as_deref(), Some("Some info"));
     assert!(doc.invalid_tags.is_empty());
 }
@@ -68,7 +71,7 @@ fn should_read_type_declarations() {
 
     assert!(ty.virtual_type);
     assert_eq!(ty.name, "myCustomType");
-    assert_eq!(written(&ty.extends).as_deref(), Some("myOtherType"));
+    assert_eq!(written(ty.extends.as_ref()).as_deref(), Some("myOtherType"));
 
     let [function] = ty.functions.as_slice() else {
         panic!("one function");
@@ -76,7 +79,10 @@ fn should_read_type_declarations() {
 
     assert_eq!(function.name, "foo");
     assert_eq!(function.params[0].name, "bar");
-    assert_eq!(written(&function.returns).as_deref(), Some("string"));
+    assert_eq!(
+        written(function.returns.as_ref()).as_deref(),
+        Some("string")
+    );
     assert_eq!(
         function.description.as_deref(),
         Some("This is a custom type with a function")
@@ -105,7 +111,10 @@ fn should_read_templates_and_their_bounds() {
     let doc = DocComment::parse(&lines);
 
     assert_eq!(doc.templates[0].name, "TItem");
-    assert_eq!(written(&doc.templates[0].bound).as_deref(), Some("string"));
+    assert_eq!(
+        written(doc.templates[0].bound.as_ref()).as_deref(),
+        Some("string")
+    );
 }
 
 #[test]
@@ -114,7 +123,10 @@ fn should_read_a_braced_type_tag_as_a_define() {
 
     let doc = DocComment::parse(&lines);
 
-    assert_eq!(written(&doc.defined_type).as_deref(), Some("list<string>"));
+    assert_eq!(
+        written(doc.defined_type.as_ref()).as_deref(),
+        Some("list<string>")
+    );
     assert!(doc.types.is_empty());
 }
 

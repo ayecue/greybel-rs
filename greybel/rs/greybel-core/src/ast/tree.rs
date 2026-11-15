@@ -212,6 +212,10 @@ impl Ast {
     }
 }
 
+#[expect(
+    clippy::missing_fields_in_debug,
+    reason = "Debug output intentionally summarizes nodes and omits source text and line tables"
+)]
 impl fmt::Debug for Ast {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Ast")

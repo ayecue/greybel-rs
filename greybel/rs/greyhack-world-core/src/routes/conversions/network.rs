@@ -25,24 +25,30 @@ impl IntoProtocol for crate::ConnectionFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::ConnectionFailure as World;
-
         match failure {
-            World::UnknownAddress => ConnectionFailure::UnknownAddress,
-            World::RouterUnavailable => ConnectionFailure::RouterUnavailable,
-            World::MissingPort(port) => ConnectionFailure::MissingPort(port),
-            World::MissingComputerPort(port) => ConnectionFailure::MissingComputerPort(port),
-            World::ClosedPort => ConnectionFailure::ClosedPort,
-            World::NoMachineBehindPort(port) => ConnectionFailure::NoMachineBehindPort(port),
-            World::ServiceNotBehindPort(port) => ConnectionFailure::ServiceNotBehindPort(port),
-            World::DisabledNetwork => ConnectionFailure::DisabledNetwork,
-            World::Startup(failures) => ConnectionFailure::Startup(
+            crate::ConnectionFailure::UnknownAddress => ConnectionFailure::UnknownAddress,
+            crate::ConnectionFailure::RouterUnavailable => ConnectionFailure::RouterUnavailable,
+            crate::ConnectionFailure::MissingPort(port) => ConnectionFailure::MissingPort(port),
+            crate::ConnectionFailure::MissingComputerPort(port) => {
+                ConnectionFailure::MissingComputerPort(port)
+            }
+            crate::ConnectionFailure::ClosedPort => ConnectionFailure::ClosedPort,
+            crate::ConnectionFailure::NoMachineBehindPort(port) => {
+                ConnectionFailure::NoMachineBehindPort(port)
+            }
+            crate::ConnectionFailure::ServiceNotBehindPort(port) => {
+                ConnectionFailure::ServiceNotBehindPort(port)
+            }
+            crate::ConnectionFailure::DisabledNetwork => ConnectionFailure::DisabledNetwork,
+            crate::ConnectionFailure::Startup(failures) => ConnectionFailure::Startup(
                 failures
                     .into_iter()
                     .map(IntoProtocol::into_protocol)
                     .collect(),
             ),
-            World::Lan(failure) => ConnectionFailure::Lan(failure.into_protocol()),
+            crate::ConnectionFailure::Lan(failure) => {
+                ConnectionFailure::Lan(failure.into_protocol())
+            }
         }
     }
 }
@@ -53,20 +59,26 @@ impl IntoProtocol for crate::ServiceFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::ServiceFailure as World;
-
         match failure {
-            World::NoInternet => ServiceFailure::NoInternet,
-            World::HostDown => ServiceFailure::HostDown,
-            World::MissingService(service) => ServiceFailure::MissingService(service.name().into()),
-            World::InvalidServicePort => ServiceFailure::InvalidServicePort,
-            World::MissingPortForward => ServiceFailure::MissingPortForward,
-            World::MissingLibrary(service) => ServiceFailure::MissingLibrary(service.library()),
-            World::InvalidLibrary(service) => ServiceFailure::InvalidLibrary(service.library()),
-            World::MainRouterDown => ServiceFailure::MainRouterDown,
-            World::UnexpectedLibrary(name) => ServiceFailure::UnexpectedLibrary(name),
-            World::Lan(failure) => ServiceFailure::Lan(failure.into_protocol()),
-            World::RemoteNetworkDown => ServiceFailure::RemoteNetworkDown,
+            crate::ServiceFailure::NoInternet => ServiceFailure::NoInternet,
+            crate::ServiceFailure::HostDown => ServiceFailure::HostDown,
+            crate::ServiceFailure::MissingService(service) => {
+                ServiceFailure::MissingService(service.name().into())
+            }
+            crate::ServiceFailure::InvalidServicePort => ServiceFailure::InvalidServicePort,
+            crate::ServiceFailure::MissingPortForward => ServiceFailure::MissingPortForward,
+            crate::ServiceFailure::MissingLibrary(service) => {
+                ServiceFailure::MissingLibrary(service.library())
+            }
+            crate::ServiceFailure::InvalidLibrary(service) => {
+                ServiceFailure::InvalidLibrary(service.library())
+            }
+            crate::ServiceFailure::MainRouterDown => ServiceFailure::MainRouterDown,
+            crate::ServiceFailure::UnexpectedLibrary(name) => {
+                ServiceFailure::UnexpectedLibrary(name)
+            }
+            crate::ServiceFailure::Lan(failure) => ServiceFailure::Lan(failure.into_protocol()),
+            crate::ServiceFailure::RemoteNetworkDown => ServiceFailure::RemoteNetworkDown,
         }
     }
 }
@@ -77,14 +89,14 @@ impl IntoProtocol for crate::LoginFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::LoginFailure as World;
-
         match failure {
-            World::InvalidService => LoginFailure::InvalidService,
-            World::Connection(failure) => LoginFailure::Connection(failure.into_protocol()),
-            World::Service(failure) => LoginFailure::Service(failure.into_protocol()),
-            World::IncorrectPassword => LoginFailure::IncorrectPassword,
-            World::AccountInactive => LoginFailure::AccountInactive,
+            crate::LoginFailure::InvalidService => LoginFailure::InvalidService,
+            crate::LoginFailure::Connection(failure) => {
+                LoginFailure::Connection(failure.into_protocol())
+            }
+            crate::LoginFailure::Service(failure) => LoginFailure::Service(failure.into_protocol()),
+            crate::LoginFailure::IncorrectPassword => LoginFailure::IncorrectPassword,
+            crate::LoginFailure::AccountInactive => LoginFailure::AccountInactive,
         }
     }
 }

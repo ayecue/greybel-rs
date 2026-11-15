@@ -135,7 +135,7 @@ fn change_ownership(
     };
 
     if let Err(refusal) = owner.check(name) {
-        return refuse(method, refusal);
+        return refuse(method, &refusal);
     }
 
     let Some(recursive) = recursive.as_int() else {

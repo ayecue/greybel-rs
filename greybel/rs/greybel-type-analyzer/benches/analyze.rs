@@ -194,52 +194,57 @@ fn bench_queries(c: &mut Criterion) {
     let positions: Vec<_> = (0..source.len())
         .step_by(QUERY_STRIDE)
         .filter(|&offset| source.is_char_boundary(offset))
-        .map(|offset| lines.position(offset as u32, ColumnSettings::default()))
+        .map(|offset| {
+            lines.position(
+                u32::try_from(offset).expect("value fits the target integer type"),
+                ColumnSettings::default(),
+            )
+        })
         .collect();
     let mut group = c.benchmark_group("queries");
 
     group.throughput(Throughput::Elements(positions.len() as u64));
     group.bench_function("hover", |b| {
         b.iter(|| {
-            positions
-                .iter()
-                .for_each(|&at| drop(black_box(Analyzer::new(&workspace).hover(&uri(path), at))))
+            for &at in &positions {
+                drop(black_box(Analyzer::new(&workspace).hover(&uri(path), at)));
+            }
         });
     });
     group.bench_function("completions", |b| {
         b.iter(|| {
-            positions.iter().for_each(|&at| {
+            for &at in &positions {
                 drop(black_box(
                     Analyzer::new(&workspace).completions(&uri(path), at),
                 ))
-            })
+            }
         });
     });
     group.bench_function("signature_help", |b| {
         b.iter(|| {
-            positions.iter().for_each(|&at| {
+            for &at in &positions {
                 drop(black_box(
                     Analyzer::new(&workspace).signature_help(&uri(path), at),
                 ))
-            });
+            }
         });
     });
     group.bench_function("definition", |b| {
         b.iter(|| {
-            positions.iter().for_each(|&at| {
+            for &at in &positions {
                 drop(black_box(
                     Analyzer::new(&workspace).definition(&uri(path), at),
                 ))
-            })
+            }
         });
     });
     group.bench_function("references", |b| {
         b.iter(|| {
-            positions.iter().for_each(|&at| {
+            for &at in &positions {
                 drop(black_box(
                     Analyzer::new(&workspace).references(&uri(path), at),
                 ))
-            })
+            }
         });
     });
     group.bench_function("document_symbols", |b| {

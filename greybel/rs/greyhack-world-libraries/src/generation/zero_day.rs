@@ -13,6 +13,10 @@ use crate::{DebugLibraryState, Weakness, ZeroDay, ZeroDayObject, ZeroDayObjectKi
 impl DebugLibraryState {
     /// Seed-derived zero-day: vulnerable address, exploit result objects, and weakness.
     #[must_use]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Library.GenerateZeroDayVulnerability initializes System.Random with a C# int seed"
+    )]
     pub fn zero_day(&self) -> ZeroDay {
         let mut random = Random::new(self.seed as i32);
         let address = format!("0x{:X}", random.next_int());
@@ -42,6 +46,10 @@ fn random_selection(random: &mut Random, original: &[&str]) -> Vec<String> {
         .collect()
 }
 
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Library.GenerateZeroDayVulnerability initializes System.Random with a C# int seed"
+)]
 fn objects_for(seed: i64) -> Vec<ZeroDayObject> {
     let mut random = Random::new(seed as i32);
 
@@ -90,6 +98,10 @@ fn objects_for(seed: i64) -> Vec<ZeroDayObject> {
     .collect()
 }
 
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Library.GenerateZeroDayVulnerability converts the random draw to a C# float"
+)]
 fn pick_by_weight(random: &mut Random, weights: &[f32]) -> usize {
     let total: f32 = weights.iter().sum();
     let mut value = random.next_double() as f32 * total;
@@ -104,10 +116,11 @@ fn pick_by_weight(random: &mut Random, weights: &[f32]) -> usize {
     weights.len().saturating_sub(1)
 }
 
-fn vulnerability(path: &str, random: &mut Random) -> Weakness {
-    let kind = LibraryKind::of_file(path::file_name(path));
-    let router = kind == Some(LibraryKind::KernelRouter);
-    let remote = kind.is_some_and(LibraryKind::is_remote);
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "Library.GenerateZeroDayVulnerability computes requirement weights with C# floats"
+)]
+fn zero_day_reward(kind: Option<LibraryKind>, router: bool, random: &mut Random) -> Reward {
     let mut results = if router {
         vec![
             Reward::Computer,
@@ -134,13 +147,16 @@ fn vulnerability(path: &str, random: &mut Random) -> Weakness {
         .iter()
         .map(|reward| reward_weight(*reward) as f32)
         .collect::<Vec<f32>>();
-    let reward = results[pick_by_weight(random, &weights)];
-    let no_requirements = router
-        && matches!(
-            reward,
-            Reward::Shell | Reward::RandomFolder | Reward::FirewallDisable
-        );
 
+    results[pick_by_weight(random, &weights)]
+}
+
+fn zero_day_requirements(
+    random: &mut Random,
+    router: bool,
+    remote: bool,
+    no_requirements: bool,
+) -> (Vec<Requirement>, Option<LibraryKind>) {
     let mut candidates = if router {
         vec![Requirement::LocalNetwork, Requirement::ConnGateway]
     } else {
@@ -188,8 +204,8 @@ fn vulnerability(path: &str, random: &mut Random) -> Weakness {
     }
 
     let mut requirements = Vec::new();
+
     let mut required_lib = None;
-    let req_lib_version = FIRST_VERSION.to_owned();
 
     while !candidates.is_empty() {
         let index = pick_by_weight(random, &vec![50.0; candidates.len()]);
@@ -204,6 +220,27 @@ fn vulnerability(path: &str, random: &mut Random) -> Weakness {
         }
     }
 
+    (requirements, required_lib)
+}
+
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "Library.GenerateZeroDayVulnerability computes user weights with C# floats"
+)]
+fn vulnerability(path: &str, random: &mut Random) -> Weakness {
+    let kind = LibraryKind::of_file(path::file_name(path));
+    let router = kind == Some(LibraryKind::KernelRouter);
+    let remote = kind.is_some_and(LibraryKind::is_remote);
+    let reward = zero_day_reward(kind, router, random);
+    let no_requirements = router
+        && matches!(
+            reward,
+            Reward::Shell | Reward::RandomFolder | Reward::FirewallDisable
+        );
+
+    let (requirements, required_lib) =
+        zero_day_requirements(random, router, remote, no_requirements);
+    let req_lib_version = FIRST_VERSION.to_owned();
     let unsec_value = Word::LibraryVariable
         .generate_with_index(|length| random.next_below(length))
         .to_lowercase();
@@ -211,9 +248,12 @@ fn vulnerability(path: &str, random: &mut Random) -> Weakness {
     // Grey Hack draws a user but assigns the weakness to guest regardless.
     pick_by_weight(random, &USER_WEIGHTS.map(|weight| weight as f32));
 
-    let num_register_users = random.next_below(2) as u32 + 1;
-    let num_port_forward = random.next_below(3) as u32 + 1;
-    let num_conn_gateway = random.next_below(3) as u32 + 1;
+    let num_register_users =
+        u32::try_from(random.next_below(2)).expect("the draw is below two") + 1;
+    let num_port_forward =
+        u32::try_from(random.next_below(3)).expect("the draw is below three") + 1;
+    let num_conn_gateway =
+        u32::try_from(random.next_below(3)).expect("the draw is below three") + 1;
     let path_exist = PATH_EXISTS[random.next_below(PATH_EXISTS.len())].to_owned();
     let random_path = PATHS[random.next_below(PATHS.len())].to_owned();
     let details = DETAILS[random.next_below(DETAILS.len())].to_owned();

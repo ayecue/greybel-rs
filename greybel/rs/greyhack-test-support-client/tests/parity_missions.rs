@@ -83,10 +83,10 @@ async fn should_give_the_mission_networks_the_files_the_game_does() {
                     .flat_map(|computer| computer.files.iter())
                     .filter(|file| !file.folder)
                     .map(|file| Observed {
-                        path: file.path.to_string(),
-                        owner: file.owner.to_string(),
-                        permissions: file.permissions.to_string(),
-                        content: file.content.to_string(),
+                        path: file.path.clone(),
+                        owner: file.owner.clone(),
+                        permissions: file.permissions.clone(),
+                        content: file.content.clone(),
                         binary: file.binary,
                     }),
                 &wanted,
@@ -210,10 +210,10 @@ async fn should_give_the_main_routers_the_rules_and_forwards_the_game_does() {
                 .iter()
                 .map(|rule| {
                     (
-                        rule.action.to_string(),
-                        rule.port.to_string(),
-                        rule.source.to_string(),
-                        rule.destination.to_string(),
+                        rule.action.clone(),
+                        rule.port.clone(),
+                        rule.source.clone(),
+                        rule.destination.clone(),
                     )
                 })
                 .collect();

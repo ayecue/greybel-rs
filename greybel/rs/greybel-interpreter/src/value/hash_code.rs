@@ -73,7 +73,7 @@ impl Heap {
                     let map = id.entries(self);
 
                     hash = rotate(hash) ^ i32::try_from(map.len()).unwrap_or(i32::MAX);
-                    for (key, value) in map.iter() {
+                    for (key, value) in map {
                         push(&mut stack, &visited_collections, key, NULL_KEY);
                         push(&mut stack, &visited_collections, value, NULL_ELEMENT);
                     }

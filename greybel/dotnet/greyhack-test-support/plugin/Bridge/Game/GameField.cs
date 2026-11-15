@@ -89,6 +89,24 @@ internal static class GameField
         BindingFlags.Instance | BindingFlags.NonPublic
     );
 
+    /// <summary>Fresh LAN generation context used to add game-style child devices.</summary>
+    public static readonly FieldInfo NetworkGlobalLan = typeof(NetworkLan).GetField(
+        "globalLan",
+        BindingFlags.Instance | BindingFlags.NonPublic
+    );
+
+    /// <summary>Police vehicle plate, which NpcInfo has no public setter for.</summary>
+    public static readonly FieldInfo NpcLicensePlate = typeof(NpcInfo).GetField(
+        "licensePlate",
+        BindingFlags.Instance | BindingFlags.NonPublic
+    );
+
+    /// <summary>Exploit shelves indexed by library name and version.</summary>
+    public static readonly FieldInfo VersionsExploits = typeof(VersionsControl).GetField(
+        "exploits",
+        BindingFlags.Instance | BindingFlags.NonPublic
+    );
+
     /// <summary>Library version number.</summary>
     public static readonly FieldInfo LibraryVersion = typeof(Library).GetField(
         "version",

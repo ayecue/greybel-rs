@@ -20,6 +20,10 @@ impl Market {
         self.coin_rows.record_trade(coin, price, amount).await
     }
 
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "Coin.GetVisibleMoneyValue returns an integral price, which scripts see as an f64"
+    )]
     pub async fn visible_price(&self, coin: CoinId) -> Result<Option<f64>> {
         let Some(data) = self.coins.coin(coin).await? else {
             return Ok(None);
@@ -42,6 +46,14 @@ impl Market {
         self.update_prices().await
     }
 
+    #[expect(
+        clippy::float_cmp,
+        reason = "BlockchainSystem.Coin.UpdateMoneyValue records only an exact price change"
+    )]
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "BlockchainSystem.Coin.UpdateMoneyValue stores its integral price as an f64"
+    )]
     pub async fn update_prices(&self) -> Result<()> {
         for mut coin in self.coin_rows.coins().await? {
             let trades = self.coin_rows.pending_trades(coin.id).await?;
@@ -97,6 +109,10 @@ impl Market {
 }
 
 impl Market {
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Coin.GetOrderBookValue truncates offer prices like C# (int)"
+    )]
     pub async fn order_book_price(&self, coin: CoinId) -> Result<f64> {
         let valid = |offer: &Offer| offer.amount > 0.0 && offer.price > 0.0;
         let best_buy = self

@@ -97,7 +97,12 @@ fn should_print_the_parameters_of_functions() {
 
 #[test]
 fn should_compare_lists_deeply() {
-    let Equality { heap, a, b, .. } = Equality::default();
+    let Equality {
+        heap,
+        list_a: a,
+        list_b: b,
+        ..
+    } = Equality::default();
     let equal = heap.equal(&a, &b);
 
     assert!(equal);
@@ -105,7 +110,12 @@ fn should_compare_lists_deeply() {
 
 #[test]
 fn should_tell_lists_of_other_items_apart() {
-    let Equality { heap, a, c, .. } = Equality::default();
+    let Equality {
+        heap,
+        list_a: a,
+        list_c: c,
+        ..
+    } = Equality::default();
     let equal = heap.equal(&a, &c);
 
     assert!(!equal);
@@ -113,7 +123,12 @@ fn should_tell_lists_of_other_items_apart() {
 
 #[test]
 fn should_hash_equal_lists_alike() {
-    let Equality { heap, a, b, .. } = Equality::default();
+    let Equality {
+        heap,
+        list_a: a,
+        list_b: b,
+        ..
+    } = Equality::default();
     let hashes = (heap.key_hash(&a), heap.key_hash(&b));
 
     assert_eq!(hashes.0, hashes.1);
@@ -121,7 +136,12 @@ fn should_hash_equal_lists_alike() {
 
 #[test]
 fn should_find_an_entry_by_an_equal_list_key() {
-    let Equality { heap, b, table, .. } = Equality::default();
+    let Equality {
+        heap,
+        list_b: b,
+        table,
+        ..
+    } = Equality::default();
     let found = table.get(&heap, &b).map(|v| heap.display(v).to_string());
 
     assert_eq!(found, Some("test".to_owned()));
@@ -129,7 +149,12 @@ fn should_find_an_entry_by_an_equal_list_key() {
 
 #[test]
 fn should_compare_maps_regardless_of_order() {
-    let Equality { heap, x, y, .. } = Equality::default();
+    let Equality {
+        heap,
+        map_x: x,
+        map_y: y,
+        ..
+    } = Equality::default();
     let equal = heap.equal(&x, &y);
 
     assert!(equal, "order doesn't matter");
@@ -137,7 +162,12 @@ fn should_compare_maps_regardless_of_order() {
 
 #[test]
 fn should_hash_equal_maps_alike() {
-    let Equality { heap, x, y, .. } = Equality::default();
+    let Equality {
+        heap,
+        map_x: x,
+        map_y: y,
+        ..
+    } = Equality::default();
     let hashes = (heap.key_hash(&x), heap.key_hash(&y));
 
     assert_eq!(hashes.0, hashes.1);
@@ -145,7 +175,7 @@ fn should_hash_equal_maps_alike() {
 
 #[test]
 fn should_tell_a_map_from_null() {
-    let Equality { heap, x, .. } = Equality::default();
+    let Equality { heap, map_x: x, .. } = Equality::default();
     let equal = heap.equal(&x, &Value::Null);
 
     assert!(!equal);

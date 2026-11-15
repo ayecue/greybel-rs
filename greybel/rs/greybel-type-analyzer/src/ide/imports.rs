@@ -47,8 +47,9 @@ impl<'a> ImportTarget<'a> {
     }
 
     fn is_import(before: &str) -> bool {
-        let words: Vec<&str> = before.split_whitespace().collect();
         const IMPORT: &str = Keyword::Import.as_str();
+
+        let words: Vec<&str> = before.split_whitespace().collect();
 
         matches!(words[..], [IMPORT, _, FROM])
     }

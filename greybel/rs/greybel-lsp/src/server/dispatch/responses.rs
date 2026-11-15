@@ -41,7 +41,7 @@ impl Server {
             Expectation::ProjectFile(uri) => {
                 let content = response.result::<ReadFile>().flatten();
 
-                self.handle_project_file(&uri, content);
+                self.handle_project_file(&uri, content.as_ref());
             }
         }
     }

@@ -14,6 +14,11 @@ use crate::protocol::{
 
 /// Creates a computer in this network and returns root access.
 #[native(method)]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "Admin hardware options use Grey Hack's float and C# integral conversions"
+)]
 pub fn add_computer(
     vm: &mut Vm,
     this: &Value,

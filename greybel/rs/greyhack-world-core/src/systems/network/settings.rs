@@ -4,9 +4,9 @@ use std::rc::Rc;
 
 use greyhack_behaviour::NetworkKind;
 
-use crate::storage::*;
+use crate::storage::{ComputerRepository, RouterRepository};
 use crate::systems::NetworkSettings as NetworkSettingsService;
-use crate::*;
+use crate::{ComputerId, Network, NetworkId, Result, RouterId};
 
 impl NetworkSettingsService {
     /// Returns network `id`.

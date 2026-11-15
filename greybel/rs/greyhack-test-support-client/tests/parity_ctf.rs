@@ -2,7 +2,7 @@
 
 use greybel_test_support::game::Game;
 
-use crate::support::game::{join_network_of_kind_where, setup_player, test_client};
+use crate::support::game::{join_fixture, setup_player, smtp_network, test_client};
 use crate::support::parity::{compare_in, snapshot_outcomes};
 use crate::support::remote::script_string;
 
@@ -18,11 +18,9 @@ async fn should_match_intrinsics_for_ctf_events() {
         .unwrap()
         .as_nanos();
     let event_name = format!("ParityMission{suffix}");
+    let network = smtp_network(&client).await;
 
-    join_network_of_kind_where(&client, &["MailServices"], "smtp", |snapshot| {
-        snapshot.kind == "MailServices" && !snapshot.disabled
-    })
-    .await;
+    join_fixture(&client, &network).await;
     client
         .setup_blockchain("Gb8134", &format!("ctfwallet{suffix}"))
         .await

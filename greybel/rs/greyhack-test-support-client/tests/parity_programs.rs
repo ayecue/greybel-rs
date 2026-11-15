@@ -2,11 +2,13 @@
 
 use greybel_test_support::game::Game;
 
-use crate::support::game::{join_network, setup_player, test_client};
+use crate::support::game::{
+    devices_above, join_fixture, routed_ssh_network, setup_player, ssh_network, test_client,
+};
 use crate::support::parity::{
     Outcome, compare_in_real_time, compare_interactive, game_outcomes, intrinsics_outcomes,
 };
-use crate::support::remote::{forwarded_root, script_string, service_behind_devices};
+use crate::support::remote::{fixture_account, script_string};
 use crate::support::steps::{Step, WorldChange, compare_stepped};
 
 #[tokio::test]
@@ -123,11 +125,15 @@ async fn should_match_intrinsics_for_a_device_that_stops_behind_an_exited_termin
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let service = service_behind_devices(&client, &["ssh"]).await;
-    let host = service.address;
-    let port = service.port;
-    let password = service.root_password;
-    let devices = service.devices;
+    let network = routed_ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let host = account.address;
+    let port = account.port;
+    let password = account.root_password;
+    let snapshot = join_fixture(&client, &network).await;
+    let devices = devices_above(&snapshot, &host);
+
+    assert!(!devices.is_empty());
 
     // The firewalls on the way would refuse the connection. The next player setup puts them back.
     for device in &devices {
@@ -210,16 +216,13 @@ async fn should_match_intrinsics_for_start_terminal() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let network = client
-        .find_new_network("Supermercados", "ssh")
-        .await
-        .unwrap();
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", true);
+    let port = account.port;
+    let root_password = account.root_password;
 
-    join_network(&client, &network.public_ip).await;
-
-    let snapshot = client.network_state().await.unwrap();
-    let (port, root_password) = forwarded_root(&snapshot, "ssh");
-    let address = snapshot.public_ip.to_string();
+    let snapshot = join_fixture(&client, &network).await;
+    let address = snapshot.public_ip.clone();
     let processes = r#"processes = function(computer)
     names = []
     for line in computer.show_procs.split(char(10))[1:]
@@ -293,15 +296,12 @@ async fn should_match_intrinsics_for_a_terminal_command_closing_its_own_process(
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let network = client
-        .find_new_network("Supermercados", "ssh")
-        .await
-        .unwrap();
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", true);
+    let port = account.port;
+    let root_password = account.root_password;
 
-    join_network(&client, &network.public_ip).await;
-
-    let snapshot = client.network_state().await.unwrap();
-    let (port, root_password) = forwarded_root(&snapshot, "ssh");
+    let snapshot = join_fixture(&client, &network).await;
     let command = r#"pc = get_shell.host_computer
 for line in pc.show_procs.split(char(10))[1:]
     parts = line.split(" ")
@@ -362,15 +362,12 @@ async fn should_match_intrinsics_for_a_held_shell_whose_device_becomes_unavailab
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let network = client
-        .find_new_network("Supermercados", "ssh")
-        .await
-        .unwrap();
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", true);
+    let port = account.port;
+    let root_password = account.root_password;
 
-    join_network(&client, &network.public_ip).await;
-
-    let snapshot = client.network_state().await.unwrap();
-    let (port, root_password) = forwarded_root(&snapshot, "ssh");
+    let snapshot = join_fixture(&client, &network).await;
     let child = r#"print "child " + typeof(get_router)
 print get_shell.host_computer.File("/lib/init.so").delete
 print get_shell.host_computer.is_network_active
@@ -405,15 +402,12 @@ async fn should_match_intrinsics_for_a_shell_held_by_its_terminal() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let network = client
-        .find_new_network("Supermercados", "ssh")
-        .await
-        .unwrap();
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", true);
+    let port = account.port;
+    let root_password = account.root_password;
 
-    join_network(&client, &network.public_ip).await;
-
-    let snapshot = client.network_state().await.unwrap();
-    let (port, root_password) = forwarded_root(&snapshot, "ssh");
+    let snapshot = join_fixture(&client, &network).await;
     let script = format!(
         r#"s = get_shell.connect_service("{}", {}, "root", {})
 print "before " + typeof(get_router)

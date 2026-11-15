@@ -19,7 +19,7 @@ use greyhack_world_core::{ComputerId, Database, TraceKind};
 use greyhack_world_operations::WorldServer;
 use tokio::sync::mpsc;
 
-use super::game::{join_new_network_of_kind_where, setup_player, test_client};
+use super::game::{empty_network, join_fixture, setup_player, test_client};
 use super::intrinsics::PROGRAM_NAME;
 use super::parity_bank_payments::RENTAL_AMOUNT;
 use super::parity_guilds::mirrored_world;
@@ -178,15 +178,13 @@ pub async fn strike(strikes: u32) {
         .await
         .unwrap()
         .bank_number
-        .to_string();
+        .clone();
     // A newly generated, listed company: only listed kinds issue shares and persist their return
     // (`StocksCompany.IsListedOnStockMarket`, `StocksCompany.SyncMarketData`), and the game copies keep the shares an
     // earlier run's guild bought.
-    let snapshot = join_new_network_of_kind_where(&client, &["Supermercados"], "ssh", |snapshot| {
-        snapshot.kind == "Supermercados"
-    })
-    .await;
-    let address = snapshot.public_ip.to_string();
+    let network = empty_network(&client, "Supermercados").await;
+    let snapshot = join_fixture(&client, &network).await;
+    let address = snapshot.public_ip.clone();
 
     client
         .setup_guild(GuildSetup {
@@ -265,7 +263,11 @@ pub async fn strike(strikes: u32) {
     assert_eq!(ended.computer_exists, strikes < 3);
     assert_eq!(
         block_on(world.modules.traces.traces.strikes()).unwrap(),
-        if strikes < 3 { strikes as u8 } else { 0 }
+        if strikes < 3 {
+            u8::try_from(strikes).expect("strike counts below three fit u8")
+        } else {
+            0
+        }
     );
 
     client.shutdown();
@@ -285,7 +287,7 @@ fn game_guild_exp(
     reply
         .guilds
         .iter()
-        .map(|guild| (guild.name.to_string(), guild.total_exp))
+        .map(|guild| (guild.name.clone(), guild.total_exp))
         .collect()
 }
 
@@ -310,6 +312,6 @@ fn game_holders(
         .companies
         .iter()
         .flat_map(|company| company.holders.iter())
-        .map(|holder| (holder.bank_account.to_string(), holder.shares))
+        .map(|holder| (holder.bank_account.clone(), holder.shares))
         .collect()
 }

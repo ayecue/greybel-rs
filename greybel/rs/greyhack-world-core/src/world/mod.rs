@@ -126,7 +126,7 @@ fn secret_of(seed: u64) -> Vec<u8> {
     let mut rng = Rng::new(seed ^ SECRET_SALT);
 
     (0..WORLD_SECRET_LENGTH)
-        .map(|_| rng.range(0, 255) as u8)
+        .map(|_| u8::try_from(rng.range(0, 255)).expect("value fits the target integer type"))
         .collect()
 }
 

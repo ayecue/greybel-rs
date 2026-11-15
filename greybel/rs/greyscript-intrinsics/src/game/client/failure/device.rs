@@ -50,7 +50,7 @@ pub(super) fn device_text(intrinsic: &str, failure: &DeviceFailure) -> String {
 }
 
 /// Formats `FileHelperServer.ModifyClockPhoneServerRpc` failures.
-pub(super) fn alarm_text(failure: &AlarmFailure) -> String {
+pub(super) fn alarm_text(failure: AlarmFailure) -> String {
     match failure {
         AlarmFailure::IncorrectTime => {
             "Error: Incorrect time. A 24-hour format is expected.".to_owned()

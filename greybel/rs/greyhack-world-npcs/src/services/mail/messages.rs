@@ -31,7 +31,7 @@ pub enum MailRefusal {
 /// Methods of [`World`] for npcs mail messages.
 impl Mail {
     pub async fn refresh_mail(&self, address: &str) -> Result<Result<Vec<Email>, MailRefusal>> {
-        if self.mail.mail_account(address).await?.is_none() {
+        if self.rows.mail_account(address).await?.is_none() {
             return Ok(Err(MailRefusal::Missing));
         }
 
@@ -39,7 +39,7 @@ impl Mail {
             return Ok(Err(MailRefusal::AccountInactive));
         }
 
-        Ok(Ok(self.mail.inbox(address).await?))
+        Ok(Ok(self.rows.inbox(address).await?))
     }
 
     pub async fn deliver_mail(
@@ -49,7 +49,7 @@ impl Mail {
         subject: &str,
         body: &str,
     ) -> Result<Option<String>> {
-        if self.mail.mail_account(to).await?.is_none() {
+        if self.rows.mail_account(to).await?.is_none() {
             return Ok(None);
         }
 
@@ -57,11 +57,11 @@ impl Mail {
         // generates an NPC's mails first.
         self.generate_npc_mail(to).await?;
 
-        Ok(Some(self.mail.insert_email(to, from, subject, body).await?))
+        Ok(Some(self.rows.insert_email(to, from, subject, body).await?))
     }
 
     pub async fn delete_mail(&self, address: &str, id: &str) -> Result<bool> {
-        self.mail.remove_email(address, id).await
+        self.rows.remove_email(address, id).await
     }
 
     pub async fn delete_mails(&self, address: &str, ids: &[String]) -> Result<bool> {
@@ -77,7 +77,7 @@ impl Mail {
     }
 
     pub async fn clear_inbox(&self, address: &str) -> Result<()> {
-        self.mail.clear_inbox(address).await
+        self.rows.clear_inbox(address).await
     }
 
     pub async fn send_mail(
@@ -152,13 +152,13 @@ impl Mail {
             match &id {
                 None => {
                     id = Some(
-                        self.mail
+                        self.rows
                             .insert_email(address, speaker, "RE: stuff", &body)
                             .await?,
                     );
                 }
                 Some(id) => {
-                    self.mail.insert_reply(address, id, &body).await?;
+                    self.rows.insert_reply(address, id, &body).await?;
                 }
             }
         }

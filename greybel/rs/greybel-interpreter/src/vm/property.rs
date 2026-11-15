@@ -317,15 +317,15 @@ impl Vm {
         })
     }
 
-    pub(super) fn iterator(&self, value: &Value) -> Result<Iteration, RuntimeError> {
-        Ok(match value {
+    pub(super) fn iterator(&self, value: &Value) -> Iteration {
+        match value {
             Value::List(id) => Iteration::List(*id),
             Value::Map(id) => Iteration::Map(*id),
             Value::String(text) => {
                 Iteration::Chars(EncodedText::new(text, self.heap.string_encoding()))
             }
             Value::Number(_) | Value::Function(_) | Value::Null => Iteration::Empty,
-        })
+        }
     }
 
     pub(super) fn iterator_value(&mut self, index: Number) -> Option<Value> {

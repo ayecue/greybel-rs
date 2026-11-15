@@ -38,6 +38,10 @@ const IDENTIFIER_PARTS: [bool; 256] = {
     let mut c = 0;
 
     while c < 256 {
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "The const loop restricts c to the byte range"
+        )]
         let byte = c as u8;
 
         parts[c] = byte.is_ascii_alphanumeric() || byte == UNDERSCORE || byte >= FIRST_NON_ASCII;

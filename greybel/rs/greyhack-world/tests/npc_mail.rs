@@ -77,9 +77,7 @@ async fn should_mail_the_colleagues_the_npc_writes_to() {
                     && mail.subject == email.subject
                     && mail.body.trim_start_matches("> ") == email.body.trim_start_matches("> ")
                     && mail.body.starts_with("> ") != sent),
-                "{} has no counterpart of {:?}",
-                other,
-                email
+                "{other} has no counterpart of {email:?}"
             );
         }
     }

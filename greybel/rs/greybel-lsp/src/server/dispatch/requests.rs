@@ -15,12 +15,20 @@ impl Server {
         Route {
             method: lsp::InitializeRequest::METHOD,
             handle: |server, request| {
-                server.reply::<lsp::InitializeRequest>(request, Self::initialize)
+                server.reply::<lsp::InitializeRequest>(request, |server, params| {
+                    Self::initialize(server, &params)
+                })
             },
         },
         Route {
             method: lsp::ShutdownRequest::METHOD,
-            handle: |server, request| server.reply::<lsp::ShutdownRequest>(request, Self::shutdown),
+            handle: |server, request| {
+                server.reply::<lsp::ShutdownRequest>(request, |server, params| {
+                    server.shutdown(params);
+
+                    Ok(())
+                })
+            },
         },
         Route {
             method: lsp::HoverRequest::METHOD,
@@ -75,31 +83,41 @@ impl Server {
         Route {
             method: lsp::SemanticTokensRequest::METHOD,
             handle: |server, request| {
-                server.reply::<lsp::SemanticTokensRequest>(request, Self::semantic_tokens_full)
+                server.reply::<lsp::SemanticTokensRequest>(request, |server, params| {
+                    Self::semantic_tokens_full(server, &params)
+                })
             },
         },
         Route {
             method: lsp::DocumentSymbolRequest::METHOD,
             handle: |server, request| {
-                server.reply::<lsp::DocumentSymbolRequest>(request, Self::document_symbol)
+                server.reply::<lsp::DocumentSymbolRequest>(request, |server, params| {
+                    Self::document_symbol(server, &params)
+                })
             },
         },
         Route {
             method: lsp::WorkspaceSymbolRequest::METHOD,
             handle: |server, request| {
-                server.reply::<lsp::WorkspaceSymbolRequest>(request, Self::workspace_symbol)
+                server.reply::<lsp::WorkspaceSymbolRequest>(request, |server, params| {
+                    Ok(Some(server.workspace_symbol(&params)))
+                })
             },
         },
         Route {
             method: lsp::CodeActionRequest::METHOD,
             handle: |server, request| {
-                server.reply::<lsp::CodeActionRequest>(request, Self::code_action)
+                server.reply::<lsp::CodeActionRequest>(request, |server, params| {
+                    Self::code_action(server, &params)
+                })
             },
         },
         Route {
             method: lsp::DocumentFormattingRequest::METHOD,
             handle: |server, request| {
-                server.reply::<lsp::DocumentFormattingRequest>(request, Self::format_document)
+                server.reply::<lsp::DocumentFormattingRequest>(request, |server, params| {
+                    Self::format_document(server, &params)
+                })
             },
         },
     ];

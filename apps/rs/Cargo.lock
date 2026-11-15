@@ -1371,6 +1371,7 @@ dependencies = [
  "greybel-interpreter",
  "greybel-io",
  "greybel-io-web",
+ "greybel-source-map",
  "greybel-transpiler",
  "greyhack-behaviour",
  "greyhack-message-hook-client",

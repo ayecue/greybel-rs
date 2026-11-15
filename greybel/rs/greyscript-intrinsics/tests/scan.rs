@@ -46,7 +46,7 @@ fn should_print_a_hidden_zone_warning_despite_the_read_routes_rollback() {
         .unwrap()
         .weaknesses[0]
         .metaxploit_version = "9.9.9".to_owned();
-    set_library(&world, world.handle.player(), "/lib/libssh.so", outdated);
+    set_library(&world, world.handle.player(), "/lib/libssh.so", &outdated);
 
     let expected = library(&world, world.handle.player(), "/lib/libssh.so")
         .zones

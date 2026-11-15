@@ -28,9 +28,9 @@ impl HitCondition {
     /// Parses an optional comparator and unsigned count. A bare number selects `AtLeast`; malformed counts and `% 0`
     /// return descriptive errors.
     pub(super) fn parse(text: &str) -> Result<Self, HitConditionError> {
-        let text = text.trim();
-
         type Make = fn(u32) -> HitCondition;
+
+        let text = text.trim();
 
         let operators: [(&str, Make); 7] = [
             ("==", Self::Equal),

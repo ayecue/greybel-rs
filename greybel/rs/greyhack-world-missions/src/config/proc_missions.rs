@@ -72,7 +72,13 @@ impl ProcMissionsConfig {
         let low = self.min_level.min(self.max_level);
         let high = self.min_level.max(self.max_level);
 
-        low + random.next_below((high - low + 1).max(1) as usize) as i32
+        low + i32::try_from(
+            random.next_below(
+                usize::try_from((high - low + 1).max(1))
+                    .expect("the clamped level range is nonnegative"),
+            ),
+        )
+        .expect("value fits the target integer type")
     }
 
     /// `ProcMissionsConfig.GetHeartsCount`: the number of heart beats of a mission of `level`.

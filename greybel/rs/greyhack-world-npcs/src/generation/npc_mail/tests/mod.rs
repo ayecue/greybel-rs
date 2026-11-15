@@ -62,7 +62,7 @@ fn should_deliver_work_mails_to_both_mailboxes_with_opposite_directions() {
             assert_eq!(own.other, other.to);
             assert_eq!(own.text, other.text);
             assert_ne!(own.sending, other.sending);
-            assert!(own.other != owner.colleague.address);
+            assert_ne!(own.other, owner.colleague.address);
         }
     }
 }
@@ -168,7 +168,11 @@ fn should_deliver_up_to_three_spam_mails_from_no_reply_addresses() {
 
         for delivery in spam {
             assert!(SPAM_SUBJECTS.contains(&delivery.subject.as_str()));
-            assert!(delivery.other.ends_with(".com"));
+            assert!(
+                std::path::Path::new(&delivery.other)
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("com"))
+            );
             assert!(delivery.text.starts_with("<WORKMAIL_SPAM_"));
             assert_eq!(delivery.to, owner.colleague.address);
             assert!(!delivery.sending);

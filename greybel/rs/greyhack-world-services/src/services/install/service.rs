@@ -87,6 +87,129 @@ impl InstallService {
 }
 
 impl InstallService {
+    async fn configure_ssh(&self, computer: ComputerId, id: ServiceId) -> Result<()> {
+        self.files
+            .changes
+            .write_file(
+                computer,
+                id.config_path(),
+                FileData::text(&config_text(&SshdConfig::default())),
+            )
+            .await?;
+        self.files
+            .changes
+            .write_file(computer, DEFAULT_ENCODE_PATH, FileData::text(ssh_encode()))
+            .await?;
+        self.files
+            .changes
+            .write_file(
+                computer,
+                DEFAULT_DECODE_PATH,
+                FileData::binary_from_source(ssh_decode()),
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    async fn configure_http(&self, computer: ComputerId, id: ServiceId) -> Result<()> {
+        let kind = self
+            .networks
+            .topology
+            .computer(computer)
+            .await?
+            .map(|computer| computer.kind);
+        let router = kind.is_some_and(is_device);
+
+        // Router configuration files remain empty (`Computer.PreConfigServices`).
+        if !router {
+            self.files
+                .changes
+                .write_file(
+                    computer,
+                    id.config_path(),
+                    FileData::text(
+                        r#"{
+  "softwareDescription": {
+    "myprogram": {
+      "description": "Example description",
+      "price": 0
+    }
+  }
+}"#,
+                    ),
+                )
+                .await?;
+        }
+
+        self.files
+            .changes
+            .ensure_folder(computer, DOWNLOADS_PATH)
+            .await?;
+
+        // `Computer.ConfiguringServices`: website configuration for routers and cameras.
+        let website = match kind {
+            _ if router => content_file("Router"),
+            Some(DeviceKind::Camera) => content_file("cctv"),
+            _ => website_default(),
+        };
+
+        // The website is only added where there is none (`FileSystem.Carpeta.GetSubArchivo`): a mission's
+        // web file written before the service is installed in the world stays.
+        if self.files.node_at(computer, WEBSITE_PATH).await?.is_none() {
+            self.files
+                .changes
+                .write_file(computer, WEBSITE_PATH, FileData::text(website))
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    async fn configure_repository(&self, computer: ComputerId, id: ServiceId) -> Result<()> {
+        let packages = [
+            (
+                "helloworld",
+                "Prints the words hello world on the screen.",
+                "print(\"hello world!\")",
+            ),
+            (
+                "heythere",
+                "Prints the words hey there on the screen.",
+                "print(\"hey there!\")",
+            ),
+        ];
+        let config = RepositoryConfig {
+            repo_sources: packages
+                .iter()
+                .map(|(name, description, _)| ((*name).to_owned(), (*description).to_owned()))
+                .collect(),
+            ..RepositoryConfig::default()
+        };
+
+        self.files
+            .changes
+            .write_file(
+                computer,
+                id.config_path(),
+                FileData::text(&config_text(&config)),
+            )
+            .await?;
+
+        for (name, _, source) in packages {
+            self.files
+                .changes
+                .write_file(
+                    computer,
+                    &path::join(&config.path_repo, name),
+                    FileData::binary_from_source(source),
+                )
+                .await?;
+        }
+
+        Ok(())
+    }
+
     pub async fn configure(&self, computer: ComputerId, id: ServiceId, domain: &str) -> Result<()> {
         let daemon = Script::find(id.daemon());
         let data = daemon.map_or_else(FileData::default, |script| {
@@ -103,85 +226,14 @@ impl InstallService {
             .await?;
 
         match id {
-            ServiceId::Ssh => {
-                self.files
-                    .changes
-                    .write_file(
-                        computer,
-                        id.config_path(),
-                        FileData::text(&config_text(&SshdConfig::default())),
-                    )
-                    .await?;
-                self.files
-                    .changes
-                    .write_file(computer, DEFAULT_ENCODE_PATH, FileData::text(ssh_encode()))
-                    .await?;
-                self.files
-                    .changes
-                    .write_file(
-                        computer,
-                        DEFAULT_DECODE_PATH,
-                        FileData::binary_from_source(ssh_decode()),
-                    )
-                    .await?;
-            }
+            ServiceId::Ssh => self.configure_ssh(computer, id).await?,
             ServiceId::Ftp => {
                 self.files
                     .changes
                     .ensure_folder(computer, "/Public/Downloads")
                     .await?;
             }
-            ServiceId::Http => {
-                let kind = self
-                    .networks
-                    .topology
-                    .computer(computer)
-                    .await?
-                    .map(|computer| computer.kind);
-                let router = kind.is_some_and(is_device);
-
-                // Router configuration files remain empty (`Computer.PreConfigServices`).
-                if !router {
-                    self.files
-                        .changes
-                        .write_file(
-                            computer,
-                            id.config_path(),
-                            FileData::text(
-                                r#"{
-  "softwareDescription": {
-    "myprogram": {
-      "description": "Example description",
-      "price": 0
-    }
-  }
-}"#,
-                            ),
-                        )
-                        .await?;
-                }
-
-                self.files
-                    .changes
-                    .ensure_folder(computer, DOWNLOADS_PATH)
-                    .await?;
-
-                // `Computer.ConfiguringServices`: website configuration for routers and cameras.
-                let website = match kind {
-                    _ if router => content_file("Router"),
-                    Some(DeviceKind::Camera) => content_file("cctv"),
-                    _ => website_default(),
-                };
-
-                // The website is only added where there is none (`FileSystem.Carpeta.GetSubArchivo`): a mission's
-                // web file written before the service is installed in the world stays.
-                if self.files.node_at(computer, WEBSITE_PATH).await?.is_none() {
-                    self.files
-                        .changes
-                        .write_file(computer, WEBSITE_PATH, FileData::text(website))
-                        .await?;
-                }
-            }
+            ServiceId::Http => self.configure_http(computer, id).await?,
             ServiceId::Smtp => {
                 self.files
                     .changes
@@ -200,49 +252,7 @@ impl InstallService {
             | ServiceId::Cam
             | ServiceId::SmartAppliance
             | ServiceId::Adb => {}
-            ServiceId::Repository => {
-                let packages = [
-                    (
-                        "helloworld",
-                        "Prints the words hello world on the screen.",
-                        "print(\"hello world!\")",
-                    ),
-                    (
-                        "heythere",
-                        "Prints the words hey there on the screen.",
-                        "print(\"hey there!\")",
-                    ),
-                ];
-                let config = RepositoryConfig {
-                    repo_sources: packages
-                        .iter()
-                        .map(|(name, description, _)| {
-                            ((*name).to_owned(), (*description).to_owned())
-                        })
-                        .collect(),
-                    ..RepositoryConfig::default()
-                };
-
-                self.files
-                    .changes
-                    .write_file(
-                        computer,
-                        id.config_path(),
-                        FileData::text(&config_text(&config)),
-                    )
-                    .await?;
-
-                for (name, _, source) in packages {
-                    self.files
-                        .changes
-                        .write_file(
-                            computer,
-                            &path::join(&config.path_repo, name),
-                            FileData::binary_from_source(source),
-                        )
-                        .await?;
-                }
-            }
+            ServiceId::Repository => self.configure_repository(computer, id).await?,
         }
 
         Ok(())

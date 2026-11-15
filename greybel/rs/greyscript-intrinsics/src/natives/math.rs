@@ -12,10 +12,12 @@ const UNSIGNED_SHIFT_RIGHT: &str = ">>>";
 
 /// Implements `bitwise` on 64-bit integers with C#-compatible shift counts.
 #[native]
-#[allow(
+#[expect(
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
-    clippy::cast_precision_loss
+    clippy::cast_precision_loss,
+    clippy::cast_possible_wrap,
+    reason = "Grey Hack bitwise uses C# long, int, and ulong conversions"
 )]
 pub fn bitwise(operator: &Value, num1: &Value, num2: f64) -> Option<f64> {
     let (Some(operator), Some(a)) = (operator.as_str(), num1.as_number()) else {

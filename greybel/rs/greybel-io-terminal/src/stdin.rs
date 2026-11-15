@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use greybel_io::{Echo, InputFuture, Key, PrintOptions, Stdin, Stdout};
 
-use crate::keyboard::{Keyboard, Press};
+use crate::keyboard::{Keyboard, Press, RawMode};
 
 const INTERRUPT_EXIT_CODE: i32 = 130;
 const MASK: &str = "*";
@@ -43,7 +43,10 @@ impl TerminalStdin {
             return Ok(read_line()?.chars().next().map_or(Key::Enter, Key::Char));
         }
 
-        let press = self.keyboard.raw()?.next()?;
+        let raw = self.keyboard.raw()?;
+        let press = RawMode::next()?;
+
+        drop(raw);
 
         match press {
             Press::Key(key) => Ok(key),
@@ -58,7 +61,7 @@ impl TerminalStdin {
         let raw = self.keyboard.raw()?;
 
         loop {
-            match raw.next()? {
+            match RawMode::next()? {
                 Press::Key(Key::Enter) => break,
                 Press::Key(Key::Char(char)) => {
                     line.push(char);
@@ -101,7 +104,12 @@ impl TerminalStdin {
             return Ok(None);
         }
 
-        match self.keyboard.raw()?.poll()? {
+        let raw = self.keyboard.raw()?;
+        let press = RawMode::poll()?;
+
+        drop(raw);
+
+        match press {
             Some(Press::Key(key)) => Ok(Some(key)),
             Some(Press::Interrupt) => self.interrupt(),
             None => Ok(None),

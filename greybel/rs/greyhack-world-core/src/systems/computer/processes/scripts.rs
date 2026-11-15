@@ -44,6 +44,10 @@ impl ProcessesService {
     /// # Errors
     ///
     /// Returns any database read error.
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "ComputerIntrinsics.show_procs computes memory percentages with C# floats"
+    )]
     pub async fn process_usage(&self, computer: ComputerId) -> Result<Option<Vec<ProcessUsage>>> {
         if self.computer_rows.computer(computer).await?.is_none() {
             return Ok(None);

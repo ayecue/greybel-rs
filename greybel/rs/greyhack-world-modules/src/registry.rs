@@ -1,7 +1,7 @@
 //! Registry of lazy services and domain capabilities.
 
 use std::any::{Any, TypeId, type_name};
-use std::cell::RefCell;
+use std::cell::{OnceCell, RefCell};
 use std::collections::{BTreeMap, HashMap};
 use std::rc::Rc;
 
@@ -76,7 +76,7 @@ impl Registry {
 
         Dep {
             registry: Rc::downgrade(self),
-            service: Default::default(),
+            service: OnceCell::default(),
         }
     }
 

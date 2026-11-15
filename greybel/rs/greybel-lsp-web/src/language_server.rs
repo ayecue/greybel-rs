@@ -15,12 +15,12 @@ pub(crate) struct LanguageServer<D: Driver> {
 }
 
 impl<D: Driver> LanguageServer<D> {
-    pub(crate) fn serve(channel: Channel<Server, D>) {
+    pub(crate) fn serve(channel: &Channel<Server, D>) {
         Self {
             channel: channel.clone(),
             server: RefCell::new(LspServer::new()),
         }
-        .attach(&channel);
+        .attach(channel);
     }
 
     /// Deserializes `json` into a client message and returns server replies; malformed JSON returns `InvalidRequest`.

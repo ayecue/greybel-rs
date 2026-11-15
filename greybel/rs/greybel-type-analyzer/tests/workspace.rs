@@ -195,7 +195,11 @@ fn should_hover_a_function_of_another_file() {
 fn should_help_with_the_signature_of_another_files_function() {
     let workspace = workspace();
     let call = at(MAIN_SOURCE, "describe(", 0);
-    let inside = Position::new(call.line, call.character + "describe(".len() as u32);
+    let inside = Position::new(
+        call.line,
+        call.character
+            + u32::try_from("describe(".len()).expect("value fits the target integer type"),
+    );
 
     let help = Analyzer::new(&workspace).signature_help(&uri(MAIN), inside);
 
@@ -710,8 +714,8 @@ fn should_offer_no_include_where_none_applies() {
 fn should_run_a_file_included_by_a_root_from_the_root() {
     let workspace = included_by_a_root();
 
-    let included = labels(Analyzer::new(&workspace).entry_uris(&uri("/app/b.src")));
-    let root = labels(Analyzer::new(&workspace).entry_uris(&uri("/app/main.src")));
+    let included = labels(&Analyzer::new(&workspace).entry_uris(&uri("/app/b.src")));
+    let root = labels(&Analyzer::new(&workspace).entry_uris(&uri("/app/main.src")));
 
     assert_eq!(included, ["/app/main.src"]);
     assert_eq!(root, ["/app/main.src"]);
@@ -772,7 +776,7 @@ fn should_complete_a_name_of_a_sibling_include() {
 fn should_run_a_file_from_every_entry_reaching_it() {
     let workspace = run_by_several_entries();
 
-    let entries = labels(Analyzer::new(&workspace).entry_uris(&uri("/app/b.src")));
+    let entries = labels(&Analyzer::new(&workspace).entry_uris(&uri("/app/b.src")));
 
     assert_eq!(entries, ["/app/main.src", "/app/other.src"]);
 }
@@ -815,7 +819,7 @@ fn should_report_a_read_before_definition_in_a_file_included_once() {
 fn should_run_the_files_of_barrels_from_the_entry() {
     let workspace = barrels();
 
-    let entries = labels(Analyzer::new(&workspace).entry_uris(&uri("/app/views/page.src")));
+    let entries = labels(&Analyzer::new(&workspace).entry_uris(&uri("/app/views/page.src")));
 
     assert_eq!(entries, ["/app/main.src"]);
 }

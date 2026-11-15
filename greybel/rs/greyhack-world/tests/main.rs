@@ -1,3 +1,8 @@
+#![expect(
+    clippy::too_many_lines,
+    reason = "Integration tests read top to bottom"
+)]
+
 mod admin_restore;
 mod apis;
 mod apt;

@@ -26,7 +26,7 @@ impl Planner<'_> {
             let address = next_address(self.new_subnet_base(), 1);
             let gateway = format_address(address);
 
-            self.devices[device].private_gateway = gateway.clone();
+            self.devices[device].private_gateway.clone_from(&gateway);
             self.devices[device].computers.push(ComputerPlan {
                 kind: DeviceKind::Computer,
                 local_ip: gateway,
@@ -80,7 +80,8 @@ impl Planner<'_> {
         all: bool,
         isolated: bool,
     ) {
-        let available = self.pool(pool).len() as u32;
+        let available =
+            u32::try_from(self.pool(pool).len()).expect("value fits the target integer type");
         let mut count = if all {
             available + 1
         } else {
@@ -104,7 +105,8 @@ impl Planner<'_> {
         let mut drop_service: Vec<PoolService> = Vec::new();
 
         for _ in 0..count {
-            let len = self.pool(pool).len() as u32;
+            let len =
+                u32::try_from(self.pool(pool).len()).expect("value fits the target integer type");
 
             if len == 0 {
                 break;
@@ -326,7 +328,8 @@ impl Planner<'_> {
                 ServiceId::Students | ServiceId::Criminals | ServiceId::Employees
             )
         {
-            let random = self.next(1024, 65501) as u16;
+            let random =
+                u16::try_from(self.next(1024, 65501)).expect("value fits the target integer type");
 
             return next_port(&self.table, random);
         }
@@ -340,9 +343,9 @@ impl Planner<'_> {
         let holder = &self.devices[device];
 
         if !holder.private_gateway.is_empty() {
-            computer.gateway = holder.private_gateway.clone();
+            computer.gateway.clone_from(&holder.private_gateway);
         } else if holder.is_router() || holder.is_switch() {
-            computer.gateway = holder.local_ip.clone();
+            computer.gateway.clone_from(&holder.local_ip);
         }
 
         let waits = computer.gateway.is_empty() && holder.is_hub();

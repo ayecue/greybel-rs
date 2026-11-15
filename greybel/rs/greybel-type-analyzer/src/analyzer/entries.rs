@@ -20,7 +20,7 @@ impl<'w> Analyzer<'w> {
             .collect()
     }
 
-    pub(super) fn entry_files(&self, file: SourceFile) -> Vec<SourceFile> {
+    pub(super) fn entry_files(self, file: SourceFile) -> Vec<SourceFile> {
         let db = self.workspace.db();
         let mut importers: FxHashMap<SourceFile, Vec<SourceFile>> = FxHashMap::default();
 
@@ -63,7 +63,7 @@ impl<'w> Analyzer<'w> {
     }
 
     pub(super) fn entry_analyses(
-        &self,
+        self,
         file: SourceFile,
     ) -> Vec<(SourceFile, &'w Analysis, DocumentIndex)> {
         let analyses: Vec<(SourceFile, &'w Analysis, DocumentIndex)> = self
@@ -87,7 +87,7 @@ impl<'w> Analyzer<'w> {
         analyses
     }
 
-    pub(super) fn entry_diagnostics(&self, file: SourceFile) -> Vec<Diagnostic> {
+    pub(super) fn entry_diagnostics(self, file: SourceFile) -> Vec<Diagnostic> {
         let entries = self.entry_analyses(file);
         let mut grouped_diagnostics: Vec<(Diagnostic, Vec<SourceFile>)> = Vec::new();
 

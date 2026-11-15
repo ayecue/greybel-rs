@@ -5,12 +5,12 @@ use crate::support::at;
 #[test]
 fn should_join_consecutive_lines_of_a_source_into_one_mapping() {
     let map = SourceMap::of_lines([
-        at("main.src", 1),
-        at("main.src", 2),
+        Some(at("main.src", 1)),
+        Some(at("main.src", 2)),
         None,
-        at("lib.src", 4),
-        at("lib.src", 5),
-        at("main.src", 3),
+        Some(at("lib.src", 4)),
+        Some(at("lib.src", 5)),
+        Some(at("main.src", 3)),
     ]);
 
     assert_eq!(map.sources(), ["main.src", "lib.src"]);
@@ -26,7 +26,7 @@ fn should_join_consecutive_lines_of_a_source_into_one_mapping() {
 
 #[test]
 fn should_start_a_new_mapping_where_the_source_lines_jump() {
-    let map = SourceMap::of_lines([at("main.src", 1), at("main.src", 5)]);
+    let map = SourceMap::of_lines([Some(at("main.src", 1)), Some(at("main.src", 5))]);
 
     assert_eq!(
         map.mappings(),

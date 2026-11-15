@@ -202,7 +202,9 @@ pub(super) fn collect_cross_info_items(
     let has_next = index + 1 < beats.len();
 
     if spec.next_mode == NextMode::ReplaceNextBeat && has_next {
-        common[index + 1] = common[index].clone();
+        let (current, next) = common.split_at_mut(index + 1);
+
+        next[0].clone_from(&current[index]);
 
         return Ok(());
     }

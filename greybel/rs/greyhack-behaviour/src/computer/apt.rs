@@ -86,9 +86,7 @@ pub fn parse_apt_official(content: &str) -> bool {
         official_server: bool,
     }
 
-    serde_json::from_str::<Config>(content)
-        .map(|config| config.official_server)
-        .unwrap_or(false)
+    serde_json::from_str::<Config>(content).is_ok_and(|config| config.official_server)
 }
 
 /// Parses the repository dictionary in file order instead of sorting keys like `serde_json`'s default map.

@@ -27,6 +27,18 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_player_network::<W>(routes);
+    register_player_files::<W>(routes);
+    register_player_accounts::<W>(routes);
+    register_player_mail::<W>(routes);
+    register_player_ctf::<W>(routes);
+}
+
+fn register_player_network<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -114,6 +126,13 @@ pub(crate) fn register<
             )
         },
     );
+}
+
+fn register_player_files<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -210,6 +229,13 @@ pub(crate) fn register<
             })
         },
     );
+}
+
+fn register_player_accounts<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -291,6 +317,13 @@ pub(crate) fn register<
                 .await?)
         },
     );
+}
+
+fn register_player_mail<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -344,6 +377,13 @@ pub(crate) fn register<
             )
         },
     );
+}
+
+fn register_player_ctf<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,

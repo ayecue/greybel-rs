@@ -76,8 +76,8 @@ impl Inference<'_> {
             (
                 Type::Map { .. } | Type::Object(_) | Type::Class(_),
                 Type::Map { .. } | Type::Object(_) | Type::Class(_),
-            ) => true,
-            (Type::Number, Type::Number)
+            )
+            | (Type::Number, Type::Number)
             | (Type::String, Type::String)
             | (Type::List(_), Type::List(_))
             | (Type::Function(_), Type::Function(_)) => true,
@@ -348,10 +348,10 @@ impl Inference<'_> {
 
                 let is_unused_reportable = name != SELF
                     && !name.starts_with('_')
-                    && !self
+                    && self
                         .model
                         .known_slot_type(slot)
-                        .is_some_and(|ty| self.types.function_refs(ty).next().is_some());
+                        .is_none_or(|ty| self.types.function_refs(ty).next().is_none());
 
                 if is_unused_reportable && !read.contains(&slot) {
                     let (kind, label) = if parameter {

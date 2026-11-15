@@ -1,5 +1,7 @@
 //! Single-document inference across types, members and calls.
 
+use std::fmt::Write as _;
+
 use greybel_core::Position;
 use greybel_type_analyzer::{Analyzer, Dialect};
 
@@ -563,9 +565,10 @@ fn should_end_maps_holding_their_own_class() {
     let mut source = String::from("globals.Test = {\"value\":\"test\"}\n");
 
     for name in ["A", "B", "C", "D", "E", "F", "G", "Q"] {
-        source.push_str(&format!(
+        let _ = write!(
+            source,
             "Test.{name} = {{\n  \"__isa\": Test,\n  \"subvalue\": \"val\",\n}}\n"
-        ));
+        );
     }
 
     source.push_str(

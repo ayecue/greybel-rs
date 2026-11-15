@@ -161,7 +161,7 @@ impl<H: Host> MockProgram<'_, H> {
             Ok(()) => return Ok(pin),
             Err(InterpreterError::Runtime(error)) => {
                 if let (Some(pin), Some(vm)) = (pin, interpreter.vm_mut()) {
-                    vm.unpin(pin);
+                    vm.unpin(&pin);
                 }
 
                 return Err(EvaluationFailure::from_message(error.to_string()));
@@ -194,7 +194,7 @@ impl<H: Host> Evaluator for MockEvaluator<'_, '_, H> {
             return Ok(None);
         };
         let vm = self.game.vm();
-        let value = vm.unpin(pin);
+        let value = vm.unpin(&pin);
 
         Ok(Some(EvaluatedText {
             text: Entry::display(vm.heap(), &value),

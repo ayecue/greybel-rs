@@ -20,7 +20,6 @@ pub fn sort_leaderboard(guilds: &mut [RankedGuild]) {
 #[must_use]
 pub fn crown_leader(leaderboard: &[RankedGuild]) -> Option<&RankedGuild> {
     match leaderboard {
-        [] => None,
         [only] => Some(only),
         [first, second, ..] if first.total_points != second.total_points => Some(first),
         _ => None,

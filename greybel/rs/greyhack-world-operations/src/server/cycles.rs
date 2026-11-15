@@ -27,9 +27,9 @@ impl CycleDriver<World, WorldError> for ServerState {
                     return Err(OperationError::Script(ScriptFailure::ProgramEnded));
                 };
 
-                if !world_state
+                if world_state
                     .tree(key)
-                    .is_some_and(|tree| tree.active(program).is_some())
+                    .is_none_or(|tree| tree.active(program).is_none())
                 {
                     return Err(OperationError::Script(ScriptFailure::ProgramEnded));
                 }

@@ -7,6 +7,10 @@ pub const WIFI_RANGE: f32 = 0.5;
 
 /// Converts router `distance` in map units to signal strength percentage.
 #[must_use]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Terminal.ResumeAireplay truncates signal strength like C# (int)"
+)]
 pub fn signal_strength(distance: f32) -> i32 {
     100 - (distance * 200.0) as i32
 }
@@ -16,7 +20,7 @@ pub fn signal_strength(distance: f32) -> i32 {
 pub fn wifi_power(bssid: &str) -> i32 {
     let sum: u32 = bssid.bytes().map(u32::from).sum();
 
-    10 + (sum % 86) as i32
+    10 + i32::try_from(sum % 86).expect("the remainder is below 86")
 }
 
 /// Returns the ACK count required for `aircrack` to recover a key at signal `power`.

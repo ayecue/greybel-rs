@@ -20,7 +20,7 @@ pub fn create_group(
     };
 
     if let Err(refusal) = check_new_group(user, group) {
-        return refuse("create_group", refusal);
+        return refuse("create_group", &refusal);
     }
 
     let message = ComputerCreateGroup {

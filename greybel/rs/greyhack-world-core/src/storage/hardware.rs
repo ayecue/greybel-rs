@@ -265,7 +265,7 @@ impl HardwareRepository {
     }
 
     /// Installs all `hardware` parts in `computer`.
-    pub async fn insert_hardware(&self, computer: ComputerId, hardware: &Hardware) -> Result<()> {
+    async fn insert_compute_parts(&self, computer: ComputerId, hardware: &Hardware) -> Result<()> {
         for disk in &hardware.hard_disks {
             let id = self
                 .part_row(
@@ -305,6 +305,10 @@ impl HardwareRepository {
                 .await?;
         }
 
+        Ok(())
+    }
+
+    async fn insert_platform_parts(&self, computer: ComputerId, hardware: &Hardware) -> Result<()> {
         if let Some(supply) = &hardware.power_supply {
             let id = self
                 .part_row(
@@ -365,6 +369,10 @@ impl HardwareRepository {
                 .await?;
         }
 
+        Ok(())
+    }
+
+    async fn insert_device_parts(&self, computer: ComputerId, hardware: &Hardware) -> Result<()> {
         for card in &hardware.net_cards {
             self.insert_net_card(computer, card).await?;
         }
@@ -386,6 +394,14 @@ impl HardwareRepository {
             self.install(computer, HardwareKind::Gpu, id, &gpu.part)
                 .await?;
         }
+
+        Ok(())
+    }
+
+    pub async fn insert_hardware(&self, computer: ComputerId, hardware: &Hardware) -> Result<()> {
+        self.insert_compute_parts(computer, hardware).await?;
+        self.insert_platform_parts(computer, hardware).await?;
+        self.insert_device_parts(computer, hardware).await?;
 
         Ok(())
     }

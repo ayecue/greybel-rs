@@ -4,59 +4,14 @@ use greybel_interpreter::RuntimeErrorKind;
 use greybel_test_support::future::block_on;
 use greybel_test_support::greyhack::run_on_host_at;
 use greybel_test_support::interpreter::constant_clock_options;
-use greyhack_behaviour::compare_versions;
 use greyhack_test_support_client::TestClient;
-use greyhack_test_support_client::protocol::test_support::{
-    GuildsReply, LanNodeKind, NetworkSnapshot,
-};
+use greyhack_test_support_client::protocol::test_support::{GuildsReply, NetworkSnapshot};
 use greyhack_world_libraries::LibraryReportFailure;
 
 use super::intrinsics::{PROGRAM_NAME, snapshot_world};
 use super::mirror::library;
 use super::parity::{Outcome, game_error, without_ack_counts};
 use super::parity_guilds::mirrored_world;
-
-/// Whether every library file `name` in the computers of `snapshot` is older than `newest`, a game library.
-pub fn all_older_than(snapshot: &NetworkSnapshot, name: &str, newest: &str) -> bool {
-    let newest = library(newest).expect("the game's newest library").version;
-    let path = format!("/lib/{name}");
-    let mut found = false;
-
-    for node in &snapshot.nodes {
-        let LanNodeKind::Computer(computer) = &node.node else {
-            continue;
-        };
-
-        if computer.player {
-            continue;
-        }
-
-        for file in computer.files.iter().filter(|file| file.path == path) {
-            let Some(library) = library(&file.content) else {
-                continue;
-            };
-
-            found = true;
-
-            if compare_versions(&library.version, &newest).is_ge() {
-                return false;
-            }
-        }
-    }
-
-    found
-}
-
-/// Whether the kernel of the network's main router is older than `newest`, a game library.
-pub fn kernel_older_than(snapshot: &NetworkSnapshot, newest: &str) -> bool {
-    let newest = library(newest).expect("the game's newest library").version;
-
-    snapshot.nodes.iter().any(|node| match &node.node {
-        LanNodeKind::Router(router) if node.parent.is_none() => library(&router.kernel_content)
-            .is_some_and(|kernel| compare_versions(&kernel.version, &newest).is_lt()),
-        _ => false,
-    })
-}
 
 /// Has the game's administrator of the network at `public_ip` report the newest library file `name`, runs `scripts` in
 /// the game, then in a copy of `snapshot`, which was read before the report, in which the simulated administrator
@@ -71,7 +26,7 @@ pub async fn compare_after_report(
     guilds: Option<&GuildsReply>,
     scripts: &[String],
 ) -> Vec<Outcome> {
-    let public_ip = snapshot.public_ip.to_string();
+    let public_ip = snapshot.public_ip.clone();
 
     let skipped = client
         .report_library_update(&public_ip, name)
@@ -88,7 +43,7 @@ pub async fn compare_after_report(
             .execute(script, "/project/test.src", "/project", PROGRAM_NAME)
             .await
             .unwrap_or_else(|error| panic!("{script}: {error}"));
-        let output = result.output.to_string();
+        let output = result.output.clone();
 
         actual.push(Outcome {
             script: script.clone(),

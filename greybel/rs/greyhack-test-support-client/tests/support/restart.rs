@@ -82,7 +82,7 @@ pub async fn compare_with_restarts(
                     }
                 }
                 .unwrap_or_else(|error| panic!("{script}: {error}"));
-                let output = result.output.to_string();
+                let output = result.output.clone();
 
                 actual.push(Outcome {
                     script: (*script).to_owned(),

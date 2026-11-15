@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use greybel_core::LiteralValue;
 use greybel_core::syntax::Literal;
 use greybel_symbols::literals::NULL;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxBuildHasher, FxHashMap};
 
 use crate::emit::{LineBreakStyle, LiteralStyle, LiteralText};
 use crate::names::NameTable;
@@ -36,7 +36,7 @@ impl LiteralTable {
     pub(super) fn with_capacity(count: usize) -> Self {
         Self {
             entries: Vec::with_capacity(count),
-            by_key: FxHashMap::with_capacity_and_hasher(count, Default::default()),
+            by_key: FxHashMap::with_capacity_and_hasher(count, FxBuildHasher),
         }
     }
 

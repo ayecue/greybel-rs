@@ -29,7 +29,7 @@ pub fn sudo(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicError> {
             let session = session_mut(vm)?;
 
             session.shell = root;
-            session.user = ROOT_USER.to_owned();
+            ROOT_USER.clone_into(&mut session.user);
 
             Ok::<_, IntrinsicError>(true)
         },

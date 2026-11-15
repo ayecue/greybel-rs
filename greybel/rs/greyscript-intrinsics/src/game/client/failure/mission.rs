@@ -5,7 +5,7 @@ use greyhack_world_assets::GameTextTable;
 use crate::protocol::MissionFailure;
 
 /// Formats `failure` as the shop's window shows it (`MissionsHelperServer.AcceptMissionServerRpc`).
-pub(super) fn mission_text(failure: &MissionFailure) -> String {
+pub(super) fn mission_text(failure: MissionFailure) -> String {
     match failure {
         MissionFailure::NotAMissionShop | MissionFailure::NoMission => GameTextTable::english()
             .get("MISSION_ERROR")

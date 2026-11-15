@@ -98,17 +98,29 @@ impl CodeBuilder {
     }
 
     fn combine(last: &Op, op: &Op) -> Option<Op> {
-        let merged_op = match (last, op) {
+        match (last, op) {
+            (Op::Push(_), Op::Binary { .. }) | (Op::Binary { .. }, _) => {
+                Self::combine_binary(last, op)
+            }
+            (Op::SlotBinary { .. }, _) => Self::combine_slot_binary(last, op),
+            (Op::VariableBinary { .. }, _) => Self::combine_variable_binary(last, op),
+            (Op::Push(value), Op::Return(None)) => Some(Op::Return(Some(value.clone()))),
+            _ => None,
+        }
+    }
+
+    fn combine_binary(last: &Op, op: &Op) -> Option<Op> {
+        match (last, op) {
             (
                 Op::Push(right),
                 Op::Binary {
                     operator,
                     right: None,
                 },
-            ) => Op::Binary {
+            ) => Some(Op::Binary {
                 operator: *operator,
                 right: Some(right.clone()),
-            },
+            }),
             (
                 Op::Binary { operator, right },
                 Op::JumpIf {
@@ -116,36 +128,42 @@ impl CodeBuilder {
                     when,
                     push_condition: false,
                 },
-            ) => Op::BinaryJumpIf {
+            ) => Some(Op::BinaryJumpIf {
                 operator: *operator,
                 right: right.clone(),
                 target: *target,
                 when: *when,
-            },
+            }),
             (
                 Op::Binary {
                     operator,
                     right: Some(right),
                 },
                 Op::AssignLocal { key, .. },
-            ) => Op::AssignLocalBinary {
+            ) => Some(Op::AssignLocalBinary {
                 key: key.clone(),
                 operator: *operator,
                 right: right.clone(),
                 cache: EntryCache::default(),
-            },
+            }),
             (
                 Op::Binary { operator, right },
                 Op::AssignSlot {
                     slot,
                     value: Operand::Stack,
                 },
-            ) => Op::SlotBinary {
+            ) => Some(Op::SlotBinary {
                 operator: *operator,
                 left: Operand::Stack,
                 right: right.clone().map_or(Operand::Stack, Operand::Value),
                 to: Destination::Slot(*slot),
-            },
+            }),
+            _ => None,
+        }
+    }
+
+    fn combine_slot_binary(last: &Op, op: &Op) -> Option<Op> {
+        match (last, op) {
             (
                 Op::SlotBinary {
                     operator,
@@ -158,13 +176,13 @@ impl CodeBuilder {
                     when,
                     push_condition: false,
                 },
-            ) => Op::SlotBinaryJumpIf {
+            ) => Some(Op::SlotBinaryJumpIf {
                 operator: *operator,
                 left: left.clone(),
                 right: right.clone(),
                 target: *target,
                 when: *when,
-            },
+            }),
             (
                 Op::SlotBinary {
                     operator,
@@ -176,12 +194,18 @@ impl CodeBuilder {
                     slot,
                     value: Operand::Stack,
                 },
-            ) => Op::SlotBinary {
+            ) => Some(Op::SlotBinary {
                 operator: *operator,
                 left: left.clone(),
                 right: right.clone(),
                 to: Destination::Slot(*slot),
-            },
+            }),
+            _ => None,
+        }
+    }
+
+    fn combine_variable_binary(last: &Op, op: &Op) -> Option<Op> {
+        match (last, op) {
             (
                 Op::VariableBinary {
                     operator,
@@ -194,13 +218,13 @@ impl CodeBuilder {
                     when,
                     push_condition: false,
                 },
-            ) => Op::VariableBinaryJumpIf {
+            ) => Some(Op::VariableBinaryJumpIf {
                 operator: *operator,
                 left: left.clone(),
                 right: right.clone(),
                 target: *target,
                 when: *when,
-            },
+            }),
             (
                 Op::VariableBinary {
                     operator,
@@ -209,17 +233,14 @@ impl CodeBuilder {
                     to: VariableDestination::Stack,
                 },
                 Op::AssignLocal { key, .. },
-            ) => Op::VariableBinary {
+            ) => Some(Op::VariableBinary {
                 operator: *operator,
                 left: left.clone(),
                 right: right.clone(),
                 to: VariableDestination::Local(Local::new_box(key)),
-            },
-            (Op::Push(value), Op::Return(None)) => Op::Return(Some(value.clone())),
-            _ => return None,
-        };
-
-        Some(merged_op)
+            }),
+            _ => None,
+        }
     }
 
     fn build(mut self) -> Code {
@@ -653,10 +674,10 @@ impl<'g> Compiler<'g> {
         self.options.debug
     }
 
-    pub(crate) fn unexpected_node_error(&self, id: NodeId) -> Box<CompileError> {
-        Box::new(CompileError::UnexpectedNode {
+    pub(crate) fn unexpected_node_error(&self, id: NodeId) -> CompileError {
+        CompileError::UnexpectedNode {
             kind: self.kind(id).as_node().type_name(),
             location: self.location(id),
-        })
+        }
     }
 }

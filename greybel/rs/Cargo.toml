@@ -159,3 +159,32 @@ unsafe_code = "forbid"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# Public APIs do not document every error variant.
+missing_errors_doc = "allow"
+# Public APIs do not document every panic path.
+missing_panics_doc = "allow"
+# Methods are not annotated solely to advertise their return values.
+must_use_candidate = "allow"
+# Documentation uses the project's existing technical spelling.
+doc_markdown = "allow"
+# Assertions may use the more descriptive direct form.
+assert_is_empty = "allow"
+# Single-pattern matches may use either expression style.
+single_match_else = "allow"
+# Function bodies may omit a trailing semicolon for readability.
+semicolon_if_nothing_returned = "allow"
+# Lifetime names may remain where they clarify relationships.
+elidable_lifetime_names = "allow"
+# Closures may remain where they make call sites clearer.
+redundant_closure_for_method_calls = "allow"
+# Raw strings may retain hashes for visual consistency.
+needless_raw_string_hashes = "allow"
+# Related variables may use names with common prefixes or suffixes.
+similar_names = "allow"
+# Configuration structs may contain several independent switches.
+struct_excessive_bools = "allow"
+# Module context may be repeated in public type names.
+module_name_repetitions = "allow"
+# Trait signatures determine whether implementations are asynchronous.
+unused_async_trait_impl = "allow"

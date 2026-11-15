@@ -121,6 +121,10 @@ impl Shop {
         self.exploits.set_coupons(computer, coupons).await
     }
 
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "BankHelperServer.PagarCompra compares integral prices with a floating-point balance"
+    )]
     pub async fn pay_purchase(
         &self,
         price: i64,
@@ -255,6 +259,10 @@ impl Shop {
             .map_err(ExploitShopFailure::from))
     }
 
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "DownloadsHelperServer.DownloadFileEnd compares byte sizes using floating-point megabytes"
+    )]
     pub async fn create_bought_file(
         &self,
         folder: &Node,

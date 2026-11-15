@@ -1,7 +1,10 @@
 //! Game test-support client and player-network fixture setup.
 
 use greybel_test_support::game::Game;
-use greyhack_test_support_client::protocol::test_support::{LanNodeKind, NetworkSnapshot};
+use greyhack_test_support_client::protocol::test_support::{
+    FixtureNetworkReply, FixtureService, FixtureTarget, FixtureTargetReply, LanNodeKind,
+    NetworkSnapshot,
+};
 use greyhack_test_support_client::{TestClient, TestClientOptions};
 
 /// The kind of network [`setup_player`] generates and joins (`ServerMap.TipoRed`); its main router forwards SSH.
@@ -32,10 +35,7 @@ pub async fn setup_player(client: &TestClient) -> String {
 
     // A network generated for this test alone: within a run each copy of the game serves many tests, and the files,
     // passwords, services and libraries a test's scripts change on a network stay there for the tests after it.
-    let network = client
-        .find_new_network(DEFAULT_NETWORK_KIND, "ssh")
-        .await
-        .expect("a new network for the test");
+    let network = ssh_network(client).await;
 
     join_network(client, &network.public_ip).await;
     client
@@ -43,92 +43,321 @@ pub async fn setup_player(client: &TestClient) -> String {
         .await
         .expect("the game clock is stopped");
 
-    ready.user.to_string()
+    ready.user.clone()
 }
 
-/// The network the player is on, or, when it lacks what `fits` requires, a network generated now whose main router
-/// forwards `service`, joined over Wi-Fi. The player's network is generated for each test, so what it has differs.
-pub async fn join_network_where(
-    client: &TestClient,
-    service: &str,
-    fits: impl Fn(&NetworkSnapshot) -> bool,
-) -> NetworkSnapshot {
-    join_network_of_kind_where(
-        client,
-        &["Supermercados", "Comisaria", "Bancos"],
-        service,
-        fits,
-    )
-    .await
+/// Creates a fresh supermarket with a named, publicly forwarded SSH computer.
+pub async fn ssh_network(client: &TestClient) -> FixtureNetworkReply {
+    ssh_network_of_kind(client, DEFAULT_NETWORK_KIND).await
 }
 
-/// As [`join_network_where`], generating networks of the game's network kinds `kinds` in turn.
-pub async fn join_network_of_kind_where(
-    client: &TestClient,
-    kinds: &[&str],
-    service: &str,
-    fits: impl Fn(&NetworkSnapshot) -> bool,
-) -> NetworkSnapshot {
-    join_network_from(client, 0, kinds, service, fits).await
+/// Creates a fresh network of `kind` with a named, publicly forwarded SSH computer.
+pub async fn ssh_network_of_kind(client: &TestClient, kind: &str) -> FixtureNetworkReply {
+    service_network(client, kind, "ssh", 10_022, 10_022).await
 }
 
-/// As [`join_network_where`], but always a network generated now, never the one the player is on. For tests that
-/// leave state on the network that later tests in the same copy of the game would read, such as a reported library
-/// update, after which the game's first restore of each LAN router fails with a locked database
-/// (`Database.RestoreLanRouter` keeps its reader open while `ApplyReportedLibUpdates` writes).
-pub async fn join_new_network_where(
+/// Creates a fresh network with a named public service computer.
+pub async fn service_network(
     client: &TestClient,
+    kind: &str,
     service: &str,
-    fits: impl Fn(&NetworkSnapshot) -> bool,
-) -> NetworkSnapshot {
-    join_network_from(
-        client,
-        1,
-        &["Supermercados", "Comisaria", "Bancos"],
-        service,
-        fits,
-    )
-    .await
+    internal_port: u16,
+    public_port: u16,
+) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            kind,
+            "flat",
+            false,
+            vec![FixtureTarget {
+                name: service.to_owned(),
+                device: "COMPUTER".to_owned(),
+                location: "main".to_owned(),
+                root_password: String::new(),
+                services: vec![FixtureService {
+                    service: service.to_owned(),
+                    internal_port,
+                    public_port: Some(public_port),
+                    oldest_library: false,
+                }],
+            }],
+        )
+        .await
+        .expect("the service fixture is created")
 }
 
-/// As [`join_new_network_where`], generating networks of the game's network kinds `kinds` in turn.
-pub async fn join_new_network_of_kind_where(
-    client: &TestClient,
-    kinds: &[&str],
-    service: &str,
-    fits: impl Fn(&NetworkSnapshot) -> bool,
-) -> NetworkSnapshot {
-    join_network_from(client, 1, kinds, service, fits).await
+/// Creates a fresh public SSH target whose library is the world's first generated libssh version.
+pub async fn old_ssh_network(client: &TestClient) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            DEFAULT_NETWORK_KIND,
+            "flat",
+            false,
+            vec![FixtureTarget {
+                name: "ssh".to_owned(),
+                device: "COMPUTER".to_owned(),
+                location: "main".to_owned(),
+                root_password: String::new(),
+                services: vec![FixtureService {
+                    service: "ssh".to_owned(),
+                    internal_port: 10_022,
+                    public_port: Some(10_022),
+                    oldest_library: true,
+                }],
+            }],
+        )
+        .await
+        .expect("the old SSH fixture is created")
 }
 
-/// Joins the first network from attempt `first` on that has what `fits` requires: attempt 0 is the network the
-/// player is on, later ones generate networks of `kinds` in turn.
-async fn join_network_from(
-    client: &TestClient,
-    first: usize,
-    kinds: &[&str],
-    service: &str,
-    fits: impl Fn(&NetworkSnapshot) -> bool,
-) -> NetworkSnapshot {
-    for attempt in first..first + 32 {
-        if attempt > 0 {
-            let kind = kinds[attempt % kinds.len()];
-            let network = client
-                .find_new_network(kind, service)
-                .await
-                .expect("a network is generated");
+/// Creates a fresh supermarket whose main router has the world's first generated kernel.
+pub async fn router_update_network(client: &TestClient) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(DEFAULT_NETWORK_KIND, "flat", true, Vec::new())
+        .await
+        .expect("the router update fixture is created")
+}
 
-            join_network(client, &network.public_ip).await;
-        }
+/// Creates one public computer running both SSH and FTP.
+pub async fn dual_service_network(client: &TestClient) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            DEFAULT_NETWORK_KIND,
+            "flat",
+            false,
+            vec![FixtureTarget {
+                name: "dual".to_owned(),
+                device: "COMPUTER".to_owned(),
+                location: "main".to_owned(),
+                root_password: String::new(),
+                services: vec![
+                    FixtureService {
+                        service: "ssh".to_owned(),
+                        internal_port: 10_022,
+                        public_port: Some(10_022),
+                        oldest_library: false,
+                    },
+                    FixtureService {
+                        service: "ftp".to_owned(),
+                        internal_port: 10_021,
+                        public_port: Some(10_021),
+                        oldest_library: false,
+                    },
+                ],
+            }],
+        )
+        .await
+        .expect("the dual-service fixture is created")
+}
 
-        let snapshot = client.network_state().await.expect("the network is read");
+/// Creates a fresh MailServices network with a publicly forwarded SMTP computer.
+pub async fn smtp_network(client: &TestClient) -> FixtureNetworkReply {
+    service_network(client, "MailServices", "smtp", 10_025, 10_025).await
+}
 
-        if fits(&snapshot) {
-            return snapshot;
-        }
-    }
+/// Creates a fresh supermarket with an SMTP computer on public port 25.
+pub async fn public_smtp_network(client: &TestClient) -> FixtureNetworkReply {
+    service_network(client, DEFAULT_NETWORK_KIND, "smtp", 25, 25).await
+}
 
-    panic!("no generated network has what the test requires");
+/// Creates a fresh supermarket with a publicly forwarded FTP computer.
+pub async fn ftp_network(client: &TestClient) -> FixtureNetworkReply {
+    service_network(client, DEFAULT_NETWORK_KIND, "ftp", 10_021, 10_021).await
+}
+
+/// Creates a fresh supermarket with public SSH and a child router, optionally with a switch too.
+pub async fn router_ssh_network(client: &TestClient, switch: bool) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            DEFAULT_NETWORK_KIND,
+            if switch { "router_switch" } else { "router" },
+            false,
+            vec![FixtureTarget {
+                name: "ssh".to_owned(),
+                device: "COMPUTER".to_owned(),
+                location: "main".to_owned(),
+                root_password: String::new(),
+                services: vec![FixtureService {
+                    service: "ssh".to_owned(),
+                    internal_port: 10_022,
+                    public_port: Some(10_022),
+                    oldest_library: false,
+                }],
+            }],
+        )
+        .await
+        .expect("the router fixture is created")
+}
+
+/// Creates a fresh supermarket with an SSH computer behind its guaranteed Wi-Fi child router.
+pub async fn routed_ssh_network(client: &TestClient) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            DEFAULT_NETWORK_KIND,
+            "router",
+            false,
+            vec![FixtureTarget {
+                name: "ssh".to_owned(),
+                device: "COMPUTER".to_owned(),
+                location: "lan_router".to_owned(),
+                root_password: String::new(),
+                services: vec![FixtureService {
+                    service: "ssh".to_owned(),
+                    internal_port: 10_022,
+                    public_port: None,
+                    oldest_library: false,
+                }],
+            }],
+        )
+        .await
+        .expect("the routed SSH fixture is created")
+}
+
+/// Creates a fresh FastFood network with a reachable smart-appliance fridge.
+pub async fn fridge_network(client: &TestClient) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            "FastFood",
+            "flat",
+            false,
+            vec![FixtureTarget {
+                name: "fridge".to_owned(),
+                device: "FRIDGE".to_owned(),
+                location: "main".to_owned(),
+                root_password: String::new(),
+                services: vec![FixtureService {
+                    service: "smartappliance".to_owned(),
+                    internal_port: 1221,
+                    public_port: None,
+                    oldest_library: false,
+                }],
+            }],
+        )
+        .await
+        .expect("the fridge fixture is created")
+}
+
+/// Creates a fresh network of `kind` without extra targets; its generated content remains intact.
+pub async fn empty_network(client: &TestClient, kind: &str) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(kind, "flat", false, Vec::new())
+        .await
+        .expect("the empty fixture is created")
+}
+
+/// Creates a fresh Comisaria with its criminals service and a public SSH workstation.
+pub async fn police_workstation(client: &TestClient) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            "Comisaria",
+            "flat",
+            false,
+            vec![
+                FixtureTarget {
+                    name: "criminals".to_owned(),
+                    device: "COMPUTER".to_owned(),
+                    location: "main".to_owned(),
+                    root_password: String::new(),
+                    services: vec![FixtureService {
+                        service: "criminals".to_owned(),
+                        internal_port: 154,
+                        public_port: None,
+                        oldest_library: false,
+                    }],
+                },
+                FixtureTarget {
+                    name: "workstation".to_owned(),
+                    device: "COMPUTER".to_owned(),
+                    location: "main".to_owned(),
+                    root_password: String::new(),
+                    services: vec![FixtureService {
+                        service: "ssh".to_owned(),
+                        internal_port: 10_022,
+                        public_port: Some(10_022),
+                        oldest_library: false,
+                    }],
+                },
+            ],
+        )
+        .await
+        .expect("the police workstation fixture is created")
+}
+
+/// Creates a fresh HackShop with HTTP and its generated repository on one target.
+pub async fn hackshop_repository(client: &TestClient) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            "HackShop",
+            "flat",
+            false,
+            vec![FixtureTarget {
+                name: "repository".to_owned(),
+                device: "COMPUTER".to_owned(),
+                location: "main".to_owned(),
+                root_password: String::new(),
+                services: vec![
+                    FixtureService {
+                        service: "http".to_owned(),
+                        internal_port: 80,
+                        public_port: None,
+                        oldest_library: false,
+                    },
+                    FixtureService {
+                        service: "repository".to_owned(),
+                        internal_port: 6312,
+                        public_port: None,
+                        oldest_library: false,
+                    },
+                ],
+            }],
+        )
+        .await
+        .expect("the HackShop repository fixture is created")
+}
+
+/// Creates a fresh enabled MailServices network with SMTP and `npc_computers` extra NPC workstations.
+pub async fn mail_network(client: &TestClient, npc_computers: usize) -> FixtureNetworkReply {
+    let mut targets = vec![FixtureTarget {
+        name: "smtp".to_owned(),
+        device: "COMPUTER".to_owned(),
+        location: "main".to_owned(),
+        root_password: String::new(),
+        services: vec![FixtureService {
+            service: "smtp".to_owned(),
+            internal_port: 10_025,
+            public_port: Some(10_025),
+            oldest_library: false,
+        }],
+    }];
+
+    targets.extend((0..npc_computers).map(|index| FixtureTarget {
+        name: format!("npc{index}"),
+        device: "COMPUTER".to_owned(),
+        location: "main".to_owned(),
+        root_password: String::new(),
+        services: Vec::new(),
+    }));
+
+    client
+        .create_fixture_network("MailServices", "flat", false, targets)
+        .await
+        .expect("the mail fixture is created")
+}
+
+/// Returns a named target from a fixture reply.
+pub fn fixture_target<'a>(network: &'a FixtureNetworkReply, name: &str) -> &'a FixtureTargetReply {
+    network
+        .targets
+        .iter()
+        .find(|target| target.name == name)
+        .unwrap_or_else(|| panic!("the fixture has target {name}"))
+}
+
+/// Joins a created fixture and reads its complete server-side state.
+pub async fn join_fixture(client: &TestClient, network: &FixtureNetworkReply) -> NetworkSnapshot {
+    join_network(client, &network.public_ip).await;
+
+    client.network_state().await.expect("the fixture is read")
 }
 
 /// Connects the player's computer to the network at `public_ip` over Wi-Fi.
@@ -150,7 +379,7 @@ pub async fn kernel_content(client: &TestClient) -> String {
         .iter()
         .find_map(|node| match &node.node {
             LanNodeKind::Router(router) if node.parent.is_none() => {
-                Some(router.kernel_content.to_string())
+                Some(router.kernel_content.clone())
             }
             _ => None,
         })
@@ -173,7 +402,7 @@ pub fn devices_above(network: &NetworkSnapshot, local_ip: &str) -> Vec<String> {
         let node = &network.nodes[index];
 
         if node.parent.is_some() && matches!(node.node, LanNodeKind::Router(_)) {
-            devices.push(node.local_ip.to_string());
+            devices.push(node.local_ip.clone());
         }
     }
 

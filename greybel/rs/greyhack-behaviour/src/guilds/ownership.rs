@@ -32,6 +32,12 @@ const MIN_INVESTMENT_LEVEL: u32 = 5;
 
 /// Guild level of `total_exp` experience (`Reputation.GetCurrentLevel`).
 #[must_use]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    reason = "Reputation.GetCurrentLevel truncates the square root like C# (int)"
+)]
 pub fn reputation_level(total_exp: u32) -> u32 {
     if total_exp == 0 {
         return 0;
@@ -46,8 +52,11 @@ pub fn reputation_level(total_exp: u32) -> u32 {
 /// the experience of the highest level (`Guilds.Guild.ApplyMemberExitPenalty`, `Reputation.ClampTotalExp`).
 #[must_use]
 pub fn exp_after_member_exit(total_exp: u32) -> u32 {
-    let penalty = LEVEL_EXP_FACTOR as u32 * reputation_level(total_exp);
-    let highest = LEVEL_EXP_FACTOR as u32 * MAX_LEVEL * MAX_LEVEL;
+    let penalty = u32::try_from(LEVEL_EXP_FACTOR).expect("value fits the target integer type")
+        * reputation_level(total_exp);
+    let highest = u32::try_from(LEVEL_EXP_FACTOR).expect("value fits the target integer type")
+        * MAX_LEVEL
+        * MAX_LEVEL;
 
     total_exp.saturating_sub(penalty).min(highest)
 }
@@ -167,6 +176,10 @@ pub fn leaderboard_points(max_stocks: u32, share_price: i32, work: u8) -> i32 {
 /// (`StocksCompany.TryGetMajorityOwner`). `holders` lists holders in the order they first bought;
 /// the first of equal holders wins. Returns its name and percent.
 #[must_use]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "StocksCompany.TryGetMajorityOwner computes ownership percentages with C# floats"
+)]
 pub fn majority_owner<'a>(
     max_stocks: u32,
     holders: impl IntoIterator<Item = (&'a str, u32)>,
@@ -216,7 +229,10 @@ pub fn default_company_seed(world_seed: &WorldSeed, public_ip: &str) -> i32 {
 pub fn company_share_price(seed: i32, work: u8) -> i32 {
     let mut random = Random::new(seed);
     let first = random.next_below(usize::try_from(max_share_price(work)).unwrap_or(0));
-    let second = random.next_below(11) as i32 - 5;
+    let second =
+        i32::try_from(random.next_below(11)).expect("value fits the target integer type") - 5;
 
-    (first as i32 + second).abs().max(1)
+    (i32::try_from(first).expect("value fits the target integer type") + second)
+        .abs()
+        .max(1)
 }

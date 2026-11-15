@@ -50,7 +50,7 @@ impl Ctf {
         };
         let password_hash = self.computers.register_password(password).await?;
 
-        self.ctf
+        self.rows
             .set_ctf_account(&CtfAccount {
                 person,
                 user: user.to_owned(),
@@ -61,21 +61,21 @@ impl Ctf {
 
     pub async fn ctf_account(&self, computer: ComputerId) -> Result<Option<CtfAccount>> {
         match self.computers.person_on(computer).await? {
-            Some(person) => self.ctf.ctf_account(person).await,
+            Some(person) => self.rows.ctf_account(person).await,
             None => Ok(None),
         }
     }
 
     pub async fn create_ctf_event(&self, event: &CtfEvent) -> Result<()> {
-        self.ctf.set_ctf_event(event).await
+        self.rows.set_ctf_event(event).await
     }
 
     pub async fn ctf_event(&self, name: &str) -> Result<Option<CtfEvent>> {
-        self.ctf.ctf_event(name).await
+        self.rows.ctf_event(name).await
     }
 
     pub async fn ctf_players(&self, name: &str) -> Result<Vec<CtfPlayer>> {
-        self.ctf.ctf_players(name).await
+        self.rows.ctf_players(name).await
     }
 
     pub async fn add_ctf_player(&self, name: &str, computer: ComputerId) -> Result<bool> {
@@ -83,13 +83,13 @@ impl Ctf {
             return Ok(false);
         };
 
-        if self.ctf.ctf_event(name).await?.is_none()
-            || self.ctf.ctf_player(name, person).await?.is_some()
+        if self.rows.ctf_event(name).await?.is_none()
+            || self.rows.ctf_player(name, person).await?.is_some()
         {
             return Ok(false);
         }
 
-        self.ctf
+        self.rows
             .set_ctf_player(&CtfPlayer {
                 event: name.to_owned(),
                 person,
@@ -108,7 +108,7 @@ impl Ctf {
         let Some(person) = self.computers.person_on(computer).await? else {
             return Ok(false);
         };
-        let Some(mut player) = self.ctf.ctf_player(name, person).await? else {
+        let Some(mut player) = self.rows.ctf_player(name, person).await? else {
             return Ok(false);
         };
 
@@ -117,7 +117,7 @@ impl Ctf {
         }
 
         player.completed = true;
-        self.ctf.set_ctf_player(&player).await?;
+        self.rows.set_ctf_player(&player).await?;
         self.mail.deliver_mail(
             &player.mail_user,
             "ctfevent@noreply.com",
@@ -129,6 +129,10 @@ impl Ctf {
         Ok(true)
     }
 
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "CTF_Event reward methods deposit integral rewards into floating-point balances"
+    )]
     pub async fn add_ctf_score(
         &self,
         name: &str,
@@ -140,13 +144,13 @@ impl Ctf {
             return Ok(Err(CtfFailure::InvalidScore));
         }
 
-        let Some(mut event) = self.ctf.ctf_event(name).await? else {
+        let Some(mut event) = self.rows.ctf_event(name).await? else {
             return Ok(Err(CtfFailure::UnknownEvent));
         };
         let Some(person) = self.computers.person_on(computer).await? else {
             return Ok(Err(CtfFailure::Incomplete));
         };
-        let Some(mut player) = self.ctf.ctf_player(name, person).await? else {
+        let Some(mut player) = self.rows.ctf_player(name, person).await? else {
             return Ok(Err(CtfFailure::Incomplete));
         };
 
@@ -176,11 +180,11 @@ impl Ctf {
         event.quality_rank += quality;
         event.difficulty_rank += difficulty;
         event.num_votes += 1;
-        self.ctf.set_ctf_event(&event).await?;
+        self.rows.set_ctf_event(&event).await?;
 
         player.quality_rate = quality;
         player.difficulty_rate = difficulty;
-        self.ctf.set_ctf_player(&player).await?;
+        self.rows.set_ctf_player(&player).await?;
 
         let creator_score = self.creator_score(event.creator).await?;
         let creator_reward = creator_reward(creator_score, event.quality_rank, event.num_votes);
@@ -206,16 +210,16 @@ impl Ctf {
         let Some(person) = self.computers.person_on(computer).await? else {
             return Ok(false);
         };
-        let Some(mut account) = self.ctf.ctf_account(person).await? else {
+        let Some(mut account) = self.rows.ctf_account(person).await? else {
             return Ok(false);
         };
 
         account.password_hash = self.computers.register_password(password).await?;
-        self.ctf.set_ctf_account(&account).await?;
+        self.rows.set_ctf_account(&account).await?;
 
-        for mut event in self.ctf.ctf_events_of(person).await? {
+        for mut event in self.rows.ctf_events_of(person).await? {
             event.password_hash.clone_from(&account.password_hash);
-            self.ctf.set_ctf_event(&event).await?;
+            self.rows.set_ctf_event(&event).await?;
         }
 
         Ok(true)
@@ -224,7 +228,7 @@ impl Ctf {
 
 impl Ctf {
     pub async fn creator_score(&self, creator: PersonId) -> Result<f32> {
-        let events = self.ctf.ctf_events_of(creator).await?;
+        let events = self.rows.ctf_events_of(creator).await?;
         let ratings: Vec<_> = events
             .iter()
             .map(|event| (event.quality_rank, event.num_votes))
@@ -236,7 +240,7 @@ impl Ctf {
 
 /// A world service with only its declared dependencies.
 pub struct Ctf {
-    pub(crate) ctf: std::rc::Rc<crate::storage::CtfRepository>,
+    pub(crate) rows: std::rc::Rc<crate::storage::CtfRepository>,
     pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
     pub(crate) bank: greyhack_world_modules::Dep<greyhack_world_economy::Bank>,
     pub(crate) mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
@@ -250,7 +254,7 @@ impl Ctf {
         mail: greyhack_world_modules::Dep<greyhack_world_npcs::Mail>,
     ) -> Self {
         Self {
-            ctf,
+            rows: ctf,
             computers,
             bank,
             mail,

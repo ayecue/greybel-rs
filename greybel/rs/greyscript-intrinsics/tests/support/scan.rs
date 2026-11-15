@@ -43,7 +43,7 @@ pub fn scan_world(metaxploit_version: &str, library_version: &str) -> (World, Ta
         &world,
         player,
         "/lib/metaxploit.so",
-        Library {
+        &Library {
             kind: LibraryKind::Metaxploit,
             version: metaxploit_version.to_owned(),
             zones: Vec::new(),
@@ -56,7 +56,7 @@ pub fn scan_world(metaxploit_version: &str, library_version: &str) -> (World, Ta
         &world,
         player,
         "/lib/libssh.so",
-        Library {
+        &Library {
             kind: LibraryKind::Ssh,
             version: library_version.to_owned(),
             zones: source.zones,

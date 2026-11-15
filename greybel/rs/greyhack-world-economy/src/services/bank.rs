@@ -88,6 +88,10 @@ impl Bank {
     }
 
     /// `BankHelperServer.PagarCompra`: records a purchase without shop-coupon handling.
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "BankHelperServer.PagarCompra compares integral prices with a floating-point balance"
+    )]
     pub async fn pay_purchase(
         &self,
         price: i64,

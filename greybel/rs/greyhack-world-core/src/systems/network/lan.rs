@@ -5,9 +5,9 @@ use std::rc::Rc;
 use greyhack_behaviour::{DeviceKind, Lan, LanNode, LanPort};
 use greyhack_world_modules::Dep;
 
-use crate::storage::*;
+use crate::storage::{ComputerRepository, RouterRepository};
 use crate::systems::NetworkLan as NetworkLanService;
-use crate::*;
+use crate::{Computer, ComputerId, NetworkId, NpcLookup, Port, Result, Router, RouterId, WorldRef};
 
 /// Router port-table entry (`Puerto`): external port `externalPort` forwards to `internalPort` on
 /// the device at `lan_ip`.

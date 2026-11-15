@@ -52,7 +52,8 @@ fn should_split_an_authored_mission_by_the_network_of_its_computers() {
         assert!(
             part.computers
                 .iter()
-                .all(|computer| computer.computer_index_net == network as i32)
+                .all(|computer| computer.computer_index_net
+                    == i32::try_from(network).expect("value fits the target integer type"))
         );
     }
 }

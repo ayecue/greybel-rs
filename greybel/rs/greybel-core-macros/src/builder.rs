@@ -17,9 +17,9 @@ impl<'a> Builder<'a> {
         input: &'a DeriveInput,
     ) -> Self {
         Self {
+            input,
             tagged_fields,
             ast,
-            input,
         }
     }
 
@@ -116,7 +116,7 @@ impl<'a> Builder<'a> {
         }
     }
 
-    pub fn generate(&self) -> syn::Result<TokenStream2> {
+    pub fn generate(&self) -> TokenStream2 {
         let ast = &self.ast;
         let ident = &self.input.ident;
         let (impl_generics, ty_generics, where_clause) = &self.input.generics.split_for_impl();
@@ -125,7 +125,7 @@ impl<'a> Builder<'a> {
         let (as_block, block_impl) = self.generate_block_body();
         let (as_scope, scope_impl) = self.generate_scope_body();
 
-        Ok(quote! {
+        quote! {
             impl #impl_generics #ast::NodeFieldContainer for #ident #ty_generics #where_clause {
                 fn children(&self, lists: &#ast::NodeListStorage) -> ::std::vec::Vec<#ast::NodeId> {
                     let _ = lists;
@@ -153,6 +153,6 @@ impl<'a> Builder<'a> {
 
             #block_impl
             #scope_impl
-        })
+        }
     }
 }

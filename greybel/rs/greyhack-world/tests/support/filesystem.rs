@@ -57,7 +57,7 @@ pub async fn tree() -> (World, ComputerId) {
 
     let mut link = NodeDraft::folder("link", ROOT_USER, PermissionSet::default_for(true));
 
-    link.symlink = "/home/bob".to_owned();
+    "/home/bob".clone_into(&mut link.symlink);
     world
         .modules
         .libraries

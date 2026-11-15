@@ -125,6 +125,10 @@ impl Clone for Cursor {
     }
 }
 
+#[expect(
+    clippy::missing_fields_in_debug,
+    reason = "Cursor debug output reports the next index without rendering borrowed sequence items"
+)]
 impl fmt::Debug for Cursor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Cursor").field("next", &self.next).finish()

@@ -363,7 +363,7 @@ impl ServerState {
     }
 
     /// Checks whether `connection` has any non-tombstone programs.
-    pub(crate) async fn has_programs(&self, connection: u32) -> bool {
+    pub(crate) fn has_programs(&self, connection: u32) -> bool {
         self.trees.has_programs(connection)
     }
 

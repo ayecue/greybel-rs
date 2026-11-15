@@ -6,6 +6,109 @@ use greyhack_world_core::{
 
 use crate::{DeviceLayout, ForwardLayout, NetworkGeneration, NetworkLayout};
 
+/// Mutable indexes and generated entities of an explicit layout.
+#[derive(Default)]
+struct LayoutBuilder<'a> {
+    nodes: Vec<ComputerId>,
+    main: Option<RouterId>,
+    player: Option<ComputerId>,
+    addresses: Vec<(&'a str, ComputerId)>,
+    tables: Vec<(RouterId, &'a [ForwardLayout])>,
+}
+
+impl<'a> LayoutBuilder<'a> {
+    async fn add_node(
+        &mut self,
+        generation: &NetworkGeneration,
+        network: greyhack_world_core::NetworkId,
+        index: usize,
+        node: &'a crate::LanNodeLayout,
+    ) -> Result<ComputerId> {
+        let parent = match node.parent {
+            Some(parent) if parent < index => Some(self.nodes[parent]),
+            Some(parent) => {
+                return Err(WorldError::Layout(LayoutFailure::ParentOrder {
+                    index,
+                    parent,
+                }));
+            }
+            None => None,
+        };
+        let id = match &node.device {
+            DeviceLayout::Router {
+                draft,
+                ports,
+                forwards,
+            } => {
+                let place = parent.map(LanPlace::device_under);
+                let router = generation
+                    .libraries
+                    .insert_full_router(draft, network, place.as_ref())
+                    .await?;
+
+                for port in ports {
+                    let library = generation
+                        .files
+                        .library_row(port.service.library_kind(), &port.version)
+                        .await?;
+
+                    generation
+                        .computers
+                        .insert_port(router.computer(), port, library)
+                        .await?;
+                }
+
+                self.main.get_or_insert(router);
+                self.tables.push((router, forwards));
+                self.addresses
+                    .push((&draft.computer.local_ip, router.computer()));
+
+                router.computer()
+            }
+            DeviceLayout::Hub => {
+                let Some(parent) = parent else {
+                    return Err(WorldError::Layout(LayoutFailure::HubWithoutParent {
+                        index,
+                    }));
+                };
+
+                generation
+                    .add_hub(network, &LanPlace::device_under(parent))
+                    .await?
+            }
+            DeviceLayout::Computer(draft) => {
+                let (Some(parent), Some(main)) = (parent, self.main) else {
+                    return Err(WorldError::Layout(LayoutFailure::ComputerWithoutParent {
+                        index,
+                    }));
+                };
+                let place = LanPlace::computer_under(parent, main, &node.gateway);
+                let computer = generation
+                    .libraries
+                    .insert_full_computer(draft, network, &place)
+                    .await?;
+
+                if let Some(smart) = &draft.smart {
+                    generation
+                        .appliances
+                        .save_smart(computer, Some(smart))
+                        .await?;
+                }
+
+                if draft.is_player {
+                    self.player = Some(computer);
+                }
+
+                self.addresses.push((&draft.local_ip, computer));
+
+                computer
+            }
+        };
+
+        Ok(id)
+    }
+}
+
 /// Explicit-layout construction.
 impl NetworkGeneration {
     pub async fn add_network_layout(
@@ -36,99 +139,24 @@ impl NetworkGeneration {
             .set_net_speed(network, layout.net_speed)
             .await?;
 
-        let mut nodes: Vec<ComputerId> = Vec::with_capacity(layout.nodes.len());
-        let mut main = None;
-        let mut player = None;
-        let mut addresses: Vec<(&str, ComputerId)> = Vec::new();
-        let mut tables: Vec<(RouterId, &[ForwardLayout])> = Vec::new();
+        let mut builder = LayoutBuilder::default();
 
         for (index, node) in layout.nodes.iter().enumerate() {
-            let parent = match node.parent {
-                Some(parent) if parent < index => Some(nodes[parent]),
-                Some(parent) => {
-                    return Err(WorldError::Layout(LayoutFailure::ParentOrder {
-                        index,
-                        parent,
-                    }));
-                }
-                None => None,
-            };
-            let id = match &node.device {
-                DeviceLayout::Router {
-                    draft,
-                    ports,
-                    forwards,
-                } => {
-                    let place = parent.map(LanPlace::device_under);
-                    let router = self
-                        .libraries
-                        .insert_full_router(draft, network, place.as_ref())
-                        .await?;
+            let id = builder.add_node(self, network, index, node).await?;
 
-                    for port in ports {
-                        let library = self
-                            .files
-                            .library_row(port.service.library_kind(), &port.version)
-                            .await?;
-
-                        self.computers
-                            .insert_port(router.computer(), port, library)
-                            .await?;
-                    }
-
-                    main.get_or_insert(router);
-                    tables.push((router, forwards));
-                    addresses.push((&draft.computer.local_ip, router.computer()));
-
-                    router.computer()
-                }
-                DeviceLayout::Hub => {
-                    let Some(parent) = parent else {
-                        return Err(WorldError::Layout(LayoutFailure::HubWithoutParent {
-                            index,
-                        }));
-                    };
-
-                    self.add_hub(network, &LanPlace::device_under(parent))
-                        .await?
-                }
-                DeviceLayout::Computer(draft) => {
-                    let (Some(parent), Some(main)) = (parent, main) else {
-                        return Err(WorldError::Layout(LayoutFailure::ComputerWithoutParent {
-                            index,
-                        }));
-                    };
-                    let place = LanPlace::computer_under(parent, main, &node.gateway);
-                    let computer = self
-                        .libraries
-                        .insert_full_computer(draft, network, &place)
-                        .await?;
-
-                    if let Some(smart) = &draft.smart {
-                        self.appliances.save_smart(computer, Some(smart)).await?;
-                    }
-
-                    if draft.is_player {
-                        player = Some(computer);
-                    }
-
-                    addresses.push((&draft.local_ip, computer));
-
-                    computer
-                }
-            };
-
-            nodes.push(id);
+            builder.nodes.push(id);
         }
 
-        let Some(main) =
-            main.filter(|_| matches!(layout.nodes[0].device, DeviceLayout::Router { .. }))
+        let Some(main) = builder
+            .main
+            .filter(|_| matches!(layout.nodes[0].device, DeviceLayout::Router { .. }))
         else {
             return Err(WorldError::Layout(LayoutFailure::FirstNodeNotRouter));
         };
 
-        for (router, forwards) in tables {
-            self.insert_forwards(router, forwards, &addresses).await?;
+        for (router, forwards) in builder.tables {
+            self.insert_forwards(router, forwards, &builder.addresses)
+                .await?;
         }
 
         if layout.rental_admin {
@@ -137,6 +165,6 @@ impl NetworkGeneration {
                 .await?;
         }
 
-        Ok((main, player))
+        Ok((main, builder.player))
     }
 }

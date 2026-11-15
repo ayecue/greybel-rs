@@ -1,5 +1,7 @@
 //! Converts game-server responses into script values, formatting failures for the receiving intrinsic.
 
+use std::fmt::Write as _;
+
 use greybel_interpreter::{Value, Vm};
 
 use super::failure::failure_value;
@@ -102,12 +104,14 @@ impl UserGroups {
     ) -> Result<Value, IntrinsicError> {
         match self {
             Self::Null => Ok(Value::Null),
-            Self::Groups(groups) => Ok(Value::from(
-                groups
-                    .iter()
-                    .map(|group| format!("{group}\n"))
-                    .collect::<String>(),
-            )),
+            Self::Groups(groups) => Ok(Value::from(groups.iter().fold(
+                String::new(),
+                |mut text, group| {
+                    let _ = writeln!(text, "{group}");
+
+                    text
+                },
+            ))),
             Self::Failure(failure) => failure_value(intrinsic, &failure),
         }
     }

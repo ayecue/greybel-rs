@@ -26,11 +26,11 @@ impl Vm {
             .flatten()
             .find_map(|scope| scope.get_key(&self.heap, key))
             .cloned()
-            .map_or_else(|| self.missing_variable(key), Ok)
+            .map_or_else(|| Self::missing_variable(key), Ok)
     }
 
     #[cold]
-    fn missing_variable(&self, key: &Key) -> Result<Value, RuntimeError> {
+    fn missing_variable(key: &Key) -> Result<Value, RuntimeError> {
         if key.text() == SELF {
             return Ok(Value::Null);
         }
@@ -197,7 +197,7 @@ impl Vm {
     ) -> Result<(), RuntimeError> {
         let value = match self.variable(key, cache) {
             Some(value) => value.clone(),
-            None => self.missing_variable(key)?,
+            None => Self::missing_variable(key)?,
         };
 
         self.push_or_invoke(value, invoke, discard)

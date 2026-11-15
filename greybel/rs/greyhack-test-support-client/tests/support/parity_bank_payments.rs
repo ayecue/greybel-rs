@@ -34,7 +34,7 @@ fn player_account(snapshot: &NetworkSnapshot) -> (String, f64) {
         .player_bank
         .as_ref()
         .expect("the player's bank account")
-        .to_string();
+        .clone();
     let money = snapshot
         .banks
         .iter()
@@ -125,7 +125,7 @@ pub async fn rent_network(client: &TestClient, suffix: u32) -> String {
         .spawn_network("RentServer")
         .await
         .expect("a rented server");
-    let address = network.public_ip.to_string();
+    let address = network.public_ip.clone();
 
     join_network(client, &address).await;
     client

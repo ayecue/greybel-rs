@@ -69,7 +69,7 @@ pub async fn game_outcomes(client: &TestClient, scripts: &[&str]) -> Vec<Outcome
             .await
             .unwrap_or_else(|error| panic!("{script}: {error}"));
 
-        let output = result.output.to_string();
+        let output = result.output.clone();
 
         outcomes.push(Outcome {
             script: (*script).to_owned(),
@@ -112,7 +112,7 @@ pub async fn compare_interactive(
         )
         .await
         .unwrap_or_else(|error| panic!("{script}: {error}"));
-    let output = result.output.to_string();
+    let output = result.output.clone();
     let actual = Outcome {
         script: script.to_owned(),
         failed: result.failed,
@@ -144,7 +144,7 @@ pub async fn game_pair_outcomes(client: &TestClient, scripts: [&str; 2]) -> [Out
         .into_iter()
         .enumerate()
         .map(|(index, (output, failed))| {
-            let output = output.to_string();
+            let output = output.clone();
 
             Outcome {
                 script: scripts[index].to_owned(),

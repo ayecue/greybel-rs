@@ -241,22 +241,22 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
             .find(|bank| bank.number == *number)
             .map_or(0.0, |bank| bank.money);
 
-        (number.to_string(), money)
+        (number.clone(), money)
     });
     let player = PlayerOptions {
         user: user.to_owned(),
         mail_address: snapshot
             .player_mail
             .as_ref()
-            .map(|mail| mail.address.to_string()),
+            .map(|mail| mail.address.clone()),
         mail_password: snapshot
             .player_mail
             .as_ref()
-            .map(|mail| mail.password.to_string()),
+            .map(|mail| mail.password.clone()),
         bank_number: bank.as_ref().map(|(number, _)| number.clone()),
         bank_money: bank.as_ref().map_or(0.0, |(_, money)| *money),
         libraries: Vec::new(),
-        date: snapshot.current_date.to_string(),
+        date: snapshot.current_date.clone(),
         network: Some(super::mirror::layout(snapshot)),
         ..PlayerOptions::default()
     };
@@ -308,13 +308,13 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
         .expect("the mirrored CTF account");
         block_on(
             world.modules.player.ctf.create_ctf_event(&CtfEvent {
-                name: ctf.name.to_string(),
-                user: ctf.user.to_string(),
+                name: ctf.name.clone(),
+                user: ctf.user.clone(),
                 password_hash: greyhack_behaviour::hash_password(&ctf.password),
-                description: ctf.description.to_string(),
-                public_address: ctf.public_address.to_string(),
-                creator_name: ctf.creator_name.to_string(),
-                mail_content: ctf.mail_content.to_string(),
+                description: ctf.description.clone(),
+                public_address: ctf.public_address.clone(),
+                creator_name: ctf.creator_name.clone(),
+                mail_content: ctf.mail_content.clone(),
                 creator: world.handle.player_person(),
                 creator_bank_user: snapshot
                     .player_bank
@@ -372,7 +372,7 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
         block_on(world.modules.npcs.jobs.set_npc_job(
             person,
             JobRole::from_code(npc.job_role).expect("the game's job role"),
-            (!npc.license_plate.is_empty()).then(|| npc.license_plate.to_string()),
+            (!npc.license_plate.is_empty()).then(|| npc.license_plate.clone()),
         ))
         .expect("the mirrored NPC job");
         block_on(world.modules.npcs.schedules.set_npc_schedule(
@@ -429,7 +429,7 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
         block_on(world.modules.npcs.jobs.set_npc_company_align(
             person,
             CompanyAlign::from_code(npc.company_align).expect("the game's company alignment"),
-            (!npc.day_zero_contact.is_empty()).then(|| npc.day_zero_contact.to_string()),
+            (!npc.day_zero_contact.is_empty()).then(|| npc.day_zero_contact.clone()),
         ))
         .expect("the mirrored company alignment");
         if let Some(mail) = &npc.mail {
@@ -461,7 +461,7 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
                 .expect("the mirrored network administrator");
         }
 
-        npc_ids.insert(npc.user.to_string(), person);
+        npc_ids.insert(npc.user.clone(), person);
     }
 
     if let Some(traffic) = &snapshot.traffic {
@@ -669,10 +669,10 @@ fn mail_emails(emails: &[MailSnapshot]) -> Vec<Email> {
     emails
         .iter()
         .map(|email| Email {
-            id: email.id.to_string(),
-            from: email.from.to_string(),
-            subject: email.subject.to_string(),
-            body: email.body.to_string(),
+            id: email.id.clone(),
+            from: email.from.clone(),
+            subject: email.subject.clone(),
+            body: email.body.clone(),
             replies: email.replies.iter().map(ToString::to_string).collect(),
         })
         .collect()

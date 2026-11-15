@@ -113,8 +113,8 @@ impl Mail {
     }
 
     pub async fn add_player_mail(&self, address: &str, password: &str) -> Result<()> {
-        self.mail.insert_mail_account(address, password).await?;
-        self.mail
+        self.rows.insert_mail_account(address, password).await?;
+        self.rows
             .insert_email(
                 address,
                 "welcome@greyhack.com",
@@ -127,28 +127,28 @@ impl Mail {
     }
 
     pub async fn mail_account(&self, address: &str) -> Result<Option<MailAccount>> {
-        let Some(mut account) = self.mail.mail_account(address).await? else {
+        let Some(mut account) = self.rows.mail_account(address).await? else {
             return Ok(None);
         };
 
-        account.inbox = self.mail.inbox(address).await?;
+        account.inbox = self.rows.inbox(address).await?;
 
         Ok(Some(account))
     }
 
     pub async fn add_mail_account(&self, address: &str, password: &str) -> Result<bool> {
-        if self.mail.mail_account(address).await?.is_some() {
+        if self.rows.mail_account(address).await?.is_some() {
             return Ok(false);
         }
 
-        self.mail.insert_mail_account(address, password).await?;
+        self.rows.insert_mail_account(address, password).await?;
 
         Ok(true)
     }
 
     pub async fn mail_login(&self, address: &str, password: &str) -> Result<Login> {
         let valid = self
-            .mail
+            .rows
             .mail_account(address)
             .await?
             .is_some_and(|account| verify_password(&account.password_hash, password));
@@ -171,7 +171,7 @@ impl Mail {
     }
 
     pub async fn is_mail_disabled(&self, address: &str) -> Result<bool> {
-        let Some(person) = self.mail.mail_owner(address).await? else {
+        let Some(person) = self.rows.mail_owner(address).await? else {
             return Ok(false);
         };
 
@@ -189,20 +189,20 @@ impl Mail {
         generated: bool,
         emails: &[Email],
     ) -> Result<()> {
-        self.mail.insert_mail_account(address, password).await?;
-        self.mail.clear_inbox(address).await?;
+        self.rows.insert_mail_account(address, password).await?;
+        self.rows.clear_inbox(address).await?;
 
         for email in emails.iter().rev() {
             let id = self
-                .mail
+                .rows
                 .insert_email(address, &email.from, &email.subject, &email.body)
                 .await?;
 
             for reply in &email.replies {
-                self.mail.insert_reply(address, &id, reply).await?;
+                self.rows.insert_reply(address, &id, reply).await?;
             }
         }
 
-        self.mail.set_npc_contents(address, generated).await
+        self.rows.set_npc_contents(address, generated).await
     }
 }

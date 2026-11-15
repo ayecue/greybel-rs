@@ -44,7 +44,7 @@ async fn run_apart(
         .execute(script, "/project/test.src", "/project", PROGRAM_NAME)
         .await
         .unwrap_or_else(|error| panic!("{script}: {error}"));
-    let output = result.output.to_string();
+    let output = result.output.clone();
     let actual = Outcome {
         script: script.to_owned(),
         failed: result.failed,

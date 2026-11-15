@@ -3,7 +3,7 @@ use meta_utils::{BaseType, LocalizedDefinition, TypeLookup, TypeMeta};
 
 use crate::api::Api;
 use crate::model::{Key, KeyRef, MapId, MapOrigin, SemanticModel, SlotId, SlotList};
-use crate::types::{ApiFunction, FunctionRef, Type, TypeId, TypeTable};
+use crate::types::{ApiFunction, CachedApiMember, FunctionRef, Type, TypeId, TypeTable};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Member {
@@ -150,8 +150,10 @@ impl<'a> Lookup<'a> {
     }
 
     fn api_member_type(&mut self, type_name: &'static str, name: &str) -> Option<TypeId> {
-        if let Some(cached_member) = self.types.cached_api_member(type_name, name) {
-            return cached_member;
+        match self.types.cached_api_member(type_name, name) {
+            CachedApiMember::Present(ty) => return Some(ty),
+            CachedApiMember::Missing => return None,
+            CachedApiMember::Unknown => {}
         }
 
         let ty = self

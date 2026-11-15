@@ -98,7 +98,7 @@ pub(in crate::game) fn login_text(failure: &LoginFailure) -> String {
 }
 
 /// Formats `PlayerUtils.GetSmtpServer` failures.
-pub(in crate::game) fn smtp_text(failure: &SmtpFailure) -> String {
+pub(in crate::game) fn smtp_text(failure: SmtpFailure) -> String {
     match failure {
         SmtpFailure::InvalidAddress => "invalid IP address".to_owned(),
         SmtpFailure::HostDown => "host is down".to_owned(),

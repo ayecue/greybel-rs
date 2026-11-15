@@ -32,8 +32,10 @@ impl Server {
         Route {
             method: lsp::DidCloseTextDocumentNotification::METHOD,
             handle: |server, notification| {
-                server
-                    .handle::<lsp::DidCloseTextDocumentNotification>(notification, Self::did_close);
+                server.handle::<lsp::DidCloseTextDocumentNotification>(
+                    notification,
+                    |server, params| Self::did_close(server, &params),
+                );
             },
         },
         Route {
@@ -41,7 +43,7 @@ impl Server {
             handle: |server, notification| {
                 server.handle::<lsp::DidChangeConfigurationNotification>(
                     notification,
-                    Self::did_change_configuration,
+                    |server, params| Self::did_change_configuration(server, &params),
                 );
             },
         },

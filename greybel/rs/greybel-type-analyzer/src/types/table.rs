@@ -16,6 +16,16 @@ pub struct TypeTable {
     union_builder: UnionBuilder,
 }
 
+/// One API member lookup in the cache.
+pub(crate) enum CachedApiMember {
+    /// The member has not been queried.
+    Unknown,
+    /// The API has no such member.
+    Missing,
+    /// The member has this type.
+    Present(TypeId),
+}
+
 #[derive(Debug, Default)]
 struct ApiMemberCache(FxHashMap<&'static str, FxHashMap<Box<str>, Option<TypeId>>>);
 
@@ -256,12 +266,17 @@ impl TypeTable {
         }
     }
 
-    pub(crate) fn cached_api_member(
-        &self,
-        type_name: &'static str,
-        name: &str,
-    ) -> Option<Option<TypeId>> {
-        self.api_members.0.get(type_name)?.get(name).copied()
+    pub(crate) fn cached_api_member(&self, type_name: &'static str, name: &str) -> CachedApiMember {
+        match self
+            .api_members
+            .0
+            .get(type_name)
+            .and_then(|members| members.get(name))
+        {
+            Some(Some(ty)) => CachedApiMember::Present(*ty),
+            Some(None) => CachedApiMember::Missing,
+            None => CachedApiMember::Unknown,
+        }
     }
 
     pub(crate) fn cache_api_member(

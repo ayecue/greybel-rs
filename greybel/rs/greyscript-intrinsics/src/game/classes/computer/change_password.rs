@@ -24,7 +24,7 @@ pub fn change_password(
     }
 
     if let Err(refusal) = check_password(password) {
-        return refuse("change_password", refusal);
+        return refuse("change_password", &refusal);
     }
 
     let message = ComputerChangePassword {

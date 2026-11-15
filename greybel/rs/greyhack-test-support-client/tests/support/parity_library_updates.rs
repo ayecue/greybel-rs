@@ -4,26 +4,23 @@ use greybel_test_support::game::Game;
 use greyhack_test_support_client::protocol::test_support::NetworkSnapshot;
 use greyhack_test_support_client::{GuildSetup, TestClient};
 
-use super::game::{join_new_network_where, setup_player, test_client};
-use super::library_updates::{all_older_than, compare_after_report};
+use super::game::{join_fixture, old_ssh_network, setup_player, test_client};
+use super::library_updates::compare_after_report;
+use super::mirror::library;
 use super::parity::Outcome;
 use super::parity_guilds::{LEVEL_FIVE, compare_with_guilds};
 use super::remote::forwarded_service;
 
-/// The game's content of the newest library file `name`, as a network's administrator reports it. Reported for a network
-/// of its own, which the test does not use again.
+/// The game's current content of the newest library file `name`, from the snapshot's version table.
 pub async fn newest_library(client: &TestClient, name: &str) -> String {
-    let scratch = client
-        .find_new_network("Supermercados", "ssh")
-        .await
-        .expect("a network is generated");
-
     client
-        .report_library_update(&scratch.public_ip, name)
+        .network_state()
         .await
-        .expect("the game reports the library")
-        .content
-        .to_string()
+        .expect("the network is read")
+        .latest_libraries
+        .into_iter()
+        .find(|content| library(content).is_some_and(|library| library.name() == name))
+        .unwrap_or_else(|| panic!("the newest libraries contain {name}"))
 }
 
 pub fn ssh_version_script(snapshot: &NetworkSnapshot) -> String {
@@ -48,13 +45,10 @@ pub async fn report_for_guild(admin_restore_off: bool) -> (Vec<Outcome>, Vec<Out
         .await
         .unwrap()
         .bank_number
-        .to_string();
+        .clone();
     let newest = newest_library(&client, "libssh.so").await;
-    let snapshot = join_new_network_where(&client, "ssh", |snapshot| {
-        forwarded_service(snapshot, "ssh").is_some()
-            && all_older_than(snapshot, "libssh.so", &newest)
-    })
-    .await;
+    let network = old_ssh_network(&client).await;
+    let snapshot = join_fixture(&client, &network).await;
 
     client
         .setup_guild(GuildSetup {
@@ -63,7 +57,7 @@ pub async fn report_for_guild(admin_restore_off: bool) -> (Vec<Outcome>, Vec<Out
             total_exp: LEVEL_FIVE,
             investment_perks: 1,
             join: true,
-            company_ip: snapshot.public_ip.to_string(),
+            company_ip: snapshot.public_ip.clone(),
             admin_restore_perks: 1,
             admin_restore_off,
             ..GuildSetup::default()
@@ -71,7 +65,7 @@ pub async fn report_for_guild(admin_restore_off: bool) -> (Vec<Outcome>, Vec<Out
         .await
         .unwrap();
 
-    let companies = [snapshot.public_ip.to_string()];
+    let companies = [snapshot.public_ip.clone()];
     let guilds = client.query_guilds(&companies).await.unwrap();
     let off = guilds.guilds.iter().any(|guild| {
         guild

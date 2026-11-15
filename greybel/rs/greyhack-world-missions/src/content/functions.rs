@@ -132,6 +132,156 @@ pub(super) fn date_text(seconds: u64) -> String {
     format_date(seconds)
 }
 
+/// Writes the generated items of one mission computer.
+struct ItemWriter<'a, 'b> {
+    context: &'a Context<'b>,
+    random: &'a mut Random,
+    content: &'a mut ComputerContent,
+    owner: &'a String,
+    home: &'a String,
+}
+
+impl ItemWriter<'_, '_> {
+    fn chat_log(&mut self, item: &MissionItem, tags: &TagMap) {
+        let ItemKind::ChatLog {
+            force_npc_receive,
+            index_npc,
+            random_path,
+            path,
+        } = &item.kind
+        else {
+            unreachable!()
+        };
+        let resolver = Resolver {
+            context: self.context,
+        };
+
+        let gender = if self.random.next_double() > 0.5 {
+            Gender::Male
+        } else {
+            Gender::Female
+        };
+        let receive = if *force_npc_receive {
+            self.context
+                .npcs
+                .get(usize::try_from(*index_npc).unwrap_or(usize::MAX))
+                .map(|npc| npc.name.clone())
+                .unwrap_or_default()
+        } else {
+            gender.first_name_with_index(|length| self.random.next_below(length))
+        };
+        let body = resolver.conversation_json(&item.id, self.owner, &receive, tags);
+        let name = format!("chat{}.log", between(self.random, 0, 1000));
+        let mut data = FileData::text(&body);
+
+        data.kind = FileKind::ChatLog;
+        data.default_content = true;
+
+        let folder = if *random_path {
+            format!("{}{path}", self.home).replace("//", "/")
+        } else {
+            path.clone()
+        };
+
+        self.content.files.push(MissionFile {
+            folder,
+            name,
+            data,
+            owner: self.owner.clone(),
+            permissions: None,
+            symlink: String::new(),
+            timestamp: None,
+            folder_permissions: None,
+            create_folder: false,
+        });
+    }
+
+    fn system_log(&mut self, item: &MissionItem) {
+        let ItemKind::SystemLog {
+            action,
+            port,
+            to_computer_idx,
+            is_receiving_conn,
+        } = &item.kind
+        else {
+            unreachable!()
+        };
+
+        let mut ip = self.context.public_ip.to_owned();
+        let mut other = usize::try_from(*to_computer_idx)
+            .ok()
+            .and_then(|index| self.context.group.get(index))
+            .cloned()
+            .unwrap_or_default();
+
+        if *is_receiving_conn {
+            std::mem::swap(&mut ip, &mut other);
+        }
+
+        self.content.log.push(LogEntry {
+            action: LogAction::from_code(i64::from(*action)).unwrap_or(LogAction::Open),
+            ip,
+            fecha: date_text(self.context.now),
+            puerto: i64::from(*port),
+            file: "system.log".to_owned(),
+            bounce_ip: other,
+            player_net_id: String::new(),
+            tutorial: false,
+            token_trace: String::new(),
+        });
+    }
+
+    fn mails(&mut self, item: &MissionItem, tags: &TagMap) {
+        let ItemKind::Mails {
+            force_npc_receive,
+            index_npc,
+            use_network_npc_sender,
+            title_id,
+        } = &item.kind
+        else {
+            unreachable!()
+        };
+        let resolver = Resolver {
+            context: self.context,
+        };
+
+        let outsider = if *use_network_npc_sender {
+            mission_mail_address("", self.random)
+        } else {
+            let preset = if *force_npc_receive {
+                self.context
+                    .npcs
+                    .get(usize::try_from(*index_npc).unwrap_or(usize::MAX))
+                    .map(|npc| npc.surname.clone())
+                    .unwrap_or_default()
+            } else {
+                String::new()
+            };
+
+            mission_mail_address(&preset, self.random)
+        };
+        let lines = conversation_lines(&item.id)
+            .into_iter()
+            .map(|(speaker, line)| {
+                let line = apply_replacements(&line, tags);
+
+                (speaker, mail_text(&resolver, &line, tags))
+            })
+            .collect();
+
+        self.content.mails.push(MissionMail {
+            title: if title_id.is_empty() {
+                "RE: stuff".to_owned()
+            } else {
+                text(title_id)
+            },
+            outsider,
+            outsider_is_sender: *use_network_npc_sender,
+            lines,
+        });
+    }
+}
+
 /// What `PostGenMission` gives `computer` of a mission network, or `None` when the game does not (a computer without
 /// accounts). `proc_archetype` objectives are prepared first.
 pub fn computer_content(
@@ -163,6 +313,14 @@ pub fn computer_content(
         .procedural_archetype
         .map(|archetype| prepare_objective(context, archetype, &owner, &home, &mut content));
 
+    let mut writer = ItemWriter {
+        context,
+        random: &mut random,
+        content: &mut content,
+        owner: &owner,
+        home: &home,
+    };
+
     for item in &computer.items {
         let mut tags = resolver.resolve_tags(&item.runtime_tags);
 
@@ -173,55 +331,11 @@ pub fn computer_content(
         }
 
         match &item.kind {
-            ItemKind::ChatLog {
-                force_npc_receive,
-                index_npc,
-                random_path,
-                path,
-            } => {
-                let gender = if random.next_double() > 0.5 {
-                    Gender::Male
-                } else {
-                    Gender::Female
-                };
-                let receive = if *force_npc_receive {
-                    context
-                        .npcs
-                        .get(usize::try_from(*index_npc).unwrap_or(usize::MAX))
-                        .map(|npc| npc.name.clone())
-                        .unwrap_or_default()
-                } else {
-                    gender.first_name_with_index(|length| random.next_below(length))
-                };
-                let body = resolver.conversation_json(&item.id, &owner, &receive, &tags);
-                let name = format!("chat{}.log", between(&mut random, 0, 1000));
-                let mut data = FileData::text(&body);
-
-                data.kind = FileKind::ChatLog;
-                data.default_content = true;
-
-                let folder = if *random_path {
-                    format!("{home}{path}").replace("//", "/")
-                } else {
-                    path.clone()
-                };
-
-                content.files.push(MissionFile {
-                    folder,
-                    name,
-                    data,
-                    owner: owner.clone(),
-                    permissions: None,
-                    symlink: String::new(),
-                    timestamp: None,
-                    folder_permissions: None,
-                    create_folder: false,
-                });
-            }
+            ItemKind::ChatLog { .. } => writer.chat_log(item, &tags),
             ItemKind::TextFile(file) => {
                 text_file(
                     &resolver,
-                    &mut content,
+                    writer.content,
                     item,
                     file,
                     &tags,
@@ -230,76 +344,8 @@ pub fn computer_content(
                     &home,
                 );
             }
-            ItemKind::SystemLog {
-                action,
-                port,
-                to_computer_idx,
-                is_receiving_conn,
-            } => {
-                let mut ip = context.public_ip.to_owned();
-                let mut other = usize::try_from(*to_computer_idx)
-                    .ok()
-                    .and_then(|index| context.group.get(index))
-                    .cloned()
-                    .unwrap_or_default();
-
-                if *is_receiving_conn {
-                    std::mem::swap(&mut ip, &mut other);
-                }
-
-                content.log.push(LogEntry {
-                    action: LogAction::from_code(i64::from(*action)).unwrap_or(LogAction::Open),
-                    ip,
-                    fecha: date_text(context.now),
-                    puerto: i64::from(*port),
-                    file: "system.log".to_owned(),
-                    bounce_ip: other,
-                    player_net_id: String::new(),
-                    tutorial: false,
-                    token_trace: String::new(),
-                });
-            }
-            ItemKind::Mails {
-                force_npc_receive,
-                index_npc,
-                use_network_npc_sender,
-                title_id,
-            } => {
-                let outsider = if *use_network_npc_sender {
-                    mission_mail_address("", &mut random)
-                } else {
-                    let preset = if *force_npc_receive {
-                        context
-                            .npcs
-                            .get(usize::try_from(*index_npc).unwrap_or(usize::MAX))
-                            .map(|npc| npc.surname.clone())
-                            .unwrap_or_default()
-                    } else {
-                        String::new()
-                    };
-
-                    mission_mail_address(&preset, &mut random)
-                };
-                let lines = conversation_lines(&item.id)
-                    .into_iter()
-                    .map(|(speaker, line)| {
-                        let line = apply_replacements(&line, &tags);
-
-                        (speaker, mail_text(&resolver, &line, &tags))
-                    })
-                    .collect();
-
-                content.mails.push(MissionMail {
-                    title: if title_id.is_empty() {
-                        "RE: stuff".to_owned()
-                    } else {
-                        text(title_id)
-                    },
-                    outsider,
-                    outsider_is_sender: *use_network_npc_sender,
-                    lines,
-                });
-            }
+            ItemKind::SystemLog { .. } => writer.system_log(item),
+            ItemKind::Mails { .. } => writer.mails(item, &tags),
             ItemKind::Service { .. } | ItemKind::Firewall(_) => {}
         }
     }
@@ -403,7 +449,7 @@ pub(super) fn text_file(
     data.allow_import = file.allow_import;
 
     if file.encrypt_with_owner_password {
-        data.encrypt_password = owner_password.to_owned();
+        owner_password.clone_into(&mut data.encrypt_password);
     } else if !file.encryption_password.is_empty() {
         data.encrypt_password = apply(&file.encryption_password);
     }
@@ -507,7 +553,7 @@ pub(super) fn prepare_objective(
         data.default_content = true;
 
         if let Some(key) = key {
-            data.encrypt_password = key.to_owned();
+            key.clone_into(&mut data.encrypt_password);
         }
 
         content.files.push(MissionFile {
@@ -528,7 +574,7 @@ pub(super) fn prepare_objective(
     };
 
     match archetype {
-        Archetype::Fraud => target_user = ROOT_USER.to_owned(),
+        Archetype::Fraud => ROOT_USER.clone_into(&mut target_user),
         Archetype::CorporateEspionage => add(
             content,
             &format!("{home}/tender_dossier.txt"),

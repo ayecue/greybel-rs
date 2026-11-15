@@ -71,8 +71,8 @@ impl InstallService {
     ) -> Result<()> {
         let mut data = FileData::binary(FileData::binary_size(path::file_name(path), false));
 
-        data.content = target.to_owned();
-        data.command_name = path::file_name(path).to_owned();
+        target.clone_into(&mut data.content);
+        path::file_name(path).clone_into(&mut data.command_name);
         self.files.changes.write_file(computer, path, data).await?;
         if let Some(mut launcher) = self.files.lookup.file(computer, path, false).await? {
             launcher.permissions =

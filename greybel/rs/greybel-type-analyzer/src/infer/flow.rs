@@ -29,6 +29,10 @@ impl Constant {
         }
     }
 
+    #[expect(
+        clippy::float_cmp,
+        reason = "Only the exact numeric constants zero and one are boolean-like"
+    )]
     fn is_boolean_like(&self) -> bool {
         match self {
             Self::Number(number) => *number == 0.0 || *number == 1.0,
@@ -50,7 +54,6 @@ impl Constant {
         let result = match (operator, order) {
             (BinaryOp::Equal, order) => order.is_some_and(std::cmp::Ordering::is_eq),
             (BinaryOp::NotEqual, order) => !order.is_some_and(std::cmp::Ordering::is_eq),
-            (_, None) => return None,
             (_, Some(_)) if matches!(self, Self::Null) => return None,
             (BinaryOp::Less, Some(order)) => order.is_lt(),
             (BinaryOp::Greater, Some(order)) => order.is_gt(),

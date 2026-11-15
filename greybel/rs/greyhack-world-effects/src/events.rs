@@ -37,6 +37,10 @@ pub struct EventQueue {
     async_subscribers: AsyncSubscriberMap,
 }
 
+#[expect(
+    clippy::missing_fields_in_debug,
+    reason = "EventQueue debug output omits type-erased events and subscriber callbacks"
+)]
 impl std::fmt::Debug for EventQueue {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter

@@ -17,7 +17,7 @@ pub fn reset_ctf_password(
     };
 
     if let Err(refusal) = check_ctf_password(password) {
-        return refuse("reset_ctf_password", refusal);
+        return refuse("reset_ctf_password", &refusal);
     }
 
     let message = PlayerResetCtfPassword {

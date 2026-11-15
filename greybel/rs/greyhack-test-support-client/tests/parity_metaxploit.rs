@@ -3,21 +3,20 @@
 use greybel_test_support::game::Game;
 use greyhack_behaviour::{Requirement, Reward};
 use greyhack_test_support_client::protocol::test_support::LanNodeKind;
-use greyhack_world_libraries::Weakness;
 
-use crate::support::game::{join_network, join_network_where, setup_player, test_client};
+use crate::support::game::{
+    join_fixture, join_network, router_ssh_network, setup_player, ssh_network, test_client,
+};
 use crate::support::metaxploit::{
-    computer_library, overflow_script, player_libraries, router_libraries, router_library, weakness,
+    computer_library, fixture_reply_weakness, fixture_weakness, overflow_script, player_libraries,
+    router_libraries, router_library, weakness,
 };
 use crate::support::mirror::library;
 use crate::support::parity::{
     assert_succeeded, compare_in, compare_in_any_user, compare_in_real_time, compare_pair_in,
     game_outcomes, snapshot_outcomes, without_users,
 };
-use crate::support::remote::{
-    find_service_account, find_ssh_with_library, rshell_server_network, script_string,
-    service_account, ssh_with_library,
-};
+use crate::support::remote::{fixture_account, rshell_server_network, script_string};
 
 /// The libraries of the mirrored network, including the game-installed metaxploit, scanned and reached as in the game.
 #[tokio::test]
@@ -73,21 +72,17 @@ async fn should_match_intrinsics_for_metaxploit_net_use() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| match &snapshot.nodes[0].node {
-        LanNodeKind::Router(router) => router
-            .ports
-            .iter()
-            .any(|port| port.service == "ssh" && !port.local_ip.is_empty()),
-        _ => false,
-    })
-    .await;
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", true);
+    let forwarded = account.port;
+    let snapshot = join_fixture(&client, &network).await;
     let mut targets = snapshot
         .nodes
         .iter()
         .filter_map(|node| match &node.node {
             LanNodeKind::Router(router) => library(&router.kernel_content)
                 .is_some()
-                .then(|| (node.local_ip.to_string(), 0)),
+                .then(|| (node.local_ip.clone(), 0)),
             LanNodeKind::Computer(computer) => computer
                 .ports
                 .iter()
@@ -100,23 +95,12 @@ async fn should_match_intrinsics_for_metaxploit_net_use() {
                         .iter()
                         .any(|file| file.path == path && library(&file.content).is_some())
                 })
-                .map(|port| (node.local_ip.to_string(), port.number)),
+                .map(|port| (node.local_ip.clone(), port.number)),
             LanNodeKind::Hub => None,
         })
         .collect::<Vec<_>>();
-    let forwarded = match &snapshot.nodes[0].node {
-        LanNodeKind::Router(router) => {
-            router
-                .ports
-                .iter()
-                .find(|port| port.service == "ssh" && !port.local_ip.is_empty())
-                .expect("the main router forwards SSH")
-                .number
-        }
-        _ => unreachable!(),
-    };
 
-    targets.push((snapshot.public_ip.to_string(), forwarded));
+    targets.push((snapshot.public_ip.clone(), forwarded));
 
     let targets = targets
         .iter()
@@ -129,7 +113,7 @@ async fn should_match_intrinsics_for_metaxploit_net_use() {
         .find(|node| matches!(node.node, LanNodeKind::Computer(_)))
         .expect("a computer in the network")
         .local_ip
-        .to_string();
+        .clone();
     let scripts = [
         "pc = get_shell.host_computer; print [pc.active_net_card, pc.public_ip, pc.local_ip, pc.network_gateway, pc.is_network_active]".to_owned(),
         format!("mx = include_lib(\"/lib/metaxploit.so\")\nfor target in [{targets}]\n  session = mx.net_use(target[0], target[1]); print [target, typeof(session)]\n  if typeof(session) == \"NetSession\" then\n    lib = session.dump_lib; print [lib.lib_name, lib.version]\n  end if\nend for"),
@@ -150,6 +134,30 @@ async fn should_match_intrinsics_for_local_overflows() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
+    let mut requested = vec![
+        fixture_weakness(Reward::Shell, &[], "normal_user", ""),
+        fixture_weakness(Reward::Computer, &[], "", ""),
+        fixture_weakness(Reward::RandomFolder, &[], "", ""),
+        fixture_weakness(Reward::ChangePass, &[], "", ""),
+    ];
+
+    requested.extend(
+        [
+            Requirement::Library,
+            Requirement::NumberUsersRegister,
+            Requirement::AnyActiveUser,
+            Requirement::RootActiveUser,
+            Requirement::GuestActiveUser,
+            Requirement::PathExist,
+        ]
+        .into_iter()
+        .map(|requirement| fixture_weakness(Reward::Shell, &[requirement], "", "")),
+    );
+
+    let installed = client
+        .install_fixture_library("", "metaxploit.so", requested, false)
+        .await
+        .unwrap();
     let snapshot = client.network_state().await.unwrap();
     let (_, library) = player_libraries(&snapshot)
         .into_iter()
@@ -160,55 +168,21 @@ async fn should_match_intrinsics_for_local_overflows() {
             .to_owned(),
     ];
 
-    for reward in [
-        Reward::Shell,
-        Reward::Computer,
-        Reward::RandomFolder,
-        Reward::ChangePass,
-    ] {
-        if let Some((address, weakness)) = weakness(&library, |weakness| {
-            weakness.reward == reward && weakness.requirements.is_empty()
-        }) {
-            scripts.push(overflow_script(
-                "/lib/metaxploit.so",
-                None,
-                address,
-                weakness,
-                "newpass123",
-            ));
-        }
+    for fixture in &installed.weaknesses {
+        let (address, weakness) = fixture_reply_weakness(&library, fixture);
+
+        scripts.push(overflow_script(
+            "/lib/metaxploit.so",
+            None,
+            address,
+            weakness,
+            "newpass123",
+        ));
     }
 
-    let mut covered = Vec::new();
-
-    for requirement in Requirement::ALL {
-        if let Some((address, weakness)) = weakness(&library, |weakness| {
-            weakness.requirements.contains(requirement)
-        }) {
-            covered.push(*requirement);
-            scripts.push(overflow_script(
-                "/lib/metaxploit.so",
-                None,
-                address,
-                weakness,
-                "newpass123",
-            ));
-        }
-    }
-
-    for requirement in [
-        Requirement::Library,
-        Requirement::NumberUsersRegister,
-        Requirement::AnyActiveUser,
-        Requirement::RootActiveUser,
-        Requirement::GuestActiveUser,
-        Requirement::PathExist,
-    ] {
-        assert!(covered.contains(&requirement), "missing {requirement:?}");
-    }
-
-    assert!(
-        scripts.len() >= 6,
+    assert_eq!(
+        scripts.len(),
+        11,
         "the fixture covers rewards and requirements"
     );
 
@@ -227,48 +201,54 @@ async fn should_match_intrinsics_for_remote_overflows() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        find_ssh_with_library(snapshot, "libssh.so").is_some()
-    })
-    .await;
-    let (_, ssh_ip, ssh_port, _) = ssh_with_library(&snapshot, "libssh.so");
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let ssh_ip = account.address;
+    let ssh_port = account.port;
+
+    join_fixture(&client, &network).await;
+
+    let mut requested = vec![
+        fixture_weakness(Reward::Shell, &[], "guest", ""),
+        fixture_weakness(Reward::Computer, &[], "guest", ""),
+        fixture_weakness(Reward::RandomFolder, &[], "guest", ""),
+    ];
+
+    requested.extend(
+        [
+            Requirement::Library,
+            Requirement::NumberUsersRegister,
+            Requirement::AnyActiveUser,
+            Requirement::RootActiveUser,
+            Requirement::PortForward,
+            Requirement::GuestActiveUser,
+            Requirement::PathExist,
+        ]
+        .into_iter()
+        .map(|requirement| fixture_weakness(Reward::Shell, &[requirement], "guest", "")),
+    );
+
+    let installed = client
+        .install_fixture_library(&ssh_ip, "libssh.so", requested, false)
+        .await
+        .unwrap();
+    let snapshot = client.network_state().await.unwrap();
     let library = computer_library(&snapshot, &ssh_ip, "libssh.so");
-    let mut scripts = Vec::new();
+    let scripts: Vec<String> = installed
+        .weaknesses
+        .iter()
+        .map(|fixture| {
+            let (address, weakness) = fixture_reply_weakness(&library, fixture);
 
-    for reward in [Reward::Shell, Reward::Computer, Reward::RandomFolder] {
-        if let Some((address, weakness)) = weakness(&library, |weakness| {
-            weakness.reward == reward
-                && weakness.requirements.is_empty()
-                && weakness.user != "normal_user"
-        }) {
-            scripts.push(overflow_script(
-                "",
-                Some((&ssh_ip, ssh_port)),
-                address,
-                weakness,
-                "",
-            ));
-        }
-    }
+            overflow_script("", Some((&ssh_ip, ssh_port)), address, weakness, "")
+        })
+        .collect();
 
-    let mut covered = Vec::new();
-
-    for requirement in Requirement::ALL {
-        if let Some((address, weakness)) = weakness(&library, |weakness| {
-            weakness.requirements.contains(requirement)
-        }) {
-            covered.push(*requirement);
-            scripts.push(overflow_script(
-                "",
-                Some((&ssh_ip, ssh_port)),
-                address,
-                weakness,
-                "",
-            ));
-        }
-    }
-
-    assert!(covered.contains(&Requirement::PortForward));
+    assert!(installed.weaknesses.iter().any(|weakness| {
+        weakness
+            .requirements
+            .contains(&u8::try_from(Requirement::PortForward.code()).unwrap())
+    }));
     assert!(!scripts.is_empty());
 
     compare_in_any_user(&client, &user, &snapshot, &scripts).await;
@@ -281,83 +261,73 @@ async fn should_match_intrinsics_for_router_overflows() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        let kernels = router_libraries(snapshot);
-        let main_ip = snapshot.nodes[0].local_ip.as_str();
-        let any = |choose: &dyn Fn(&Weakness) -> bool| {
-            kernels
-                .iter()
-                .any(|(_, library)| weakness(library, choose).is_some())
-        };
+    let network = router_ssh_network(&client, true).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let ssh_ip = account.address;
+    let initial = join_fixture(&client, &network).await;
+    let routers: Vec<String> = initial
+        .nodes
+        .iter()
+        .filter(|node| matches!(node.node, LanNodeKind::Router(_)))
+        .map(|node| node.local_ip.clone())
+        .collect();
+    let requested = vec![
+        fixture_weakness(Reward::Shell, &[], "guest", ""),
+        fixture_weakness(Reward::Computer, &[], "guest", ""),
+        fixture_weakness(Reward::FirewallDisable, &[], "guest", ""),
+        fixture_weakness(Reward::RandomFolder, &[Requirement::LocalNetwork], "", ""),
+        fixture_weakness(Reward::RandomFolder, &[Requirement::ConnGateway], "", ""),
+    ];
+    let installed = client
+        .install_fixture_library(&routers[0], "kernel_router.so", requested, false)
+        .await
+        .unwrap();
 
-        find_ssh_with_library(snapshot, "libssh.so").is_some()
-            && kernels.iter().any(|(ip, _)| ip.as_str() != main_ip)
-            && any(&|weakness| {
-                weakness.reward == Reward::FirewallDisable && weakness.requirements.is_empty()
-            })
-            && any(&|weakness| {
-                matches!(weakness.reward, Reward::Shell | Reward::Computer)
-                    && weakness.requirements.is_empty()
-                    && weakness.user != "normal_user"
-            })
-    })
-    .await;
-    let kernels = router_libraries(&snapshot);
-    let (_, ssh_ip, _, _) = ssh_with_library(&snapshot, "libssh.so");
-    let main_ip = snapshot.nodes[0].local_ip.as_str();
+    // Use the same content at this version on every router so each net session dumps the requested zones.
+    for router in routers.iter().skip(1) {
+        client
+            .write_router_kernel(router, &installed.content)
+            .await
+            .unwrap();
+    }
+
+    let snapshot = client.network_state().await.unwrap();
     let mut scripts = Vec::new();
+    let mut firewall_scripts = Vec::new();
     let mut firewall = false;
 
-    for reward in [Reward::Shell, Reward::Computer] {
-        for (ip, library) in &kernels {
-            if let Some((address, weakness)) = weakness(library, |weakness| {
-                weakness.reward == reward
-                    && weakness.requirements.is_empty()
-                    && weakness.user != "normal_user"
-            }) {
-                scripts.push(overflow_script(
-                    "",
-                    Some((ip, 0)),
-                    address,
-                    weakness,
-                    &ssh_ip,
-                ));
-                break;
+    for ip in &routers {
+        let library = router_library(&snapshot, ip);
+
+        for fixture in &installed.weaknesses {
+            let (address, weakness) = fixture_reply_weakness(&library, fixture);
+            let script = overflow_script(
+                "",
+                Some((ip, 0)),
+                address,
+                weakness,
+                if weakness.reward == Reward::FirewallDisable {
+                    ""
+                } else {
+                    &ssh_ip
+                },
+            );
+
+            if weakness.reward == Reward::FirewallDisable {
+                if !firewall {
+                    firewall = true;
+                    firewall_scripts.push(format!(
+                        "{script}; print get_router(\"{ip}\").firewall_rules"
+                    ));
+                }
+            } else {
+                scripts.push(script);
             }
         }
     }
 
-    for requirement in [Requirement::LocalNetwork, Requirement::ConnGateway] {
-        for (ip, library) in &kernels {
-            if let Some((address, weakness)) = weakness(library, |weakness| {
-                weakness.requirements.contains(&requirement)
-            }) {
-                scripts.push(overflow_script(
-                    "",
-                    Some((ip, 0)),
-                    address,
-                    weakness,
-                    &ssh_ip,
-                ));
-            }
-        }
-    }
-
-    for (ip, library) in &kernels {
-        if let Some((address, weakness)) = weakness(library, |weakness| {
-            weakness.reward == Reward::FirewallDisable && weakness.requirements.is_empty()
-        }) {
-            firewall = true;
-            scripts.push(format!(
-                "{}; print get_router(\"{ip}\").firewall_rules",
-                overflow_script("", Some((ip, 0)), address, weakness, "",)
-            ));
-            break;
-        }
-    }
-
-    assert!(kernels.iter().any(|(ip, _)| ip.as_str() != main_ip));
-
+    scripts.extend(firewall_scripts);
+    assert!(routers.len() >= 3);
     assert!(firewall, "the fixture covers firewall disabling");
     assert!(scripts.len() >= 2, "the fixture covers router rewards");
 
@@ -377,22 +347,16 @@ async fn should_match_intrinsics_for_router_requirements() {
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
 
-    let initial = join_network_where(&client, "ssh", |snapshot| {
-        let main = snapshot.nodes[0].local_ip.to_string();
-
-        find_ssh_with_library(snapshot, "libssh.so").is_some()
-            && router_libraries(snapshot)
-                .into_iter()
-                .any(|(ip, _)| ip != main)
-    })
-    .await;
-    let main = initial.nodes[0].local_ip.to_string();
+    let network = router_ssh_network(&client, false).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let ssh_ip = account.address;
+    let initial = join_fixture(&client, &network).await;
+    let main = initial.nodes[0].local_ip.clone();
     let lan = router_libraries(&initial)
         .into_iter()
         .map(|(ip, _)| ip)
         .find(|ip| ip != &main)
         .expect("a LAN router with a kernel library");
-    let (_, ssh_ip, _, _) = ssh_with_library(&initial, "libssh.so");
 
     // The main router is in the player's subnet, the LAN router isn't.
     for (router, requirement) in [
@@ -453,7 +417,7 @@ async fn should_match_intrinsics_for_reverse_shells() {
         .unwrap();
 
     let before = client.network_state().await.unwrap();
-    let public_ip = before.public_ip.to_string();
+    let public_ip = before.public_ip.clone();
     let failures = format!(
         r#"mx = include_lib("/lib/metaxploit.so")
 print mx.rshell_client("bad", 1222, "client")
@@ -483,7 +447,7 @@ print mx.rshell_server"#
         .nodes
         .iter()
         .find_map(|node| match &node.node {
-            LanNodeKind::Computer(computer) if computer.player => Some(node.local_ip.to_string()),
+            LanNodeKind::Computer(computer) if computer.player => Some(node.local_ip.clone()),
             _ => None,
         })
         .expect("the player's LAN address");
@@ -558,11 +522,9 @@ async fn should_match_intrinsics_for_a_concurrent_sniffer() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        find_service_account(snapshot, "ssh").is_some()
-    })
-    .await;
-    let account = service_account(&snapshot, "ssh");
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let snapshot = join_fixture(&client, &network).await;
     let sniffing = r#"mx = include_lib("/lib/metaxploit.so")
 print mx.sniffer(1)"#;
     let login = format!(

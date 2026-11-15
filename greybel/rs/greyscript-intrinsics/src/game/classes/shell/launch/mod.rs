@@ -89,7 +89,7 @@ fn launch(vm: &mut Vm, args: &ArgContainer) -> NativeFuture {
                     .await
             }
             // Printed launch refusals arrive before this response.
-            Ok(LaunchOutcome::Failure(_)) | Ok(LaunchOutcome::Refusal) | Err(_) => {
+            Ok(LaunchOutcome::Failure(_) | LaunchOutcome::Refusal) | Err(_) => {
                 NativeOutput::new(false)
             }
         }

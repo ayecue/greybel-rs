@@ -9,7 +9,7 @@ use crate::{from_lsp, to_lsp};
 impl Server {
     pub(in crate::server) fn code_action(
         &mut self,
-        params: lsp::CodeActionParams,
+        params: &lsp::CodeActionParams,
     ) -> Result<Option<Vec<lsp::CodeActionResponse>>> {
         let Some(document) = self.document_analysis(&params.text_document.uri)? else {
             return Ok(None);
@@ -27,7 +27,7 @@ impl Server {
 
     pub(in crate::server) fn format_document(
         &mut self,
-        params: lsp::DocumentFormattingParams,
+        params: &lsp::DocumentFormattingParams,
     ) -> Result<Option<Vec<lsp::TextEdit>>> {
         let uri = Self::requested_uri(&params.text_document.uri)?;
 

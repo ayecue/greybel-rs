@@ -25,10 +25,7 @@ async fn should_match_intrinsics_for_the_mails_of_npc_accounts() {
 
     client.setup_mail("parity", "mailpass1").await.unwrap();
 
-    let fired = dismissal(&first)
-        .expect("an NPC to dismiss")
-        .user
-        .to_string();
+    let fired = dismissal(&first).expect("an NPC to dismiss").user.clone();
 
     client.fire_npc(&first.public_ip, &fired).await.unwrap();
     // The game checks a copy of the NPC's state kept with its workstation (`Persona.npcInfo`), which a dismissal does

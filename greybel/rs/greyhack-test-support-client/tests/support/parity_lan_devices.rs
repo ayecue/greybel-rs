@@ -8,7 +8,7 @@ use greyhack_world::{PlayerOptions, World};
 use greyhack_world_creation::NetworkOptions;
 use greyhack_world_missions::request_for;
 
-use super::game::join_network;
+use super::game::{empty_network, join_fixture};
 
 /// Networks generated for each kind of network.
 pub const NETWORKS: usize = 6;
@@ -79,27 +79,16 @@ impl Rules {
     }
 }
 
-/// The gadgets of the networks the game spawns for `kind`, each read after the player joins it. A network whose mission
-/// gives it another kind is left out: it is generated as that kind (`NetworkLan.NetworkLan` sets the router's kind
-/// before `NetworkLan.Configure` builds the LAN). The snapshot can't tell: a router read back from the database takes
-/// its node's kind again (`Database.RestoreRouter`), so the mission is looked up from the game's world secret.
+/// The gadgets of exactly six fresh no-mission networks the fixture builder spawns for `kind`.
 pub async fn game_networks(client: &TestClient, kind: &str) -> Vec<Gadgets> {
     let mut networks = Vec::new();
 
     for _ in 0..NETWORKS {
-        let network = client
-            .spawn_network(kind)
-            .await
-            .expect("a network is generated");
+        let network = empty_network(client, kind).await;
+        let snapshot = join_fixture(client, &network).await;
 
-        join_network(client, &network.public_ip).await;
-
-        let snapshot = client.network_state().await.expect("the network is read");
-        let seed = WorldSeed::new(snapshot.world_secret.to_vec());
-
-        if snapshot.kind == kind && !mission_changes_the_kind(&seed, &network.public_ip) {
-            networks.push(game_gadgets(&snapshot));
-        }
+        assert_eq!(snapshot.kind, kind);
+        networks.push(game_gadgets(&snapshot));
     }
 
     networks

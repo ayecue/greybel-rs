@@ -1,5 +1,5 @@
 use super::{
-    LexResult, Lexer, PendingToken, TokenStart, TokenStream, is_identifier_part,
+    AnyToken, LexResult, Lexer, PendingToken, TokenStart, TokenStream, is_identifier_part,
     is_identifier_start, is_whitespace,
 };
 use crate::error::ParseResult;
@@ -22,7 +22,7 @@ impl<'src> Lexer<'src> {
             PendingToken::new(stream.cursor.index(), old_index < stream.cursor.index());
 
         if self.is_at_end(stream) {
-            return Ok(self.scan_eof(stream, pending_token));
+            return Ok(Self::scan_eof(stream, pending_token));
         }
 
         match self.token_start(self.code_at(stream, 0)) {
@@ -33,12 +33,12 @@ impl<'src> Lexer<'src> {
             TokenStart::Dot if self.code_at(stream, 1).is_ascii_digit() => {
                 self.scan_number(stream, pending_token)
             }
-            TokenStart::Colon => Ok(self.scan_slice_operator(stream, pending_token)),
+            TokenStart::Colon => Ok(Self::scan_slice_operator(stream, pending_token)),
             TokenStart::Slash if self.is_at_comment(stream) => {
                 self.scan_comment(stream, pending_token)
             }
             TokenStart::Dot | TokenStart::Slash | TokenStart::Punct | TokenStart::Invalid => {
-                self.scan_punct_or_invalid(stream, pending_token)
+                Ok(self.scan_punct_or_invalid(stream, pending_token))
             }
         }
     }
@@ -100,11 +100,11 @@ impl<'src> Lexer<'src> {
         &self,
         stream: &mut TokenStream,
         token_start: PendingToken,
-    ) -> LexResult {
+    ) -> AnyToken {
         if let Some(punct) = self.punct_at(&self.source.as_bytes()[stream.cursor.index()..]) {
-            return Ok(self.scan_punct(stream, punct, token_start));
+            return self.scan_punct(stream, punct, token_start);
         }
 
-        Ok(self.scan_unknown(stream, token_start))
+        self.scan_unknown(stream, token_start)
     }
 }

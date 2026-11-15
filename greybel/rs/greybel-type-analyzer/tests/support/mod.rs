@@ -104,7 +104,7 @@ pub fn marked(source: &str) -> (String, Vec<Position>) {
             line += 1;
             column = 1;
         } else {
-            column += c.len_utf16() as u32;
+            column += u32::try_from(c.len_utf16()).expect("value fits the target integer type");
         }
     }
 

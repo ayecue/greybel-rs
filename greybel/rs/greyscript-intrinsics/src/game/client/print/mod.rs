@@ -26,7 +26,7 @@ pub(crate) fn print_line(output: &dyn Stdout, line: &PrintLine) {
         PrintLine::ExploitLog(log) => exploit_text(log),
         PrintLine::NetUseFailure { failure, address } => net_use_text(failure, address),
         PrintLine::HiddenZonesWarning => "**Warning: One or more memory zones with possible vulnerabilities could not be scanned. Update your Metaxploit library.**".to_owned(),
-        PrintLine::FloodStart { address, warning } => start_text(address, warning),
+        PrintLine::FloodStart { address, warning } => start_text(address, *warning),
         PrintLine::FloodInterrupted => "remote connection interrupted".to_owned(),
         PrintLine::LoginFailure(failure) => login_text(failure),
         PrintLine::EncryptionEnabled => "Encryption enabled...".to_owned(),
@@ -58,7 +58,7 @@ fn net_use_text(failure: &NetUseFailure, address: &str) -> String {
 }
 
 /// Text printed when a flood of `address` starts, with the `warning` the game shows.
-fn start_text(address: &str, warning: &FloodWarning) -> String {
+fn start_text(address: &str, warning: FloodWarning) -> String {
     let warning = match warning {
         FloodWarning::None => "",
         FloodWarning::SuperAdmin => {

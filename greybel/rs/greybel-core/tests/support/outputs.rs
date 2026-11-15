@@ -21,7 +21,8 @@ pub struct Setup {
 pub fn columns(case: &Value) -> ColumnSettings {
     ColumnSettings::new(
         PositionEncoding::Utf16,
-        case["tabWidth"].as_u64().unwrap_or(1) as u32,
+        u32::try_from(case["tabWidth"].as_u64().unwrap_or(1))
+            .expect("value fits the target integer type"),
     )
 }
 

@@ -4,7 +4,11 @@ use crate::support::at;
 
 #[test]
 fn should_store_a_map_as_its_sources_and_mapping_arrays() {
-    let map = SourceMap::of_lines([at("main.src", 1), at("main.src", 2), at("lib.src", 7)]);
+    let map = SourceMap::of_lines([
+        Some(at("main.src", 1)),
+        Some(at("main.src", 2)),
+        Some(at("lib.src", 7)),
+    ]);
 
     let json = serde_json::to_string(&map).unwrap();
 
@@ -22,5 +26,5 @@ fn should_drop_stored_mappings_naming_no_source_or_overlapping_an_earlier_one() 
     let map: SourceMap = serde_json::from_str(json).unwrap();
 
     assert_eq!(map.mappings(), [Mapping::new(3, 4, 0, 1)]);
-    assert_eq!(map.locate(4), at("main.src", 2));
+    assert_eq!(map.locate(4), Some(at("main.src", 2)));
 }

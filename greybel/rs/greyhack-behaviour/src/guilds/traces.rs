@@ -49,6 +49,10 @@ pub fn should_start_tracking(kind: NetworkKind, exp_pcs: u32, action: LogAction)
 /// Seconds an active trace through `bounces` bounces lasts against an administrator of `exp_pcs` PC
 /// experience (`ActiveTraceSystem.StartActiveTrace`).
 #[must_use]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "ActiveTraceSystem.StartActiveTrace computes trace time with C# floats"
+)]
 pub fn active_trace_seconds(bounces: u32, exp_pcs: u32) -> f32 {
     bounces as f32 * (ACTIVE_TRACE_SECONDS as f32 / exp_pcs as f32)
 }
@@ -63,6 +67,11 @@ pub fn passive_trace_delay_ms(exp_pcs: u32) -> u64 {
 /// World time an active trace started at `now` ends the player's connection, `None` when it never
 /// ends because the administrator has no PC experience (`ActiveTraceSystem.StartActiveTrace`).
 #[must_use]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "ActiveTraceSystem.StartActiveTrace converts the positive trace duration to integral seconds"
+)]
 pub fn active_trace_end(now: u64, bounces: u32, exp_pcs: u32) -> Option<u64> {
     let seconds = active_trace_seconds(bounces, exp_pcs).ceil();
 

@@ -18,7 +18,6 @@ pub fn native(attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut function = parse_macro_input!(item as ItemFn);
 
     Builder::from_input(options, &mut function)
-        .and_then(|builder| builder.generate())
-        .unwrap_or_else(syn::Error::into_compile_error)
+        .map_or_else(syn::Error::into_compile_error, |builder| builder.generate())
         .into()
 }

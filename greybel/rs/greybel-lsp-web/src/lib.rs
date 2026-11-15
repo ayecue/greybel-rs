@@ -17,6 +17,6 @@ fn serve() {
     let scope = WorkerScope::accept();
 
     wasm_bindgen_futures::spawn_local(async move {
-        LanguageServer::serve(scope.await.channel());
+        LanguageServer::serve(&scope.await.channel());
     });
 }

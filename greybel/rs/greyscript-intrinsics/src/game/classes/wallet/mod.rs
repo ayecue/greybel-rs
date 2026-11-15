@@ -118,7 +118,7 @@ pub(super) fn reset_password_argument(password: &Value) -> Result<Proceed<&str>,
     };
 
     if let Err(refusal) = check_wallet_password(password) {
-        return refuse("reset_password", refusal).map(ControlFlow::Break);
+        return refuse("reset_password", &refusal).map(ControlFlow::Break);
     }
 
     Ok(ControlFlow::Continue(password))

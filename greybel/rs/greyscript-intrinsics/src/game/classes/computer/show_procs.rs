@@ -1,3 +1,5 @@
+use std::fmt::Write as _;
+
 use greybel_interpreter::{NativeFuture, NativeOutput, Value, Vm, native};
 
 use super::computer;
@@ -28,14 +30,15 @@ pub fn show_procs(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicEr
                 let mut out = PROCESS_HEADER.to_owned();
 
                 for process in processes {
-                    out.push_str(&format!(
+                    let _ = write!(
+                        out,
                         "\n{} {} {}% {}% {}",
                         process.user,
                         process.pid,
                         one_decimal(process.cpu),
                         one_decimal(process.memory),
                         process.name
-                    ));
+                    );
                 }
 
                 out

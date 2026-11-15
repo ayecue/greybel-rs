@@ -71,7 +71,7 @@ impl<'src> Lexer<'src> {
                 return self.scan_compound_keyword(stream, start, token_start);
             }
 
-            return Ok(self.finish_keyword(stream, keyword, token_start));
+            return Ok(Self::finish_keyword(stream, keyword, token_start));
         }
 
         let token = if let Some(value) = BooleanLiteral::parse(word) {

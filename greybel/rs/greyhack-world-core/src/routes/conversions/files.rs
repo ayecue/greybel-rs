@@ -10,31 +10,31 @@ impl IntoProtocol for crate::FileFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::FileFailure as World;
-
         match failure {
-            World::ComputerUnavailable => FileFailure::ComputerUnavailable,
-            World::MissingFile(path) => FileFailure::MissingFile(path),
-            World::MissingFolder(path) => FileFailure::MissingFolder(path),
-            World::NotAFolder(path) => FileFailure::NotAFolder(path),
-            World::InvalidPath => FileFailure::InvalidPath,
-            World::NoPermission => FileFailure::NoPermission,
-            World::SystemFile => FileFailure::SystemFile,
-            World::SystemFileTarget(name) => FileFailure::SystemFileTarget(name),
-            World::KindMismatch => FileFailure::KindMismatch,
-            World::DiskFull => FileFailure::DiskFull,
-            World::FolderFull => FileFailure::FolderFull,
-            World::TooManyFiles => FileFailure::TooManyFiles,
-            World::WrongFormat => FileFailure::WrongFormat,
-            World::CannotAccess(path) => FileFailure::CannotAccess(path),
-            World::CannotRead(path) => FileFailure::CannotRead(path),
-            World::CannotWrite(path) => FileFailure::CannotWrite(path),
-            World::CannotReplace(path) => FileFailure::CannotReplace(path),
-            World::OverwriteSelf => FileFailure::OverwriteSelf,
-            World::PartialCopy => FileFailure::PartialCopy,
-            World::PartialDelete => FileFailure::PartialDelete,
-            World::DeletePermission(path) => FileFailure::DeletePermission(path),
-            World::FolderReadPermission(path) => FileFailure::FolderReadPermission(path),
+            crate::FileFailure::ComputerUnavailable => FileFailure::ComputerUnavailable,
+            crate::FileFailure::MissingFile(path) => FileFailure::MissingFile(path),
+            crate::FileFailure::MissingFolder(path) => FileFailure::MissingFolder(path),
+            crate::FileFailure::NotAFolder(path) => FileFailure::NotAFolder(path),
+            crate::FileFailure::InvalidPath => FileFailure::InvalidPath,
+            crate::FileFailure::NoPermission => FileFailure::NoPermission,
+            crate::FileFailure::SystemFile => FileFailure::SystemFile,
+            crate::FileFailure::SystemFileTarget(name) => FileFailure::SystemFileTarget(name),
+            crate::FileFailure::KindMismatch => FileFailure::KindMismatch,
+            crate::FileFailure::DiskFull => FileFailure::DiskFull,
+            crate::FileFailure::FolderFull => FileFailure::FolderFull,
+            crate::FileFailure::TooManyFiles => FileFailure::TooManyFiles,
+            crate::FileFailure::WrongFormat => FileFailure::WrongFormat,
+            crate::FileFailure::CannotAccess(path) => FileFailure::CannotAccess(path),
+            crate::FileFailure::CannotRead(path) => FileFailure::CannotRead(path),
+            crate::FileFailure::CannotWrite(path) => FileFailure::CannotWrite(path),
+            crate::FileFailure::CannotReplace(path) => FileFailure::CannotReplace(path),
+            crate::FileFailure::OverwriteSelf => FileFailure::OverwriteSelf,
+            crate::FileFailure::PartialCopy => FileFailure::PartialCopy,
+            crate::FileFailure::PartialDelete => FileFailure::PartialDelete,
+            crate::FileFailure::DeletePermission(path) => FileFailure::DeletePermission(path),
+            crate::FileFailure::FolderReadPermission(path) => {
+                FileFailure::FolderReadPermission(path)
+            }
         }
     }
 }
@@ -45,24 +45,26 @@ impl TryProtocolFrom<crate::ScriptFileFailure> for Failure {
     /// Converts a file operation failure; a move or symlink path with too many folders is a script
     /// failure instead.
     fn try_from(failure: crate::ScriptFileFailure) -> Result<Self, ScriptFailure> {
-        use crate::ScriptFileFailure as World;
-
         Ok(Self::File(match failure {
-            World::File(failure) => failure.into_protocol(),
-            World::Exists(name) => FileFailure::Exists(name),
-            World::EmptyPath => FileFailure::EmptyPath,
-            World::NoCreatePermission { folder, name } => {
+            crate::ScriptFileFailure::File(failure) => failure.into_protocol(),
+            crate::ScriptFileFailure::Exists(name) => FileFailure::Exists(name),
+            crate::ScriptFileFailure::EmptyPath => FileFailure::EmptyPath,
+            crate::ScriptFileFailure::NoCreatePermission { folder, name } => {
                 FileFailure::NoCreatePermission { folder, name }
             }
-            World::TooManyFolders => FileFailure::TooManyFolders,
-            World::TooManySubfolders => FileFailure::TooManySubfolders,
-            World::NameExists => FileFailure::NameTaken,
-            World::RootMove => FileFailure::RootMove,
-            World::SymlinkToItself => FileFailure::SymlinkToItself,
-            World::Binary(path) => FileFailure::Binary(path),
-            World::NoReadPermission(path) => FileFailure::NoReadPermission(path),
-            World::TooManyPathFolders => return Err(ScriptFailure::TooManyFolders),
-            World::Refusal(refusal) => return Ok(Self::Refusal(refusal.into_protocol())),
+            crate::ScriptFileFailure::TooManyFolders => FileFailure::TooManyFolders,
+            crate::ScriptFileFailure::TooManySubfolders => FileFailure::TooManySubfolders,
+            crate::ScriptFileFailure::NameExists => FileFailure::NameTaken,
+            crate::ScriptFileFailure::RootMove => FileFailure::RootMove,
+            crate::ScriptFileFailure::SymlinkToItself => FileFailure::SymlinkToItself,
+            crate::ScriptFileFailure::Binary(path) => FileFailure::Binary(path),
+            crate::ScriptFileFailure::NoReadPermission(path) => FileFailure::NoReadPermission(path),
+            crate::ScriptFileFailure::TooManyPathFolders => {
+                return Err(ScriptFailure::TooManyFolders);
+            }
+            crate::ScriptFileFailure::Refusal(refusal) => {
+                return Ok(Self::Refusal(refusal.into_protocol()));
+            }
         }))
     }
 }

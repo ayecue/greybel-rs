@@ -38,6 +38,21 @@ pub enum WeaknessReportFailure {
 }
 
 /// Methods of [`World`] for exploits library versions.
+/// Mutable state used while building one library release.
+struct LibraryRelease {
+    old_id: LibraryId,
+    old: Library,
+    metaxploit_id: LibraryId,
+    metaxploit: Library,
+    uses: Vec<UseCount>,
+    patches: HashMap<String, u32>,
+    table: VersionTable,
+    rng: Rng,
+    new: Library,
+    exhausted_zones: Vec<String>,
+    patched: bool,
+}
+
 impl VersionService {
     pub async fn weakness_use_count(
         &self,
@@ -191,45 +206,29 @@ impl VersionService {
         Ok(kinds)
     }
 
-    pub async fn check_library(&self, kind: LibraryKind) -> Result<Option<String>> {
-        let Some(old_id) = self.files.latest_library(kind).await? else {
-            return Ok(None);
-        };
-        let Some(old) = self.libraries.library(old_id).await? else {
-            return Ok(None);
-        };
-        let (metaxploit_id, metaxploit) = self.latest_metaxploit().await?;
-        let uses = self.library_versions.weakness_uses(kind).await?;
-        let mut patches: HashMap<String, u32> = self
-            .library_versions
-            .zone_patches(kind)
-            .await?
-            .into_iter()
-            .collect();
-        let table = self.stored_version_table().await?;
-        let mut rng = Rng::new(self.world.world_seed().derive_u64(
-            "library-version-v1",
-            &[&kind.code().to_string(), &old.version],
-        ));
-        let mut new = old.clone();
-        let mut exhausted_zones = Vec::new();
-        let mut patched = false;
-
-        for zone in 0..new.zones.len() {
-            if new.zones[zone].hide {
+    async fn patch_weaknesses(
+        &self,
+        kind: LibraryKind,
+        release: &mut LibraryRelease,
+    ) -> Result<()> {
+        for zone in 0..release.new.zones.len() {
+            if release.new.zones[zone].hide {
                 continue;
             }
 
-            let address = new.zones[zone].address.clone();
-            let exhausted = is_zone_exhausted(patches.get(&address).copied().unwrap_or(0));
+            let address = release.new.zones[zone].address.clone();
+            let exhausted = is_zone_exhausted(release.patches.get(&address).copied().unwrap_or(0));
 
             if exhausted {
-                exhausted_zones.push(address.clone());
+                release.exhausted_zones.push(address.clone());
             }
 
-            for index in 0..new.zones[zone].weaknesses.len() {
-                let unsec_value = new.zones[zone].weaknesses[index].unsec_value.clone();
-                let use_count = uses
+            for index in 0..release.new.zones[zone].weaknesses.len() {
+                let unsec_value = release.new.zones[zone].weaknesses[index]
+                    .unsec_value
+                    .clone();
+                let use_count = release
+                    .uses
                     .iter()
                     .find(|entry| entry.address == address && entry.unsec_value == unsec_value)
                     .map_or(0, |entry| entry.uses);
@@ -238,99 +237,126 @@ impl VersionService {
                     continue;
                 }
 
-                patched = true;
+                release.patched = true;
                 self.shop
-                    .patch_exploit_description(kind, &old.version, &address, &unsec_value)
+                    .patch_exploit_description(kind, &release.old.version, &address, &unsec_value)
                     .await?;
 
                 if !exhausted {
-                    *patches.entry(address.clone()).or_default() += 1;
-                    new.renew_weakness(
-                        &mut rng,
+                    *release.patches.entry(address.clone()).or_default() += 1;
+                    release.new.renew_weakness(
+                        &mut release.rng,
                         zone,
                         index,
                         WeaknessContext {
-                            metaxploit: Some(&metaxploit.version),
-                            table: Some(&table),
+                            metaxploit: Some(&release.metaxploit.version),
+                            table: Some(&release.table),
                         },
                     );
                 }
             }
         }
 
-        if !patched {
+        Ok(())
+    }
+
+    async fn finish_release(
+        &self,
+        kind: LibraryKind,
+        mut release: LibraryRelease,
+    ) -> Result<Option<String>> {
+        if !release.patched {
             return Ok(None);
         }
 
-        new.version = next_version(&old.version);
-        new.remove_hidden_zones();
+        release.new.version = next_version(&release.old.version);
+        release.new.remove_hidden_zones();
 
-        if !exhausted_zones.is_empty() {
-            let count =
-                replacement_zone_count(exhausted_zones.len(), new.zones.len(), || rng.range(0, 9));
+        if !release.exhausted_zones.is_empty() {
+            let count = replacement_zone_count(
+                release.exhausted_zones.len(),
+                release.new.zones.len(),
+                || release.rng.range(0, 9),
+            );
 
-            new.zones
-                .retain(|zone| !exhausted_zones.contains(&zone.address));
-            new.add_zones(
-                &mut rng,
+            release
+                .new
+                .zones
+                .retain(|zone| !release.exhausted_zones.contains(&zone.address));
+            release.new.add_zones(
+                &mut release.rng,
                 count,
                 false,
                 WeaknessContext {
                     metaxploit: None,
-                    table: Some(&table),
+                    table: Some(&release.table),
                 },
             );
         }
 
         // Metaxploit gets a version for every library released, its own included, which counts twice.
-        let next_metaxploit = next_version(&metaxploit.version);
+        let next_metaxploit = next_version(&release.metaxploit.version);
 
         if kind == LibraryKind::Metaxploit {
-            new.version = next_version(&new.version);
+            release.new.version = next_version(&release.new.version);
         }
 
         let context = WeaknessContext {
             metaxploit: Some(&next_metaxploit),
-            table: Some(&table),
+            table: Some(&release.table),
         };
 
-        new.add_hidden_zones(&mut rng, context);
+        release.new.add_hidden_zones(&mut release.rng, context);
 
         if kind.role() == LibraryRole::Router
-            && let Some(zone) = new.random_zone(&mut rng, false)
+            && let Some(zone) = release.new.random_zone(&mut release.rng, false)
         {
-            new.force_router_weakness(&mut rng, zone, context);
+            release
+                .new
+                .force_router_weakness(&mut release.rng, zone, context);
         }
 
-        let new_id = self.libraries.library_id(&new).await?;
+        let new_id = self.libraries.library_id(&release.new).await?;
         let metaxploit_next_id = if kind == LibraryKind::Metaxploit {
             new_id
         } else {
-            let mut next = metaxploit.clone();
+            let mut next = release.metaxploit.clone();
 
             next.version = next_metaxploit;
 
             self.libraries.library_id(&next).await?
         };
 
-        self.store_release(LibraryKind::Metaxploit, metaxploit_id, metaxploit_next_id)
-            .await?;
-        self.store_release(kind, old_id, new_id).await?;
+        self.store_release(
+            LibraryKind::Metaxploit,
+            release.metaxploit_id,
+            metaxploit_next_id,
+        )
+        .await?;
+        self.store_release(kind, release.old_id, new_id).await?;
         self.prune_oldest(LibraryKind::Metaxploit).await?;
 
         if kind != LibraryKind::Metaxploit {
             self.prune_oldest(kind).await?;
         }
 
-        let current_uses: Vec<UseCount> = uses
+        let current_uses: Vec<UseCount> = release
+            .uses
             .into_iter()
-            .filter(|entry| new.weakness(&entry.address, &entry.unsec_value).is_some())
+            .filter(|entry| {
+                release
+                    .new
+                    .weakness(&entry.address, &entry.unsec_value)
+                    .is_some()
+            })
             .collect();
-        let zone_patches: Vec<(String, u32)> = new
+        let zone_patches: Vec<(String, u32)> = release
+            .new
             .zones
             .iter()
             .filter_map(|zone| {
-                patches
+                release
+                    .patches
                     .get(&zone.address)
                     .map(|times| (zone.address.clone(), *times))
             })
@@ -343,7 +369,50 @@ impl VersionService {
             .replace_zone_patches(kind, &zone_patches)
             .await?;
 
-        Ok(Some(new.version))
+        Ok(Some(release.new.version))
+    }
+
+    pub async fn check_library(&self, kind: LibraryKind) -> Result<Option<String>> {
+        let Some(old_id) = self.files.latest_library(kind).await? else {
+            return Ok(None);
+        };
+        let Some(old) = self.libraries.library(old_id).await? else {
+            return Ok(None);
+        };
+        let (metaxploit_id, metaxploit) = self.latest_metaxploit().await?;
+        let uses = self.library_versions.weakness_uses(kind).await?;
+        let patches: HashMap<String, u32> = self
+            .library_versions
+            .zone_patches(kind)
+            .await?
+            .into_iter()
+            .collect();
+        let table = self.stored_version_table().await?;
+        let rng = Rng::new(self.world.world_seed().derive_u64(
+            "library-version-v1",
+            &[&kind.code().to_string(), &old.version],
+        ));
+        let new = old.clone();
+        let exhausted_zones = Vec::new();
+        let patched = false;
+
+        let mut release = LibraryRelease {
+            old_id,
+            old,
+            metaxploit_id,
+            metaxploit,
+            uses,
+            patches,
+            table,
+            rng,
+            new,
+            exhausted_zones,
+            patched,
+        };
+
+        self.patch_weaknesses(kind, &mut release).await?;
+
+        self.finish_release(kind, release).await
     }
 
     pub async fn saved_library_versions(&self, kind: LibraryKind) -> Result<Vec<String>> {

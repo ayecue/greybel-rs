@@ -192,7 +192,7 @@ async fn should_not_make_hidden_zones_for_a_router_kernel() {
     let library = newest(&world, router).await;
 
     assert!(library.zones.iter().all(|zone| !zone.hide));
-    assert!(library.version != old.version);
+    assert_ne!(library.version, old.version);
     assert!(library.zones.iter().any(|zone| {
         zone.weaknesses.iter().any(|weakness| {
             matches!(weakness.reward, Reward::Shell | Reward::Computer)

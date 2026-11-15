@@ -3,6 +3,7 @@
 use std::any::Any;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt::Write as _;
 use std::rc::Rc;
 
 use greyhack_world_storage::TableSet;
@@ -364,11 +365,12 @@ impl Scheduler {
         for key in self.order.borrow().iter() {
             let kind = self.kind(key).expect("ordered kind exists");
 
-            sql.push_str(&format!(
+            let _ = write!(
+                sql,
                 " WHEN '{}' THEN {}",
                 key.replace('\'', "''"),
                 kind.priority()
-            ));
+            );
         }
 
         sql.push_str(" ELSE 0 END");

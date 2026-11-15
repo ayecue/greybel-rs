@@ -28,7 +28,7 @@ pub fn copy(
     };
 
     if let Err(refusal) = check_target_name(name) {
-        return refuse("copy", refusal);
+        return refuse("copy", &refusal);
     }
 
     if path::has_too_many_folders(folder) {

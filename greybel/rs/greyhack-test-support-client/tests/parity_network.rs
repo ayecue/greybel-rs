@@ -6,18 +6,19 @@ use greyhack_test_support_client::protocol::test_support::LanNodeKind;
 use greyhack_world_creation::WifiGenerator;
 
 use crate::support::game::{
-    join_network, join_network_where, join_new_network_where, setup_player, test_client,
+    devices_above, dual_service_network, empty_network, join_fixture, join_network,
+    routed_ssh_network, router_ssh_network, service_network, setup_player, ssh_network,
+    test_client,
 };
-use crate::support::metaxploit::{overflow_script, router_library, weakness};
+use crate::support::metaxploit::{
+    fixture_reply_weakness, fixture_weakness, overflow_script, router_library,
+};
 use crate::support::parity::{
     assert_port_info_lines, assert_succeeded, compare_in, compare_in_flooded, game_outcomes,
     intrinsics_outcomes, snapshot_outcomes,
 };
 use crate::support::parity_missions::use_game_word_lists;
-use crate::support::remote::{
-    forwarded_root, forwarded_service, script_string, service_account, service_behind_devices,
-    simulated_login, simulated_service_login,
-};
+use crate::support::remote::{fixture_account, script_string};
 
 /// Public addresses nothing reached yet: the game makes a network the first time a script reaches one, outside the
 /// reserved ranges.
@@ -52,17 +53,8 @@ async fn should_generate_public_wifi_names_from_the_world_secret() {
     let mut comparisons = 0;
 
     for _ in 0..3 {
-        let snapshot = join_new_network_where(&client, "ssh", |snapshot| {
-            let wifi = |main| {
-                snapshot.nodes.iter().any(move |node| {
-                    node.parent.is_none() == main
-                        && matches!(&node.node, LanNodeKind::Router(router) if router.bssid.is_some() && router.essid.is_some())
-                })
-            };
-
-            wifi(true) && wifi(false)
-        })
-        .await;
+        let network = router_ssh_network(&client, false).await;
+        let snapshot = join_fixture(&client, &network).await;
         let seed = WorldSeed::new(snapshot.world_secret.to_vec());
         let generator = WifiGenerator::new(&seed);
         let before = comparisons;
@@ -74,8 +66,8 @@ async fn should_generate_public_wifi_names_from_the_world_secret() {
             let (Some(bssid), Some(essid)) = (&router.bssid, &router.essid) else {
                 continue;
             };
-            let public_ip = snapshot.public_ip.to_string();
-            let local_ip = node.local_ip.to_string();
+            let public_ip = snapshot.public_ip.clone();
+            let local_ip = node.local_ip.clone();
             let addresses = if node.parent.is_some() {
                 vec![public_ip.as_str(), local_ip.as_str()]
             } else {
@@ -84,7 +76,7 @@ async fn should_generate_public_wifi_names_from_the_world_secret() {
             let (expected_bssid, expected_essid) = generator.names(&addresses);
 
             assert_eq!(
-                (bssid.to_string(), essid.to_string()),
+                (bssid.clone(), essid.clone()),
                 (expected_bssid, expected_essid),
                 "Wi-Fi names of {public_ip} / {local_ip}"
             );
@@ -108,17 +100,11 @@ async fn should_match_intrinsics_for_the_players_network() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        let router = |kind: &str| {
-            snapshot.nodes.iter().any(|node| {
-                node.parent.is_some()
-                    && matches!(&node.node, LanNodeKind::Router(router) if router.kind == kind)
-            })
-        };
-
-        router("ROUTER") && router("SWITCH")
-    })
-    .await;
+    let network = router_ssh_network(&client, true).await;
+    let account = fixture_account(&network, "ssh", "ssh", true);
+    let computer = account.address;
+    let forwarded_port = account.port;
+    let snapshot = join_fixture(&client, &network).await;
     let child_router = snapshot
         .nodes
         .iter()
@@ -128,41 +114,23 @@ async fn should_match_intrinsics_for_the_players_network() {
         })
         .expect("the network has a LAN router")
         .local_ip
-        .to_string();
+        .clone();
     let switch = snapshot
         .nodes
         .iter()
         .find(|node| matches!(&node.node, LanNodeKind::Router(router) if router.kind == "SWITCH"))
         .expect("the network has a switch")
         .local_ip
-        .to_string();
-    let computer = snapshot
-        .nodes
-        .iter()
-        .find(|node| matches!(node.node, LanNodeKind::Computer(_)))
-        .expect("the network has a computer")
-        .local_ip
-        .to_string();
+        .clone();
     let mut addresses: Vec<String> = snapshot
         .nodes
         .iter()
         .filter(|node| !node.local_ip.is_empty())
-        .map(|node| node.local_ip.to_string())
+        .map(|node| node.local_ip.clone())
         .collect();
 
     addresses.push("10.0.0.1".to_owned());
 
-    let forwarded_port = match &snapshot.nodes[0].node {
-        LanNodeKind::Router(router) => {
-            router
-                .ports
-                .iter()
-                .find(|port| !port.local_ip.is_empty())
-                .expect("the main router forwards a service")
-                .number
-        }
-        _ => panic!("the first node is the main router"),
-    };
     let service_addresses = snapshot
         .nodes
         .iter()
@@ -175,7 +143,7 @@ async fn should_match_intrinsics_for_the_players_network() {
                 .ports
                 .iter()
                 .find(|port| port.service == "ssh" && !port.closed)
-                .map(|port| (node.local_ip.to_string(), port.number))
+                .map(|port| (node.local_ip.clone(), port.number))
         })
         .collect::<Vec<_>>();
     let mut scripts = vec![
@@ -215,11 +183,15 @@ async fn should_match_intrinsics_for_a_service_behind_an_unavailable_lan_router(
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
     // `connect_service`'s default service is SSH; an FTP port would fail the port check first.
-    let service = service_behind_devices(&client, &["ssh"]).await;
-    let host = service.address;
-    let port = service.port;
-    let password = service.root_password;
-    let devices = service.devices;
+    let network = routed_ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let host = account.address;
+    let port = account.port;
+    let password = account.root_password;
+    let snapshot = join_fixture(&client, &network).await;
+    let devices = devices_above(&snapshot, &host);
+
+    assert!(!devices.is_empty());
 
     // The firewalls on the way would refuse the connection before the devices are checked. The next player setup
     // puts both back.
@@ -249,12 +221,9 @@ async fn should_match_intrinsics_for_ftp_transfers() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let police = client.find_network("Comisaria", "").await.unwrap();
-
-    join_network(&client, &police.public_ip).await;
-
-    let snapshot = client.network_state().await.unwrap();
-    let account = service_account(&snapshot, "ftp");
+    let police = service_network(&client, "Comisaria", "ftp", 10_021, 10_021).await;
+    let account = fixture_account(&police, "ftp", "ftp", false);
+    let snapshot = join_fixture(&client, &police).await;
     let address = &account.address;
     let port = account.port;
     let root = &account.root_password;
@@ -282,42 +251,15 @@ async fn should_match_intrinsics_for_encrypted_service_logins() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let (address, snapshot, port, password, ftp_port, ftp_password) = loop {
-        let network = client
-            .find_new_network("Supermercados", "ssh")
-            .await
-            .unwrap();
-        let address = network.public_ip.to_string();
-
-        join_network(&client, &address).await;
-
-        let snapshot = client.network_state().await.unwrap();
-
-        if forwarded_service(&snapshot, "ftp").is_none() {
-            continue;
-        }
-
-        let (port, password) = forwarded_root(&snapshot, "ssh");
-        let (ftp_port, ftp_password) = forwarded_root(&snapshot, "ftp");
-
-        // The forwarded computers' root logins have to work for the script to get anywhere; on some generated
-        // networks they don't (in both worlds alike), so only a network where Greybel's copy accepts both is used.
-        if !simulated_login(&snapshot, &user, &address, port, "root", &password)
-            || !simulated_service_login(
-                &snapshot,
-                &user,
-                &address,
-                ftp_port,
-                "root",
-                &ftp_password,
-                "ftp",
-            )
-        {
-            continue;
-        }
-
-        break (address, snapshot, port, password, ftp_port, ftp_password);
-    };
+    let network = dual_service_network(&client).await;
+    let address = network.public_ip.clone();
+    let ssh = fixture_account(&network, "dual", "ssh", true);
+    let ftp = fixture_account(&network, "dual", "ftp", true);
+    let port = ssh.port;
+    let password = ssh.root_password;
+    let ftp_port = ftp.port;
+    let ftp_password = ftp.root_password;
+    let snapshot = join_fixture(&client, &network).await;
     let encode =
         script_string("Encode = function(password)\n  return \"enc_\" + password\nend function");
     let decode = script_string(&format!(
@@ -382,51 +324,31 @@ async fn should_match_intrinsics_for_a_routers_file_system() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let mut found = None;
-
-    // A fresh network whose kernel has a computer reward without requirements.
-    for _ in 0..8 {
-        let network = client
-            .find_new_network("Supermercados", "ssh")
-            .await
-            .unwrap();
-        let address = network.public_ip.to_string();
-
-        join_network(&client, &address).await;
-
-        let snapshot = client.network_state().await.unwrap();
-        let main = snapshot
-            .nodes
-            .iter()
-            .find(|node| node.parent.is_none())
-            .map(|node| node.local_ip.to_string())
-            .expect("the network has a main router");
-        let kernel = router_library(&snapshot, &main);
-        let usable = weakness(&kernel, |weakness| {
-            weakness.reward == Reward::Computer
-                && weakness.requirements.is_empty()
-                && weakness.user == "guest"
-        })
-        .map(|(zone, weakness)| (zone.to_owned(), weakness.clone()));
-
-        if let Some((zone, weakness)) = usable {
-            found = Some((address, main, snapshot, zone, weakness));
-            break;
-        }
-    }
-
-    let (address, main, snapshot, zone, weakness) =
-        found.expect("a fresh network's kernel has a computer reward without requirements");
+    let initial = client.network_state().await.unwrap();
+    let address = initial.public_ip.clone();
+    let main = initial.nodes[0].local_ip.clone();
+    let installed = client
+        .install_fixture_library(
+            &main,
+            "kernel_router.so",
+            vec![fixture_weakness(Reward::Computer, &[], "guest", "")],
+            false,
+        )
+        .await
+        .unwrap();
+    let snapshot = client.network_state().await.unwrap();
+    let kernel = router_library(&snapshot, &main);
+    let (zone, weakness) = fixture_reply_weakness(&kernel, &installed.weaknesses[0]);
     let routers: Vec<String> = snapshot
         .nodes
         .iter()
         .filter(|node| matches!(node.node, LanNodeKind::Router(_)))
-        .map(|node| node.local_ip.to_string())
+        .map(|node| node.local_ip.clone())
         .collect();
     let scripts: Vec<String> = routers
         .iter()
         .map(|router| {
-            let exploit = overflow_script("", Some((&main, 0)), &zone, &weakness, router);
+            let exploit = overflow_script("", Some((&main, 0)), zone, weakness, router);
 
             format!(
                 "{exploit}; pc = lib.overflow(\"{zone}\", \"{unsec}\", \"{router}\"); \
@@ -454,16 +376,13 @@ async fn should_match_intrinsics_for_port_info() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let network = client
-        .find_new_network("Supermercados", "ssh")
-        .await
-        .unwrap();
-    let address = network.public_ip.to_string();
+    let network = ssh_network(&client).await;
+    let address = network.public_ip.clone();
+    let account = fixture_account(&network, "ssh", "ssh", true);
+    let port = account.port;
+    let password = account.root_password;
 
-    join_network(&client, &address).await;
-
-    let snapshot = client.network_state().await.unwrap();
-    let (port, password) = forwarded_root(&snapshot, "ssh");
+    let snapshot = join_fixture(&client, &network).await;
     let connect =
         format!("get_shell.connect_service(\"{address}\", {port}, \"root\", \"{password}\")");
     let script = format!(
@@ -485,41 +404,20 @@ async fn should_match_intrinsics_for_a_disabled_network() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let network = client
-        .find_new_network("Supermercados", "ssh")
-        .await
-        .unwrap();
-    let address = network.public_ip.to_string();
+    let network = ssh_network(&client).await;
+    let address = network.public_ip.clone();
+    let public = fixture_account(&network, "ssh", "ssh", true);
+    let port = public.port;
+    let password = public.root_password;
+    let local = fixture_account(&network, "ssh", "ssh", false);
+    let lan_ip = local.address;
+    let lan_port = local.port;
+    let lan_password = local.root_password;
 
     join_network(&client, &address).await;
     client.disable_network(&address, true).await.unwrap();
 
     let snapshot = client.network_state().await.unwrap();
-    let (port, password) = forwarded_root(&snapshot, "ssh");
-    let (lan_ip, lan_port, lan_password) = snapshot
-        .nodes
-        .iter()
-        .find_map(|node| {
-            if node.hidden {
-                return None;
-            }
-
-            let LanNodeKind::Computer(computer) = &node.node else {
-                return None;
-            };
-            let port = computer
-                .ports
-                .iter()
-                .find(|port| port.service == "ssh" && !port.closed)?;
-            let root = computer.users.iter().find(|user| user.name == "root")?;
-
-            Some((
-                node.local_ip.to_string(),
-                port.number,
-                root.password.to_string(),
-            ))
-        })
-        .expect("a visible LAN computer running SSH");
     let script = format!(
         "print get_shell.connect_service(\"{address}\", {port}, \"root\", \"{password}\")
 mx = include_lib(\"/lib/metaxploit.so\")
@@ -548,46 +446,25 @@ async fn should_match_intrinsics_for_net_session_queries_and_flooding() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let mut administered = None;
+    let network = ssh_network(&client).await;
+    let before = join_fixture(&client, &network).await;
 
-    for _ in 0..32 {
-        let network = client.spawn_network("Supermercados").await.unwrap();
+    assert!(before.admin.is_some());
 
-        join_network(&client, &network.public_ip).await;
-
-        let snapshot = client.network_state().await.unwrap();
-        let ssh = snapshot.nodes.iter().any(|node| {
-            let LanNodeKind::Computer(computer) = &node.node else {
-                return false;
-            };
-
-            computer.users.iter().any(|user| user.name == "root")
-                && computer.users.iter().any(|user| user.name != "root")
-                && computer
-                    .ports
-                    .iter()
-                    .any(|port| port.service == "ssh" && !port.closed)
-        });
-
-        if snapshot.admin.is_some() && ssh {
-            administered = Some(snapshot);
-            break;
-        }
-    }
-
-    let before = administered.expect("a generated supermarket has an administrator and SSH");
-    let account = service_account(&before, "ssh");
-    let main = before.nodes[0].local_ip.to_string();
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let main = before.nodes[0].local_ip.clone();
 
     client.prime_flood(&account.address).await.unwrap();
     client.prime_flood(&main).await.unwrap();
 
     let snapshot = client.network_state().await.unwrap();
-    let account = service_account(&snapshot, "ssh");
     let super_admin = snapshot.rental_admin
         || snapshot.admin.as_ref().is_some_and(|admin| {
             admin.work_performance > 2
-                && (u16::from(admin.intelligence) + u16::from(admin.pc_experience)) / 2 >= 8
+                && u16::midpoint(
+                    u16::from(admin.intelligence),
+                    u16::from(admin.pc_experience),
+                ) >= 8
                 && !admin.dead_or_fired
         });
     let mut threshold = u32::from(snapshot.net_speed) * 3;
@@ -618,11 +495,8 @@ async fn should_match_intrinsics_for_nslookup_and_the_current_date() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let shop = client.find_network("HackShop", "").await.unwrap();
-
-    join_network(&client, &shop.public_ip).await;
-
-    let snapshot = client.network_state().await.unwrap();
+    let shop = empty_network(&client, "HackShop").await;
+    let snapshot = join_fixture(&client, &shop).await;
     let scripts = vec![
         format!(
             "print current_date; print nslookup(\"{}\"); print nslookup(\"!!!\"); print nslookup(\"missing.invalid\")",
@@ -638,7 +512,7 @@ async fn should_match_intrinsics_for_nslookup_and_the_current_date() {
         outcomes[0]
             .output
             .as_deref()
-            .is_some_and(|output| output.contains(&shop.public_ip.to_string()))
+            .is_some_and(|output| output.contains(&shop.public_ip.clone()))
     );
     client.shutdown();
 }
@@ -650,37 +524,11 @@ async fn should_match_intrinsics_for_port_info_after_a_library_rename() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    // The forward may point at a computer the outside can't log in to (a firewall on the way, as
-    // `PlayerUtils.ConnectComputer` checks), so the network is one where the simulated copy logs in; the comparison
-    // below still runs the same script in the game.
-    let mut found = None;
-
-    for _ in 0..12 {
-        let network = client
-            .find_new_network("Supermercados", "ssh")
-            .await
-            .unwrap();
-
-        join_network(&client, &network.public_ip).await;
-
-        let snapshot = client.network_state().await.unwrap();
-        let (port, root_password) = forwarded_root(&snapshot, "ssh");
-        let login = format!(
-            "print typeof(get_shell.connect_service(\"{}\", {port}, \"root\", {}))",
-            snapshot.public_ip,
-            script_string(&root_password),
-        );
-
-        let outcome = &snapshot_outcomes(&[&login], &user, &snapshot)[0];
-
-        if outcome.output.as_deref().map(str::trim_end) == Some("shell") {
-            found = Some((snapshot, port, root_password));
-            break;
-        }
-    }
-
-    let (snapshot, port, root_password) =
-        found.expect("a generated network whose forwarded SSH computer takes root logins");
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", true);
+    let port = account.port;
+    let root_password = account.root_password;
+    let snapshot = join_fixture(&client, &network).await;
     // `RouterIntrinsics.ping_port` is the router's way to a port object by the number it forwards from; `get_port`
     // does not exist.
     let rename = format!(

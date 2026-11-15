@@ -25,7 +25,7 @@ pub fn create_folder(
     };
 
     if let Err(refusal) = check_folder_name(name) {
-        return refuse("create_folder", refusal);
+        return refuse("create_folder", &refusal);
     }
 
     let Some(access) = computer(vm, this, "create_folder") else {

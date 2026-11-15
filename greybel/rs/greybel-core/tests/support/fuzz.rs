@@ -124,7 +124,10 @@ pub fn program(seed: &mut u64) -> String {
     let mut source = String::new();
 
     for _ in 0..pieces {
-        source.push_str(PIECES[(next(seed) % PIECES.len() as u64) as usize]);
+        source.push_str(
+            PIECES[usize::try_from(next(seed) % PIECES.len() as u64)
+                .expect("value fits the target integer type")],
+        );
         if next(seed).is_multiple_of(3) {
             source.push(' ');
         }

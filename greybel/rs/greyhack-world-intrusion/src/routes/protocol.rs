@@ -9,23 +9,23 @@ impl IntoProtocol for crate::CryptoFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::CryptoFailure as World;
-
         Failure::Crypto(match failure {
-            World::HasEncryption => CryptoFailure::Encrypted,
-            World::NoEncryption => CryptoFailure::NotEncrypted,
-            World::IncorrectPassword => CryptoFailure::IncorrectPassword,
-            World::NotWifiCard => CryptoFailure::NotWifiCard,
-            World::NoMonitorSupport => CryptoFailure::NoMonitorSupport,
-            World::UnknownRouter => CryptoFailure::UnknownRouter,
-            World::NoMonitorCard => CryptoFailure::NoMonitorCard,
-            World::UnreadableCapture => CryptoFailure::UnreadableCapture,
-            World::InvalidCapture => CryptoFailure::InvalidCapture,
-            World::EncryptedCapture => CryptoFailure::EncryptedCapture,
-            World::CorruptedCapture => CryptoFailure::CorruptedCapture,
-            World::MoreAcks => CryptoFailure::MoreAcksNeeded,
-            World::File(failure) => return Failure::File(failure.into_protocol()),
-            World::Refusal(refusal) => return Failure::Refusal(refusal.into_protocol()),
+            crate::CryptoFailure::HasEncryption => CryptoFailure::Encrypted,
+            crate::CryptoFailure::NoEncryption => CryptoFailure::NotEncrypted,
+            crate::CryptoFailure::IncorrectPassword => CryptoFailure::IncorrectPassword,
+            crate::CryptoFailure::NotWifiCard => CryptoFailure::NotWifiCard,
+            crate::CryptoFailure::NoMonitorSupport => CryptoFailure::NoMonitorSupport,
+            crate::CryptoFailure::UnknownRouter => CryptoFailure::UnknownRouter,
+            crate::CryptoFailure::NoMonitorCard => CryptoFailure::NoMonitorCard,
+            crate::CryptoFailure::UnreadableCapture => CryptoFailure::UnreadableCapture,
+            crate::CryptoFailure::InvalidCapture => CryptoFailure::InvalidCapture,
+            crate::CryptoFailure::EncryptedCapture => CryptoFailure::EncryptedCapture,
+            crate::CryptoFailure::CorruptedCapture => CryptoFailure::CorruptedCapture,
+            crate::CryptoFailure::MoreAcks => CryptoFailure::MoreAcksNeeded,
+            crate::CryptoFailure::File(failure) => return Failure::File(failure.into_protocol()),
+            crate::CryptoFailure::Refusal(refusal) => {
+                return Failure::Refusal(refusal.into_protocol());
+            }
         })
     }
 }

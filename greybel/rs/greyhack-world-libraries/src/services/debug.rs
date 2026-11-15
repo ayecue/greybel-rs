@@ -103,11 +103,11 @@ pub enum PartialObject {
 /// Methods of [`World`] for exploits debug.
 impl Debug {
     pub async fn debug_account(&self, user: &str) -> Result<Option<DebugAccount>> {
-        self.debug.debug_account(user).await
+        self.rows.debug_account(user).await
     }
 
     pub async fn save_debug_account(&self, account: &DebugAccount) -> Result<()> {
-        self.debug.set_debug_account(account).await
+        self.rows.set_debug_account(account).await
     }
 
     pub async fn login_debug(
@@ -147,7 +147,7 @@ impl Debug {
             return Ok(None);
         };
 
-        self.debug
+        self.rows
             .debug_library(
                 computer,
                 node.id,
@@ -158,7 +158,7 @@ impl Debug {
     }
 
     pub async fn save_debug_library(&self, library: &DebugLibraryState) -> Result<()> {
-        self.debug.set_debug_library(library).await
+        self.rows.set_debug_library(library).await
     }
 
     pub async fn debug_library_patch(
@@ -373,7 +373,7 @@ impl Debug {
 /// A world service with only its declared dependencies.
 pub struct Debug {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) debug: std::rc::Rc<crate::storage::DebugRepository>,
+    pub(crate) rows: std::rc::Rc<crate::storage::DebugRepository>,
     pub(crate) computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
     pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
 }
@@ -387,7 +387,7 @@ impl Debug {
     ) -> Self {
         Self {
             world: world.clone(),
-            debug,
+            rows: debug,
             computers,
             files,
         }

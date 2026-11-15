@@ -22,9 +22,15 @@ async fn should_give_the_networks_of_a_procedural_mission_its_files() {
                 .filter(|(path, content)| {
                     path.starts_with("/home/")
                         && !content.is_empty()
-                        && (path.ends_with(".txt")
-                            || path.ends_with(".log")
-                            || path.ends_with(".pdf"))
+                        && (std::path::Path::new(path)
+                            .extension()
+                            .is_some_and(|ext| ext.eq_ignore_ascii_case("txt"))
+                            || std::path::Path::new(path)
+                                .extension()
+                                .is_some_and(|ext| ext.eq_ignore_ascii_case("log"))
+                            || std::path::Path::new(path)
+                                .extension()
+                                .is_some_and(|ext| ext.eq_ignore_ascii_case("pdf")))
                 })
                 .count();
         }

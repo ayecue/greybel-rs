@@ -2,7 +2,7 @@
 
 use greybel_test_support::game::Game;
 
-use crate::support::game::{join_network_of_kind_where, setup_player, test_client};
+use crate::support::game::{join_fixture, setup_player, smtp_network, test_client};
 use crate::support::parity::compare_in_real_time;
 
 /// Mail login, summaries, delivery failures, deletion, argument validation and the two-second send cooldown. Mail IDs
@@ -12,21 +12,14 @@ async fn should_match_intrinsics_for_mail_accounts_and_messages() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
+    let network = smtp_network(&client).await;
 
-    join_network_of_kind_where(&client, &["MailServices"], "smtp", |snapshot| {
-        snapshot.kind == "MailServices" && !snapshot.disabled
-    })
-    .await;
+    join_fixture(&client, &network).await;
     client.setup_mail("parity", "mailpass1").await.unwrap();
 
     let snapshot = client.network_state().await.unwrap();
-    let address = snapshot.player_mail.as_ref().unwrap().address.to_string();
-    let recipient = snapshot
-        .recipient_mail
-        .as_ref()
-        .unwrap()
-        .address
-        .to_string();
+    let address = snapshot.player_mail.as_ref().unwrap().address.clone();
+    let recipient = snapshot.recipient_mail.as_ref().unwrap().address.clone();
     let script = format!(
         r#"print mail_login("invalid", "x")
 print mail_login("@domain", "x")

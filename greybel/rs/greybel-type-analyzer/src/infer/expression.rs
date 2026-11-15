@@ -136,6 +136,164 @@ impl Inference<'_> {
         (ty, receiver)
     }
 
+    fn infer_call(&mut self, node: NodeId) -> TypeId {
+        let ast = self.ast();
+        let NodeKind::Call(call) = ast.kind(node) else {
+            unreachable!()
+        };
+        let (callee, receiver) = self.infer_reference_with_receiver(call.base);
+        let mut arguments = self.type_buffers.take();
+
+        arguments.extend(
+            ast.list(call.arguments)
+                .iter()
+                .map(|&argument| self.infer_value(argument)),
+        );
+
+        let method = matches!(
+            ast.kind(call.base),
+            NodeKind::Member(_) | NodeKind::Index(_)
+        );
+
+        self.validate_call(node, callee, &arguments, method);
+
+        let site = CallSite {
+            method,
+            receiver,
+            arguments: &arguments,
+            argument_nodes: ast.list(call.arguments),
+        };
+        let result = self.call_result_type(callee, &site);
+
+        self.type_buffers.release(arguments);
+
+        result
+    }
+
+    fn infer_list(&mut self, node: NodeId) -> TypeId {
+        let ast = self.ast();
+        let NodeKind::List(list) = ast.kind(node) else {
+            unreachable!()
+        };
+        let mut items = self.type_buffers.take();
+
+        items.extend(
+            ast.list(list.fields)
+                .iter()
+                .map(|&item| self.infer_value(item)),
+        );
+
+        let item = self.types.union_all(items.iter().copied());
+
+        self.type_buffers.release(items);
+
+        self.types.list(item)
+    }
+
+    fn infer_map_literal(&mut self, node: NodeId) -> TypeId {
+        let ast = self.ast();
+        let NodeKind::Map(map) = ast.kind(node) else {
+            unreachable!()
+        };
+        let id = self.resolve_map(node, MapOrigin::Literal(self.site(node)));
+        let object = self.object_type(id);
+        let mut literal_keys = Vec::new();
+
+        for &entry in ast.list(map.fields) {
+            let NodeKind::MapEntry(field) = ast.kind(entry) else {
+                continue;
+            };
+            let value = self.infer_value(field.value);
+
+            match self.literal_key(field.key) {
+                Some(key) => {
+                    let duplicate = literal_keys.contains(&key);
+
+                    if duplicate {
+                        let text = ast.text(field.key).unwrap_or_default().to_owned();
+
+                        self.report(
+                            DiagnosticKind::DuplicateKey,
+                            field.key,
+                            format!("Duplicate map literal key: {text}"),
+                        );
+                    }
+
+                    self.infer_value(field.key);
+                    self.assign_entry(object, key.as_key_ref(), value);
+
+                    let slots = self.lookup().entry_slots(object, key.as_key_ref());
+
+                    self.add_definition(field.key, &slots);
+                    if !duplicate {
+                        literal_keys.push(key);
+                    }
+                }
+                None => {
+                    let key = self.infer_value(field.key);
+
+                    self.assign_dynamic_entry(object, key, value);
+                }
+            }
+
+            self.record_node_type(entry, value);
+        }
+
+        object
+    }
+
+    fn infer_slice(&mut self, node: NodeId) -> TypeId {
+        let ast = self.ast();
+        let NodeKind::Slice(slice) = ast.kind(node) else {
+            unreachable!()
+        };
+        let base = self.infer_value(slice.base);
+        let base = self.types.erase_type_parameters(base);
+
+        self.infer_value(slice.left);
+        self.infer_value(slice.right);
+
+        let variants: Vec<TypeId> = self
+            .types
+            .variants(base)
+            .filter(|&variant| {
+                matches!(
+                    self.types.get(variant),
+                    Type::String | Type::List(_) | Type::Any
+                )
+            })
+            .collect();
+
+        self.types.union_all(variants)
+    }
+
+    fn infer_unary(&mut self, node: NodeId) -> TypeId {
+        let NodeKind::Unary(unary) = self.ast().kind(node) else {
+            unreachable!()
+        };
+
+        match unary.operator {
+            UnaryOp::AddressOf => match self.infer_reference_with_receiver(unary.argument) {
+                (ty, Some(receiver)) => self.method_type(ty, receiver.ty),
+                (ty, None) => ty,
+            },
+            UnaryOp::New => {
+                let parent = self.infer_value(unary.argument);
+                let map = self.resolve_map(node, MapOrigin::New(self.site(node)));
+                let slot = self.model.map(map).isa;
+
+                self.widen(slot, parent);
+
+                self.object_type(map)
+            }
+            UnaryOp::Not | UnaryOp::Negate => {
+                let operand = self.infer_value(unary.argument);
+
+                Self::propagate_unknown(&[operand], TypeId::NUMBER)
+            }
+        }
+    }
+
     fn infer_expression(&mut self, node: NodeId) -> TypeId {
         let ast = self.ast();
         let ty = match ast.kind(node) {
@@ -149,138 +307,12 @@ impl Inference<'_> {
 
                 self.types.function(FunctionRef::Body(function))
             }
-            NodeKind::Call(call) => {
-                let (callee, receiver) = self.infer_reference_with_receiver(call.base);
-                let mut arguments = self.type_buffers.take();
-
-                arguments.extend(
-                    ast.list(call.arguments)
-                        .iter()
-                        .map(|&argument| self.infer_value(argument)),
-                );
-
-                let method = matches!(
-                    ast.kind(call.base),
-                    NodeKind::Member(_) | NodeKind::Index(_)
-                );
-
-                self.validate_call(node, callee, &arguments, method);
-
-                let site = CallSite {
-                    method,
-                    receiver,
-                    arguments: &arguments,
-                    argument_nodes: ast.list(call.arguments),
-                };
-                let result = self.call_result_type(callee, &site);
-
-                self.type_buffers.release(arguments);
-
-                result
-            }
-            NodeKind::List(list) => {
-                let mut items = self.type_buffers.take();
-
-                items.extend(
-                    ast.list(list.fields)
-                        .iter()
-                        .map(|&item| self.infer_value(item)),
-                );
-
-                let item = self.types.union_all(items.iter().copied());
-
-                self.type_buffers.release(items);
-
-                self.types.list(item)
-            }
+            NodeKind::Call(_) => self.infer_call(node),
+            NodeKind::List(_) => self.infer_list(node),
             NodeKind::ListItem(item) => self.infer_value(item.value),
-            NodeKind::Map(map) => {
-                let id = self.resolve_map(node, MapOrigin::Literal(self.site(node)));
-                let object = self.object_type(id);
-                let mut literal_keys = Vec::new();
-
-                for &entry in ast.list(map.fields) {
-                    let NodeKind::MapEntry(field) = ast.kind(entry) else {
-                        continue;
-                    };
-                    let value = self.infer_value(field.value);
-
-                    match self.literal_key(field.key) {
-                        Some(key) => {
-                            let duplicate = literal_keys.contains(&key);
-
-                            if duplicate {
-                                let text = ast.text(field.key).unwrap_or_default().to_owned();
-
-                                self.report(
-                                    DiagnosticKind::DuplicateKey,
-                                    field.key,
-                                    format!("Duplicate map literal key: {text}"),
-                                );
-                            }
-
-                            self.infer_value(field.key);
-                            self.assign_entry(object, key.as_key_ref(), value);
-
-                            let slots = self.lookup().entry_slots(object, key.as_key_ref());
-
-                            self.add_definition(field.key, &slots);
-                            if !duplicate {
-                                literal_keys.push(key);
-                            }
-                        }
-                        None => {
-                            let key = self.infer_value(field.key);
-
-                            self.assign_dynamic_entry(object, key, value);
-                        }
-                    }
-
-                    self.record_node_type(entry, value);
-                }
-
-                object
-            }
-            NodeKind::Slice(slice) => {
-                let base = self.infer_value(slice.base);
-                let base = self.types.erase_type_parameters(base);
-
-                self.infer_value(slice.left);
-                self.infer_value(slice.right);
-
-                let variants: Vec<TypeId> = self
-                    .types
-                    .variants(base)
-                    .filter(|&variant| {
-                        matches!(
-                            self.types.get(variant),
-                            Type::String | Type::List(_) | Type::Any
-                        )
-                    })
-                    .collect();
-
-                self.types.union_all(variants)
-            }
-            NodeKind::Unary(unary) => match unary.operator {
-                UnaryOp::AddressOf => match self.infer_reference_with_receiver(unary.argument) {
-                    (ty, Some(receiver)) => self.method_type(ty, receiver.ty),
-                    (ty, None) => ty,
-                },
-                UnaryOp::New => {
-                    let parent = self.infer_value(unary.argument);
-                    let map = self.resolve_map(node, MapOrigin::New(self.site(node)));
-                    let slot = self.model.map(map).isa;
-
-                    self.widen(slot, parent);
-
-                    self.object_type(map)
-                }
-                UnaryOp::Not | UnaryOp::Negate => {
-                    let operand = self.infer_value(unary.argument);
-
-                    Self::propagate_unknown(&[operand], TypeId::NUMBER)
-                }
-            },
+            NodeKind::Map(_) => self.infer_map_literal(node),
+            NodeKind::Slice(_) => self.infer_slice(node),
+            NodeKind::Unary(_) => self.infer_unary(node),
             NodeKind::Binary(binary) => {
                 let left = self.infer_value(binary.left);
                 let right = self.infer_value(binary.right);
@@ -529,8 +561,7 @@ impl Inference<'_> {
 
                     self.types.list(item)
                 }
-                (Type::List(_), _) => left,
-                (Type::Object(_) | Type::Map { .. } | Type::Class(_), _) => left,
+                (Type::List(_) | Type::Object(_) | Type::Map { .. } | Type::Class(_), _) => left,
                 _ => TypeId::NUMBER,
             },
             BinaryOp::Subtract => match left_type {

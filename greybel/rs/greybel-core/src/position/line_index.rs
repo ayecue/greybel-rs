@@ -72,9 +72,10 @@ impl Measure {
         match self {
             Measure::Tab => i64::from(columns.tab_width) - 1,
             Measure::NonAscii(c) => {
-                let units = columns.encoding.char_len(c) as i64;
+                let units = i64::try_from(columns.encoding.char_len(c))
+                    .expect("a character width fits i64");
 
-                units - c.len_utf8() as i64
+                units - i64::try_from(c.len_utf8()).expect("a UTF-8 length fits i64")
             }
         }
     }
@@ -176,7 +177,8 @@ impl LineIndex {
 
     #[must_use]
     pub fn line(&self, offset: u32) -> u32 {
-        self.line_starts.partition_point(|&start| start <= offset) as u32
+        u32::try_from(self.line_starts.partition_point(|&start| start <= offset))
+            .expect("value fits the target integer type")
     }
 
     #[must_use]

@@ -2,11 +2,11 @@ use super::{GuildSetup, RequestKind, TestClient};
 use crate::TestClientError;
 use crate::protocol::test_support::{
     BlockchainReadyReply, CtfRatedReply, DebugReadyReply, ExecutionResultReply, ExploitBoughtReply,
-    ExploitsReply, FileStateReply, FileWrittenReply, GameEndedReply, GuildsReply,
-    KernelReplacedReply, LibraryReleasedReply, LibraryReportedReply, MissionReply,
-    NetworkConnectionReply, NetworkCreatedReply, NetworkSnapshot, NetworkStateReply,
-    PairExecutionResultReply, PlayerReadyReply, PlayerStateReply, Reply, TracesReply,
-    TrafficReadyReply, WordListsReply,
+    ExploitsReply, FileStateReply, FileWrittenReply, FixtureLibraryReply, FixtureNetworkReply,
+    FixtureTarget, FixtureWeakness, GameEndedReply, GuildsReply, KernelReplacedReply,
+    LibraryReleasedReply, LibraryReportedReply, MissionReply, NetworkConnectionReply,
+    NetworkCreatedReply, NetworkSnapshot, NetworkStateReply, PairExecutionResultReply,
+    PlayerReadyReply, PlayerStateReply, Reply, TracesReply, TrafficReadyReply, WordListsReply,
 };
 
 impl TestClient {
@@ -61,6 +61,28 @@ impl TestClient {
         {
             Reply::NetworkCreated(result) => Ok(result),
             _ => Err(TestClientError::UnexpectedResponse("NetworkCreated")),
+        }
+    }
+
+    /// Creates a fresh mission-free network with the requested generated targets.
+    pub async fn create_fixture_network(
+        &self,
+        kind: &str,
+        layout: &str,
+        oldest_kernel: bool,
+        targets: Vec<FixtureTarget>,
+    ) -> Result<FixtureNetworkReply, TestClientError> {
+        match self
+            .request(RequestKind::CreateFixtureNetwork {
+                kind: kind.to_owned(),
+                layout: layout.to_owned(),
+                oldest_kernel,
+                targets,
+            })
+            .await?
+        {
+            Reply::FixtureNetwork(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("FixtureNetwork")),
         }
     }
 
@@ -285,7 +307,7 @@ impl TestClient {
         }
     }
 
-    /// Places a game-generated library `name` with weakness `reward` in `/lib` on `local_ip` in the player's network.
+    /// Places a new game-generated library `name` with a free weakness for `reward` in `/lib` on `local_ip`.
     /// An empty `local_ip` selects the player's computer.
     pub async fn install_library(
         &self,
@@ -296,8 +318,8 @@ impl TestClient {
         self.install_library_with(local_ip, name, &[reward]).await
     }
 
-    /// Places a game-generated library `name` with a weakness for each of `rewards` in `/lib` on `local_ip` in the
-    /// player's network, choosing the version whose weaknesses for them have the fewest requirements in total.
+    /// Places a new game-generated library `name` with a requirement-free weakness for each of `rewards` in `/lib`
+    /// on `local_ip` in the player's network.
     pub async fn install_library_with(
         &self,
         local_ip: &str,
@@ -314,6 +336,28 @@ impl TestClient {
         {
             Reply::Applied => Ok(()),
             _ => Err(TestClientError::UnexpectedResponse("Applied")),
+        }
+    }
+
+    /// Installs a new game-generated library version with exact weakness coverage.
+    pub async fn install_fixture_library(
+        &self,
+        local_ip: &str,
+        name: &str,
+        weaknesses: Vec<FixtureWeakness>,
+        register_exploits: bool,
+    ) -> Result<FixtureLibraryReply, TestClientError> {
+        match self
+            .request(RequestKind::InstallFixtureLibrary {
+                local_ip: local_ip.to_owned(),
+                name: name.to_owned(),
+                weaknesses,
+                register_exploits,
+            })
+            .await?
+        {
+            Reply::FixtureLibrary(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("FixtureLibrary")),
         }
     }
 
@@ -368,27 +412,6 @@ impl TestClient {
         .await
     }
 
-    /// Forwards a public port from the current main router to a LAN service.
-    pub async fn forward_service(
-        &self,
-        local_ip: &str,
-        public_port: u16,
-        internal_port: u16,
-    ) -> Result<(), TestClientError> {
-        match self
-            .request(RequestKind::ForwardService {
-                local_ip: local_ip.to_owned(),
-                public_port,
-                internal_port,
-                service: "smtp".to_owned(),
-            })
-            .await?
-        {
-            Reply::Applied => Ok(()),
-            _ => Err(TestClientError::UnexpectedResponse("Applied")),
-        }
-    }
-
     /// Maps public port 1222 to the player's reverse-shell service.
     pub async fn forward_rshell(&self, local_ip: &str) -> Result<(), TestClientError> {
         match self
@@ -429,43 +452,6 @@ impl TestClient {
     /// Freezes the game clock at the current minute for date comparison.
     pub async fn freeze_clock(&self) -> Result<(), TestClientError> {
         self.apply_fixture(RequestKind::FreezeClock).await
-    }
-
-    /// Returns the public address of a `kind` network whose LAN contains `device`; an empty device matches any.
-    pub async fn find_network(
-        &self,
-        kind: &str,
-        device: &str,
-    ) -> Result<NetworkCreatedReply, TestClientError> {
-        match self
-            .request(RequestKind::FindNetwork {
-                kind: kind.to_owned(),
-                device: device.to_owned(),
-            })
-            .await?
-        {
-            Reply::NetworkCreated(result) => Ok(result),
-            _ => Err(TestClientError::UnexpectedResponse("NetworkCreated")),
-        }
-    }
-
-    /// Returns the public address of a newly generated, unmodified `kind` network whose main router forwards a port
-    /// to `service`.
-    pub async fn find_new_network(
-        &self,
-        kind: &str,
-        service: &str,
-    ) -> Result<NetworkCreatedReply, TestClientError> {
-        match self
-            .request(RequestKind::FindNewNetwork {
-                kind: kind.to_owned(),
-                service: service.to_owned(),
-            })
-            .await?
-        {
-            Reply::NetworkCreated(result) => Ok(result),
-            _ => Err(TestClientError::UnexpectedResponse("NetworkCreated")),
-        }
     }
 
     /// Marks the network at `public_ip` unpaid and disabled, or restores it.

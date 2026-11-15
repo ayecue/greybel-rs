@@ -24,7 +24,6 @@ impl ShellService {
         self.traces
             .cancel_active_traces(&[program])
             .await
-            .map(|_| ())
             .and(process_end)
     }
 

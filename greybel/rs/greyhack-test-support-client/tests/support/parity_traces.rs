@@ -5,7 +5,7 @@ use greybel_test_support::greyhack::run_on_host_at;
 use greybel_test_support::interpreter::constant_clock_options;
 use greyhack_test_support_client::TestClient;
 use greyhack_test_support_client::protocol::test_support::{
-    LanNodeKind, NetworkSnapshot, TraceComputer, TracesReply,
+    NetworkSnapshot, TraceComputer, TracesReply,
 };
 use greyhack_world::World;
 
@@ -17,50 +17,11 @@ use super::remote::ServiceAccount;
 /// Experience of a level-5 guild, which may invest in one company.
 pub const LEVEL_FIVE: u32 = 275 * 25;
 
-/// The first SSH computer the player's computer can log in to by its LAN address, with a root and a non-root account.
-/// A hidden computer, or one behind a switch outside the player's subnet, is unreachable
-/// (`NetworkLan.Ping`), and `connect_service` then answers "Connection refused. Address unreachable".
-pub fn reachable_ssh_account(snapshot: &NetworkSnapshot) -> Option<ServiceAccount> {
-    snapshot.nodes.iter().find_map(|node| {
-        let LanNodeKind::Computer(computer) = &node.node else {
-            return None;
-        };
-
-        if node.hidden || !snapshot.nodes.iter().any(|gateway| {
-            gateway.local_ip == node.gateway
-                && matches!(&gateway.node, LanNodeKind::Router(router) if router.kind == "ROUTER")
-        }) {
-            return None;
-        }
-
-        let port = computer
-            .ports
-            .iter()
-            .find(|port| port.service == "ssh" && !port.closed)?
-            .number;
-        let root = computer.users.iter().find(|user| user.name == "root")?;
-        let user = computer.users.iter().find(|user| user.name != "root")?;
-
-        Some(ServiceAccount {
-            address: node.local_ip.to_string(),
-            port,
-            root_password: root.password.to_string(),
-            user: user.name.to_string(),
-            password: user.password.to_string(),
-        })
-    })
-}
-
 /// The addresses of the computers of the traces: active, passive and the strikes.
 pub type TraceService = (Vec<(String, String)>, Vec<(String, String)>, u32);
 
 pub fn game_traces(reply: &TracesReply) -> TraceService {
-    let pair = |computer: &TraceComputer| {
-        (
-            computer.public_ip.to_string(),
-            computer.local_ip.to_string(),
-        )
-    };
+    let pair = |computer: &TraceComputer| (computer.public_ip.clone(), computer.local_ip.clone());
 
     (
         reply.active.iter().map(pair).collect(),
@@ -116,7 +77,7 @@ pub async fn compare(
 ) -> TraceService {
     let script = script(account);
     let guilds = client
-        .query_guilds(std::slice::from_ref(&snapshot.public_ip.to_string()))
+        .query_guilds(std::slice::from_ref(&snapshot.public_ip.clone()))
         .await
         .expect("the guilds are read");
     let expected = std::thread::scope(|scope| {

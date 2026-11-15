@@ -52,7 +52,8 @@ const IP_NETWORK_KINDS: [NetworkKind; 16] = [
 #[must_use]
 pub fn kind_for_ip(seed: &WorldSeed, address: &str) -> NetworkKind {
     let ip = address.parse::<std::net::Ipv4Addr>().map_or(0, u32::from);
-    let index = seed.depermute_u32(IP_KIND_LABEL, ip) % IP_NETWORK_KINDS.len() as u32;
+    let index = seed.depermute_u32(IP_KIND_LABEL, ip)
+        % u32::try_from(IP_NETWORK_KINDS.len()).expect("value fits the target integer type");
 
     IP_NETWORK_KINDS[index as usize]
 }

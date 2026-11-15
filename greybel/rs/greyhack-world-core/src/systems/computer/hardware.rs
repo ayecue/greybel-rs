@@ -4,9 +4,12 @@ use std::rc::Rc;
 
 use greyhack_world_modules::Dep;
 
-use crate::storage::*;
-use crate::systems::*;
-use crate::*;
+use crate::storage::{
+    ComputerRepository, HardwareRepository, LibraryIdentityRepository, NodeRepository,
+    UserRepository,
+};
+use crate::systems::UserService;
+use crate::{ComputerDraft, ComputerId, LanPlace, NetworkId, Port, Result, WorldRef};
 
 impl Hardware {
     /// Inserts a complete computer draft, composing the core repositories in write order.
@@ -22,7 +25,7 @@ impl Hardware {
             .insert_computer_row(draft, network, place)
             .await?;
 
-        self.hardware_rows
+        self.device_rows
             .insert_hardware(id, &draft.hardware)
             .await?;
 
@@ -68,7 +71,7 @@ impl Hardware {
     ///
     /// Returns any database read error.
     pub async fn hardware(&self, computer: ComputerId) -> Result<crate::model::Hardware> {
-        self.hardware_rows.hardware(computer).await
+        self.device_rows.hardware(computer).await
     }
 
     /// Returns `computer` port `number`.
@@ -131,7 +134,7 @@ impl Hardware {
 pub struct Hardware {
     pub(crate) world: WorldRef,
     pub(crate) computer_rows: Rc<ComputerRepository>,
-    pub(crate) hardware_rows: Rc<HardwareRepository>,
+    pub(crate) device_rows: Rc<HardwareRepository>,
     pub(crate) node_rows: Rc<NodeRepository>,
     pub(crate) user_rows: Rc<UserRepository>,
     pub(crate) library_rows: Rc<LibraryIdentityRepository>,
@@ -143,7 +146,7 @@ impl Hardware {
     pub(crate) fn new(
         registry: &Rc<greyhack_world_modules::Registry>,
         computer_rows: Rc<ComputerRepository>,
-        hardware_rows: Rc<HardwareRepository>,
+        device_rows: Rc<HardwareRepository>,
         node_rows: Rc<NodeRepository>,
         user_rows: Rc<UserRepository>,
         library_rows: Rc<LibraryIdentityRepository>,
@@ -152,7 +155,7 @@ impl Hardware {
             world: registry.world::<WorldRef>().clone(),
             libraries: registry.get(),
             computer_rows,
-            hardware_rows,
+            device_rows,
             node_rows,
             user_rows,
             library_rows,

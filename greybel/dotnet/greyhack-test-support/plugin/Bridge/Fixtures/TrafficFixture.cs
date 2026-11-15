@@ -26,7 +26,9 @@ internal sealed class TrafficFixture(Player player, ClockFixture clock) : IFixtu
         NpcInfo driver = router
             .GetNetworkLan()
             .GetNpcInfos()
-            .Values.First(npc => !string.IsNullOrEmpty(npc.GetLicensePlate()));
+            .Values.First(npc =>
+                !string.IsNullOrEmpty(npc.GetLicensePlate()) && !IsFixtureWorkstation(router, npc)
+            );
         DateTime date = ClockServer.Singleton.GetDateTime().Date;
         if (date.DayOfWeek == DayOfWeek.Saturday)
         {
@@ -69,6 +71,13 @@ internal sealed class TrafficFixture(Player player, ClockFixture clock) : IFixtu
         EndCooldown();
         clock.SetTime(ClockServer.Singleton.GetDateTime().AddDays(2));
         return new Reply.Applied();
+    }
+
+    private static bool IsFixtureWorkstation(Router router, NpcInfo npc)
+    {
+        string localIp = npc.GetLocalIP();
+        Computer computer = string.IsNullOrEmpty(localIp) ? null : router.GetComputer(localIp);
+        return computer != null && computer.GetConfigOS().puertos.ExistePuertoExterno(10022);
     }
 
     private void EndCooldown()

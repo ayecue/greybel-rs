@@ -70,6 +70,10 @@ pub const fn pending_trade_price(value: i64, amount: i64) -> i64 {
 /// Returns the midpoint of the best buy and sell prices, or the price of the side that has offers
 /// (`Coin.GetOrderBookValue`); a side without offers has price 0.
 #[must_use]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "Coin.GetOrderBookValue returns integer prices through the script's f64 representation"
+)]
 pub fn order_book_price(best_buy: i64, best_sell: i64) -> f64 {
     match (best_buy, best_sell) {
         (buy, sell) if buy > 0 && sell > 0 => ((buy + sell + 1) / 2) as f64,
@@ -102,6 +106,12 @@ pub const fn admin_payment_ends(amount: i64) -> bool {
 
 /// Converts a mining cycle of `hours` to world seconds, with a one-second minimum.
 #[must_use]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    reason = "Coin.SetCoinRate uses DateTime.AddHours and the cycle is stored as whole world seconds"
+)]
 pub fn cycle_seconds(hours: f64) -> u64 {
     (hours * SECONDS_PER_HOUR as f64).round().max(1.0) as u64
 }
@@ -115,6 +125,10 @@ const RAM_POWER_PER_MB_MODEL: f32 = 0.0005;
 /// CPU `(speed, cores)`, speed × cores × 0.15; per RAM `(memory_mb, model)`, memory × 0.0005 ×
 /// model; plus the hashrate of each GPU.
 #[must_use]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "BlockchainSystem.CheckBlocks performs hardware power arithmetic with C# floats"
+)]
 pub fn hash_power(
     cpus: impl IntoIterator<Item = (f32, u32)>,
     rams: impl IntoIterator<Item = (u32, u32)>,
@@ -135,6 +149,10 @@ pub fn hash_power(
 
 /// Picks the wallet that wins a mining round, weighting each by its total mining power in `powers`
 /// (`BlockchainSystem.CheckBlocks`). Draws once even when there is no wallet.
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "BlockchainSystem.CheckBlocks scales its random draw with C# double arithmetic"
+)]
 pub fn pick_by_power(rng: &mut Rng, powers: &[f64]) -> Option<usize> {
     let total: f64 = powers.iter().sum();
     let mut draw = (rng.next_u64() as f64 / u64::MAX as f64) * total;

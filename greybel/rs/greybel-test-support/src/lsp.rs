@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 /// Builds `initialize` parameters for one `project` workspace at `root` with client `capabilities`.
 #[must_use]
-pub fn initialize_params(root: &str, capabilities: Value) -> Value {
+pub fn initialize_params(root: &str, capabilities: &Value) -> Value {
     json!({
         "processId": null,
         "rootUri": null,

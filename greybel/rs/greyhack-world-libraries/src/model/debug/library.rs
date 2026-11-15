@@ -29,6 +29,10 @@ impl DebugLibraryState {
     /// Current challenge regenerated from the library seed
     /// (`ChallengeGenerator.GenerateChallenge`).
     #[must_use]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "ChallengeGenerator.GenerateChallenge initializes System.Random with a C# int seed"
+    )]
     pub fn challenge(&self) -> DebugChallenge {
         crate::generation::challenge::challenge(self.seed as i32)
     }

@@ -25,6 +25,12 @@ pub(super) fn system_log_data(log: &SystemLog) -> greyhack_behaviour::FileData {
 
 /// The account of `draft` the mission NPC `npc` takes over: the one already named like it, or one of the others the
 /// mission's draw picks (`NetworkLan.UpdateNpcMissionNames`, `NetworkLan.GetMissionNpcReplacementIndex`).
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    reason = "NetworkLan.GetMissionNpcReplacementIndex truncates its scaled random draw like C# (int)"
+)]
 pub(super) fn replaced_account(
     draft: &ComputerDraft,
     npc: &PreGenNpc,
@@ -78,7 +84,7 @@ pub(super) fn rename_account(
             .collect();
 
         if let Some(home) = draft.filesystem.folder(&format!("/home/{old}"), false) {
-            draft.filesystem.node_mut(home).name = new.to_owned();
+            new.clone_into(&mut draft.filesystem.node_mut(home).name);
         }
 
         draft.filesystem.rename_owner(old, new);

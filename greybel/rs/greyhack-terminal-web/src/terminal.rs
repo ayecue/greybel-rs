@@ -53,6 +53,11 @@ impl Terminal {
     }
 
     /// Builds the scene for `viewport`, relayouts after width changes, and applies the game's sampling and filtering.
+    #[expect(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "Viewport dimensions are clamped positive and converted to whole physical pixels"
+    )]
     pub fn draw(&mut self, viewport: &Viewport) -> Scene {
         let (width, height) = (viewport.width.max(1.0), viewport.height.max(1.0));
 
@@ -116,7 +121,7 @@ impl Terminal {
                 })?;
 
                 atlases.push(Atlas {
-                    font: font as u32,
+                    font: u32::try_from(font).expect("the font index fits u32"),
                     index,
                     width: u32::from(file.width),
                     height: u32::from(file.height),
@@ -143,7 +148,7 @@ impl Terminal {
         };
 
         Material::Font {
-            font: font as u32,
+            font: u32::try_from(font).expect("the font index fits u32"),
             atlas,
             uniforms: SdfUniforms::of(&TERMINAL_TEXT.font_set, material).map(|uniforms| {
                 let vector2 = |[x, y]: [f32; 2]| Vector2 { x, y };

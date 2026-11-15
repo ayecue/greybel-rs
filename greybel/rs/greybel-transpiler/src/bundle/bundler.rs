@@ -67,14 +67,18 @@ impl<'a, E: Emitter> Bundler<'a, E> {
             self.options,
         ));
 
-        preamble
-            .into_iter()
-            .for_each(|line| output.push(&Part::plain(line)));
+        for line in preamble {
+            output.push(&Part::plain(line));
+        }
+
         if has_modules {
             output.push(&header);
         }
 
-        main_modules.iter().for_each(|module| output.push(module));
+        for module in &main_modules {
+            output.push(module);
+        }
+
         output.push(&self.emit_module(main)?);
 
         let mut outputs = vec![output.finish(graph.module(main).uri.clone(), graph)];
@@ -82,7 +86,10 @@ impl<'a, E: Emitter> Bundler<'a, E> {
         for (&native, modules) in natives.iter().zip(&native_modules) {
             let mut output = PendingOutput::default();
 
-            modules.iter().for_each(|module| output.push(module));
+            for module in modules {
+                output.push(module);
+            }
+
             output.push(&self.emit_module(native)?);
             outputs.push(output.finish(graph.module(native).uri.clone(), graph));
         }

@@ -13,10 +13,14 @@ impl FromRow for SmartRow {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
         Ok(Self(SmartApplianceSettings {
             model: row.get("model")?,
-            required_power: row.get::<i64>("required_power")? as i32,
-            required_temperature: row.get::<i64>("required_temperature")? as i32,
-            power: row.get::<i64>("power")? as i32,
-            temperature: row.get::<i64>("temperature")? as i32,
+            required_power: i32::try_from(row.get::<i64>("required_power")?)
+                .expect("value fits the target integer type"),
+            required_temperature: i32::try_from(row.get::<i64>("required_temperature")?)
+                .expect("value fits the target integer type"),
+            power: i32::try_from(row.get::<i64>("power")?)
+                .expect("value fits the target integer type"),
+            temperature: i32::try_from(row.get::<i64>("temperature")?)
+                .expect("value fits the target integer type"),
             alarm: row.get("alarm")?,
             override_enabled: row.get("override_enabled")?,
             recovery_at: row.get::<i64>("broken_until")?.try_into().unwrap_or(0),

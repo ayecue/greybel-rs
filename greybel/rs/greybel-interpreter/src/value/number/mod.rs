@@ -5,7 +5,7 @@ use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use greybel_core::BitwiseOp;
 
-const EXACT_INTEGER: f64 = (1_u64 << f64::MANTISSA_DIGITS) as f64;
+const EXACT_INTEGER: f64 = 9_007_199_254_740_992.0;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 #[repr(transparent)]

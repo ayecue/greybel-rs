@@ -71,9 +71,8 @@ impl<'a> SourceText<'a> {
 
             match c {
                 ')' | ']' | '}' => depth += 1,
-                '[' | '{' if depth > 0 => depth -= 1,
+                '[' | '{' | '(' if depth > 0 => depth -= 1,
                 '[' | '{' => return None,
-                '(' if depth > 0 => depth -= 1,
                 '(' => {
                     open_paren = Some(at);
                     break;

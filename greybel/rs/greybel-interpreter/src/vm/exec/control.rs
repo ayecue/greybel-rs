@@ -2,7 +2,6 @@ use super::super::Vm;
 use super::super::frame::Frame;
 use super::operators::{Branch, Outcome};
 use crate::bytecode::{CodeId, ImportSlot, Local, Operand, Operator, Truthy, VariableOperand};
-use crate::error::RuntimeError;
 use crate::value::{Number, Value};
 
 impl Vm {
@@ -116,13 +115,11 @@ impl Vm {
     }
 
     #[inline(never)]
-    pub(super) fn push_iterator(&mut self) -> Result<(), RuntimeError> {
+    pub(super) fn push_iterator(&mut self) {
         let value = self.pop();
-        let iteration = self.iterator(&value)?;
+        let iteration = self.iterator(&value);
 
         self.frame_mut().iterations.push(iteration);
-
-        Ok(())
     }
 
     pub(super) fn next_item(&mut self, variable: &Local, index: &Local, body: u32) {

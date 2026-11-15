@@ -27,7 +27,10 @@ impl Planner<'_> {
             let children = self.children(0);
 
             if !children.is_empty() {
-                let parent = children[self.next(0, children.len() as u32) as usize];
+                let parent = children[self.next(
+                    0,
+                    u32::try_from(children.len()).expect("value fits the target integer type"),
+                ) as usize];
                 let router = self.adoption_router(parent);
 
                 self.devices[parent].routers.push(router);
@@ -86,7 +89,10 @@ impl Planner<'_> {
             return;
         }
 
-        let parent = children[self.next(0, children.len() as u32) as usize];
+        let parent = children[self.next(
+            0,
+            u32::try_from(children.len()).expect("value fits the target integer type"),
+        ) as usize];
         let router = self.adoption_router(parent);
         let computers = self.next(1, 5);
 
@@ -203,7 +209,7 @@ impl Planner<'_> {
                     .iter()
                     .map(|computer| (computer.local_ip.clone(), computer.kind)),
             );
-            child = self.devices[holder].local_ip.clone();
+            child.clone_from(&self.devices[holder].local_ip);
             current = self.devices[holder].parent;
         }
 
@@ -218,7 +224,10 @@ impl Planner<'_> {
                 break;
             }
 
-            let index = self.next(0, candidates.len() as u32) as usize;
+            let index = self.next(
+                0,
+                u32::try_from(candidates.len()).expect("value fits the target integer type"),
+            ) as usize;
 
             sample.push(candidates.remove(index).0);
         }

@@ -9,15 +9,13 @@ impl IntoProtocol for crate::ApplianceFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::ApplianceFailure as World;
-
         match failure {
-            World::ComputerUnavailable => DeviceFailure::ComputerUnavailable,
-            World::NoInternet => DeviceFailure::NoInternet,
-            World::Malfunction => DeviceFailure::Malfunction,
-            World::SettingsLock => DeviceFailure::Locked,
-            World::InvalidSettings => DeviceFailure::InvalidSettings,
-            World::AlarmWarning => DeviceFailure::AlarmWarning,
+            crate::ApplianceFailure::ComputerUnavailable => DeviceFailure::ComputerUnavailable,
+            crate::ApplianceFailure::NoInternet => DeviceFailure::NoInternet,
+            crate::ApplianceFailure::Malfunction => DeviceFailure::Malfunction,
+            crate::ApplianceFailure::SettingsLock => DeviceFailure::Locked,
+            crate::ApplianceFailure::InvalidSettings => DeviceFailure::InvalidSettings,
+            crate::ApplianceFailure::AlarmWarning => DeviceFailure::AlarmWarning,
         }
     }
 }
@@ -28,20 +26,20 @@ impl IntoProtocol for crate::TrafficFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::TrafficFailure as World;
-
         match failure {
-            World::ComputerUnavailable => DeviceFailure::ComputerUnavailable,
-            World::NoInternet => DeviceFailure::NoInternet,
-            World::MissingPoliceNetwork => DeviceFailure::MissingPoliceNetwork,
-            World::Cooldown => DeviceFailure::Cooldown,
-            World::CamerasOff => DeviceFailure::CamerasDisabled,
-            World::MissingWorkstation(name) => DeviceFailure::MissingWorkstation(name),
-            World::IncorrectPassword => DeviceFailure::IncorrectPassword,
-            World::InvalidPlate => DeviceFailure::InvalidPlate,
-            World::UnknownPlate => DeviceFailure::UnknownPlate,
-            World::OutOfSight => DeviceFailure::NotLocated,
-            World::CrownShield => DeviceFailure::CrownShield,
+            crate::TrafficFailure::ComputerUnavailable => DeviceFailure::ComputerUnavailable,
+            crate::TrafficFailure::NoInternet => DeviceFailure::NoInternet,
+            crate::TrafficFailure::MissingPoliceNetwork => DeviceFailure::MissingPoliceNetwork,
+            crate::TrafficFailure::Cooldown => DeviceFailure::Cooldown,
+            crate::TrafficFailure::CamerasOff => DeviceFailure::CamerasDisabled,
+            crate::TrafficFailure::MissingWorkstation(name) => {
+                DeviceFailure::MissingWorkstation(name)
+            }
+            crate::TrafficFailure::IncorrectPassword => DeviceFailure::IncorrectPassword,
+            crate::TrafficFailure::InvalidPlate => DeviceFailure::InvalidPlate,
+            crate::TrafficFailure::UnknownPlate => DeviceFailure::UnknownPlate,
+            crate::TrafficFailure::OutOfSight => DeviceFailure::NotLocated,
+            crate::TrafficFailure::CrownShield => DeviceFailure::CrownShield,
         }
     }
 }

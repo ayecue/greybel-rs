@@ -266,16 +266,19 @@ impl ComparePage {
             .iter()
             .flat_map(|(item, _)| self.painter.paint(&item.layout, padding, item.top))
             .collect();
-        let markup: String = TerminalOutput::new(source)
-            .lines()
-            .iter()
-            .map(|line| {
-                format!(
-                    "<div class=\"line\"><div>{}</div></div>",
-                    self.html.render(&self.component.parse(line))
-                )
-            })
-            .collect();
+        let markup =
+            TerminalOutput::new(source)
+                .lines()
+                .iter()
+                .fold(String::new(), |mut markup, line| {
+                    let _ = write!(
+                        markup,
+                        "<div class=\"line\"><div>{}</div></div>",
+                        self.html.render(&self.component.parse(line))
+                    );
+
+                    markup
+                });
         let _ = write!(
             self.sections,
             "<section id=\"case-{index}\"><h2>{}</h2><pre>{}</pre>\

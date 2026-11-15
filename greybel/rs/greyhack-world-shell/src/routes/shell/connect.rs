@@ -168,7 +168,9 @@ pub async fn complete_encrypted_login(
         user: &login.user,
         password: &login.password,
     };
-    let failure = if login.decoded_password != login.password {
+    let failure = if login.decoded_password == login.password {
+        login.failure.clone()
+    } else {
         // `ShellIntrinsics.connect_service` retries authentication when
         // `HelperScript.HelperSshSec.Completed` decodes a different password, replacing the initial result.
         world
@@ -184,8 +186,6 @@ pub async fn complete_encrypted_login(
             )
             .await?
             .map(IntoProtocol::into_protocol)
-    } else {
-        login.failure.clone()
     };
 
     world

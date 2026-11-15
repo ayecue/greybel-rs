@@ -184,10 +184,11 @@ fn write_description(text: &mut String, description: &[Block], example: &[Token]
 
 /// Builds a Markdown table row from `cells`, escaping pipes.
 fn row_text(cells: &[TableCell]) -> String {
-    let cells: String = cells
-        .iter()
-        .map(|cell| format!(" {} |", spans_text(&cell.spans).replace('|', "\\|")))
-        .collect();
+    let cells = cells.iter().fold(String::new(), |mut text, cell| {
+        let _ = write!(text, " {} |", spans_text(&cell.spans).replace('|', "\\|"));
+
+        text
+    });
 
     format!("|{cells}")
 }

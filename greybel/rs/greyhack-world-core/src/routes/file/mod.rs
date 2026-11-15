@@ -79,6 +79,17 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_file_properties::<W>(routes);
+    register_file_contents::<W>(routes);
+    register_file_changes::<W>(routes);
+    register_file_permissions::<W>(routes);
+}
+
+fn register_file_properties<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: FilePath| {
             let world = &*ctx.modules;
@@ -136,6 +147,13 @@ pub(crate) fn register<
             date(world, &ctx.trees.objects(call.tree).file(message.file)?).await
         },
     );
+}
+
+fn register_file_contents<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: FileGetFolders| {
             let world = &*ctx.modules;
@@ -189,6 +207,13 @@ pub(crate) fn register<
             allow_import(world, &ctx.trees.objects(call.tree).file(message.file)?).await
         },
     );
+}
+
+fn register_file_changes<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: FileCopy<'static>| {
             let world = &*ctx.modules;
@@ -278,6 +303,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
+
+fn register_file_permissions<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: FileChmod<'static>| {
             let world = &*ctx.modules;

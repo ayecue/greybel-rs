@@ -127,6 +127,123 @@ impl Apt {
         Ok(self.apt_cache_official(computer).await?.map(|_| ()))
     }
 
+    async fn check_repository_upgrade(
+        &self,
+        computer: ComputerId,
+        file_path: &str,
+        name: &str,
+        address: &str,
+        server: &CachedServer,
+        terminal_computers: &[ComputerId],
+    ) -> Result<RepositoryUpgrade> {
+        let target = match self
+            .networks
+            .connect
+            .connect_computer(computer, address, server.server_port)
+            .await?
+        {
+            Ok(target) => target,
+            Err(failure) => return Ok(RepositoryUpgrade::Failure(AptFailure::Connection(failure))),
+        };
+        let public = self.networks.topology.public_ip(computer).await?;
+
+        if let Some(failure) = self
+            .networks
+            .connect
+            .check_service(&ServiceCheck {
+                target,
+                service: ServiceId::Repository,
+                source: &public,
+                address,
+                port: server.server_port,
+                firewall: false,
+                terminal_computers,
+            })
+            .await?
+        {
+            return Ok(RepositoryUpgrade::Failure(AptFailure::Service(failure)));
+        }
+
+        let Some(config) = self
+            .files
+            .lookup
+            .content(target, ServiceId::Repository.config_path(), true)
+            .await?
+        else {
+            return Ok(RepositoryUpgrade::Failure(AptFailure::MissingConfig));
+        };
+
+        self.installs
+            .update_hackshop_libs(target, DOWNLOADS_PATH)
+            .await?;
+
+        // The game says the file is malformed in the server and goes on with the next one.
+        let Ok(config) = serde_json::from_str::<RepositoryConfig>(&config) else {
+            return Ok(RepositoryUpgrade::Next);
+        };
+
+        if self
+            .files
+            .lookup
+            .folder(target, &config.path_repo, true)
+            .await?
+            .is_none()
+        {
+            return Ok(RepositoryUpgrade::Failure(
+                AptFailure::MissingRepositoryFolder,
+            ));
+        }
+
+        let remote_path = path::join(&config.path_repo, name);
+
+        if self
+            .files
+            .lookup
+            .file(target, &remote_path, true)
+            .await?
+            .is_none()
+        {
+            return Ok(RepositoryUpgrade::Failure(AptFailure::MissingPackageFile(
+                name.to_owned(),
+            )));
+        }
+
+        let Some(local) = self.files.lookup.file(computer, file_path, true).await? else {
+            return Ok(RepositoryUpgrade::Failure(AptFailure::MissingLocalFile(
+                name.to_owned(),
+            )));
+        };
+        let remote = self
+            .files
+            .lookup
+            .file(target, &remote_path, true)
+            .await?
+            .expect("the file was found");
+
+        if let Some(local_library) = self
+            .files
+            .libraries
+            .file_library(computer, file_path, true)
+            .await?
+            && let Some(remote_library) = self
+                .files
+                .libraries
+                .file_library(target, &remote_path, true)
+                .await?
+        {
+            return Ok(RepositoryUpgrade::Upgrade(
+                compare_versions(&remote_library.version, &local_library.version).is_gt(),
+            ));
+        }
+
+        Ok(RepositoryUpgrade::Upgrade(
+            match (local.data(), remote.data()) {
+                (Some(local), Some(remote)) => local.content != remote.content,
+                _ => false,
+            },
+        ))
+    }
+
     pub async fn check_apt_upgrade(
         &self,
         computer: ComputerId,
@@ -190,110 +307,32 @@ impl Apt {
                 continue;
             }
 
-            let target = match self
-                .networks
-                .connect
-                .connect_computer(computer, address, server.server_port)
-                .await?
-            {
-                Ok(target) => target,
-                Err(failure) => return Ok(Err(AptFailure::Connection(failure))),
-            };
-            let public = self.networks.topology.public_ip(computer).await?;
-
-            if let Some(failure) = self
-                .networks
-                .connect
-                .check_service(&ServiceCheck {
-                    target,
-                    service: ServiceId::Repository,
-                    source: &public,
+            match self
+                .check_repository_upgrade(
+                    computer,
+                    file_path,
+                    name,
                     address,
-                    port: server.server_port,
-                    firewall: false,
+                    server,
                     terminal_computers,
-                })
-                .await?
-            {
-                return Ok(Err(AptFailure::Service(failure)));
-            }
-
-            let Some(config) = self
-                .files
-                .lookup
-                .content(target, ServiceId::Repository.config_path(), true)
-                .await?
-            else {
-                return Ok(Err(AptFailure::MissingConfig));
-            };
-
-            self.installs
-                .update_hackshop_libs(target, DOWNLOADS_PATH)
-                .await?;
-
-            // The game says the file is malformed in the server and goes on with the next one.
-            let Ok(config) = serde_json::from_str::<RepositoryConfig>(&config) else {
-                continue;
-            };
-
-            if self
-                .files
-                .lookup
-                .folder(target, &config.path_repo, true)
-                .await?
-                .is_none()
-            {
-                return Ok(Err(AptFailure::MissingRepositoryFolder));
-            }
-
-            let remote_path = path::join(&config.path_repo, name);
-
-            if self
-                .files
-                .lookup
-                .file(target, &remote_path, true)
-                .await?
-                .is_none()
-            {
-                return Ok(Err(AptFailure::MissingPackageFile(name.to_owned())));
-            }
-
-            let Some(local) = self.files.lookup.file(computer, file_path, true).await? else {
-                return Ok(Err(AptFailure::MissingLocalFile(name.to_owned())));
-            };
-            let remote = self
-                .files
-                .lookup
-                .file(target, &remote_path, true)
-                .await?
-                .expect("the file was found");
-
-            if let Some(local_library) = self
-                .files
-                .libraries
-                .file_library(computer, file_path, true)
-                .await?
-                && let Some(remote_library) = self
-                    .files
-                    .libraries
-                    .file_library(target, &remote_path, true)
-                    .await?
-            {
-                return Ok(Ok(compare_versions(
-                    &remote_library.version,
-                    &local_library.version,
                 )
-                .is_gt()));
+                .await?
+            {
+                RepositoryUpgrade::Next => {}
+                RepositoryUpgrade::Upgrade(upgrade) => return Ok(Ok(upgrade)),
+                RepositoryUpgrade::Failure(failure) => return Ok(Err(failure)),
             }
-
-            return Ok(Ok(match (local.data(), remote.data()) {
-                (Some(local), Some(remote)) => local.content != remote.content,
-                _ => false,
-            }));
         }
 
         Ok(Err(AptFailure::UnknownPackage(name.to_owned())))
     }
+}
+
+/// Result of checking one repository source.
+enum RepositoryUpgrade {
+    Next,
+    Upgrade(bool),
+    Failure(AptFailure),
 }
 
 /// What `update` saved in `aptcache.bin` (`Service_repod.ClientCacheRepos`).

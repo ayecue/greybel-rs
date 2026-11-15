@@ -7,10 +7,177 @@ use greyhack_world_storage::DomainSchema;
 
 use crate::storage::schema::{CORE_TABLES, WORLD_META_TABLES};
 use crate::storage::world_meta::WorldMeta;
-use crate::storage::*;
+use crate::storage::{CoreStorage, Database, WorldMetaRepository};
 use crate::systems::computer::hardware::Hardware;
-use crate::systems::*;
-use crate::*;
+use crate::systems::{
+    ComputerService, Dns, FileChangeService, FileLookup, FilePermissionService, FileSizeService,
+    FileSystemService, LibraryFileService, LogService, NetCardService, NetworkConnect, NetworkLan,
+    NetworkReach, NetworkService, NetworkSettings, NetworkTopology, ProcessService, RouterConfig,
+    RouterService, ScriptFileService, Startup, UserService,
+};
+use crate::{Result, World, WorldRef};
+
+struct FoundationTable {
+    users: Rc<UserService>,
+    lookup: Rc<FileLookup>,
+    library_files: Rc<LibraryFileService>,
+    permissions: Rc<FilePermissionService>,
+    sizes: Rc<FileSizeService>,
+    changes: Rc<FileChangeService>,
+}
+
+impl FoundationTable {
+    fn new(registry: &Rc<Registry>, repositories: &CoreStorage) -> Self {
+        Self {
+            users: Rc::new(UserService::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.users.clone(),
+            )),
+            lookup: Rc::new(FileLookup::new(registry, repositories.nodes.clone())),
+            library_files: Rc::new(LibraryFileService::new(
+                registry,
+                repositories.nodes.clone(),
+                repositories.libraries.clone(),
+            )),
+            permissions: Rc::new(FilePermissionService::new(
+                registry,
+                repositories.nodes.clone(),
+            )),
+            sizes: Rc::new(FileSizeService::new(
+                registry,
+                repositories.nodes.clone(),
+                repositories.hardware.clone(),
+            )),
+            changes: Rc::new(FileChangeService::new(
+                registry,
+                repositories.nodes.clone(),
+                repositories.libraries.clone(),
+                repositories.computers.clone(),
+            )),
+        }
+    }
+}
+
+struct DeviceTable {
+    lan: Rc<NetworkLan>,
+    topology: Rc<NetworkTopology>,
+    logs: Rc<LogService>,
+    scripts: Rc<ScriptFileService>,
+    startup: Rc<Startup>,
+    hardware: Rc<Hardware>,
+}
+
+impl DeviceTable {
+    fn new(registry: &Rc<Registry>, repositories: &CoreStorage) -> Self {
+        Self {
+            lan: Rc::new(NetworkLan::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.routers.clone(),
+            )),
+            topology: Rc::new(NetworkTopology::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.routers.clone(),
+            )),
+            logs: Rc::new(LogService::new(registry)),
+            scripts: Rc::new(ScriptFileService::new(
+                registry,
+                repositories.computers.clone(),
+            )),
+            startup: Rc::new(Startup::new(registry, repositories.computers.clone())),
+            hardware: Rc::new(Hardware::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.hardware.clone(),
+                repositories.nodes.clone(),
+                repositories.users.clone(),
+                repositories.libraries.clone(),
+            )),
+        }
+    }
+}
+
+struct RouterTable {
+    settings: Rc<NetworkSettings>,
+    router_config: Rc<RouterConfig>,
+    reach: Rc<NetworkReach>,
+    routers: Rc<RouterService>,
+    dns: Rc<Dns>,
+    connect: Rc<NetworkConnect>,
+    net_cards: Rc<NetCardService>,
+}
+
+impl RouterTable {
+    fn new(registry: &Rc<Registry>, repositories: &CoreStorage) -> Self {
+        Self {
+            settings: Rc::new(NetworkSettings::new(
+                repositories.computers.clone(),
+                repositories.routers.clone(),
+            )),
+            router_config: Rc::new(RouterConfig::new(repositories.routers.clone())),
+            reach: Rc::new(NetworkReach::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.routers.clone(),
+                repositories.hardware.clone(),
+            )),
+            routers: Rc::new(RouterService::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.routers.clone(),
+            )),
+            dns: Rc::new(Dns::new(registry, repositories.routers.clone())),
+            connect: Rc::new(NetworkConnect::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.routers.clone(),
+            )),
+            net_cards: Rc::new(NetCardService::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.hardware.clone(),
+                repositories.routers.clone(),
+            )),
+        }
+    }
+}
+
+struct CoreTable {
+    processes: Rc<ProcessService>,
+    computers: Rc<ComputerService>,
+    files: Rc<FileSystemService>,
+    networks: Rc<NetworkService>,
+}
+
+impl CoreTable {
+    fn new(registry: &Rc<Registry>, repositories: &CoreStorage) -> Self {
+        Self {
+            processes: Rc::new(ProcessService::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.hardware.clone(),
+                repositories.libraries.clone(),
+                repositories.users.clone(),
+                repositories.persons.clone(),
+            )),
+            computers: Rc::new(ComputerService::new(
+                registry,
+                repositories.computers.clone(),
+                repositories.hardware.clone(),
+                repositories.users.clone(),
+                repositories.persons.clone(),
+            )),
+            files: Rc::new(FileSystemService::new(
+                registry,
+                repositories.nodes.clone(),
+                repositories.libraries.clone(),
+            )),
+            networks: Rc::new(NetworkService::new(registry, repositories.routers.clone())),
+        }
+    }
+}
 
 /// Core services and the upward calls their rules make.
 #[derive(Clone)]
@@ -46,158 +213,38 @@ impl CoreModule {
         registry.register_service(registry.capabilities());
 
         let repositories = CoreStorage::new(world.db().clone());
-        let computer_rows = repositories.computers.clone();
-        let hardware_rows = repositories.hardware.clone();
-        let node_rows = repositories.nodes.clone();
-        let user_rows = repositories.users.clone();
-        let router_rows = repositories.routers.clone();
-        let library_rows = repositories.libraries.clone();
-        let person_rows = repositories.persons.clone();
-        let world_meta_rows = repositories.world_meta.clone();
+        let foundation = FoundationTable::new(registry, &repositories);
+        let devices = DeviceTable::new(registry, &repositories);
+        let router = RouterTable::new(registry, &repositories);
+        let core = CoreTable::new(registry, &repositories);
 
-        let users = Rc::new(UserService::new(
-            registry,
-            computer_rows.clone(),
-            user_rows.clone(),
-        ));
-
-        let lookup = Rc::new(FileLookup::new(registry, node_rows.clone()));
-
-        let library_files = Rc::new(LibraryFileService::new(
-            registry,
-            node_rows.clone(),
-            library_rows.clone(),
-        ));
-
-        let permissions = Rc::new(FilePermissionService::new(registry, node_rows.clone()));
-
-        let sizes = Rc::new(FileSizeService::new(
-            registry,
-            node_rows.clone(),
-            hardware_rows.clone(),
-        ));
-
-        let changes = Rc::new(FileChangeService::new(
-            registry,
-            node_rows.clone(),
-            library_rows.clone(),
-            computer_rows.clone(),
-        ));
-
-        let lan = Rc::new(NetworkLan::new(
-            registry,
-            computer_rows.clone(),
-            router_rows.clone(),
-        ));
-
-        let topology = Rc::new(NetworkTopology::new(
-            registry,
-            computer_rows.clone(),
-            router_rows.clone(),
-        ));
-
-        let logs = Rc::new(LogService::new(registry));
-
-        let scripts = Rc::new(ScriptFileService::new(registry, computer_rows.clone()));
-
-        let startup = Rc::new(Startup::new(registry, computer_rows.clone()));
-
-        let hardware = Rc::new(Hardware::new(
-            registry,
-            computer_rows.clone(),
-            hardware_rows.clone(),
-            node_rows.clone(),
-            user_rows.clone(),
-            library_rows.clone(),
-        ));
-
-        let settings = Rc::new(NetworkSettings::new(
-            computer_rows.clone(),
-            router_rows.clone(),
-        ));
-
-        let router_config = Rc::new(RouterConfig::new(router_rows.clone()));
-
-        let reach = Rc::new(NetworkReach::new(
-            registry,
-            computer_rows.clone(),
-            router_rows.clone(),
-            hardware_rows.clone(),
-        ));
-
-        let routers = Rc::new(RouterService::new(
-            registry,
-            computer_rows.clone(),
-            router_rows.clone(),
-        ));
-
-        let dns = Rc::new(Dns::new(registry, router_rows.clone()));
-
-        let connect = Rc::new(NetworkConnect::new(
-            registry,
-            computer_rows.clone(),
-            router_rows.clone(),
-        ));
-
-        let net_cards = Rc::new(NetCardService::new(
-            registry,
-            computer_rows.clone(),
-            hardware_rows.clone(),
-            router_rows.clone(),
-        ));
-
-        let processes = Rc::new(ProcessService::new(
-            registry,
-            computer_rows.clone(),
-            hardware_rows.clone(),
-            library_rows.clone(),
-            user_rows.clone(),
-            person_rows.clone(),
-        ));
-
-        let computers = Rc::new(ComputerService::new(
-            registry,
-            computer_rows.clone(),
-            hardware_rows.clone(),
-            user_rows.clone(),
-            person_rows.clone(),
-        ));
-
-        let files = Rc::new(FileSystemService::new(
-            registry,
-            node_rows.clone(),
-            library_rows.clone(),
-        ));
-
-        let networks = Rc::new(NetworkService::new(registry, router_rows.clone()));
-
-        registry.register_service(users.clone());
-        registry.register_service(lookup.clone());
-        registry.register_service(library_files.clone());
-        registry.register_service(permissions.clone());
-        registry.register_service(sizes.clone());
-        registry.register_service(changes.clone());
-        registry.register_service(lan.clone());
-        registry.register_service(topology.clone());
-        registry.register_service(logs.clone());
-        registry.register_service(scripts.clone());
-        registry.register_service(startup.clone());
-        registry.register_service(hardware.clone());
-        registry.register_service(settings.clone());
-        registry.register_service(router_config.clone());
-        registry.register_service(reach.clone());
-        registry.register_service(routers.clone());
-        registry.register_service(dns.clone());
-        registry.register_service(connect.clone());
-        registry.register_service(net_cards.clone());
-        registry.register_service(processes.clone());
+        registry.register_service(foundation.users.clone());
+        registry.register_service(foundation.lookup.clone());
+        registry.register_service(foundation.library_files.clone());
+        registry.register_service(foundation.permissions.clone());
+        registry.register_service(foundation.sizes.clone());
+        registry.register_service(foundation.changes.clone());
+        registry.register_service(devices.lan.clone());
+        registry.register_service(devices.topology.clone());
+        registry.register_service(devices.logs.clone());
+        registry.register_service(devices.scripts.clone());
+        registry.register_service(devices.startup.clone());
+        registry.register_service(devices.hardware.clone());
+        registry.register_service(router.settings.clone());
+        registry.register_service(router.router_config.clone());
+        registry.register_service(router.reach.clone());
+        registry.register_service(router.routers.clone());
+        registry.register_service(router.dns.clone());
+        registry.register_service(router.connect.clone());
+        registry.register_service(router.net_cards.clone());
+        registry.register_service(core.processes.clone());
 
         Rc::new(Self {
             world: world.clone(),
-            world_meta_rows,
-            computers,
-            files,
-            networks,
+            world_meta_rows: repositories.world_meta.clone(),
+            computers: core.computers,
+            files: core.files,
+            networks: core.networks,
             persistent_state: registry.get(),
         })
     }

@@ -55,7 +55,7 @@ impl Heap {
                 }
                 HeapRef::Map(id) => {
                     if self.maps.mark(id.0) {
-                        for (key, item) in id.entries(self).iter() {
+                        for (key, item) in id.entries(self) {
                             pending_refs.extend(key.heap_ref());
                             pending_refs.extend(item.heap_ref());
                         }

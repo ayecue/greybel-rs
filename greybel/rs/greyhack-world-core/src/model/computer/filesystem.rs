@@ -225,7 +225,7 @@ impl<L> NodeDraft<L> {
         {
             // `Archivo(string, string, string, bool, bool)` names an otherwise unconfigured binary
             // after its file.
-            data.command_name = name.to_owned();
+            name.clone_into(&mut data.command_name);
         }
 
         Self::new(name, owner, permissions, DraftKind::File(data))

@@ -200,6 +200,10 @@ impl Vm {
     }
 
     #[inline(always)]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The hot dispatch match stays in one forced-inline function; extracting arm groups adds call boundaries"
+    )]
     fn step(&mut self, op: &Op) -> Result<(), RuntimeError> {
         match op {
             Op::Push(value) => self.stack.push(value.clone()),
@@ -311,7 +315,7 @@ impl Vm {
                 when,
                 push_condition,
             } => self.jump_if(*target, *when, *push_condition),
-            Op::PushIterator => self.push_iterator()?,
+            Op::PushIterator => self.push_iterator(),
             Op::Next {
                 variable,
                 index,

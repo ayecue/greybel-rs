@@ -1,3 +1,11 @@
+#![cfg_attr(
+    feature = "game",
+    expect(
+        clippy::too_many_lines,
+        reason = "Game parity tests and snapshot construction read top to bottom"
+    )
+)]
+
 mod cs;
 
 #[cfg(feature = "game")]

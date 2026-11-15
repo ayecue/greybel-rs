@@ -183,10 +183,15 @@ impl<'a> TokenEncoder<'a> {
             let segment = line.strip_suffix('\r').unwrap_or(line);
 
             if !segment.is_empty() {
-                self.push_segment(offset, offset + segment.len() as u32, token_type);
+                self.push_segment(
+                    offset,
+                    offset
+                        + u32::try_from(segment.len()).expect("value fits the target integer type"),
+                    token_type,
+                );
             }
 
-            offset += line.len() as u32 + 1;
+            offset += u32::try_from(line.len()).expect("value fits the target integer type") + 1;
         }
     }
 

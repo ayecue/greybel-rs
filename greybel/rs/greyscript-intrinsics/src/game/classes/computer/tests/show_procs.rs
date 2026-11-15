@@ -2,7 +2,7 @@ use super::one_decimal;
 
 #[test]
 fn should_format_like_dotnet_n1() {
-    let values = [0.0, 3.04, 6.25, 1234.56, -1234567.0];
+    let values = [0.0, 3.04, 6.25, 1234.56, -1_234_567.0];
     let [zero, rounded_down, rounded_up, thousands, negative] = values.map(one_decimal);
 
     assert_eq!(zero, "0.0");

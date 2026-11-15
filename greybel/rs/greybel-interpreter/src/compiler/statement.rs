@@ -76,7 +76,7 @@ impl Compiler<'_> {
             | NodeKind::Envar(_)
             | NodeKind::Line(_)
             | NodeKind::File(_) => Ok(()),
-            _ => Err(self.unexpected_node_error(id)),
+            _ => Err(Box::new(self.unexpected_node_error(id))),
         }
     }
 
@@ -345,7 +345,7 @@ impl Compiler<'_> {
                 Ok(())
             }
             NodeKind::ElseClause(node) => self.body(self.ast().list(node.body)),
-            _ => Err(self.unexpected_node_error(clause)),
+            _ => Err(Box::new(self.unexpected_node_error(clause))),
         }
     }
 

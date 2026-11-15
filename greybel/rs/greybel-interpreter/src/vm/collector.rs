@@ -49,7 +49,7 @@ impl Vm {
             .expect("a pinned value")
     }
 
-    pub fn unpin(&mut self, pin: Pin) -> Value {
+    pub fn unpin(&mut self, pin: &Pin) -> Value {
         self.collector.pins[pin.0 as usize]
             .take()
             .expect("a pinned value")

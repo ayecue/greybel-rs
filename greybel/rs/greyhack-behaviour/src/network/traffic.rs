@@ -46,7 +46,10 @@ pub fn license_plate_address(seed: &WorldSeed, plate: &str) -> String {
         .take(ENCODED_ADDRESS_LENGTH)
         .filter_map(|digit| DIGITS.find(digit))
         .fold(0_u64, |number, digit| number * 36 + digit as u64);
-    let address = seed.depermute_u32(ADDRESS_LABEL, plate_code as u32);
+    let address = seed.depermute_u32(
+        ADDRESS_LABEL,
+        u32::try_from(plate_code).expect("value fits the target integer type"),
+    );
 
     address
         .to_be_bytes()

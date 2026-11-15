@@ -1,5 +1,7 @@
 //! Tests analysis and IDE queries on parser-depth-limit code without stack overflow on native and wasm targets.
 
+use std::fmt::Write as _;
+
 use greybel_core::Position;
 use greybel_test_support::node_depth::{MAX_ACCEPTED_DEPTH, programs_at_max_depth};
 use greybel_type_analyzer::{Analyzer, DiagnosticKind, Dialect};
@@ -20,7 +22,12 @@ fn should_analyze_code_at_the_depth_limit() {
                 .into_iter()
                 .filter(|diagnostic| diagnostic.kind == DiagnosticKind::Syntax)
                 .count();
-            let middle = Position::new(1 + source.lines().count() as u32 / 2, 2);
+            let middle = Position::new(
+                1 + u32::try_from(source.lines().count())
+                    .expect("value fits the target integer type")
+                    / 2,
+                2,
+            );
             let _ = Analyzer::new(&workspace).hover(&uri(PATH), middle);
             let _ = Analyzer::new(&workspace).completions(&uri(PATH), middle);
             let _ = Analyzer::new(&workspace).document_symbols(&uri(PATH));
@@ -45,19 +52,21 @@ fn should_fall_back_instead_of_overflowing_on_calls_into_functions_at_the_depth_
     );
 
     for level in 1..12 {
-        source.push_str(&format!(
+        let _ = write!(
+            source,
             "f{level} = function(x)\n  return {}f{}(x){}\nend function\n",
             "(".repeat(depth - 2),
             level - 1,
             ")".repeat(depth - 2)
-        ));
+        );
     }
 
-    source.push_str(&format!(
-        "y = {}f11(1){}\n",
+    let _ = writeln!(
+        source,
+        "y = {}f11(1){}",
         "(".repeat(depth - 2),
         ")".repeat(depth - 2)
-    ));
+    );
 
     let workspace = with_document(Dialect::MiniScript, &source);
 

@@ -177,7 +177,7 @@ impl Session {
     }
 
     pub fn initialize(&mut self) -> Value {
-        let params = initialize_params(&self.project.uri(""), json!({}));
+        let params = initialize_params(&self.project.uri(""), &json!({}));
 
         self.request(1, "initialize", Some(params))
     }

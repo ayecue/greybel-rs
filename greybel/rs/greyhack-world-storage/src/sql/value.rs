@@ -38,6 +38,10 @@ macro_rules! from_sql_integer {
 from_sql_integer!(u8, u16, u32, u64);
 
 impl FromSql for f64 {
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "SQLite INTEGER values convert to the nearest f64 when read as REAL"
+    )]
     fn from_sql(value: Value) -> turso::Result<Self> {
         match value {
             Value::Real(f) => Ok(f),

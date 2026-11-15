@@ -191,7 +191,7 @@ impl<'a> Builder<'a> {
         }
     }
 
-    pub fn generate(&self) -> syn::Result<TokenStream2> {
+    pub fn generate(&self) -> TokenStream2 {
         let interpreter = &self.interpreter;
         let function = self.function;
         let ident = self.ident();
@@ -221,7 +221,7 @@ impl<'a> Builder<'a> {
         let bindings = self.generate_bindings(&variables);
         let call = self.generate_call(&variables, &bindings);
 
-        Ok(quote! {
+        quote! {
             #function
 
             #(#docs)*
@@ -244,6 +244,6 @@ impl<'a> Builder<'a> {
                     },
                 );
             }
-        })
+        }
     }
 }

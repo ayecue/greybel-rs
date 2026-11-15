@@ -8,6 +8,43 @@ use crate::{Metaxploit, NetUseFailure, NetUseSession};
 
 /// Methods of [`World`] for exploits metaxploit net use.
 impl Metaxploit {
+    async fn router_session(
+        &self,
+        lan: bool,
+        address: &str,
+        router: &greyhack_world_core::Router,
+    ) -> Result<Option<NetUseSession>> {
+        let kernel = if lan {
+            let device = self
+                .networks
+                .lan
+                .lan(router.network)
+                .await?
+                .and_then(|lan| {
+                    lan.find(address)
+                        .filter(|node| is_device(lan.node(*node).kind))
+                        .map(|node| RouterId::of(lan.node(node).key))
+                });
+            let Some(device) = device else {
+                return Ok(None);
+            };
+
+            device
+        } else {
+            router.id
+        };
+
+        return Ok(self
+            .networks
+            .routers
+            .kernel_library(kernel)
+            .await?
+            .map(|_| NetUseSession::Router {
+                router: kernel,
+                address: address.to_owned(),
+            }));
+    }
+
     pub async fn net_use(
         &self,
         from: ComputerId,
@@ -65,32 +102,7 @@ impl Metaxploit {
         }
 
         if port == 0 {
-            let kernel = if lan {
-                let device = self
-                    .networks
-                    .lan
-                    .lan(router.network)
-                    .await?
-                    .and_then(|lan| {
-                        lan.find(address)
-                            .filter(|node| is_device(lan.node(*node).kind))
-                            .map(|node| RouterId::of(lan.node(node).key))
-                    });
-                let Some(device) = device else {
-                    return Ok(Ok(None));
-                };
-
-                device
-            } else {
-                router.id
-            };
-
-            return Ok(Ok(self.networks.routers.kernel_library(kernel).await?.map(
-                |_| NetUseSession::Router {
-                    router: kernel,
-                    address: address.to_owned(),
-                },
-            )));
+            return Ok(Ok(self.router_session(lan, address, &router).await?));
         }
 
         if let Some(failure) = firewall {
@@ -135,6 +147,17 @@ impl Metaxploit {
 
             (lan_tree.node(node).key, entry.port.number)
         };
+
+        self.service_session(from, target, internal, port).await
+    }
+
+    async fn service_session(
+        &self,
+        from: ComputerId,
+        target: ComputerId,
+        internal: u16,
+        port: u16,
+    ) -> Result<Result<Option<NetUseSession>, NetUseFailure>> {
         let Some(service) = self
             .computers
             .port(target, internal)

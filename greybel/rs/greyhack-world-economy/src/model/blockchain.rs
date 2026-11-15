@@ -153,6 +153,10 @@ pub struct Offer {
 impl Offer {
     /// Returns market-listing text in `price amount` format.
     #[must_use]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "BlockchainSystem market listings truncate script numbers like C# (int)"
+    )]
     pub fn describe(&self) -> String {
         format!("{} {}", self.price as i64, self.amount as i64)
     }
@@ -211,6 +215,10 @@ pub struct BankAccount {
 impl BankAccount {
     /// Applies a transaction using `BankAccount.Ingreso` semantics and retains only the 30 newest
     /// entries (`BankAccount.DeleteOldTransactions`).
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "BankAccount.Ingreso applies integral transaction amounts to a floating-point balance"
+    )]
     pub fn record_transaction(&mut self, transaction: BankTransaction) {
         if transaction.success {
             self.money += transaction.amount as f64;

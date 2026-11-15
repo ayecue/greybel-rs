@@ -16,6 +16,7 @@ internal sealed class PlayerSetup(
     MainThread main,
     Player player,
     WorldRestore restore,
+    FixtureStore store,
     IReadOnlyList<IFixture> fixtures
 )
 {
@@ -62,6 +63,7 @@ internal sealed class PlayerSetup(
             fixture.Reset();
         }
         restore.Restore();
+        store.Reset();
 
         TaskCompletionSource<bool> installation = new TaskCompletionSource<bool>();
         Action onInstall = () => installation.TrySetResult(true);

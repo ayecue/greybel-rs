@@ -27,7 +27,7 @@ pub fn symlink(
     };
 
     if let Err(refusal) = check_target_name(name) {
-        return refuse("symlink", refusal);
+        return refuse("symlink", &refusal);
     }
 
     let message = FileSymlink {

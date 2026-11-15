@@ -12,7 +12,7 @@ public abstract class Reply
     public static readonly global::Duplex.UnionType UnionType = new global::Duplex.UnionType(
         "Reply",
         global::System.Array.Empty<global::Duplex.Tag>(),
-        new global::Duplex.VariantType[] { new global::Duplex.VariantType("NetworkConnection", typeof(NetworkConnection), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkConnectionReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkConnection)holder).Value) }), new global::Duplex.VariantType("PlayerReady", typeof(PlayerReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PlayerReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PlayerReady)holder).Value) }), new global::Duplex.VariantType("DebugReady", typeof(DebugReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(DebugReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((DebugReady)holder).Value) }), new global::Duplex.VariantType("FileWritten", typeof(FileWritten), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FileWrittenReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FileWritten)holder).Value) }), new global::Duplex.VariantType("NetworkCreated", typeof(NetworkCreated), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkCreatedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkCreated)holder).Value) }), new global::Duplex.VariantType("ExecutionResult", typeof(ExecutionResult), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExecutionResultReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecutionResult)holder).Value) }), new global::Duplex.VariantType("InputRequested", typeof(InputRequested), global::System.Array.Empty<global::Duplex.Tag>(), global::System.Array.Empty<global::Duplex.FieldType>()), new global::Duplex.VariantType("PairExecutionResult", typeof(PairExecutionResult), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PairExecutionResultReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PairExecutionResult)holder).Value) }), new global::Duplex.VariantType("PlayerState", typeof(PlayerState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PlayerStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PlayerState)holder).Value) }), new global::Duplex.VariantType("FileState", typeof(FileState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FileStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FileState)holder).Value) }), new global::Duplex.VariantType("TestFailure", typeof(TestFailure), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TestFailureReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((TestFailure)holder).Value) }), new global::Duplex.VariantType("NetworkState", typeof(NetworkState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkState)holder).Value) }), new global::Duplex.VariantType("BlockchainReady", typeof(BlockchainReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(BlockchainReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((BlockchainReady)holder).Value) }), new global::Duplex.VariantType("Applied", typeof(Applied), global::System.Array.Empty<global::Duplex.Tag>(), global::System.Array.Empty<global::Duplex.FieldType>()), new global::Duplex.VariantType("TrafficReady", typeof(TrafficReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TrafficReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((TrafficReady)holder).Value) }), new global::Duplex.VariantType("KernelReplaced", typeof(KernelReplaced), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(KernelReplacedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((KernelReplaced)holder).Value) }), new global::Duplex.VariantType("Exploits", typeof(Exploits), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExploitsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Exploits)holder).Value) }), new global::Duplex.VariantType("ExploitBought", typeof(ExploitBought), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExploitBoughtReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExploitBought)holder).Value) }), new global::Duplex.VariantType("LibraryReported", typeof(LibraryReported), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(LibraryReportedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReported)holder).Value) }), new global::Duplex.VariantType("LibraryReleased", typeof(LibraryReleased), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(LibraryReleasedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReleased)holder).Value) }), new global::Duplex.VariantType("Mission", typeof(Mission), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(MissionReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Mission)holder).Value) }), new global::Duplex.VariantType("Guilds", typeof(Guilds), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(GuildsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Guilds)holder).Value) }), new global::Duplex.VariantType("Traces", typeof(Traces), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TracesReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Traces)holder).Value) }), new global::Duplex.VariantType("WordLists", typeof(WordLists), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(WordListsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((WordLists)holder).Value) }), new global::Duplex.VariantType("GameEnded", typeof(GameEnded), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(GameEndedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEnded)holder).Value) }), new global::Duplex.VariantType("CtfRated", typeof(CtfRated), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(CtfRatedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((CtfRated)holder).Value) }) });
+        new global::Duplex.VariantType[] { new global::Duplex.VariantType("NetworkConnection", typeof(NetworkConnection), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkConnectionReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkConnection)holder).Value) }), new global::Duplex.VariantType("PlayerReady", typeof(PlayerReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PlayerReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PlayerReady)holder).Value) }), new global::Duplex.VariantType("DebugReady", typeof(DebugReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(DebugReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((DebugReady)holder).Value) }), new global::Duplex.VariantType("FileWritten", typeof(FileWritten), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FileWrittenReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FileWritten)holder).Value) }), new global::Duplex.VariantType("NetworkCreated", typeof(NetworkCreated), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkCreatedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkCreated)holder).Value) }), new global::Duplex.VariantType("ExecutionResult", typeof(ExecutionResult), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExecutionResultReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExecutionResult)holder).Value) }), new global::Duplex.VariantType("InputRequested", typeof(InputRequested), global::System.Array.Empty<global::Duplex.Tag>(), global::System.Array.Empty<global::Duplex.FieldType>()), new global::Duplex.VariantType("PairExecutionResult", typeof(PairExecutionResult), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PairExecutionResultReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PairExecutionResult)holder).Value) }), new global::Duplex.VariantType("PlayerState", typeof(PlayerState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(PlayerStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((PlayerState)holder).Value) }), new global::Duplex.VariantType("FileState", typeof(FileState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FileStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FileState)holder).Value) }), new global::Duplex.VariantType("TestFailure", typeof(TestFailure), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TestFailureReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((TestFailure)holder).Value) }), new global::Duplex.VariantType("NetworkState", typeof(NetworkState), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(NetworkStateReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkState)holder).Value) }), new global::Duplex.VariantType("BlockchainReady", typeof(BlockchainReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(BlockchainReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((BlockchainReady)holder).Value) }), new global::Duplex.VariantType("Applied", typeof(Applied), global::System.Array.Empty<global::Duplex.Tag>(), global::System.Array.Empty<global::Duplex.FieldType>()), new global::Duplex.VariantType("TrafficReady", typeof(TrafficReady), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TrafficReadyReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((TrafficReady)holder).Value) }), new global::Duplex.VariantType("KernelReplaced", typeof(KernelReplaced), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(KernelReplacedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((KernelReplaced)holder).Value) }), new global::Duplex.VariantType("Exploits", typeof(Exploits), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExploitsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Exploits)holder).Value) }), new global::Duplex.VariantType("ExploitBought", typeof(ExploitBought), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(ExploitBoughtReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((ExploitBought)holder).Value) }), new global::Duplex.VariantType("LibraryReported", typeof(LibraryReported), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(LibraryReportedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReported)holder).Value) }), new global::Duplex.VariantType("LibraryReleased", typeof(LibraryReleased), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(LibraryReleasedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((LibraryReleased)holder).Value) }), new global::Duplex.VariantType("Mission", typeof(Mission), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(MissionReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Mission)holder).Value) }), new global::Duplex.VariantType("Guilds", typeof(Guilds), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(GuildsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Guilds)holder).Value) }), new global::Duplex.VariantType("Traces", typeof(Traces), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(TracesReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((Traces)holder).Value) }), new global::Duplex.VariantType("WordLists", typeof(WordLists), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(WordListsReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((WordLists)holder).Value) }), new global::Duplex.VariantType("GameEnded", typeof(GameEnded), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(GameEndedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEnded)holder).Value) }), new global::Duplex.VariantType("CtfRated", typeof(CtfRated), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(CtfRatedReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((CtfRated)holder).Value) }), new global::Duplex.VariantType("FixtureNetwork", typeof(FixtureNetwork), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FixtureNetworkReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureNetwork)holder).Value) }), new global::Duplex.VariantType("FixtureLibrary", typeof(FixtureLibrary), global::System.Array.Empty<global::Duplex.Tag>(), new global::Duplex.FieldType[] { new global::Duplex.FieldType("value", typeof(FixtureLibraryReply), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureLibrary)holder).Value) }) });
 
     private protected Reply() { }
 
@@ -49,6 +49,8 @@ public abstract class Reply
             case 23: return WordLists.Read(reader);
             case 24: return GameEnded.Read(reader);
             case 25: return CtfRated.Read(reader);
+            case 26: return FixtureNetwork.Read(reader);
+            case 27: return FixtureLibrary.Read(reader);
             default: throw new global::Duplex.MalformedException($"no variant {index} of `Reply`");
         }
     }
@@ -614,6 +616,50 @@ public abstract class Reply
         {
             var value = CtfRatedReply.Read(reader);
             return new CtfRated(value);
+        }
+    }
+
+    public sealed class FixtureNetwork : Reply
+    {
+        public FixtureNetwork(FixtureNetworkReply value)
+        {
+            Value = value;
+        }
+
+        public FixtureNetworkReply Value { get; }
+
+        public override void Write(global::Duplex.DuplexWriter writer)
+        {
+            writer.WriteU32(26);
+            this.Value.Write(writer);
+        }
+
+        public static new FixtureNetwork Read(global::Duplex.DuplexReader reader)
+        {
+            var value = FixtureNetworkReply.Read(reader);
+            return new FixtureNetwork(value);
+        }
+    }
+
+    public sealed class FixtureLibrary : Reply
+    {
+        public FixtureLibrary(FixtureLibraryReply value)
+        {
+            Value = value;
+        }
+
+        public FixtureLibraryReply Value { get; }
+
+        public override void Write(global::Duplex.DuplexWriter writer)
+        {
+            writer.WriteU32(27);
+            this.Value.Write(writer);
+        }
+
+        public static new FixtureLibrary Read(global::Duplex.DuplexReader reader)
+        {
+            var value = FixtureLibraryReply.Read(reader);
+            return new FixtureLibrary(value);
         }
     }
 }
@@ -4573,6 +4619,505 @@ public sealed class CtfRatedReply
 }
 
 /// <summary>
+/// Requested target of a fresh fixture network.
+/// </summary>
+public sealed class FixtureTarget
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "FixtureTarget",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTarget)holder).Name), new global::Duplex.FieldType("device", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTarget)holder).Device), new global::Duplex.FieldType("location", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTarget)holder).Location), new global::Duplex.FieldType("root_password", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTarget)holder).RootPassword), new global::Duplex.FieldType("services", typeof(global::System.Collections.Generic.IReadOnlyList<FixtureService>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTarget)holder).Services) },
+        values => new FixtureTarget((string)values[0]!, (string)values[1]!, (string)values[2]!, (string)values[3]!, (global::System.Collections.Generic.IReadOnlyList<FixtureService>)values[4]!));
+
+    public FixtureTarget(string name, string device, string location, string rootPassword, global::System.Collections.Generic.IReadOnlyList<FixtureService> services)
+    {
+        Name = name;
+        Device = device;
+        Location = location;
+        RootPassword = rootPassword;
+        Services = services;
+    }
+
+    /// <summary>
+    /// Key used by the test and returned unchanged ("ssh", "ftp", "workstation", ...).
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// NetworkLan.TypeDevice name; normally COMPUTER, or FRIDGE.
+    /// </summary>
+    public string Device { get; }
+
+    /// <summary>
+    /// "main" or "lan_router".
+    /// </summary>
+    public string Location { get; }
+
+    /// <summary>
+    /// Empty means use the normal generated root password; otherwise set this password.
+    /// </summary>
+    public string RootPassword { get; }
+
+    public global::System.Collections.Generic.IReadOnlyList<FixtureService> Services { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteString(this.Name);
+        writer.WriteString(this.Device);
+        writer.WriteString(this.Location);
+        writer.WriteString(this.RootPassword);
+        var items0 = this.Services;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            item1.Write(writer);
+        }
+    }
+
+    public static FixtureTarget Read(global::Duplex.DuplexReader reader)
+    {
+        string fieldName = reader.ReadString();
+        string fieldDevice = reader.ReadString();
+        string fieldLocation = reader.ReadString();
+        string fieldRootPassword = reader.ReadString();
+        var value0 = new global::System.Collections.Generic.List<FixtureService>();
+        var count1 = reader.ReadLength();
+        for (var index2 = 0; index2 < count1; index2++)
+        {
+            value0.Add(FixtureService.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<FixtureService> fieldServices = value0;
+        return new FixtureTarget(fieldName, fieldDevice, fieldLocation, fieldRootPassword, fieldServices);
+    }
+}
+
+/// <summary>
+/// Requested service on a fixture target.
+/// </summary>
+public sealed class FixtureService
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "FixtureService",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("service", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureService)holder).Service), new global::Duplex.FieldType("internal_port", typeof(ushort), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureService)holder).InternalPort), new global::Duplex.FieldType("public_port", typeof(ushort?), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureService)holder).PublicPort), new global::Duplex.FieldType("oldest_library", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureService)holder).OldestLibrary) },
+        values => new FixtureService((string)values[0]!, (ushort)values[1]!, (ushort?)values[2], (bool)values[3]!));
+
+    public FixtureService(string service, ushort internalPort, ushort? publicPort, bool oldestLibrary)
+    {
+        Service = service;
+        InternalPort = internalPort;
+        PublicPort = publicPort;
+        OldestLibrary = oldestLibrary;
+    }
+
+    /// <summary>
+    /// ServicioID name, case-insensitive as in NetworkFixture.ForwardService.
+    /// </summary>
+    public string Service { get; }
+
+    public ushort InternalPort { get; }
+
+    /// <summary>
+    /// Present means add a main-router forward; absent means LAN-only.
+    /// </summary>
+    public ushort? PublicPort { get; }
+
+    /// <summary>
+    /// Select the first game-generated version, ensuring it predates the latest.
+    /// </summary>
+    public bool OldestLibrary { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteByte((byte)((this.PublicPort != null ? 1 : 0) | (this.OldestLibrary ? 2 : 0)));
+        writer.WriteString(this.Service);
+        writer.WriteU16(this.InternalPort);
+        if (this.PublicPort != null)
+        {
+            writer.WriteU16(this.PublicPort.Value);
+        }
+    }
+
+    public static FixtureService Read(global::Duplex.DuplexReader reader)
+    {
+        var flags0 = reader.ReadFlags(3);
+        string fieldService = reader.ReadString();
+        ushort fieldInternalPort = reader.ReadU16();
+        ushort? fieldPublicPort = null;
+        if ((flags0 & 1) != 0)
+        {
+            var value1 = reader.ReadU16();
+            fieldPublicPort = value1;
+        }
+        bool fieldOldestLibrary = (flags0 & 2) != 0;
+        return new FixtureService(fieldService, fieldInternalPort, fieldPublicPort, fieldOldestLibrary);
+    }
+}
+
+/// <summary>
+/// Generated fresh fixture network and its named targets.
+/// </summary>
+public sealed class FixtureNetworkReply
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "FixtureNetworkReply",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureNetworkReply)holder).PublicIp), new global::Duplex.FieldType("main_local_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureNetworkReply)holder).MainLocalIp), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureNetworkReply)holder).Kind), new global::Duplex.FieldType("targets", typeof(global::System.Collections.Generic.IReadOnlyList<FixtureTargetReply>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureNetworkReply)holder).Targets) },
+        values => new FixtureNetworkReply((string)values[0]!, (string)values[1]!, (string)values[2]!, (global::System.Collections.Generic.IReadOnlyList<FixtureTargetReply>)values[3]!));
+
+    public FixtureNetworkReply(string publicIp, string mainLocalIp, string kind, global::System.Collections.Generic.IReadOnlyList<FixtureTargetReply> targets)
+    {
+        PublicIp = publicIp;
+        MainLocalIp = mainLocalIp;
+        Kind = kind;
+        Targets = targets;
+    }
+
+    public string PublicIp { get; }
+
+    public string MainLocalIp { get; }
+
+    /// <summary>
+    /// Actual router kind; preserveTipoRed makes this equal to the request.
+    /// </summary>
+    public string Kind { get; }
+
+    public global::System.Collections.Generic.IReadOnlyList<FixtureTargetReply> Targets { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteString(this.PublicIp);
+        writer.WriteString(this.MainLocalIp);
+        writer.WriteString(this.Kind);
+        var items0 = this.Targets;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            item1.Write(writer);
+        }
+    }
+
+    public static FixtureNetworkReply Read(global::Duplex.DuplexReader reader)
+    {
+        string fieldPublicIp = reader.ReadString();
+        string fieldMainLocalIp = reader.ReadString();
+        string fieldKind = reader.ReadString();
+        var value0 = new global::System.Collections.Generic.List<FixtureTargetReply>();
+        var count1 = reader.ReadLength();
+        for (var index2 = 0; index2 < count1; index2++)
+        {
+            value0.Add(FixtureTargetReply.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<FixtureTargetReply> fieldTargets = value0;
+        return new FixtureNetworkReply(fieldPublicIp, fieldMainLocalIp, fieldKind, fieldTargets);
+    }
+}
+
+/// <summary>
+/// Generated target with its game-created accounts and ports.
+/// </summary>
+public sealed class FixtureTargetReply
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "FixtureTargetReply",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTargetReply)holder).Name), new global::Duplex.FieldType("local_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTargetReply)holder).LocalIp), new global::Duplex.FieldType("root_password", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTargetReply)holder).RootPassword), new global::Duplex.FieldType("user", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTargetReply)holder).User), new global::Duplex.FieldType("password", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTargetReply)holder).Password), new global::Duplex.FieldType("services", typeof(global::System.Collections.Generic.IReadOnlyList<FixtureServiceReply>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureTargetReply)holder).Services) },
+        values => new FixtureTargetReply((string)values[0]!, (string)values[1]!, (string)values[2]!, (string)values[3]!, (string)values[4]!, (global::System.Collections.Generic.IReadOnlyList<FixtureServiceReply>)values[5]!));
+
+    public FixtureTargetReply(string name, string localIp, string rootPassword, string user, string password, global::System.Collections.Generic.IReadOnlyList<FixtureServiceReply> services)
+    {
+        Name = name;
+        LocalIp = localIp;
+        RootPassword = rootPassword;
+        User = user;
+        Password = password;
+        Services = services;
+    }
+
+    public string Name { get; }
+
+    public string LocalIp { get; }
+
+    public string RootPassword { get; }
+
+    /// <summary>
+    /// First non-root account, empty for a device with none.
+    /// </summary>
+    public string User { get; }
+
+    public string Password { get; }
+
+    public global::System.Collections.Generic.IReadOnlyList<FixtureServiceReply> Services { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteString(this.Name);
+        writer.WriteString(this.LocalIp);
+        writer.WriteString(this.RootPassword);
+        writer.WriteString(this.User);
+        writer.WriteString(this.Password);
+        var items0 = this.Services;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            item1.Write(writer);
+        }
+    }
+
+    public static FixtureTargetReply Read(global::Duplex.DuplexReader reader)
+    {
+        string fieldName = reader.ReadString();
+        string fieldLocalIp = reader.ReadString();
+        string fieldRootPassword = reader.ReadString();
+        string fieldUser = reader.ReadString();
+        string fieldPassword = reader.ReadString();
+        var value0 = new global::System.Collections.Generic.List<FixtureServiceReply>();
+        var count1 = reader.ReadLength();
+        for (var index2 = 0; index2 < count1; index2++)
+        {
+            value0.Add(FixtureServiceReply.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<FixtureServiceReply> fieldServices = value0;
+        return new FixtureTargetReply(fieldName, fieldLocalIp, fieldRootPassword, fieldUser, fieldPassword, fieldServices);
+    }
+}
+
+/// <summary>
+/// Generated service and its actual LAN/public ports.
+/// </summary>
+public sealed class FixtureServiceReply
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "FixtureServiceReply",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("service", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureServiceReply)holder).Service), new global::Duplex.FieldType("internal_port", typeof(ushort), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureServiceReply)holder).InternalPort), new global::Duplex.FieldType("public_port", typeof(ushort?), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureServiceReply)holder).PublicPort) },
+        values => new FixtureServiceReply((string)values[0]!, (ushort)values[1]!, (ushort?)values[2]));
+
+    public FixtureServiceReply(string service, ushort internalPort, ushort? publicPort)
+    {
+        Service = service;
+        InternalPort = internalPort;
+        PublicPort = publicPort;
+    }
+
+    public string Service { get; }
+
+    public ushort InternalPort { get; }
+
+    public ushort? PublicPort { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteByte((byte)((this.PublicPort != null ? 1 : 0)));
+        writer.WriteString(this.Service);
+        writer.WriteU16(this.InternalPort);
+        if (this.PublicPort != null)
+        {
+            writer.WriteU16(this.PublicPort.Value);
+        }
+    }
+
+    public static FixtureServiceReply Read(global::Duplex.DuplexReader reader)
+    {
+        var flags0 = reader.ReadFlags(1);
+        string fieldService = reader.ReadString();
+        ushort fieldInternalPort = reader.ReadU16();
+        ushort? fieldPublicPort = null;
+        if ((flags0 & 1) != 0)
+        {
+            var value1 = reader.ReadU16();
+            fieldPublicPort = value1;
+        }
+        return new FixtureServiceReply(fieldService, fieldInternalPort, fieldPublicPort);
+    }
+}
+
+/// <summary>
+/// Exact weakness coverage to generate through Library.MemoryZone.
+/// </summary>
+public sealed class FixtureWeakness
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "FixtureWeakness",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("reward", typeof(byte), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureWeakness)holder).Reward), new global::Duplex.FieldType("requirements", typeof(global::System.Collections.Generic.IReadOnlyList<byte>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureWeakness)holder).Requirements), new global::Duplex.FieldType("user", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureWeakness)holder).User), new global::Duplex.FieldType("path_exist", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureWeakness)holder).PathExist) },
+        values => new FixtureWeakness((byte)values[0]!, (global::System.Collections.Generic.IReadOnlyList<byte>)values[1]!, (string)values[2]!, (string)values[3]!));
+
+    public FixtureWeakness(byte reward, global::System.Collections.Generic.IReadOnlyList<byte> requirements, string user, string pathExist)
+    {
+        Reward = reward;
+        Requirements = requirements;
+        User = user;
+        PathExist = pathExist;
+    }
+
+    /// <summary>
+    /// Library.Vulnerabilidad.HackResult numeric value.
+    /// </summary>
+    public byte Reward { get; }
+
+    /// <summary>
+    /// Library.Vulnerabilidad.Required numeric values; empty means requirement-free.
+    /// </summary>
+    public global::System.Collections.Generic.IReadOnlyList<byte> Requirements { get; }
+
+    /// <summary>
+    /// "", "guest", "root" or "normal_user"; empty keeps the generated user.
+    /// </summary>
+    public string User { get; }
+
+    /// <summary>
+    /// Empty keeps the generated path; "/Public" is a valid deterministic PathExist choice.
+    /// </summary>
+    public string PathExist { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteU8(this.Reward);
+        var items0 = this.Requirements;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            writer.WriteU8(item1);
+        }
+        writer.WriteString(this.User);
+        writer.WriteString(this.PathExist);
+    }
+
+    public static FixtureWeakness Read(global::Duplex.DuplexReader reader)
+    {
+        byte fieldReward = reader.ReadU8();
+        var value0 = new global::System.Collections.Generic.List<byte>();
+        var count1 = reader.ReadLength();
+        for (var index2 = 0; index2 < count1; index2++)
+        {
+            value0.Add(reader.ReadU8());
+        }
+        global::System.Collections.Generic.IReadOnlyList<byte> fieldRequirements = value0;
+        string fieldUser = reader.ReadString();
+        string fieldPathExist = reader.ReadString();
+        return new FixtureWeakness(fieldReward, fieldRequirements, fieldUser, fieldPathExist);
+    }
+}
+
+/// <summary>
+/// Newly installed game-generated library and its requested weaknesses.
+/// </summary>
+public sealed class FixtureLibraryReply
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "FixtureLibraryReply",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureLibraryReply)holder).Name), new global::Duplex.FieldType("version", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureLibraryReply)holder).Version), new global::Duplex.FieldType("content", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureLibraryReply)holder).Content), new global::Duplex.FieldType("weaknesses", typeof(global::System.Collections.Generic.IReadOnlyList<FixtureWeaknessReply>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureLibraryReply)holder).Weaknesses) },
+        values => new FixtureLibraryReply((string)values[0]!, (string)values[1]!, (string)values[2]!, (global::System.Collections.Generic.IReadOnlyList<FixtureWeaknessReply>)values[3]!));
+
+    public FixtureLibraryReply(string name, string version, string content, global::System.Collections.Generic.IReadOnlyList<FixtureWeaknessReply> weaknesses)
+    {
+        Name = name;
+        Version = version;
+        Content = content;
+        Weaknesses = weaknesses;
+    }
+
+    public string Name { get; }
+
+    public string Version { get; }
+
+    public string Content { get; }
+
+    public global::System.Collections.Generic.IReadOnlyList<FixtureWeaknessReply> Weaknesses { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteString(this.Name);
+        writer.WriteString(this.Version);
+        writer.WriteString(this.Content);
+        var items0 = this.Weaknesses;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            item1.Write(writer);
+        }
+    }
+
+    public static FixtureLibraryReply Read(global::Duplex.DuplexReader reader)
+    {
+        string fieldName = reader.ReadString();
+        string fieldVersion = reader.ReadString();
+        string fieldContent = reader.ReadString();
+        var value0 = new global::System.Collections.Generic.List<FixtureWeaknessReply>();
+        var count1 = reader.ReadLength();
+        for (var index2 = 0; index2 < count1; index2++)
+        {
+            value0.Add(FixtureWeaknessReply.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<FixtureWeaknessReply> fieldWeaknesses = value0;
+        return new FixtureLibraryReply(fieldName, fieldVersion, fieldContent, fieldWeaknesses);
+    }
+}
+
+/// <summary>
+/// Generated weakness address, symbol, reward, requirements and user.
+/// </summary>
+public sealed class FixtureWeaknessReply
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "FixtureWeaknessReply",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("zone_address", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureWeaknessReply)holder).ZoneAddress), new global::Duplex.FieldType("unsec_value", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureWeaknessReply)holder).UnsecValue), new global::Duplex.FieldType("reward", typeof(byte), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureWeaknessReply)holder).Reward), new global::Duplex.FieldType("requirements", typeof(global::System.Collections.Generic.IReadOnlyList<byte>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureWeaknessReply)holder).Requirements), new global::Duplex.FieldType("user", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FixtureWeaknessReply)holder).User) },
+        values => new FixtureWeaknessReply((string)values[0]!, (string)values[1]!, (byte)values[2]!, (global::System.Collections.Generic.IReadOnlyList<byte>)values[3]!, (string)values[4]!));
+
+    public FixtureWeaknessReply(string zoneAddress, string unsecValue, byte reward, global::System.Collections.Generic.IReadOnlyList<byte> requirements, string user)
+    {
+        ZoneAddress = zoneAddress;
+        UnsecValue = unsecValue;
+        Reward = reward;
+        Requirements = requirements;
+        User = user;
+    }
+
+    public string ZoneAddress { get; }
+
+    public string UnsecValue { get; }
+
+    public byte Reward { get; }
+
+    public global::System.Collections.Generic.IReadOnlyList<byte> Requirements { get; }
+
+    public string User { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteString(this.ZoneAddress);
+        writer.WriteString(this.UnsecValue);
+        writer.WriteU8(this.Reward);
+        var items0 = this.Requirements;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            writer.WriteU8(item1);
+        }
+        writer.WriteString(this.User);
+    }
+
+    public static FixtureWeaknessReply Read(global::Duplex.DuplexReader reader)
+    {
+        string fieldZoneAddress = reader.ReadString();
+        string fieldUnsecValue = reader.ReadString();
+        byte fieldReward = reader.ReadU8();
+        var value0 = new global::System.Collections.Generic.List<byte>();
+        var count1 = reader.ReadLength();
+        for (var index2 = 0; index2 < count1; index2++)
+        {
+            value0.Add(reader.ReadU8());
+        }
+        global::System.Collections.Generic.IReadOnlyList<byte> fieldRequirements = value0;
+        string fieldUser = reader.ReadString();
+        return new FixtureWeaknessReply(fieldZoneAddress, fieldUnsecValue, fieldReward, fieldRequirements, fieldUser);
+    }
+}
+
+/// <summary>
 /// Gets the fixture created by the game's initial player-creation RPC.
 /// </summary>
 public sealed class SetupPlayerRpc : global::Duplex.Message
@@ -4749,6 +5294,86 @@ public sealed class CreateNetworkRpc : global::Duplex.Message
 }
 
 /// <summary>
+/// Creates a fresh mission-free network with the game's generator and requested service targets.
+/// </summary>
+public sealed class CreateFixtureNetworkRpc : global::Duplex.Message
+{
+    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
+        "CreateFixtureNetworkRpc",
+        id: 4,
+        since: 0,
+        sender: global::Duplex.Role.Client,
+        limit: 16777216,
+        responds: false,
+        streams: false,
+        read: reader => Read(reader),
+        tags: global::System.Array.Empty<global::Duplex.Tag>(),
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((CreateFixtureNetworkRpc)holder).Request), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((CreateFixtureNetworkRpc)holder).Kind), new global::Duplex.FieldType("layout", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((CreateFixtureNetworkRpc)holder).Layout), new global::Duplex.FieldType("oldest_kernel", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((CreateFixtureNetworkRpc)holder).OldestKernel), new global::Duplex.FieldType("targets", typeof(global::System.Collections.Generic.IReadOnlyList<FixtureTarget>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((CreateFixtureNetworkRpc)holder).Targets) },
+        create: values => new CreateFixtureNetworkRpc((uint)values[0]!, (string)values[1]!, (string)values[2]!, (bool)values[3]!, (global::System.Collections.Generic.IReadOnlyList<FixtureTarget>)values[4]!));
+
+    public CreateFixtureNetworkRpc(uint request, string kind, string layout, bool oldestKernel, global::System.Collections.Generic.IReadOnlyList<FixtureTarget> targets)
+    {
+        Request = request;
+        Kind = kind;
+        Layout = layout;
+        OldestKernel = oldestKernel;
+        Targets = targets;
+    }
+
+    public uint Request { get; }
+
+    /// <summary>
+    /// ServerMap.TipoRed name.
+    /// </summary>
+    public string Kind { get; }
+
+    /// <summary>
+    /// "flat", "router", or "router_switch". Child routers always have Wi-Fi.
+    /// </summary>
+    public string Layout { get; }
+
+    /// <summary>
+    /// Install the first generated kernel_router.so on the main router, not the latest.
+    /// </summary>
+    public bool OldestKernel { get; }
+
+    public global::System.Collections.Generic.IReadOnlyList<FixtureTarget> Targets { get; }
+
+    public override global::Duplex.MessageType GetMessageType() => MessageType;
+
+    public override void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteByte((byte)((this.OldestKernel ? 1 : 0)));
+        writer.WriteU32(this.Request);
+        writer.WriteString(this.Kind);
+        writer.WriteString(this.Layout);
+        var items0 = this.Targets;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            item1.Write(writer);
+        }
+    }
+
+    public static CreateFixtureNetworkRpc Read(global::Duplex.DuplexReader reader)
+    {
+        var flags0 = reader.ReadFlags(1);
+        uint fieldRequest = reader.ReadU32();
+        string fieldKind = reader.ReadString();
+        string fieldLayout = reader.ReadString();
+        bool fieldOldestKernel = (flags0 & 1) != 0;
+        var value1 = new global::System.Collections.Generic.List<FixtureTarget>();
+        var count2 = reader.ReadLength();
+        for (var index3 = 0; index3 < count2; index3++)
+        {
+            value1.Add(FixtureTarget.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<FixtureTarget> fieldTargets = value1;
+        return new CreateFixtureNetworkRpc(fieldRequest, fieldKind, fieldLayout, fieldOldestKernel, fieldTargets);
+    }
+}
+
+/// <summary>
 /// Creates debug credentials through the game zero-day system and exposes the player metaxploit library as a
 /// debug challenge (`ZeroDaySystem.GetNpcPassword`, `ChallengeGenerator.GenerateChallenge`). Later scripts
 /// run as root so `MetaLibIntrinsics.debug_tools` uses its local-success path.
@@ -4757,7 +5382,7 @@ public sealed class SetupDebugRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "SetupDebugRpc",
-        id: 4,
+        id: 5,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -4797,7 +5422,7 @@ public sealed class SetupCtfRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "SetupCtfRpc",
-        id: 5,
+        id: 6,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -4841,7 +5466,7 @@ public sealed class ExecuteRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "ExecuteRpc",
-        id: 6,
+        id: 7,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -4901,7 +5526,7 @@ public sealed class ExecuteInteractiveRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "ExecuteInteractiveRpc",
-        id: 7,
+        id: 8,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -4977,7 +5602,7 @@ public sealed class ExecuteUntilInputRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "ExecuteUntilInputRpc",
-        id: 8,
+        id: 9,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5037,7 +5662,7 @@ public sealed class TypeInputRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "TypeInputRpc",
-        id: 9,
+        id: 10,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5081,7 +5706,7 @@ public sealed class ExecutePairRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "ExecutePairRpc",
-        id: 10,
+        id: 11,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5145,7 +5770,7 @@ public sealed class QueryPlayerRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "QueryPlayerRpc",
-        id: 11,
+        id: 12,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5184,7 +5809,7 @@ public sealed class QueryFileRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "QueryFileRpc",
-        id: 12,
+        id: 13,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5230,7 +5855,7 @@ public sealed class SetRouterKernelRequirementRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "SetRouterKernelRequirementRpc",
-        id: 13,
+        id: 14,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5279,7 +5904,7 @@ public sealed class WriteRouterKernelRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "WriteRouterKernelRpc",
-        id: 14,
+        id: 15,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5329,7 +5954,7 @@ public sealed class QueryNetworkRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "QueryNetworkRpc",
-        id: 15,
+        id: 16,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5362,15 +5987,15 @@ public sealed class QueryNetworkRpc : global::Duplex.Message
 }
 
 /// <summary>
-/// Installs a game-generated version of library `name` in `/lib` on the computer at `local_ip` in the player
-/// network, or the player computer when `local_ip` is empty. Selects a version with a weakness for each of
-/// `rewards` (`Library.Vulnerabilidad.HackResult`), with the fewest requirements in total.
+/// Installs a new game-generated version of library `name` in `/lib` on the computer at `local_ip` in the player
+/// network, or the player computer when `local_ip` is empty. Generates a requirement-free weakness for each of
+/// `rewards` (`Library.Vulnerabilidad.HackResult`) through the same generator as `InstallFixtureLibraryRpc`.
 /// </summary>
 public sealed class InstallLibraryRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "InstallLibraryRpc",
-        id: 16,
+        id: 17,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5429,6 +6054,83 @@ public sealed class InstallLibraryRpc : global::Duplex.Message
 }
 
 /// <summary>
+/// Installs a new game-generated library version with the requested exact weakness coverage.
+/// </summary>
+public sealed class InstallFixtureLibraryRpc : global::Duplex.Message
+{
+    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
+        "InstallFixtureLibraryRpc",
+        id: 18,
+        since: 0,
+        sender: global::Duplex.Role.Client,
+        limit: 16777216,
+        responds: false,
+        streams: false,
+        read: reader => Read(reader),
+        tags: global::System.Array.Empty<global::Duplex.Tag>(),
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallFixtureLibraryRpc)holder).Request), new global::Duplex.FieldType("local_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallFixtureLibraryRpc)holder).LocalIp), new global::Duplex.FieldType("name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallFixtureLibraryRpc)holder).Name), new global::Duplex.FieldType("weaknesses", typeof(global::System.Collections.Generic.IReadOnlyList<FixtureWeakness>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallFixtureLibraryRpc)holder).Weaknesses), new global::Duplex.FieldType("register_exploits", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((InstallFixtureLibraryRpc)holder).RegisterExploits) },
+        create: values => new InstallFixtureLibraryRpc((uint)values[0]!, (string)values[1]!, (string)values[2]!, (global::System.Collections.Generic.IReadOnlyList<FixtureWeakness>)values[3]!, (bool)values[4]!));
+
+    public InstallFixtureLibraryRpc(uint request, string localIp, string name, global::System.Collections.Generic.IReadOnlyList<FixtureWeakness> weaknesses, bool registerExploits)
+    {
+        Request = request;
+        LocalIp = localIp;
+        Name = name;
+        Weaknesses = weaknesses;
+        RegisterExploits = registerExploits;
+    }
+
+    public uint Request { get; }
+
+    /// <summary>
+    /// Empty means PlayerServer.GetComputer(); otherwise a LAN address in the player network.
+    /// </summary>
+    public string LocalIp { get; }
+
+    public string Name { get; }
+
+    public global::System.Collections.Generic.IReadOnlyList<FixtureWeakness> Weaknesses { get; }
+
+    /// <summary>
+    /// Generate the corresponding game exploit shelf as VersionsControl.GeneraExploit does.
+    /// </summary>
+    public bool RegisterExploits { get; }
+
+    public override global::Duplex.MessageType GetMessageType() => MessageType;
+
+    public override void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteByte((byte)((this.RegisterExploits ? 1 : 0)));
+        writer.WriteU32(this.Request);
+        writer.WriteString(this.LocalIp);
+        writer.WriteString(this.Name);
+        var items0 = this.Weaknesses;
+        writer.WriteLength(items0.Count);
+        foreach (var item1 in items0)
+        {
+            item1.Write(writer);
+        }
+    }
+
+    public static InstallFixtureLibraryRpc Read(global::Duplex.DuplexReader reader)
+    {
+        var flags0 = reader.ReadFlags(1);
+        uint fieldRequest = reader.ReadU32();
+        string fieldLocalIp = reader.ReadString();
+        string fieldName = reader.ReadString();
+        var value1 = new global::System.Collections.Generic.List<FixtureWeakness>();
+        var count2 = reader.ReadLength();
+        for (var index3 = 0; index3 < count2; index3++)
+        {
+            value1.Add(FixtureWeakness.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<FixtureWeakness> fieldWeaknesses = value1;
+        bool fieldRegisterExploits = (flags0 & 1) != 0;
+        return new InstallFixtureLibraryRpc(fieldRequest, fieldLocalIp, fieldName, fieldWeaknesses, fieldRegisterExploits);
+    }
+}
+
+/// <summary>
 /// Uses game economy operations to create the player bank account, a custom coin, and a funded counterparty
 /// with standing offers. The first mining round for the coin is due.
 /// </summary>
@@ -5436,7 +6138,7 @@ public sealed class SetupBlockchainRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "SetupBlockchainRpc",
-        id: 17,
+        id: 19,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5486,7 +6188,7 @@ public sealed class SetupMailRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "SetupMailRpc",
-        id: 18,
+        id: 20,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5536,7 +6238,7 @@ public sealed class SetupWalletRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "SetupWalletRpc",
-        id: 19,
+        id: 21,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5585,7 +6287,7 @@ public sealed class SetupForeignCoinRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "SetupForeignCoinRpc",
-        id: 20,
+        id: 22,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5639,7 +6341,7 @@ public sealed class ForwardServiceRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "ForwardServiceRpc",
-        id: 21,
+        id: 23,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5702,7 +6404,7 @@ public sealed class LockApplianceRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "LockApplianceRpc",
-        id: 22,
+        id: 24,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5747,7 +6449,7 @@ public sealed class PrimeFloodRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "PrimeFloodRpc",
-        id: 23,
+        id: 25,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5792,7 +6494,7 @@ public sealed class FreezeClockRpc : global::Duplex.Message
 {
     public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
         "FreezeClockRpc",
-        id: 24,
+        id: 26,
         since: 0,
         sender: global::Duplex.Role.Client,
         limit: 16777216,
@@ -5821,106 +6523,6 @@ public sealed class FreezeClockRpc : global::Duplex.Message
     {
         uint fieldRequest = reader.ReadU32();
         return new FreezeClockRpc(fieldRequest);
-    }
-}
-
-/// <summary>
-/// Gets the first address in a fixed series of public networks of `kind` (`ServerMap.TipoRed`) whose LAN
-/// contains `device` (`NetworkLan.TypeDevice`), or any device when empty. Generates networks as needed.
-/// </summary>
-public sealed class FindNetworkRpc : global::Duplex.Message
-{
-    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
-        "FindNetworkRpc",
-        id: 25,
-        since: 0,
-        sender: global::Duplex.Role.Client,
-        limit: 16777216,
-        responds: false,
-        streams: false,
-        read: reader => Read(reader),
-        tags: global::System.Array.Empty<global::Duplex.Tag>(),
-        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FindNetworkRpc)holder).Request), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FindNetworkRpc)holder).Kind), new global::Duplex.FieldType("device", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FindNetworkRpc)holder).Device) },
-        create: values => new FindNetworkRpc((uint)values[0]!, (string)values[1]!, (string)values[2]!));
-
-    public FindNetworkRpc(uint request, string kind, string device)
-    {
-        Request = request;
-        Kind = kind;
-        Device = device;
-    }
-
-    public uint Request { get; }
-
-    public string Kind { get; }
-
-    public string Device { get; }
-
-    public override global::Duplex.MessageType GetMessageType() => MessageType;
-
-    public override void Write(global::Duplex.DuplexWriter writer)
-    {
-        writer.WriteU32(this.Request);
-        writer.WriteString(this.Kind);
-        writer.WriteString(this.Device);
-    }
-
-    public static FindNetworkRpc Read(global::Duplex.DuplexReader reader)
-    {
-        uint fieldRequest = reader.ReadU32();
-        string fieldKind = reader.ReadString();
-        string fieldDevice = reader.ReadString();
-        return new FindNetworkRpc(fieldRequest, fieldKind, fieldDevice);
-    }
-}
-
-/// <summary>
-/// Generates networks of `kind` (`ServerMap.TipoRed`) at unused random public addresses until a main router
-/// forwards a port to `service` (`ServicioID`). Returns that network, which no test has changed.
-/// </summary>
-public sealed class FindNewNetworkRpc : global::Duplex.Message
-{
-    public static readonly global::Duplex.MessageType MessageType = new global::Duplex.MessageType(
-        "FindNewNetworkRpc",
-        id: 26,
-        since: 0,
-        sender: global::Duplex.Role.Client,
-        limit: 16777216,
-        responds: false,
-        streams: false,
-        read: reader => Read(reader),
-        tags: global::System.Array.Empty<global::Duplex.Tag>(),
-        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FindNewNetworkRpc)holder).Request), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FindNewNetworkRpc)holder).Kind), new global::Duplex.FieldType("service", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((FindNewNetworkRpc)holder).Service) },
-        create: values => new FindNewNetworkRpc((uint)values[0]!, (string)values[1]!, (string)values[2]!));
-
-    public FindNewNetworkRpc(uint request, string kind, string service)
-    {
-        Request = request;
-        Kind = kind;
-        Service = service;
-    }
-
-    public uint Request { get; }
-
-    public string Kind { get; }
-
-    public string Service { get; }
-
-    public override global::Duplex.MessageType GetMessageType() => MessageType;
-
-    public override void Write(global::Duplex.DuplexWriter writer)
-    {
-        writer.WriteU32(this.Request);
-        writer.WriteString(this.Kind);
-        writer.WriteString(this.Service);
-    }
-
-    public static FindNewNetworkRpc Read(global::Duplex.DuplexReader reader)
-    {
-        uint fieldRequest = reader.ReadU32();
-        string fieldKind = reader.ReadString();
-        string fieldService = reader.ReadString();
-        return new FindNewNetworkRpc(fieldRequest, fieldKind, fieldService);
     }
 }
 
@@ -7607,8 +8209,8 @@ public static class TestSupport
         channelId: 3416832380u,
         version: new global::Duplex.VersionNumber(1, 0),
         core: new global::Duplex.VersionNumber(1, 0),
-        versions: new[] { new global::Duplex.VersionInfo(1866798468u, null, false) },
-        messages: new[] { new[] { ReplyRpc.MessageType }, new[] { SetupPlayerRpc.MessageType, ConnectNetworkRpc.MessageType, WriteFileRpc.MessageType, CreateNetworkRpc.MessageType, SetupDebugRpc.MessageType, SetupCtfRpc.MessageType, ExecuteRpc.MessageType, ExecuteInteractiveRpc.MessageType, ExecuteUntilInputRpc.MessageType, TypeInputRpc.MessageType, ExecutePairRpc.MessageType, QueryPlayerRpc.MessageType, QueryFileRpc.MessageType, SetRouterKernelRequirementRpc.MessageType, WriteRouterKernelRpc.MessageType, QueryNetworkRpc.MessageType, InstallLibraryRpc.MessageType, SetupBlockchainRpc.MessageType, SetupMailRpc.MessageType, SetupWalletRpc.MessageType, SetupForeignCoinRpc.MessageType, ForwardServiceRpc.MessageType, LockApplianceRpc.MessageType, PrimeFloodRpc.MessageType, FreezeClockRpc.MessageType, FindNetworkRpc.MessageType, FindNewNetworkRpc.MessageType, DisableNetworkRpc.MessageType, PromoteAdminRpc.MessageType, FireNpcRpc.MessageType, RefreshNpcAccountRpc.MessageType, ConfigZeroDayInfoRpc.MessageType, SetPhoneAlarmRpc.MessageType, SetupTrafficRpc.MessageType, TrafficAccidentRpc.MessageType, ResetTrafficCooldownRpc.MessageType, AllowFirewallRpc.MessageType, SpawnNetworkRpc.MessageType, HireRentalAdminRpc.MessageType, ForceAdminLoginRpc.MessageType, AdvanceClockRpc.MessageType, QueryExploitsRpc.MessageType, BuyExploitRpc.MessageType, RebootPlayerRpc.MessageType, ReportLibraryUpdateRpc.MessageType, RentNetworkRpc.MessageType, RentalAdminServiceRpc.MessageType, RunPaymentsRpc.MessageType, SetPlayerMoneyRpc.MessageType, MissionRpc.MessageType, SetupGuildRpc.MessageType, QueryGuildsRpc.MessageType, QueryTracesRpc.MessageType, QueryWordListsRpc.MessageType, ExecuteInTerminalRpc.MessageType, EndGameRpc.MessageType, RunPaymentRpc.MessageType, ReleaseLibraryVersionRpc.MessageType, RateCtfRpc.MessageType } },
+        versions: new[] { new global::Duplex.VersionInfo(3537239412u, null, false) },
+        messages: new[] { new[] { ReplyRpc.MessageType }, new[] { SetupPlayerRpc.MessageType, ConnectNetworkRpc.MessageType, WriteFileRpc.MessageType, CreateNetworkRpc.MessageType, CreateFixtureNetworkRpc.MessageType, SetupDebugRpc.MessageType, SetupCtfRpc.MessageType, ExecuteRpc.MessageType, ExecuteInteractiveRpc.MessageType, ExecuteUntilInputRpc.MessageType, TypeInputRpc.MessageType, ExecutePairRpc.MessageType, QueryPlayerRpc.MessageType, QueryFileRpc.MessageType, SetRouterKernelRequirementRpc.MessageType, WriteRouterKernelRpc.MessageType, QueryNetworkRpc.MessageType, InstallLibraryRpc.MessageType, InstallFixtureLibraryRpc.MessageType, SetupBlockchainRpc.MessageType, SetupMailRpc.MessageType, SetupWalletRpc.MessageType, SetupForeignCoinRpc.MessageType, ForwardServiceRpc.MessageType, LockApplianceRpc.MessageType, PrimeFloodRpc.MessageType, FreezeClockRpc.MessageType, DisableNetworkRpc.MessageType, PromoteAdminRpc.MessageType, FireNpcRpc.MessageType, RefreshNpcAccountRpc.MessageType, ConfigZeroDayInfoRpc.MessageType, SetPhoneAlarmRpc.MessageType, SetupTrafficRpc.MessageType, TrafficAccidentRpc.MessageType, ResetTrafficCooldownRpc.MessageType, AllowFirewallRpc.MessageType, SpawnNetworkRpc.MessageType, HireRentalAdminRpc.MessageType, ForceAdminLoginRpc.MessageType, AdvanceClockRpc.MessageType, QueryExploitsRpc.MessageType, BuyExploitRpc.MessageType, RebootPlayerRpc.MessageType, ReportLibraryUpdateRpc.MessageType, RentNetworkRpc.MessageType, RentalAdminServiceRpc.MessageType, RunPaymentsRpc.MessageType, SetPlayerMoneyRpc.MessageType, MissionRpc.MessageType, SetupGuildRpc.MessageType, QueryGuildsRpc.MessageType, QueryTracesRpc.MessageType, QueryWordListsRpc.MessageType, ExecuteInTerminalRpc.MessageType, EndGameRpc.MessageType, RunPaymentRpc.MessageType, ReleaseLibraryVersionRpc.MessageType, RateCtfRpc.MessageType } },
         security: null,
         flavours: global::System.Array.Empty<global::Duplex.Flavour>(),
         tags: global::System.Array.Empty<global::Duplex.Tag>());
@@ -7626,6 +8228,8 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
     public virtual void OnWriteFileRpc(WriteFileRpc message) { }
 
     public virtual void OnCreateNetworkRpc(CreateNetworkRpc message) { }
+
+    public virtual void OnCreateFixtureNetworkRpc(CreateFixtureNetworkRpc message) { }
 
     public virtual void OnSetupDebugRpc(SetupDebugRpc message) { }
 
@@ -7653,6 +8257,8 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
 
     public virtual void OnInstallLibraryRpc(InstallLibraryRpc message) { }
 
+    public virtual void OnInstallFixtureLibraryRpc(InstallFixtureLibraryRpc message) { }
+
     public virtual void OnSetupBlockchainRpc(SetupBlockchainRpc message) { }
 
     public virtual void OnSetupMailRpc(SetupMailRpc message) { }
@@ -7668,10 +8274,6 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
     public virtual void OnPrimeFloodRpc(PrimeFloodRpc message) { }
 
     public virtual void OnFreezeClockRpc(FreezeClockRpc message) { }
-
-    public virtual void OnFindNetworkRpc(FindNetworkRpc message) { }
-
-    public virtual void OnFindNewNetworkRpc(FindNewNetworkRpc message) { }
 
     public virtual void OnDisableNetworkRpc(DisableNetworkRpc message) { }
 
@@ -7745,6 +8347,7 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
             case ConnectNetworkRpc received: OnConnectNetworkRpc(received); return;
             case WriteFileRpc received: OnWriteFileRpc(received); return;
             case CreateNetworkRpc received: OnCreateNetworkRpc(received); return;
+            case CreateFixtureNetworkRpc received: OnCreateFixtureNetworkRpc(received); return;
             case SetupDebugRpc received: OnSetupDebugRpc(received); return;
             case SetupCtfRpc received: OnSetupCtfRpc(received); return;
             case ExecuteRpc received: OnExecuteRpc(received); return;
@@ -7758,6 +8361,7 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
             case WriteRouterKernelRpc received: OnWriteRouterKernelRpc(received); return;
             case QueryNetworkRpc received: OnQueryNetworkRpc(received); return;
             case InstallLibraryRpc received: OnInstallLibraryRpc(received); return;
+            case InstallFixtureLibraryRpc received: OnInstallFixtureLibraryRpc(received); return;
             case SetupBlockchainRpc received: OnSetupBlockchainRpc(received); return;
             case SetupMailRpc received: OnSetupMailRpc(received); return;
             case SetupWalletRpc received: OnSetupWalletRpc(received); return;
@@ -7766,8 +8370,6 @@ public abstract class TestSupportPluginRouter : global::Duplex.Router
             case LockApplianceRpc received: OnLockApplianceRpc(received); return;
             case PrimeFloodRpc received: OnPrimeFloodRpc(received); return;
             case FreezeClockRpc received: OnFreezeClockRpc(received); return;
-            case FindNetworkRpc received: OnFindNetworkRpc(received); return;
-            case FindNewNetworkRpc received: OnFindNewNetworkRpc(received); return;
             case DisableNetworkRpc received: OnDisableNetworkRpc(received); return;
             case PromoteAdminRpc received: OnPromoteAdminRpc(received); return;
             case FireNpcRpc received: OnFireNpcRpc(received); return;

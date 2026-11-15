@@ -77,7 +77,7 @@ pub struct RuntimeState {
 #[derive(Clone)]
 pub struct Context {
     client: Client,
-    context_id: String,
+    id: String,
     terminal_pid: i32,
     /// Buffers context-creation events until the first [`Context::events`] call consumes the subscription.
     initial_events: Arc<Mutex<Option<Subscription>>>,
@@ -87,7 +87,7 @@ impl std::fmt::Debug for Context {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
             .debug_struct("Context")
-            .field("context_id", &self.context_id)
+            .field("context_id", &self.id)
             .field("terminal_pid", &self.terminal_pid)
             .finish_non_exhaustive()
     }
@@ -144,7 +144,7 @@ impl Context {
 
         Ok(Self {
             client,
-            context_id: reply.context_id.into_owned(),
+            id: reply.context_id.into_owned(),
             terminal_pid: reply.terminal_pid,
             initial_events: Arc::new(Mutex::new(Some(initial_events))),
         })
@@ -152,7 +152,7 @@ impl Context {
 
     #[must_use]
     pub fn id(&self) -> &str {
-        &self.context_id
+        &self.id
     }
 
     #[must_use]
@@ -174,7 +174,7 @@ impl Context {
             return initial;
         }
 
-        let (id, pid) = (self.context_id.clone(), self.terminal_pid);
+        let (id, pid) = (self.id.clone(), self.terminal_pid);
 
         self.client
             .subscribe(move |n| n.belongs_to_context(&id, pid))
@@ -182,7 +182,7 @@ impl Context {
 
     pub async fn set_debug_mode(&self, active: bool) -> Result<(), ClientError> {
         let request = ContextDebugModeRpc {
-            context_id: self.context_id.clone().into(),
+            context_id: self.id.clone().into(),
             active_breakpoint: active,
         };
 
@@ -191,7 +191,7 @@ impl Context {
 
     pub async fn inject_code(&self, source: &str) -> Result<(), ClientError> {
         let request = ContextInjectCodeRpc {
-            context_id: self.context_id.clone().into(),
+            context_id: self.id.clone().into(),
             source: Bytes::from_text(source),
         };
 
@@ -202,7 +202,7 @@ impl Context {
     pub async fn step(&self, mode: StepMode) -> Result<(), ClientError> {
         self.client
             .send(&ContextStepRpc {
-                context_id: self.context_id.clone().into(),
+                context_id: self.id.clone().into(),
                 mode: mode as i32,
             })
             .await
@@ -212,7 +212,7 @@ impl Context {
     pub async fn pass_breakpoint(&self) -> Result<(), ClientError> {
         self.client
             .send(&ContextPassBreakpointRpc {
-                context_id: self.context_id.clone().into(),
+                context_id: self.id.clone().into(),
             })
             .await
     }
@@ -224,7 +224,7 @@ impl Context {
     ) -> Result<(), ClientError> {
         self.client
             .send(&ContextSetBreakpointsRpc {
-                context_id: self.context_id.clone().into(),
+                context_id: self.id.clone().into(),
                 breakpoints: Bytes::from_json(breakpoints),
             })
             .await
@@ -232,7 +232,7 @@ impl Context {
 
     /// Evaluates `code` in the stopped context and returns an expression value, `Statements`, or `Failure`.
     pub async fn evaluate(&self, code: &str) -> Result<Evaluation, ClientError> {
-        let id = self.context_id.clone();
+        let id = self.id.clone();
         let notification = self
             .client
             .request(
@@ -267,7 +267,7 @@ impl Context {
     }
 
     pub async fn runtime_state(&self) -> Result<RuntimeState, ClientError> {
-        let id = self.context_id.clone();
+        let id = self.id.clone();
         let request = ContextRuntimeStateServerRpc {
             context_id: id.clone().into(),
         };
@@ -296,7 +296,7 @@ impl Context {
     pub async fn dispose(&self) -> Result<(), ClientError> {
         self.client
             .send(&DisposeContextRpc {
-                context_id: self.context_id.clone().into(),
+                context_id: self.id.clone().into(),
             })
             .await
     }

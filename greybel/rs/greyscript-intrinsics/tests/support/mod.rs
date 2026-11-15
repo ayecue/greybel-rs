@@ -120,7 +120,7 @@ pub fn add_library(
 }
 
 /// Sets the library of the file at `path` on `computer`.
-pub fn set_library(world: &World, computer: ComputerId, path: &str, library: Library) {
+pub fn set_library(world: &World, computer: ComputerId, path: &str, library: &Library) {
     block_on(async {
         let file = world
             .modules
@@ -136,7 +136,7 @@ pub fn set_library(world: &World, computer: ComputerId, path: &str, library: Lib
             .modules
             .libraries
             .generator
-            .set_full_library_of(&file, Some(&library))
+            .set_full_library_of(&file, Some(library))
             .await
             .expect("the world writes");
     });

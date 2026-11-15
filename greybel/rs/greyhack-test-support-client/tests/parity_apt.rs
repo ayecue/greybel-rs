@@ -4,9 +4,10 @@ use greybel_test_support::game::Game;
 use greyhack_behaviour::{Reward, ServiceId};
 use greyhack_test_support_client::protocol::test_support::LanNodeKind;
 
-use crate::support::game::{join_network, join_network_of_kind_where, setup_player, test_client};
+use crate::support::game::{
+    fixture_target, hackshop_repository, join_fixture, setup_player, test_client,
+};
 use crate::support::parity::{assert_succeeded, compare_in};
-use crate::support::remote::{find_service, service};
 
 /// Repository listing, search, source editing, update, upgrade checks and package installation.
 #[tokio::test]
@@ -62,15 +63,11 @@ async fn should_match_intrinsics_for_a_custom_apt_repository() {
         .await
         .unwrap();
 
-    let shop = client.find_network("HackShop", "").await.unwrap();
-
-    join_network(&client, &shop.public_ip).await;
-
-    let snapshot = join_network_of_kind_where(&client, &["HackShop"], "repository", |snapshot| {
-        find_service(snapshot, "repository").is_some()
-    })
-    .await;
-    let (address, port) = service(&snapshot, "repository");
+    let shop = hackshop_repository(&client).await;
+    let target = fixture_target(&shop, "repository");
+    let address = target.local_ip.clone();
+    let port = target.services[1].internal_port;
+    let snapshot = join_fixture(&client, &shop).await;
     let catalog = snapshot
         .nodes
         .iter()
@@ -84,7 +81,7 @@ async fn should_match_intrinsics_for_a_custom_apt_repository() {
         })
         .expect("the repository computer has its catalog")
         .content
-        .to_string();
+        .clone();
 
     assert!(
         catalog.contains("\"scanlib\"") && catalog.contains("\"metaxploit.so\""),

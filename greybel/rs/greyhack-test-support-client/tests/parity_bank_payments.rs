@@ -24,7 +24,7 @@ async fn should_match_the_game_when_a_rental_charge_is_paid_and_when_it_is_not()
     client.disable_network(&address, true).await.unwrap();
 
     let before = client.network_state().await.unwrap();
-    let number = before.player_bank.as_ref().unwrap().to_string();
+    let number = before.player_bank.as_ref().unwrap().clone();
     let mut world = snapshot_world(&user, &before);
 
     assert_eq!(
@@ -65,7 +65,7 @@ async fn should_match_the_game_when_an_admin_charge_cannot_be_paid() {
     client.serve_rental_admin(&address, true).await.unwrap();
 
     let before = client.network_state().await.unwrap();
-    let number = before.player_bank.as_ref().unwrap().to_string();
+    let number = before.player_bank.as_ref().unwrap().clone();
     let mut world = snapshot_world(&user, &before);
     let hired = observed_game(&before);
 
@@ -94,7 +94,7 @@ async fn should_match_the_game_when_an_admin_is_hired_and_removed_through_the_ba
     let user = setup_player(&client).await;
     let address = rent_network(&client, std::process::id() % 10000).await;
     let before = client.network_state().await.unwrap();
-    let number = before.player_bank.as_ref().unwrap().to_string();
+    let number = before.player_bank.as_ref().unwrap().clone();
     let mut world = snapshot_world(&user, &before);
 
     // Removing an administrator that is not hired.
@@ -180,7 +180,7 @@ async fn should_match_the_game_when_the_admin_has_no_registered_charge() {
     client.hire_rental_admin(&address).await.unwrap();
 
     let before = client.network_state().await.unwrap();
-    let number = before.player_bank.as_ref().unwrap().to_string();
+    let number = before.player_bank.as_ref().unwrap().clone();
     let world = snapshot_world(&user, &before);
     let hired: Observed = observed_game(&before);
 

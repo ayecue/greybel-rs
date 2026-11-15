@@ -25,6 +25,10 @@ pub fn asin(#[default(0)] x: f64) -> f64 {
 }
 
 #[native]
+#[expect(
+    clippy::float_cmp,
+    reason = "The exact default argument selects MiniScript's one-argument arctangent"
+)]
 pub fn atan(#[default(0)] y: f64, #[default(1)] x: f64) -> f64 {
     if x == 1.0 { y.atan() } else { y.atan2(x) }
 }

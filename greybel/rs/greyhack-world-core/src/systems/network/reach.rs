@@ -6,9 +6,11 @@ use greyhack_behaviour::{DeviceKind, NO_ADDRESS, is_device, is_lan_ip, is_valid_
 use greyhack_world_modules::Dep;
 
 use super::lan::TablePort;
-use crate::storage::*;
-use crate::systems::{NetworkReach as NetworkReachService, *};
-use crate::*;
+use crate::storage::{ComputerRepository, HardwareRepository, RouterRepository};
+use crate::systems::{
+    NetworkLan, NetworkReach as NetworkReachService, NetworkSettings, NetworkTopology, Startup,
+};
+use crate::{ComputerId, ConnectionFailure, NetworkId, Result, RouterId, WorldRef};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ReachFailure {

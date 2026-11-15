@@ -518,7 +518,7 @@ print "build=" + sh.build(home_dir + "/main.src", home_dir)
 
     assert_eq!(output, "");
     assert_eq!(
-        error.map(|error| error.to_string()),
+        error,
         Some(greybel_interpreter::RuntimeErrorKind::GameCrash.to_string())
     );
 }
@@ -531,7 +531,7 @@ fn should_crash_the_script_on_the_sign_of_nan() {
 
     assert_eq!(output, "-1");
     assert_eq!(
-        error.map(|error| error.to_string()),
+        error,
         Some(greybel_interpreter::RuntimeErrorKind::GameCrash.to_string())
     );
 }

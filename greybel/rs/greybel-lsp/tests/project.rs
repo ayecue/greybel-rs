@@ -19,7 +19,7 @@ fn should_read_the_nearest_greybel_json_and_its_variables() {
         ("game/src/main.src", "print 1"),
     ]);
 
-    let result = project(&mut client, "game/src/main.src", json!(null));
+    let result = project(&mut client, "game/src/main.src", &json!(null));
 
     assert_eq!(result.root.as_deref(), Some(uri("game").as_str()));
     assert!(result.manifest.strict_mode);
@@ -43,7 +43,7 @@ fn should_take_the_fallback_without_greybel_json_with_files_in_the_workspace_fol
     let result = project(
         &mut client,
         "src/main.src",
-        json!({ "extensions": ["gs"], "run": { "seed": "other" } }),
+        &json!({ "extensions": ["gs"], "run": { "seed": "other" } }),
     );
 
     assert_eq!(result.root, None);

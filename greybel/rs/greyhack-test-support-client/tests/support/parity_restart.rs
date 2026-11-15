@@ -29,10 +29,10 @@ pub fn wifi_router(snapshot: &NetworkSnapshot, index: usize) -> Option<WifiRoute
     };
 
     Some(WifiRouter {
-        bssid: router.bssid.as_ref()?.to_string(),
-        essid: router.essid.as_ref()?.to_string(),
-        password: router.wifi_password.to_string(),
-        local_ip: snapshot.nodes[index].local_ip.to_string(),
+        bssid: router.bssid.as_ref()?.clone(),
+        essid: router.essid.as_ref()?.clone(),
+        password: router.wifi_password.clone(),
+        local_ip: snapshot.nodes[index].local_ip.clone(),
     })
 }
 

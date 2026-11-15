@@ -37,7 +37,7 @@ pub fn rshell_client(
     }
 
     if let Err(refusal) = check_process_name(process_name) {
-        return refuse("rshell_client", refusal);
+        return refuse("rshell_client", &refusal);
     }
 
     let Some(metaxploit) = metaxploit_or_crash(vm, this)? else {

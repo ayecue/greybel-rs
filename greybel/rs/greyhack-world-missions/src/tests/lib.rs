@@ -68,13 +68,13 @@ fn should_end_every_mission_with_the_closure_computer() {
         let last = mission.computers.last().unwrap();
 
         assert_eq!(last.procedural_archetype, Some(archetype));
-        assert!(
+        assert_eq!(
             mission
                 .computers
                 .iter()
                 .filter(|computer| computer.procedural_archetype.is_some())
-                .count()
-                == 1
+                .count(),
+            1
         );
         assert!(last.items.iter().any(|item| item.is_evidence));
         assert!(mission.procedural_level >= 4 && mission.procedural_level <= 15);
@@ -94,12 +94,11 @@ fn should_fit_the_networks_it_is_given() {
             );
 
             if let Ok((mission, _)) = built {
-                assert!(
-                    mission
-                        .computers
-                        .iter()
-                        .all(|computer| (computer.computer_index_net as usize) < networks)
-                );
+                assert!(mission.computers.iter().all(|computer| {
+                    (usize::try_from(computer.computer_index_net)
+                        .expect("network indexes are nonnegative"))
+                        < networks
+                }));
             }
         }
     }

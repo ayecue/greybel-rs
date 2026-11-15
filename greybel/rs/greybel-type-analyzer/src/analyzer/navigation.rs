@@ -116,14 +116,14 @@ impl<'w> Analyzer<'w> {
         locations
     }
 
-    fn site_location(&self, analysis: &Analysis, site: Site) -> Option<(SourceFile, u32)> {
+    fn site_location(self, analysis: &Analysis, site: Site) -> Option<(SourceFile, u32)> {
         let file = *analysis.documents().get(site.document as usize)?;
         let ast = file.parse(self.workspace.db()).ast()?;
 
         Some((file, ast.span(site.node).start))
     }
 
-    pub(super) fn dependent_closure(&self, file: SourceFile) -> Vec<SourceFile> {
+    pub(super) fn dependent_closure(self, file: SourceFile) -> Vec<SourceFile> {
         let mut files = vec![file];
         let mut next = 0;
 
@@ -148,7 +148,7 @@ impl<'w> Analyzer<'w> {
         files
     }
 
-    pub(super) fn analyses_of(&self, file: SourceFile) -> Vec<(&'w Analysis, DocumentIndex)> {
+    pub(super) fn analyses_of(self, file: SourceFile) -> Vec<(&'w Analysis, DocumentIndex)> {
         std::iter::once(file)
             .chain(self.dependent_closure(file))
             .filter_map(|candidate_root| {
@@ -163,7 +163,7 @@ impl<'w> Analyzer<'w> {
             .collect()
     }
 
-    fn locations(&self, analysis: &Analysis, sites: Vec<Site>) -> Vec<Location> {
+    fn locations(self, analysis: &Analysis, sites: Vec<Site>) -> Vec<Location> {
         let db = self.workspace.db();
 
         sites
@@ -182,7 +182,7 @@ impl<'w> Analyzer<'w> {
             .collect()
     }
 
-    fn is_identifier(&self, name: &str) -> bool {
+    fn is_identifier(self, name: &str) -> bool {
         let options = &self.workspace.options().parser;
         let lexer = Lexer::with_grammar(name, options.grammar());
         let mut tokens = lexer.tokens();

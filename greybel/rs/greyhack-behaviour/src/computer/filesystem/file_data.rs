@@ -80,6 +80,11 @@ impl FileData {
     /// Derives size from the filename like `CacheBinarySize.GetSize`: 110,000–7,100,009 bytes,
     /// with a maximum of 650,009 bytes for libraries.
     #[must_use]
+    #[expect(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "CacheBinarySize.GetSize truncates weighted doubles like C# (int)"
+    )]
     pub fn binary_size(name: &str, library: bool) -> u64 {
         const MIN: f64 = 110_000.0;
         let span = if library { 650_000.0 } else { 7_100_000.0 } - MIN;
@@ -102,7 +107,12 @@ impl FileData {
         if !self.is_binary() {
             self.size = length as u64;
         } else if self.kind == FileKind::Program && !self.default_content {
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            #[expect(
+                clippy::cast_possible_truncation,
+                clippy::cast_sign_loss,
+                clippy::cast_precision_loss,
+                reason = "Archivo.SetContenido uses C# float arithmetic and integral byte sizes"
+            )]
             {
                 self.size = (length as f32 * 0.65).max(1.0) as u64;
             }

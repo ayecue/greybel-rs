@@ -91,7 +91,7 @@ impl NumberShape {
         true
     }
 
-    pub(crate) fn is_valid(&self) -> bool {
+    pub(crate) fn is_valid(self) -> bool {
         !self.malformed && (!self.exponent || self.exponent_digits)
     }
 }

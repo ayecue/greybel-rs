@@ -42,7 +42,7 @@ pub fn reply<M: Message<Sender = MessageHook> + 'static>(message: M) -> Reply {
 
 /// Starts a single-client provider on its own thread. Sends handler replies for every received message, forwards
 /// received messages to the returned stream, and closes after `close_after` messages or channel closure.
-pub async fn mock_server(
+pub fn mock_server(
     handler: Handler,
     close_after: Option<usize>,
 ) -> (u16, UnboundedReceiver<MessageHookNotification>) {
@@ -104,7 +104,7 @@ pub async fn connected(
     handler: Handler,
     close_after: Option<usize>,
 ) -> (Client, UnboundedReceiver<MessageHookNotification>) {
-    let (port, rx) = mock_server(handler, close_after).await;
+    let (port, rx) = mock_server(handler, close_after);
     let client = Client::connect(options(port)).await.unwrap();
 
     (client, rx)

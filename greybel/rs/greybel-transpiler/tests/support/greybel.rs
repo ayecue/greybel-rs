@@ -40,5 +40,5 @@ pub fn modes() -> [(&'static str, TranspileOptions); 4] {
 
 pub fn project(path: &Path, options: &TranspileOptions) -> Result<String, TranspileError> {
     transpile_project(&FsProvider::uri(path), &FsProvider::default(), options)
-        .map(|outputs| fixtures().outputs(outputs))
+        .map(|outputs| fixtures().outputs(&outputs))
 }

@@ -17,7 +17,7 @@ pub(crate) struct FirstService {
 }
 
 impl FirstService {
-    pub(crate) fn base(&self) -> u32 {
+    pub(crate) fn base() -> u32 {
         20
     }
 
@@ -32,6 +32,9 @@ pub(crate) struct SecondService {
 
 impl SecondService {
     pub(crate) fn call(&self) -> u32 {
-        self.other.base() + 21
+        // Resolve the reverse dependency before using the stateless base value.
+        let _ = &*self.other;
+
+        FirstService::base() + 21
     }
 }

@@ -7,6 +7,10 @@ use crate::model::{MarketFailure, Offer, Trade, WalletId};
 
 /// Methods of [`World`] for economy market.
 impl Market {
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "BlockchainSystem.BuyCoin reports integral costs like C# (int)"
+    )]
     pub async fn buy_coin(
         &self,
         coin: &str,
@@ -170,6 +174,10 @@ impl Market {
             .map(|wallet| (wallet.user, wallet.bank)))
     }
 
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "BlockchainSystem.AutoTransaction records integral prices and amounts like C# (int)"
+    )]
     pub(crate) async fn trade(
         &self,
         coin_id: CoinId,

@@ -86,7 +86,9 @@ impl AtomTable {
 
         let index = (0..self.ends.len()).find(|&index| Self::same(self.bytes_at(index), text))?;
 
-        Some(Atom(index as u32))
+        Some(Atom(
+            u32::try_from(index).expect("value fits the target integer type"),
+        ))
     }
 
     fn same(atom_bytes: &[u8], text: &[u8]) -> bool {

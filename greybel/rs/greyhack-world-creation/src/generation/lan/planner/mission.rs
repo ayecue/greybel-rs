@@ -116,7 +116,10 @@ impl Planner<'_> {
         }
 
         let assignments = assign_computers(&request, available, |length| {
-            self.next(0, length as u32) as usize
+            self.next(
+                0,
+                u32::try_from(length).expect("value fits the target integer type"),
+            ) as usize
         });
         let mut websites = Vec::new();
 

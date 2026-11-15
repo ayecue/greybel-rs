@@ -19,6 +19,16 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_sub_wallet_accounts::<W>(routes);
+    register_sub_wallet_details::<W>(routes);
+    register_sub_wallet_miner::<W>(routes);
+}
+
+fn register_sub_wallet_accounts<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -38,8 +48,6 @@ pub(crate) fn register<
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
                     message: SubWalletGetUser| {
-            let _world = &*ctx.modules;
-
             Ok(Some(
                 ctx.trees
                     .objects(call.tree)
@@ -80,6 +88,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
+
+fn register_sub_wallet_details<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -126,6 +141,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
+
+fn register_sub_wallet_miner<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.wait::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,

@@ -31,17 +31,18 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
-    routes.read::<_, _, W, crate::WorldError>(
-        async |ctx: &RouteContext<'_, W>, call, message: ComputerGetPorts| {
-            let world = &*ctx.modules;
+    register_computer_files::<W>(routes);
+    register_computer_network::<W>(routes);
+    register_computer_devices_and_processes::<W>(routes);
+    register_computer_users::<W>(routes);
+    register_computer_connections::<W>(routes);
+}
 
-            get_ports(
-                world,
-                &ctx.trees.objects(call.tree).computer(message.computer)?,
-            )
-            .await
-        },
-    );
+fn register_computer_files<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: ComputerFile<'static>| {
             let world = &*ctx.modules;
@@ -82,6 +83,24 @@ pub(crate) fn register<
                 &ctx.trees.objects(call.tree).computer(message.computer)?,
                 &message.folder,
                 &message.name,
+            )
+            .await
+        },
+    );
+}
+
+fn register_computer_network<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
+    routes.read::<_, _, W, crate::WorldError>(
+        async |ctx: &RouteContext<'_, W>, call, message: ComputerGetPorts| {
+            let world = &*ctx.modules;
+
+            get_ports(
+                world,
+                &ctx.trees.objects(call.tree).computer(message.computer)?,
             )
             .await
         },
@@ -168,6 +187,13 @@ pub(crate) fn register<
                 .await?)
         },
     );
+}
+
+fn register_computer_devices_and_processes<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: ComputerNetworkDevices| {
             let world = &*ctx.modules;
@@ -204,6 +230,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
+
+fn register_computer_users<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: ComputerChangePassword<'static>| {
             let world = &*ctx.modules;
@@ -281,6 +314,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
+
+fn register_computer_connections<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: ComputerReboot| {
             let world = &*ctx.modules;

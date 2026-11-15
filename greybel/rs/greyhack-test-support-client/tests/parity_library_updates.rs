@@ -3,13 +3,14 @@
 
 use greybel_test_support::game::Game;
 
-use crate::support::game::{join_new_network_where, setup_player, test_client};
-use crate::support::library_updates::{all_older_than, compare_after_report, kernel_older_than};
+use crate::support::game::{
+    join_fixture, old_ssh_network, router_update_network, setup_player, test_client,
+};
+use crate::support::library_updates::compare_after_report;
 use crate::support::parity::compare_in;
 use crate::support::parity_library_updates::{
     newest_library, report_for_guild, ssh_version_script,
 };
-use crate::support::remote::forwarded_service;
 
 /// The computer a network forwards SSH to has the older libssh.so replaced by the newest the administrator reported,
 /// which the script sees on its next connection (`FileSystem.ApplyReportedLibUpdates`, `Database.RestoreComputer`).
@@ -19,11 +20,8 @@ async fn should_match_intrinsics_for_a_computer_library_after_a_reported_update(
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
     let newest = newest_library(&client, "libssh.so").await;
-    let snapshot = join_new_network_where(&client, "ssh", |snapshot| {
-        forwarded_service(snapshot, "ssh").is_some()
-            && all_older_than(snapshot, "libssh.so", &newest)
-    })
-    .await;
+    let network = old_ssh_network(&client).await;
+    let snapshot = join_fixture(&client, &network).await;
     let script = ssh_version_script(&snapshot);
     let before = compare_in(&client, &user, &snapshot, std::slice::from_ref(&script)).await;
     let after = compare_after_report(
@@ -49,10 +47,8 @@ async fn should_match_intrinsics_for_a_router_kernel_after_a_reported_update() {
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
     let newest = newest_library(&client, "kernel_router.so").await;
-    let snapshot = join_new_network_where(&client, "ssh", |snapshot| {
-        kernel_older_than(snapshot, &newest)
-    })
-    .await;
+    let network = router_update_network(&client).await;
+    let snapshot = join_fixture(&client, &network).await;
     let script = format!(
         "print get_router(\"{}\").kernel_version",
         snapshot.public_ip
@@ -81,11 +77,8 @@ async fn should_match_intrinsics_for_a_library_the_report_did_not_name() {
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
     let newest = newest_library(&client, "libssh.so").await;
-    let snapshot = join_new_network_where(&client, "ssh", |snapshot| {
-        forwarded_service(snapshot, "ssh").is_some()
-            && all_older_than(snapshot, "libssh.so", &newest)
-    })
-    .await;
+    let network = old_ssh_network(&client).await;
+    let snapshot = join_fixture(&client, &network).await;
     let script = format!(
         "r = get_router(\"{}\")\nfor port in r.used_ports\n  print r.port_info(port)\nend for",
         snapshot.public_ip

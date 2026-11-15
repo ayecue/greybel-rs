@@ -6,9 +6,9 @@ use greyhack_behaviour::MAX_SYMLINKS;
 use greyhack_behaviour::path::{self, normalize};
 use greyhack_world_modules::Dep;
 
-use crate::storage::*;
-use crate::systems::{FileLookup as FileLookupService, *};
-use crate::*;
+use crate::storage::NodeRepository;
+use crate::systems::{FileLookup as FileLookupService, UserService};
+use crate::{ComputerId, Node, NodeId, Result};
 
 impl FileLookupService {
     /// Returns computer node `id`, or `None` if removed.

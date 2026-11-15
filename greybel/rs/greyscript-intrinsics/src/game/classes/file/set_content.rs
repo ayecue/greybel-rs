@@ -19,7 +19,7 @@ pub fn set_content(
     let content = vm.heap().display(content).to_string();
 
     if let Err(refusal) = check_content(&content) {
-        return refuse("set_content", refusal);
+        return refuse("set_content", &refusal);
     }
 
     LoginEncryption::deny_in(vm, "set_content")?;

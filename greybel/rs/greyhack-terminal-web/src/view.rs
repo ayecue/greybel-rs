@@ -102,6 +102,10 @@ impl TerminalView {
     }
 
     /// Sets the viewport size and relayouts all lines when its width changes.
+    #[expect(
+        clippy::float_cmp,
+        reason = "An exact width comparison avoids relayout only when the viewport value is unchanged"
+    )]
     pub fn resize(&mut self, width: f32, height: f32) {
         self.height = height;
         if width != self.width {

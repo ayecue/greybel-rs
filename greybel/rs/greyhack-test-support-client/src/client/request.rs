@@ -1,7 +1,7 @@
 use tokio::sync::oneshot;
 
 use crate::TestClientError;
-use crate::protocol::test_support::Reply;
+use crate::protocol::test_support::{FixtureTarget, FixtureWeakness, Reply};
 
 pub(super) enum RequestKind {
     SetupPlayer,
@@ -14,6 +14,12 @@ pub(super) enum RequestKind {
     },
     CreateNetwork {
         public_ip: String,
+    },
+    CreateFixtureNetwork {
+        kind: String,
+        layout: String,
+        oldest_kernel: bool,
+        targets: Vec<FixtureTarget>,
     },
     SetupDebug,
     SetupCtf {
@@ -66,6 +72,12 @@ pub(super) enum RequestKind {
         name: String,
         rewards: Vec<u8>,
     },
+    InstallFixtureLibrary {
+        local_ip: String,
+        name: String,
+        weaknesses: Vec<FixtureWeakness>,
+        register_exploits: bool,
+    },
     SetupBlockchain {
         coin_name: String,
         wallet_user: String,
@@ -96,14 +108,6 @@ pub(super) enum RequestKind {
         local_ip: String,
     },
     FreezeClock,
-    FindNetwork {
-        kind: String,
-        device: String,
-    },
-    FindNewNetwork {
-        kind: String,
-        service: String,
-    },
     DisableNetwork {
         public_ip: String,
         disabled: bool,

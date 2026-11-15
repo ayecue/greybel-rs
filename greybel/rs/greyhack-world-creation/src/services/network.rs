@@ -18,6 +18,22 @@ use crate::generation::{
 const HUB_NAME: &str = "hub";
 
 /// Network lookup, creation, and shared generation helpers.
+/// Network names and contact generated before its records are stored.
+struct NetworkIdentity {
+    public_ip: String,
+    bssid: String,
+    essid: String,
+    domain: String,
+    contact: Contact,
+}
+
+/// Values shared by the final content-generation steps.
+struct NetworkContent<'a> {
+    public_ip: &'a str,
+    kind: NetworkKind,
+    domain: &'a str,
+}
+
 impl NetworkGeneration {
     pub async fn router_or_generate(&self, public_ip: &str) -> Result<Option<RouterId>> {
         if !is_valid_unreserved_ip(public_ip) {
@@ -41,8 +57,36 @@ impl NetworkGeneration {
         ))
     }
 
-    pub async fn add_network(&self, options: &NetworkOptions) -> Result<RouterId> {
-        let mut rng = self.world.world_mut().rng.fork("network");
+    async fn finish_network(
+        &self,
+        network_id: NetworkId,
+        computers: &[ComputerId],
+        details: NetworkContent<'_>,
+        rng: &mut Rng,
+        plan: Option<&crate::generation::lan::LanPlan>,
+    ) -> Result<()> {
+        self.configure_record_service(details.kind, computers, details.domain, rng)
+            .await?;
+        self.add_network_npcs(computers, rng).await?;
+        self.add_random_mails(computers, details.public_ip, details.kind)
+            .await?;
+
+        if let Some(plan) = plan
+            && let Some(mission) = &plan.mission
+        {
+            self.mission_placement
+                .finish_mission(network_id, details.public_ip, plan, mission)
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    async fn network_identity(
+        &self,
+        options: &NetworkOptions,
+        rng: &mut Rng,
+    ) -> Result<NetworkIdentity> {
         let public_ip = match &options.public_ip {
             Some(address) => address.clone(),
             None => loop {
@@ -59,18 +103,37 @@ impl NetworkGeneration {
             Some(domain) => domain.clone(),
             None => greyhack_behaviour::network_domain(&self.world.world_seed(), &public_ip),
         };
-        let surname = Word::Surname.generate(&mut rng);
-        let first_name = Gender::pick(&mut rng).first_name(&mut rng);
+        let surname = Word::Surname.generate(rng);
+        let first_name = Gender::pick(rng).first_name(rng);
         let contact = Contact {
             mail: format!("{surname}@{domain}"),
             name: format!("{first_name} {surname}"),
             phone: rng.phone(),
         };
-        let contact_password = Word::Password.generate(&mut rng);
+        let contact_password = Word::Password.generate(rng);
 
         self.mail
             .add_mail_account(&contact.mail, &contact_password)
             .await?;
+
+        Ok(NetworkIdentity {
+            public_ip,
+            bssid,
+            essid,
+            domain,
+            contact,
+        })
+    }
+
+    pub async fn add_network(&self, options: &NetworkOptions) -> Result<RouterId> {
+        let mut rng = self.world.world_mut().rng.fork("network");
+        let NetworkIdentity {
+            public_ip,
+            bssid,
+            essid,
+            domain,
+            contact,
+        } = self.network_identity(options, &mut rng).await?;
 
         let kernel_router = kernel_router(&mut rng);
         let position = options
@@ -152,19 +215,20 @@ impl NetworkGeneration {
             }
         };
 
-        self.configure_record_service(kind, &network_computers, &domain, &mut rng)
-            .await?;
-        self.add_network_npcs(&network_computers, &mut rng).await?;
-        self.add_random_mails(&network_computers, &public_ip, kind)
-            .await?;
+        let details = NetworkContent {
+            public_ip: &public_ip,
+            kind,
+            domain: &domain,
+        };
 
-        if let Some(plan) = &plan
-            && let Some(mission) = &plan.mission
-        {
-            self.mission_placement
-                .finish_mission(network_id, &public_ip, plan, mission)
-                .await?;
-        }
+        self.finish_network(
+            network_id,
+            &network_computers,
+            details,
+            &mut rng,
+            plan.as_ref(),
+        )
+        .await?;
 
         Ok(router)
     }
@@ -227,6 +291,10 @@ impl NetworkGeneration {
         Ok(())
     }
 
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The deterministic content seed uses the low 32 bits to initialize System.Random"
+    )]
     pub fn content_seed(&self, public_ip: &str, lan_ip: &str) -> i32 {
         Rng::stable(self.world.seed(), &[public_ip, lan_ip, "random content"]).next_u64() as i32
     }

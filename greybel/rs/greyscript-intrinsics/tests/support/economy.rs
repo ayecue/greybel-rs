@@ -54,7 +54,7 @@ pub fn world_with_ether_created_by_test() -> World {
         .expect("the world reads")
         .expect("Ether");
 
-    target.creator_user = "test".to_owned();
+    "test".clone_into(&mut target.creator_user);
     target.creator_password_hash = hash_password("test");
     block_on(world.modules.economy.coins.save_coin(&target)).expect("the coin is saved");
 

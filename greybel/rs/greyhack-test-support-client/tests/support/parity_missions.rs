@@ -18,7 +18,7 @@ pub async fn use_game_word_lists(client: &TestClient) {
     let texts = reply.lists.iter().map(|list| {
         (
             NameList::of_resource(&list.name).expect("a name list of the game"),
-            list.text.to_string(),
+            list.text.clone(),
         )
     });
 

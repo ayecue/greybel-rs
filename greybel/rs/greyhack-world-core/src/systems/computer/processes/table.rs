@@ -17,6 +17,10 @@ impl ProcessesService {
     /// # Errors
     ///
     /// Returns any database read error.
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "ShellIntrinsics.launch and Computer.AddProcess compare RAM with C# floats"
+    )]
     pub async fn check_process_capacity(
         &self,
         computer: ComputerId,

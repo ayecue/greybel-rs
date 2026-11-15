@@ -22,9 +22,18 @@ impl Context<'_> {
         let (callee_end, active_parameter) = text.open_call(self.offset as usize)?;
         let mut query = Query::new(self.analysis);
         let callee = self
-            .typed_node_at_end(callee_end as u32, |node| self.is_reference(node))
+            .typed_node_at_end(
+                u32::try_from(callee_end).expect("value fits the target integer type"),
+                |node| self.is_reference(node),
+            )
             .map(|(_, ty)| ty)
-            .or_else(|| self.chain_type(&mut query, callee_end as u32, false))?;
+            .or_else(|| {
+                self.chain_type(
+                    &mut query,
+                    u32::try_from(callee_end).expect("value fits the target integer type"),
+                    false,
+                )
+            })?;
         let name_start = text.name_start(callee_end);
         let name = &self.ast.source()[name_start..callee_end];
         let method = self.ast.source()[..name_start].ends_with('.');

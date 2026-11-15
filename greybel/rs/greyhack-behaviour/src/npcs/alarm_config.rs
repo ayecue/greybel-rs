@@ -44,7 +44,8 @@ impl AlarmConfig {
 
         let travel = work_start - COMMUTE_SECONDS;
 
-        self.hour = (travel / SECONDS_PER_HOUR) as u8;
-        self.minute = ((travel % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE) as u8;
+        self.hour = u8::try_from(travel / SECONDS_PER_HOUR).expect("the alarm hour fits u8");
+        self.minute = u8::try_from((travel % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE)
+            .expect("the alarm minute fits u8");
     }
 }

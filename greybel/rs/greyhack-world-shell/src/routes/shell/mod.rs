@@ -20,6 +20,18 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_shell_network::<W>(routes);
+    register_shell_connections::<W>(routes);
+    register_shell_builds::<W>(routes);
+    register_shell_launch::<W>(routes);
+    register_shell_terminal::<W>(routes);
+}
+
+fn register_shell_network<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -58,6 +70,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
+
+fn register_shell_connections<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -155,6 +174,13 @@ pub(crate) fn register<
             })
         },
     );
+}
+
+fn register_shell_builds<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -192,7 +218,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
 
+fn register_shell_launch<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.wait::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -291,7 +323,48 @@ pub(crate) fn register<
             .await
         },
     );
+}
 
+fn prepare_terminal<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+>(
+    ctx: &greyhack_world_router::RouteContext<'_, W>,
+    call: greyhack_world_router::Call,
+    program: greyhack_world_programs::protocol::ProgramId,
+    shell_id: greyhack_world_programs::protocol::ObjectId,
+) -> Result<(u32, Access)> {
+    let launcher = ctx
+        .trees
+        .get_mut(call.tree)
+        .expect("the indexed tree exists")
+        .session(program)
+        .expect("dispatch checked the active program");
+    let launcher_bounces = ctx.trees.objects(call.tree).session(launcher)?.bounces;
+    let shell = ctx.trees.objects(call.tree).shell(shell_id)?.clone();
+
+    // Register the shell computer for the tree even if terminal startup fails
+    // (`HelperScript.AddPendingShell`).
+    ctx.trees
+        .get_mut(call.tree)
+        .expect("the indexed tree exists")
+        .terminals
+        .push(shell.computer);
+
+    // `ShellIntrinsics.start_terminal` adds the shell's computer to the terminal process's
+    // main-terminal list before it checks anything (`Proceso.AddMainTerminalRemote`).
+    ctx.trees
+        .get_mut(call.tree)
+        .expect("the indexed tree exists")
+        .add_remote_terminal(shell.computer);
+
+    Ok((launcher_bounces, shell))
+}
+
+fn register_shell_terminal<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.wait::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -305,29 +378,8 @@ pub(crate) fn register<
                 true,
                 async move |ctx: &greyhack_world_router::RouteContext<'_, W>, call| {
                     let world = &*ctx.modules;
-                    let launcher = ctx
-                        .trees
-                        .get_mut(call.tree)
-                        .expect("the indexed tree exists")
-                        .session(program)
-                        .expect("dispatch checked the active program");
-                    let launcher_bounces = ctx.trees.objects(call.tree).session(launcher)?.bounces;
-                    let shell = ctx.trees.objects(call.tree).shell(message.shell)?.clone();
-
-                    // Register the shell computer for the tree even if terminal startup fails
-                    // (`HelperScript.AddPendingShell`).
-                    ctx.trees
-                        .get_mut(call.tree)
-                        .expect("the indexed tree exists")
-                        .terminals
-                        .push(shell.computer);
-
-                    // `ShellIntrinsics.start_terminal` adds the shell's computer to the terminal process's
-                    // main-terminal list before it checks anything (`Proceso.AddMainTerminalRemote`).
-                    ctx.trees
-                        .get_mut(call.tree)
-                        .expect("the indexed tree exists")
-                        .add_remote_terminal(shell.computer);
+                    let (launcher_bounces, shell) =
+                        prepare_terminal(ctx, call, program, message.shell)?;
 
                     Ok(
                         match world

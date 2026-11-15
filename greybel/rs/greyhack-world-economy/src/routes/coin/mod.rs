@@ -18,6 +18,17 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_coin_address::<W>(routes);
+    register_coin_cycle::<W>(routes);
+    register_coin_subwallets::<W>(routes);
+    register_coin_transactions::<W>(routes);
+}
+
+fn register_coin_address<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -56,6 +67,13 @@ pub(crate) fn register<
             )
         },
     );
+}
+
+fn register_coin_cycle<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -148,6 +166,13 @@ pub(crate) fn register<
             )
         },
     );
+}
+
+fn register_coin_subwallets<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -236,6 +261,13 @@ pub(crate) fn register<
                 .collect())
         },
     );
+}
+
+fn register_coin_transactions<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,

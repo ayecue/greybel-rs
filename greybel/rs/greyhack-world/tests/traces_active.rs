@@ -5,6 +5,11 @@ use greyhack_world_guilds::GuildDraft;
 use crate::support::traces_active::{BANK_SHARES, LEVEL_FIVE, bank};
 
 #[tokio::test]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "ActiveTraceSystem.StartActiveTrace converts positive trace seconds to integral time"
+)]
 async fn should_start_a_trace_that_lasts_per_bounce_and_experience() {
     // Arrange
     let (world, _, _, exp, computer) = bank().await;
@@ -197,6 +202,11 @@ async fn should_not_trace_the_member_of_a_guild_that_owns_the_company() {
 }
 
 #[tokio::test]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "ActiveTraceSystem.StartActiveTrace converts positive trace seconds to integral time"
+)]
 async fn should_give_a_strike_when_an_active_trace_runs_out() {
     // Arrange
     let (world, _, _, exp, computer) = bank().await;

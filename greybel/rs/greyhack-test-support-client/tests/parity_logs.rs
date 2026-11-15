@@ -4,12 +4,12 @@
 use greybel_test_support::game::Game;
 use greyhack_behaviour::Reward;
 
-use crate::support::game::{join_network_where, setup_player, test_client};
-use crate::support::metaxploit::{computer_library, overflow_script, weakness};
-use crate::support::parity_logs::{LOG_DATE, compare_logs, compare_typed_logs, connect};
-use crate::support::remote::{
-    find_ssh_with_library, forwarded_root, forwarded_service, service_account, ssh_with_library,
+use crate::support::game::{join_fixture, setup_player, ssh_network, test_client};
+use crate::support::metaxploit::{
+    computer_library, fixture_reply_weakness, fixture_weakness, overflow_script,
 };
+use crate::support::parity_logs::{LOG_DATE, compare_logs, compare_typed_logs, connect};
+use crate::support::remote::fixture_account;
 
 /// Logins by LAN address and by the public address, with the right and a wrong password, for root and another user:
 /// `open` and `shell` on the target and `bounce` on the player's computer and router; a refused login leaves nothing.
@@ -18,14 +18,13 @@ async fn should_match_intrinsics_for_connection_logs() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        find_ssh_with_library(snapshot, "libssh.so").is_some()
-            && forwarded_service(snapshot, "ssh").is_some()
-    })
-    .await;
-    let account = service_account(&snapshot, "ssh");
-    let (port, forwarded_password) = forwarded_root(&snapshot, "ssh");
-    let public_ip = snapshot.public_ip.to_string();
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let public = fixture_account(&network, "ssh", "ssh", true);
+    let port = public.port;
+    let forwarded_password = public.root_password;
+    let snapshot = join_fixture(&client, &network).await;
+    let public_ip = snapshot.public_ip.clone();
     let scripts = [
         format!(
             "{}\nprint typeof(shell)\n{LOG_DATE}",
@@ -72,11 +71,9 @@ async fn should_match_intrinsics_for_delete_logs() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        find_ssh_with_library(snapshot, "libssh.so").is_some()
-    })
-    .await;
-    let account = service_account(&snapshot, "ssh");
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let _snapshot = join_fixture(&client, &network).await;
     let remote = connect(
         &account.address,
         account.port,
@@ -109,14 +106,14 @@ async fn should_match_intrinsics_for_net_use_logs() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        find_ssh_with_library(snapshot, "libssh.so").is_some()
-            && forwarded_service(snapshot, "ssh").is_some()
-    })
-    .await;
-    let (_, ssh_ip, ssh_port, _) = ssh_with_library(&snapshot, "libssh.so");
-    let (public_port, _) = forwarded_root(&snapshot, "ssh");
-    let public_ip = snapshot.public_ip.to_string();
+    let network = ssh_network(&client).await;
+    let local = fixture_account(&network, "ssh", "ssh", false);
+    let public = fixture_account(&network, "ssh", "ssh", true);
+    let ssh_ip = local.address;
+    let ssh_port = local.port;
+    let public_port = public.port;
+    let snapshot = join_fixture(&client, &network).await;
+    let public_ip = snapshot.public_ip.clone();
     let scripts = [
         format!(
             "mx = include_lib(\"/lib/metaxploit.so\")\nprint typeof(mx.net_use(\"{ssh_ip}\", {ssh_port}))"
@@ -146,21 +143,25 @@ async fn should_match_intrinsics_for_exploit_logs() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        find_ssh_with_library(snapshot, "libssh.so").is_some_and(|(_, ip, _, _)| {
-            weakness(&computer_library(snapshot, &ip, "libssh.so"), |weakness| {
-                weakness.reward == Reward::Shell && weakness.requirements.is_empty()
-            })
-            .is_some()
-        })
-    })
-    .await;
-    let (_, ssh_ip, ssh_port, _) = ssh_with_library(&snapshot, "libssh.so");
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let ssh_ip = account.address;
+    let ssh_port = account.port;
+
+    join_fixture(&client, &network).await;
+
+    let installed = client
+        .install_fixture_library(
+            &ssh_ip,
+            "libssh.so",
+            vec![fixture_weakness(Reward::Shell, &[], "guest", "")],
+            false,
+        )
+        .await
+        .unwrap();
+    let snapshot = client.network_state().await.unwrap();
     let library = computer_library(&snapshot, &ssh_ip, "libssh.so");
-    let (address, shell_weakness) = weakness(&library, |weakness| {
-        weakness.reward == Reward::Shell && weakness.requirements.is_empty()
-    })
-    .expect("a shell weakness");
+    let (address, shell_weakness) = fixture_reply_weakness(&library, &installed.weaknesses[0]);
     let shell = overflow_script("", Some((&ssh_ip, ssh_port)), address, shell_weakness, "");
     let wrong = overflow_script("", Some((&ssh_ip, ssh_port)), "0xBAD", shell_weakness, "");
 
@@ -177,11 +178,9 @@ async fn should_match_intrinsics_for_terminal_close_logs() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        find_ssh_with_library(snapshot, "libssh.so").is_some()
-    })
-    .await;
-    let account = service_account(&snapshot, "ssh");
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let _snapshot = join_fixture(&client, &network).await;
     let remote = connect(
         &account.address,
         account.port,

@@ -18,19 +18,19 @@ pub fn game_computers(snapshot: &NetworkSnapshot) -> Vec<Computer> {
                 users: computer
                     .users
                     .iter()
-                    .map(|user| user.name.to_string())
+                    .map(|user| user.name.clone())
                     .collect(),
                 entries: computer
                     .files
                     .iter()
                     .map(|file| Entry {
-                        path: file.path.to_string(),
+                        path: file.path.clone(),
                         folder: file.folder,
-                        owner: file.owner.to_string(),
-                        group: file.group.to_string(),
-                        permissions: file.permissions.to_string(),
+                        owner: file.owner.clone(),
+                        group: file.group.clone(),
+                        permissions: file.permissions.clone(),
                         kind: FileKind::of_layout(file.type_file, file.binary),
-                        content: file.content.to_string(),
+                        content: file.content.clone(),
                         size: file.size,
                     })
                     .collect(),

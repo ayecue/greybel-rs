@@ -7,7 +7,7 @@ use crate::semantic_tokens::semantic_tokens;
 impl Server {
     pub(in crate::server) fn semantic_tokens_full(
         &mut self,
-        params: lsp::SemanticTokensParams,
+        params: &lsp::SemanticTokensParams,
     ) -> Result<Option<lsp::SemanticTokens>> {
         let uri = Self::requested_uri(&params.text_document.uri)?;
         let Some(file) = self.workspace.file(&uri) else {

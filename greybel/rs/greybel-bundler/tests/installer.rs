@@ -1,3 +1,5 @@
+use std::fmt::Write as _;
+
 use greybel_bundler::{BuildError, Installer};
 use greybel_documents_memory_provider::MemoryProvider;
 
@@ -53,10 +55,11 @@ fn should_parse_the_installer_as_greyscript() {
 
 #[test]
 fn should_split_files_over_installers_within_max_chars() {
-    let code = (0..400)
-        .map(|line| format!("print \"line {line}\"\n"))
-        .collect::<String>()
-        + "import_code(\"tool.src\")";
+    let code = (0..400).fold(String::new(), |mut code, line| {
+        let _ = writeln!(code, "print \"line {line}\"");
+
+        code
+    }) + "import_code(\"tool.src\")";
     let provider: MemoryProvider = [("/p/main.src", code.as_str()), ("/p/tool.src", "print 1")]
         .into_iter()
         .collect();

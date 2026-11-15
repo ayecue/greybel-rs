@@ -28,7 +28,7 @@ use serde::Deserialize;
 pub fn layout(snapshot: &NetworkSnapshot) -> NetworkLayout {
     NetworkLayout {
         kind: NetworkKind::of_game_name(&snapshot.kind).unwrap_or(NetworkKind::Unknown),
-        public_ip: snapshot.public_ip.to_string(),
+        public_ip: snapshot.public_ip.clone(),
         // The snapshot has the web address; the domain is what follows its `www.` (`ServerMap.RouterNode.GetDomain`).
         domain: snapshot
             .domain
@@ -50,7 +50,7 @@ pub fn layout(snapshot: &NetworkSnapshot) -> NetworkLayout {
             .iter()
             .map(|node| LanNodeLayout {
                 parent: node.parent.map(|parent| parent as usize),
-                gateway: node.gateway.to_string(),
+                gateway: node.gateway.clone(),
                 device: match &node.node {
                     LanNodeKind::Router(router) => router_layout(&node.local_ip, router),
                     LanNodeKind::Hub => DeviceLayout::Hub,
@@ -73,8 +73,8 @@ pub fn economy(snapshot: &NetworkSnapshot) -> EconomyLayout {
             .banks
             .iter()
             .map(|bank| BankLayout {
-                number: bank.number.to_string(),
-                password: bank.password.to_string(),
+                number: bank.number.clone(),
+                password: bank.password.clone(),
                 money: bank.money,
             })
             .collect(),
@@ -89,7 +89,7 @@ pub fn economy(snapshot: &NetworkSnapshot) -> EconomyLayout {
                     .any(|bank| bank.number == payment.bank)
             })
             .map(|payment| BankSubscription {
-                bank: payment.bank.to_string(),
+                bank: payment.bank.clone(),
                 kind: match payment.kind.as_ref() {
                     "BANK" => SubscriptionKind::Bank,
                     "RENTED" => SubscriptionKind::Rented,
@@ -105,10 +105,10 @@ pub fn economy(snapshot: &NetworkSnapshot) -> EconomyLayout {
             .coins
             .iter()
             .map(|coin| CoinLayout {
-                name: coin.name.to_string(),
-                creator_user: coin.creator_user.to_string(),
-                creator_password: coin.creator_password.to_string(),
-                address: coin.address.to_string(),
+                name: coin.name.clone(),
+                creator_user: coin.creator_user.clone(),
+                creator_password: coin.creator_password.clone(),
+                address: coin.address.clone(),
                 cycle_hours: coin.mining_cycle,
                 reward: coin.reward,
                 mined_coins: coin.mined_coins,
@@ -119,7 +119,7 @@ pub fn economy(snapshot: &NetworkSnapshot) -> EconomyLayout {
                     .iter()
                     .map(|price| PriceRecord {
                         price: price.price,
-                        date: price.date.to_string(),
+                        date: price.date.clone(),
                     })
                     .collect(),
             })
@@ -128,20 +128,20 @@ pub fn economy(snapshot: &NetworkSnapshot) -> EconomyLayout {
             .wallets
             .iter()
             .map(|wallet| WalletLayout {
-                user: wallet.user.to_string(),
-                password: wallet.password.to_string(),
-                pin: wallet.pin.to_string(),
-                bank: wallet.bank.to_string(),
+                user: wallet.user.clone(),
+                password: wallet.password.clone(),
+                pin: wallet.pin.clone(),
+                bank: wallet.bank.clone(),
                 subwallets: wallet
                     .subwallets
                     .iter()
                     .map(|subwallet| SubWalletLayout {
-                        coin: subwallet.coin.to_string(),
-                        user: subwallet.user.to_string(),
-                        password: subwallet.password.to_string(),
+                        coin: subwallet.coin.clone(),
+                        user: subwallet.user.clone(),
+                        password: subwallet.password.clone(),
                         balance: subwallet.balance,
-                        info: subwallet.info.to_string(),
-                        wallet_user: wallet.user.to_string(),
+                        info: subwallet.info.clone(),
+                        wallet_user: wallet.user.clone(),
                     })
                     .collect(),
             })
@@ -150,8 +150,8 @@ pub fn economy(snapshot: &NetworkSnapshot) -> EconomyLayout {
             .offers
             .iter()
             .map(|offer| OfferLayout {
-                coin: offer.coin.to_string(),
-                wallet_user: offer.wallet_user.to_string(),
+                coin: offer.coin.clone(),
+                wallet_user: offer.wallet_user.clone(),
                 side: if offer.side == "Buy" {
                     Side::Buy
                 } else {
@@ -159,7 +159,7 @@ pub fn economy(snapshot: &NetworkSnapshot) -> EconomyLayout {
                 },
                 price: offer.price,
                 amount: offer.amount,
-                subwallet: offer.subwallet.to_string(),
+                subwallet: offer.subwallet.clone(),
             })
             .collect(),
     }
@@ -175,7 +175,7 @@ fn router_layout(local_ip: &str, router: &RouterSnapshot) -> DeviceLayout {
         draft: RouterDraft {
             essid: router.essid.as_ref().map(ToString::to_string),
             bssid: router.bssid.as_ref().map(ToString::to_string),
-            wifi_password: router.wifi_password.to_string(),
+            wifi_password: router.wifi_password.clone(),
             firewall_rules: router.firewall_rules.iter().map(firewall_rule).collect(),
             firewall_active: true,
             computer: Box::new(ComputerDraft {
@@ -212,7 +212,7 @@ fn router_layout(local_ip: &str, router: &RouterSnapshot) -> DeviceLayout {
             .into_iter()
             .map(|port| ForwardLayout {
                 number: port.number,
-                lan_ip: port.local_ip.to_string(),
+                lan_ip: port.local_ip.clone(),
                 port: port.port,
             })
             .collect(),
@@ -249,9 +249,9 @@ fn computer_draft(local_ip: &str, computer: &ComputerSnapshot) -> ComputerDraft 
             .iter()
             .enumerate()
             .map(|(index, process)| Process {
-                pid: index as u32,
-                user: process.user.to_string(),
-                name: process.name.to_string(),
+                pid: u32::try_from(index).expect("process indexes fit u32"),
+                user: process.user.clone(),
+                name: process.name.clone(),
                 cpu: 0.0,
                 ram_mb: if process.name == SAFE_MODE_TERMINAL {
                     SAFE_MODE_TERMINAL_RAM_MB
@@ -269,10 +269,10 @@ fn computer_draft(local_ip: &str, computer: &ComputerSnapshot) -> ComputerDraft 
             .saved_networks
             .iter()
             .map(|network| SavedNetwork {
-                bssid: network.bssid.to_string(),
-                essid: network.essid.to_string(),
-                password: network.password.to_string(),
-                public_ip: network.public_ip.to_string(),
+                bssid: network.bssid.clone(),
+                essid: network.essid.clone(),
+                password: network.password.clone(),
+                public_ip: network.public_ip.clone(),
             })
             .collect(),
         active_users: computer
@@ -284,7 +284,7 @@ fn computer_draft(local_ip: &str, computer: &ComputerSnapshot) -> ComputerDraft 
         filesystem: filesystem(&computer.files),
         hardware: hardware(computer),
         smart: computer.smart.as_ref().map(|smart| SmartApplianceSettings {
-            model: smart.model.to_string(),
+            model: smart.model.clone(),
             required_power: smart.required_power,
             required_temperature: smart.required_temperature,
             power: smart.power,
@@ -377,8 +377,8 @@ fn filesystem(files: &[FileSnapshot]) -> FileSystemDraft {
             NodeDraft::file(name, &file.owner, permissions, file_data(file))
         };
 
-        node.group = file.group.to_string();
-        node.symlink = file.symlink.to_string();
+        node.group.clone_from(&file.group);
+        node.symlink.clone_from(&file.symlink);
         node.timestamp = file.timestamp;
         node.library = (FileKind::of_layout(file.type_file, file.binary) == FileKind::Library)
             .then(|| library(&file.content))
@@ -396,7 +396,7 @@ fn file_data(file: &FileSnapshot) -> FileData {
 
     FileData {
         kind,
-        content: file.content.to_string(),
+        content: file.content.clone(),
         command: (kind == FileKind::Binary)
             .then(|| Command::of_name(&file.command))
             .flatten(),

@@ -363,6 +363,10 @@ impl FileChangesService {
     /// # Errors
     ///
     /// Returns any database error; the inner error explains why no entries can be copied.
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "PlayerUtils.PrepararScpUpload compares byte counts using C# float megabytes"
+    )]
     pub async fn copy_with_rules(
         &self,
         source: &Node,

@@ -8,7 +8,7 @@ use crate::initialization::InitializationOptions;
 impl Server {
     pub(super) fn initialize(
         &mut self,
-        params: lsp::InitializeParams,
+        params: &lsp::InitializeParams,
     ) -> Result<lsp::InitializeResult> {
         let options = InitializationOptions::of(params.initialization_options.clone())?;
 
@@ -60,10 +60,8 @@ impl Server {
         }
     }
 
-    pub(super) fn shutdown(&mut self, (): ()) -> Result<()> {
+    pub(super) fn shutdown(&mut self, (): ()) {
         self.state = State::Teardown;
-
-        Ok(())
     }
 
     pub(super) fn exit(&mut self) {

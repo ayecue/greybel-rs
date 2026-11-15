@@ -18,6 +18,10 @@ pub enum GpuFault {
 
 /// Checks a GPU of `health` before it mines (`SubWalletIntrinsics.mining`); draws only when the GPU can fail the
 /// self-test.
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "SubWalletIntrinsics.mining converts the random percentage to a C# float"
+)]
 pub fn check_gpu(rng: &mut Rng, health: f32) -> Option<GpuFault> {
     if health < GPU_DAMAGED_HEALTH {
         return Some(GpuFault::LowHealth);

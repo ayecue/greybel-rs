@@ -30,7 +30,7 @@ async fn should_match_intrinsics_for_blockchain_wallets_and_coins() {
     client.setup_blockchain(&coin, &wallet).await.unwrap();
 
     let snapshot = client.network_state().await.unwrap();
-    let address = snapshot.public_ip.to_string();
+    let address = snapshot.public_ip.clone();
     // The game resumes a mining script before it saves the coin's mined total (`BlockchainSystem.CheckBlocks` calls
     // `FinishMining` before `SyncCoin`), so the script waits before it reads the total.
     let script = format!(

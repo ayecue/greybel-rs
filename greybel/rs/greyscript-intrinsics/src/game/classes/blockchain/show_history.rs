@@ -9,6 +9,10 @@ use crate::protocol::{BlockchainShowHistory, PriceHistory};
 /// Returns `BlockchainSystem.GetHistory` as `{index: [price, date]}`, oldest first.
 /// Unknown coins return `null`.
 #[native(method)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "GreyScript exposes history indexes as f64 numbers"
+)]
 pub fn show_history(
     vm: &mut Vm,
     this: &Value,

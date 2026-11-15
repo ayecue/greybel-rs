@@ -80,8 +80,8 @@ impl GameObject {
             (None, Self::Port(port)) => ObjectKey::Port {
                 number: port.number,
                 internal_port: port.internal_port,
-                service: port.service.to_string(),
-                lan_ip: port.lan_ip.to_string(),
+                service: port.service.clone(),
+                lan_ip: port.lan_ip.clone(),
                 closed: port.closed,
                 visible: port.visible,
             },

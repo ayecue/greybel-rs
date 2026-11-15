@@ -84,7 +84,9 @@ impl ModuleGraph {
     }
 
     pub fn ids(&self) -> impl Iterator<Item = ModuleId> {
-        (0..self.modules.len()).map(|index| ModuleId(index as u32))
+        (0..self.modules.len()).map(|index| {
+            ModuleId(u32::try_from(index).expect("value fits the target integer type"))
+        })
     }
 
     pub(super) fn index_native_imports(&mut self) {

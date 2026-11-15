@@ -177,6 +177,10 @@ impl LibraryGeneration for Library {
     }
 }
 
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Library.AddMemZone formats a 32-bit System.Random address"
+)]
 fn unique_address(library: &Library, rng: &mut Rng) -> String {
     loop {
         let address = format!("0x{:X}", rng.next_u64() as u32);
@@ -212,16 +216,8 @@ fn memory_zone(
 
 /// Configures a weakness for library `kind` (`Vulnerabilidad.Configure`). Remote weaknesses can
 /// require network conditions; local weaknesses cannot and never grant guest shells.
-fn generate_weakness(
-    rng: &mut Rng,
-    kind: LibraryKind,
-    hide: bool,
-    force_router: bool,
-    zone: &[Weakness],
-    context: WeaknessContext<'_>,
-) -> Weakness {
+fn weakness_reward(rng: &mut Rng, kind: LibraryKind, force_router: bool) -> (Reward, bool) {
     let router = kind.role() == LibraryRole::Router;
-    let remote = kind.is_remote();
     let mut rewards = vec![Reward::Computer, Reward::Shell, Reward::RandomFolder];
 
     rewards.push(if router {
@@ -249,6 +245,17 @@ fn generate_weakness(
                 Reward::Shell | Reward::RandomFolder | Reward::FirewallDisable
             ));
 
+    (reward, force_guest)
+}
+
+fn weakness_requirements(
+    rng: &mut Rng,
+    kind: LibraryKind,
+    remote: bool,
+    router: bool,
+    force_guest: bool,
+    context: WeaknessContext<'_>,
+) -> (Vec<Requirement>, Option<LibraryKind>, String) {
     let mut allowed_requirements = if router {
         vec![Requirement::LocalNetwork, Requirement::ConnGateway]
     } else {
@@ -322,6 +329,22 @@ fn generate_weakness(
         }
     }
 
+    (requirements, required_lib, req_lib_version)
+}
+
+fn generate_weakness(
+    rng: &mut Rng,
+    kind: LibraryKind,
+    hide: bool,
+    force_router: bool,
+    zone: &[Weakness],
+    context: WeaknessContext<'_>,
+) -> Weakness {
+    let router = kind.role() == LibraryRole::Router;
+    let remote = kind.is_remote();
+    let (reward, force_guest) = weakness_reward(rng, kind, force_router);
+    let (requirements, required_lib, req_lib_version) =
+        weakness_requirements(rng, kind, remote, router, force_guest, context);
     let mut user = pick_user(rng, hide);
 
     if force_guest {
@@ -329,7 +352,7 @@ fn generate_weakness(
     }
 
     if user == GUEST_USER && (reward == Reward::ChangePass || !remote) {
-        user = "normal_user".to_owned();
+        "normal_user".clone_into(&mut user);
     }
 
     // A zone's weaknesses have distinct values; a repeated one is drawn again.
@@ -401,10 +424,16 @@ fn required_count(rng: &mut Rng, max: usize) -> u32 {
     }
 
     let weights: Vec<u32> = (0..max)
-        .map(|i| if i == 0 { 30 } else { (100 - max * 8) as u32 })
+        .map(|i| {
+            if i == 0 {
+                30
+            } else {
+                u32::try_from(100 - max * 8).expect("the weight is nonnegative")
+            }
+        })
         .collect();
 
-    pick_weighted_index(rng, &weights) as u32
+    u32::try_from(pick_weighted_index(rng, &weights)).expect("the weighted index fits u32")
 }
 
 /// Prevents `RootActiveUser` and `AnyActiveUser` from appearing in the same requirement set.

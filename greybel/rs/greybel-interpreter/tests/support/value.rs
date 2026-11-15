@@ -8,41 +8,41 @@ pub fn list(heap: &mut Heap, items: Vec<Value>) -> Value {
     Value::List(heap.add_list(items))
 }
 
-/// Heap fixture with equal and unequal lists and maps; `table` maps list `a` to `"test"`.
+/// Heap fixture with equal and unequal lists and maps; `table` maps `list_a` to `"test"`.
 pub struct Equality {
     pub heap: Heap,
-    pub a: Value,
-    pub b: Value,
-    pub c: Value,
+    pub list_a: Value,
+    pub list_b: Value,
+    pub list_c: Value,
     pub table: Map,
-    pub x: Value,
-    pub y: Value,
+    pub map_x: Value,
+    pub map_y: Value,
 }
 
 impl Default for Equality {
     fn default() -> Self {
         let mut heap = Heap::default();
-        let a = list(&mut heap, vec![0.0.into(), 0.0.into(), 1.0.into()]);
-        let b = list(&mut heap, vec![0.0.into(), 0.0.into(), 1.0.into()]);
-        let c = list(&mut heap, vec![0.0.into(), 1.0.into(), 0.0.into()]);
-        let table = heap.add_map_from(vec![(a.clone(), "test".into())]);
-        let x = map(
+        let list_a = list(&mut heap, vec![0.0.into(), 0.0.into(), 1.0.into()]);
+        let list_b = list(&mut heap, vec![0.0.into(), 0.0.into(), 1.0.into()]);
+        let list_c = list(&mut heap, vec![0.0.into(), 1.0.into(), 0.0.into()]);
+        let table = heap.add_map_from(vec![(list_a.clone(), "test".into())]);
+        let map_x = map(
             &mut heap,
             vec![("was".into(), 1.0.into()), ("second".into(), 2.0.into())],
         );
-        let y = map(
+        let map_y = map(
             &mut heap,
             vec![("second".into(), 2.0.into()), ("was".into(), 1.0.into())],
         );
 
         Self {
             heap,
-            a,
-            b,
-            c,
+            list_a,
+            list_b,
+            list_c,
             table,
-            x,
-            y,
+            map_x,
+            map_y,
         }
     }
 }

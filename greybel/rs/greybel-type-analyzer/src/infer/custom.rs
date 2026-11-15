@@ -46,7 +46,8 @@ impl Inference<'_> {
                         self.model.add_custom_type(CustomType {
                             name: doc.name.clone(),
                             map,
-                            document: document as DocumentIndex,
+                            document: DocumentIndex::try_from(document)
+                                .expect("value fits the target integer type"),
                             type_parameters: doc.type_parameters.clone(),
                             description: doc.description.clone(),
                         });
@@ -71,7 +72,8 @@ impl Inference<'_> {
                     .collect();
 
                 self.type_declarations.push(TypeDeclaration {
-                    document: document as DocumentIndex,
+                    document: DocumentIndex::try_from(document)
+                        .expect("value fits the target integer type"),
                     span,
                     map,
                     doc,

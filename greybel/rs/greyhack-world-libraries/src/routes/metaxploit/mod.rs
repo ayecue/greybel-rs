@@ -24,6 +24,16 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_metaxploit_scans::<W>(routes);
+    register_metaxploit_sessions::<W>(routes);
+    register_metaxploit_server::<W>(routes);
+}
+
+fn register_metaxploit_scans<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -95,6 +105,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
+
+fn register_metaxploit_sessions<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -159,6 +176,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
+
+fn register_metaxploit_server<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,

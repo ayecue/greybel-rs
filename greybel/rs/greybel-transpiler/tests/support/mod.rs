@@ -94,7 +94,7 @@ impl Fixtures {
 
     /// Formats the entry output first and prefixes every remaining output with its fixture-relative target path.
     #[must_use]
-    pub fn outputs(&self, outputs: Vec<Output>) -> String {
+    pub fn outputs(&self, outputs: &[Output]) -> String {
         outputs
             .iter()
             .enumerate()

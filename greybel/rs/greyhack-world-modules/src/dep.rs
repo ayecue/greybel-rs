@@ -47,6 +47,10 @@ impl<T: ?Sized + 'static> Deref for Dep<T> {
     }
 }
 
+#[expect(
+    clippy::missing_fields_in_debug,
+    reason = "Dependency debug output omits the registry weak reference"
+)]
 impl<T: ?Sized + 'static> std::fmt::Debug for Dep<T> {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter

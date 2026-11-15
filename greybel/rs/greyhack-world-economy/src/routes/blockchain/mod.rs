@@ -22,6 +22,16 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_blockchain_prices::<W>(routes);
+    register_blockchain_access::<W>(routes);
+    register_blockchain_lifecycle::<W>(routes);
+}
+
+fn register_blockchain_prices<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -73,6 +83,13 @@ pub(crate) fn register<
             .await
         },
     );
+}
+
+fn register_blockchain_access<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -149,6 +166,13 @@ pub(crate) fn register<
             Ok(wallet(&mut ctx.trees.objects(call.tree), login))
         },
     );
+}
+
+fn register_blockchain_lifecycle<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,

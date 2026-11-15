@@ -23,12 +23,16 @@ fn colleague_of(npc: &Npc, surname: &str, name: &str, mail: String) -> Colleague
 
 /// Methods of [`World`] for npcs mail npc inbox.
 impl Mail {
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Persona.GenerateMailZeroDay initializes System.Random with a C# int seed"
+    )]
     pub async fn generate_npc_mail(&self, address: &str) -> Result<()> {
-        if self.mail.has_npc_contents(address).await? {
+        if self.rows.has_npc_contents(address).await? {
             return Ok(());
         }
 
-        let Some(person) = self.mail.mail_owner(address).await? else {
+        let Some(person) = self.rows.mail_owner(address).await? else {
             return Ok(());
         };
         let Some(npc) = self.npcs.npc(person).await? else {
@@ -53,7 +57,7 @@ impl Mail {
 
         for colleague in self.npcs.npcs_in(computer.network).await? {
             if let Some(row) = self.computers.person(colleague.person).await?
-                && let Some(mail) = self.mail.mail_address(colleague.person).await?
+                && let Some(mail) = self.rows.mail_address(colleague.person).await?
             {
                 network.push(colleague_of(&colleague, &row.surname, &row.name, mail));
             }
@@ -103,7 +107,7 @@ impl Mail {
             mission_contact.as_deref(),
             &text,
         ) {
-            if self.mail.mail_account(&delivery.to).await?.is_none() {
+            if self.rows.mail_account(&delivery.to).await?.is_none() {
                 continue;
             }
 
@@ -113,11 +117,11 @@ impl Mail {
                 delivery.text
             };
 
-            self.mail
+            self.rows
                 .insert_email(&delivery.to, &delivery.other, &delivery.subject, &body)
                 .await?;
         }
 
-        self.mail.set_npc_contents(address, true).await
+        self.rows.set_npc_contents(address, true).await
     }
 }

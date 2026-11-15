@@ -1,5 +1,7 @@
 //! Program implementations for editor launches in simulated and game environments.
 
+use std::fmt::Write as _;
+
 mod binary;
 #[cfg(feature = "game")]
 mod game;
@@ -66,7 +68,9 @@ pub(crate) trait Evaluator {
             match self.evaluate_text(expression).await {
                 Ok(Some(value)) => text.push_str(&value.log_text()),
                 Ok(None) => text.push_str("null"),
-                Err(failure) => text.push_str(&format!("{{error: {failure}}}")),
+                Err(failure) => {
+                    let _ = write!(text, "{{error: {failure}}}");
+                }
             }
 
             remainder = &brace[end + 1..];

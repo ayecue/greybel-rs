@@ -162,8 +162,10 @@ impl BuildService {
                     .users(player)
                     .await?
                     .get(1)
-                    .map(|user| user.name.clone())
-                    .unwrap_or_else(|| greyhack_behaviour::ROOT_USER.to_owned());
+                    .map_or_else(
+                        || greyhack_behaviour::ROOT_USER.to_owned(),
+                        |user| user.name.clone(),
+                    );
 
                 (player, default_user.as_str())
             }

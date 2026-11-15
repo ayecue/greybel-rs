@@ -67,7 +67,7 @@ pub async fn world_on_lan(saved: Vec<SavedNetwork>, ethernet: bool) -> (World, C
     if let DeviceLayout::Router { draft, .. } = &mut network.nodes[2].device {
         draft.essid = Some("lan".to_owned());
         draft.bssid = Some(LAN_BSSID.to_owned());
-        draft.wifi_password = "lan-pw".to_owned();
+        "lan-pw".clone_into(&mut draft.wifi_password);
     }
 
     if let DeviceLayout::Computer(player) = &mut network.nodes[1].device {

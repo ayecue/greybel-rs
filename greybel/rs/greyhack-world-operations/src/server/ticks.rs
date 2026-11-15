@@ -32,7 +32,7 @@ pub struct TickOptions {
 impl Default for TickOptions {
     fn default() -> Self {
         Self {
-            per_second: TIME_SCALE as u32,
+            per_second: u32::try_from(TIME_SCALE).expect("value fits the target integer type"),
             routines: 64,
             operations: 32,
             operation_cap: 256,

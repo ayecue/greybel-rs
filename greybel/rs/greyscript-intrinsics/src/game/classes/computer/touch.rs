@@ -25,7 +25,7 @@ pub fn touch(
     };
 
     if let Err(refusal) = check_file_name(name) {
-        return refuse("touch", refusal);
+        return refuse("touch", &refusal);
     }
 
     let Some(access) = computer(vm, this, "touch") else {

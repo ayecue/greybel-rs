@@ -35,8 +35,12 @@ impl Planner<'_> {
                 closed: entry.2,
             })
             .collect();
-        let sure = entries.iter().filter(|entry| entry.chance == 100).count() as u32;
-        let count = self.next(sure, entries.len() as u32 + 1);
+        let sure = u32::try_from(entries.iter().filter(|entry| entry.chance == 100).count())
+            .expect("value fits the target integer type");
+        let count = self.next(
+            sure,
+            u32::try_from(entries.len()).expect("value fits the target integer type") + 1,
+        );
         let mut result: Vec<PoolService> = entries
             .iter()
             .copied()

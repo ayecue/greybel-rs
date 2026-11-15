@@ -20,6 +20,7 @@ greybel-documents-host-provider.workspace = true
 greybel-interpreter.workspace = true
 greybel-io.workspace = true
 greybel-io-web.workspace = true
+greybel-source-map.workspace = true
 greybel-transpiler.workspace = true
 greyscript-intrinsics.workspace = true
 greyhack-behaviour.workspace = true

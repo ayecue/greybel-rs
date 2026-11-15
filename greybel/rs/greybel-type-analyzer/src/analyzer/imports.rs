@@ -24,7 +24,7 @@ impl Insertion {
                 None => (source.len(), true),
             },
         };
-        let offset = offset as u32;
+        let offset = u32::try_from(offset).expect("value fits the target integer type");
 
         Self {
             range: ast
@@ -56,7 +56,7 @@ impl Insertion {
 
 impl<'w> Analyzer<'w> {
     pub(super) fn path_completions(
-        &self,
+        self,
         uri: &Uri,
         position: Position,
     ) -> Option<Vec<CompletionItem>> {
@@ -64,7 +64,10 @@ impl<'w> Analyzer<'w> {
         let target = ImportTarget::at(ast.source(), offset as usize, self.dialect())?;
         let db = self.workspace.db();
         let range = ast.lines().range(
-            Span::new(target.start as u32, offset),
+            Span::new(
+                u32::try_from(target.start).expect("value fits the target integer type"),
+                offset,
+            ),
             ColumnSettings::default(),
         );
         let mut items: Vec<CompletionItem> = self
@@ -175,7 +178,7 @@ impl<'w> Analyzer<'w> {
         actions
     }
 
-    fn include_candidates(&self, file: SourceFile) -> Vec<(SourceFile, Vec<DocumentSymbol>)> {
+    fn include_candidates(self, file: SourceFile) -> Vec<(SourceFile, Vec<DocumentSymbol>)> {
         let db = self.workspace.db();
         let documents: Vec<SourceFile> = self
             .file_analysis(file)

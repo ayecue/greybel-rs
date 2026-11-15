@@ -1,3 +1,5 @@
+#![expect(clippy::inline_always, reason = "Hot paths require inlining")]
+
 extern crate self as greybel_interpreter;
 
 pub mod api;

@@ -92,9 +92,9 @@ where
 /// Converts a rule refusal for `intrinsic` into its return text or raised error.
 pub(in crate::game) fn refuse(
     intrinsic: &'static str,
-    refusal: Refusal,
+    refusal: &Refusal,
 ) -> Result<NativeFuture, IntrinsicError> {
-    Ok(NativeOutput::ready(refusal_text(intrinsic, &refusal)?))
+    Ok(NativeOutput::ready(refusal_text(intrinsic, refusal)?))
 }
 
 /// Converts `failure` into the runtime error raised by `intrinsic`.

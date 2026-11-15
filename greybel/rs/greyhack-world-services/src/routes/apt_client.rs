@@ -16,6 +16,15 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_apt_client_repositories::<W>(routes);
+    register_apt_client_queries::<W>(routes);
+}
+
+fn register_apt_client_repositories<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -82,6 +91,13 @@ pub(crate) fn register<
             ))
         },
     );
+}
+
+fn register_apt_client_queries<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,

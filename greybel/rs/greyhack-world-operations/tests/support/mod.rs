@@ -97,7 +97,7 @@ pub fn server_with_ether() -> WorldServer {
             .unwrap()
             .expect("Ether");
 
-        coin.creator_user = "test".to_owned();
+        "test".clone_into(&mut coin.creator_user);
         coin.creator_password_hash = hash_password("test");
         coin.cycle_hours = 1.0;
         coin.last_cycle_at = Some(now);

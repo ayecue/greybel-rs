@@ -23,7 +23,7 @@ async fn should_match_the_game_when_the_payments_fall_due_one_after_the_other() 
     client.serve_rental_admin(&address, true).await.unwrap();
 
     let before = client.network_state().await.unwrap();
-    let number = before.player_bank.as_ref().unwrap().to_string();
+    let number = before.player_bank.as_ref().unwrap().clone();
     let world = snapshot_world(&user, &before);
     let hired = observed_game(&before);
 

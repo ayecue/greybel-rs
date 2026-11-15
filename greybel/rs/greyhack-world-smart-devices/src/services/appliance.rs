@@ -102,6 +102,10 @@ impl ApplianceService {
     }
 
     /// Applies the model's required power and temperature (`SmartApplianceIntrinsics.override_settings`).
+    #[expect(
+        clippy::float_cmp,
+        reason = "SmartApplianceIntrinsics.override_settings compares settings with double.Equals on ValNumber.DoubleValue()"
+    )]
     pub async fn override_appliance(
         &self,
         computer: ComputerId,

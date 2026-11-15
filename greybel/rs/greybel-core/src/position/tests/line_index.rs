@@ -11,7 +11,9 @@ fn should_number_lines_after_each_lexer_line_break() {
     let index = LineIndex::new(source);
     let offsets: Vec<u32> = "abcde"
         .chars()
-        .map(|c| source.find(c).unwrap() as u32)
+        .map(|c| {
+            u32::try_from(source.find(c).unwrap()).expect("value fits the target integer type")
+        })
         .collect();
 
     let lines: Vec<_> = offsets.iter().map(|&at| index.line(at)).collect();
@@ -42,7 +44,7 @@ fn should_find_where_a_line_starts() {
 fn should_count_columns_in_the_encoding() {
     let source = "é😀x";
     let index = LineIndex::new(source);
-    let x = source.find('x').unwrap() as u32;
+    let x = u32::try_from(source.find('x').unwrap()).expect("value fits the target integer type");
     let encodings = [
         PositionEncoding::Utf8,
         PositionEncoding::Utf16,

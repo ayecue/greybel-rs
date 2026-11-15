@@ -90,7 +90,11 @@ impl ScheduleService {
 
         let mut npc = npc;
 
-        npc.alarm.set(hour as u8, minute as u8, delete);
+        npc.alarm.set(
+            u8::try_from(hour).expect("value fits the target integer type"),
+            u8::try_from(minute).expect("value fits the target integer type"),
+            delete,
+        );
         npc.set_late_to_work(self.world.time_seconds());
         self.npcs.save_npc_job(&npc).await?;
 

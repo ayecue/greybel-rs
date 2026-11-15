@@ -18,11 +18,16 @@ pub struct RankedCompany {
 /// Points a guild gets for `companies`, of which only the first `max_companies` count
 /// (`Database.GetGuildRanking`).
 #[must_use]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    reason = "Database.GetGuildRanking uses C# float penalties and Math.Round for guild points"
+)]
 pub fn guild_points(companies: &[RankedCompany], max_companies: u32) -> i64 {
     let mut total = 0_i64;
 
     for (index, company) in companies.iter().enumerate() {
-        if index as u32 >= max_companies {
+        if u32::try_from(index).expect("value fits the target integer type") >= max_companies {
             break;
         }
 

@@ -8,6 +8,10 @@ use crate::protocol::{AdminRateCtfEvent, CtfRating};
 
 /// Rates an event as the current sandbox player and returns both rewards.
 #[native(method)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "GreyScript exposes CTF reward amounts as f64 numbers"
+)]
 pub fn rate_ctf_event(
     vm: &mut Vm,
     this: &Value,

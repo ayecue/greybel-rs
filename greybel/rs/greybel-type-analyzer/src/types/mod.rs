@@ -6,6 +6,7 @@ use std::hash::{Hash, Hasher};
 pub use display::TypeDisplay;
 pub(crate) use display::TypeNotation;
 use meta_utils::{BaseType, Function};
+pub(crate) use table::CachedApiMember;
 pub use table::TypeTable;
 
 use crate::index::index_type;

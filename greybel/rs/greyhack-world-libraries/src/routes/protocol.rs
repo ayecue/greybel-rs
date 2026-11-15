@@ -9,17 +9,15 @@ impl IntoProtocol for crate::ExploitLog {
     fn into_protocol(self) -> Self::Output {
         let log = self;
 
-        use crate::ExploitLog as World;
-
         match log {
-            World::Nothing => ExploitLog::Nothing,
-            World::OutsideLib => ExploitLog::OutsideLib,
-            World::MissingWeakness => ExploitLog::MissingWeakness,
-            World::ConnectionRefusal(failure) => {
+            crate::ExploitLog::Nothing => ExploitLog::Nothing,
+            crate::ExploitLog::OutsideLib => ExploitLog::OutsideLib,
+            crate::ExploitLog::MissingWeakness => ExploitLog::MissingWeakness,
+            crate::ExploitLog::ConnectionRefusal(failure) => {
                 ExploitLog::ConnectionRefusal(failure.into_protocol())
             }
-            World::CrownShield => ExploitLog::CrownShield,
-            World::Attack { library, result } => ExploitLog::Attack {
+            crate::ExploitLog::CrownShield => ExploitLog::CrownShield,
+            crate::ExploitLog::Attack { library, result } => ExploitLog::Attack {
                 library,
                 result: match result {
                     crate::AttackResult::Unmet(unmet) => AttackResult::Unmet(unmet.into_protocol()),
@@ -42,12 +40,12 @@ impl IntoProtocol for crate::UnmetRequirement {
     fn into_protocol(self) -> Self::Output {
         let unmet = self;
 
-        use crate::UnmetRequirement as World;
-
         match unmet {
-            World::TargetMissing => UnmetRequirement::TargetMissing,
-            World::MissingLibrary(library) => UnmetRequirement::MissingLibrary(library),
-            World::OldLibrary {
+            crate::UnmetRequirement::TargetMissing => UnmetRequirement::TargetMissing,
+            crate::UnmetRequirement::MissingLibrary(library) => {
+                UnmetRequirement::MissingLibrary(library)
+            }
+            crate::UnmetRequirement::OldLibrary {
                 library,
                 minimum,
                 current,
@@ -56,15 +54,17 @@ impl IntoProtocol for crate::UnmetRequirement {
                 required: minimum,
                 installed: current,
             },
-            World::TooFewUsers => UnmetRequirement::TooFewUsers,
-            World::TooFewPortForwards => UnmetRequirement::TooFewPortForwards,
-            World::TooFewGatewayConnections => UnmetRequirement::TooFewGatewayConnections,
-            World::RouterOnly => UnmetRequirement::RouterOnly,
-            World::NoActiveUser => UnmetRequirement::NoActiveUser,
-            World::NoActiveRoot => UnmetRequirement::NoActiveRoot,
-            World::NoGuest => UnmetRequirement::NoGuest,
-            World::MissingPath(path) => UnmetRequirement::MissingPath(path),
-            World::OtherSubnet => UnmetRequirement::OtherSubnet,
+            crate::UnmetRequirement::TooFewUsers => UnmetRequirement::TooFewUsers,
+            crate::UnmetRequirement::TooFewPortForwards => UnmetRequirement::TooFewPortForwards,
+            crate::UnmetRequirement::TooFewGatewayConnections => {
+                UnmetRequirement::TooFewGatewayConnections
+            }
+            crate::UnmetRequirement::RouterOnly => UnmetRequirement::RouterOnly,
+            crate::UnmetRequirement::NoActiveUser => UnmetRequirement::NoActiveUser,
+            crate::UnmetRequirement::NoActiveRoot => UnmetRequirement::NoActiveRoot,
+            crate::UnmetRequirement::NoGuest => UnmetRequirement::NoGuest,
+            crate::UnmetRequirement::MissingPath(path) => UnmetRequirement::MissingPath(path),
+            crate::UnmetRequirement::OtherSubnet => UnmetRequirement::OtherSubnet,
         }
     }
 }
@@ -75,26 +75,24 @@ impl IntoProtocol for crate::AttackReward {
     fn into_protocol(self) -> Self::Output {
         let reward = self;
 
-        use crate::AttackReward as World;
-
         match reward {
-            World::NoUser => AttackReward::NoUser,
-            World::Privileges(user) => AttackReward::Privileges(user),
-            World::MissingResource(folder) => AttackReward::MissingResource(folder),
-            World::InvalidLanAddress => AttackReward::InvalidLanAddress,
-            World::MissingComputer(address) => AttackReward::MissingComputer(address),
-            World::Credentials(user) => AttackReward::Credentials(user),
-            World::NotAppliance => AttackReward::NotAppliance,
-            World::OverrideAlreadyOn => AttackReward::OverrideAlreadyOn,
-            World::OverrideOn => AttackReward::OverrideOn,
-            World::NotPolice => AttackReward::NotPolice,
-            World::TrafficOverride => AttackReward::TrafficOverride,
-            World::NotRouter => AttackReward::NotRouter,
-            World::FirewallOff => AttackReward::FirewallOff,
-            World::GuestPassword => AttackReward::GuestPassword,
-            World::InvalidPassword(user) => AttackReward::InvalidPassword(user),
-            World::LongPassword => AttackReward::LongPassword,
-            World::PasswordChange(user) => AttackReward::PasswordChange(user),
+            crate::AttackReward::NoUser => AttackReward::NoUser,
+            crate::AttackReward::Privileges(user) => AttackReward::Privileges(user),
+            crate::AttackReward::MissingResource(folder) => AttackReward::MissingResource(folder),
+            crate::AttackReward::InvalidLanAddress => AttackReward::InvalidLanAddress,
+            crate::AttackReward::MissingComputer(address) => AttackReward::MissingComputer(address),
+            crate::AttackReward::Credentials(user) => AttackReward::Credentials(user),
+            crate::AttackReward::NotAppliance => AttackReward::NotAppliance,
+            crate::AttackReward::OverrideAlreadyOn => AttackReward::OverrideAlreadyOn,
+            crate::AttackReward::OverrideOn => AttackReward::OverrideOn,
+            crate::AttackReward::NotPolice => AttackReward::NotPolice,
+            crate::AttackReward::TrafficOverride => AttackReward::TrafficOverride,
+            crate::AttackReward::NotRouter => AttackReward::NotRouter,
+            crate::AttackReward::FirewallOff => AttackReward::FirewallOff,
+            crate::AttackReward::GuestPassword => AttackReward::GuestPassword,
+            crate::AttackReward::InvalidPassword(user) => AttackReward::InvalidPassword(user),
+            crate::AttackReward::LongPassword => AttackReward::LongPassword,
+            crate::AttackReward::PasswordChange(user) => AttackReward::PasswordChange(user),
         }
     }
 }
@@ -105,23 +103,23 @@ impl IntoProtocol for crate::DebugFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::DebugFailure as World;
-
         match failure {
-            World::IncorrectPassword => DebugFailure::IncorrectPassword,
-            World::LoginLockout => DebugFailure::LoginBlocked,
-            World::MissingFile => DebugFailure::MissingFile,
-            World::OutsideLib => DebugFailure::OutsideLib,
-            World::PatchPresent => DebugFailure::Patched,
-            World::NoVulnerability => DebugFailure::NoVulnerability,
-            World::UnreachableResource(path) => DebugFailure::UnreachableResource(path),
-            World::ScanPatchPresent => DebugFailure::ScanPatchPresent,
-            World::TestPatchPresent => DebugFailure::TestPatchPresent,
-            World::InvalidPatchFile => DebugFailure::InvalidPatchFile,
-            World::IncorrectPatch => DebugFailure::IncorrectPatch,
-            World::PatchAlreadyPresent => DebugFailure::PatchAlreadyPresent,
-            World::UnitTestLockout => DebugFailure::UnitTestLockout,
-            World::IncorrectErrorLines => DebugFailure::IncorrectErrorLines,
+            crate::DebugFailure::IncorrectPassword => DebugFailure::IncorrectPassword,
+            crate::DebugFailure::LoginLockout => DebugFailure::LoginBlocked,
+            crate::DebugFailure::MissingFile => DebugFailure::MissingFile,
+            crate::DebugFailure::OutsideLib => DebugFailure::OutsideLib,
+            crate::DebugFailure::PatchPresent => DebugFailure::Patched,
+            crate::DebugFailure::NoVulnerability => DebugFailure::NoVulnerability,
+            crate::DebugFailure::UnreachableResource(path) => {
+                DebugFailure::UnreachableResource(path)
+            }
+            crate::DebugFailure::ScanPatchPresent => DebugFailure::ScanPatchPresent,
+            crate::DebugFailure::TestPatchPresent => DebugFailure::TestPatchPresent,
+            crate::DebugFailure::InvalidPatchFile => DebugFailure::InvalidPatchFile,
+            crate::DebugFailure::IncorrectPatch => DebugFailure::IncorrectPatch,
+            crate::DebugFailure::PatchAlreadyPresent => DebugFailure::PatchAlreadyPresent,
+            crate::DebugFailure::UnitTestLockout => DebugFailure::UnitTestLockout,
+            crate::DebugFailure::IncorrectErrorLines => DebugFailure::IncorrectErrorLines,
         }
     }
 }
@@ -132,23 +130,23 @@ impl IntoProtocol for crate::ExploitShopFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::ExploitShopFailure as World;
-
         match failure {
-            World::InvalidVersion => ShopFailure::InvalidVersion,
-            World::NoResults => ShopFailure::NoResults,
-            World::InvalidPath => ShopFailure::InvalidPath,
-            World::UnknownComputer => ShopFailure::UnknownComputer,
-            World::NoInternet => ShopFailure::NoInternet,
-            World::MissingFolder(folder) => ShopFailure::MissingFolder(folder),
-            World::NoCreatePermission { folder, name } => {
+            crate::ExploitShopFailure::InvalidVersion => ShopFailure::InvalidVersion,
+            crate::ExploitShopFailure::NoResults => ShopFailure::NoResults,
+            crate::ExploitShopFailure::InvalidPath => ShopFailure::InvalidPath,
+            crate::ExploitShopFailure::UnknownComputer => ShopFailure::UnknownComputer,
+            crate::ExploitShopFailure::NoInternet => ShopFailure::NoInternet,
+            crate::ExploitShopFailure::MissingFolder(folder) => ShopFailure::MissingFolder(folder),
+            crate::ExploitShopFailure::NoCreatePermission { folder, name } => {
                 ShopFailure::NoCreatePermission { folder, name }
             }
-            World::UnknownExploit => ShopFailure::UnknownExploit,
-            World::NoBankAccount => ShopFailure::NoBankAccount,
-            World::UnknownBankAccount(number) => ShopFailure::UnknownBankAccount(number),
-            World::InsufficientFunds => ShopFailure::InsufficientFunds,
-            World::File(failure) => ShopFailure::File(failure.into_protocol()),
+            crate::ExploitShopFailure::UnknownExploit => ShopFailure::UnknownExploit,
+            crate::ExploitShopFailure::NoBankAccount => ShopFailure::NoBankAccount,
+            crate::ExploitShopFailure::UnknownBankAccount(number) => {
+                ShopFailure::UnknownBankAccount(number)
+            }
+            crate::ExploitShopFailure::InsufficientFunds => ShopFailure::InsufficientFunds,
+            crate::ExploitShopFailure::File(failure) => ShopFailure::File(failure.into_protocol()),
         }
     }
 }
@@ -159,8 +157,6 @@ impl IntoProtocol for &crate::Weakness {
     fn into_protocol(self) -> Self::Output {
         let weakness = self;
 
-        use greyhack_behaviour::Requirement as Rule;
-
         WeaknessInfo {
             details: weakness.details.clone(),
             unsec_value: weakness.unsec_value.clone(),
@@ -168,27 +164,37 @@ impl IntoProtocol for &crate::Weakness {
                 .requirements
                 .iter()
                 .map(|requirement| match requirement {
-                    Rule::Library => WeaknessRequirement::Library {
+                    greyhack_behaviour::Requirement::Library => WeaknessRequirement::Library {
                         name: weakness
                             .required_lib
                             .map(greyhack_behaviour::LibraryKind::file_name)
                             .unwrap_or_default(),
                         version: weakness.req_lib_version.clone(),
                     },
-                    Rule::NumberUsersRegister => {
+                    greyhack_behaviour::Requirement::NumberUsersRegister => {
                         WeaknessRequirement::RegisteredUsers(weakness.num_register_users)
                     }
-                    Rule::AnyActiveUser => WeaknessRequirement::AnyActiveUser,
-                    Rule::RootActiveUser => WeaknessRequirement::RootActiveUser,
-                    Rule::GuestActiveUser => WeaknessRequirement::GuestActiveUser,
-                    Rule::PortForward => {
+                    greyhack_behaviour::Requirement::AnyActiveUser => {
+                        WeaknessRequirement::AnyActiveUser
+                    }
+                    greyhack_behaviour::Requirement::RootActiveUser => {
+                        WeaknessRequirement::RootActiveUser
+                    }
+                    greyhack_behaviour::Requirement::GuestActiveUser => {
+                        WeaknessRequirement::GuestActiveUser
+                    }
+                    greyhack_behaviour::Requirement::PortForward => {
                         WeaknessRequirement::PortForward(weakness.num_port_forward)
                     }
-                    Rule::ConnGateway => {
+                    greyhack_behaviour::Requirement::ConnGateway => {
                         WeaknessRequirement::ConnGateway(weakness.num_conn_gateway)
                     }
-                    Rule::LocalNetwork => WeaknessRequirement::LocalNetwork,
-                    Rule::PathExist => WeaknessRequirement::PathExist(weakness.path_exist.clone()),
+                    greyhack_behaviour::Requirement::LocalNetwork => {
+                        WeaknessRequirement::LocalNetwork
+                    }
+                    greyhack_behaviour::Requirement::PathExist => {
+                        WeaknessRequirement::PathExist(weakness.path_exist.clone())
+                    }
                 })
                 .collect(),
         }
@@ -248,18 +254,18 @@ impl IntoProtocol for crate::NetUseFailure {
     type Output = NetUseFailure;
 
     fn into_protocol(self) -> Self::Output {
-        use crate::NetUseFailure as World;
-
         match self {
-            World::InvalidAddress => NetUseFailure::InvalidAddress,
-            World::UnknownAddress => NetUseFailure::UnknownAddress,
-            World::MainRouterDown => NetUseFailure::MainRouterDown,
-            World::Lan(failure) => NetUseFailure::Lan(failure.into_protocol()),
-            World::UnknownComputer => NetUseFailure::UnknownComputer,
-            World::MissingPort => NetUseFailure::MissingPort,
-            World::ClosedPort => NetUseFailure::ClosedPort,
-            World::InvalidLibrary(service) => NetUseFailure::InvalidLibrary(service.library()),
-            World::UnexpectedLibrary(name) => NetUseFailure::UnexpectedLibrary(name),
+            crate::NetUseFailure::InvalidAddress => NetUseFailure::InvalidAddress,
+            crate::NetUseFailure::UnknownAddress => NetUseFailure::UnknownAddress,
+            crate::NetUseFailure::MainRouterDown => NetUseFailure::MainRouterDown,
+            crate::NetUseFailure::Lan(failure) => NetUseFailure::Lan(failure.into_protocol()),
+            crate::NetUseFailure::UnknownComputer => NetUseFailure::UnknownComputer,
+            crate::NetUseFailure::MissingPort => NetUseFailure::MissingPort,
+            crate::NetUseFailure::ClosedPort => NetUseFailure::ClosedPort,
+            crate::NetUseFailure::InvalidLibrary(service) => {
+                NetUseFailure::InvalidLibrary(service.library())
+            }
+            crate::NetUseFailure::UnexpectedLibrary(name) => NetUseFailure::UnexpectedLibrary(name),
         }
     }
 }
@@ -269,11 +275,9 @@ pub(crate) fn rshell_failure(
     address: &str,
     port: u16,
 ) -> RshellFailure {
-    use crate::RshellFailure as World;
-
     match failure {
-        World::UnknownAddress => RshellFailure::UnknownAddress(address.to_owned()),
-        World::MissingServer => RshellFailure::MissingServer(port),
-        World::Service(failure) => RshellFailure::Service(failure.into_protocol()),
+        crate::RshellFailure::UnknownAddress => RshellFailure::UnknownAddress(address.to_owned()),
+        crate::RshellFailure::MissingServer => RshellFailure::MissingServer(port),
+        crate::RshellFailure::Service(failure) => RshellFailure::Service(failure.into_protocol()),
     }
 }

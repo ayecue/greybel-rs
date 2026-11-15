@@ -12,6 +12,10 @@ use crate::support::bank_payments::{
 /// A rental charge the account pays charges the account and enables the networks it lists
 /// (`BankSubs.Payment.ProcessPayment`).
 #[tokio::test]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "The expected balance uses the game's f64 money representation"
+)]
 async fn should_enable_the_rented_networks_when_their_charge_is_paid() {
     let mut world = world().await;
     let network = rented(&mut world, FIRST).await;
@@ -642,6 +646,10 @@ async fn should_move_the_rental_charge_with_the_speed_pack() {
 /// Hiring an administrator is paid from the player's bank account with no coupons and registers the monthly charge
 /// (`BankHelperServer.HireAdminRentalServerRpc`); firing takes the charge off.
 #[tokio::test]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "The expected balance uses the game's f64 money representation"
+)]
 async fn should_charge_the_player_for_an_admin_and_register_the_monthly_charge() {
     let mut world = world().await;
     let network = rented(&mut world, FIRST).await;
@@ -927,6 +935,10 @@ async fn should_keep_the_listed_networks_when_the_world_is_saved_and_loaded() {
 /// Each payment runs at its own date, not all of them when a day ends: the charge that falls due is made and the
 /// others wait for theirs (`BankSubs.Payment.WaitUntilPayment`, `BankSubs.Payment.RunPayment`).
 #[tokio::test]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "The expected balance uses the game's f64 money representation"
+)]
 async fn should_run_each_payment_at_its_own_date() {
     let mut world = world().await;
     let network = rented(&mut world, FIRST).await;

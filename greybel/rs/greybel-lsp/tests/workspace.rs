@@ -55,9 +55,9 @@ fn should_read_a_missing_include_only_once() {
     client.change(
         "main.src",
         2,
-        json!([{ "text": format!("{MAIN}print 1\n") }]),
+        &json!([{ "text": format!("{MAIN}print 1\n") }]),
     );
-    client.change("main.src", 3, json!([{ "text": MAIN }]));
+    client.change("main.src", 3, &json!([{ "text": MAIN }]));
 
     let reads = client
         .requests

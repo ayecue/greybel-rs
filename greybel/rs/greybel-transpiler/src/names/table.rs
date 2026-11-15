@@ -55,11 +55,11 @@ impl NameTable {
 
     pub fn insert(&mut self, original: &str) {
         if !self.aliases.contains_key(original) && !self.forbidden.contains(original) {
-            self.assign(original.into());
+            self.assign(&Arc::from(original));
         }
     }
 
-    fn assign(&mut self, original: Arc<str>) {
+    fn assign(&mut self, original: &Arc<str>) {
         let Self {
             candidates,
             aliases,
@@ -85,8 +85,8 @@ impl NameTable {
 
         aliases.insert(original.clone(), name.clone());
         owners.insert(name, original.clone());
-        if let Some(previous) = owners.remove(&original) {
-            self.assign(previous);
+        if let Some(previous) = owners.remove(original) {
+            self.assign(&previous);
         }
     }
 }

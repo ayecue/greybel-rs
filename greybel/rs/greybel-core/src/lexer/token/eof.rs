@@ -46,7 +46,7 @@ impl Token for Eof {
 }
 
 impl<'src> Lexer<'src> {
-    pub(crate) fn scan_eof(&self, stream: &TokenStream, token_start: PendingToken) -> AnyToken {
+    pub(crate) fn scan_eof(stream: &TokenStream, token_start: PendingToken) -> AnyToken {
         token_start.finish(stream, |span, after_space| Eof { span, after_space })
     }
 }

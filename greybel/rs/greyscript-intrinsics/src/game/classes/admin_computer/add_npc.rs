@@ -29,7 +29,7 @@ pub fn add_npc(
         public_ip: public_ip.into(),
         lan_ip: lan_ip.into(),
         user: user.into(),
-        delay: delay.max(0) as u64,
+        delay: u64::try_from(delay.max(0)).expect("the clamped delay is nonnegative"),
         name: name.into(),
     };
 

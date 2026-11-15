@@ -92,7 +92,7 @@ impl KeywordStatement for ImportCodeRule {
         if !parser.consume(Expect::Punct(Punct::LParen))? {
             return invalid(
                 parser,
-                &start,
+                start,
                 GreyScriptDiagnostic::ImportCodeMissingOpenParen,
             );
         }
@@ -100,7 +100,7 @@ impl KeywordStatement for ImportCodeRule {
         let Some(string) = parser.token().as_string() else {
             return invalid(
                 parser,
-                &start,
+                start,
                 GreyScriptDiagnostic::ImportCodeArgumentNotString,
             );
         };
@@ -112,7 +112,7 @@ impl KeywordStatement for ImportCodeRule {
             let Some(string) = parser.token().as_string() else {
                 return invalid(
                     parser,
-                    &start,
+                    start,
                     GreyScriptDiagnostic::ImportCodeArgumentNotString,
                 );
             };
@@ -124,7 +124,7 @@ impl KeywordStatement for ImportCodeRule {
         if !parser.consume(Expect::Punct(Punct::RParen))? {
             return invalid(
                 parser,
-                &start,
+                start,
                 GreyScriptDiagnostic::ImportCodeMissingCloseParen,
             );
         }
@@ -160,7 +160,7 @@ impl KeywordStatement for ImportCodeRule {
 
 fn invalid(
     parser: &mut Parser<'_>,
-    start: &Span,
+    start: Span,
     diagnostic: GreyScriptDiagnostic,
 ) -> ParseResult<()> {
     let span = start.to(&parser.token().span());

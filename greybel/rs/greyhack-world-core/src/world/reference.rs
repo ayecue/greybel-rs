@@ -92,13 +92,14 @@ impl WorldRef {
 
     /// Runs `read` while mutable world access is refused. The server rolls its transaction back.
     pub async fn read_route<T>(&self, read: impl AsyncFnOnce() -> T) -> T {
-        assert!(!self.0.read_only.replace(true), "nested read routes");
         struct Reset<'a>(&'a Cell<bool>);
         impl Drop for Reset<'_> {
             fn drop(&mut self) {
                 self.0.set(false);
             }
         }
+
+        assert!(!self.0.read_only.replace(true), "nested read routes");
 
         let reset = Reset(&self.0.read_only);
         let result = read().await;

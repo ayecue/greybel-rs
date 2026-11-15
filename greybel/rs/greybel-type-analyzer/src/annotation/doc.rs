@@ -60,6 +60,13 @@ pub struct FunctionDoc {
     pub examples: Vec<String>,
 }
 
+/// A type parsed from a documentation tag.
+enum TagType {
+    Present(TypeExpr),
+    Missing,
+    Invalid,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InvalidTag {
     pub line: usize,
@@ -184,7 +191,11 @@ impl Reader {
 
     fn read_param(&mut self, index: usize, remainder: &str) -> Option<Section> {
         let (ty, remainder) = TypeExpr::parse_braced_prefix(remainder);
-        let ty = self.type_or_invalid(index, Tag::Param, ty)?;
+        let ty = match self.type_or_invalid(index, Tag::Param, ty) {
+            TagType::Present(ty) => Some(ty),
+            TagType::Missing => None,
+            TagType::Invalid => return None,
+        };
         let (name, text) = remainder
             .split_once(char::is_whitespace)
             .unwrap_or((remainder, ""));
@@ -215,7 +226,11 @@ impl Reader {
 
     fn read_returns(&mut self, index: usize, remainder: &str) -> Option<Section> {
         let (ty, text) = TypeExpr::parse_braced_prefix(remainder);
-        let ty = self.type_or_invalid(index, Tag::Returns, ty)?;
+        let ty = match self.type_or_invalid(index, Tag::Returns, ty) {
+            TagType::Present(ty) => Some(ty),
+            TagType::Missing => None,
+            TagType::Invalid => return None,
+        };
 
         if let Some((owner, function)) = self.function_section() {
             let function_doc = &mut self.doc.types[owner].functions[function];
@@ -500,10 +515,15 @@ impl Reader {
         index: usize,
         tag: Tag,
         ty: Result<Option<TypeExpr>, ()>,
-    ) -> Option<Option<TypeExpr>> {
+    ) -> TagType {
         match ty {
-            Ok(ty) => Some(ty),
-            Err(()) => self.report_invalid(index, &Self::tag_message(tag, "has an invalid type")),
+            Ok(Some(ty)) => TagType::Present(ty),
+            Ok(None) => TagType::Missing,
+            Err(()) => {
+                self.report_invalid::<()>(index, &Self::tag_message(tag, "has an invalid type"));
+
+                TagType::Invalid
+            }
         }
     }
 

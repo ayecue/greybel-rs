@@ -3,10 +3,10 @@
 use greybel_test_support::game::Game;
 use greyhack_test_support_client::protocol::test_support::LanNodeKind;
 
-use crate::support::game::{join_new_network_where, setup_player, test_client};
+use crate::support::game::{join_fixture, public_smtp_network, setup_player, test_client};
 use crate::support::metaxploit::player;
 use crate::support::parity::compare_in;
-use crate::support::remote::{forwarded_service, service};
+use crate::support::remote::fixture_account;
 
 /// Crypto file operations, password deciphering, Wi-Fi capture/cracking and SMTP enumeration on mirrored networks.
 #[tokio::test]
@@ -20,9 +20,9 @@ async fn should_match_intrinsics_for_crypto_wifi_and_smtp() {
         .iter()
         .find_map(|node| match &node.node {
             LanNodeKind::Router(router) if node.parent.is_none() => Some((
-                router.bssid.as_ref()?.to_string(),
-                router.essid.as_ref()?.to_string(),
-                router.wifi_password.to_string(),
+                router.bssid.as_ref()?.clone(),
+                router.essid.as_ref()?.clone(),
+                router.wifi_password.clone(),
             )),
             _ => None,
         })
@@ -33,7 +33,7 @@ async fn should_match_intrinsics_for_crypto_wifi_and_smtp() {
         .find(|user| user.name == "root")
         .unwrap()
         .password
-        .to_string();
+        .clone();
     let scripts = vec![
         "crypto = include_lib(\"/lib/crypto.so\"); home = get_shell.host_computer; home.touch(home_dir, \"secret.txt\"); file = home_dir + \"/secret.txt\"; home.File(file).set_content(\"classified\"); print crypto.is_encrypted(file); print crypto.encrypt(file, \"hunter2\"); print crypto.is_encrypted(file); print crypto.encrypt(file, \"hunter2\"); print crypto.decrypt(file, \"wrong1\"); print crypto.decrypt(file, \"hunter2\"); print crypto.is_encrypted(file); print crypto.encrypt(file, \"bad pass\"); print crypto.encrypt(file, \"0123456789abcdef1\"); print crypto.encrypt(\"\", \"abc\"); print crypto.encrypt(home_dir + \"/missing\", \"abc\"); print crypto.is_encrypted(home_dir + \"/missing\")"
             .to_owned(),
@@ -54,22 +54,14 @@ async fn should_match_intrinsics_for_crypto_wifi_and_smtp() {
 
     compare_in(&client, &user, &snapshot, &scripts).await;
 
-    // Which networks run SMTP depends on each game copy's world.
-    // A new network: the forward added below stays in the game copy's world, and a second forward of port 25 on a
-    // shared network would be listed twice by later tests.
-    let initial = join_new_network_where(&client, "smtp", |snapshot| {
-        snapshot.nodes.iter().any(|node| {
-            matches!(&node.node, LanNodeKind::Computer(computer)
-                if computer.ports.iter().any(|port| port.service == "smtp" && !port.closed))
-        })
-    })
-    .await;
-    let (local_ip, port) = service(&initial, "smtp");
+    let network = public_smtp_network(&client).await;
+    let local = fixture_account(&network, "smtp", "smtp", false);
+    let public = fixture_account(&network, "smtp", "smtp", true);
+    let local_ip = local.address;
+    let port = local.port;
 
-    client.forward_service(&local_ip, 25, 25).await.unwrap();
-
-    let snapshot = client.network_state().await.unwrap();
-    let public_port = forwarded_service(&snapshot, "smtp").expect("the router forwards SMTP");
+    let snapshot = join_fixture(&client, &network).await;
+    let public_port = public.port;
     let public_ip = &snapshot.public_ip;
     let scripts = vec![
         format!(

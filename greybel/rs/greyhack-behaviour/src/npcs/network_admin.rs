@@ -23,8 +23,10 @@ impl NetworkAdmin {
     /// Draws the job statistics of an administrator (`NpcInfo.NpcInfo`).
     pub fn draw(rng: &mut Rng) -> Self {
         Self {
-            intelligence: rng.range(0, 10) as u8,
-            pc_experience: rng.range(1, 10) as u8,
+            intelligence: u8::try_from(rng.range(0, 10))
+                .expect("value fits the target integer type"),
+            pc_experience: u8::try_from(rng.range(1, 10))
+                .expect("value fits the target integer type"),
             work_performance: *rng.pick(&WorkPerformance::ALL),
             dead_or_fired: false,
         }

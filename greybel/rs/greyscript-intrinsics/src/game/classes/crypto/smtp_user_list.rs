@@ -49,7 +49,7 @@ pub fn smtp_user_list(
 
                 Value::List(vm.heap_mut().add_list(users))
             }
-            SmtpUserList::Failure(failure) => Value::from(smtp_text(&failure)),
+            SmtpUserList::Failure(failure) => Value::from(smtp_text(failure)),
         },
     ))
 }

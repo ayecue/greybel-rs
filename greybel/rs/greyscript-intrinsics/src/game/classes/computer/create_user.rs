@@ -20,7 +20,7 @@ pub fn create_user(
     };
 
     if let Err(refusal) = check_new_user(user, password) {
-        return refuse("create_user", refusal);
+        return refuse("create_user", &refusal);
     }
 
     let message = ComputerCreateUser {

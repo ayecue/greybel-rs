@@ -44,7 +44,7 @@ impl RandomContent {
         if random.next_below(10) < mails {
             images += 2;
 
-            for _ in 0..1 + random.next_below(2) {
+            for _ in 0..=random.next_below(2) {
                 if let Some(file) = random_file(random, user, neurobox, items)
                     && !exists(user, &file.name)
                     && !content
@@ -62,7 +62,7 @@ impl RandomContent {
         }
 
         if random.next_below(10) < images {
-            for _ in 0..1 + random.next_below(2) {
+            for _ in 0..=random.next_below(2) {
                 let image = random_image(random, user, items);
 
                 content
@@ -73,7 +73,7 @@ impl RandomContent {
         }
 
         if random.next_below(10) < mails {
-            for _ in 0..1 + random.next_below(2) {
+            for _ in 0..=random.next_below(2) {
                 if let Some(mail) = random_mail(random, user, items, has_persona) {
                     content.mails.push(mail);
                 }

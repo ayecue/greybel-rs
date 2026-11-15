@@ -24,8 +24,8 @@ pub fn layout(reply: &GuildsReply) -> GuildsLayout {
             .iter()
             .map(|guild| GuildLayout {
                 draft: GuildDraft {
-                    name: guild.name.to_string(),
-                    bank_account: guild.bank_account.to_string(),
+                    name: guild.name.clone(),
+                    bank_account: guild.bank_account.clone(),
                     total_exp: guild.total_exp,
                     investment_perks: guild.investment_perks,
                     admin_restore_perks: guild.admin_restore_perks,
@@ -37,26 +37,26 @@ pub fn layout(reply: &GuildsReply) -> GuildsLayout {
                     .map(ToString::to_string)
                     .collect(),
                 has_crown: guild.has_crown,
-                crown_shield_public_ip: guild.crown_shield_public_ip.to_string(),
+                crown_shield_public_ip: guild.crown_shield_public_ip.clone(),
             })
             .collect(),
         companies: reply
             .companies
             .iter()
             .map(|company| CompanyLayout {
-                public_ip: company.public_ip.to_string(),
+                public_ip: company.public_ip.clone(),
                 seed: company.seed,
                 holders: company
                     .holders
                     .iter()
-                    .map(|holder| (holder.bank_account.to_string(), holder.shares))
+                    .map(|holder| (holder.bank_account.clone(), holder.shares))
                     .collect(),
             })
             .collect(),
         shields: reply
             .shields
             .iter()
-            .map(|shield| (shield.public_ip.to_string(), shield.guild_name.to_string()))
+            .map(|shield| (shield.public_ip.clone(), shield.guild_name.clone()))
             .collect(),
     }
 }

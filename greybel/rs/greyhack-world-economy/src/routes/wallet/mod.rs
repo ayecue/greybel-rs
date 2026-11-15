@@ -20,6 +20,16 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_wallet_balances::<W>(routes);
+    register_wallet_market::<W>(routes);
+    register_wallet_credentials::<W>(routes);
+}
+
+fn register_wallet_balances<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -77,6 +87,13 @@ pub(crate) fn register<
             pin(world, ctx.trees.objects(call.tree).wallet(message.wallet)?).await
         },
     );
+}
+
+fn register_wallet_market<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -150,6 +167,13 @@ pub(crate) fn register<
             global_offers(world, &message.coin).await
         },
     );
+}
+
+fn register_wallet_credentials<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,

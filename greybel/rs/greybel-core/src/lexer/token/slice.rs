@@ -40,7 +40,6 @@ impl Token for SliceOperator {
 
 impl<'src> Lexer<'src> {
     pub(crate) fn scan_slice_operator(
-        &self,
         stream: &mut TokenStream,
         token_start: PendingToken,
     ) -> AnyToken {

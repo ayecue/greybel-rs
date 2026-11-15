@@ -8,6 +8,10 @@ use mono_random::Random;
 
 /// Generates 15–30 police or student records for `Router.CreaFichasPoliciales` and
 /// `Router.CrearFichaEstudiantes`.
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "Router.CrearFichaEstudiantes computes student marks with C# floats"
+)]
 pub(crate) fn records(rng: &mut Rng, service: ServiceId, domain: &str) -> Option<RecordDatabase> {
     let kind = match service {
         ServiceId::Criminals => RecordKind::Police,
@@ -20,7 +24,7 @@ pub(crate) fn records(rng: &mut Rng, service: ServiceId, domain: &str) -> Option
             let surname = Word::Surname.generate(rng);
             let first_name = Gender::pick(rng).first_name(rng);
             let phone = rng.phone();
-            let age = rng.range(18, 80) as i32;
+            let age = i32::try_from(rng.range(18, 80)).expect("the age range fits i32");
             let person_id = rng.next_u64().to_string();
             let mut record = Record {
                 phone,
@@ -34,11 +38,12 @@ pub(crate) fn records(rng: &mut Rng, service: ServiceId, domain: &str) -> Option
 
             if kind == RecordKind::Police {
                 record.offenses = Some(
-                    (0..rng.range(1, 4) as i32)
+                    (0..i32::try_from(rng.range(1, 4)).expect("the range fits i32"))
                         .map(|id| Offense {
                             id,
                             crime: *rng.pick(Crime::ALL),
-                            start_year: rng.range(1990, 1999) as i32,
+                            start_year: i32::try_from(rng.range(1990, 1999))
+                                .expect("the year range fits i32"),
                         })
                         .collect(),
                 );

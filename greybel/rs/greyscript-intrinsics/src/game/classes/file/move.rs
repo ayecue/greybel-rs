@@ -27,7 +27,7 @@ pub fn r#move(
     };
 
     if let Err(refusal) = check_target_name(name) {
-        return refuse("move", refusal);
+        return refuse("move", &refusal);
     }
 
     let message = FileMove {

@@ -7,7 +7,7 @@ use crate::to_lsp;
 impl Server {
     pub(in crate::server) fn document_symbol(
         &mut self,
-        params: lsp::DocumentSymbolParams,
+        params: &lsp::DocumentSymbolParams,
     ) -> Result<Option<lsp::DocumentSymbolResponse>> {
         let Some(document) = self.document_analysis(&params.text_document.uri)? else {
             return Ok(None);
@@ -25,14 +25,14 @@ impl Server {
 
     pub(in crate::server) fn workspace_symbol(
         &mut self,
-        params: lsp::WorkspaceSymbolParams,
-    ) -> Result<Option<lsp::WorkspaceSymbolResponse>> {
-        Ok(Some(lsp::WorkspaceSymbolResponse::WorkspaceSymbolList(
+        params: &lsp::WorkspaceSymbolParams,
+    ) -> lsp::WorkspaceSymbolResponse {
+        lsp::WorkspaceSymbolResponse::WorkspaceSymbolList(
             self.analyzer()
                 .workspace_symbols(&params.query)
                 .iter()
                 .map(to_lsp::workspace_symbol)
                 .collect(),
-        )))
+        )
     }
 }

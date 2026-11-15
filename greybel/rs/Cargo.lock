@@ -1583,6 +1583,7 @@ dependencies = [
  "greybel-interpreter",
  "greybel-io",
  "greybel-io-web",
+ "greybel-source-map",
  "greybel-test-support",
  "greybel-transpiler",
  "greyhack-behaviour",

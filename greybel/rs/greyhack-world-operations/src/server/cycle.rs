@@ -80,7 +80,9 @@ impl ServerState {
         let tree = self.trees.of_program(program)?;
 
         self.budgets.take_throttle(tree).then(|| {
-            (MILLIS_PER_SECOND as u32).div_ceil(self.ticks.options.get().per_second.max(1))
+            u32::try_from(MILLIS_PER_SECOND)
+                .expect("value fits the target integer type")
+                .div_ceil(self.ticks.options.get().per_second.max(1))
         })
     }
 
@@ -126,7 +128,7 @@ impl ServerState {
     }
 
     /// Releases `objects` from `connection` after earlier operations finish.
-    pub(crate) async fn release(&self, connection: u32, objects: &[ObjectId]) {
+    pub(crate) fn release(&self, connection: u32, objects: &[ObjectId]) {
         self.trees.release(connection, objects);
     }
 
@@ -134,7 +136,7 @@ impl ServerState {
     /// [`WorldServer::save`]. Returns whether the commit succeeded.
     pub(super) async fn commit(&self, state: &mut ServerWorld) -> bool {
         match state.world.commit().await {
-            Ok(_) => true,
+            Ok(()) => true,
             Err(error) => {
                 self.record_failure(error);
 

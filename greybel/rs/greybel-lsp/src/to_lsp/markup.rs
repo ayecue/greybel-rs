@@ -18,7 +18,7 @@ impl Markup {
         }
 
         lsp::Hover {
-            contents: lsp::Contents::MarkupContent(self.content(self.join(sections))),
+            contents: lsp::Contents::MarkupContent(self.content(self.join(&sections))),
             range: Some(range(hover.range)),
         }
     }
@@ -55,7 +55,7 @@ impl Markup {
 
     #[must_use]
     pub fn documentation(&self, documentation: &Documentation) -> lsp::Documentation {
-        let text = self.join(self.documentation_sections(documentation));
+        let text = self.join(&self.documentation_sections(documentation));
 
         lsp::Documentation::MarkupContent(self.content(text))
     }
@@ -102,7 +102,7 @@ impl Markup {
         sections
     }
 
-    fn join(&self, sections: Vec<String>) -> String {
+    fn join(&self, sections: &[String]) -> String {
         sections.join(if self.markdown { "\n\n---\n\n" } else { "\n\n" })
     }
 }

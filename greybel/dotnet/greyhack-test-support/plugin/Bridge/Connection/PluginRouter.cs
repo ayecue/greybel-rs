@@ -69,14 +69,11 @@ internal sealed class PluginRouter(
     public override void OnCreateNetworkRpc(CreateNetworkRpc message) =>
         Respond(message.Request, message, () => networks.Create(message));
 
+    public override void OnCreateFixtureNetworkRpc(CreateFixtureNetworkRpc message) =>
+        Respond(message.Request, message, () => networks.CreateFixture(message));
+
     public override void OnSpawnNetworkRpc(SpawnNetworkRpc message) =>
         Respond(message.Request, message, () => networks.Spawn(message));
-
-    public override void OnFindNetworkRpc(FindNetworkRpc message) =>
-        Respond(message.Request, message, () => networks.Find(message));
-
-    public override void OnFindNewNetworkRpc(FindNewNetworkRpc message) =>
-        Respond(message.Request, message, () => networks.FindNew(message));
 
     public override void OnDisableNetworkRpc(DisableNetworkRpc message) =>
         Respond(message.Request, message, () => networks.Disable(message));
@@ -86,6 +83,9 @@ internal sealed class PluginRouter(
 
     public override void OnInstallLibraryRpc(InstallLibraryRpc message) =>
         Respond(message.Request, message, () => networks.InstallLibrary(message));
+
+    public override void OnInstallFixtureLibraryRpc(InstallFixtureLibraryRpc message) =>
+        Respond(message.Request, message, () => networks.InstallFixture(message));
 
     public override void OnAllowFirewallRpc(AllowFirewallRpc message) =>
         Respond(message.Request, message, () => networks.AllowFirewall(message));

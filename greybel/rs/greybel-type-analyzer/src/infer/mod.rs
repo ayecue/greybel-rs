@@ -148,7 +148,8 @@ impl<'a> Inference<'a> {
             for block in &comments.blocks {
                 for tag in &block.doc.invalid_tags {
                     self.pass.diagnostics.push((
-                        document as DocumentIndex,
+                        DocumentIndex::try_from(document)
+                            .expect("value fits the target integer type"),
                         Diagnostic::new(
                             DiagnosticKind::InvalidAnnotation,
                             lines,
@@ -243,7 +244,8 @@ impl<'a> Inference<'a> {
 
         self.declare_types();
         for document in 0..self.documents.len() {
-            self.current_document = document as DocumentIndex;
+            self.current_document =
+                DocumentIndex::try_from(document).expect("value fits the target integer type");
             self.declare_document();
         }
 

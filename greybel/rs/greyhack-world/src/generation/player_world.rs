@@ -15,6 +15,121 @@ use crate::World;
 
 /// Creates the player world in `db` in one transaction: default repository and coins, player router
 /// and computer, bank account, and mail.
+async fn insert_custom_player_network(
+    world: &World,
+    player: &PlayerOptions,
+    layout: &greyhack_world_creation::NetworkLayout,
+) -> Result<()> {
+    world.handle.world_mut().player_person = insert_player_person(world, player).await?;
+
+    let mut layout = layout.clone();
+
+    for node in &mut layout.nodes {
+        if let DeviceLayout::Computer(draft) = &mut node.device
+            && draft.is_player
+        {
+            for user in &mut draft.users {
+                if user.name == player.user {
+                    user.person = Some(world.handle.player_person());
+                }
+            }
+        }
+    }
+
+    let (_, computer) = world
+        .modules
+        .creation
+        .network_generation
+        .add_network_layout(&layout)
+        .await?;
+
+    world.handle.world_mut().player =
+        computer.ok_or_else(|| WorldError::Layout(LayoutFailure::NoPlayerComputer))?;
+    world.commit().await?;
+
+    Ok(())
+}
+
+async fn generate_player_network(
+    world: &World,
+    options: &WorldOptions,
+    player: &PlayerOptions,
+    player_rng: &mut Rng,
+) -> Result<()> {
+    let network = world
+        .modules
+        .core
+        .networks
+        .insert_network(&NetworkDraft {
+            kind: NetworkKind::Residential,
+            has_plan: false,
+            public_ip: player.public_ip.clone(),
+            domain: String::new(),
+            contact: None,
+            position: position_for_ip(&player.public_ip),
+        })
+        .await?;
+    let essid = Some(format!("{}_net", player.computer_name));
+    let router_ip = main_router_address(0);
+    let bssid = Some(player_rng.mac());
+    let wifi_password = Word::Password.generate(player_rng);
+    let kernel = kernel_router(player_rng);
+    let root_password =
+        Word::Password.generate(&mut Rng::root_password(options.seed, &player.public_ip));
+    let computer = world.modules.creation.network_generation.router_computer(
+        &player.public_ip,
+        DeviceKind::Router,
+        &router_ip,
+        &root_password,
+        *kernel,
+    );
+    let router = world
+        .modules
+        .creation
+        .network_generation
+        .insert_router(
+            &RouterDraft {
+                essid,
+                bssid,
+                wifi_password,
+                firewall_rules: Vec::new(),
+                firewall_active: true,
+                computer,
+            },
+            network,
+            None,
+        )
+        .await?;
+
+    world.handle.world_mut().player_person = insert_player_person(world, player).await?;
+
+    let mut computer = preset::player_computer(player);
+
+    assign_player_libraries(&mut computer, player_rng);
+
+    for user in &mut computer.users {
+        if user.name == player.user {
+            user.person = Some(world.handle.player_person());
+        }
+    }
+
+    world.handle.world_mut().player = world
+        .modules
+        .libraries
+        .libraries
+        .insert_full_computer(
+            &computer,
+            network,
+            &LanPlace::computer_under(router.computer(), router, &router_ip),
+        )
+        .await?;
+    world.modules.libraries.check.ensure().await?;
+    world.modules.economy.daily_upkeep.ensure().await?;
+    world.commit().await?;
+
+    Ok(())
+}
+
 pub(crate) async fn player_world(options: &WorldOptions, db: Database) -> Result<World> {
     let mut rng = Rng::new(options.seed);
     let mut player_rng = rng.fork("player");
@@ -81,106 +196,12 @@ pub(crate) async fn player_world(options: &WorldOptions, db: Database) -> Result
     }
 
     if let Some(layout) = &player.network {
-        world.handle.world_mut().player_person = insert_player_person(&world, player).await?;
-
-        let mut layout = layout.clone();
-
-        for node in &mut layout.nodes {
-            if let DeviceLayout::Computer(draft) = &mut node.device
-                && draft.is_player
-            {
-                for user in &mut draft.users {
-                    if user.name == player.user {
-                        user.person = Some(world.handle.player_person());
-                    }
-                }
-            }
-        }
-
-        let (_, computer) = world
-            .modules
-            .creation
-            .network_generation
-            .add_network_layout(&layout)
-            .await?;
-
-        world.handle.world_mut().player =
-            computer.ok_or_else(|| WorldError::Layout(LayoutFailure::NoPlayerComputer))?;
-        world.commit().await?;
+        insert_custom_player_network(&world, player, layout).await?;
 
         return Ok(world);
     }
 
-    let network = world
-        .modules
-        .core
-        .networks
-        .insert_network(&NetworkDraft {
-            kind: NetworkKind::Residential,
-            has_plan: false,
-            public_ip: player.public_ip.clone(),
-            domain: String::new(),
-            contact: None,
-            position: position_for_ip(&player.public_ip),
-        })
-        .await?;
-    let essid = Some(format!("{}_net", player.computer_name));
-    let router_ip = main_router_address(0);
-    let bssid = Some(player_rng.mac());
-    let wifi_password = Word::Password.generate(&mut player_rng);
-    let kernel = kernel_router(&mut player_rng);
-    let root_password =
-        Word::Password.generate(&mut Rng::root_password(options.seed, &player.public_ip));
-    let computer = world.modules.creation.network_generation.router_computer(
-        &player.public_ip,
-        DeviceKind::Router,
-        &router_ip,
-        &root_password,
-        *kernel,
-    );
-    let router = world
-        .modules
-        .creation
-        .network_generation
-        .insert_router(
-            &RouterDraft {
-                essid,
-                bssid,
-                wifi_password,
-                firewall_rules: Vec::new(),
-                firewall_active: true,
-                computer,
-            },
-            network,
-            None,
-        )
-        .await?;
-
-    world.handle.world_mut().player_person = insert_player_person(&world, player).await?;
-
-    let mut computer = preset::player_computer(player);
-
-    assign_player_libraries(&mut computer, &mut player_rng);
-
-    for user in &mut computer.users {
-        if user.name == player.user {
-            user.person = Some(world.handle.player_person());
-        }
-    }
-
-    world.handle.world_mut().player = world
-        .modules
-        .libraries
-        .libraries
-        .insert_full_computer(
-            &computer,
-            network,
-            &LanPlace::computer_under(router.computer(), router, &router_ip),
-        )
-        .await?;
-    world.modules.libraries.check.ensure().await?;
-    world.modules.economy.daily_upkeep.ensure().await?;
-    world.commit().await?;
+    generate_player_network(&world, options, player, &mut player_rng).await?;
 
     Ok(world)
 }

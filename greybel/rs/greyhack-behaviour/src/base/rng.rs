@@ -87,6 +87,7 @@ impl Rng {
 
     /// Forks an independent subsystem generator so draws in one subsystem do not advance another's
     /// sequence.
+    #[must_use]
     pub fn fork(&mut self, label: &str) -> Self {
         Self::new(self.next_u64() ^ fnv1a_64(label))
     }

@@ -1,3 +1,5 @@
+use std::fmt::Write as _;
+
 use greybel_interpreter::{NativeFuture, NativeOutput, Value, Vm, native};
 
 use super::computer;
@@ -21,14 +23,13 @@ pub fn network_devices(vm: &mut Vm, this: &Value) -> Result<NativeFuture, Intrin
         server(vm)?.send_computer_network_devices(&message),
         |_, devices: Option<Vec<NetworkDevice>>| {
             devices.map(|devices| {
-                devices
-                    .iter()
-                    .map(|device| {
-                        let monitor = if device.monitor { "True" } else { "False" };
+                devices.iter().fold(String::new(), |mut text, device| {
+                    let monitor = if device.monitor { "True" } else { "False" };
 
-                        format!("{} {} {monitor}\n", device.name, device.model)
-                    })
-                    .collect::<String>()
+                    let _ = writeln!(text, "{} {} {monitor}", device.name, device.model);
+
+                    text
+                })
             })
         },
     ))

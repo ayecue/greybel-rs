@@ -94,7 +94,7 @@ impl Client {
     pub fn try_initialize(&mut self) -> Result<Value, greybel_lsp::ResponseError> {
         let mut params = initialize_params(
             ROOT,
-            json!({
+            &json!({
                 "workspace": { "configuration": true },
                 "textDocument": { "hover": { "contentFormat": ["markdown", "plaintext"] } }
             }),
@@ -241,7 +241,7 @@ impl Client {
         );
     }
 
-    pub fn change(&mut self, path: &str, version: i32, changes: Value) {
+    pub fn change(&mut self, path: &str, version: i32, changes: &Value) {
         self.notify_value(
             lsp::DidChangeTextDocumentNotification::METHOD.as_str(),
             json!({ "textDocument": { "uri": uri(path), "version": version }, "contentChanges": changes }),
@@ -384,7 +384,7 @@ pub fn project_with_a_missing_reference() -> Client {
 pub fn project_with_the_reference_defined() -> Client {
     let mut client = project_with_a_missing_reference();
 
-    client.change("main.src", 2, insertion(0, 0, "missing = 1\n"));
+    client.change("main.src", 2, &insertion(0, 0, "missing = 1\n"));
 
     client
 }
@@ -393,7 +393,7 @@ pub fn project_with_the_reference_defined() -> Client {
 pub fn project_edited_without_new_diagnostics() -> Client {
     let mut client = project_with_the_reference_defined();
 
-    client.change("main.src", 3, insertion(1, 13, " "));
+    client.change("main.src", 3, &insertion(1, 13, " "));
 
     client
 }
@@ -409,7 +409,7 @@ pub fn project_with_an_emoji() -> Client {
 
 /// Inserts `!` immediately after the emoji in [`project_with_an_emoji`].
 pub fn change_after_the_emoji(client: &mut Client) {
-    client.change("main.src", 2, insertion(0, 7, "!"));
+    client.change("main.src", 2, &insertion(0, 7, "!"));
 }
 
 /// Creates an initialized client serving the library with read-file responses disabled.
@@ -430,7 +430,7 @@ pub fn client_edited_while_reading() -> Client {
 
     let edited = format!("{MAIN}print greet(1)\n");
 
-    client.change("main.src", 2, json!([{ "text": edited }]));
+    client.change("main.src", 2, &json!([{ "text": edited }]));
     client.responds_to_reads = true;
 
     client

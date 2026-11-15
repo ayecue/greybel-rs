@@ -2,6 +2,7 @@
 //! (`ChallengeGenerator`, `CodeGenerator`).
 
 use std::collections::BTreeSet;
+use std::fmt::Write as _;
 
 use greyhack_behaviour::ALPHANUMERIC;
 use mono_random::Random;
@@ -86,11 +87,15 @@ impl CodeGenerator {
             error_lines: self
                 .error_lines
                 .into_iter()
-                .map(|line| line as i64)
+                .map(|line| i64::try_from(line).expect("source lines fit i64"))
                 .collect(),
         }
     }
 
+    #[expect(
+        clippy::match_same_arms,
+        reason = "CodeGenerator.GenerateFunctionBody has distinct random cases for arithmetic and case-four fallback"
+    )]
     pub(crate) fn function_body(
         &mut self,
         parameter: &str,
@@ -108,7 +113,8 @@ impl CodeGenerator {
                         self.arithmetic(&current, lines.last().map(String::as_str));
 
                     lines.push(format!("{current} = {operation}"));
-                    description.push_str(&format!("calculates {operation_description}. "));
+
+                    let _ = write!(description, "calculates {operation_description}. ");
                 }
                 2 => {
                     let (condition, condition_description) = self.condition(&current);
@@ -116,20 +122,26 @@ impl CodeGenerator {
 
                     lines.push(format!("if {condition} then"));
                     lines.push(format!("    {current} = {operation}"));
+
                     lines.push("end if".to_owned());
-                    description.push_str(&format!(
+
+                    let _ = write!(
+                        description,
                         "If {condition_description}, then updates {current} by calculating {operation_description}. "
-                    ));
+                    );
                 }
                 3 => {
                     let end = 2 + self.random.next_below(3);
 
                     lines.push(format!("for i in range(0, {end})"));
                     lines.push(format!("    {current} = i * {current}"));
+
                     lines.push("end for".to_owned());
-                    description.push_str(&format!(
+
+                    let _ = write!(
+                        description,
                         "For each i from 0 to {end}, updates {current} by multiplying it by i. "
-                    ));
+                    );
                 }
                 4 if allow_function && !self.has_additional_function => {
                     let (call, call_description) = self.function_call(&current);
@@ -144,24 +156,30 @@ impl CodeGenerator {
                         self.arithmetic(&current, lines.last().map(String::as_str));
 
                     lines.push(format!("{current} = {operation}"));
-                    description.push_str(&format!("calculates {operation_description}. "));
+
+                    let _ = write!(description, "calculates {operation_description}. ");
                 }
                 5 => {
                     let list = self.variable_name();
 
                     lines.push(format!("{list} = []"));
+
                     lines.push(format!("{list}.push({current})"));
+
                     lines.push(format!("{current} = {list}[0]"));
-                    description.push_str(&format!(
+
+                    let _ = write!(
+                        description,
                         "creates a list {list}, adds {current} to {list}, and assigns {current} to the first element of {list}. "
-                    ));
+                    );
                 }
                 _ => unreachable!(),
             }
         }
 
         lines.push(format!("return {current}"));
-        description.push_str(&format!("Finally, it returns {current}"));
+
+        let _ = write!(description, "Finally, it returns {current}");
 
         lines
     }
@@ -270,13 +288,13 @@ impl CodeGenerator {
 
                 self.apply_error(operation, &mut candidate, &mut candidate_errors);
 
-                if normalized_code(&candidate.join("\n")) != normalized_code(&lines.join("\n")) {
+                if normalized_code(&candidate.join("\n")) == normalized_code(&lines.join("\n")) {
+                    attempts += 1;
+                } else {
                     lines = candidate;
                     self.error_lines.extend(candidate_errors);
                     operation_indexes.insert(operation);
                     introduced = true;
-                } else {
-                    attempts += 1;
                 }
             }
         }

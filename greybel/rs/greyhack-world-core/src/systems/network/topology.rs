@@ -5,9 +5,9 @@ use std::rc::Rc;
 use greyhack_behaviour::{NO_ADDRESS, is_device};
 use greyhack_world_modules::Dep;
 
-use crate::storage::*;
-use crate::systems::{NetworkTopology as NetworkTopologyService, *};
-use crate::*;
+use crate::storage::{ComputerRepository, RouterRepository};
+use crate::systems::{NetworkLan, NetworkTopology as NetworkTopologyService};
+use crate::{Computer, ComputerId, NetworkId, Result, Router, RouterId};
 
 impl NetworkTopologyService {
     /// Returns computer `id`, or `None` if removed.

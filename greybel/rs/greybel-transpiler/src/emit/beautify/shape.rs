@@ -64,19 +64,24 @@ pub(super) fn shorthand<'a>(s: &EmitState<'a>, node: &Assignment) -> Option<&'a 
     .then_some(binary)
 }
 
-fn same_target(s: &EmitState<'_>, a: NodeId, b: NodeId) -> bool {
-    let (a, b) = (unwrap_from_parens(s, a), unwrap_from_parens(s, b));
+fn same_target(state: &EmitState<'_>, left: NodeId, right: NodeId) -> bool {
+    let (left, right) = (
+        unwrap_from_parens(state, left),
+        unwrap_from_parens(state, right),
+    );
 
-    match (s.kind(a), s.kind(b)) {
-        (NodeKind::Identifier(x), NodeKind::Identifier(y)) => {
-            s.resolve(x.name) == s.resolve(y.name)
+    match (state.kind(left), state.kind(right)) {
+        (NodeKind::Identifier(left_node), NodeKind::Identifier(right_node)) => {
+            state.resolve(left_node.name) == state.resolve(right_node.name)
         }
-        (NodeKind::Member(x), NodeKind::Member(y)) => {
-            same_target(s, x.base, y.base) && same_target(s, x.identifier, y.identifier)
+        (NodeKind::Member(left_node), NodeKind::Member(right_node)) => {
+            same_target(state, left_node.base, right_node.base)
+                && same_target(state, left_node.identifier, right_node.identifier)
         }
-        (NodeKind::Index(x), NodeKind::Index(y)) => {
-            same_target(s, x.base, y.base) && same_target(s, x.index, y.index)
+        (NodeKind::Index(left_node), NodeKind::Index(right_node)) => {
+            same_target(state, left_node.base, right_node.base)
+                && same_target(state, left_node.index, right_node.index)
         }
-        _ => s.text(a) == s.text(b),
+        _ => state.text(left) == state.text(right),
     }
 }

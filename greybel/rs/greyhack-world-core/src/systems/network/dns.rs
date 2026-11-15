@@ -5,9 +5,9 @@ use std::rc::Rc;
 use greyhack_behaviour::{WEB_PREFIX, unique_name_to_ip};
 use greyhack_world_modules::Dep;
 
-use crate::storage::*;
-use crate::systems::{Dns as DnsService, *};
-use crate::*;
+use crate::storage::RouterRepository;
+use crate::systems::{Dns as DnsService, RouterService};
+use crate::{Contact, Result, WorldRef};
 
 impl DnsService {
     /// Resolves web `domain`, prepending `www.` if absent (`IpGenerator.UniqueNameToIP`). Uses a

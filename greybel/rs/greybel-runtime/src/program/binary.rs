@@ -2,6 +2,7 @@
 
 use greybel_core::Dialect;
 use greybel_documents::{AsyncResourceProvider, Uri};
+use greybel_source_map::SourceMap;
 use greybel_transpiler::{TranspileOptions, transpile_project_async};
 use greyhack_behaviour::{Import, put_imports};
 use greyscript_intrinsics::ProgramBinary;
@@ -25,7 +26,7 @@ pub(crate) async fn build(
         environment: launch
             .variables
             .iter()
-            .map(|(name, value)| (name.to_string(), value.to_string()))
+            .map(|(name, value)| (name.clone(), value.clone()))
             .collect(),
         strict_mode: launch.strict_mode,
         obfuscation: false,
@@ -39,7 +40,7 @@ pub(crate) async fn build(
     let Some(main) = outputs.next() else {
         return Ok(ProgramBinary {
             code: String::new(),
-            source_map: Default::default(),
+            source_map: SourceMap::default(),
         });
     };
     let imports: Vec<Import> = outputs

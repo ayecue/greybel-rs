@@ -19,6 +19,15 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_meta_lib_details::<W>(routes);
+    register_meta_lib_overflow::<W>(routes);
+}
+
+fn register_meta_lib_details<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -101,6 +110,94 @@ pub(crate) fn register<
             )
         },
     );
+}
+
+/// Library and connection values needed to construct an exploit result object.
+struct OverflowContext {
+    prev_ip: String,
+    origin: greyhack_world_core::ComputerId,
+    bounces: u32,
+    library_name: Option<String>,
+}
+
+async fn overflow_object(
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+    objects: &mut greyhack_world_programs::ObjectTableHandle<greyhack_world_core::ComputerId>,
+    outcome: ExploitOutcome,
+    context: OverflowContext,
+) -> Result<ExploitObject> {
+    let OverflowContext {
+        prev_ip,
+        origin,
+        bounces,
+        library_name,
+    } = context;
+
+    Ok(match outcome {
+        ExploitOutcome::Nothing => ExploitObject::Null,
+        ExploitOutcome::DisabledNetwork => ExploitObject::DisabledNetwork,
+        ExploitOutcome::Success => ExploitObject::True,
+        ExploitOutcome::Failure => ExploitObject::False,
+        ExploitOutcome::Shell { computer, user } => {
+            // The shell's previous address is the metaxploit computer's public address.
+            let origin_ip = world
+                .module::<crate::LibraryModule>()
+                .overflows
+                .log_overflow_shell(
+                    library_name.as_deref().unwrap_or_default(),
+                    &prev_ip,
+                    origin,
+                    computer,
+                )
+                .await?;
+
+            ExploitObject::Shell(objects.insert(AccessHandle {
+                access: Access {
+                    computer,
+                    user,
+                    ftp: false,
+                    prev_ip: origin_ip,
+                    bounces: bounces + 1,
+                },
+                kind: AccessKind::Shell,
+            }))
+        }
+        ExploitOutcome::Computer { computer, user } => {
+            ExploitObject::Computer(objects.insert(AccessHandle {
+                access: Access {
+                    computer,
+                    user,
+                    ftp: false,
+                    prev_ip,
+                    bounces: bounces + 1,
+                },
+                kind: AccessKind::Computer,
+            }))
+        }
+        ExploitOutcome::File {
+            computer,
+            node,
+            path,
+            user,
+        } => ExploitObject::File(objects.insert(FileHandle(FileRef {
+            access: Access {
+                computer,
+                user,
+                ftp: false,
+                prev_ip,
+                bounces,
+            },
+            node,
+            path,
+        }))),
+    })
+}
+
+fn register_meta_lib_overflow<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -172,66 +269,18 @@ pub(crate) fn register<
                 }
             };
 
-            let object = match report.outcome {
-                ExploitOutcome::Nothing => ExploitObject::Null,
-                ExploitOutcome::DisabledNetwork => ExploitObject::DisabledNetwork,
-                ExploitOutcome::Success => ExploitObject::True,
-                ExploitOutcome::Failure => ExploitObject::False,
-                ExploitOutcome::Shell { computer, user } => {
-                    // The shell's previous address is the metaxploit computer's public address.
-                    let origin_ip = world
-                        .module::<crate::LibraryModule>()
-                        .overflows
-                        .log_overflow_shell(
-                            library_name.as_deref().unwrap_or_default(),
-                            &prev_ip,
-                            origin,
-                            computer,
-                        )
-                        .await?;
-
-                    ExploitObject::Shell(ctx.trees.objects(call.tree).insert(AccessHandle {
-                        access: Access {
-                            computer,
-                            user,
-                            ftp: false,
-                            prev_ip: origin_ip,
-                            bounces: bounces + 1,
-                        },
-                        kind: AccessKind::Shell,
-                    }))
-                }
-                ExploitOutcome::Computer { computer, user } => {
-                    ExploitObject::Computer(ctx.trees.objects(call.tree).insert(AccessHandle {
-                        access: Access {
-                            computer,
-                            user,
-                            ftp: false,
-                            prev_ip,
-                            bounces: bounces + 1,
-                        },
-                        kind: AccessKind::Computer,
-                    }))
-                }
-                ExploitOutcome::File {
-                    computer,
-                    node,
-                    path,
-                    user,
-                } => {
-                    ExploitObject::File(ctx.trees.objects(call.tree).insert(FileHandle(FileRef {
-                        access: Access {
-                            computer,
-                            user,
-                            ftp: false,
-                            prev_ip,
-                            bounces,
-                        },
-                        node,
-                        path,
-                    })))
-                }
-            };
+            let object = overflow_object(
+                world,
+                &mut ctx.trees.objects(call.tree),
+                report.outcome,
+                OverflowContext {
+                    prev_ip,
+                    origin,
+                    bounces,
+                    library_name,
+                },
+            )
+            .await?;
 
             if report.log != crate::ExploitLog::Nothing {
                 ctx.print(call, PrintLine::ExploitLog(report.log.into_protocol()));

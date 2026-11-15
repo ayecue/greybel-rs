@@ -66,7 +66,7 @@ fn file_key(
     };
 
     if let Err(refusal) = check_password(password) {
-        return refuse(intrinsic, refusal).map(ControlFlow::Break);
+        return refuse(intrinsic, &refusal).map(ControlFlow::Break);
     }
 
     let Some(access) = access_or_crash(vm, this)? else {

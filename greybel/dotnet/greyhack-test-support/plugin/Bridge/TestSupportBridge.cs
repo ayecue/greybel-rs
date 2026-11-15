@@ -29,6 +29,7 @@ internal sealed class TestSupportBridge : IDisposable
         Player player = new Player();
         RouterKernel routerKernels = new RouterKernel(player);
         WorldRestore restore = new WorldRestore(player, routerKernels);
+        FixtureStore store = new FixtureStore();
         AccountFixture accounts = new AccountFixture(player);
         NpcFixture npcs = new NpcFixture();
         BankFixture bank = new BankFixture(player);
@@ -39,13 +40,14 @@ internal sealed class TestSupportBridge : IDisposable
             main,
             player,
             restore,
+            store,
             [clock, accounts, npcs, traffic, bank, guilds]
         );
         join = new NetworkJoin(main, player);
         scripts = new ScriptRunner(main, player);
         StateReader stateReader = new StateReader(player, accounts, traffic);
-        NetworkFixture networks = new NetworkFixture(player, restore);
-        KernelFixture kernels = new KernelFixture(routerKernels, restore);
+        NetworkFixture networks = new NetworkFixture(player, restore, store);
+        KernelFixture kernels = new KernelFixture(routerKernels, restore, networks);
         EconomyFixture economy = new EconomyFixture(player);
         exploitShop = new ExploitShopFixture(main, player);
         MissionFixture missions = new MissionFixture(clock);

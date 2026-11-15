@@ -73,7 +73,6 @@ impl Token for KeywordToken {
 
 impl<'src> Lexer<'src> {
     pub(super) fn finish_keyword(
-        &self,
         stream: &TokenStream,
         keyword: Keyword,
         token_start: PendingToken,
@@ -107,11 +106,11 @@ impl<'src> Lexer<'src> {
         if let Some(keyword) = start.keyword_for(second) {
             stream.cursor.set(position);
 
-            return Ok(self.finish_keyword(stream, keyword, token_start));
+            return Ok(Self::finish_keyword(stream, keyword, token_start));
         }
 
         if start.alone {
-            return Ok(self.finish_keyword(stream, start.first, token_start));
+            return Ok(Self::finish_keyword(stream, start.first, token_start));
         }
 
         stream.cursor.set(position);

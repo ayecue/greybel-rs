@@ -122,7 +122,7 @@ impl NpcService {
             return Ok(());
         };
 
-        self.mail.mail.rename_mail_account(&old, address).await
+        self.mail.rows.rename_mail_account(&old, address).await
     }
 
     pub async fn appoint_network_admin(&self, npc: PersonId) -> Result<()> {

@@ -63,7 +63,7 @@ pub async fn compare_stepped(
         error: error.filter(|error| *error != RuntimeErrorKind::GameCrash.to_string()),
     };
     let result = game_stepped(client, script, steps).await;
-    let output = result.output.to_string();
+    let output = result.output.clone();
     let actual = Outcome {
         script: script.to_owned(),
         failed: result.failed,

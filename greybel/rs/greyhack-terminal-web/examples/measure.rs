@@ -5,6 +5,7 @@
 //! `--chrome` names the Chrome binary, `--save` writes the renderings as PNGs to a folder, and `--gpu` renders on
 //! the GPU instead of SwiftShader.
 
+use std::fmt::Write as _;
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -284,7 +285,7 @@ impl<'o> ComparePage<'o> {
             if byte.is_ascii_alphanumeric() || b"/-._~".contains(&byte) {
                 url.push(char::from(byte));
             } else {
-                url.push_str(&format!("%{byte:02X}"));
+                let _ = write!(url, "%{byte:02X}");
             }
         }
 

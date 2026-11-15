@@ -16,6 +16,8 @@ pub mod strict;
 pub mod token;
 pub mod tree;
 
+use std::fmt::Write as _;
+
 use greybel_core::{Dialect, Parser, ParserOptions, Version};
 
 use crate::support::snapshot::render_strict;
@@ -49,9 +51,9 @@ pub fn render_rule_case(case: &str) -> String {
     let mut out = format!("=== {case:?}\n");
 
     if v1_6 == latest {
-        out.push_str(&format!("1.6, latest: {v1_6}"));
+        let _ = write!(out, "1.6, latest: {v1_6}");
     } else {
-        out.push_str(&format!("1.6: {v1_6}latest: {latest}"));
+        let _ = write!(out, "1.6: {v1_6}latest: {latest}");
     }
 
     out

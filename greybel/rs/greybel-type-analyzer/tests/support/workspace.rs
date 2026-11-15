@@ -72,7 +72,7 @@ end function
 pub const INCLUDE_PREFIX: &str = "#include \"lib/";
 pub const IMPORT_PREFIX: &str = "#import Log from \"/project/sh";
 
-pub fn labels(uris: Vec<Uri>) -> Vec<String> {
+pub fn labels(uris: &[Uri]) -> Vec<String> {
     uris.iter().map(Uri::label).collect()
 }
 
@@ -144,8 +144,12 @@ pub fn at(source: &str, needle: &str, nth: usize) -> Position {
         .unwrap_or_else(|| panic!("`{needle}` occurs {} times", nth + 1))
         .0;
     let before = &source[..offset];
-    let line = before.matches('\n').count() as u32 + 1;
-    let column = before.rsplit('\n').next().unwrap_or("").len() as u32 + 1;
+    let line = u32::try_from(before.matches('\n').count())
+        .expect("value fits the target integer type")
+        + 1;
+    let column = u32::try_from(before.rsplit('\n').next().unwrap_or("").len())
+        .expect("value fits the target integer type")
+        + 1;
 
     Position::new(line, column)
 }
@@ -425,8 +429,10 @@ pub fn file_completions(
     source: &str,
 ) -> Vec<(String, String, String)> {
     let end = Position::new(
-        source.lines().count() as u32,
-        source.lines().last().unwrap_or("").len() as u32 + 1,
+        u32::try_from(source.lines().count()).expect("value fits the target integer type"),
+        u32::try_from(source.lines().last().unwrap_or("").len())
+            .expect("value fits the target integer type")
+            + 1,
     );
 
     Analyzer::new(workspace)

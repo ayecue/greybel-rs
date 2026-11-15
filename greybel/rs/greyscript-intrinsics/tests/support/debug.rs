@@ -32,7 +32,7 @@ pub fn debug_world() -> World {
         &world,
         player,
         "/lib/metaxploit.so",
-        Library {
+        &Library {
             kind: LibraryKind::Metaxploit,
             version: "1.0.0".to_owned(),
             zones: Vec::new(),

@@ -93,7 +93,7 @@ impl MockInspection {
                 evaluate_name: Some(format!("({code})")),
             }),
             _ => {
-                vm.unpin(pin);
+                vm.unpin(&pin);
 
                 0
             }
@@ -158,7 +158,7 @@ impl MockInspection {
     pub(super) fn release(self, vm: &mut Vm) {
         for reference in self.references {
             if let Reference::Value { pin, .. } = reference {
-                vm.unpin(pin);
+                vm.unpin(&pin);
             }
         }
     }

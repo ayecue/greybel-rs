@@ -68,12 +68,7 @@ impl Token for Comment {
 }
 
 impl<'src> Lexer<'src> {
-    fn finish_comment(
-        &self,
-        stream: &TokenStream,
-        token_start: PendingToken,
-        block: bool,
-    ) -> AnyToken {
+    fn finish_comment(stream: &TokenStream, token_start: PendingToken, block: bool) -> AnyToken {
         token_start.finish(stream, |span, after_space| Comment {
             span,
             after_space,
@@ -120,7 +115,7 @@ impl<'src> Lexer<'src> {
             stream.cursor.advance(1);
         }
 
-        Ok(self.finish_comment(stream, token_start, false))
+        Ok(Self::finish_comment(stream, token_start, false))
     }
 
     pub fn scan_block_comment(
@@ -147,7 +142,7 @@ impl<'src> Lexer<'src> {
 
         stream.cursor.advance(BLOCK_COMMENT_END.len());
 
-        Ok(self.finish_comment(stream, token_start, true))
+        Ok(Self::finish_comment(stream, token_start, true))
     }
 }
 

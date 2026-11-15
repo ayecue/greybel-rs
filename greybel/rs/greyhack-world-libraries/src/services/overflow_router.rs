@@ -120,7 +120,8 @@ impl OverflowService {
         let too_few_users = weakness
             .requirements
             .contains(&Requirement::NumberUsersRegister)
-            && (devices as u32) < weakness.num_register_users;
+            && u32::try_from(devices).expect("value fits the target integer type")
+                < weakness.num_register_users;
 
         if too_few_users {
             return Ok(Some(UnmetRequirement::TooFewUsers));

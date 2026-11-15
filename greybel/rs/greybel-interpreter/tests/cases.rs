@@ -423,7 +423,7 @@ fn should_give_back_the_pinned_value_on_unpin() {
 
     vm.collect_garbage();
 
-    let value = vm.unpin(pin);
+    let value = vm.unpin(&pin);
 
     assert!(matches!(value, Value::List(_)));
 }
@@ -437,7 +437,7 @@ fn should_collect_unpinned_values() {
 
     vm.collect_garbage();
 
-    let _value = vm.unpin(pin);
+    let _value = vm.unpin(&pin);
 
     vm.collect_garbage();
 

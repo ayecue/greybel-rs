@@ -5,9 +5,9 @@ use std::rc::Rc;
 use greyhack_behaviour::{BYTES_PER_MB, path};
 use greyhack_world_modules::Dep;
 
-use crate::storage::*;
-use crate::systems::{FileSizeService as FileSizesService, *};
-use crate::*;
+use crate::storage::{HardwareRepository, NodeRepository};
+use crate::systems::{FileLookup, FileSizeService as FileSizesService};
+use crate::{ComputerId, Node, Result};
 
 impl FileSizesService {
     /// Counts computer files and folders excluding root (`GetTotalFicheros`).
@@ -55,6 +55,10 @@ impl FileSizesService {
     /// # Errors
     ///
     /// Returns any database read error.
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "Computer.GetFreeSpaceMB converts the byte total to floating-point megabytes"
+    )]
     pub async fn available_storage_mb(&self, computer: ComputerId) -> Result<f64> {
         let Some(root) = self.lookup.root(computer).await? else {
             return Ok(0.0);

@@ -199,6 +199,7 @@ impl Map {
         self.entries_mut(heap).clear();
     }
 
+    #[must_use]
     pub fn merge(self, heap: &mut Heap, other: Self) -> Self {
         let entries: Vec<_> = self
             .entries(heap)

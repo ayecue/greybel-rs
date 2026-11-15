@@ -108,7 +108,7 @@ impl<'r, H: Host> MockProgram<'r, H> {
             environment: launch
                 .variables
                 .iter()
-                .map(|(name, value)| (name.to_string(), value.to_string()))
+                .map(|(name, value)| (name.clone(), value.clone()))
                 .collect(),
             debug: launch.debug,
             strict_mode: launch.strict_mode,
@@ -163,7 +163,7 @@ impl<'r, H: Host> MockProgram<'r, H> {
             let pin = vm.pin(arguments.get("value").clone());
 
             if let Some(previous) = evaluation_value.borrow_mut().replace(pin) {
-                vm.unpin(previous);
+                vm.unpin(&previous);
             }
 
             Ok(Value::Null)

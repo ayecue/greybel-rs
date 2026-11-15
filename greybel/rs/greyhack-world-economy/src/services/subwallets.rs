@@ -65,6 +65,10 @@ impl WalletService {
         Ok(true)
     }
 
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "BlockchainSystem.Transaction converts its integral amount to a floating-point balance"
+    )]
     pub async fn transaction(
         &self,
         coin: CoinId,

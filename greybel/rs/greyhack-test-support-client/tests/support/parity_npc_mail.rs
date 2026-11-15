@@ -3,7 +3,7 @@
 use greyhack_test_support_client::TestClient;
 use greyhack_test_support_client::protocol::test_support::{NetworkSnapshot, NpcSnapshot};
 
-use super::game::{join_network, join_network_of_kind_where};
+use super::game::{join_fixture, mail_network};
 
 /// The wait between mail methods, longer than their two-second cooldown.
 pub const COOLDOWN: &str = "wait(2.1)";
@@ -39,7 +39,7 @@ pub fn addresses(npcs: &[&NpcSnapshot]) -> String {
 /// last NPC with a mail account, to whom the test sends a mail.
 pub fn dismissal(snapshot: &NetworkSnapshot) -> Option<&NpcSnapshot> {
     let npcs = mail_npcs(snapshot);
-    let admin = snapshot.admin.as_ref().map(|admin| admin.user.to_string());
+    let admin = snapshot.admin.as_ref().map(|admin| admin.user.clone());
 
     npcs[..npcs.len().saturating_sub(1)]
         .iter()
@@ -54,18 +54,11 @@ pub fn dismissal(snapshot: &NetworkSnapshot) -> Option<&NpcSnapshot> {
 /// `Database.ApplyReportedLibUpdates`, `Database.SyncFileSystemDB`), which SQLite refuses as "database is locked"
 /// after its 30-second wait.
 pub async fn join_mail_network(client: &TestClient) -> NetworkSnapshot {
-    let network = client
-        .find_new_network("MailServices", "smtp")
-        .await
-        .expect("a network is generated");
+    let network = mail_network(client, 4).await;
+    let snapshot = join_fixture(client, &network).await;
 
-    join_network(client, &network.public_ip).await;
+    assert!(mail_npcs(&snapshot).len() >= 4);
+    assert!(dismissal(&snapshot).is_some());
 
-    join_network_of_kind_where(client, &["MailServices"], "smtp", |snapshot| {
-        snapshot.kind == "MailServices"
-            && !snapshot.disabled
-            && mail_npcs(snapshot).len() >= 4
-            && dismissal(snapshot).is_some()
-    })
-    .await
+    snapshot
 }

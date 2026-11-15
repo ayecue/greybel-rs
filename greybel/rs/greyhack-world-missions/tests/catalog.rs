@@ -11,11 +11,9 @@ fn should_hold_the_number_of_missions_the_game_counts_for_each_kind() {
         .map(|kind| (MissionCatalog::of(*kind).unwrap().len(), kind.count()))
         .collect();
 
-    assert!(
-        lengths
-            .iter()
-            .all(|(length, count)| *length as u32 == *count)
-    );
+    assert!(lengths.iter().all(|(length, count)| {
+        u32::try_from(*length).expect("value fits the target integer type") == *count
+    }));
 }
 
 #[test]

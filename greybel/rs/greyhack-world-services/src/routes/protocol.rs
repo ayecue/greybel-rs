@@ -9,30 +9,34 @@ impl IntoProtocol for crate::AptFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::AptFailure as World;
-
         match failure {
-            World::NoCache => AptFailure::NoCache,
-            World::InvalidCache => AptFailure::InvalidCache,
-            World::InvalidAddress(address) => AptFailure::InvalidAddress(address),
-            World::ListedRepository(address) => AptFailure::ListedRepository(address),
-            World::UnlistedRepository(address) => AptFailure::UnlistedRepository(address),
-            World::UnknownRepository(address) => AptFailure::UnknownRepository(address),
-            World::NoMatch(term) => AptFailure::NoMatch(term),
-            World::UnknownPackage(package) => AptFailure::UnknownPackage(package),
-            World::MissingPackageFile(package) => AptFailure::MissingPackageFile(package),
-            World::ComputerUnavailable => AptFailure::ComputerUnavailable,
-            World::MissingFolder(path) => AptFailure::MissingFolder(path),
-            World::NoPermission => AptFailure::NoPermission,
-            World::Copy(failure) => AptFailure::Copy(failure.into_protocol()),
-            World::NoInternet => AptFailure::NoInternet,
-            World::EmptyPackageName => AptFailure::EmptyPackageName,
-            World::MalformedCache => AptFailure::MalformedCache,
-            World::MissingLocalFile(name) => AptFailure::MissingLocalFile(name),
-            World::Connection(failure) => AptFailure::Connection(failure.into_protocol()),
-            World::Service(failure) => AptFailure::Service(failure.into_protocol()),
-            World::MissingConfig => AptFailure::MissingConfig,
-            World::MissingRepositoryFolder => AptFailure::MissingRepositoryFolder,
+            crate::AptFailure::NoCache => AptFailure::NoCache,
+            crate::AptFailure::InvalidCache => AptFailure::InvalidCache,
+            crate::AptFailure::InvalidAddress(address) => AptFailure::InvalidAddress(address),
+            crate::AptFailure::ListedRepository(address) => AptFailure::ListedRepository(address),
+            crate::AptFailure::UnlistedRepository(address) => {
+                AptFailure::UnlistedRepository(address)
+            }
+            crate::AptFailure::UnknownRepository(address) => AptFailure::UnknownRepository(address),
+            crate::AptFailure::NoMatch(term) => AptFailure::NoMatch(term),
+            crate::AptFailure::UnknownPackage(package) => AptFailure::UnknownPackage(package),
+            crate::AptFailure::MissingPackageFile(package) => {
+                AptFailure::MissingPackageFile(package)
+            }
+            crate::AptFailure::ComputerUnavailable => AptFailure::ComputerUnavailable,
+            crate::AptFailure::MissingFolder(path) => AptFailure::MissingFolder(path),
+            crate::AptFailure::NoPermission => AptFailure::NoPermission,
+            crate::AptFailure::Copy(failure) => AptFailure::Copy(failure.into_protocol()),
+            crate::AptFailure::NoInternet => AptFailure::NoInternet,
+            crate::AptFailure::EmptyPackageName => AptFailure::EmptyPackageName,
+            crate::AptFailure::MalformedCache => AptFailure::MalformedCache,
+            crate::AptFailure::MissingLocalFile(name) => AptFailure::MissingLocalFile(name),
+            crate::AptFailure::Connection(failure) => {
+                AptFailure::Connection(failure.into_protocol())
+            }
+            crate::AptFailure::Service(failure) => AptFailure::Service(failure.into_protocol()),
+            crate::AptFailure::MissingConfig => AptFailure::MissingConfig,
+            crate::AptFailure::MissingRepositoryFolder => AptFailure::MissingRepositoryFolder,
         }
     }
 }

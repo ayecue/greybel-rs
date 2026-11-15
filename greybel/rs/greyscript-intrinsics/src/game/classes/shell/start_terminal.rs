@@ -7,7 +7,7 @@ use super::launch::{ChildLocation, ChildStart};
 use super::shell;
 use crate::game::client::failure::failure_text;
 use crate::game::client::login_encryption::LoginEncryption;
-use crate::protocol::{Failure, LaunchOutcome, ShellFailure, ShellStartTerminal};
+use crate::protocol::{LaunchOutcome, ShellStartTerminal};
 
 pub static START_TERMINAL: Native = Native::from_async_fn(None, &[], true, start_terminal);
 
@@ -56,13 +56,6 @@ fn start_terminal(vm: &mut Vm, args: &ArgContainer) -> NativeFuture {
                     .enter(session, paths, source, source_map, Vec::new())
                     .await
             }
-            // Returns the unavailable-computer result; other refusals are printed by the terminal.
-            Ok(LaunchOutcome::Failure(
-                failure @ Failure::Shell(ShellFailure::ComputerUnavailable),
-            )) => match failure_text("start_terminal", &failure) {
-                Ok(text) => NativeOutput::new(text),
-                Err(error) => NativeOutput::new(Err::<Value, _>(error)),
-            },
             Ok(LaunchOutcome::Failure(failure)) => match failure_text("start_terminal", &failure) {
                 Ok(text) => NativeOutput::new(text),
                 Err(error) => NativeOutput::new(Err::<Value, _>(error)),

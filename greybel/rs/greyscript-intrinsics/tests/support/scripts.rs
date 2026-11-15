@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::rc::Rc;
 
 use duplex_test_support::local::run_local;
@@ -81,7 +82,7 @@ pub fn printed(code: &str, game: bool) -> String {
     let (mut output, error) = run_code_in(code, game);
 
     if let Some(error) = error {
-        output.push_str(&format!("\nerror: {error}"));
+        let _ = write!(output, "\nerror: {error}");
     }
 
     output
@@ -101,7 +102,7 @@ pub fn reported_errors(programs: &[&str], game: bool) -> String {
             },
         };
 
-        snapshot.push_str(&format!("{code}\n  {report}\n"));
+        let _ = write!(snapshot, "{code}\n  {report}\n");
     }
 
     snapshot

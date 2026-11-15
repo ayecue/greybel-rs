@@ -40,7 +40,7 @@ pub fn world_with_shell_weakness() -> (World, ServiceTarget) {
         &world,
         target.computer,
         &path,
-        Library {
+        &Library {
             kind,
             version: "9.9.9".to_owned(),
             zones: vec![MemoryZone {

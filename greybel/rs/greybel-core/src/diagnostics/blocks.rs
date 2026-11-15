@@ -1,3 +1,5 @@
+use std::fmt::Write as _;
+
 use crate::error::ErrorCode;
 use crate::lexer::Keyword;
 
@@ -43,7 +45,7 @@ impl BlockDiagnostic {
                 let mut hint = format!("Add 'end {block}' to close this block");
 
                 if let Some((parent, line)) = inside {
-                    hint.push_str(&format!(" (inside '{parent}' at line {line})"));
+                    let _ = write!(hint, " (inside '{parent}' at line {line})");
                 }
 
                 Some(hint)

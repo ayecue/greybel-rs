@@ -18,6 +18,15 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_router_identity::<W>(routes);
+    register_router_ports::<W>(routes);
+}
+
+fn register_router_identity<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: RouterPublicIp| {
             let world = &*ctx.modules;
@@ -90,6 +99,13 @@ pub(crate) fn register<
                 .await?)
         },
     );
+}
+
+fn register_router_ports<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: RouterPortInfo<'static>| {
             let world = &*ctx.modules;

@@ -37,7 +37,7 @@ pub(crate) fn pin_custom_object(vm: &mut Vm) -> Result<(), IntrinsicError> {
     }
 
     if let Some((_, pin)) = pin_entry.take() {
-        vm.unpin(pin);
+        vm.unpin(&pin);
     }
 
     *pin_entry = current.map(|value| (value.clone(), vm.pin(value)));

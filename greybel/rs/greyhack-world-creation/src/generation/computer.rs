@@ -48,23 +48,13 @@ pub(crate) fn lan_address(
     }
 }
 
-/// Builds computer `id` at `lan_ip` from `options` and `rng`, including users, services, ports,
-/// files, and libraries. Also returns the router forwards for its service ports.
-pub(crate) fn computer(
+/// Generates the non-root users for a computer.
+fn computer_users(
     rng: &mut Rng,
-    lan_ip: &str,
     options: &ComputerOptions,
     device_kind: DeviceKind,
-) -> (ComputerDraft, Vec<Port>) {
-    let name = options
-        .name
-        .clone()
-        .unwrap_or_else(|| Word::Username.generate(rng));
-    let root_password = options
-        .root_password
-        .clone()
-        .unwrap_or_else(|| Word::Password.generate(rng));
-    let users = options.users.clone().unwrap_or_else(|| match device_kind {
+) -> Vec<(String, String)> {
+    options.users.clone().unwrap_or_else(|| match device_kind {
         DeviceKind::Camera => vec![("cctv".to_owned(), Word::Password.generate(rng))],
         DeviceKind::Microwave | DeviceKind::Fridge => {
             vec![("iot".to_owned(), Word::Password.generate(rng))]
@@ -87,7 +77,14 @@ pub(crate) fn computer(
 
             users
         }
-    });
+    })
+}
+
+fn computer_services(
+    rng: &mut Rng,
+    options: &ComputerOptions,
+    device_kind: DeviceKind,
+) -> Vec<(ServiceId, u16)> {
     let services: Vec<(ServiceId, u16)> = match &options.services {
         Some(names) => names
             .iter()
@@ -117,6 +114,28 @@ pub(crate) fn computer(
                 .collect()
         }
     };
+
+    services
+}
+
+/// Builds computer `id` at `lan_ip` from `options` and `rng`, including users, services, ports,
+/// files, and libraries. Also returns the router forwards for its service ports.
+pub(crate) fn computer(
+    rng: &mut Rng,
+    lan_ip: &str,
+    options: &ComputerOptions,
+    device_kind: DeviceKind,
+) -> (ComputerDraft, Vec<Port>) {
+    let name = options
+        .name
+        .clone()
+        .unwrap_or_else(|| Word::Username.generate(rng));
+    let root_password = options
+        .root_password
+        .clone()
+        .unwrap_or_else(|| Word::Password.generate(rng));
+    let users = computer_users(rng, options, device_kind);
+    let services = computer_services(rng, options, device_kind);
     let mut computer = ComputerDraft::new(&name, lan_ip);
 
     computer.kind = if options.is_switch {
@@ -135,8 +154,9 @@ pub(crate) fn computer(
             Word::Corporation.generate(rng),
             rng.next_u64()
         );
-        let required_power = rng.range(600, 1500) as i32;
-        let required_temperature = rng.range(20, 60) as i32;
+        let required_power = i32::try_from(rng.range(600, 1500)).expect("the power range fits i32");
+        let required_temperature =
+            i32::try_from(rng.range(20, 60)).expect("the temperature range fits i32");
 
         computer.smart = Some(SmartApplianceSettings::new(
             &model,
@@ -192,7 +212,7 @@ pub(crate) fn computer(
         })
         .collect();
 
-    computer.ports = ports.clone();
+    computer.ports.clone_from(&ports);
     if device_kind == DeviceKind::Computer && rng.range(0, 1) == 1 {
         let user = computer
             .users

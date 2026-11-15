@@ -26,6 +26,17 @@ protocol TestSupport = "greyhack_test_support" {
             request: u32,
             public_ip: string,
         }
+        /// Creates a fresh mission-free network with the game's generator and requested service targets.
+        message CreateFixtureNetworkRpc {
+            request: u32,
+            /// ServerMap.TipoRed name.
+            kind: string,
+            /// "flat", "router", or "router_switch". Child routers always have Wi-Fi.
+            layout: string,
+            /// Install the first generated kernel_router.so on the main router, not the latest.
+            oldest_kernel: bool,
+            targets: list<FixtureTarget>,
+        }
         /// Creates debug credentials through the game zero-day system and exposes the player metaxploit library as a
         /// debug challenge (`ZeroDaySystem.GetNpcPassword`, `ChallengeGenerator.GenerateChallenge`). Later scripts
         /// run as root so `MetaLibIntrinsics.debug_tools` uses its local-success path.
@@ -108,14 +119,24 @@ protocol TestSupport = "greyhack_test_support" {
         message QueryNetworkRpc {
             request: u32,
         }
-        /// Installs a game-generated version of library `name` in `/lib` on the computer at `local_ip` in the player
-        /// network, or the player computer when `local_ip` is empty. Selects a version with a weakness for each of
-        /// `rewards` (`Library.Vulnerabilidad.HackResult`), with the fewest requirements in total.
+        /// Installs a new game-generated version of library `name` in `/lib` on the computer at `local_ip` in the player
+        /// network, or the player computer when `local_ip` is empty. Generates a requirement-free weakness for each of
+        /// `rewards` (`Library.Vulnerabilidad.HackResult`) through the same generator as `InstallFixtureLibraryRpc`.
         message InstallLibraryRpc {
             request: u32,
             local_ip: string,
             name: string,
             rewards: list<u8>,
+        }
+        /// Installs a new game-generated library version with the requested exact weakness coverage.
+        message InstallFixtureLibraryRpc {
+            request: u32,
+            /// Empty means PlayerServer.GetComputer(); otherwise a LAN address in the player network.
+            local_ip: string,
+            name: string,
+            weaknesses: list<FixtureWeakness>,
+            /// Generate the corresponding game exploit shelf as VersionsControl.GeneraExploit does.
+            register_exploits: bool,
         }
         /// Uses game economy operations to create the player bank account, a custom coin, and a funded counterparty
         /// with standing offers. The first mining round for the coin is due.
@@ -170,20 +191,6 @@ protocol TestSupport = "greyhack_test_support" {
         /// the normal game rate (`Clock.multTiempo`).
         message FreezeClockRpc {
             request: u32,
-        }
-        /// Gets the first address in a fixed series of public networks of `kind` (`ServerMap.TipoRed`) whose LAN
-        /// contains `device` (`NetworkLan.TypeDevice`), or any device when empty. Generates networks as needed.
-        message FindNetworkRpc {
-            request: u32,
-            kind: string,
-            device: string,
-        }
-        /// Generates networks of `kind` (`ServerMap.TipoRed`) at unused random public addresses until a main router
-        /// forwards a port to `service` (`ServicioID`). Returns that network, which no test has changed.
-        message FindNewNetworkRpc {
-            request: u32,
-            kind: string,
-            service: string,
         }
         /// Marks the network at `public_ip` disabled for non-payment or re-enables it (`NetworkLan.disabledNetwork`,
         /// as set by `BankSubs.DisableNetwork`).
@@ -476,6 +483,8 @@ union Reply {
     WordLists(WordListsReply),
     GameEnded(GameEndedReply),
     CtfRated(CtfRatedReply),
+    FixtureNetwork(FixtureNetworkReply),
+    FixtureLibrary(FixtureLibraryReply),
 }
 
 /// Provides the fixture computer's network connection result.
@@ -1125,4 +1134,84 @@ struct WordListSnapshot {
 /// Result text from the game's CTF event-rating path.
 struct CtfRatedReply {
     output: string,
+}
+
+/// Requested target of a fresh fixture network.
+struct FixtureTarget {
+    /// Key used by the test and returned unchanged ("ssh", "ftp", "workstation", ...).
+    name: string,
+    /// NetworkLan.TypeDevice name; normally COMPUTER, or FRIDGE.
+    device: string,
+    /// "main" or "lan_router".
+    location: string,
+    /// Empty means use the normal generated root password; otherwise set this password.
+    root_password: string,
+    services: list<FixtureService>,
+}
+
+/// Requested service on a fixture target.
+struct FixtureService {
+    /// ServicioID name, case-insensitive as in NetworkFixture.ForwardService.
+    service: string,
+    internal_port: u16,
+    /// Present means add a main-router forward; absent means LAN-only.
+    public_port: u16?,
+    /// Select the first game-generated version, ensuring it predates the latest.
+    oldest_library: bool,
+}
+
+/// Generated fresh fixture network and its named targets.
+struct FixtureNetworkReply {
+    public_ip: string,
+    main_local_ip: string,
+    /// Actual router kind; preserveTipoRed makes this equal to the request.
+    kind: string,
+    targets: list<FixtureTargetReply>,
+}
+
+/// Generated target with its game-created accounts and ports.
+struct FixtureTargetReply {
+    name: string,
+    local_ip: string,
+    root_password: string,
+    /// First non-root account, empty for a device with none.
+    user: string,
+    password: string,
+    services: list<FixtureServiceReply>,
+}
+
+/// Generated service and its actual LAN/public ports.
+struct FixtureServiceReply {
+    service: string,
+    internal_port: u16,
+    public_port: u16?,
+}
+
+/// Exact weakness coverage to generate through Library.MemoryZone.
+struct FixtureWeakness {
+    /// Library.Vulnerabilidad.HackResult numeric value.
+    reward: u8,
+    /// Library.Vulnerabilidad.Required numeric values; empty means requirement-free.
+    requirements: list<u8>,
+    /// "", "guest", "root" or "normal_user"; empty keeps the generated user.
+    user: string,
+    /// Empty keeps the generated path; "/Public" is a valid deterministic PathExist choice.
+    path_exist: string,
+}
+
+/// Newly installed game-generated library and its requested weaknesses.
+struct FixtureLibraryReply {
+    name: string,
+    version: string,
+    content: string,
+    weaknesses: list<FixtureWeaknessReply>,
+}
+
+/// Generated weakness address, symbol, reward, requirements and user.
+struct FixtureWeaknessReply {
+    zone_address: string,
+    unsec_value: string,
+    reward: u8,
+    requirements: list<u8>,
+    user: string,
 }

@@ -1,8 +1,8 @@
 //! Scripts built from the weaknesses of libraries mirrored from the game.
 
-use greyhack_behaviour::Reward;
+use greyhack_behaviour::{Requirement, Reward};
 use greyhack_test_support_client::protocol::test_support::{
-    ComputerSnapshot, LanNodeKind, NetworkSnapshot,
+    ComputerSnapshot, FixtureWeakness, FixtureWeaknessReply, LanNodeKind, NetworkSnapshot,
 };
 use greyhack_world_libraries::{Library, Weakness};
 
@@ -25,7 +25,7 @@ pub fn player_libraries(snapshot: &NetworkSnapshot) -> Vec<(String, Library)> {
     player(snapshot)
         .files
         .iter()
-        .filter_map(|file| Some((file.path.to_string(), library(&file.content)?)))
+        .filter_map(|file| Some((file.path.clone(), library(&file.content)?)))
         .collect()
 }
 
@@ -87,9 +87,38 @@ pub fn router_libraries(snapshot: &NetworkSnapshot) -> Vec<(String, Library)> {
                 return None;
             };
 
-            library(&router.kernel_content).map(|library| (node.local_ip.to_string(), library))
+            library(&router.kernel_content).map(|library| (node.local_ip.clone(), library))
         })
         .collect()
+}
+
+/// An exact weakness request for the game's fixture-library generator.
+pub fn fixture_weakness(
+    reward: Reward,
+    requirements: &[Requirement],
+    user: &str,
+    path_exist: &str,
+) -> FixtureWeakness {
+    FixtureWeakness {
+        reward: u8::try_from(reward.code()).unwrap(),
+        requirements: requirements
+            .iter()
+            .map(|requirement| u8::try_from(requirement.code()).unwrap())
+            .collect(),
+        user: user.to_owned(),
+        path_exist: path_exist.to_owned(),
+    }
+}
+
+/// Finds a generated fixture weakness in the mirrored installation.
+pub fn fixture_reply_weakness<'a>(
+    library: &'a Library,
+    weakness: &'a FixtureWeaknessReply,
+) -> (&'a str, &'a Weakness) {
+    library
+        .weakness(&weakness.zone_address, &weakness.unsec_value)
+        .map(|found| (weakness.zone_address.as_str(), found))
+        .expect("the mirrored library has the generated fixture weakness")
 }
 
 /// Finds a weakness and its memory address in `library`.
@@ -103,11 +132,6 @@ pub fn weakness(
             .find(|weakness| choose(weakness))
             .map(|weakness| (zone.address.as_str(), weakness))
     })
-}
-
-/// Whether `weakness` gives a shell without requirements.
-pub fn is_free_shell(weakness: &Weakness) -> bool {
-    weakness.reward == Reward::Shell && weakness.requirements.is_empty()
 }
 
 /// A script overflowing the selected weakness and printing its result's type. With `target`, the library comes from

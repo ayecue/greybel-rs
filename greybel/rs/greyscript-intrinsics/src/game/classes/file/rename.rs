@@ -28,7 +28,7 @@ pub fn rename(
     };
 
     if let Err(refusal) = check_new_name(&name) {
-        return refuse("rename", refusal);
+        return refuse("rename", &refusal);
     }
 
     let message = FileRename {

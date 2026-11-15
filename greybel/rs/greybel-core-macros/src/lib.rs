@@ -19,5 +19,5 @@ pub fn derive_node_fields(input: TokenStream) -> TokenStream {
 }
 
 fn generate(input: &DeriveInput) -> syn::Result<TokenStream2> {
-    Builder::from_input(input)?.generate()
+    Ok(Builder::from_input(input)?.generate())
 }

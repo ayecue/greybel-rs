@@ -98,7 +98,7 @@ impl Context<'_> {
         let mut query = Query::new(self.analysis);
 
         if self.ast.source()[..start].ends_with('.') {
-            let dot = (start - 1) as u32;
+            let dot = u32::try_from(start - 1).expect("value fits the target integer type");
             let Some(receiver) = self.receiver_type(&mut query, dot) else {
                 return Vec::new();
             };

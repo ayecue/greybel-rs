@@ -32,7 +32,7 @@ pub(super) fn create_npc(state: &mut State<'_>) -> i32 {
         ..PreGenNpc::default()
     });
 
-    state.mission.pre_gen_npcs.len() as i32 - 1
+    i32::try_from(state.mission.pre_gen_npcs.len()).expect("value fits the target integer type") - 1
 }
 
 /// `ProcMissionBuilder.GetUniqueSurname`.
@@ -55,7 +55,7 @@ pub(super) fn unique_surname(npcs: &[PreGenNpc], random: &mut Random) -> String 
 
 /// `ProcMissionBuilder.EnsureNpcPassword`.
 pub(super) fn ensure_npc_password(state: &mut State<'_>, npc: i32) -> String {
-    let at = npc as usize;
+    let at = usize::try_from(npc).expect("the NPC index is nonnegative");
 
     state.mission.pre_gen_npcs[at].is_forced_pass = true;
 

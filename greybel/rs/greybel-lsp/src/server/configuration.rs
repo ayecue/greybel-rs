@@ -35,7 +35,7 @@ impl Server {
         rescan
     }
 
-    pub(super) fn did_change_configuration(&mut self, params: lsp::DidChangeConfigurationParams) {
+    pub(super) fn did_change_configuration(&mut self, params: &lsp::DidChangeConfigurationParams) {
         let section = params.settings.get(Settings::SECTION).cloned();
 
         match section {

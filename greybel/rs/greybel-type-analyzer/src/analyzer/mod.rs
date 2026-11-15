@@ -97,7 +97,7 @@ impl<'w> Analyzer<'w> {
         self.workspace.options().parser.dialect
     }
 
-    pub(super) fn file_analysis(&self, file: SourceFile) -> Option<&'w Analysis> {
+    pub(super) fn file_analysis(self, file: SourceFile) -> Option<&'w Analysis> {
         let db = self.workspace.db();
 
         file.text(db).as_ref()?;
@@ -106,7 +106,7 @@ impl<'w> Analyzer<'w> {
     }
 
     pub(super) fn locate(
-        &self,
+        self,
         uri: &Uri,
         position: Position,
     ) -> Option<(SourceFile, &'w Ast, u32)> {
@@ -117,7 +117,7 @@ impl<'w> Analyzer<'w> {
         Some((file, ast, offset))
     }
 
-    fn ide_context(&self, uri: &Uri, position: Position) -> Option<Context<'w>> {
+    fn ide_context(self, uri: &Uri, position: Position) -> Option<Context<'w>> {
         let (file, ast, offset) = self.locate(uri, position)?;
         let (_, analysis, document) = self.entry_analyses(file).into_iter().next()?;
 

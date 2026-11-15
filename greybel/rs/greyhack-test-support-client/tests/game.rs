@@ -46,7 +46,7 @@ async fn should_restore_a_replaced_router_kernel_at_the_next_setup() {
     let requirement = u8::try_from(Requirement::ConnGateway.code()).unwrap();
 
     let network = test.network_state().await.unwrap();
-    let main_router = network.nodes[0].local_ip.to_string();
+    let main_router = network.nodes[0].local_ip.clone();
     let original = test
         .set_router_kernel_requirement(&main_router, requirement)
         .await

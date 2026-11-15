@@ -1,5 +1,7 @@
 //! Tests cross-file analysis for `#include`, `#import`, and `import_code`.
 
+use std::fmt::Write as _;
+
 use greybel_type_analyzer::{Analyzer, DiagnosticKind, Dialect};
 
 use crate::support::documents::{
@@ -155,9 +157,11 @@ fn should_merge_imports_of_two_files_into_one_name() {
 
 #[test]
 fn should_define_globals_of_a_longer_included_file_in_time() {
-    let library: String = (0..40)
-        .map(|index| format!("v{index} = {index}\n"))
-        .collect();
+    let library = (0..40).fold(String::new(), |mut library, index| {
+        let _ = writeln!(library, "v{index} = {index}");
+
+        library
+    });
     let workspace = load(
         Dialect::Greybel,
         &[

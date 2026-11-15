@@ -1,19 +1,21 @@
 //! Smart appliances and traffic: their rewards, settings, cameras and accidents.
 
+use std::fmt::Write as _;
+
 use greybel_test_support::game::Game;
-use greyhack_behaviour::{Requirement, Reward, WorldSeed, license_plate};
+use greyhack_behaviour::{Reward, WorldSeed, license_plate};
 use greyhack_test_support_client::protocol::test_support::{LanNodeKind, NetworkSnapshot};
-use greyhack_world_libraries::Weakness;
 
 use crate::support::game::{
-    join_network, join_new_network_of_kind_where, setup_player, test_client,
+    empty_network, fixture_target, fridge_network, join_fixture, police_workstation, setup_player,
+    test_client,
 };
-use crate::support::metaxploit::{computer_library, overflow_script, player_libraries, weakness};
+use crate::support::metaxploit::{
+    computer_library, fixture_reply_weakness, fixture_weakness, overflow_script, player_libraries,
+    weakness,
+};
 use crate::support::parity::{assert_succeeded, compare_in, compare_in_on_waiting_clock};
-use crate::support::remote::{
-    find_reachable_ssh_with_library, reachable_computer, script_string, simulated_login,
-    simulated_net_use,
-};
+use crate::support::remote::{fixture_account, script_string};
 
 /// The rewards only the smart-appliance and traffic libraries have: on the player's computer of the fixture network,
 /// where neither target qualifies; on a police network for the traffic lights; on a fridge of another network for the
@@ -56,48 +58,33 @@ async fn should_match_intrinsics_for_appliance_and_traffic_rewards() {
 
     compare_in(&client, &user, &snapshot, &local_scripts(&snapshot)).await;
 
-    let police = client.find_network("Comisaria", "").await.unwrap();
-
-    join_network(&client, &police.public_ip).await;
-
-    let snapshot = client.network_state().await.unwrap();
+    let police = empty_network(&client, "Comisaria").await;
+    let snapshot = join_fixture(&client, &police).await;
 
     compare_in(&client, &user, &snapshot, &local_scripts(&snapshot)).await;
 
-    let appliances = client.find_network("FastFood", "FRIDGE").await.unwrap();
+    let appliances = fridge_network(&client).await;
+    let target = fixture_target(&appliances, "fridge");
+    let fridge = target.local_ip.clone();
+    let port = target.services[0].internal_port;
 
-    join_network(&client, &appliances.public_ip).await;
+    join_fixture(&client, &appliances).await;
 
-    let snapshot = client.network_state().await.unwrap();
-    let (fridge, port) = snapshot
-        .nodes
-        .iter()
-        .find_map(|node| match &node.node {
-            LanNodeKind::Computer(computer) if computer.kind == "FRIDGE" => computer
-                .ports
-                .iter()
-                .find(|port| port.service == "smartappliance")
-                .map(|port| (node.local_ip.to_string(), port.number)),
-            _ => None,
-        })
-        .expect("the network has a fridge with its service");
-
-    client
-        .install_library(
+    let installed = client
+        .install_fixture_library(
             &fridge,
             "libsmartappliance.so",
-            u8::try_from(Reward::OverrideSettings.code()).unwrap(),
+            vec![fixture_weakness(Reward::OverrideSettings, &[], "guest", "")],
+            false,
         )
         .await
         .unwrap();
+
     client.lock_appliance(&fridge).await.unwrap();
 
     let snapshot = client.network_state().await.unwrap();
     let library = computer_library(&snapshot, &fridge, "libsmartappliance.so");
-    let (address, weakness) = weakness(&library, |weakness| {
-        weakness.reward == Reward::OverrideSettings && weakness.requirements.is_empty()
-    })
-    .expect("the fridge's library has the override");
+    let (address, weakness) = fixture_reply_weakness(&library, &installed.weaknesses[0]);
     // Twice in one run: enabling the override, then finding it enabled.
     let script = overflow_script("", Some((&fridge, port)), address, weakness, "");
 
@@ -111,42 +98,31 @@ async fn should_match_intrinsics_for_traffic_lights_over_a_remote_shell() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    // Only a police workstation has `libtrafficnet.so` (`Router.PostGenComputer`), and not every police network has one
-    // with SSH.
-    let police = join_new_network_of_kind_where(&client, &["Comisaria"], "ssh", |snapshot| {
-        find_reachable_ssh_with_library(snapshot, "libtrafficnet.so").is_some_and(
-            |(address, port, password)| {
-                simulated_login(snapshot, &user, &address, port, "root", &password)
-            },
-        )
-    })
-    .await;
-    let (local_ip, _, _) = find_reachable_ssh_with_library(&police, "libtrafficnet.so")
-        .expect("a reachable police workstation with SSH");
+    let police = police_workstation(&client).await;
+    let account = fixture_account(&police, "workstation", "ssh", false);
+    let local_ip = account.address;
+    let port = account.port;
+    let password = account.root_password;
 
-    client
-        .install_library(
+    join_fixture(&client, &police).await;
+
+    let installed = client
+        .install_fixture_library(
             &local_ip,
             "libtrafficnet.so",
-            u8::try_from(Reward::TrafficLightControl.code()).unwrap(),
+            vec![fixture_weakness(
+                Reward::TrafficLightControl,
+                &[],
+                "guest",
+                "",
+            )],
+            false,
         )
         .await
         .unwrap();
-
     let snapshot = client.network_state().await.unwrap();
-    let (local_ip, port, password) = find_reachable_ssh_with_library(&snapshot, "libtrafficnet.so")
-        .expect("the police workstation is still reachable");
     let library = computer_library(&snapshot, &local_ip, "libtrafficnet.so");
-    let (address, weakness) = weakness(&library, |weakness| {
-        weakness.reward == Reward::TrafficLightControl
-            && weakness.requirements.iter().all(|requirement| {
-                matches!(
-                    requirement,
-                    Requirement::NumberUsersRegister | Requirement::PathExist
-                )
-            })
-    })
-    .expect("the police library has a traffic weakness with satisfiable requirements");
+    let (address, weakness) = fixture_reply_weakness(&library, &installed.weaknesses[0]);
     let source = format!(
         "mx = include_lib(\"/root/metaxploit.so\"); lib = mx.load(\"/lib/libtrafficnet.so\"); result = lib.overflow(\"{address}\", \"{}\", \"\"); print typeof(result)",
         weakness.unsec_value
@@ -177,94 +153,29 @@ async fn should_match_intrinsics_for_smart_appliance_settings() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let free = |weakness: &Weakness, reward: Reward| {
-        weakness.reward == reward && weakness.requirements.is_empty()
-    };
-    let mut selected = None;
-    let mut skipped = Vec::new();
+    let network = fridge_network(&client).await;
+    let target = fixture_target(&network, "fridge");
+    let fridge = target.local_ip.clone();
+    let port = target.services[0].internal_port;
 
-    'networks: for _ in 0..12 {
-        let network = client.find_network("FastFood", "FRIDGE").await.unwrap();
+    join_fixture(&client, &network).await;
 
-        join_network(&client, &network.public_ip).await;
-
-        let before = client.network_state().await.unwrap();
-        let Some((fridge, port)) = before.nodes.iter().find_map(|node| match &node.node {
-            LanNodeKind::Computer(computer)
-                if computer.kind == "FRIDGE" && reachable_computer(&before, node) =>
-            {
-                computer
-                    .ports
-                    .iter()
-                    .find(|port| port.service == "smartappliance")
-                    .map(|port| (node.local_ip.to_string(), port.number))
-            }
-            _ => None,
-        }) else {
-            skipped.push(format!("{}: no reachable fridge", network.public_ip));
-            continue;
-        };
-
-        // The fixture installs the game's generated version whose weaknesses for both rewards have the fewest
-        // requirements in total. Which versions exist changes as the game releases new ones (`VersionsControl`).
-        client
-            .install_library_with(
-                &fridge,
-                "libsmartappliance.so",
-                &[
-                    u8::try_from(Reward::OverrideSettings.code()).unwrap(),
-                    u8::try_from(Reward::Shell.code()).unwrap(),
-                ],
-            )
-            .await
-            .unwrap();
-
-        let snapshot = client.network_state().await.unwrap();
-        let library = computer_library(&snapshot, &fridge, "libsmartappliance.so");
-        let unlock = weakness(&library, |weakness| {
-            free(weakness, Reward::OverrideSettings)
-        })
-        .map(|(zone, weakness)| (zone.to_owned(), weakness.clone()));
-        let shell = weakness(&library, |weakness| free(weakness, Reward::Shell))
-            .map(|(zone, weakness)| (zone.to_owned(), weakness.clone()));
-
-        let (Some(unlock), Some(shell)) = (unlock, shell) else {
-            // Every fridge gets the same version, the one whose two weaknesses need the fewest requirements, so
-            // another network can't help when that version still needs some: the game releases a new version
-            // instead (`VersionsControl.CheckUpdatePrograms` draws new weaknesses for it).
-            client
-                .release_library_version("libsmartappliance.so")
-                .await
-                .unwrap();
-            skipped.push(format!(
-                "{}: {} lacks free weaknesses",
-                network.public_ip, library.version
-            ));
-            continue;
-        };
-
-        if simulated_net_use(&snapshot, &user, &fridge, port) {
-            selected = Some((snapshot, fridge, port, unlock, shell));
-            break 'networks;
-        }
-        skipped.push(format!(
-            "{}: net_use to {fridge} refused in the copy",
-            network.public_ip
-        ));
-    }
-
-    let Some((
-        snapshot,
-        fridge,
-        port,
-        (unlock_zone, unlock_weakness),
-        (shell_zone, shell_weakness),
-    )) = selected
-    else {
-        panic!(
-            "a fridge library with an override and a shell weakness; networks tried: {skipped:#?}"
-        );
-    };
+    let installed = client
+        .install_fixture_library(
+            &fridge,
+            "libsmartappliance.so",
+            vec![
+                fixture_weakness(Reward::OverrideSettings, &[], "guest", ""),
+                fixture_weakness(Reward::Shell, &[], "normal_user", ""),
+            ],
+            false,
+        )
+        .await
+        .unwrap();
+    let snapshot = client.network_state().await.unwrap();
+    let library = computer_library(&snapshot, &fridge, "libsmartappliance.so");
+    let (unlock_zone, unlock_weakness) = fixture_reply_weakness(&library, &installed.weaknesses[0]);
+    let (shell_zone, shell_weakness) = fixture_reply_weakness(&library, &installed.weaknesses[1]);
     // The shell's user decides where it may write: root and guest have fixed homes, and for a normal user the game
     // picks one at random (`ScriptsUtil.GetShellUser`), so the script takes the first home it can write in.
     let folder = match shell_weakness.user.as_str() {
@@ -300,13 +211,7 @@ print shell.launch(folder + \"/app\")",
         shell_weakness.unsec_value
     );
     let locked = format!("mx = include_lib(\"/lib/metaxploit.so\")\n{on_fridge}");
-    let unlock = overflow_script(
-        "",
-        Some((&fridge, port)),
-        &unlock_zone,
-        &unlock_weakness,
-        "",
-    );
+    let unlock = overflow_script("", Some((&fridge, port)), unlock_zone, unlock_weakness, "");
     let unlocked = format!("{unlock}\n{on_fridge}");
     let outcomes = compare_in(&client, &user, &snapshot, &[locked, unlocked]).await;
 
@@ -352,16 +257,16 @@ print traffic.locate_vehicle("bad", "bad")"#
     // `TrafficNetIntrinsics.CheckStatus` reads the network of the computer the library is on, and only a police
     // workstation has `libtrafficnet.so` (`Router.PostGenComputer`): the police steps run as a program there, which the
     // player's script builds through the workstation's SSH service.
-    join_new_network_of_kind_where(&client, &["Comisaria"], "ssh", |snapshot| {
-        find_reachable_ssh_with_library(snapshot, "libtrafficnet.so").is_some()
-    })
-    .await;
+    let police = police_workstation(&client).await;
+    let account = fixture_account(&police, "workstation", "ssh", false);
+    let address = account.address;
+    let port = account.port;
+    let root_password = account.root_password;
 
-    let plate = client.setup_traffic().await.unwrap().plate.to_string();
+    join_fixture(&client, &police).await;
+
+    let plate = client.setup_traffic().await.unwrap().plate.clone();
     let snapshot = client.network_state().await.unwrap();
-    let (address, port, root_password) =
-        find_reachable_ssh_with_library(&snapshot, "libtrafficnet.so")
-            .expect("a reachable police workstation with the library");
     let on_police = |name: &str, source: &str| {
         let source = script_string(source);
 
@@ -393,7 +298,7 @@ end if"
         .find_map(|node| match &node.node {
             LanNodeKind::Computer(computer) if node.local_ip == credentials_npc.local_ip => {
                 computer.users.iter().find_map(|user| {
-                    (user.name == traffic.credentials_user).then(|| user.password.to_string())
+                    (user.name == traffic.credentials_user).then(|| user.password.clone())
                 })
             }
             _ => None,
@@ -403,7 +308,8 @@ end if"
         .npcs
         .iter()
         .find(|npc| !npc.commuting && !npc.license_plate.is_empty() && npc.license_plate != plate)
-        .map(|npc| npc.license_plate.to_string());
+        .map(|npc| npc.license_plate.clone())
+        .expect("a second police NPC with a plate is not commuting");
     let unknown = license_plate(
         &WorldSeed::new(snapshot.world_secret.to_vec()),
         &snapshot.public_ip,
@@ -420,15 +326,15 @@ print traffic.locate_vehicle("bad", {password:?})
 print traffic.locate_vehicle({unknown:?}, {password:?})"#
     );
 
-    if let Some(out_of_sight) = &out_of_sight {
-        source.push_str(&format!(
-            "\nprint traffic.locate_vehicle({out_of_sight:?}, {password:?})"
-        ));
-    }
+    let _ = write!(
+        source,
+        "\nprint traffic.locate_vehicle({out_of_sight:?}, {password:?})"
+    );
 
-    source.push_str(&format!(
+    let _ = write!(
+        source,
         "\nwait(1.1)\nprint traffic.locate_vehicle({plate:?}, {password:?})"
-    ));
+    );
 
     // `camera_link_system` and `locate_vehicle` share a one-second throttle (`TrafficNetIntrinsics`), which the
     // script's `wait` must pass.

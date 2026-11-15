@@ -201,7 +201,8 @@ impl OverflowService {
                     }
                 }
                 Requirement::NumberUsersRegister => {
-                    if (self.computers.users.users(id).await?.len() as u32)
+                    if u32::try_from(self.computers.users.users(id).await?.len())
+                        .expect("value fits the target integer type")
                         < weakness.num_register_users
                     {
                         return Ok(Some(UnmetRequirement::TooFewUsers));

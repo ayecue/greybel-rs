@@ -5,10 +5,10 @@
 use greybel_test_support::game::Game;
 use greyhack_test_support_client::GuildSetup;
 
-use crate::support::game::{join_network_of_kind_where, setup_player, test_client};
+use crate::support::game::{join_fixture, setup_player, ssh_network_of_kind, test_client};
 use crate::support::parity_game_over::traces_while_waiting;
-use crate::support::parity_traces::{LEVEL_FIVE, compare, reachable_ssh_account, script};
-use crate::support::remote::simulated_login;
+use crate::support::parity_traces::{LEVEL_FIVE, compare, script};
+use crate::support::remote::fixture_account;
 
 /// A script logs in to a bank's computer and deletes a file: the computer is queued for the passive trace and no active
 /// trace outlives the script.
@@ -17,21 +17,9 @@ async fn should_match_the_game_when_a_script_deletes_a_file_on_a_company_compute
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_of_kind_where(&client, &["Bancos"], "ssh", |snapshot| {
-        snapshot.kind == "Bancos"
-            && reachable_ssh_account(snapshot).is_some_and(|account| {
-                simulated_login(
-                    snapshot,
-                    &user,
-                    &account.address,
-                    account.port,
-                    &account.user,
-                    &account.password,
-                )
-            })
-    })
-    .await;
-    let account = reachable_ssh_account(&snapshot).expect("a reachable ssh account");
+    let network = ssh_network_of_kind(&client, "Bancos").await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let snapshot = join_fixture(&client, &network).await;
 
     let traced = compare(&client, &user, &snapshot, &account).await;
 
@@ -58,22 +46,10 @@ async fn should_match_the_game_when_the_players_guild_owns_the_company() {
         .await
         .unwrap()
         .bank_number
-        .to_string();
-    let snapshot = join_network_of_kind_where(&client, &["Bancos"], "ssh", |snapshot| {
-        snapshot.kind == "Bancos"
-            && reachable_ssh_account(snapshot).is_some_and(|account| {
-                simulated_login(
-                    snapshot,
-                    &user,
-                    &account.address,
-                    account.port,
-                    &account.user,
-                    &account.password,
-                )
-            })
-    })
-    .await;
-    let account = reachable_ssh_account(&snapshot).expect("a reachable ssh account");
+        .clone();
+    let network = ssh_network_of_kind(&client, "Bancos").await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let snapshot = join_fixture(&client, &network).await;
 
     client
         .setup_guild(GuildSetup {
@@ -82,7 +58,7 @@ async fn should_match_the_game_when_the_players_guild_owns_the_company() {
             total_exp: LEVEL_FIVE,
             investment_perks: 1,
             join: true,
-            company_ip: snapshot.public_ip.to_string(),
+            company_ip: snapshot.public_ip.clone(),
             crown: false,
             shield_ip: String::new(),
             admin_restore_perks: 0,
@@ -107,23 +83,11 @@ async fn should_match_the_game_when_a_script_deletes_a_file_on_a_computer_that_i
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_of_kind_where(&client, &["Bancos"], "ssh", |snapshot| {
-        snapshot.kind == "Bancos"
-            && reachable_ssh_account(snapshot).is_some_and(|account| {
-                simulated_login(
-                    snapshot,
-                    &user,
-                    &account.address,
-                    account.port,
-                    &account.user,
-                    &account.password,
-                )
-            })
-    })
-    .await;
-    let account = reachable_ssh_account(&snapshot).expect("a reachable ssh account");
+    let network = ssh_network_of_kind(&client, "Bancos").await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let snapshot = join_fixture(&client, &network).await;
     let guilds = client
-        .query_guilds(std::slice::from_ref(&snapshot.public_ip.to_string()))
+        .query_guilds(std::slice::from_ref(&snapshot.public_ip.clone()))
         .await
         .expect("the guilds are read");
     let script = format!("{}\nuser_input(\"wait\")", script(&account));

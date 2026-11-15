@@ -30,7 +30,9 @@ pub fn default_coins(rng: &mut Rng, date: &str) -> Vec<CoinDraft> {
                 .to_string();
             let password = Word::Password.generate(rng);
             let coin = Coin {
-                id: greyhack_world_core::CoinId(index as u32),
+                id: greyhack_world_core::CoinId(
+                    u32::try_from(index).expect("value fits the target integer type"),
+                ),
                 name: (*name).to_owned(),
                 creator_user,
                 creator_password_hash: hash_password(&password),

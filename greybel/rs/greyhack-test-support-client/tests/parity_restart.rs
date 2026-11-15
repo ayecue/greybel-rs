@@ -4,7 +4,7 @@
 use greybel_test_support::game::Game;
 use greyhack_behaviour::SAFE_MODE_TERMINAL;
 
-use crate::support::game::{join_network_where, setup_player, test_client};
+use crate::support::game::{join_fixture, router_ssh_network, setup_player, test_client};
 use crate::support::parity_restart::{
     LAUNCH, LAUNCH_PARENT, SETUP, SETUP_PARENT, STATE, connect, routers,
 };
@@ -18,7 +18,8 @@ async fn should_match_intrinsics_for_the_saved_wifi_network_after_a_restart() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let snapshot = join_network_where(&client, "ssh", |snapshot| routers(snapshot).is_some()).await;
+    let network = router_ssh_network(&client, false).await;
+    let snapshot = join_fixture(&client, &network).await;
     let (main, lan) = routers(&snapshot).expect("two routers with Wi-Fi");
     let (main_ip, lan_ip) = (main.local_ip.clone(), lan.local_ip.clone());
     let (connect_lan, connect_main) = (connect(&lan), connect(&main));

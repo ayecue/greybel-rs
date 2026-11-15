@@ -6,13 +6,15 @@ use greyhack_behaviour::{Reward, WorldSeed, license_plate};
 use greyhack_test_support_client::GuildSetup;
 use greyhack_test_support_client::protocol::test_support::LanNodeKind;
 
-use crate::support::game::{join_new_network_of_kind_where, setup_player, test_client};
-use crate::support::metaxploit::{computer_library, is_free_shell, overflow_script, weakness};
+use crate::support::game::{
+    join_fixture, police_workstation, setup_player, ssh_network, test_client,
+};
+use crate::support::metaxploit::{
+    computer_library, fixture_reply_weakness, fixture_weakness, overflow_script,
+};
 use crate::support::parity::assert_succeeded;
 use crate::support::parity_guilds::{LEVEL_FIVE, compare_with_guilds};
-use crate::support::remote::{
-    find_reachable_ssh_with_library, find_ssh_with_library, program_on_computer, service,
-};
+use crate::support::remote::{fixture_account, program_on_computer};
 
 /// An overflow against a network under CrownShield is interrupted after the game finds its weakness and before it
 /// checks anything else, and against the same network without CrownShield it runs: the interrupted attack and the
@@ -28,37 +30,28 @@ async fn should_match_the_game_when_an_overflow_meets_crownshield() {
         .await
         .unwrap()
         .bank_number
-        .to_string();
+        .clone();
     // A newly generated company: the game copies keep their worlds between runs, and a company an earlier run's guild
     // bought keeps those shares. Only listed kinds issue shares (`StocksCompany.IsListedOnStockMarket`).
-    let mut snapshot =
-        join_new_network_of_kind_where(&client, &["Supermercados"], "ssh", |snapshot| {
-            find_ssh_with_library(snapshot, "libssh.so").is_some()
-        })
-        .await;
-    let (ssh_ip, ssh_port) = service(&snapshot, "ssh");
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+    let ssh_ip = account.address;
+    let ssh_port = account.port;
 
-    // The network's own libssh.so may have no weakness that gives a shell without requirements.
-    if weakness(
-        &computer_library(&snapshot, &ssh_ip, "libssh.so"),
-        is_free_shell,
-    )
-    .is_none()
-    {
-        client
-            .install_library(
-                &ssh_ip,
-                "libssh.so",
-                u8::try_from(Reward::Shell.code()).unwrap(),
-            )
-            .await
-            .unwrap();
-        snapshot = client.network_state().await.unwrap();
-    }
+    join_fixture(&client, &network).await;
 
+    let installed = client
+        .install_fixture_library(
+            &ssh_ip,
+            "libssh.so",
+            vec![fixture_weakness(Reward::Shell, &[], "guest", "")],
+            false,
+        )
+        .await
+        .unwrap();
+    let snapshot = client.network_state().await.unwrap();
     let library = computer_library(&snapshot, &ssh_ip, "libssh.so");
-    let (address, found) =
-        weakness(&library, is_free_shell).expect("a weakness that gives a shell");
+    let (address, found) = fixture_reply_weakness(&library, &installed.weaknesses[0]);
     let target = Some((ssh_ip.as_str(), ssh_port));
     let scripts = [
         overflow_script("", target, address, found, ""),
@@ -66,7 +59,7 @@ async fn should_match_the_game_when_an_overflow_meets_crownshield() {
             "mx = include_lib(\"/lib/metaxploit.so\"); lib = mx.net_use(\"{ssh_ip}\", {ssh_port}).dump_lib; print typeof(lib.overflow(\"0xBAD\", \"missing\"))"
         ),
     ];
-    let companies = [snapshot.public_ip.to_string()];
+    let companies = [snapshot.public_ip.clone()];
 
     let before = compare_with_guilds(&client, &user, &snapshot, &companies, &scripts).await;
 
@@ -87,9 +80,9 @@ async fn should_match_the_game_when_an_overflow_meets_crownshield() {
             total_exp: LEVEL_FIVE,
             investment_perks: 1,
             join: true,
-            company_ip: snapshot.public_ip.to_string(),
+            company_ip: snapshot.public_ip.clone(),
             crown: true,
-            shield_ip: snapshot.public_ip.to_string(),
+            shield_ip: snapshot.public_ip.clone(),
             admin_restore_perks: 0,
             admin_restore_off: false,
         })
@@ -135,21 +128,21 @@ async fn should_match_the_game_when_locating_the_vehicle_of_a_protected_administ
         .await
         .unwrap()
         .bank_number
-        .to_string();
+        .clone();
 
     // The cameras only work for a program running on a police computer (`TrafficNetIntrinsics.CheckStatus` reads the
     // network of the computer the library is on), and only a police workstation has `libtrafficnet.so`
     // (`Router.PostGenComputer`), so the program is built and launched there through its SSH service.
-    join_new_network_of_kind_where(&client, &["Comisaria"], "ssh", |snapshot| {
-        find_reachable_ssh_with_library(snapshot, "libtrafficnet.so").is_some()
-    })
-    .await;
+    let police = police_workstation(&client).await;
+    let account = fixture_account(&police, "workstation", "ssh", false);
+    let local_ip = account.address;
+    let port = account.port;
+    let root_password = account.root_password;
 
-    let plate = client.setup_traffic().await.unwrap().plate.to_string();
+    join_fixture(&client, &police).await;
+
+    let plate = client.setup_traffic().await.unwrap().plate.clone();
     let snapshot = client.network_state().await.unwrap();
-    let (local_ip, port, root_password) =
-        find_reachable_ssh_with_library(&snapshot, "libtrafficnet.so")
-            .expect("a reachable police workstation with the library");
     let traffic = snapshot.traffic.as_ref().expect("police traffic state");
     let credentials = snapshot
         .npcs
@@ -162,7 +155,7 @@ async fn should_match_the_game_when_locating_the_vehicle_of_a_protected_administ
         .find_map(|node| match &node.node {
             LanNodeKind::Computer(computer) if node.local_ip == credentials.local_ip => {
                 computer.users.iter().find_map(|account| {
-                    (account.name == traffic.credentials_user).then(|| account.password.to_string())
+                    (account.name == traffic.credentials_user).then(|| account.password.clone())
                 })
             }
             _ => None,
@@ -176,7 +169,8 @@ async fn should_match_the_game_when_locating_the_vehicle_of_a_protected_administ
         .npcs
         .iter()
         .find(|npc| npc.user == admin.user && !npc.license_plate.is_empty())
-        .map(|npc| npc.license_plate.to_string());
+        .map(|npc| npc.license_plate.clone())
+        .expect("the police administrator has a vehicle");
     let unknown = license_plate(
         &WorldSeed::new(snapshot.world_secret.to_vec()),
         &snapshot.public_ip,
@@ -195,9 +189,7 @@ async fn should_match_the_game_when_locating_the_vehicle_of_a_protected_administ
     };
     let mut scripts = vec![locate(&plate), locate(&unknown.unwrap_or_default())];
 
-    if let Some(admin_plate) = &admin_plate {
-        scripts.push(locate(admin_plate));
-    }
+    scripts.push(locate(&admin_plate));
 
     client
         .setup_guild(GuildSetup {
@@ -206,16 +198,16 @@ async fn should_match_the_game_when_locating_the_vehicle_of_a_protected_administ
             total_exp: LEVEL_FIVE,
             investment_perks: 1,
             join: true,
-            company_ip: snapshot.public_ip.to_string(),
+            company_ip: snapshot.public_ip.clone(),
             crown: true,
-            shield_ip: snapshot.public_ip.to_string(),
+            shield_ip: snapshot.public_ip.clone(),
             admin_restore_perks: 0,
             admin_restore_off: false,
         })
         .await
         .unwrap();
 
-    let companies = [snapshot.public_ip.to_string()];
+    let companies = [snapshot.public_ip.clone()];
     let outcomes = compare_with_guilds(&client, &user, &snapshot, &companies, &scripts).await;
 
     assert_succeeded(&outcomes);
@@ -228,17 +220,15 @@ async fn should_match_the_game_when_locating_the_vehicle_of_a_protected_administ
         "the program did not run on a police computer: {outcomes:?}"
     );
 
-    if admin_plate.is_some() {
-        assert!(
-            outcomes[2]
-                .output
-                .as_deref()
-                .unwrap_or_default()
-                .contains("CrownShield provides secure transport"),
-            "{:?}",
-            outcomes[2]
-        );
-    }
+    assert!(
+        outcomes[2]
+            .output
+            .as_deref()
+            .unwrap_or_default()
+            .contains("CrownShield provides secure transport"),
+        "{:?}",
+        outcomes[2]
+    );
 
     client.shutdown();
 }

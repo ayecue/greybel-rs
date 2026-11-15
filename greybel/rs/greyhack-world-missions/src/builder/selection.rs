@@ -90,7 +90,7 @@ pub(super) fn select_heart_beats<'c>(
     for index in 0..hearts {
         let beat = if let Some(preset) = preset.take() {
             Beat {
-                index: beats.len() as i32,
+                index: i32::try_from(beats.len()).expect("value fits the target integer type"),
                 network,
                 local: 0,
                 modality: preset.modality,
@@ -115,7 +115,7 @@ pub(super) fn select_heart_beats<'c>(
             let (modality, option) = pool[random.next_below(pool.len())];
 
             Beat {
-                index: beats.len() as i32,
+                index: i32::try_from(beats.len()).expect("value fits the target integer type"),
                 network,
                 local: 0,
                 modality,

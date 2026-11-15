@@ -15,6 +15,94 @@ use crate::generation::lan::{ComputerPlan, LanPlan};
 
 /// Administrator network restoration.
 impl RestoreService {
+    async fn restore_routers(
+        &self,
+        main: &Router,
+        plan: Option<&LanPlan>,
+        network: greyhack_world_core::NetworkId,
+    ) -> Result<()> {
+        // Restore every router firewall to generated rules (`ConfigBackupFirewall`,
+        // `RestoreFirewall`), and its services and port table (`RouterConfigOS.RestorePorts`): only the
+        // configuration page's HTTP stays, and only the main router has generated forwards.
+        for router in self.networks.routers_of(network).await? {
+            let computer = router.id.computer();
+
+            for port in self.computers.ports(computer).await? {
+                if port.service != ServiceId::Http {
+                    self.computers
+                        .remove_service_ports(computer, port.service)
+                        .await?;
+                }
+            }
+
+            if router.id != main.id {
+                self.networks.clear_port_forwards(router.id).await?;
+            }
+
+            let rules = plan
+                .as_ref()
+                .and_then(|plan| {
+                    plan.devices
+                        .iter()
+                        .find(|device| device.local_ip == router.local_ip)
+                })
+                .map(|device| device.firewall.clone())
+                .unwrap_or_default();
+            let mut active = router.clone();
+
+            active.firewall_active = true;
+            self.networks.save_router(&active).await?;
+            self.networks.clear_firewall(router.id).await?;
+
+            for rule in rules {
+                self.networks.insert_firewall_rule(router.id, &rule).await?;
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn restore_main_forwards(
+        &self,
+        main: &Router,
+        plan: Option<&LanPlan>,
+        through_main: &[ComputerId],
+        network: greyhack_world_core::NetworkId,
+    ) -> Result<()> {
+        // Restore main-router forwards to generated values (`RouterConfigOS.BackupPorts`,
+        // `AdminRevertRouter`).
+        self.networks.clear_port_forwards(main.id).await?;
+
+        match &plan {
+            Some(plan) => {
+                for forward in &plan.forwards {
+                    if let Some(target) = self
+                        .networks
+                        .topology
+                        .device(network, &forward.lan_ip)
+                        .await?
+                    {
+                        self.networks
+                            .insert_port_forward(main.id, forward.number, target, forward.port)
+                            .await?;
+                    }
+                }
+            }
+            None => {
+                for &computer_id in through_main {
+                    for port in self.computers.ports(computer_id).await? {
+                        let _ = self
+                            .networks
+                            .insert_port_forward(main.id, port.number, computer_id, port.number)
+                            .await?;
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     pub async fn restore_admin_network(&self, admin_computer: ComputerId) -> Result<()> {
         let Some(computer) = self.computers.computer(admin_computer).await? else {
             return Ok(());
@@ -69,80 +157,96 @@ impl RestoreService {
             self.restore_npc_computer(&main, row.id, &original).await?;
         }
 
-        // Restore every router firewall to generated rules (`ConfigBackupFirewall`,
-        // `RestoreFirewall`), and its services and port table (`RouterConfigOS.RestorePorts`): only the
-        // configuration page's HTTP stays, and only the main router has generated forwards.
-        for router in self.networks.routers_of(network.id).await? {
-            let computer = router.id.computer();
+        self.restore_routers(&main, plan.as_ref(), network.id)
+            .await?;
 
-            for port in self.computers.ports(computer).await? {
-                if port.service != ServiceId::Http {
-                    self.computers
-                        .remove_service_ports(computer, port.service)
-                        .await?;
-                }
-            }
-
-            if router.id != main.id {
-                self.networks.clear_port_forwards(router.id).await?;
-            }
-
-            let rules = plan
-                .as_ref()
-                .and_then(|plan| {
-                    plan.devices
-                        .iter()
-                        .find(|device| device.local_ip == router.local_ip)
-                })
-                .map(|device| device.firewall.clone())
-                .unwrap_or_default();
-            let mut active = router.clone();
-
-            active.firewall_active = true;
-            self.networks.save_router(&active).await?;
-            self.networks.clear_firewall(router.id).await?;
-
-            for rule in rules {
-                self.networks.insert_firewall_rule(router.id, &rule).await?;
-            }
-        }
-
-        // Restore main-router forwards to generated values (`RouterConfigOS.BackupPorts`,
-        // `AdminRevertRouter`).
-        self.networks.clear_port_forwards(main.id).await?;
-
-        match &plan {
-            Some(plan) => {
-                for forward in &plan.forwards {
-                    if let Some(target) = self
-                        .networks
-                        .topology
-                        .device(network.id, &forward.lan_ip)
-                        .await?
-                    {
-                        self.networks
-                            .insert_port_forward(main.id, forward.number, target, forward.port)
-                            .await?;
-                    }
-                }
-            }
-            None => {
-                for computer_id in through_main {
-                    for port in self.computers.ports(computer_id).await? {
-                        let _ = self
-                            .networks
-                            .insert_port_forward(main.id, port.number, computer_id, port.number)
-                            .await?;
-                    }
-                }
-            }
-        }
+        self.restore_main_forwards(&main, plan.as_ref(), &through_main, network.id)
+            .await?;
 
         Ok(())
     }
 }
 
 impl RestoreService {
+    async fn restore_computer_content(
+        &self,
+        main: &Router,
+        computer_id: ComputerId,
+        row: &mut greyhack_world_core::Computer,
+        draft: &ComputerDraft,
+        original: &Original,
+        nodes_to_retain: &[Node],
+    ) -> Result<()> {
+        self.computers.clear_computer_contents(computer_id).await?;
+
+        row.kind = draft.kind;
+        row.name.clone_from(&draft.name);
+        row.local_ip.clone_from(&draft.local_ip);
+        row.next_pid = draft.next_pid;
+        self.computers.save_computer(row).await?;
+        self.computers
+            .insert_hardware(computer_id, &draft.hardware)
+            .await?;
+        for process in &draft.processes {
+            self.computers.insert_process(computer_id, process).await?;
+        }
+
+        self.libraries
+            .insert_full_filesystem(computer_id, &draft.filesystem)
+            .await?;
+        for port in &draft.ports {
+            let library = self
+                .files
+                .library_row(port.service.library_kind(), &port.version)
+                .await?;
+
+            self.computers
+                .insert_port(computer_id, port, library)
+                .await?;
+            self.installs
+                .install_service(computer_id, port.service, &port.version)
+                .await?;
+        }
+
+        if let Original::Plan(entry) = original
+            && let (computer_plan, Some(mission), _) = &**entry
+            && mission.assignment_at(&computer_plan.local_ip).is_some()
+        {
+            self.mission_placement
+                .add_mission_files_over_services(
+                    computer_id,
+                    &main.public_ip,
+                    computer_plan,
+                    mission,
+                    draft,
+                )
+                .await?;
+        }
+
+        for user in &draft.active_users {
+            self.computers.insert_session(computer_id, user).await?;
+        }
+
+        self.appliances
+            .save_smart(computer_id, draft.smart.as_ref())
+            .await?;
+        for node in nodes_to_retain {
+            self.restore_node_copy(node).await?;
+        }
+
+        if let Some(kind) = self
+            .networks
+            .settings
+            .network(row.network)
+            .await?
+            .map(|network| network.kind)
+        {
+            self.installs.configure_shop(computer_id, kind).await?;
+        }
+
+        Ok(())
+    }
+
     pub(crate) async fn restore_npc_computer(
         &self,
         main: &Router,
@@ -249,72 +353,15 @@ impl RestoreService {
             }
         }
 
-        self.computers.clear_computer_contents(computer_id).await?;
-
-        row.kind = draft.kind;
-        row.name.clone_from(&draft.name);
-        row.local_ip.clone_from(&draft.local_ip);
-        row.next_pid = draft.next_pid;
-        self.computers.save_computer(&row).await?;
-        self.computers
-            .insert_hardware(computer_id, &draft.hardware)
-            .await?;
-        for process in &draft.processes {
-            self.computers.insert_process(computer_id, process).await?;
-        }
-
-        self.libraries
-            .insert_full_filesystem(computer_id, &draft.filesystem)
-            .await?;
-        for port in &draft.ports {
-            let library = self
-                .files
-                .library_row(port.service.library_kind(), &port.version)
-                .await?;
-
-            self.computers
-                .insert_port(computer_id, port, library)
-                .await?;
-            self.installs
-                .install_service(computer_id, port.service, &port.version)
-                .await?;
-        }
-
-        if let Original::Plan(entry) = original
-            && let (computer_plan, Some(mission), _) = &**entry
-            && mission.assignment_at(&computer_plan.local_ip).is_some()
-        {
-            self.mission_placement
-                .add_mission_files_over_services(
-                    computer_id,
-                    &main.public_ip,
-                    computer_plan,
-                    mission,
-                    &draft,
-                )
-                .await?;
-        }
-
-        for user in &draft.active_users {
-            self.computers.insert_session(computer_id, user).await?;
-        }
-
-        self.appliances
-            .save_smart(computer_id, draft.smart.as_ref())
-            .await?;
-        for node in &nodes_to_retain {
-            self.restore_node_copy(node).await?;
-        }
-
-        if let Some(kind) = self
-            .networks
-            .settings
-            .network(row.network)
-            .await?
-            .map(|network| network.kind)
-        {
-            self.installs.configure_shop(computer_id, kind).await?;
-        }
+        self.restore_computer_content(
+            main,
+            computer_id,
+            &mut row,
+            &draft,
+            original,
+            &nodes_to_retain,
+        )
+        .await?;
 
         Ok(())
     }

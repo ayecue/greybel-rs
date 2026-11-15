@@ -68,7 +68,7 @@ pub(crate) fn attach<D: Driver>(
 
         (releases.spawn)(Box::pin(async move {
             if let Some(state) = connection.state() {
-                state.release(connection.id, &objects).await;
+                state.release(connection.id, &objects);
             }
         }));
     });
@@ -168,9 +168,9 @@ impl Connection {
                             let key =
                                 key.ok_or(OperationError::Script(ScriptFailure::ProgramEnded))?;
 
-                            if !world_state
+                            if world_state
                                 .tree(key)
-                                .is_some_and(|tree| tree.active(program).is_some())
+                                .is_none_or(|tree| tree.active(program).is_none())
                             {
                                 return Err(OperationError::Script(ScriptFailure::ProgramEnded));
                             }

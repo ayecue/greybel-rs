@@ -57,8 +57,8 @@ pub fn unique_name_to_ip(seed: &WorldSeed, domain: &str) -> Option<String> {
         let index = table.iter().position(|candidate| *candidate == character)?;
 
         value = value
-            .wrapping_mul(table.len() as u32)
-            .wrapping_add(index as u32);
+            .wrapping_mul(u32::try_from(table.len()).expect("value fits the target integer type"))
+            .wrapping_add(u32::try_from(index).expect("value fits the target integer type"));
         consonant = !consonant;
     }
 
@@ -106,8 +106,12 @@ impl LetterTableSet {
                 &self.vowels
             };
 
-            letters.push(table[(value % table.len() as u32) as usize]);
-            value /= table.len() as u32;
+            letters.push(
+                table[(value
+                    % u32::try_from(table.len()).expect("value fits the target integer type"))
+                    as usize],
+            );
+            value /= u32::try_from(table.len()).expect("value fits the target integer type");
             consonant = !consonant;
         }
 

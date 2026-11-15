@@ -85,6 +85,10 @@ fn regex_error(error: RegexError, intrinsic: &'static str) -> IntrinsicError {
 /// Splits by regex, retaining capture groups; an empty pattern splits into characters.
 /// Returns `null` unless text, pattern, and option are strings (`BasicIntrinsics.split`).
 #[native(method)]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Native host extraction clones the VM's regex engine handle"
+)]
 pub fn split(
     vm: &mut Vm,
     #[host] regex: HostRegexEngine,
@@ -131,6 +135,10 @@ pub fn split(
 
 /// Replaces every regex match; implements the string `replace` method.
 #[native(method)]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Native host extraction clones the VM's regex engine handle"
+)]
 pub fn replace_regex(
     #[host] regex: HostRegexEngine,
     this: &Value,
@@ -165,6 +173,10 @@ pub fn replace_regex(
 
 /// Tests a regex match; invalid patterns return no match.
 #[native(method)]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Native host extraction clones the VM's regex engine handle"
+)]
 pub fn is_match(
     #[host] regex: HostRegexEngine,
     this: &Value,
@@ -193,6 +205,14 @@ pub fn is_match(
 
 /// Returns all regex matches keyed by start offset.
 #[native(method)]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Native host extraction clones the VM's regex engine handle"
+)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "GreyScript exposes regex match offsets as f64 numbers"
+)]
 pub fn matches(
     vm: &mut Vm,
     #[host] regex: HostRegexEngine,
@@ -230,6 +250,10 @@ pub fn trim(this: &Value) -> Option<&str> {
 /// Returns the last start offset of `searchStr`, or -1.
 /// Empty `searchStr` returns the final position, matching .NET Framework `LastIndexOf`.
 #[native(method)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "GreyScript exposes string offsets as f64 numbers"
+)]
 pub fn last_index_of(
     vm: &mut Vm,
     this: &Value,

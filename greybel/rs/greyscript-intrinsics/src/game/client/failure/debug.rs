@@ -1,5 +1,7 @@
 //! Grey Hack failure text for `debug_tools` and the debug library payload.
 
+use std::fmt::Write as _;
+
 use super::metaxploit::weakness_text;
 use crate::protocol::{DebugFailure, DebugScan, UnitTestReport, ZeroDayObjectKind};
 
@@ -55,7 +57,7 @@ pub(in crate::game) fn scan_text(scan: &DebugScan) -> String {
     text.push_str("\n\n");
 
     for (index, line) in scan.code.split('\n').enumerate() {
-        text.push_str(&format!("{:02}: {line}\n", index + 1));
+        let _ = writeln!(text, "{:02}: {line}", index + 1);
     }
 
     text
@@ -75,11 +77,12 @@ pub(in crate::game) fn unit_test_text(report: &UnitTestReport) -> String {
             ZeroDayObjectKind::File => "File",
         };
 
-        info.push_str(&format!(
-            "* {kind} [{}]: {}\n",
+        let _ = writeln!(
+            info,
+            "* {kind} [{}]: {}",
             object.access,
             object.methods.join(", ")
-        ));
+        );
     }
 
     format!(

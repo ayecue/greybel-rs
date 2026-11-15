@@ -30,7 +30,7 @@ fn should_bundle_every_script_in_every_mode() {
 
         let out = fixtures().sections(modes, |options| {
             transpile_project(&entry, &FsProvider::default(), &options)
-                .map(|outputs| fixtures().outputs(outputs))
+                .map(|outputs| fixtures().outputs(&outputs))
         });
 
         insta::assert_snapshot!(out);

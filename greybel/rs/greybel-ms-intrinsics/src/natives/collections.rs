@@ -38,6 +38,10 @@ pub fn has_index(vm: &mut Vm, this: &Value, index: &Value) -> Value {
     }
 }
 
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "MiniScript exposes collection indexes as f64 numbers"
+)]
 fn numbers(len: usize) -> Vec<Value> {
     (0..len).map(|index| Value::from(index as f64)).collect()
 }
@@ -74,6 +78,10 @@ fn search_start(after: &Value, len: usize) -> Option<usize> {
 }
 
 #[native(method)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "MiniScript exposes collection indexes as f64 numbers"
+)]
 pub fn index_of_value(vm: &mut Vm, this: &Value, value: &Value, after: &Value) -> Value {
     let heap = vm.heap();
 
@@ -105,7 +113,7 @@ pub fn index_of_value(vm: &mut Vm, this: &Value, value: &Value, after: &Value) -
         Value::Map(id) => {
             let mut seen_after = after.is_null();
 
-            for (key, item) in id.entries(heap).iter() {
+            for (key, item) in id.entries(heap) {
                 if !seen_after {
                     seen_after = heap.equal(key, after);
                 } else if heap.equal(item, value) {

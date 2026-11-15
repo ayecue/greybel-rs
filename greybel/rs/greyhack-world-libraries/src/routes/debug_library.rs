@@ -19,6 +19,15 @@ pub(crate) fn register<
 >(
     routes: &RouteTable,
 ) {
+    register_debug_library_tests::<W>(routes);
+    register_debug_library_payload::<W>(routes);
+}
+
+fn register_debug_library_tests<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -101,6 +110,13 @@ pub(crate) fn register<
                 })
         },
     );
+}
+
+fn register_debug_library_payload<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,

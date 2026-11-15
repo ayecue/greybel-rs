@@ -27,7 +27,12 @@ async fn should_add_random_files_to_the_homes_of_generated_computers() {
             assert_eq!(permissions, PermissionSet::default_for(false).as_str());
 
             match kind {
-                FileKind::ChatLog => assert!(name.starts_with("chat") && name.ends_with(".log")),
+                FileKind::ChatLog => assert!(
+                    name.starts_with("chat")
+                        && std::path::Path::new(name)
+                            .extension()
+                            .is_some_and(|ext| ext.eq_ignore_ascii_case("log"))
+                ),
                 FileKind::Pdf => assert!(
                     items
                         .texts

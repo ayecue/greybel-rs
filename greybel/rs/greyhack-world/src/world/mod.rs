@@ -29,7 +29,7 @@ impl World {
     #[must_use]
     pub fn on(db: Database, seed: u64, player: ComputerId, time_seconds: u64) -> Self {
         let handle = WorldRef::on(db, seed, player, time_seconds);
-        let parts = crate::modules::assemble(handle.clone());
+        let parts = crate::modules::assemble(&handle.clone());
 
         handle.attach_queues(parts.assembly.events.clone(), parts.assembly.works.clone());
 
@@ -42,7 +42,7 @@ impl World {
     }
 
     pub(crate) fn from_core(handle: WorldRef, _core: Rc<CoreModule>) -> Self {
-        let parts = crate::modules::assemble(handle.clone());
+        let parts = crate::modules::assemble(&handle.clone());
 
         handle.attach_queues(parts.assembly.events.clone(), parts.assembly.works.clone());
 

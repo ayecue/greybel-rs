@@ -4,9 +4,9 @@ use std::rc::Rc;
 
 use greyhack_world_modules::Dep;
 
-use crate::storage::*;
-use crate::systems::{LibraryFileService as LibraryFilesService, *};
-use crate::*;
+use crate::storage::{LibraryIdentityRepository, NodeRepository};
+use crate::systems::{FileLookup, LibraryFileService as LibraryFilesService};
+use crate::{ComputerId, Library, LibraryId, Node, Result};
 
 impl LibraryFilesService {
     /// Returns the kind and version of stored library `id`.

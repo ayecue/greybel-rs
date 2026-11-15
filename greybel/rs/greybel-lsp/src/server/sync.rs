@@ -48,7 +48,7 @@ impl Server {
         self.load(&uri);
     }
 
-    pub(super) fn did_close(&mut self, params: lsp::DidCloseTextDocumentParams) {
+    pub(super) fn did_close(&mut self, params: &lsp::DidCloseTextDocumentParams) {
         let Some(uri) = from_lsp::uri(&params.text_document.uri) else {
             return;
         };

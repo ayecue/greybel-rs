@@ -45,12 +45,12 @@ impl Server {
     }
 
     /// Accepts client-provided text for a requested file and completes any project queries unblocked by it.
-    pub(super) fn handle_project_file(&mut self, uri: &Uri, text: Option<String>) {
+    pub(super) fn handle_project_file(&mut self, uri: &Uri, text: Option<&String>) {
         let queries = std::mem::take(&mut self.projects.queries);
 
         for mut query in queries {
             if query.waits_for(uri) {
-                query.receive(uri, text.clone());
+                query.receive(uri, text.cloned());
             }
 
             if let Some(response) = self.advance(query) {

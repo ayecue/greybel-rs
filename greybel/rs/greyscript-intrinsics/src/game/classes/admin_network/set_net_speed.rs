@@ -9,6 +9,10 @@ use crate::protocol::AdminSetNetSpeed;
 /// Sets this network's ISP speed pack (`NetworkLan.netSpeed`) as purchased through the ISP or company website.
 /// Accepts 3, 6, 12, 20, or 25 and returns true; other speeds return false.
 #[native(method)]
+#[expect(
+    clippy::float_cmp,
+    reason = "NetworkLan.netSpeed accepts only the exact numeric values of its speed-pack enum"
+)]
 pub fn set_net_speed(
     vm: &mut Vm,
     this: &Value,

@@ -7,7 +7,7 @@
 
 use greybel_test_support::game::Game;
 
-use crate::support::game::{join_network_where, setup_player, test_client};
+use crate::support::game::{empty_network, join_fixture, setup_player, test_client};
 use crate::support::parity_random_content::{game_computers, simulated_computers};
 use crate::support::random_content::{random_files, violations};
 
@@ -19,13 +19,19 @@ async fn should_follow_the_rules_of_random_content_in_the_game_and_the_simulatio
 
     setup_player(&client).await;
 
-    let snapshot = join_network_where(&client, "ssh", |snapshot| {
-        random_files(&game_computers(snapshot)) > 0
-    })
-    .await;
-    let in_game = game_computers(&snapshot);
+    let kinds = ["Supermercados", "Comisaria", "Bancos"];
+    let mut in_game = Vec::new();
+
+    for index in 0..12 {
+        let network = empty_network(&client, kinds[index % kinds.len()]).await;
+        let snapshot = join_fixture(&client, &network).await;
+
+        in_game.extend(game_computers(&snapshot));
+    }
+
     let simulated = simulated_computers(12).await;
 
+    assert!(random_files(&in_game) > 0);
     assert!(random_files(&simulated) > 0);
     assert_eq!(violations(&in_game), Vec::<String>::new());
     assert_eq!(violations(&simulated), Vec::<String>::new());

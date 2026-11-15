@@ -189,6 +189,10 @@ pub async fn user_key(#[host] stdin: Rc<dyn Stdin>) -> Result<String, RuntimeErr
 
 /// Writes to host stdout without a trailing newline.
 #[native]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Native host extraction clones the VM's stdout handle"
+)]
 pub fn write(#[host] stdout: Rc<dyn Stdout>, text: &str) {
     stdout.print(
         text,

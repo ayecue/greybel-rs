@@ -9,11 +9,9 @@ impl IntoProtocol for crate::GuildFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::GuildFailure as World;
-
         match failure {
-            World::NameInUse(name) => AdminFailure::GuildNameTaken(name),
-            World::AccountInUse(account) => AdminFailure::GuildAccountTaken(account),
+            crate::GuildFailure::NameInUse(name) => AdminFailure::GuildNameTaken(name),
+            crate::GuildFailure::AccountInUse(account) => AdminFailure::GuildAccountTaken(account),
         }
     }
 }
@@ -24,14 +22,12 @@ impl IntoProtocol for crate::AdminRestoreFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::AdminRestoreFailure as World;
-
         match failure {
-            World::UnknownGuild(name) => AdminFailure::UnknownGuild(name),
-            World::InvalidCompany => AdminFailure::InvalidCompany,
-            World::UnknownCompany => AdminFailure::UnknownCompany,
-            World::NotGuildCompany => AdminFailure::NotGuildCompany,
-            World::OverLimit => AdminFailure::AdminRestoreLimit,
+            crate::AdminRestoreFailure::UnknownGuild(name) => AdminFailure::UnknownGuild(name),
+            crate::AdminRestoreFailure::InvalidCompany => AdminFailure::InvalidCompany,
+            crate::AdminRestoreFailure::UnknownCompany => AdminFailure::UnknownCompany,
+            crate::AdminRestoreFailure::NotGuildCompany => AdminFailure::NotGuildCompany,
+            crate::AdminRestoreFailure::OverLimit => AdminFailure::AdminRestoreLimit,
         }
     }
 }
@@ -42,14 +38,14 @@ impl IntoProtocol for crate::CrownShieldFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::CrownShieldFailure as World;
-
         match failure {
-            World::UnknownGuild(name) => AdminFailure::UnknownGuild(name),
-            World::InvalidAddress => AdminFailure::InvalidPublicAddress,
-            World::NoCrown => AdminFailure::NoCrown,
-            World::AlreadyActive => AdminFailure::CrownShieldActive,
-            World::UnknownNetwork(address) => AdminFailure::UnknownNetwork(address),
+            crate::CrownShieldFailure::UnknownGuild(name) => AdminFailure::UnknownGuild(name),
+            crate::CrownShieldFailure::InvalidAddress => AdminFailure::InvalidPublicAddress,
+            crate::CrownShieldFailure::NoCrown => AdminFailure::NoCrown,
+            crate::CrownShieldFailure::AlreadyActive => AdminFailure::CrownShieldActive,
+            crate::CrownShieldFailure::UnknownNetwork(address) => {
+                AdminFailure::UnknownNetwork(address)
+            }
         }
     }
 }

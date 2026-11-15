@@ -70,9 +70,9 @@ impl Program {
         let mut analysis = Inference::run(documents, api);
 
         for (index, &document) in self.documents.iter().enumerate() {
-            let index = index as DocumentIndex;
+            let index = DocumentIndex::try_from(index).expect("value fits the target integer type");
 
-            analysis.add_diagnostics(index, self.missing_import_diagnostics(db, document));
+            analysis.add_diagnostics(index, Self::missing_import_diagnostics(db, document));
             analysis.add_diagnostics(index, self.cyclic_import_diagnostics(db, document));
             analysis.add_diagnostics(index, Self::ignored_import_code_diagnostics(db, document));
         }
@@ -158,7 +158,7 @@ impl Program {
             .collect()
     }
 
-    fn missing_import_diagnostics(&self, db: &dyn Db, document: SourceFile) -> Vec<Diagnostic> {
+    fn missing_import_diagnostics(db: &dyn Db, document: SourceFile) -> Vec<Diagnostic> {
         let Some(ast) = document.parse(db).ast() else {
             return Vec::new();
         };

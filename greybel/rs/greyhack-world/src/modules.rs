@@ -57,7 +57,7 @@ pub struct WorldAssembly {
 }
 
 /// Registers every module without resolving lazy service dependencies.
-pub fn assemble(world: WorldRef) -> WorldAssembly {
+pub fn assemble(world: &WorldRef) -> WorldAssembly {
     let registry = Rc::new(Registry::new(world.clone()));
 
     let core = CoreModule::register(&registry);
@@ -108,7 +108,7 @@ pub fn assemble(world: WorldRef) -> WorldAssembly {
     registry.register_routes(greyhack_world_player::routes::register::<crate::World>);
 
     let routines = Rc::new(crate::routines::RoutineService::new(
-        &world,
+        world,
         Rc::new(crate::storage::RoutineRepository::new(
             world.db().clone(),
             registry.scheduler(),

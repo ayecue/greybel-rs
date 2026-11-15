@@ -70,8 +70,8 @@ fn normalized(mut log: SystemLog, old: &[LogEntry], identity: &mut Identity) -> 
             identity.tokens.push(entry.token_trace.clone());
         }
 
-        entry.player_net_id = PLAYER.to_owned();
-        entry.token_trace = TOKEN.to_owned();
+        PLAYER.clone_into(&mut entry.player_net_id);
+        TOKEN.clone_into(&mut entry.token_trace);
     }
 
     log
@@ -100,7 +100,7 @@ pub fn log_entries(snapshot: &NetworkSnapshot) -> Entries {
             let log = SystemLog::parse(&log_file(files)?.content)
                 .expect("the game's log is a system log");
 
-            Some((node.local_ip.to_string(), log.content_log))
+            Some((node.local_ip.clone(), log.content_log))
         })
         .collect()
 }
@@ -123,7 +123,7 @@ pub fn game_logs(snapshot: &NetworkSnapshot, old: &Entries) -> LogService {
             let old = old.get(&*node.local_ip).map_or(&[][..], Vec::as_slice);
 
             Some((
-                node.local_ip.to_string(),
+                node.local_ip.clone(),
                 NodeLog {
                     log: normalized(log, old, &mut identity),
                     minute: file.timestamp / 60,
@@ -165,7 +165,7 @@ pub fn world_logs(world: &World, snapshot: &NetworkSnapshot, old: &Entries) -> L
             let old = old.get(&*node.local_ip).map_or(&[][..], Vec::as_slice);
 
             Some((
-                node.local_ip.to_string(),
+                node.local_ip.clone(),
                 NodeLog {
                     log: normalized(log, old, &mut identity),
                     minute: file.timestamp / 60,
@@ -252,7 +252,7 @@ async fn game_interactive_outcome(
         )
         .await
         .unwrap_or_else(|error| panic!("{script}: {error}"));
-    let output = result.output.to_string();
+    let output = result.output.clone();
 
     vec![Outcome {
         script: script.to_owned(),

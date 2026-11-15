@@ -185,6 +185,10 @@ impl Bank {
         Ok(())
     }
 
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "BankSubs.Payment compares its integral charge with a floating-point balance"
+    )]
     pub async fn run_payment(&self, bank: &str, kind: SubscriptionKind) -> Result<()> {
         let Some(mut subscription) = self.subscriptions.subscription(bank, kind).await? else {
             return Ok(());

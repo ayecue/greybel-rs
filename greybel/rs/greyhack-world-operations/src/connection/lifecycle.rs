@@ -12,6 +12,103 @@ use greyhack_world_programs::protocol::{
 use super::Connection;
 use crate::OperationError;
 
+async fn start_program(
+    state: &Rc<crate::server::ServerState>,
+    world_state: &mut crate::server::ServerWorld,
+    connection: &Connection,
+    message: StartProgram<'static>,
+    home: String,
+    program_path: String,
+    name: String,
+) -> Result<ProgramSession, OperationError> {
+    let world = &mut world_state.world;
+
+    // After a game over (`Database.GameOver`) the player has no computer to run a program on:
+    // the client has disconnected.
+    if !world.has_player() {
+        return Err(OperationError::Script(ScriptFailure::ProgramEnded));
+    }
+
+    let computer = world.handle.player();
+    // `GreyScriptHelperServer.PrepareTerminalServerRpc`: the program is in the safe-mode terminal
+    // only when it is typed into it, and the terminal runs.
+    let safe_terminal = message.safe_terminal
+        && world
+            .modules
+            .core
+            .computers
+            .processes
+            .in_safe_mode(computer)
+            .await?;
+    let pid = if world
+        .modules
+        .core
+        .networks
+        .topology
+        .computer(computer)
+        .await?
+        .is_some()
+    {
+        world
+            .modules
+            .core
+            .computers
+            .processes
+            .spawn_process(computer, &message.user, &name, None)
+            .await?
+    } else {
+        0
+    };
+    // `MainClass.Main`: the previous address of a program on the player's computer is its
+    // public address.
+    let prev_ip = world
+        .modules
+        .core
+        .networks
+        .topology
+        .public_ip(computer)
+        .await?;
+    let program = state.add_root(
+        world_state,
+        connection.id,
+        Some((computer, pid)),
+        ObjectId { id: 0 },
+        safe_terminal,
+    )?;
+    let shell = world_state
+        .trees
+        .objects_of_connection(connection.id)
+        .insert(AccessHandle {
+            access: Access {
+                computer,
+                user: message.user.to_string(),
+                ftp: false,
+                prev_ip,
+                bounces: 0,
+            },
+            kind: AccessKind::Shell,
+        });
+
+    let tree = world_state
+        .trees
+        .of_program(program)
+        .expect("the new root is indexed");
+
+    world_state
+        .trees
+        .get_mut(tree)
+        .expect("the new root tree exists")
+        .set_session(program, shell);
+
+    Ok(ProgramSession {
+        program,
+        shell,
+        user: message.user.to_string(),
+        home,
+        path: program_path,
+    })
+}
+
 pub(super) fn attach<D: Driver>(connection: &Rc<Connection>, channel: &Channel<GameServer, D>) {
     connection.operate(
         channel,
@@ -26,92 +123,16 @@ pub(super) fn attach<D: Driver>(connection: &Rc<Connection>, channel: &Channel<G
             state
                 .cycle(
                     async |world_state| {
-                        let world = &mut world_state.world;
-
-                        // After a game over (`Database.GameOver`) the player has no computer to run a program on:
-                        // the client has disconnected.
-                        if !world.has_player() {
-                            return Err(OperationError::Script(ScriptFailure::ProgramEnded));
-                        }
-
-                        let computer = world.handle.player();
-                        // `GreyScriptHelperServer.PrepareTerminalServerRpc`: the program is in the safe-mode terminal
-                        // only when it is typed into it, and the terminal runs.
-                        let safe_terminal = message.safe_terminal
-                            && world
-                                .modules
-                                .core
-                                .computers
-                                .processes
-                                .in_safe_mode(computer)
-                                .await?;
-                        let pid = if world
-                            .modules
-                            .core
-                            .networks
-                            .topology
-                            .computer(computer)
-                            .await?
-                            .is_some()
-                        {
-                            world
-                                .modules
-                                .core
-                                .computers
-                                .processes
-                                .spawn_process(computer, &message.user, &name, None)
-                                .await?
-                        } else {
-                            0
-                        };
-                        // `MainClass.Main`: the previous address of a program on the player's computer is its
-                        // public address.
-                        let prev_ip = world
-                            .modules
-                            .core
-                            .networks
-                            .topology
-                            .public_ip(computer)
-                            .await?;
-                        let program = state.add_root(
+                        start_program(
+                            state,
                             world_state,
-                            connection.id,
-                            Some((computer, pid)),
-                            ObjectId { id: 0 },
-                            safe_terminal,
-                        )?;
-                        let shell = world_state
-                            .trees
-                            .objects_of_connection(connection.id)
-                            .insert(AccessHandle {
-                                access: Access {
-                                    computer,
-                                    user: message.user.to_string(),
-                                    ftp: false,
-                                    prev_ip,
-                                    bounces: 0,
-                                },
-                                kind: AccessKind::Shell,
-                            });
-
-                        let tree = world_state
-                            .trees
-                            .of_program(program)
-                            .expect("the new root is indexed");
-
-                        world_state
-                            .trees
-                            .get_mut(tree)
-                            .expect("the new root tree exists")
-                            .set_session(program, shell);
-
-                        Ok(ProgramSession {
-                            program,
-                            shell,
-                            user: message.user.to_string(),
+                            connection,
+                            message,
                             home,
-                            path: program_path,
-                        })
+                            program_path,
+                            name,
+                        )
+                        .await
                     },
                     true,
                 )
@@ -130,6 +151,6 @@ pub(super) fn attach<D: Driver>(connection: &Rc<Connection>, channel: &Channel<G
             )
             .await;
 
-        Ok(!state.has_programs(connection.id).await && state.save().await)
+        Ok(!state.has_programs(connection.id) && state.save().await)
     });
 }

@@ -9,14 +9,12 @@ impl IntoProtocol for crate::CtfFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::CtfFailure as World;
-
         match failure {
-            World::InvalidScore => CtfFailure::InvalidScore,
-            World::UnknownEvent => CtfFailure::UnknownEvent,
-            World::Incomplete => CtfFailure::Incomplete,
-            World::RepeatScore => CtfFailure::RepeatScore,
-            World::OwnEvent => CtfFailure::OwnEvent,
+            crate::CtfFailure::InvalidScore => CtfFailure::InvalidScore,
+            crate::CtfFailure::UnknownEvent => CtfFailure::UnknownEvent,
+            crate::CtfFailure::Incomplete => CtfFailure::Incomplete,
+            crate::CtfFailure::RepeatScore => CtfFailure::RepeatScore,
+            crate::CtfFailure::OwnEvent => CtfFailure::OwnEvent,
         }
     }
 }
@@ -27,12 +25,10 @@ impl IntoProtocol for crate::MissionFailure {
     fn into_protocol(self) -> Self::Output {
         let failure = self;
 
-        use crate::MissionFailure as World;
-
         match failure {
-            World::NotAMissionShop => MissionFailure::NotAMissionShop,
-            World::NoMailAccount => MissionFailure::NoMailAccount,
-            World::NoMission => MissionFailure::NoMission,
+            crate::MissionFailure::NotAMissionShop => MissionFailure::NotAMissionShop,
+            crate::MissionFailure::NoMailAccount => MissionFailure::NoMailAccount,
+            crate::MissionFailure::NoMission => MissionFailure::NoMission,
         }
     }
 }
@@ -43,14 +39,12 @@ impl IntoProtocol for crate::FolderChange {
     fn into_protocol(self) -> Self::Output {
         let change = self;
 
-        use crate::FolderLookup as World;
-
         FolderChange {
             current_exists: change.current_exists,
             target: match change.target {
-                World::Missing => FolderLookup::Missing,
-                World::Denial => FolderLookup::Denial,
-                World::Folder(path) => FolderLookup::Found(path),
+                crate::FolderLookup::Missing => FolderLookup::Missing,
+                crate::FolderLookup::Denial => FolderLookup::Denial,
+                crate::FolderLookup::Folder(path) => FolderLookup::Found(path),
             },
         }
     }
