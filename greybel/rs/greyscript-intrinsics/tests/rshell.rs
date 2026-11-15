@@ -1,5 +1,6 @@
 use greybel_test_support::future::block_on;
-use greyhack_world::{PlayerOptions, ReverseShell, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_libraries::ReverseShell;
 
 use crate::support::rshell::prepare_rshell;
 use crate::support::save_copy;

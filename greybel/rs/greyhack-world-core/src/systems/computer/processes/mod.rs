@@ -23,7 +23,7 @@ pub struct ProcessService {
     pub(crate) user_rows: Rc<UserRepository>,
     pub(crate) person_rows: Rc<PersonRepository>,
     pub(crate) lookup: Dep<FileLookup>,
-    pub(crate) permissions: Dep<FilePermissions>,
+    pub(crate) permissions: Dep<FilePermissionService>,
 }
 
 impl ProcessService {

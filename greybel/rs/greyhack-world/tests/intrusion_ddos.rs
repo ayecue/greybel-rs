@@ -1,5 +1,5 @@
 use greyhack_behaviour::{SECONDS_PER_DAY, flood_reboot_threshold};
-use greyhack_world::{Flood, FloodWarning};
+use greyhack_world_intrusion::{Flood, FloodWarning};
 use support::{company, guild_owning};
 
 use crate::support::intrusion_ddos as support;

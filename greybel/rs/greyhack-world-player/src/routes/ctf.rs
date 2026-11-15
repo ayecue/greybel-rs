@@ -6,9 +6,13 @@ use greyhack_world_router::protocol::{
 };
 
 use crate::routes::Result;
-use crate::{CtfEvent, CtfRef, ObjectTableExt as _, PlayerContext};
+use crate::{CtfEvent, CtfRef, ObjectTableExt as _};
 
-pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -45,7 +49,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
             let ctf = &ctx.trees.objects(call.tree).ctf(message.ctf)?;
 
             Ok(world
-                .player()
+                .module::<crate::PlayerModule>()
                 .ctf
                 .player_success(&ctf.event, ctf.computer)
                 .await?)
@@ -87,12 +91,12 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
 ///
 /// Returns errors from database reads.
 async fn event_text(
-    world: &impl PlayerContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     ctf: &CtfRef,
     read: impl FnOnce(&CtfEvent) -> &str,
 ) -> Result<Option<String>> {
     Ok(world
-        .player()
+        .module::<crate::PlayerModule>()
         .ctf
         .ctf_event(&ctf.event)
         .await?

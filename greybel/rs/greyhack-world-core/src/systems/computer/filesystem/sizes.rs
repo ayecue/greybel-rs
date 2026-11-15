@@ -5,7 +5,7 @@ use std::rc::Rc;
 use greyhack_behaviour::{BYTES_PER_MB, path};
 
 use crate::storage::*;
-use crate::systems::{FileSizes as FileSizesService, *};
+use crate::systems::{FileSizeService as FileSizesService, *};
 use crate::*;
 
 impl FileSizesService {
@@ -54,7 +54,7 @@ impl FileSizesService {
     /// # Errors
     ///
     /// Returns any database read error.
-    pub async fn free_space_mb(&self, computer: ComputerId) -> Result<f64> {
+    pub async fn available_storage_mb(&self, computer: ComputerId) -> Result<f64> {
         let Some(root) = self.lookup.root(computer).await? else {
             return Ok(0.0);
         };
@@ -70,13 +70,13 @@ impl FileSizesService {
 }
 
 /// File-system size and capacity rules.
-pub struct FileSizes {
+pub struct FileSizeService {
     pub(crate) node_rows: Rc<NodeRepository>,
     pub(crate) hardware_rows: Rc<HardwareRepository>,
     pub(crate) lookup: Dep<FileLookup>,
 }
 
-impl FileSizes {
+impl FileSizeService {
     pub(crate) fn new(
         registry: &Rc<greyhack_world_modules::Registry>,
         node_rows: Rc<NodeRepository>,

@@ -1,5 +1,5 @@
-use greyhack_behaviour::{NetworkKind, license_plate};
-use greyhack_world::{JobRole, TrafficFailure};
+use greyhack_behaviour::{JobRole, NetworkKind, license_plate};
+use greyhack_world_smart_devices::TrafficFailure;
 
 use crate::support::npcs_jobs::{public_ip, world_with};
 use crate::support::smart_traffic::commute;

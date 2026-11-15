@@ -40,8 +40,8 @@ pub struct LaunchedProgram {
 /// Result of a launch (`ShellIntrinsics.launch`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Launch {
-    /// The computer is gone.
-    Gone,
+    /// The computer no longer exists.
+    Missing,
     /// The program does not start.
     Refusal(LaunchFailure),
     /// The program started.
@@ -51,7 +51,7 @@ pub enum Launch {
 /// Why a terminal does not start (`ShellIntrinsics.start_terminal`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TerminalFailure {
-    /// The computer is gone.
+    /// The computer no longer exists.
     ComputerUnavailable,
     /// The program nesting exceeds the limit.
     TooManyStackCalls,
@@ -78,7 +78,7 @@ impl LaunchService {
         safe_terminal: bool,
     ) -> Result<Launch> {
         if self.networks.topology.computer(computer).await?.is_none() {
-            return Ok(Launch::Gone);
+            return Ok(Launch::Missing);
         }
 
         let refusal = |failure| Ok(Launch::Refusal(failure));
@@ -176,7 +176,7 @@ impl LaunchService {
 pub struct LaunchService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
 }
 
@@ -184,7 +184,7 @@ impl LaunchService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     ) -> Self {
         Self {

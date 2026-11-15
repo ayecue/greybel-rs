@@ -53,10 +53,14 @@ public static partial class ProtocolWriter
         {
             writer.WriteLine($"limit {Limit};");
             writer.WriteLine();
-            writer.WriteLine("/// Message hook plugin that forwards received messages to the game.");
+            writer.WriteLine(
+                "/// Message hook plugin that forwards received messages to the game."
+            );
             WriteBlock(writer, "provider", Provider, contracts.Server, previous);
             writer.WriteLine();
-            writer.WriteLine("/// greybel client that receives game messages forwarded by the plugin.");
+            writer.WriteLine(
+                "/// greybel client that receives game messages forwarded by the plugin."
+            );
             WriteBlock(writer, "client", Client, contracts.Client, previous);
         }
         foreach (
@@ -86,10 +90,10 @@ public static partial class ProtocolWriter
             return messages;
         }
         var byName = messages.ToDictionary(message => message.Name);
-        if (before.FirstOrDefault(name => !byName.ContainsKey(name)) is string gone)
+        if (before.FirstOrDefault(name => !byName.ContainsKey(name)) is string absent)
         {
             throw new ContractException(
-                $"{direction.Name}: {gone} is gone since the version before, which takes a new major"
+                $"{direction.Name}: {absent} is absent since the version before, which takes a new major"
             );
         }
         return

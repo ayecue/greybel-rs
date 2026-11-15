@@ -7,9 +7,13 @@ use greyhack_world_router::protocol::{
 };
 
 use crate::routes::Result;
-use crate::{CctvFailure, SmartApplianceSettings, SmartDevicesContext};
+use crate::{CctvFailure, SmartApplianceSettings};
 
-pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
@@ -34,13 +38,13 @@ pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
 
 /// Enables smart-appliance settings on the computer at `lan_ip` behind `public_ip`.
 async fn add_smart_appliance(
-    world: &impl SmartDevicesContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     public_ip: &str,
     lan_ip: &str,
     appliance: &SmartApplianceOptions,
 ) -> Result<bool> {
     let Some(computer) = world
-        .core()
+        .module::<greyhack_world_core::CoreModule>()
         .networks
         .routers
         .computer_at(public_ip, lan_ip)
@@ -54,7 +58,7 @@ async fn add_smart_appliance(
     settings.override_enabled = appliance.override_enabled;
 
     Ok(world
-        .smart_devices()
+        .module::<crate::SmartDevicesModule>()
         .appliances
         .enable_smart_appliance(computer, &settings)
         .await?)
@@ -62,11 +66,11 @@ async fn add_smart_appliance(
 
 /// Handles browser CCTV access (`NetworkHelperServer.AccessWebServerRpc`).
 async fn access_cctv(
-    world: &impl SmartDevicesContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     message: &AdminAccessCctv<'_>,
 ) -> Result<CctvAccess> {
     let Some(computer) = world
-        .core()
+        .module::<greyhack_world_core::CoreModule>()
         .networks
         .routers
         .computer_at(&message.public_ip, &message.lan_ip)
@@ -79,7 +83,7 @@ async fn access_cctv(
 
     Ok(
         match world
-            .smart_devices()
+            .module::<crate::SmartDevicesModule>()
             .cctv
             .access_cctv(computer, message.password.as_deref())
             .await?

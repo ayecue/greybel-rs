@@ -6,9 +6,9 @@ use super::read_routers;
 
 /// A service a router of another network forwards, with an account of its computer.
 pub struct Target {
-    pub router: greyhack_world::RouterId,
-    pub computer: greyhack_world::ComputerId,
-    pub devices: Vec<greyhack_world::ComputerId>,
+    pub router: greyhack_world_core::RouterId,
+    pub computer: greyhack_world_core::ComputerId,
+    pub devices: Vec<greyhack_world_core::ComputerId>,
     pub address: String,
     pub port: u16,
     pub service: String,

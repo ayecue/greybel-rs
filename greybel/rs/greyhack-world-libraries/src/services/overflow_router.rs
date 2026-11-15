@@ -5,10 +5,10 @@ use greyhack_behaviour::{LibraryKind, Requirement, Reward, is_lan_ip, same_subne
 use super::report::{
     AttackResult, ExploitLog, ExploitOutcome, ExploitReport, UnmetRequirement, attack, report,
 };
-use crate::{ComputerId, LanFailure, Overflows, Result, RouterId, Weakness};
+use crate::{ComputerId, LanFailure, OverflowService, Result, RouterId, Weakness};
 
 /// Methods of [`World`] for exploits overflow router.
-impl Overflows {
+impl OverflowService {
     pub async fn overflow_router(
         &self,
         router: RouterId,
@@ -81,7 +81,7 @@ impl Overflows {
     }
 }
 
-impl Overflows {
+impl OverflowService {
     pub async fn router_reach(
         &self,
         router: RouterId,
@@ -126,7 +126,7 @@ impl Overflows {
         }
 
         let Some(router) = self.networks.routers.router(router).await? else {
-            return Ok(Some(UnmetRequirement::TargetGone));
+            return Ok(Some(UnmetRequirement::TargetMissing));
         };
         let local_ip = router.local_ip.clone();
 

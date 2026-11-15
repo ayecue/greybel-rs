@@ -1,7 +1,8 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::{LibraryKind, ServiceId};
-use greyhack_world::{Library, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_libraries::Library;
 use greyhack_world_operations::WorldServer;
 use scheduler::ManualClock;
 

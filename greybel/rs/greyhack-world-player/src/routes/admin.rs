@@ -9,10 +9,14 @@ use greyhack_world_router::protocol::{
     CtfEventOptions, CtfRating, Failure, MissionAcceptance,
 };
 
+use crate::CtfEvent;
 use crate::routes::Result;
-use crate::{CtfEvent, PlayerContext};
 
-pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
@@ -21,7 +25,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
 
             Ok(
                 match world
-                    .player()
+                    .module::<crate::PlayerModule>()
                     .mission_offers
                     .accept_procedural_mission(&message.shop_ip)
                     .await?
@@ -42,7 +46,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             world
-                .player()
+                .module::<crate::PlayerModule>()
                 .ctf
                 .create_ctf_account(
                     ctx.trees
@@ -112,27 +116,36 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
 ///
 /// Returns errors from database reads.
 async fn create_ctf_event(
-    world: &impl PlayerContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     computer: ComputerId,
     event: CtfEventOptions,
 ) -> Result<()> {
     let name = event.name;
 
     // Resolve or create the computer's person with `add_ctf_player` before validating the event.
-    world.player().ctf.add_ctf_player(&name, computer).await?;
+    world
+        .module::<crate::PlayerModule>()
+        .ctf
+        .add_ctf_player(&name, computer)
+        .await?;
 
-    let Some(creator) = world.npcs().npcs.person_on(computer).await? else {
+    let Some(creator) = world
+        .module::<greyhack_world_npcs::NpcModule>()
+        .npcs
+        .person_on(computer)
+        .await?
+    else {
         return Ok(());
     };
     let creator_bank_user = world
-        .economy()
+        .module::<greyhack_world_economy::EconomyModule>()
         .bank
         .bank_number_of(creator)
         .await?
         .unwrap_or_default();
 
     world
-        .player()
+        .module::<crate::PlayerModule>()
         .ctf
         .create_ctf_event(&CtfEvent {
             name: name.clone(),
@@ -150,14 +163,18 @@ async fn create_ctf_event(
             is_rated: false,
         })
         .await?;
-    world.player().ctf.add_ctf_player(&name, computer).await?;
+    world
+        .module::<crate::PlayerModule>()
+        .ctf
+        .add_ctf_player(&name, computer)
+        .await?;
 
     Ok(())
 }
 
 /// Submits quality and difficulty ratings for `name` from `computer`'s player.
 async fn rate_ctf_event(
-    world: &impl PlayerContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     computer: ComputerId,
     name: &str,
     quality: i64,
@@ -165,7 +182,7 @@ async fn rate_ctf_event(
 ) -> Result<CtfRating> {
     Ok(
         match world
-            .player()
+            .module::<crate::PlayerModule>()
             .ctf
             .add_ctf_score(name, computer, quality, difficulty)
             .await?

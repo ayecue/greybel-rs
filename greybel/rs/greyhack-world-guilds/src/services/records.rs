@@ -80,4 +80,14 @@ impl GuildService {
     pub async fn guilds(&self) -> Result<Vec<Guild>> {
         self.guilds.guilds().await
     }
+
+    /// Returns whether `bank_account` belongs to a guild with the player as a member
+    /// (`Guilds.FindGuildByBankAccount`).
+    pub async fn is_player_guild_account(&self, bank_account: &str) -> Result<bool> {
+        Ok(self
+            .guilds
+            .guild_of_account(bank_account)
+            .await?
+            .is_some_and(|guild| guild.player_member))
+    }
 }

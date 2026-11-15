@@ -42,7 +42,7 @@ pub struct Metaxploit {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) reverse_shells: std::rc::Rc<crate::storage::ReverseShellRepository>,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) generator: greyhack_world_core::Dep<crate::Generator>,
     pub(crate) network_generation:
@@ -54,7 +54,7 @@ impl Metaxploit {
         world: &greyhack_world_core::WorldRef,
         reverse_shells: std::rc::Rc<crate::storage::ReverseShellRepository>,
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
         generator: greyhack_world_core::Dep<crate::Generator>,
         network_generation: greyhack_world_core::Dep<dyn greyhack_world_core::NetworkGeneration>,

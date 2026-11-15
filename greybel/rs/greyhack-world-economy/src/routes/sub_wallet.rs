@@ -12,9 +12,13 @@ use crate::routes::protocol::{
     SubWalletWalletUsername, Transaction,
 };
 use crate::routes::{OperationError, Result};
-use crate::{EconomyContext, MineJobFailure, MineJobState, SubWallet};
+use crate::{MineJobFailure, MineJobState, SubWallet};
 
-pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -157,7 +161,7 @@ pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
                         .objects(call.tree)
                         .sub_wallet(message.sub_wallet)?;
                     let start = world
-                        .economy()
+                        .module::<crate::EconomyModule>()
                         .mine_jobs
                         .schedule_mine_on(
                             sub_wallet.coin,
@@ -213,12 +217,12 @@ pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
 
 /// Applies `read` to `sub_wallet` if it exists; otherwise returns `None`.
 async fn on_sub_wallet<T>(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     sub_wallet: &SubWalletRef,
     read: impl FnOnce(&SubWallet) -> T,
 ) -> Result<Option<T>> {
     Ok(world
-        .economy()
+        .module::<crate::EconomyModule>()
         .wallets
         .subwallet(sub_wallet.coin, &sub_wallet.user)
         .await?
@@ -227,12 +231,12 @@ async fn on_sub_wallet<T>(
 
 /// Applies `change` and saves the sub-wallet like [`on_sub_wallet`], using mutable access.
 async fn on_sub_wallet_mut<T>(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     sub_wallet: &SubWalletRef,
     change: impl FnOnce(&mut SubWallet) -> T,
 ) -> Result<Option<T>> {
     let Some(mut row) = world
-        .economy()
+        .module::<crate::EconomyModule>()
         .wallets
         .subwallet(sub_wallet.coin, &sub_wallet.user)
         .await?
@@ -241,7 +245,11 @@ async fn on_sub_wallet_mut<T>(
     };
     let result = change(&mut row);
 
-    world.economy().wallets.save_subwallet(&row).await?;
+    world
+        .module::<crate::EconomyModule>()
+        .wallets
+        .save_subwallet(&row)
+        .await?;
 
     Ok(Some(result))
 }
@@ -251,7 +259,10 @@ async fn on_sub_wallet_mut<T>(
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn balance(world: &impl EconomyContext, sub_wallet: &SubWalletRef) -> Result<Figure> {
+pub async fn balance(
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+    sub_wallet: &SubWalletRef,
+) -> Result<Figure> {
     Ok(on_sub_wallet(world, sub_wallet, |sub| sub.balance)
         .await?
         .map_or_else(
@@ -266,7 +277,7 @@ pub async fn balance(world: &impl EconomyContext, sub_wallet: &SubWalletRef) -> 
 ///
 /// Returns errors from database reads.
 pub async fn info(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     sub_wallet: &SubWalletRef,
 ) -> Result<Option<String>> {
     on_sub_wallet(world, sub_wallet, |sub| sub.info.clone()).await
@@ -278,7 +289,7 @@ pub async fn info(
 ///
 /// Returns errors from database reads.
 pub async fn wallet_username(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     sub_wallet: &SubWalletRef,
 ) -> Result<Option<String>> {
     on_sub_wallet(world, sub_wallet, |sub| sub.wallet_user.clone()).await
@@ -290,7 +301,7 @@ pub async fn wallet_username(
 ///
 /// Returns errors from database reads.
 pub async fn check_password(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     sub_wallet: &SubWalletRef,
     password: &str,
 ) -> Result<Option<bool>> {
@@ -306,11 +317,11 @@ pub async fn check_password(
 ///
 /// Returns errors from database reads.
 pub async fn last_transaction(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     sub_wallet: &SubWalletRef,
 ) -> Result<Option<Transaction>> {
     Ok(world
-        .economy()
+        .module::<crate::EconomyModule>()
         .wallets
         .last_transaction(sub_wallet.coin, &sub_wallet.user)
         .await?
@@ -328,7 +339,7 @@ pub async fn last_transaction(
 ///
 /// Returns errors from database reads or writes.
 pub async fn set_info(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     sub_wallet: &SubWalletRef,
     info: &str,
 ) -> Result<Option<bool>> {
@@ -351,9 +362,12 @@ fn mine_job_failure(failure: MineJobFailure) -> Outcome {
 /// # Errors
 ///
 /// Returns errors from database reads or writes.
-pub async fn delete(world: &impl EconomyContext, sub_wallet: &SubWalletRef) -> Result<bool> {
+pub async fn delete(
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+    sub_wallet: &SubWalletRef,
+) -> Result<bool> {
     Ok(world
-        .economy()
+        .module::<crate::EconomyModule>()
         .mine_jobs
         .delete_subwallet(sub_wallet.coin, &sub_wallet.user)
         .await?)

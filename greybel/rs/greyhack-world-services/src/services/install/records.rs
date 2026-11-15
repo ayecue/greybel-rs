@@ -2,7 +2,7 @@
 
 use greyhack_behaviour::{FileData, PermissionSet, ServiceId, path};
 
-use crate::services::Installs;
+use crate::services::InstallService;
 use crate::{ComputerId, Record, RecordDatabase, Result};
 
 /// Service record-update errors (`FileHelperServer.UpdateFichaServerRpc`).
@@ -15,7 +15,7 @@ pub enum RecordFailure {
 }
 
 /// Methods of [`World`] for services install records.
-impl Installs {
+impl InstallService {
     pub async fn service_records(
         &self,
         computer: ComputerId,

@@ -14,7 +14,7 @@ use crate::routes::{OperationError, Result};
 ///
 /// Returns errors from database reads.
 pub(super) async fn entries(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     folders: bool,
 ) -> Result<EntryResult> {
@@ -27,7 +27,7 @@ pub(super) async fn entries(
 
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .scripts
             .list_entries(&node, &file.access.user, &file.path, folders)
@@ -44,14 +44,17 @@ pub(super) async fn entries(
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn content(world: &impl crate::CoreContext, file: &FileRef) -> Result<FileContent> {
+pub async fn content(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<FileContent> {
     let Some(node) = accessible_resolve(world, file, true).await? else {
         return Ok(FileContent::Null);
     };
 
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .scripts
             .read_content(&node, &file.access.user, &file.path)
@@ -72,7 +75,7 @@ pub async fn content(world: &impl crate::CoreContext, file: &FileRef) -> Result<
 ///
 /// Returns errors from database reads or writes.
 pub async fn set_content(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     content: &str,
 ) -> Result<Outcome> {
@@ -82,7 +85,7 @@ pub async fn set_content(
 
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .scripts
             .write_content(&node, &file.access.user, &file.path, content)

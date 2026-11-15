@@ -23,14 +23,16 @@ use greyhack_world_modules::{Module, Registry};
 use greyhack_world_storage::DomainSchema;
 pub use model::{CameraFeed, CameraNpc, LocatedVehicle, TrafficNet, TrafficState};
 pub use objects::{ObjectTableExt, SmartApplianceHandle, TrafficNetHandle};
-pub use services::{ApplianceFailure, Appliances, Cctv, CctvFailure, Traffic, TrafficFailure};
+pub use services::{
+    ApplianceFailure, ApplianceService, Cctv, CctvFailure, Traffic, TrafficFailure,
+};
 use storage::SmartDeviceRepository;
 
 /// Services and smart-device storage of this domain.
 #[derive(Clone)]
 pub struct SmartDevicesModule {
     /// Appliance settings, overrides, alarms, and accidents.
-    pub appliances: Rc<Appliances>,
+    pub appliances: Rc<ApplianceService>,
     /// Police camera credentials, vehicle lookup, and traffic accidents.
     pub traffic: Rc<Traffic>,
     /// Browser camera feeds and external-access rules.
@@ -41,7 +43,7 @@ impl SmartDevicesModule {
     fn new(registry: &Rc<Registry>) -> Self {
         let world: &WorldRef = registry.world();
         let smart_devices = Rc::new(SmartDeviceRepository::new(world.db().clone()));
-        let appliances = Rc::new(Appliances::new(
+        let appliances = Rc::new(ApplianceService::new(
             world,
             smart_devices.clone(),
             registry.get(),
@@ -87,10 +89,4 @@ impl Module for SmartDevicesModule {
 
         module
     }
-}
-
-/// Access to smart-device, guild, NPC, economy, and core services from a concrete assembled world.
-pub trait SmartDevicesContext: greyhack_world_guilds::GuildContext {
-    /// Returns this world's smart-devices module.
-    fn smart_devices(&self) -> Rc<SmartDevicesModule>;
 }

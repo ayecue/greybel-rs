@@ -3,17 +3,17 @@ use std::collections::BTreeSet;
 #[path = "support/mod.rs"]
 mod support;
 
+use greyhack_world_core::Database;
+use greyhack_world_economy::{CoinRound, DailyUpkeep, Payment};
+use greyhack_world_libraries::LibraryCheck;
+use greyhack_world_npcs::NpcSwitch;
 use greyhack_world_routines::{QUEUE_TABLES, Routine as _};
 use greyhack_world_services::ServiceRestart;
 use greyhack_world_storage::sql::fetch_column;
+use greyhack_world_traces::{ActiveTrace, PassiveTrace};
 
 use super::world_schema;
-use crate::economy::{CoinRound, DailyUpkeep, Payment};
-use crate::guilds::{ActiveTrace, PassiveTrace};
-use crate::libraries::LibraryCheck;
-use crate::npcs::NpcSwitch;
-use crate::prelude::*;
-use crate::storage::Database;
+use crate::DatabaseOpen;
 
 #[tokio::test]
 async fn should_create_exactly_the_registered_tables() {

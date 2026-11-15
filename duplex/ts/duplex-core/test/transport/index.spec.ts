@@ -236,7 +236,7 @@ describe('credit', () => {
   });
 });
 
-describe('the transport of a transport gone for good', () => {
+describe('the transport of a permanently closed transport', () => {
   it('should close a channel attached after its transport disconnected', async () => {
     const driver = new MemoryDriver();
     const transport = new Transport(driver);

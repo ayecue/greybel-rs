@@ -14,7 +14,7 @@ use crate::routes::{OperationError, Result};
 ///
 /// Returns errors from database reads or writes.
 pub async fn chmod(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     change: &str,
     recursive: bool,
@@ -22,7 +22,7 @@ pub async fn chmod(
     let computer = file.access.computer;
 
     if world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .topology
         .computer(computer)
@@ -36,7 +36,7 @@ pub async fn chmod(
         return Ok(file_change(FileFailure::NoPermission));
     };
     let account = world
-        .core()
+        .module::<crate::CoreModule>()
         .computers
         .users
         .user(computer, &file.access.user)
@@ -44,7 +44,7 @@ pub async fn chmod(
 
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .permissions
             .change_permissions(&node, change, account.as_ref(), recursive)
@@ -62,7 +62,7 @@ pub async fn chmod(
 ///
 /// Returns errors from database reads or writes.
 pub async fn set_owner(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     owner: Option<&str>,
     group: Option<&str>,
@@ -79,7 +79,7 @@ pub async fn set_owner(
     }
 
     let account = world
-        .core()
+        .module::<crate::CoreModule>()
         .computers
         .users
         .user(node.computer, &file.access.user)
@@ -87,7 +87,7 @@ pub async fn set_owner(
 
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .permissions
             .set_owner(&node, owner, group, account.as_ref(), recursive)

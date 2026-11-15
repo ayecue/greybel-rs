@@ -25,8 +25,8 @@ pub struct ProcessUsage {
 /// What a script's `close_program` did (`ComputerIntrinsics.close_program`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProcessClose {
-    /// The computer is gone.
-    Gone,
+    /// The computer no longer exists.
+    ComputerMissing,
     /// The computer has no such process.
     Missing,
     /// The process ended.
@@ -39,7 +39,7 @@ pub enum ProcessClose {
 
 impl ProcessesService {
     /// Lists the processes of `computer` with their memory share (`ComputerIntrinsics.show_procs`),
-    /// or `None` if it is gone. NPC user processes are intentionally omitted.
+    /// or `None` if it no longer exists. NPC user processes are intentionally omitted.
     ///
     /// # Errors
     ///
@@ -83,7 +83,7 @@ impl ProcessesService {
         terminal_command: Option<(ComputerId, u32)>,
     ) -> Result<ProcessClose> {
         if self.computer_rows.computer(computer).await?.is_none() {
-            return Ok(ProcessClose::Gone);
+            return Ok(ProcessClose::Missing);
         }
 
         if pid >= PROTECTED_PIDS {

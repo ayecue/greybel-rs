@@ -1,6 +1,11 @@
 use greybel_test_support::future::block_on;
-use greyhack_behaviour::{FIRST_VERSION, FileData, LibraryKind, NetworkKind, license_plate};
-use greyhack_world::{JobRole, Library, NetworkId, PersonId, PlayerOptions, TrafficNet, World};
+use greyhack_behaviour::{
+    FIRST_VERSION, FileData, JobRole, LibraryKind, NetworkKind, license_plate,
+};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::{NetworkId, PersonId};
+use greyhack_world_libraries::Library;
+use greyhack_world_smart_devices::TrafficNet;
 
 use super::{add_library, read_computer};
 

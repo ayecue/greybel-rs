@@ -1,7 +1,8 @@
 //! Helpers of the library version tests.
 
 use greyhack_behaviour::{LibraryKind, MAX_WEAKNESS_USES, Reward};
-use greyhack_world::{Library, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_libraries::Library;
 
 use super::exploit_shop::{VERSION, install_library, named_weakness, zone};
 

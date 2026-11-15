@@ -9,9 +9,13 @@ use greyhack_world_router::protocol::{
 
 use super::Result;
 use super::protocol::Creation;
-use crate::{CreationContext, ObjectTableExt as _};
+use crate::ObjectTableExt as _;
 
-pub(crate) fn register<W: CreationContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -38,12 +42,12 @@ pub(crate) fn register<W: CreationContext + 'static>(routes: &RouteTable) {
 
 /// Creates a computer on the network at `public_ip`.
 async fn add_computer(
-    world: &impl CreationContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     public_ip: &str,
     computer: ComputerOptions,
 ) -> Result<Creation<ComputerId>> {
     let Some(router) = world
-        .core()
+        .module::<greyhack_world_core::CoreModule>()
         .networks
         .routers
         .router_at(public_ip)
@@ -56,7 +60,7 @@ async fn add_computer(
     };
 
     Ok(world
-        .creation()
+        .module::<crate::CreationModule>()
         .network_generation
         .add_computer_to(router, &computer.into())
         .await?

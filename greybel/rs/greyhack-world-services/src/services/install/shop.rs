@@ -8,7 +8,7 @@ use greyhack_world_assets::{GameTextTable, Script};
 use indexmap::IndexMap;
 
 use crate::model::service_config::config_text;
-use crate::services::Installs;
+use crate::services::InstallService;
 use crate::{ComputerId, HttpConfig, NodeDraft, RepositoryConfig, Result, SoftwareInfo};
 
 /// Returns the English detail text of the program or library file `name`, or its translation key
@@ -22,7 +22,7 @@ fn program_detail(name: &str) -> String {
 }
 
 /// Methods of [`World`] for services install shop.
-impl Installs {
+impl InstallService {
     pub async fn update_hackshop_libs(&self, computer: ComputerId, folder: &str) -> Result<bool> {
         let Some(row) = self.networks.topology.computer(computer).await? else {
             return Ok(false);

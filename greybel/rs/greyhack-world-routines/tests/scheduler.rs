@@ -170,7 +170,7 @@ async fn should_cancel_a_routine_with_its_data() {
 }
 
 #[tokio::test]
-async fn should_delete_a_routine_whose_data_is_gone() {
+async fn should_delete_a_routine_whose_data_is_missing() {
     // Arrange
     let mut host = host().await;
     let scheduler = scheduler(&host);

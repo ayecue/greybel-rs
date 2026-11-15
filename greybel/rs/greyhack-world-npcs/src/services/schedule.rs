@@ -6,7 +6,7 @@ use greyhack_world_core::{ComputerId, PersonId};
 use crate::{NetworkRestore, Npc, NpcLoginCapture, NpcSchedule, NpcSwitch, Result};
 
 /// Methods of [`World`] for npcs schedule.
-impl Schedules {
+impl ScheduleService {
     pub async fn set_npc_login(&self, npc: PersonId, logged: bool) -> Result<()> {
         self.npcs.npcs.set_npc_online(npc, logged).await
     }
@@ -90,7 +90,7 @@ impl Schedules {
 }
 
 /// NPC work schedules, logins, lateness, and phone alarms.
-pub struct Schedules {
+pub struct ScheduleService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
@@ -101,7 +101,7 @@ pub struct Schedules {
     pub(crate) scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
 }
 
-impl Schedules {
+impl ScheduleService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         registry: &std::rc::Rc<greyhack_world_modules::Registry>,

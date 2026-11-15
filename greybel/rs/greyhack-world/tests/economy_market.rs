@@ -1,4 +1,4 @@
-use greyhack_world::{Side, Trade};
+use greyhack_world_economy::{Side, Trade};
 
 use crate::support::economy_market::{balance, market, money, offers};
 
@@ -195,7 +195,7 @@ async fn should_feed_a_matched_trade_into_the_daily_price_update() {
 }
 
 #[tokio::test]
-async fn should_give_nothing_for_a_wallet_that_is_gone() {
+async fn should_give_nothing_for_a_wallet_that_is_missing() {
     // Arrange
     let (world, _, _) = market().await;
 
@@ -208,7 +208,7 @@ async fn should_give_nothing_for_a_wallet_that_is_gone() {
             "Bitcoin",
             1.0,
             1.0,
-            greyhack_world::WalletId::new(99),
+            greyhack_world_economy::WalletId::new(99),
             "buyer-sub",
         )
         .await
@@ -309,7 +309,7 @@ async fn should_keep_coins_a_pending_sale_offers_from_a_transfer() {
     // Assert
     assert_eq!(
         too_much,
-        Err(greyhack_world::TransferFailure::SaleOfferShortfall)
+        Err(greyhack_world_economy::TransferFailure::SaleOfferShortfall)
     );
     assert_eq!(spare, Ok(()));
 }

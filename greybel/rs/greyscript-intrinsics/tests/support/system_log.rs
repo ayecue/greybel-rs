@@ -5,7 +5,9 @@ use std::future::ready;
 use greybel_interpreter::{InputFuture, Key, Stdin};
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::{LibraryKind, ROOT_USER, Reward, SYSTEM_LOG_PATH, SystemLog};
-use greyhack_world::{ComputerId, Library, MemoryZone, Weakness, World};
+use greyhack_world::World;
+use greyhack_world_core::ComputerId;
+use greyhack_world_libraries::{Library, MemoryZone, Weakness};
 
 use super::network::{SERVICE_SEED, ServiceTarget, first_remote_service};
 use super::scripts::run_game_with_io;

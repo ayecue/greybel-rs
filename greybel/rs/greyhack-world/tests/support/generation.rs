@@ -1,5 +1,7 @@
 use greyhack_behaviour::{NetworkKind, WorldSeed, kind_for_ip};
-use greyhack_world::{ComputerId, NetworkOptions, RouterId, World};
+use greyhack_world::World;
+use greyhack_world_core::{ComputerId, RouterId};
+use greyhack_world_creation::NetworkOptions;
 
 /// A public address the world gives network kind `kind` (`IpGenerator.GetNetworkType`).
 pub fn address_for_kind(seed: &WorldSeed, kind: NetworkKind) -> String {

@@ -1,7 +1,10 @@
 use greyhack_behaviour::{
     FileData, MAX_FILES, MAX_FILES_PER_FOLDER, Permission, PermissionSet, ROOT_USER, parse_date,
 };
-use greyhack_world::{AptFailure, FileFailure, NodeDraft, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::FileFailure;
+use greyhack_world_libraries::NodeDraft;
+use greyhack_world_services::AptFailure;
 
 use crate::support::filesystem::{add_source_file, computers_for_copy, tree};
 
@@ -459,7 +462,7 @@ async fn should_reject_a_copy_that_exceeds_the_destination_free_space() {
         .core
         .files
         .sizes
-        .free_space_mb(destination)
+        .available_storage_mb(destination)
         .await
         .unwrap();
 

@@ -1,6 +1,7 @@
 use greybel_test_support::future::block_on;
-use greyhack_behaviour::{FIRST_VERSION, FileData, LibraryKind};
-use greyhack_world::{Library, PlayerOptions, SmartApplianceSettings, World};
+use greyhack_behaviour::{FIRST_VERSION, FileData, LibraryKind, SmartApplianceSettings};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_libraries::Library;
 
 use super::add_library;
 

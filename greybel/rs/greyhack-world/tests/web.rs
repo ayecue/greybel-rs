@@ -2,7 +2,8 @@
 
 #![cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 
-use greyhack_world::{Database, PlayerOptions, World, WorldOptions};
+use greyhack_world::{PlayerOptions, World, WorldOptions};
+use greyhack_world_core::Database;
 use wasm_bindgen_test::wasm_bindgen_test;
 
 #[wasm_bindgen_test]

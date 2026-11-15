@@ -1,4 +1,5 @@
-use greyhack_world::{Flood, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_intrusion::Flood;
 
 use crate::support::flood::rebooting;
 

@@ -1,7 +1,8 @@
 use greyhack_behaviour::{SubscriptionKind, exp_after_member_exit};
-use greyhack_world::{GuildDraft, TraceKind};
+use greyhack_world_core::TraceKind;
+use greyhack_world_guilds::GuildDraft;
 
-use crate::support::guilds_active_traces::{BANK_SHARES, LEVEL_FIVE, bank};
+use crate::support::traces_active::{BANK_SHARES, LEVEL_FIVE, bank};
 
 #[tokio::test]
 async fn should_end_the_game_on_the_third_strike() {
@@ -45,14 +46,14 @@ async fn should_end_the_game_on_the_third_strike() {
         .add_subscription("test", SubscriptionKind::Rented, 40, &address)
         .await
         .unwrap();
-    world.modules.guilds.traces.set_strikes(2).await.unwrap();
+    world.modules.traces.traces.set_strikes(2).await.unwrap();
     world.deliver_events();
     world.take_changed_computers();
 
     // Act
     world
         .modules
-        .guilds
+        .traces
         .traces
         .strike_player(company, TraceKind::Active)
         .await
@@ -65,7 +66,7 @@ async fn should_end_the_game_on_the_third_strike() {
     world.assembly.events.on({
         let strikes = strikes.clone();
 
-        move |event: &greyhack_world::StrikeEvent| strikes.borrow_mut().push(*event)
+        move |event: &greyhack_world_traces::StrikeEvent| strikes.borrow_mut().push(*event)
     });
     world.assembly.events.deliver_async().await.unwrap();
     assert!(
@@ -104,7 +105,7 @@ async fn should_end_the_game_on_the_third_strike() {
             .is_none()
     );
     assert!(world.take_changed_computers().contains(&player));
-    assert_eq!(world.modules.guilds.traces.strikes().await.unwrap(), 0);
+    assert_eq!(world.modules.traces.traces.strikes().await.unwrap(), 0);
     assert_eq!(guild.total_exp, exp_after_member_exit(LEVEL_FIVE));
     assert!(!guild.player_member);
     assert!(
@@ -152,21 +153,21 @@ async fn should_keep_the_player_for_the_first_two_strikes() {
     // Act
     world
         .modules
-        .guilds
+        .traces
         .traces
         .strike_player(company, TraceKind::Active)
         .await
         .unwrap();
     world
         .modules
-        .guilds
+        .traces
         .traces
         .strike_player(company, TraceKind::Passive)
         .await
         .unwrap();
 
     // Assert
-    assert_eq!(world.modules.guilds.traces.strikes().await.unwrap(), 2);
+    assert_eq!(world.modules.traces.traces.strikes().await.unwrap(), 2);
     assert!(world.has_player());
     assert!(
         world
@@ -188,24 +189,24 @@ async fn should_stop_every_trace_when_the_game_ends() {
 
     world
         .modules
-        .guilds
+        .traces
         .traces
         .trace_action(company, 5, greyhack_behaviour::LogAction::Remove, 1)
         .await
         .unwrap();
     world
         .modules
-        .guilds
+        .traces
         .traces
         .add_passive_trace(company)
         .await
         .unwrap();
-    world.modules.guilds.traces.set_strikes(2).await.unwrap();
+    world.modules.traces.traces.set_strikes(2).await.unwrap();
 
     // Act
     world
         .modules
-        .guilds
+        .traces
         .traces
         .strike_player(company, TraceKind::Passive)
         .await
@@ -216,7 +217,7 @@ async fn should_stop_every_trace_when_the_game_ends() {
     assert!(
         world
             .modules
-            .guilds
+            .traces
             .traces
             .active_traces()
             .await
@@ -226,7 +227,7 @@ async fn should_stop_every_trace_when_the_game_ends() {
     assert!(
         world
             .modules
-            .guilds
+            .traces
             .traces
             .passive_traces()
             .await
@@ -241,6 +242,6 @@ async fn should_stop_every_trace_when_the_game_ends() {
             .await
             .unwrap()
             .iter()
-            .all(|entry| entry.key != "guilds.active_trace")
+            .all(|entry| entry.key != "traces.active_trace")
     );
 }

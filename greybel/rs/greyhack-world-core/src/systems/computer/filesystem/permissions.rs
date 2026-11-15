@@ -3,7 +3,7 @@
 use std::rc::Rc;
 
 use crate::storage::*;
-use crate::systems::{FilePermissions as FilePermissionsService, *};
+use crate::systems::{FilePermissionService as FilePermissionsService, *};
 use crate::*;
 
 /// Checks ancestor traversal with the lookup service shared by both permission callers.
@@ -200,13 +200,13 @@ impl FilePermissionsService {
 }
 
 /// File ownership and permission rules.
-pub struct FilePermissions {
+pub struct FilePermissionService {
     pub(crate) node_rows: Rc<NodeRepository>,
     pub(crate) users: Dep<UserService>,
     pub(crate) lookup: Dep<FileLookup>,
 }
 
-impl FilePermissions {
+impl FilePermissionService {
     pub(crate) fn new(
         registry: &Rc<greyhack_world_modules::Registry>,
         node_rows: Rc<NodeRepository>,

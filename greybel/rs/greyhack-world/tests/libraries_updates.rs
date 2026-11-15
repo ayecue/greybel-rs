@@ -1,5 +1,7 @@
 use greyhack_behaviour::{FileKind, LibraryKind};
-use greyhack_world::{ComputerOptions, LibraryReportFailure, NetworkOptions, World};
+use greyhack_world::World;
+use greyhack_world_creation::{ComputerOptions, NetworkOptions};
+use greyhack_world_libraries::LibraryReportFailure;
 
 use crate::support::library_updates::{
     FTP_PATH, SSH, SSH_PATH, library_at, network_of, ssh_port_version, version_of, world,

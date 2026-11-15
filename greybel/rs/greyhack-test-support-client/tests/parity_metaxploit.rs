@@ -3,7 +3,7 @@
 use greybel_test_support::game::Game;
 use greyhack_behaviour::{Requirement, Reward};
 use greyhack_test_support_client::protocol::test_support::LanNodeKind;
-use greyhack_world::Weakness;
+use greyhack_world_libraries::Weakness;
 
 use crate::support::game::{join_network, join_network_where, setup_player, test_client};
 use crate::support::metaxploit::{

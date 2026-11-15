@@ -1,7 +1,10 @@
 //! Worlds with rented networks and the player's subscriptions to them.
 
 use greyhack_behaviour::{NetworkKind, SubscriptionKind};
-use greyhack_world::{BankSubscription, NetworkId, NetworkOptions, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::NetworkId;
+use greyhack_world_creation::NetworkOptions;
+use greyhack_world_economy::BankSubscription;
 
 pub const FIRST: &str = "45.45.45.46";
 pub const SECOND: &str = "45.45.45.47";

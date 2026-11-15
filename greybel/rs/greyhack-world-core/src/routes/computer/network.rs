@@ -17,14 +17,14 @@ use crate::{ActiveCard, ComputerId, WifiRequest, WifiScan};
 ///
 /// Returns errors from database reads.
 pub async fn get_ports(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
 ) -> Result<Option<Vec<Port>>> {
     let Some(computer) = computer(world, access).await? else {
         return Ok(None);
     };
     let ports = world
-        .core()
+        .module::<crate::CoreModule>()
         .computers
         .processes
         .ports(access.computer)
@@ -43,11 +43,11 @@ pub async fn get_ports(
 ///
 /// Returns errors from database reads.
 pub async fn active_net_card(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
 ) -> Result<Option<CardKind>> {
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .net_cards
         .active_card_kind(access.computer)
@@ -65,11 +65,11 @@ pub async fn active_net_card(
 ///
 /// Returns errors from database reads.
 pub async fn network_devices(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
 ) -> Result<Option<Vec<NetworkDevice>>> {
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .net_cards
         .network_devices(access.computer)
@@ -93,13 +93,13 @@ pub async fn network_devices(
 /// Returns [`ScriptFailure::WifiCardInactive`] for a disabled card and
 /// search failures use [`OperationError::World`](crate::OperationError::World).
 pub async fn wifi_networks(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     device: &str,
 ) -> Result<Option<Scan>> {
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .networks
             .net_cards
             .scan_wifi(access.computer, device)
@@ -132,13 +132,13 @@ pub async fn wifi_networks(
 ///
 /// Returns errors from database searches.
 pub async fn connect_wifi(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     request: &WifiRequest<'_>,
     wait: bool,
 ) -> Result<NetworkSwitch> {
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .net_cards
         .join_wifi(access.computer, &access.user, request, wait)
@@ -154,7 +154,7 @@ pub async fn connect_wifi(
 /// Returns [`ScriptFailure::InvalidArguments`] for missing settings, [`ScriptFailure::NoConnection`] when
 /// offline, and [`OperationError::World`](crate::OperationError::World) for search failures.
 pub async fn connect_ethernet(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     terminal_computers: &[ComputerId],
     settings: Option<&EthernetSettings>,
@@ -167,7 +167,7 @@ pub async fn connect_ethernet(
     require_connection(world, terminal_computers).await?;
 
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .net_cards
         .join_ethernet(

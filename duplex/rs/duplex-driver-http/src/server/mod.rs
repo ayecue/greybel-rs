@@ -112,20 +112,20 @@ impl<M: Downstream> Server<M> {
     /// Disconnects overloaded or idle clients on a one-second interval.
     async fn sweep(self: Rc<Self>) {
         let mut ticks = tokio::time::interval(SWEEP);
-        let mut gone = Vec::new();
+        let mut clients_to_disconnect = Vec::new();
 
         loop {
             ticks.tick().await;
 
             let idle = self.options.idle;
 
-            gone.extend(
+            clients_to_disconnect.extend(
                 self.clients
                     .borrow_mut()
-                    .extract_if(|_, client| client.is_gone_after(SWEEP, idle))
+                    .extract_if(|_, client| client.should_disconnect_after(SWEEP, idle))
                     .map(|(_, client)| client),
             );
-            for client in gone.drain(..) {
+            for client in clients_to_disconnect.drain(..) {
                 client.disconnect();
             }
         }

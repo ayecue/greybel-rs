@@ -11,4 +11,4 @@ pub use lookups::{
     CtfPasswordFailure, FolderChange, FolderLookup, IncludedLibrary, Player as PlayerService,
     PlayerAccount,
 };
-pub use missions::{AcceptedMission, MissionFailure, MissionOffers};
+pub use missions::{AcceptedMission, MissionFailure, MissionOfferService};

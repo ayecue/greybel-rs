@@ -45,9 +45,9 @@ impl IntoProtocol for crate::MineJobFailure {
     fn into_protocol(self) -> Self::Output {
         match self {
             Self::ComputerUnavailable => MineJobFailure::ComputerUnavailable,
-            Self::CoinGone => MineJobFailure::CoinGone,
+            Self::CoinMissing => MineJobFailure::CoinMissing,
             Self::AllMined(coin) => MineJobFailure::AllMined(coin),
-            Self::SubwalletGone => MineJobFailure::SubwalletGone,
+            Self::SubwalletMissing => MineJobFailure::SubwalletMissing,
             Self::SecondMineJob => MineJobFailure::SecondMineJob,
             Self::DamagedGpu => MineJobFailure::DamagedGpu,
             Self::CorruptedGpu => MineJobFailure::CorruptedGpu,

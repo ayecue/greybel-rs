@@ -46,8 +46,8 @@ pub use services::report::{
 pub use services::shop::failure::ExploitShopFailure;
 pub use services::shop::purchase::ExploitPurchase;
 pub use services::{
-    Debug, ExploitService, Generator, LibraryService, Metaxploit, Overflows, Shop, Updates,
-    VersionService,
+    Debug, ExploitService, Generator, LibraryService, Metaxploit, OverflowService, Shop,
+    UpdateService, VersionService,
 };
 use storage::{
     DebugRepository, ExploitRepository, LibraryRepository, LibraryVersionRepository,
@@ -66,7 +66,7 @@ pub struct LibraryModule {
     /// Metaxploit scans, sessions, and reverse shells.
     pub metaxploit: Rc<Metaxploit>,
     /// Overflow requirements, rewards, and logs.
-    pub overflows: Rc<Overflows>,
+    pub overflows: Rc<OverflowService>,
     /// Exploit scripts and descriptions.
     pub exploits: Rc<ExploitService>,
     /// Debug accounts, libraries, and zero-days.
@@ -74,7 +74,7 @@ pub struct LibraryModule {
     /// Exploit catalog, coupons, and purchases.
     pub shop: Rc<Shop>,
     /// Network-reported library updates.
-    pub updates: Rc<Updates>,
+    pub updates: Rc<UpdateService>,
     /// Scheduled library-version check.
     pub check: Rc<LibraryCheck>,
 }
@@ -106,7 +106,7 @@ impl LibraryModule {
             registry.get(),
             registry.get(),
         ));
-        let updates = Rc::new(Updates::new(
+        let updates = Rc::new(UpdateService::new(
             world,
             libraries.clone(),
             registry.get(),
@@ -129,7 +129,7 @@ impl LibraryModule {
                 registry.get(),
                 registry.get(),
             )),
-            overflows: Rc::new(Overflows::new(registry)),
+            overflows: Rc::new(OverflowService::new(registry)),
             exploits: Rc::new(ExploitService::new(exploits)),
             debug: Rc::new(Debug::new(world, debug, registry.get(), registry.get())),
             shop,
@@ -147,6 +147,7 @@ impl LibraryModule {
                 storage::schema::GROUP,
                 storage::schema::COUPONS,
                 LibraryCheck::tables(),
+                storage::schema::VOLATILE,
             ],
         )
     }
@@ -158,8 +159,9 @@ impl Module for LibraryModule {
     fn register(registry: &Rc<Registry>) -> Self {
         let module = Self::new(registry);
 
-        registry
-            .register_service::<dyn greyhack_world_core::LibraryVersions>(module.generator.clone());
+        registry.register_service::<dyn greyhack_world_core::LibraryVersionService>(
+            module.generator.clone(),
+        );
         registry.register_service::<dyn greyhack_world_intrusion::LibraryObjectAccess>(
             module.metaxploit.clone(),
         );
@@ -179,10 +181,4 @@ impl Module for LibraryModule {
 
         module
     }
-}
-
-/// Access to libraries, smart devices, guilds, NPCs, economy, and core from an assembled world.
-pub trait LibraryContext: greyhack_world_smart_devices::SmartDevicesContext {
-    /// Returns this world's libraries module.
-    fn libraries(&self) -> Rc<LibraryModule>;
 }

@@ -160,7 +160,7 @@ pub struct NetworkLan {
     pub(crate) world: WorldRef,
     pub(crate) computer_rows: Rc<ComputerRepository>,
     pub(crate) router_rows: Rc<RouterRepository>,
-    pub npcs: Dep<dyn crate::NpcHook>,
+    pub npcs: Dep<dyn crate::NpcState>,
 }
 
 impl NetworkLan {

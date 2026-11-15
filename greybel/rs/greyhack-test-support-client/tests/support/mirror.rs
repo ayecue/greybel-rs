@@ -1,20 +1,26 @@
 //! A simulated network like the game's: the [`NetworkLayout`] of a [`NetworkSnapshot`] the bridge read.
 
 use greyhack_behaviour::{
-    Command, DeviceKind, FIRST_VERSION, FileData, FileKind, FirewallRule, LibraryKind, NetworkKind,
-    PermissionSet, Requirement, Reward, SAFE_MODE_TERMINAL, SAFE_MODE_TERMINAL_RAM_MB, ServiceId,
-    SubscriptionKind,
+    Command, DeviceKind, FIRST_VERSION, FileData, FileKind, FirewallRule, LibraryKind,
+    NetworkAdmin, NetworkKind, PermissionSet, Requirement, Reward, SAFE_MODE_TERMINAL,
+    SAFE_MODE_TERMINAL_RAM_MB, ServiceId, SmartApplianceSettings, SubscriptionKind,
+    WorkPerformance,
 };
 use greyhack_test_support_client::protocol::test_support::{
     ComputerSnapshot, FileSnapshot, FirewallRuleSnapshot, LanNodeKind, NetworkSnapshot,
     PortSnapshot, RouterSnapshot, TablePortSnapshot,
 };
-use greyhack_world::{
-    BankLayout, BankSubscription, CoinLayout, ComputerDraft, DeviceLayout, EconomyLayout,
-    FileSystemDraft, ForwardLayout, Hardware, LanNodeLayout, Library, MemoryZone, MiningHardware,
-    NetCard, NetworkAdmin, NetworkLayout, NodeDraft, OfferLayout, Part, Port, PriceRecord, Process,
-    RouterDraft, SavedNetwork, Side, SmartApplianceSettings, SubWalletLayout, User, WalletLayout,
-    Weakness, WorkPerformance, World,
+use greyhack_world::World;
+use greyhack_world_core::{
+    Hardware, MinerHardware, NetCard, Part, Port, Process, SavedNetwork, User,
+};
+use greyhack_world_creation::{DeviceLayout, ForwardLayout, LanNodeLayout, NetworkLayout};
+use greyhack_world_economy::{
+    BankLayout, BankSubscription, CoinLayout, EconomyLayout, OfferLayout, PriceRecord, Side,
+    SubWalletLayout, WalletLayout,
+};
+use greyhack_world_libraries::{
+    ComputerDraft, FileSystemDraft, Library, MemoryZone, NodeDraft, RouterDraft, Weakness,
 };
 use serde::Deserialize;
 
@@ -317,7 +323,7 @@ fn hardware(computer: &ComputerSnapshot) -> Hardware {
         })
         .collect();
 
-    Hardware::standard(2048, 10_000.0, &MiningHardware::default(), cards)
+    Hardware::standard(2048, 10_000.0, &MinerHardware::default(), cards)
 }
 
 /// The kind of a computer as the game names it (`NetworkLan.TypeDevice`).

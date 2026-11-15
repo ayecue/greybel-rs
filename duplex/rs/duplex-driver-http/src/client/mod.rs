@@ -170,7 +170,7 @@ impl Client {
 
     /// Advances liveness by `period` and returns whether the client is overloaded or exceeded `idle` without requests
     /// or an open stream.
-    pub(crate) fn is_gone_after(&self, period: Duration, idle: Duration) -> bool {
+    pub(crate) fn should_disconnect_after(&self, period: Duration, idle: Duration) -> bool {
         if self.active.replace(false) || self.streams.get() > 0 {
             self.idle_for.set(Duration::ZERO);
         } else {

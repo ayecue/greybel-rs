@@ -149,7 +149,7 @@ pub(crate) fn computer(
     computer.hardware = Hardware::standard(
         STANDARD_RAM_MB,
         STANDARD_DISK_MB,
-        &options.mining_hardware,
+        &options.miner_hardware,
         vec![NetCard {
             part: Part::new(NETWORK_CARD),
             active: true,

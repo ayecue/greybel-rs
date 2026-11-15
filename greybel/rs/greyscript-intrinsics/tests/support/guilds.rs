@@ -1,6 +1,8 @@
 use greybel_test_support::future::block_on;
-use greyhack_behaviour::{NetworkKind, SECONDS_PER_DAY, kind_for_ip};
-use greyhack_world::{GuildDraft, NetworkOptions, Rng, World};
+use greyhack_behaviour::{NetworkKind, Rng, SECONDS_PER_DAY, kind_for_ip};
+use greyhack_world::World;
+use greyhack_world_creation::NetworkOptions;
+use greyhack_world_guilds::GuildDraft;
 
 pub const SHARES: u32 = 100_000;
 

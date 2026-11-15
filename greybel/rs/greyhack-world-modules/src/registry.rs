@@ -80,7 +80,9 @@ impl Registry {
         }
     }
 
-    pub(crate) fn resolve<T: ?Sized + 'static>(&self) -> Option<Rc<T>> {
+    /// Returns registered service or module `T`, if present.
+    #[must_use]
+    pub fn resolve<T: ?Sized + 'static>(&self) -> Option<Rc<T>> {
         self.services
             .borrow()
             .get(&TypeId::of::<T>())

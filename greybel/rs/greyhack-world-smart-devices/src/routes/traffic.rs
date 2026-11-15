@@ -2,14 +2,17 @@
 
 use greyhack_world_router::RouteTable;
 
-use crate::SmartDevicesContext;
 use crate::objects::ObjectTableExt;
 use crate::routes::protocol::{
     CredentialsInfo, Failure, IntoProtocol as _, Outcome, TrafficNetCameraLinkSystem,
     TrafficNetGetCredentialsInfo, TrafficNetLocateVehicle,
 };
 
-pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -22,7 +25,7 @@ pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
 
             Ok(ctx
                 .modules
-                .smart_devices()
+                .module::<crate::SmartDevicesModule>()
                 .traffic
                 .camera_link_system(computer)
                 .await?
@@ -45,7 +48,7 @@ pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
             Ok(
                 match ctx
                     .modules
-                    .smart_devices()
+                    .module::<crate::SmartDevicesModule>()
                     .traffic
                     .camera_credentials(computer)
                     .await?
@@ -74,7 +77,7 @@ pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
 
             Ok(ctx
                 .modules
-                .smart_devices()
+                .module::<crate::SmartDevicesModule>()
                 .traffic
                 .locate_vehicle_from(
                     computer,

@@ -1,8 +1,10 @@
 use greyhack_behaviour::{FileData, FirewallRule, PermissionSet, ServiceId, library_check_seconds};
-use greyhack_world::{
-    ComputerOptions, MineJobFailure, MiningHardware, NetworkOptions, NodeDraft, PlayerOptions,
-    SnifferPacket, World,
-};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::MinerHardware;
+use greyhack_world_creation::{ComputerOptions, NetworkOptions};
+use greyhack_world_economy::MineJobFailure;
+use greyhack_world_intrusion::SnifferPacket;
+use greyhack_world_libraries::NodeDraft;
 
 use crate::support::schedule::{mining_world, scheduled_work};
 use crate::support::{computer, computers, ended, router, save_copy, work_ends};
@@ -646,7 +648,7 @@ async fn should_fail_the_work_of_a_deleted_coin() {
 
     assert_eq!(
         end.take::<Result<(), MineJobFailure>>(),
-        Ok(Err(MineJobFailure::CoinGone))
+        Ok(Err(MineJobFailure::CoinMissing))
     );
 }
 
@@ -684,7 +686,7 @@ async fn should_fail_the_jobs_of_a_deleted_subwallet() {
             .next()
             .unwrap()
             .take::<Result<(), MineJobFailure>>(),
-        Ok(Err(MineJobFailure::SubwalletGone))
+        Ok(Err(MineJobFailure::SubwalletMissing))
     );
 }
 
@@ -922,7 +924,7 @@ async fn should_draw_the_winning_machine_of_a_wallet_alike() {
             .add_computer_to(
                 router,
                 &ComputerOptions {
-                    mining_hardware: MiningHardware {
+                    miner_hardware: MinerHardware {
                         cpu_speed: 0.0,
                         cpu_cores: 0,
                         ram_model: 0,

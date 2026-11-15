@@ -29,7 +29,7 @@ pub struct ComputerService {
     pub users: Dep<UserService>,
     pub processes: Dep<ProcessService>,
     pub startup: Dep<Startup>,
-    pub logs: Dep<Logs>,
+    pub logs: Dep<LogService>,
 }
 
 impl ComputerService {

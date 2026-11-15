@@ -1,6 +1,6 @@
 //! Grey Hack failure text for blockchains, coins, wallets, sub-wallets, and market operations.
 
-use super::computer::COMPUTER_GONE;
+use super::computer::COMPUTER_UNAVAILABLE;
 use super::refusal::protocol_refusal_text;
 use crate::error::IntrinsicError;
 use crate::protocol::{EconomyFailure, MarketFailure, MineJobFailure, Side, TransferFailure};
@@ -9,7 +9,7 @@ use crate::protocol::{EconomyFailure, MarketFailure, MineJobFailure, Side, Trans
 pub(in crate::game) fn economy_text(intrinsic: &str, failure: &EconomyFailure) -> String {
     match failure {
         EconomyFailure::NoInternet => format!("{intrinsic}: No internet access."),
-        EconomyFailure::ComputerUnavailable => COMPUTER_GONE.to_owned(),
+        EconomyFailure::ComputerUnavailable => COMPUTER_UNAVAILABLE.to_owned(),
         EconomyFailure::UnknownCoin(coin) => match intrinsic {
             "delete_coin" => format!("Error: {coin} does not exist"),
             "show_nodes" => "show_nodes: coin does not exist".to_owned(),
@@ -101,9 +101,9 @@ fn transfer_text(failure: &TransferFailure) -> String {
 fn mine_job_text(failure: &MineJobFailure) -> String {
     match failure {
         MineJobFailure::ComputerUnavailable => "mining: computer not found".to_owned(),
-        MineJobFailure::CoinGone => "Error: coin does not exist".to_owned(),
+        MineJobFailure::CoinMissing => "Error: coin does not exist".to_owned(),
         MineJobFailure::AllMined(coin) => format!("all existing coins of {coin} have been mined."),
-        MineJobFailure::SubwalletGone => "mining: The account does not exist.".to_owned(),
+        MineJobFailure::SubwalletMissing => "mining: The account does not exist.".to_owned(),
         MineJobFailure::SecondMineJob => "Only one mining process is allowed.".to_owned(),
         MineJobFailure::DamagedGpu => {
             "Error: GPU is damaged. Unable to start the mining process.".to_owned()

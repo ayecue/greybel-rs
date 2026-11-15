@@ -1,10 +1,12 @@
 use greybel_test_support::future::block_on;
-use greyhack_world::{ComputerOptions, CtfEvent, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_creation::ComputerOptions;
+use greyhack_world_player::CtfEvent;
 
 use crate::support::read_computer;
 
 /// A world whose player can score the CTF event "mission" of another computer, and that computer.
-pub fn scoring_world() -> (World, greyhack_world::ComputerId) {
+pub fn scoring_world() -> (World, greyhack_world_core::ComputerId) {
     let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
     let router = read_computer(&world, world.handle.player()).router.unwrap();
     let owner = block_on(world.modules.creation.network_generation.add_computer_to(

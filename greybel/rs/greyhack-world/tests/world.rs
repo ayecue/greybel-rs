@@ -1,5 +1,7 @@
 use greyhack_behaviour::{FileData, PermissionSet, ServiceId};
-use greyhack_world::{Login, NodeDraft, World};
+use greyhack_world::World;
+use greyhack_world_core::Login;
+use greyhack_world_libraries::NodeDraft;
 
 use crate::support::world::snapshot;
 use crate::support::{
@@ -72,14 +74,14 @@ async fn should_restore_the_random_state_from_a_database() {
         .modules
         .creation
         .network_generation
-        .add_network(&greyhack_world::NetworkOptions::default())
+        .add_network(&greyhack_world_creation::NetworkOptions::default())
         .await
         .unwrap();
     let b = restored
         .modules
         .creation
         .network_generation
-        .add_network(&greyhack_world::NetworkOptions::default())
+        .add_network(&greyhack_world_creation::NetworkOptions::default())
         .await
         .unwrap();
 

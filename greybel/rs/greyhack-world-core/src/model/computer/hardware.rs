@@ -116,14 +116,14 @@ impl NetCard {
 
 /// Mining parts assigned by administrator and generation options.
 #[derive(Debug, Clone, PartialEq)]
-pub struct MiningHardware {
+pub struct MinerHardware {
     pub cpu_speed: f32,
     pub cpu_cores: u32,
     pub ram_model: u32,
     pub gpu_hashrate: f32,
 }
 
-impl Default for MiningHardware {
+impl Default for MinerHardware {
     fn default() -> Self {
         Self {
             cpu_speed: 1.0,
@@ -153,7 +153,7 @@ impl Hardware {
     pub fn standard(
         ram_mb: u32,
         disk_mb: f32,
-        mining_hardware: &MiningHardware,
+        miner_hardware: &MinerHardware,
         net_cards: Vec<NetCard>,
     ) -> Self {
         Self {
@@ -161,7 +161,7 @@ impl Hardware {
                 part: Part::new("Motherboard"),
                 cpu_slots: 1,
                 cpu_socket: "LGA1151".to_owned(),
-                ram_model: mining_hardware.ram_model,
+                ram_model: miner_hardware.ram_model,
                 ram_slots: 2,
                 max_ram_mb: ram_mb.max(1024) * 2,
                 pci_slots: 2,
@@ -172,19 +172,19 @@ impl Hardware {
             }),
             cpus: vec![Cpu {
                 part: Part::new("CPU"),
-                speed: mining_hardware.cpu_speed,
-                cores: mining_hardware.cpu_cores,
+                speed: miner_hardware.cpu_speed,
+                cores: miner_hardware.cpu_cores,
                 socket: "LGA1151".to_owned(),
             }],
             rams: vec![Ram {
                 part: Part::new("RAM"),
                 memory_mb: ram_mb,
-                model: mining_hardware.ram_model,
+                model: miner_hardware.ram_model,
             }],
-            gpus: if mining_hardware.gpu_hashrate > 0.0 {
+            gpus: if miner_hardware.gpu_hashrate > 0.0 {
                 vec![Gpu {
                     part: Part::new("GPU"),
-                    hashrate: mining_hardware.gpu_hashrate,
+                    hashrate: miner_hardware.gpu_hashrate,
                 }]
             } else {
                 Vec::new()
@@ -212,7 +212,7 @@ impl Hardware {
 
     /// Mining-round hash power ([`greyhack_behaviour::hash_power`]).
     #[must_use]
-    pub fn mining_power(&self) -> f32 {
+    pub fn mine_power(&self) -> f32 {
         greyhack_behaviour::hash_power(
             self.cpus.iter().map(|cpu| (cpu.speed, cpu.cores)),
             self.rams.iter().map(|ram| (ram.memory_mb, ram.model)),

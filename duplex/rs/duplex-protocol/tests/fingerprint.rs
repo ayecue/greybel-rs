@@ -23,7 +23,7 @@ fn should_exclude_docs_and_comments_from_the_fingerprint() {
 fn should_exclude_the_status_from_the_fingerprint() {
     let current = definition("struct S { a: u8 }").fingerprint();
 
-    let deprecated = definition("deprecated \"gone soon\";\nstruct S { a: u8 }").fingerprint();
+    let deprecated = definition("deprecated \"obsolete soon\";\nstruct S { a: u8 }").fingerprint();
 
     assert_eq!(deprecated, current);
 }

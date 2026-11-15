@@ -1537,6 +1537,7 @@ dependencies = [
  "greyhack-world-shell",
  "greyhack-world-smart-devices",
  "greyhack-world-storage",
+ "greyhack-world-traces",
  "indexmap",
  "mono-random",
  "serde",
@@ -1707,10 +1708,15 @@ dependencies = [
  "greyhack-behaviour",
  "greyhack-world",
  "greyhack-world-assets",
+ "greyhack-world-core",
+ "greyhack-world-economy",
+ "greyhack-world-libraries",
  "greyhack-world-modules",
+ "greyhack-world-player",
  "greyhack-world-router",
  "greyhack-world-routines",
  "greyhack-world-storage",
+ "greyhack-world-traces",
  "scheduler",
  "serde_json",
  "thiserror",
@@ -1737,6 +1743,7 @@ dependencies = [
  "greyhack-world-services",
  "greyhack-world-smart-devices",
  "greyhack-world-storage",
+ "greyhack-world-traces",
  "turso",
 ]
 
@@ -1774,6 +1781,7 @@ dependencies = [
  "duplex-test-support",
  "greybel-test-support",
  "greyhack-world",
+ "greyhack-world-core",
  "greyhack-world-operations",
  "greyscript-intrinsics",
  "scheduler",
@@ -1806,13 +1814,13 @@ dependencies = [
  "greybel-source-map",
  "greyhack-behaviour",
  "greyhack-world-core",
- "greyhack-world-guilds",
  "greyhack-world-intrusion",
  "greyhack-world-libraries",
  "greyhack-world-modules",
  "greyhack-world-router",
  "greyhack-world-services",
  "greyhack-world-storage",
+ "greyhack-world-traces",
 ]
 
 [[package]]
@@ -1841,6 +1849,21 @@ dependencies = [
  "scheduler",
  "turso",
  "uuid",
+]
+
+[[package]]
+name = "greyhack-world-traces"
+version = "0.1.0"
+dependencies = [
+ "greyhack-behaviour",
+ "greyhack-world-core",
+ "greyhack-world-economy",
+ "greyhack-world-guilds",
+ "greyhack-world-modules",
+ "greyhack-world-npcs",
+ "greyhack-world-routines",
+ "greyhack-world-storage",
+ "turso",
 ]
 
 [[package]]

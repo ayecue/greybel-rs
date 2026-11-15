@@ -1,11 +1,12 @@
 //! Constructors of an assembled world.
 
 use greyhack_behaviour::fnv1a_64;
-use greyhack_world_core::CoreModule;
+use greyhack_world_core::{CoreModule, Database, Result};
+use greyhack_world_creation::NetworkOptions;
 
 use super::{PlayerOptions, WorldOptions, player_world};
+use crate::World;
 use crate::storage::DatabaseOpen;
-use crate::{Database, NetworkOptions, Result, World};
 
 impl World {
     /// Creates an in-memory world containing only the player.

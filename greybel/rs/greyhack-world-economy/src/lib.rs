@@ -5,7 +5,7 @@
 //!
 //! [`EconomyModule`] registers the domain schema, services, routine kinds, and lazy dependencies.
 //! The composition root registers [`routes::register`] for its concrete world. Coin scripts use
-//! core's lazy `NetworkGeneration` hook to reach the creation domain. Public entities and services
+//! core's lazy `NetworkGeneration` service to reach the creation domain. Public entities and services
 //! are re-exported at the crate root; repositories remain private to the domain.
 
 pub mod generation;
@@ -20,10 +20,9 @@ use std::rc::Rc;
 
 pub use generation::{CoinDraft, default_coins};
 pub use greyhack_behaviour::{Rng, Word};
+use greyhack_world_core::WorldRef;
 pub use greyhack_world_core::{CoinId, ComputerId, NetworkId, PersonId, Result, WorldError};
-use greyhack_world_core::{CoreContext, WorldRef};
 use greyhack_world_modules::{Module, Registry};
-use greyhack_world_router::WorldContext;
 use greyhack_world_routines::Routine;
 use greyhack_world_storage::DomainSchema;
 pub use model::*;
@@ -36,7 +35,7 @@ pub use routines::{
 };
 pub use services::{Bank, CoinService, Connectivity, EconomyFailure, Market, WalletService};
 use storage::{
-    BankRepository, CoinRepository, MiningRepository, OfferRepository, RentalRepository,
+    BankRepository, CoinRepository, MineJobRepository, OfferRepository, RentalRepository,
     RoutineRepository, SubscriptionRepository, SubwalletRepository, WalletRepository,
 };
 
@@ -73,7 +72,7 @@ impl EconomyModule {
         let offers = Rc::new(OfferRepository::new(db.clone()));
         let wallet_rows = Rc::new(WalletRepository::new(db.clone(), registry.get()));
         let subwallets = Rc::new(SubwalletRepository::new(db.clone(), registry.get()));
-        let mine_rows = Rc::new(MiningRepository::new(db));
+        let mine_rows = Rc::new(MineJobRepository::new(db));
         let routine_rows = Rc::new(RoutineRepository::new(world.db().clone()));
 
         let bank = Rc::new(Bank::new(
@@ -156,10 +155,12 @@ impl EconomyModule {
             <Self as Module>::NAME,
             [
                 storage::schema::GROUP,
-                storage::schema::MINING_SUBSCRIBERS,
+                storage::schema::MINE_SUBSCRIBERS,
                 CoinRound::tables(),
                 Payment::tables(),
                 DailyUpkeep::tables(),
+                storage::schema::MINE_VOLATILE,
+                storage::schema::MINE_ROUND_VOLATILE,
             ],
         )
     }
@@ -189,12 +190,4 @@ impl Module for EconomyModule {
 
         module
     }
-}
-
-/// Access to the economy and core services from a concrete assembled world.
-pub trait EconomyContext:
-    CoreContext + WorldContext<Computer = greyhack_world_core::ComputerId>
-{
-    /// Returns this world's economy module.
-    fn economy(&self) -> Rc<EconomyModule>;
 }

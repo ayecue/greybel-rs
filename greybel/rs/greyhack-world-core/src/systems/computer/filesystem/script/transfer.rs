@@ -7,7 +7,7 @@ use greyhack_behaviour::{
 };
 
 use super::failure::ScriptFileFailure;
-use crate::systems::ScriptFiles as ScriptFilesService;
+use crate::systems::ScriptFileService as ScriptFilesService;
 use crate::{ComputerId, FileFailure, LogWrite, Node, NodeDraft, Result};
 
 /// A completed script copy.

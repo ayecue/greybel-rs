@@ -1,6 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::{DeviceKind, LibraryKind, ServiceId};
-use greyhack_world::{Library, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_libraries::Library;
 use serde_json::json;
 
 use crate::support::network::literal;

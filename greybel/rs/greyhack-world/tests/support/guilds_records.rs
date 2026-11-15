@@ -1,8 +1,9 @@
-use greyhack_behaviour::{NetworkKind, ROOT_USER, Reward, SECONDS_PER_DAY, kind_for_ip};
-use greyhack_world::{
-    ComputerId, GuildDraft, Library, MemoryZone, NetworkId, NetworkOptions, PlayerOptions, Rng,
-    Weakness, World,
-};
+use greyhack_behaviour::{NetworkKind, ROOT_USER, Reward, Rng, SECONDS_PER_DAY, kind_for_ip};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::{ComputerId, NetworkId};
+use greyhack_world_creation::NetworkOptions;
+use greyhack_world_guilds::GuildDraft;
+use greyhack_world_libraries::{Library, MemoryZone, Weakness};
 
 /// Experience of a level-5 guild, which may invest in one company.
 pub(crate) const LEVEL_FIVE: u32 = 275 * 25;

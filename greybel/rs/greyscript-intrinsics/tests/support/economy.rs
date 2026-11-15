@@ -1,7 +1,9 @@
 use greybel_test_support::future::block_on;
 pub use greybel_test_support::world::subwallet;
 use greyhack_behaviour::hash_password;
-use greyhack_world::{CoinId, PlayerOptions, SubWallet, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::CoinId;
+use greyhack_world_economy::SubWallet;
 
 pub fn ether(world: &World) -> CoinId {
     block_on(world.modules.economy.coins.coin_by_name("Ether"))

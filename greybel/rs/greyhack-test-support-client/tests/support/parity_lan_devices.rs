@@ -4,7 +4,8 @@ use greybel_test_support::future::block_on;
 use greyhack_behaviour::{DeviceKind, NetworkKind, WorldSeed, kind_for_ip};
 use greyhack_test_support_client::TestClient;
 use greyhack_test_support_client::protocol::test_support::{LanNodeKind, NetworkSnapshot};
-use greyhack_world::{NetworkOptions, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_creation::NetworkOptions;
 use greyhack_world_missions::request_for;
 
 use super::game::join_network;

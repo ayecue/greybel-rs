@@ -1,7 +1,8 @@
 //! Opening the world database with the schema of every domain.
 
+use greyhack_world_core::Database;
+
 use super::schema::world_schema;
-use crate::Database;
 
 /// Constructors of [`Database`] with the world schema: the core only knows its own tables.
 pub trait DatabaseOpen: Sized {

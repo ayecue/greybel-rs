@@ -33,7 +33,7 @@ pub use computer::filesystem::{
 pub use computer::startup::StartupFailure;
 pub use computer::user::User;
 pub use computer::{
-    Computer, ComputerDraft, ComputerId, Cpu, Gpu, HardDisk, Hardware, LanPlace, MiningHardware,
+    Computer, ComputerDraft, ComputerId, Cpu, Gpu, HardDisk, Hardware, LanPlace, MinerHardware,
     Motherboard, NetCard, Part, Port, PortForward, PowerSupply, Process, Ram, STANDARD_DISK_MB,
     STANDARD_RAM_MB, SavedNetwork, SavedWifiFailure,
 };

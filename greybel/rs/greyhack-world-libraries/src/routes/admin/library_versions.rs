@@ -13,13 +13,13 @@ use crate::routes::protocol::{AdminFailure, Failure, LibraryRelease, Outcome};
 ///
 /// Returns errors from database reads and writes.
 pub(super) async fn release_library_version(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     library: &str,
 ) -> Result<LibraryRelease> {
     let version = match LibraryKind::of_file(library) {
         Some(kind) => {
             world
-                .libraries()
+                .module::<crate::LibraryModule>()
                 .versions
                 .release_library_version(kind)
                 .await?
@@ -41,14 +41,14 @@ pub(super) async fn release_library_version(
 ///
 /// Returns errors from database reads and writes.
 pub(super) async fn report_exploit(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     library: &str,
     zone: &str,
     unsec_value: &str,
 ) -> Result<Outcome> {
     Ok(
         match world
-            .libraries()
+            .module::<crate::LibraryModule>()
             .versions
             .report_weakness(library, zone, unsec_value)
             .await?

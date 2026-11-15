@@ -2,9 +2,11 @@
 
 use greyhack_behaviour::{ROOT_USER, START_DATE};
 use greyhack_world_core::model::{STANDARD_DISK_MB, STANDARD_RAM_MB};
-use greyhack_world_creation::{add_player_libraries, build_filesystem, system_processes};
-
-use crate::{ComputerDraft, Hardware, MiningHardware, NetCard, NetworkLayout, Part, User};
+use greyhack_world_core::{Hardware, MinerHardware, NetCard, Part, User};
+use greyhack_world_creation::{
+    NetworkLayout, add_player_libraries, build_filesystem, system_processes,
+};
+use greyhack_world_libraries::ComputerDraft;
 
 /// Player identity and starting computer settings.
 #[derive(Debug, Clone)]
@@ -61,7 +63,7 @@ pub(super) fn player_computer(options: &PlayerOptions) -> ComputerDraft {
     computer.hardware = Hardware::standard(
         STANDARD_RAM_MB,
         STANDARD_DISK_MB,
-        &MiningHardware::default(),
+        &MinerHardware::default(),
         vec![NetCard {
             part: Part::new("Atheros AR9271"),
             active: true,

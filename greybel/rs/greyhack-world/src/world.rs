@@ -3,12 +3,11 @@
 use std::cell::{Ref, RefMut};
 use std::rc::Rc;
 
-use greyhack_world_core::{CoreContext, CoreModule, WorldRef, WorldState};
+use greyhack_world_core::{ComputerId, CoreModule, Database, Result, WorldRef, WorldState};
 use greyhack_world_modules::Assembly;
 use greyhack_world_router::WorldContext;
 
 use crate::modules::ModuleSet;
-use crate::{ComputerId, Database, Result};
 
 /// A world and every service built once for it.
 #[derive(Clone)]
@@ -129,75 +128,11 @@ impl World {
 
 impl WorldContext for World {
     type Computer = ComputerId;
-}
 
-impl greyhack_world_economy::EconomyContext for World {
-    fn economy(&self) -> Rc<greyhack_world_economy::EconomyModule> {
-        self.modules.economy.clone()
-    }
-}
-
-impl greyhack_world_npcs::NpcContext for World {
-    fn npcs(&self) -> Rc<greyhack_world_npcs::NpcModule> {
-        Rc::new(self.modules.npcs.clone())
-    }
-}
-
-impl greyhack_world_guilds::GuildContext for World {
-    fn guilds(&self) -> Rc<greyhack_world_guilds::GuildModule> {
-        Rc::new(self.modules.guilds.clone())
-    }
-}
-
-impl greyhack_world_services::ServicesContext for World {
-    fn services(&self) -> Rc<greyhack_world_services::ServicesModule> {
-        self.modules.services.clone()
-    }
-}
-
-impl greyhack_world_intrusion::IntrusionContext for World {
-    fn intrusion(&self) -> Rc<greyhack_world_intrusion::IntrusionModule> {
-        Rc::new(self.modules.intrusion.clone())
-    }
-}
-
-impl greyhack_world_smart_devices::SmartDevicesContext for World {
-    fn smart_devices(&self) -> Rc<greyhack_world_smart_devices::SmartDevicesModule> {
-        Rc::new(self.modules.smart_devices.clone())
-    }
-}
-
-impl greyhack_world_libraries::LibraryContext for World {
-    fn libraries(&self) -> Rc<greyhack_world_libraries::LibraryModule> {
-        Rc::new(self.modules.libraries.clone())
-    }
-}
-
-impl greyhack_world_shell::ShellContext for World {
-    fn shell(&self) -> Rc<greyhack_world_shell::ShellModule> {
-        Rc::new(self.modules.shell.clone())
-    }
-}
-
-impl greyhack_world_creation::CreationContext for World {
-    fn creation(&self) -> Rc<greyhack_world_creation::CreationModule> {
-        Rc::new(self.modules.creation.clone())
-    }
-}
-
-impl greyhack_world_player::PlayerContext for World {
-    fn player(&self) -> Rc<greyhack_world_player::PlayerModule> {
-        Rc::new(self.modules.player.clone())
-    }
-}
-
-impl CoreContext for World {
-    fn world_ref(&self) -> WorldRef {
-        self.handle.clone()
-    }
-
-    fn core(&self) -> Rc<CoreModule> {
-        self.modules.core.clone()
+    fn module<M: 'static>(&self) -> Rc<M> {
+        self.registry
+            .resolve::<M>()
+            .unwrap_or_else(|| panic!("`{}` is not registered", std::any::type_name::<M>()))
     }
 }
 

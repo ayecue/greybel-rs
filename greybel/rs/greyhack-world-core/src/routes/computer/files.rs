@@ -12,12 +12,12 @@ use crate::{Node, ScriptFileFailure};
 ///
 /// Returns errors from database reads.
 pub async fn file(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     path: &str,
 ) -> Result<Option<Node>> {
     if world
-        .core()
+        .module::<crate::CoreModule>()
         .computers
         .users
         .user(access.computer, &access.user)
@@ -28,7 +28,7 @@ pub async fn file(
     }
 
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .files
         .lookup
         .entry(access.computer, path, false)
@@ -52,13 +52,13 @@ pub fn creation_outcome(result: std::result::Result<(), ScriptFileFailure>) -> R
 ///
 /// Returns errors from database reads or writes.
 pub async fn touch(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     folder: &str,
     name: &str,
 ) -> Result<Outcome> {
     match world
-        .core()
+        .module::<crate::CoreModule>()
         .files
         .scripts
         .touch_file(access.computer, &access.user, folder, name)
@@ -75,13 +75,13 @@ pub async fn touch(
 ///
 /// Returns errors from database reads or writes.
 pub async fn create_folder(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     folder: &str,
     name: &str,
 ) -> Result<Outcome> {
     match world
-        .core()
+        .module::<crate::CoreModule>()
         .files
         .scripts
         .create_folder(access.computer, &access.user, folder, name)

@@ -1,5 +1,7 @@
-use greyhack_behaviour::{NetworkKind, kind_for_ip};
-use greyhack_world::{NetworkId, NetworkOptions, PlayerOptions, Rng, World};
+use greyhack_behaviour::{NetworkKind, Rng, kind_for_ip};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::NetworkId;
+use greyhack_world_creation::NetworkOptions;
 
 /// A world with a generated network of `kind`, and that network.
 pub async fn world_with(kind: NetworkKind) -> (World, NetworkId) {

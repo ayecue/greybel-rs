@@ -95,7 +95,7 @@ fn should_log_a_deleted_file_with_its_path() {
     let world = block_on(World::new(&greyhack_world::PlayerOptions::default())).expect("a world");
     let player = world.handle.player();
     let player_ip = public_ip(&world, player);
-    let script = "pc = get_shell.host_computer\npc.touch(home_dir, \"gone.txt\")\nprint pc.File(home_dir + \"/gone.txt\").delete\nprint pc.File(home_dir + \"/missing.txt\") == null";
+    let script = "pc = get_shell.host_computer\npc.touch(home_dir, \"missing.txt\")\nprint pc.File(home_dir + \"/missing.txt\").delete\nprint pc.File(home_dir + \"/missing.txt\") == null";
 
     // Act
     let (output, error, world) = run_on_host(script, world, true);
@@ -112,7 +112,7 @@ fn should_log_a_deleted_file_with_its_path() {
             3,
             player_ip,
             0,
-            format!("/home/{user}/gone.txt"),
+            format!("/home/{user}/missing.txt"),
             String::new()
         )]
     );
@@ -127,7 +127,7 @@ fn should_log_a_file_deleted_through_a_remote_shell() {
     let player = world.handle.player();
     let player_ip = public_ip(&world, player);
     let script = format!(
-        "shell = get_shell.connect_service(\"{}\", {}, \"{}\", \"{}\", \"{}\")\npc = shell.host_computer\npc.touch(\"/home/guest\", \"gone.txt\")\nprint pc.File(\"/home/guest/gone.txt\").delete",
+        "shell = get_shell.connect_service(\"{}\", {}, \"{}\", \"{}\", \"{}\")\npc = shell.host_computer\npc.touch(\"/home/guest\", \"missing.txt\")\nprint pc.File(\"/home/guest/missing.txt\").delete",
         target.address, target.port, target.user, target.password, target.service
     );
 
@@ -142,7 +142,7 @@ fn should_log_a_file_deleted_through_a_remote_shell() {
             3,
             player_ip,
             0,
-            "/home/guest/gone.txt".to_owned(),
+            "/home/guest/missing.txt".to_owned(),
             String::new()
         ))
     );

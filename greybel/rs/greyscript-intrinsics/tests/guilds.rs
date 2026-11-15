@@ -1,5 +1,5 @@
 use greybel_test_support::future::block_on;
-use greyhack_world::JobRole;
+use greyhack_behaviour::JobRole;
 
 use crate::support::guilds::{add_company, crown};
 use crate::support::network::literal;

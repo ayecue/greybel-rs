@@ -37,11 +37,11 @@ pub enum MineJobFailure {
     /// The mining computer no longer exists.
     ComputerUnavailable,
     /// The coin does not exist.
-    CoinGone,
+    CoinMissing,
     /// The named coin has been fully mined.
     AllMined(String),
     /// The sub-wallet does not exist.
-    SubwalletGone,
+    SubwalletMissing,
     /// The sub-wallet already mines this coin on the computer.
     SecondMineJob,
     /// The computer GPU health is below 5.

@@ -3,10 +3,10 @@
 use greyhack_behaviour::ServiceId;
 use greyhack_world_core::{ComputerId, Result};
 
-use crate::{SnifferPacket, Sniffers};
+use crate::{SnifferPacket, SnifferService};
 
 /// Methods of [`World`] for intrusion sniffer npc logins.
-impl Sniffers {
+impl SnifferService {
     pub async fn record_npc_login(&self, computer: ComputerId, user: &str) -> Result<()> {
         let Some(row) = self.computers.computer(computer).await? else {
             return Ok(());
@@ -63,12 +63,12 @@ impl Sniffers {
     }
 }
 
-impl greyhack_world_npcs::NpcLoginCapture for Sniffers {
+impl greyhack_world_npcs::NpcLoginCapture for SnifferService {
     fn record_npc_login<'a>(
         &'a self,
         computer: ComputerId,
         user: &'a str,
-    ) -> greyhack_world_core::HookFuture<'a, ()> {
-        Box::pin(async move { Sniffers::record_npc_login(self, computer, user).await })
+    ) -> greyhack_world_core::CallFuture<'a, ()> {
+        Box::pin(async move { SnifferService::record_npc_login(self, computer, user).await })
     }
 }

@@ -1,5 +1,6 @@
 use greyhack_behaviour::{MissionKind, NetworkKind, kind_for_ip, random_group_for_mission};
-use greyhack_world::{ComputerId, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::ComputerId;
 
 /// A world that has generated the networks of the mission `index` of `kind`.
 pub async fn mission_world(kind: MissionKind, index: u32) -> (World, Vec<String>) {

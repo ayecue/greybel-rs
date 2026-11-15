@@ -5,10 +5,14 @@ use greyhack_world_router::protocol::{
     AdminCreateGuild, AdminHireCrownShield, AdminSetCompanyShares, Failure, Outcome,
 };
 
+use crate::GuildDraft;
 use crate::routes::protocol::IntoProtocol as _;
-use crate::{GuildContext, GuildDraft};
 
-pub(crate) fn register<W: GuildContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
@@ -16,7 +20,7 @@ pub(crate) fn register<W: GuildContext + 'static>(routes: &RouteTable) {
             Ok(
                 match ctx
                     .modules
-                    .guilds()
+                    .module::<crate::GuildModule>()
                     .guilds
                     .create_guild(&GuildDraft {
                         name: message.name.to_string(),
@@ -40,7 +44,7 @@ pub(crate) fn register<W: GuildContext + 'static>(routes: &RouteTable) {
                     message: AdminSetCompanyShares<'static>| {
             Ok(ctx
                 .modules
-                .guilds()
+                .module::<crate::GuildModule>()
                 .guilds
                 .set_company_shares(&message.public_ip, &message.bank_account, message.shares)
                 .await?)
@@ -53,7 +57,7 @@ pub(crate) fn register<W: GuildContext + 'static>(routes: &RouteTable) {
             Ok(
                 match ctx
                     .modules
-                    .guilds()
+                    .module::<crate::GuildModule>()
                     .guilds
                     .hire_crown_shield(&message.guild, &message.public_ip)
                     .await?

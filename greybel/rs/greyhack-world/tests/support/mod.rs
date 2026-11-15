@@ -12,7 +12,6 @@ pub mod factory_filesystem;
 pub mod filesystem;
 pub mod flood;
 pub mod generation;
-pub mod guilds_active_traces;
 pub mod guilds_records;
 pub mod intrusion_ddos;
 pub mod lan;
@@ -29,6 +28,7 @@ pub mod search;
 pub mod smart_appliance;
 pub mod smart_traffic;
 pub mod system_log;
+pub mod traces_active;
 pub mod world;
 
 pub use greybel_test_support::world::{

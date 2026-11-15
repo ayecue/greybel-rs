@@ -13,7 +13,7 @@ mod wallets;
 
 pub(crate) use banks::BankRepository;
 pub(crate) use coins::CoinRepository;
-pub(crate) use mine_jobs::MiningRepository;
+pub(crate) use mine_jobs::MineJobRepository;
 pub(crate) use offers::OfferRepository;
 pub(crate) use rentals::RentalRepository;
 pub(crate) use routines::RoutineRepository;

@@ -14,8 +14,8 @@ use greyhack_test_support_client::protocol::test_support::{
     GameEndedReply, GuildsReply, NetworkSnapshot,
 };
 use greyhack_test_support_client::{ExecutionStep, GuildSetup, TestClient};
-use greyhack_world::prelude::*;
-use greyhack_world::{ComputerId, Database, TraceKind, World};
+use greyhack_world::{DatabaseOpen, World};
+use greyhack_world_core::{ComputerId, Database, TraceKind};
 use greyhack_world_operations::WorldServer;
 use tokio::sync::mpsc;
 
@@ -23,7 +23,7 @@ use super::game::{join_new_network_of_kind_where, setup_player, test_client};
 use super::intrinsics::PROGRAM_NAME;
 use super::parity_bank_payments::RENTAL_AMOUNT;
 use super::parity_guilds::mirrored_world;
-use super::parity_traces::{LEVEL_FIVE, Traces, game_traces, world_traces};
+use super::parity_traces::{LEVEL_FIVE, TraceService, game_traces, world_traces};
 use super::steps::SteppedStdin;
 
 /// The traces of the game and of the copy of its network at the first input `script` waits for: the active traces
@@ -34,7 +34,7 @@ pub async fn traces_while_waiting(
     snapshot: &NetworkSnapshot,
     guilds: &GuildsReply,
     script: &str,
-) -> (Traces, Traces) {
+) -> (TraceService, TraceService) {
     let expected = std::thread::scope(|scope| {
         scope
             .spawn(|| world_traces_while_waiting(script, user, snapshot, guilds))
@@ -65,7 +65,7 @@ fn world_traces_while_waiting(
     user: &str,
     snapshot: &NetworkSnapshot,
     guilds: &GuildsReply,
-) -> Traces {
+) -> TraceService {
     let world = mirrored_world(user, snapshot, guilds);
 
     duplex_test_support::local::run_local(async move {
@@ -138,7 +138,11 @@ pub fn ended_game(reply: &GameEndedReply, number: &str) -> Ended {
 }
 
 /// [`Ended`] as the world has it for the account `number`, whose computer was `computer`.
-pub fn ended_world(world: &World, computer: greyhack_world::ComputerId, number: &str) -> Ended {
+pub fn ended_world(
+    world: &World,
+    computer: greyhack_world_core::ComputerId,
+    number: &str,
+) -> Ended {
     Ended {
         computer_exists: block_on(world.modules.core.networks.topology.computer(computer))
             .expect("the computer is read")
@@ -226,7 +230,7 @@ pub async fn strike(strikes: u32) {
     block_on(
         world
             .modules
-            .guilds
+            .traces
             .traces
             .set_strikes(u8::try_from(strikes - 1).unwrap()),
     )
@@ -234,7 +238,7 @@ pub async fn strike(strikes: u32) {
     block_on(
         world
             .modules
-            .guilds
+            .traces
             .traces
             .strike_player(router, TraceKind::Active),
     )
@@ -260,7 +264,7 @@ pub async fn strike(strikes: u32) {
     assert_eq!(world_holders(&world, router), game_holders(&after));
     assert_eq!(ended.computer_exists, strikes < 3);
     assert_eq!(
-        block_on(world.modules.guilds.traces.strikes()).unwrap(),
+        block_on(world.modules.traces.traces.strikes()).unwrap(),
         if strikes < 3 { strikes as u8 } else { 0 }
     );
 

@@ -1,6 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::ServiceId;
-use greyhack_world::{CoinId, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::CoinId;
 
 use crate::support::economy::{add_subwallet, ether, subwallet};
 use crate::support::scripts::run_on_host;

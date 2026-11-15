@@ -1,5 +1,5 @@
 use greyhack_behaviour::{GUEST_USER, MAX_DEBUG_LOGIN_ATTEMPTS, ROOT_USER};
-use greyhack_world::{DebugFailure, DebugLibraryPatch, DebugPayload, PartialObject};
+use greyhack_world_libraries::{DebugFailure, DebugLibraryPatch, DebugPayload, PartialObject};
 
 use crate::support::debug::{LIBRARY_PATH, debug_world};
 

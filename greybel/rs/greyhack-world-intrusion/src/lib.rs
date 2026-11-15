@@ -29,7 +29,7 @@ pub use services::crypto::{CryptoFailure, WifiCaptureRun};
 pub use services::ddos::{FloodAttempt, FloodWarning};
 pub use services::flood::Flood;
 pub use services::sniffer::encoder::EncoderFailure;
-pub use services::{Crypto, FloodService, LibraryObjectAccess, ObjectAccessFuture, Sniffers};
+pub use services::{Crypto, FloodService, LibraryObjectAccess, ObjectAccessFuture, SnifferService};
 use storage::SubscriberRepository;
 
 /// Services, typed-work ownership, and subscriber storage of the intrusion domain.
@@ -38,7 +38,7 @@ pub struct IntrusionModule {
     /// File encryption, monitor mode, Wi-Fi capture, and key recovery.
     pub crypto: Rc<Crypto>,
     /// Sniffer paths, captured packets, NPC logins, and encoders.
-    pub sniffers: Rc<Sniffers>,
+    pub sniffers: Rc<SnifferService>,
     /// Floods and DDoS rules.
     pub floods: Rc<FloodService>,
     pub(crate) library_objects: Dep<dyn LibraryObjectAccess>,
@@ -48,7 +48,7 @@ impl IntrusionModule {
     fn new(registry: &Rc<Registry>) -> Self {
         let world: &WorldRef = registry.world();
         let subscribers = Rc::new(SubscriberRepository::new(world.db().clone()));
-        let sniffers = Rc::new(Sniffers::new(world, subscribers.clone(), registry));
+        let sniffers = Rc::new(SnifferService::new(world, subscribers.clone(), registry));
         let floods = Rc::new(FloodService::new(
             world,
             subscribers,
@@ -133,10 +133,4 @@ impl Module for IntrusionModule {
 
         module
     }
-}
-
-/// Access to intrusion, guild, NPC, economy, and core services from a concrete assembled world.
-pub trait IntrusionContext: greyhack_world_guilds::GuildContext {
-    /// Returns this world's intrusion module.
-    fn intrusion(&self) -> Rc<IntrusionModule>;
 }

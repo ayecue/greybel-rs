@@ -1,6 +1,6 @@
 //! Operation responses deferred until scheduled work finishes.
 
-use greyhack_world::WorkEnvelope;
+use greyhack_world_modules::WorkEnvelope;
 use tokio::sync::oneshot;
 
 use super::{ServerState, WorldState};
@@ -72,7 +72,7 @@ impl ServerState {
         &self,
         state: &mut WorldState,
         cancels: impl Fn(&DeferredJob) -> bool,
-    ) -> greyhack_world::Result<()> {
+    ) -> greyhack_world_core::Result<()> {
         let cancellations: Vec<u64> = {
             let mut jobs = self.deferred_jobs.borrow_mut();
             let cancellations: Vec<u64> = jobs

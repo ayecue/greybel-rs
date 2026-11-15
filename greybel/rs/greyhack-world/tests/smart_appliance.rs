@@ -1,4 +1,4 @@
-use greyhack_world::ApplianceFailure;
+use greyhack_world_smart_devices::ApplianceFailure;
 
 use crate::support::smart_appliance::appliance_and_camera;
 
@@ -90,7 +90,7 @@ async fn should_warn_while_the_alarm_is_on_then_break_once_it_is_off() {
             .access_cctv(camera, Some("pw"))
             .await
             .unwrap(),
-        Err(greyhack_world::CctvFailure::NoExternalAccess)
+        Err(greyhack_world_smart_devices::CctvFailure::NoExternalAccess)
     );
     assert_eq!(
         world

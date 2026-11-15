@@ -3,10 +3,10 @@
 use std::rc::Rc;
 
 use greyhack_behaviour::TIME_SCALE;
+use greyhack_world_core::{ComputerId, Result};
 use greyhack_world_routines::{Entry, Scheduler, Window};
 
 use super::{ScheduledRoutine, TickReport};
-use crate::{ComputerId, Result};
 
 impl RoutineService {
     pub async fn scheduled_routines(&self) -> Result<Vec<ScheduledRoutine>> {
@@ -98,7 +98,7 @@ impl RoutineService {
                 .state_mut::<greyhack_world_services::ServiceRestartReport>()
                 .errors
                 .drain(..)
-                .map(|_| crate::RoutineFailure::ServiceComputerGone),
+                .map(|error| Box::new(error) as Box<dyn crate::RoutineReport>),
         );
         report.errors.extend(
             self.world
@@ -106,7 +106,7 @@ impl RoutineService {
                 .state_mut::<greyhack_world_economy::MineJobReport>()
                 .errors
                 .drain(..)
-                .map(crate::RoutineFailure::MineJob),
+                .map(|error| Box::new(error) as Box<dyn crate::RoutineReport>),
         );
     }
 }

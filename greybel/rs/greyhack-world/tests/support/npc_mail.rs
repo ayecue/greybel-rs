@@ -1,7 +1,8 @@
-use greyhack_world::{
-    ComputerOptions, Email, JobRole, NetworkOptions, PersonId, PlayerOptions, WorkPerformance,
-    World,
-};
+use greyhack_behaviour::{JobRole, WorkPerformance};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::PersonId;
+use greyhack_world_creation::{ComputerOptions, NetworkOptions};
+use greyhack_world_npcs::Email;
 
 pub const PASSWORD: &str = "secret";
 const NPC_COUNT: usize = 12;

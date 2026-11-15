@@ -5,10 +5,10 @@ use greyhack_behaviour::{DeviceKind, is_lan_ip};
 use greyhack_world_core::{ComputerId, Result, RouterId};
 use greyhack_world_modules::WorkId;
 
-use crate::{SnifferPacket, Sniffers};
+use crate::{SnifferPacket, SnifferService};
 
 /// Methods of [`World`] for intrusion sniffer path.
-impl Sniffers {
+impl SnifferService {
     pub async fn start_sniffer(&self, computer: ComputerId) -> Result<Option<WorkId>> {
         let Some(computer) = self.computers.computer(computer).await? else {
             return Ok(None);
@@ -125,7 +125,7 @@ impl Sniffers {
     }
 }
 
-impl Sniffers {
+impl SnifferService {
     pub async fn ancestry(&self, device: ComputerId) -> Result<Vec<ComputerId>> {
         let mut path = Vec::new();
         let mut current = Some(device);

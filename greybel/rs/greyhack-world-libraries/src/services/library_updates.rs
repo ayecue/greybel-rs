@@ -15,7 +15,7 @@ pub enum LibraryReportFailure {
 }
 
 /// Methods of [`World`] for exploits library updates.
-impl Updates {
+impl UpdateService {
     pub async fn report_library_update(
         &self,
         public_ip: &str,
@@ -83,7 +83,7 @@ impl Updates {
     }
 }
 
-impl Updates {
+impl UpdateService {
     pub async fn newest_library_of_file(
         &self,
         name: &str,
@@ -150,22 +150,22 @@ impl Updates {
 }
 
 /// A world service with only its declared dependencies.
-pub struct Updates {
+pub struct UpdateService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) libraries: std::rc::Rc<crate::storage::LibraryRepository>,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
     pub(crate) generator: greyhack_world_core::Dep<crate::Generator>,
 }
 
-impl Updates {
+impl UpdateService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         libraries: std::rc::Rc<crate::storage::LibraryRepository>,
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
         guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
         generator: greyhack_world_core::Dep<crate::Generator>,

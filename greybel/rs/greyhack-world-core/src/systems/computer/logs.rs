@@ -9,7 +9,7 @@ use greyhack_behaviour::{
     is_device, player_net_id, template_timestamp, token_trace,
 };
 
-use crate::systems::{Logs as LogsService, *};
+use crate::systems::{LogService as LogsService, *};
 use crate::*;
 
 /// What one log entry says besides the time and the player (`PlayerUtils.WriteLog` parameters).
@@ -215,15 +215,15 @@ impl LogsService {
 }
 
 /// Computer system-log rules.
-pub struct Logs {
+pub struct LogService {
     pub(crate) world: WorldRef,
-    pub traces: Dep<dyn crate::PlayerTraces>,
-    pub(crate) changes: Dep<FileChanges>,
+    pub traces: Dep<dyn crate::PlayerTraceService>,
+    pub(crate) changes: Dep<FileChangeService>,
     pub(crate) lookup: Dep<FileLookup>,
     pub(crate) topology: Dep<NetworkTopology>,
 }
 
-impl Logs {
+impl LogService {
     pub(crate) fn new(registry: &Rc<greyhack_world_modules::Registry>) -> Self {
         Self {
             world: registry.world::<WorldRef>().clone(),

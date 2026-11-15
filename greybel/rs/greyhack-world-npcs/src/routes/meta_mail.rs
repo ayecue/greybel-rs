@@ -9,9 +9,13 @@ use crate::routes::protocol::{
     Email, Failure, InboxContent, IntoProtocol as _, MailDraft, MailFailure, MailRead, MailReads,
     MetaMailDelete, MetaMailDeleteAll, MetaMailFetch, MetaMailRead, MetaMailSend, Outcome,
 };
-use crate::{ComputerId, MailRefusal, NpcContext, SendMailFailure};
+use crate::{ComputerId, MailRefusal, SendMailFailure};
 
-pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -100,18 +104,18 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
 /// Returns a mail failure when the object's computer is missing or offline for `terminal_computers`
 /// (`MetaMailIntrinsics`).
 async fn raise_connection_failure(
-    world: &impl NpcContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     mail: &MailRef,
     terminal_computers: &[ComputerId],
 ) -> Result<Option<MailFailure>> {
     Ok(
         match world
-            .economy()
+            .module::<greyhack_world_economy::EconomyModule>()
             .coins
             .connectivity(mail.access.computer, terminal_computers)
             .await?
         {
-            Connectivity::Gone => Some(MailFailure::ComputerUnavailable),
+            Connectivity::Missing => Some(MailFailure::ComputerUnavailable),
             Connectivity::Offline => Some(MailFailure::NoInternet),
             Connectivity::Online => None,
         },
@@ -119,21 +123,31 @@ async fn raise_connection_failure(
 }
 
 /// Refreshes the stored inbox (`HelperScript.HelperMailUser.RefreshAccount`) or returns the refresh failure.
-async fn refresh(world: &impl NpcContext, mail: &mut MailRef) -> Result<Option<MailFailure>> {
-    Ok(match world.npcs().mail.refresh_mail(&mail.address).await? {
-        Ok(inbox) => {
-            mail.emails = inbox;
+async fn refresh(
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+    mail: &mut MailRef,
+) -> Result<Option<MailFailure>> {
+    Ok(
+        match world
+            .module::<crate::NpcModule>()
+            .mail
+            .refresh_mail(&mail.address)
+            .await?
+        {
+            Ok(inbox) => {
+                mail.emails = inbox;
 
-            None
-        }
-        Err(MailRefusal::Missing) => Some(MailFailure::RefreshFailed),
-        Err(MailRefusal::AccountInactive) => Some(MailFailure::AccountInactive),
-    })
+                None
+            }
+            Err(MailRefusal::Missing) => Some(MailFailure::RefreshFailed),
+            Err(MailRefusal::AccountInactive) => Some(MailFailure::AccountInactive),
+        },
+    )
 }
 
 /// Checks connection state and refreshes the account before an inbox operation.
 async fn ready(
-    world: &impl NpcContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     mail: &mut MailRef,
     terminal_computers: &[ComputerId],
 ) -> Result<Option<MailFailure>> {
@@ -161,7 +175,7 @@ fn email(email: &crate::Email) -> Email {
 ///
 /// Returns errors from database reads.
 pub async fn fetch(
-    world: &impl NpcContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     mail: &mut MailRef,
     terminal_computers: &[ComputerId],
 ) -> Result<InboxContent> {
@@ -180,7 +194,7 @@ pub async fn fetch(
 ///
 /// Returns errors from database reads.
 pub async fn read(
-    world: &impl NpcContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     mail: &mut MailRef,
     terminal_computers: &[ComputerId],
     mail_ids: Option<&[String]>,
@@ -214,7 +228,7 @@ pub async fn read(
 ///
 /// Returns errors from database reads.
 pub async fn send(
-    world: &impl NpcContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     mail: &MailRef,
     terminal_computers: &[ComputerId],
     draft: &MailDraft,
@@ -235,7 +249,7 @@ pub async fn send(
             subject,
             message,
         } => match world
-            .npcs()
+            .module::<crate::NpcModule>()
             .mail
             .send_mail(&mail.address, to, subject, message)
             .await?
@@ -245,7 +259,9 @@ pub async fn send(
             Err(SendMailFailure::Refusal(refusal)) => {
                 Outcome::Failure(Failure::Refusal(refusal.into_protocol()))
             }
-            Err(SendMailFailure::AccountInactive) => raise_mail_failure(MailFailure::AccountInactive),
+            Err(SendMailFailure::AccountInactive) => {
+                raise_mail_failure(MailFailure::AccountInactive)
+            }
             Err(SendMailFailure::Undeliverable) => raise_mail_failure(MailFailure::NotDelivered),
         },
     })
@@ -258,7 +274,7 @@ pub async fn send(
 ///
 /// Returns errors from database reads or writes.
 pub async fn delete(
-    world: &impl NpcContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     mail: &mut MailRef,
     terminal_computers: &[ComputerId],
     mail_ids: Option<&[String]>,
@@ -271,7 +287,7 @@ pub async fn delete(
         return Ok(Outcome::Null);
     };
     let had_mail = world
-        .npcs()
+        .module::<crate::NpcModule>()
         .mail
         .delete_mails(&mail.address, mail_ids)
         .await?;
@@ -291,7 +307,7 @@ pub async fn delete(
 ///
 /// Returns errors from database reads or writes.
 pub async fn delete_all(
-    world: &impl NpcContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     mail: &mut MailRef,
     terminal_computers: &[ComputerId],
 ) -> Result<Outcome> {
@@ -299,7 +315,11 @@ pub async fn delete_all(
         return Ok(raise_mail_failure(failure));
     }
 
-    world.npcs().mail.clear_inbox(&mail.address).await?;
+    world
+        .module::<crate::NpcModule>()
+        .mail
+        .clear_inbox(&mail.address)
+        .await?;
     mail.emails.clear();
 
     Ok(Outcome::True)

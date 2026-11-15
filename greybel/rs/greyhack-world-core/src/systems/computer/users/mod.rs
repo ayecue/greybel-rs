@@ -14,9 +14,9 @@ pub struct UserService {
     pub(crate) world: WorldRef,
     pub(crate) computer_rows: Rc<ComputerRepository>,
     pub(crate) user_rows: Rc<UserRepository>,
-    pub(crate) account_files: Dep<dyn crate::AccountFiles>,
-    pub network_admins: Dep<dyn crate::NetworkAdminHook>,
-    pub npcs: Dep<dyn crate::NpcHook>,
+    pub(crate) account_files: Dep<dyn crate::AccountFileService>,
+    pub network_admins: Dep<dyn crate::NetworkAdminLookup>,
+    pub npcs: Dep<dyn crate::NpcState>,
 }
 
 impl UserService {

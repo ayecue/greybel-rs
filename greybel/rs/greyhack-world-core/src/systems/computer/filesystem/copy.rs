@@ -4,7 +4,7 @@ use greyhack_behaviour::{BYTES_PER_MB, MAX_FILES, MAX_FILES_PER_FOLDER, path};
 
 use crate::model::computer::filesystem::CopyPlan;
 use crate::storage::nodes::NodeSpec;
-use crate::systems::FileChanges as FileChangesService;
+use crate::systems::FileChangeService as FileChangesService;
 use crate::{ComputerId, CopyReport, FileFailure, Node, Result, User};
 
 impl FileChangesService {
@@ -408,7 +408,9 @@ impl FileChangesService {
             Err(failure) => return Ok(Err(failure)),
         };
 
-        if plan.file_size as f64 / BYTES_PER_MB > self.sizes.free_space_mb(folder.computer).await? {
+        if plan.file_size as f64 / BYTES_PER_MB
+            > self.sizes.available_storage_mb(folder.computer).await?
+        {
             return Ok(Err(FileFailure::DiskFull));
         }
 

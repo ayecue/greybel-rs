@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use greyhack_world::ComputerId;
+use greyhack_world_core::ComputerId;
 use greyhack_world_router::{
     Process, ProgramEnd as TreeProgramEnd, ProgramTree, TerminalClose, TreeId,
 };
@@ -231,7 +231,7 @@ impl ServerState {
         state: &mut WorldState,
         key: TreeId,
         program: ProgramId,
-    ) -> greyhack_world::Result<()> {
+    ) -> greyhack_world_core::Result<()> {
         let Some((host, root)) = state
             .tree(key)
             .map(|tree| (tree.terminal_host(program), tree.root_process()))

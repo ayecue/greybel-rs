@@ -17,7 +17,7 @@ use crate::{ComputerId, NetUseFailure, NetUseSession};
 /// Returns [`crate::routes::protocol::ScriptFailure::NoConnection`] when offline and
 /// [`OperationError::World`](crate::routes::OperationError::World) for search failures.
 pub(super) async fn net_use(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     access: &Access,
     terminal_computers: &[ComputerId],
     address: &str,
@@ -28,14 +28,14 @@ pub(super) async fn net_use(
     // `MetaExploitIntrinsics.net_use` hands the session's library the metaxploit computer's address as its
     // previous address.
     let origin = world
-        .core()
+        .module::<greyhack_world_core::CoreModule>()
         .networks
         .topology
         .public_ip(access.computer)
         .await?;
 
     Ok(world
-        .libraries()
+        .module::<crate::LibraryModule>()
         .metaxploit
         .net_use(access.computer, address, port)
         .await?
@@ -67,7 +67,7 @@ pub(super) async fn net_use(
 
 /// Handles `net_use` with a missing receiver after connection and address checks, then dereferences the helper.
 pub(super) async fn net_use_with_optional_access(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     access: Option<&Access>,
     terminal_computers: &[ComputerId],
     address: &str,

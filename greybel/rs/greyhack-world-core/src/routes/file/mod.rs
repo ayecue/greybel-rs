@@ -34,7 +34,7 @@ enum EntryResult {
 
 /// Lists the subfolders or files of folder object `id` as file objects.
 async fn file_entries(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     objects: &mut ObjectTableHandle<ComputerId>,
     id: ObjectId,
     folders: bool,
@@ -73,7 +73,11 @@ fn add_file(objects: &mut ObjectTableHandle<ComputerId>, file: &FileRef, node: N
     }))
 }
 
-pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: FilePath| {
             let world = &*ctx.modules;
@@ -259,7 +263,10 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
     routes.change::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: FileDelete| {
             let world = &*ctx.modules;
-            let last_shell = ctx.last_shell(call, world.world_ref().player());
+            let last_shell = ctx.last_shell(
+                call,
+                world.module::<crate::CoreModule>().world.clone().player(),
+            );
 
             delete(
                 world,
@@ -348,7 +355,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
 
 /// Looks up the node and optionally resolves its final symlink.
 async fn resolve(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     follow: bool,
 ) -> Result<Option<Node>> {
@@ -358,7 +365,7 @@ async fn resolve(
 
     if follow && node.is_symlink() {
         Ok(world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .lookup
             .entry(node.computer, &node.path, true)
@@ -370,12 +377,12 @@ async fn resolve(
 
 /// Resolves the node only if the shell user exists and has path traversal access.
 async fn accessible_resolve(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     follow: bool,
 ) -> Result<Option<Node>> {
     world
-        .core()
+        .module::<crate::CoreModule>()
         .files
         .lookup
         .entry_for_user(file.access.computer, &file.path, follow, &file.access.user)

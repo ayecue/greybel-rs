@@ -2,7 +2,7 @@
 
 use greyhack_behaviour::ServiceId;
 
-use super::computer::COMPUTER_GONE;
+use super::computer::COMPUTER_UNAVAILABLE;
 use super::connection::{connection_text, service_text};
 use super::file::file_text;
 use crate::protocol::{AptFailure, AptUpdateLine};
@@ -29,7 +29,7 @@ pub(super) fn apt_text(intrinsic: &str, failure: &AptFailure) -> String {
         AptFailure::MissingPackageFile(package) => {
             format!("{package} does not exist in the server")
         }
-        AptFailure::ComputerUnavailable => COMPUTER_GONE.to_owned(),
+        AptFailure::ComputerUnavailable => COMPUTER_UNAVAILABLE.to_owned(),
         AptFailure::MissingFolder(folder) => format!("{folder} does not exist in this filesystem"),
         AptFailure::NoPermission => "permission denied".to_owned(),
         AptFailure::Copy(failure) => file_text("install", failure),

@@ -15,7 +15,7 @@ pub mod startup;
 pub mod user;
 
 pub use hardware::{
-    Cpu, Gpu, HardDisk, Hardware, MiningHardware, Motherboard, NetCard, Part, PowerSupply, Ram,
+    Cpu, Gpu, HardDisk, Hardware, MinerHardware, Motherboard, NetCard, Part, PowerSupply, Ram,
     STANDARD_DISK_MB, STANDARD_RAM_MB,
 };
 pub use saved_network::{SavedNetwork, SavedWifiFailure};
@@ -169,7 +169,7 @@ impl<L, S> ComputerDraft<L, S> {
             hardware: Hardware::standard(
                 STANDARD_RAM_MB,
                 STANDARD_DISK_MB,
-                &MiningHardware::default(),
+                &MinerHardware::default(),
                 Vec::new(),
             ),
             active_users: Vec::new(),

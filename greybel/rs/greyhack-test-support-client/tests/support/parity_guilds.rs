@@ -7,7 +7,8 @@ use greybel_test_support::greyhack::run_on_host_at;
 use greybel_test_support::interpreter::constant_clock_options;
 use greyhack_test_support_client::TestClient;
 use greyhack_test_support_client::protocol::test_support::{GuildsReply, NetworkSnapshot};
-use greyhack_world::{CompanyLayout, GuildDraft, GuildLayout, GuildsLayout, World};
+use greyhack_world::World;
+use greyhack_world_guilds::{CompanyLayout, GuildDraft, GuildLayout, GuildsLayout};
 
 use super::intrinsics::{PROGRAM_NAME, snapshot_world};
 use super::parity::{Outcome, game_outcomes, without_ack_counts, without_users};

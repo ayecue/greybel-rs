@@ -417,7 +417,7 @@ pub struct VersionService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) libraries: std::rc::Rc<crate::storage::LibraryRepository>,
     pub(crate) library_versions: std::rc::Rc<crate::storage::LibraryVersionRepository>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) generator: greyhack_world_core::Dep<crate::Generator>,
     pub(crate) shop: greyhack_world_core::Dep<crate::Shop>,
 }
@@ -427,7 +427,7 @@ impl VersionService {
         world: &greyhack_world_core::WorldRef,
         libraries: std::rc::Rc<crate::storage::LibraryRepository>,
         library_versions: std::rc::Rc<crate::storage::LibraryVersionRepository>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         generator: greyhack_world_core::Dep<crate::Generator>,
         shop: greyhack_world_core::Dep<crate::Shop>,
     ) -> Self {

@@ -4,7 +4,8 @@ use greybel_interpreter::RunResult;
 use greybel_test_support::future::block_on;
 use greybel_test_support::greyhack::connect;
 use greybel_test_support::interpreter::{constant_clock, inline, snapshot_options};
-use greyhack_world::{PlayerOptions, ProcessFailure, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::ProcessFailure;
 use greyhack_world_operations::WorldServer;
 use greyscript_intrinsics::GreyHackInterpreter;
 

@@ -1,4 +1,5 @@
-use greyhack_world::{Router, World};
+use greyhack_world::World;
+use greyhack_world_core::Router;
 
 use super::{routers, world_options};
 

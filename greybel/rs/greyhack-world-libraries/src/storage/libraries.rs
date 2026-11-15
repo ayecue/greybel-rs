@@ -62,7 +62,7 @@ impl FromRow for WeaknessRow {
 pub(crate) struct LibraryRepository {
     db: Database,
     computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
 }
 
@@ -70,7 +70,7 @@ impl LibraryRepository {
     pub(crate) fn new(
         db: Database,
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     ) -> Self {
         Self {

@@ -6,7 +6,8 @@ use std::rc::Rc;
 use duplex_core::{Channel, ChannelOptions, NextNotification};
 use duplex_driver_memory::MemoryDriver;
 use greyhack_behaviour::hash_password;
-use greyhack_world::{PlayerOptions, Process, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::Process;
 use greyhack_world_operations::WorldServer;
 use scheduler::{Clock, ManualClock, TokioScheduler};
 

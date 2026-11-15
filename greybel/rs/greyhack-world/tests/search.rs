@@ -1,4 +1,5 @@
-use greyhack_world::{NetworkOptions, World};
+use greyhack_world::World;
+use greyhack_world_creation::NetworkOptions;
 
 use crate::support::search::id;
 use crate::support::{

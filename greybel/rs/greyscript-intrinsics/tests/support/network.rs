@@ -1,6 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::ServiceId;
-use greyhack_world::{ComputerId, LoginFailure, RouterId, World};
+use greyhack_world::World;
+use greyhack_world_core::{ComputerId, LoginFailure, RouterId};
 
 use super::read_routers;
 

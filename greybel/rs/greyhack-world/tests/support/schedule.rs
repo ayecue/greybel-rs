@@ -1,4 +1,5 @@
-use greyhack_world::{CoinId, PlayerOptions, ScheduledRoutine, World};
+use greyhack_world::{PlayerOptions, ScheduledRoutine, World};
+use greyhack_world_core::CoinId;
 
 use crate::support::subwallet;
 

@@ -45,7 +45,7 @@ impl IntoProtocol for crate::UnmetRequirement {
         use crate::UnmetRequirement as World;
 
         match unmet {
-            World::TargetGone => UnmetRequirement::TargetGone,
+            World::TargetMissing => UnmetRequirement::TargetMissing,
             World::MissingLibrary(library) => UnmetRequirement::MissingLibrary(library),
             World::OldLibrary {
                 library,

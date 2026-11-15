@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use duplex_core::{Channel, Driver};
 use greyhack_behaviour::path;
-use greyhack_world::objects::{Access, Object, ObjectTableExt};
+use greyhack_world_core::{Access, AccessHandle, AccessKind};
 
 use super::Connection;
 use crate::OperationError;
@@ -80,15 +80,19 @@ pub(super) fn attach<D: Driver>(connection: &Rc<Connection>, channel: &Channel<G
                             ObjectId { id: 0 },
                             safe_terminal,
                         )?;
-                        let shell = world_state.trees.objects_of_connection(connection.id).add(
-                            Object::Shell(Access {
-                                computer,
-                                user: message.user.to_string(),
-                                ftp: false,
-                                prev_ip,
-                                bounces: 0,
-                            }),
-                        );
+                        let shell = world_state
+                            .trees
+                            .objects_of_connection(connection.id)
+                            .insert(AccessHandle {
+                                access: Access {
+                                    computer,
+                                    user: message.user.to_string(),
+                                    ftp: false,
+                                    prev_ip,
+                                    bounces: 0,
+                                },
+                                kind: AccessKind::Shell,
+                            });
 
                         let tree = world_state
                             .trees

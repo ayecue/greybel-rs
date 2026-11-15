@@ -22,7 +22,6 @@ pub use greyhack_behaviour::{Rng, Word};
 pub use greyhack_world_core::{ComputerId, NetworkId, PersonId, Result, RouterId, WorldError};
 use greyhack_world_core::{Dep, WorldRef};
 use greyhack_world_modules::{Module, Registry};
-use greyhack_world_router::WorldContext;
 use greyhack_world_routines::Routine;
 use greyhack_world_storage::DomainSchema;
 pub use model::*;
@@ -39,7 +38,7 @@ pub struct NpcModule {
     /// NPC employment and rented-server administrators.
     pub jobs: Rc<JobService>,
     /// NPC work schedules, logins, lateness, and alarms.
-    pub schedules: Rc<Schedules>,
+    pub schedules: Rc<ScheduleService>,
     /// Mail accounts, messages, NPC inboxes, and SMTP users.
     pub mail: Rc<Mail>,
     /// NPC login and logout routine.
@@ -79,7 +78,7 @@ impl NpcModule {
             },
         ));
         let jobs = Rc::new(JobService::new(world, registry, scheduler.clone()));
-        let schedules = Rc::new(Schedules::new(world, registry, scheduler.clone()));
+        let schedules = Rc::new(ScheduleService::new(world, registry, scheduler.clone()));
 
         Self {
             npcs: npc_service,
@@ -100,6 +99,7 @@ impl NpcModule {
                 storage::schema::mail::GROUP,
                 storage::schema::npcs::GROUP,
                 NpcSwitch::tables(),
+                storage::schema::VOLATILE,
             ],
         )
     }
@@ -111,8 +111,9 @@ impl Module for NpcModule {
     fn register(registry: &Rc<Registry>) -> Self {
         let module = Self::new(registry);
 
-        registry.register_service::<dyn greyhack_world_core::NpcHook>(module.npcs.clone());
-        registry.register_service::<dyn greyhack_world_core::NetworkAdminHook>(module.npcs.clone());
+        registry.register_service::<dyn greyhack_world_core::NpcState>(module.npcs.clone());
+        registry
+            .register_service::<dyn greyhack_world_core::NetworkAdminLookup>(module.npcs.clone());
         registry.register_routine(module.switch.clone());
         registry.register_schema(Self::schema());
         registry.register_service(Rc::new(module.clone()));
@@ -124,12 +125,4 @@ impl Module for NpcModule {
 
         module
     }
-}
-
-/// Access to NPC, economy, and core services from a concrete assembled world.
-pub trait NpcContext:
-    greyhack_world_economy::EconomyContext + WorldContext<Computer = ComputerId>
-{
-    /// Returns this world's NPC module.
-    fn npcs(&self) -> Rc<NpcModule>;
 }

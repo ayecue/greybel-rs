@@ -1,4 +1,5 @@
-use greyhack_world::{CrownShieldFailure, ExploitLog};
+use greyhack_world_guilds::CrownShieldFailure;
+use greyhack_world_libraries::ExploitLog;
 
 use crate::support::guilds_records::{
     ADDRESS, LIBRARY_PATH, UNSEC_VALUE, crown, guild, has_crown, install, world_with_companies,

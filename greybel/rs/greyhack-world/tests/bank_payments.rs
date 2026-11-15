@@ -1,6 +1,8 @@
 use greyhack_behaviour::{RENTAL_ADMIN_PRICE, SubscriptionKind, add_month};
-use greyhack_world::prelude::*;
-use greyhack_world::{Database, PurchaseFailure, RentalAdminFailure, World};
+use greyhack_world::{DatabaseOpen, World};
+use greyhack_world_core::Database;
+use greyhack_world_economy::PurchaseFailure;
+use greyhack_world_npcs::RentalAdminFailure;
 
 use crate::support::bank_payments::{
     A_MONTH_AND_A_DAY, FIRST, POOR, SECOND, disabled, money, payment_dates, payments_of, rent,

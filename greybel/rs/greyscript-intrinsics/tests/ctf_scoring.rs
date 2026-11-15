@@ -1,5 +1,6 @@
 use greybel_test_support::future::block_on;
-use greyhack_world::{CtfFailure, World};
+use greyhack_world::World;
+use greyhack_world_player::CtfFailure;
 
 use crate::support::ctf_scoring::scoring_world;
 use crate::support::save_copy;

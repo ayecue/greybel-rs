@@ -5,9 +5,10 @@ use greybel_test_support::greyhack;
 use greybel_test_support::interpreter::{constant_clock, snapshot_options};
 use greybel_test_support::world::{change_computer, work_ends};
 use greyhack_behaviour::{DeviceKind, ServiceId};
-use greyhack_world::prelude::*;
-use greyhack_world::{Database, PlayerOptions, SnifferPacket, World};
+use greyhack_world::{DatabaseOpen, PlayerOptions, World};
 use greyhack_world_assets::ssh_encode;
+use greyhack_world_core::Database;
+use greyhack_world_intrusion::SnifferPacket;
 use greyhack_world_operations::WorldServer;
 use greyscript_intrinsics::protocol::{
     IncludedLibrary, MetaxploitSniffer, PlayerIncludeLib, Program, StartProgram,
@@ -235,8 +236,8 @@ fn should_capture_on_hub_siblings() {
     .parent
     .expect("the destination's device");
     let peer = block_on(world.modules.creation.network_generation.add_computer_to(
-        greyhack_world::RouterId::of(holder),
-        &greyhack_world::ComputerOptions::default(),
+        greyhack_world_core::RouterId::of(holder),
+        &greyhack_world_creation::ComputerOptions::default(),
     ))
     .unwrap()
     .expect("a sibling on the destination's device");

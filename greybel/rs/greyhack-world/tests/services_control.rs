@@ -1,5 +1,6 @@
 use greyhack_behaviour::{ROOT_USER, ServiceId};
-use greyhack_world::{PlayerOptions, ServiceControlFailure, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_services::ServiceControlFailure;
 
 #[tokio::test]
 async fn should_reject_http_install_start_and_stop_on_a_router() {

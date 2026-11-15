@@ -2,7 +2,8 @@
 
 use std::any::Any;
 
-use greyhack_world::{ComputerId, World, WorldError};
+use greyhack_world::World;
+use greyhack_world_core::{ComputerId, WorldError};
 use greyhack_world_router::{
     Call, CycleDriver, CycleFuture, ErasedCycleCall, ErasedWorldCall, Process, ProgramKind,
     RouteContext, RouteResult, TreeId,

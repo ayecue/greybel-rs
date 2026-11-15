@@ -1,5 +1,7 @@
 use greyhack_behaviour::{LibraryKind, hash_password};
-use greyhack_world::{Library, NetCard, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::NetCard;
+use greyhack_world_libraries::Library;
 
 use crate::support::save_copy;
 

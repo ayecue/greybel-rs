@@ -1,5 +1,7 @@
 use greyhack_behaviour::{DeviceKind, NetworkKind, is_lan_ip, same_subnet};
-use greyhack_world::{ComputerId, NetworkOptions, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::ComputerId;
+use greyhack_world_creation::NetworkOptions;
 
 use crate::support::generation::address_for_kind;
 use crate::support::lan::world;

@@ -9,7 +9,7 @@ use crate::support::parity_logs::{compare_typed_logs, connect};
 use crate::support::remote::{find_ssh_with_library, service_account};
 
 /// A terminal on a remote computer whose bash reboots that computer ends the script that started the terminal as well
-/// (`MainClass` takes a second pending VM off on `exitBashReboot`, so the script's state is gone) and logs `close` on
+/// (`MainClass` takes a second pending VM off on `exitBashReboot`, so the script's state no longer exists) and logs `close` on
 /// the rebooted computer (`HelperScript.CloseRemotePrograms`); the script prints nothing after `start_terminal`.
 #[tokio::test]
 async fn should_match_the_game_when_the_terminals_own_computer_reboots() {

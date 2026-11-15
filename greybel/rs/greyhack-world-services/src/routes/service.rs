@@ -10,7 +10,11 @@ use crate::objects::ObjectTableExt;
 use crate::routes::protocol::IntoProtocol as _;
 use crate::{ServiceControlFailure as WorldFailure, ServiceStart};
 
-pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -20,7 +24,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
 
             Ok(
                 match world
-                    .services()
+                    .module::<crate::ServicesModule>()
                     .control
                     .control_install_service(
                         service.access.computer,
@@ -44,7 +48,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
 
             Ok(
                 match world
-                    .services()
+                    .module::<crate::ServicesModule>()
                     .control
                     .control_start_service(
                         service.access.computer,
@@ -53,7 +57,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
                     )
                     .await?
                 {
-                    Ok(ServiceStart::Gone) => Outcome::False,
+                    Ok(ServiceStart::Missing) => Outcome::False,
                     Ok(ServiceStart::Success) => Outcome::True,
                     Ok(ServiceStart::Failure) => Outcome::Null,
                     Err(failure) => refusal(failure),
@@ -70,7 +74,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
 
             Ok(
                 match world
-                    .services()
+                    .module::<crate::ServicesModule>()
                     .control
                     .control_stop_service(
                         service.access.computer,

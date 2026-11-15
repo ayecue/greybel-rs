@@ -4,5 +4,5 @@ pub(crate) mod clock;
 pub(crate) mod routine;
 pub(crate) mod schedule;
 
-pub use routine::{RoutineFailure, ScheduledRoutine, TickReport};
-pub(crate) use schedule::RoutineService;
+pub use routine::{RoutineReport, ScheduledRoutine, TickReport};
+pub use schedule::RoutineService;

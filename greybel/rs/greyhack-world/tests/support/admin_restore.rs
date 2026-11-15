@@ -1,4 +1,6 @@
-use greyhack_world::{ComputerId, GuildDraft, World};
+use greyhack_world::World;
+use greyhack_world_core::ComputerId;
+use greyhack_world_guilds::GuildDraft;
 
 use super::library_updates::{SSH_PATH, network_of, version_of};
 

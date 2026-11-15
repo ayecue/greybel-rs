@@ -81,6 +81,7 @@ greyhack-world-services = { path = "greyhack-world-services" }
 greyhack-world-shell = { path = "greyhack-world-shell" }
 greyhack-world-smart-devices = { path = "greyhack-world-smart-devices" }
 greyhack-world-storage = { path = "greyhack-world-storage" }
+greyhack-world-traces = { path = "greyhack-world-traces" }
 greyhack-world-operations-web = { path = "greyhack-world-operations-web" }
 greyhack-world-assets = { path = "../../assets/rs/greyhack-world-assets" }
 mono-dictionary = { path = "../../mono/rs/mono-dictionary" }

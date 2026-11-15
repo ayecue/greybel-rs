@@ -3,7 +3,7 @@
 use greyhack_behaviour::{FileData, PermissionSet, path};
 use greyhack_world_core::{ComputerId, FileFailure, NodeDraft, Result};
 
-use crate::{SnifferPacket, Sniffers};
+use crate::{SnifferPacket, SnifferService};
 
 /// Why a sniffed encoder could not be saved (`HelperScript.GetPendingSniffers`).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -18,7 +18,7 @@ pub enum EncoderFailure {
 }
 
 /// Methods of [`World`] for intrusion sniffer encoder.
-impl Sniffers {
+impl SnifferService {
     pub async fn save_packet_encoder(
         &self,
         computer: ComputerId,

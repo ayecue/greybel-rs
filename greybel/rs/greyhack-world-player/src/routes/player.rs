@@ -20,9 +20,13 @@ use greyhack_world_services::ServiceRef;
 use greyhack_world_services::objects::ObjectTableExt as _;
 use greyhack_world_smart_devices::{SmartApplianceHandle, TrafficNetHandle};
 
-use crate::{CtfPasswordFailure, CtfRef, ObjectTableExt as _, PlayerAccount, PlayerContext};
+use crate::{CtfPasswordFailure, CtfRef, ObjectTableExt as _, PlayerAccount};
 
-pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -40,7 +44,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
             require_connection(world, &ctx.terminal_computers(call)).await?;
 
             let router = world
-                .player()
+                .module::<crate::PlayerModule>()
                 .player
                 .network_router(computer, &ctx.terminal_computers(call), &message.address)
                 .await?;
@@ -62,7 +66,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
                 )?
                 .computer;
             let router = world
-                .player()
+                .module::<crate::PlayerModule>()
                 .player
                 .lan_switch(computer, &message.address)
                 .await?;
@@ -77,7 +81,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .dns
                 .resolve_domain(&message.address)
@@ -91,7 +95,13 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(
-                match world.core().networks.dns.whois(&message.address).await? {
+                match world
+                    .module::<greyhack_world_core::CoreModule>()
+                    .networks
+                    .dns
+                    .whois(&message.address)
+                    .await?
+                {
                     None => Whois::UnknownAddress,
                     Some((_, None)) => Whois::NoInfo,
                     Some((domain, Some(contact))) => Whois::Contact {
@@ -115,7 +125,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
             )?;
 
             Ok(world
-                .player()
+                .module::<crate::PlayerModule>()
                 .player
                 .change_folder(
                     session.computer,
@@ -133,7 +143,11 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
                     _message: PlayerCurrentDate| {
             let world = &*ctx.modules;
 
-            Ok(world.world_ref().date())
+            Ok(world
+                .module::<greyhack_world_core::CoreModule>()
+                .world
+                .clone()
+                .date())
         },
     );
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
@@ -150,7 +164,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
                 )?
                 .clone();
             let Some(library) = world
-                .player()
+                .module::<crate::PlayerModule>()
                 .player
                 .included_library(access.computer, &message.path)
                 .await?
@@ -217,7 +231,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
 
             Ok(
                 match world
-                    .core()
+                    .module::<greyhack_world_core::CoreModule>()
                     .computers
                     .users
                     .check_login(access.computer, &message.user, &message.password)
@@ -250,7 +264,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
                 .computer;
 
             Ok(world
-                .player()
+                .module::<crate::PlayerModule>()
                 .player
                 .player_account(computer, PlayerAccount::MailAddress)
                 .await?)
@@ -271,7 +285,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
                 .computer;
 
             Ok(world
-                .player()
+                .module::<crate::PlayerModule>()
                 .player
                 .player_account(computer, PlayerAccount::BankNumber)
                 .await?)
@@ -293,7 +307,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
 
             Ok(
                 match world
-                    .player()
+                    .module::<crate::PlayerModule>()
                     .player
                     .mail_login_from(
                         access.computer,
@@ -305,7 +319,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
                 {
                     Some(Login::Valid) => {
                         let emails = world
-                            .npcs()
+                            .module::<greyhack_world_npcs::NpcModule>()
                             .mail
                             .mail_account(&message.address)
                             .await?
@@ -345,7 +359,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
                 .computer;
 
             Ok(world
-                .player()
+                .module::<crate::PlayerModule>()
                 .player
                 .ctf_login(&message.event, &message.user, &message.password)
                 .await?
@@ -373,7 +387,7 @@ pub(crate) fn register<W: PlayerContext + 'static>(routes: &RouteTable) {
 
             Ok(
                 match world
-                    .player()
+                    .module::<crate::PlayerModule>()
                     .player
                     .change_ctf_password(computer, &message.password)
                     .await?

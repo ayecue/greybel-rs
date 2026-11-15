@@ -3,7 +3,6 @@
 use greyhack_world_core::ObjectTableExt as _;
 use greyhack_world_router::RouteTable;
 
-use crate::EconomyContext;
 use crate::objects::{ObjectTableExt, SubWalletRef};
 use crate::routes::protocol::{
     CoinCreateSubwallet, CoinGetAddress, CoinGetCycleMining, CoinGetMinedCoins, CoinGetReward,
@@ -14,7 +13,11 @@ use crate::routes::protocol::{
 mod access;
 use self::access::{on_coin, online_coin, setting_result, transaction};
 
-pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -46,7 +49,7 @@ pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
 
             setting_result(
                 world
-                    .economy()
+                    .module::<crate::EconomyModule>()
                     .coins
                     .set_coin_address(coin, &message.address)
                     .await?,
@@ -100,7 +103,7 @@ pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
 
             setting_result(
                 world
-                    .economy()
+                    .module::<crate::EconomyModule>()
                     .coins
                     .set_coin_reward(coin, message.reward)
                     .await?,
@@ -138,7 +141,7 @@ pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
 
             setting_result(
                 world
-                    .economy()
+                    .module::<crate::EconomyModule>()
                     .coins
                     .set_coin_cycle_hours(coin, message.cycle_mining)
                     .await?,
@@ -160,7 +163,7 @@ pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
 
             Ok(
                 match world
-                    .economy()
+                    .module::<crate::EconomyModule>()
                     .coins
                     .create_coin_subwallet(
                         coin,
@@ -191,7 +194,7 @@ pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
             )
             .await?;
             let has_subwallet = world
-                .economy()
+                .module::<crate::EconomyModule>()
                 .wallets
                 .subwallet(coin, &message.user)
                 .await?
@@ -219,7 +222,7 @@ pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
             .await?;
 
             Ok(world
-                .economy()
+                .module::<crate::EconomyModule>()
                 .wallets
                 .subwallets(coin)
                 .await?
@@ -271,7 +274,7 @@ pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
 
             Ok(
                 match world
-                    .economy()
+                    .module::<crate::EconomyModule>()
                     .coins
                     .reset_coin_password(
                         coin,

@@ -10,7 +10,7 @@ mod repository;
 pub use computer::{assign_player_libraries, router_computer};
 pub use filesystem::{add_player_libraries, build_filesystem};
 use greyhack_behaviour::{LibraryKind, NetworkKind, ROOT_USER, SYSTEM_PROCESSES};
-use greyhack_world_core::{MiningHardware, Process};
+use greyhack_world_core::{MinerHardware, Process};
 use greyhack_world_libraries::{Library, LibraryGeneration as _};
 pub use lan::{ComputerPlan, DevicePlan, LanPlan, ServicePlan};
 pub use network::WifiGenerator;
@@ -84,7 +84,7 @@ pub struct ComputerOptions {
     /// Whether the device is a switch.
     pub is_switch: bool,
     /// Mining hardware installed on the computer.
-    pub mining_hardware: MiningHardware,
+    pub miner_hardware: MinerHardware,
 }
 
 impl ComputerOptions {

@@ -3,10 +3,13 @@
 use greyhack_world_router::RouteTable;
 use greyhack_world_router::protocol::{AdminAddNpc, AdminNpcLogin};
 
-use crate::NpcContext;
 use crate::routes::Result;
 
-pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
@@ -30,7 +33,7 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
             // exposing credentials to sniffers along the path.
             let Some(computer) = ctx
                 .modules
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .routers
                 .computer_at(&message.address, &message.lan_ip)
@@ -40,7 +43,7 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
             };
 
             ctx.modules
-                .npcs()
+                .module::<crate::NpcModule>()
                 .schedules
                 .npc_social_login(computer, &message.user)
                 .await?;
@@ -52,16 +55,21 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
 
 /// Creates an offline NPC scheduled to log in after `delay` seconds and returns its ID.
 async fn add_npc(
-    world: &impl NpcContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     public_ip: &str,
     lan_ip: &str,
     user: &str,
     delay: u64,
     name: &str,
 ) -> Result<Option<u32>> {
-    let next_action_at = world.world_ref().time_seconds().saturating_add(delay);
+    let next_action_at = world
+        .module::<greyhack_world_core::CoreModule>()
+        .world
+        .clone()
+        .time_seconds()
+        .saturating_add(delay);
     let Some(computer) = world
-        .core()
+        .module::<greyhack_world_core::CoreModule>()
         .networks
         .routers
         .computer_at(public_ip, lan_ip)
@@ -71,7 +79,7 @@ async fn add_npc(
     };
 
     Ok(world
-        .npcs()
+        .module::<crate::NpcModule>()
         .npcs
         .add_npc(computer, user, name, next_action_at)
         .await?

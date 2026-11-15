@@ -5,11 +5,11 @@ use greyhack_world_core::Access;
 use super::{Login, require_online};
 use crate::routes::Result;
 use crate::routes::protocol::{CoinName, EconomyFailure, Failure, IntoProtocol as _, Outcome};
-use crate::{CoinId, ComputerId, EconomyContext, WalletId};
+use crate::{CoinId, ComputerId, WalletId};
 
 /// Authenticates coin `name` with its creator `user` and `password`.
 pub(super) async fn get_coin(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     terminal_computers: &[ComputerId],
     user: Option<&str>,
@@ -25,7 +25,7 @@ pub(super) async fn get_coin(
     };
 
     Ok(world
-        .economy()
+        .module::<crate::EconomyModule>()
         .coins
         .login_coin(name, user, password)
         .await?
@@ -37,7 +37,7 @@ pub(super) async fn get_coin(
 
 /// Authenticates a wallet using `user` and `password`.
 pub(super) async fn login_wallet(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     terminal_computers: &[ComputerId],
     user: Option<&str>,
@@ -52,7 +52,7 @@ pub(super) async fn login_wallet(
     };
 
     Ok(world
-        .economy()
+        .module::<crate::EconomyModule>()
         .wallets
         .login_wallet(user, password)
         .await?
@@ -65,7 +65,7 @@ pub(super) async fn login_wallet(
 /// Creates a wallet for `user` and `password`, charging the bank account associated with the script's
 /// `host` computer.
 pub(super) async fn create_wallet(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     host: ComputerId,
     terminal_computers: &[ComputerId],
@@ -82,7 +82,7 @@ pub(super) async fn create_wallet(
 
     Ok(
         match world
-            .economy()
+            .module::<crate::EconomyModule>()
             .wallets
             .create_wallet_for(host, user, password)
             .await?
@@ -95,7 +95,7 @@ pub(super) async fn create_wallet(
 
 /// Deletes coin `name` after validating creator credentials.
 pub(super) async fn delete_coin(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     terminal_computers: &[ComputerId],
     name: Option<&str>,
@@ -112,7 +112,7 @@ pub(super) async fn delete_coin(
 
     Ok(
         match world
-            .economy()
+            .module::<crate::EconomyModule>()
             .coins
             .delete_coin_as_creator(name, user, password)
             .await?
@@ -125,7 +125,7 @@ pub(super) async fn delete_coin(
 
 /// Returns the name of `session_user`'s coin after validating `user`/`password`, or the failure.
 pub(super) async fn get_coin_name(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     terminal_computers: &[ComputerId],
     session_user: &str,
@@ -142,7 +142,7 @@ pub(super) async fn get_coin_name(
 
     Ok(
         match world
-            .economy()
+            .module::<crate::EconomyModule>()
             .coins
             .creator_coin_name(session_user, user, password)
             .await?

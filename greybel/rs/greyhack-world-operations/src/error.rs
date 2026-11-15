@@ -1,4 +1,4 @@
-use greyhack_world::WorldError;
+use greyhack_world_core::WorldError;
 pub use greyhack_world_router::RouteError;
 
 /// Failure that prevents an operation from returning a program result.

@@ -170,3 +170,17 @@ pub(crate) const LIBRARY_CHECKS: TableSet = TableSet::new(
 ",
     &["routine_library_checks"],
 );
+
+/// Clears weakness-use state and script processes, retaining reverse-shell clients.
+pub(crate) const VOLATILE: TableSet = TableSet::volatile(
+    "DELETE FROM library_weakness_uses;
+DELETE FROM library_reporters;
+DELETE FROM computer_processes
+WHERE service IS NULL
+  AND protected = 0
+  AND NOT EXISTS (
+      SELECT 1 FROM reverse_shells
+      WHERE reverse_shells.computer_id = computer_processes.computer_id AND reverse_shells.pid = computer_processes.pid
+  );
+",
+);

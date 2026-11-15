@@ -2,7 +2,7 @@
 
 use greyhack_behaviour::{FileData, PermissionSet, ROOT_USER, path};
 
-use crate::systems::FileChanges as FileChangesService;
+use crate::systems::FileChangeService as FileChangesService;
 use crate::{ComputerId, Node, NodeDraft, Result};
 
 impl FileChangesService {

@@ -6,7 +6,7 @@ use greyhack_world::{PlayerOptions, World};
 use greyhack_world_operations::WorldServer;
 use greyscript_intrinsics::GreyHackInterpreter;
 
-/// The game server keeps the objects a program holds; once the program is gone, its runtime releases them with the
+/// The game server keeps the objects a program holds; once the program ends, its runtime releases them with the
 /// connection's next operation.
 #[test]
 fn should_release_the_objects_of_a_finished_program() {

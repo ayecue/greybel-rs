@@ -1,11 +1,17 @@
-use greyhack_behaviour::{DeviceKind, NetworkKind, main_router_address, position_for_ip};
-use greyhack_world_creation::{RepositoryDraft, assign_player_libraries, kernel_router};
+use greyhack_behaviour::{
+    DeviceKind, NetworkKind, Rng, Word, main_router_address, position_for_ip,
+};
+use greyhack_world_core::{
+    ComputerId, Database, Gender, LanPlace, LayoutFailure, NetworkDraft, Person, PersonId, Result,
+    WorldError,
+};
+use greyhack_world_creation::{
+    DeviceLayout, RepositoryDraft, assign_player_libraries, kernel_router,
+};
+use greyhack_world_libraries::RouterDraft;
 
 use super::{PlayerOptions, WorldOptions, preset};
-use crate::{
-    ComputerId, Database, DeviceLayout, Gender, LanPlace, LayoutFailure, NetworkDraft, Person,
-    PersonId, Result, Rng, RouterDraft, Word, World, WorldError,
-};
+use crate::World;
 
 /// Creates the player world in `db` in one transaction: default repository and coins, player router
 /// and computer, bank account, and mail.

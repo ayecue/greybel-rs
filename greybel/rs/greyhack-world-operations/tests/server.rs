@@ -3,8 +3,8 @@ use std::rc::Rc;
 use duplex_core::{Error, ErrorCode};
 use duplex_test_support::local::run_local;
 use futures_util::FutureExt;
-use greyhack_world::prelude::*;
-use greyhack_world::{Database, PlayerOptions, World};
+use greyhack_world::{DatabaseOpen, PlayerOptions, World};
+use greyhack_world_core::Database;
 use greyhack_world_operations::WorldServer;
 use scheduler::ManualClock;
 
@@ -534,16 +534,16 @@ fn should_end_the_programs_and_refuse_new_ones_when_the_game_is_over() {
 
                 world
                     .modules
-                    .guilds
+                    .traces
                     .traces
                     .set_strikes(2)
                     .await
                     .expect("the world writes");
                 world
                     .modules
-                    .guilds
                     .traces
-                    .strike_player(computer, greyhack_world::TraceKind::Active)
+                    .traces
+                    .strike_player(computer, greyhack_world_core::TraceKind::Active)
                     .await
                     .expect("the world writes");
             })

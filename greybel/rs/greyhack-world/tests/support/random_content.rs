@@ -1,5 +1,7 @@
 use greyhack_behaviour::{FileKind, ROOT_USER};
-use greyhack_world::{ComputerId, ComputerOptions, NetworkOptions, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::ComputerId;
+use greyhack_world_creation::{ComputerOptions, NetworkOptions};
 
 /// A random file of a home: the path, its kind, owner, group and permissions.
 pub type Entry = (String, FileKind, String, String, String);

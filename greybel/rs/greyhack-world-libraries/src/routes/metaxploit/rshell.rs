@@ -9,7 +9,7 @@ use crate::{ComputerId, RshellClientFailure};
 
 /// Starts a reverse-shell client connected to `address:port`.
 pub(super) async fn rshell_client(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     access: &Access,
     terminal_computers: &[ComputerId],
     address: &str,
@@ -20,7 +20,7 @@ pub(super) async fn rshell_client(
 
     Ok(
         match world
-            .libraries()
+            .module::<crate::LibraryModule>()
             .metaxploit
             .start_reverse_shell(
                 access.computer,

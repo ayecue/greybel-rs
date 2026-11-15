@@ -3,7 +3,9 @@
 use std::rc::Rc;
 
 use greybel_test_support::future::block_on;
-use greyhack_world::{NetworkOptions, RouterId, World};
+use greyhack_world::World;
+use greyhack_world_core::RouterId;
+use greyhack_world_creation::NetworkOptions;
 use scheduler::ManualClock;
 
 use super::network::literal;

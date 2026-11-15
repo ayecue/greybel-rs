@@ -52,9 +52,9 @@ pub fn reachable_ssh_account(snapshot: &NetworkSnapshot) -> Option<ServiceAccoun
 }
 
 /// The addresses of the computers of the traces: active, passive and the strikes.
-pub type Traces = (Vec<(String, String)>, Vec<(String, String)>, u32);
+pub type TraceService = (Vec<(String, String)>, Vec<(String, String)>, u32);
 
-pub fn game_traces(reply: &TracesReply) -> Traces {
+pub fn game_traces(reply: &TracesReply) -> TraceService {
     let pair = |computer: &TraceComputer| {
         (
             computer.public_ip.to_string(),
@@ -69,7 +69,7 @@ pub fn game_traces(reply: &TracesReply) -> Traces {
     )
 }
 
-pub fn world_traces(world: &World) -> Traces {
+pub fn world_traces(world: &World) -> TraceService {
     let pair = |computer| {
         (
             block_on(world.modules.core.networks.topology.public_ip(computer)).unwrap(),
@@ -79,12 +79,12 @@ pub fn world_traces(world: &World) -> Traces {
                 .local_ip,
         )
     };
-    let active = block_on(world.modules.guilds.traces.active_traces())
+    let active = block_on(world.modules.traces.traces.active_traces())
         .unwrap()
         .into_iter()
         .map(|trace| pair(trace.computer))
         .collect();
-    let passive = block_on(world.modules.guilds.traces.passive_traces())
+    let passive = block_on(world.modules.traces.traces.passive_traces())
         .unwrap()
         .into_iter()
         .map(pair)
@@ -93,7 +93,7 @@ pub fn world_traces(world: &World) -> Traces {
     (
         active,
         passive,
-        u32::from(block_on(world.modules.guilds.traces.strikes()).unwrap()),
+        u32::from(block_on(world.modules.traces.traces.strikes()).unwrap()),
     )
 }
 
@@ -113,7 +113,7 @@ pub async fn compare(
     user: &str,
     snapshot: &NetworkSnapshot,
     account: &ServiceAccount,
-) -> Traces {
+) -> TraceService {
     let script = script(account);
     let guilds = client
         .query_guilds(std::slice::from_ref(&snapshot.public_ip.to_string()))

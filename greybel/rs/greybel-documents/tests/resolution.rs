@@ -11,7 +11,16 @@ use crate::support::uri;
 fn should_resolve_asynchronously_to_the_same_uris() {
     let resolution = PathResolution::new(["src", "ms"]);
     let files = ["/a", "/b.ms", "/c.src", "/c.ms", "/x.src.src"].map(uri);
-    let targets = ["/a", "/b", "/c", "/gone", "/gone.src", "/gone.ms", "/x.src"].map(uri);
+    let targets = [
+        "/a",
+        "/b",
+        "/c",
+        "/missing",
+        "/missing.src",
+        "/missing.ms",
+        "/x.src",
+    ]
+    .map(uri);
     let expected: Vec<_> = targets
         .iter()
         .map(|target| resolution.resolve(target, |uri| files.contains(uri)))
@@ -34,8 +43,8 @@ fn should_resolve_asynchronously_to_the_same_uris() {
 fn should_try_the_uri_then_each_extension() {
     let resolution = PathResolution::new(["src", "ms"]);
     let files = ["/a", "/b.ms", "/c.src", "/c.ms"].map(uri);
-    let paths = ["/a", "/b", "/c", "/gone", "/gone.src", "/gone.ms"];
-    let [plain, ms, src, gone, gone_src, gone_ms] = paths.map(|path| {
+    let paths = ["/a", "/b", "/c", "/missing", "/missing.src", "/missing.ms"];
+    let [plain, ms, src, missing, missing_src, missing_ms] = paths.map(|path| {
         resolution
             .resolve(&uri(path), |uri| files.contains(uri))
             .path()
@@ -45,9 +54,9 @@ fn should_try_the_uri_then_each_extension() {
     assert_eq!(plain, "/a");
     assert_eq!(ms, "/b.ms");
     assert_eq!(src, "/c.src");
-    assert_eq!(gone, "/gone.src");
-    assert_eq!(gone_src, "/gone.src");
-    assert_eq!(gone_ms, "/gone.ms");
+    assert_eq!(missing, "/missing.src");
+    assert_eq!(missing_src, "/missing.src");
+    assert_eq!(missing_ms, "/missing.ms");
 }
 
 #[test]

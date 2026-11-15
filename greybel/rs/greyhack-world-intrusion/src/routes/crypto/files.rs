@@ -2,11 +2,11 @@
 
 use greyhack_world_core::Access;
 
+use crate::CryptoFailure;
 use crate::routes::Result;
 use crate::routes::protocol::{IntoProtocol as _, Outcome};
-use crate::{CryptoFailure, IntrusionContext};
 
-/// Converts a file operation result to an outcome: `Null` when the computer is gone.
+/// Converts a file operation result to an outcome: `Null` when the computer no longer exists.
 pub(super) fn file_outcome(result: Option<std::result::Result<(), CryptoFailure>>) -> Outcome {
     match result {
         None => Outcome::Null,
@@ -17,14 +17,14 @@ pub(super) fn file_outcome(result: Option<std::result::Result<(), CryptoFailure>
 
 /// Encrypts `path` using `password`.
 pub(super) async fn encrypt(
-    world: &impl IntrusionContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     access: &Access,
     path: &str,
     password: &str,
 ) -> Result<Outcome> {
     Ok(file_outcome(
         world
-            .intrusion()
+            .module::<crate::IntrusionModule>()
             .crypto
             .encrypt_file(access.computer, &access.user, path, password)
             .await?,
@@ -33,14 +33,14 @@ pub(super) async fn encrypt(
 
 /// Decrypts `path` after verifying `password`.
 pub(super) async fn decrypt(
-    world: &impl IntrusionContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     access: &Access,
     path: &str,
     password: &str,
 ) -> Result<Outcome> {
     Ok(file_outcome(
         world
-            .intrusion()
+            .module::<crate::IntrusionModule>()
             .crypto
             .decrypt_file(access.computer, &access.user, path, password)
             .await?,
@@ -49,13 +49,13 @@ pub(super) async fn decrypt(
 
 /// Checks `path` for encryption, returning any read failure.
 pub(super) async fn is_encrypted(
-    world: &impl IntrusionContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     access: &Access,
     path: &str,
 ) -> Result<Outcome> {
     Ok(
         match world
-            .intrusion()
+            .module::<crate::IntrusionModule>()
             .crypto
             .is_file_encrypted(access.computer, &access.user, path)
             .await?

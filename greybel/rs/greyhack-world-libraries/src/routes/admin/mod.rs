@@ -9,13 +9,19 @@ use crate::routes::protocol::{
     AdminReportExploit,
 };
 
+mod computer;
 mod library_versions;
 mod shop;
 
 use self::library_versions::{release_library_version, report_exploit};
 use self::shop::{buy_exploit, exploit_shop};
 
-pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
+    computer::register::<W>(routes);
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
@@ -67,7 +73,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
                     _call,
                     message: AdminCreateDebugAccount<'static>| {
             ctx.modules
-                .libraries()
+                .module::<crate::LibraryModule>()
                 .debug
                 .save_debug_account(&DebugAccount::new(&message.user, &message.password))
                 .await?;

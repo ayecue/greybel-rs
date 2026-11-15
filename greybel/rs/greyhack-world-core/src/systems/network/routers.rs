@@ -436,7 +436,7 @@ pub struct RouterService {
     pub(crate) users: Dep<UserService>,
     pub(crate) startup: Dep<Startup>,
     pub(crate) lookup: Dep<FileLookup>,
-    pub(crate) library_files: Dep<LibraryFiles>,
+    pub(crate) library_files: Dep<LibraryFileService>,
     pub(crate) lan: Dep<NetworkLan>,
     pub(crate) topology: Dep<NetworkTopology>,
 }

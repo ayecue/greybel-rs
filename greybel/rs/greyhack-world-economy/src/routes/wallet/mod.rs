@@ -3,7 +3,6 @@
 use greyhack_world_core::ObjectTableExt as _;
 use greyhack_world_router::RouteTable;
 
-use crate::EconomyContext;
 use crate::objects::ObjectTableExt;
 use crate::routes::protocol::{
     WalletBuyCoin, WalletCancelPendingTrade, WalletGetBalance, WalletGetGlobalOffers,
@@ -16,7 +15,11 @@ mod orders;
 use self::balances::{balance, coins, global_coins, pin, reset_password, show_nodes};
 use self::orders::{buy_coin, cancel_pending_trade, global_offers, pending_trade, sell_coin};
 
-pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,

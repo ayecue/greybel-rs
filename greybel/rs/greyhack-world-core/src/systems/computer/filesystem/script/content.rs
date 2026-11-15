@@ -3,7 +3,7 @@
 use greyhack_behaviour::{FileData, Permission, check_content};
 
 use super::failure::ScriptFileFailure;
-use crate::systems::ScriptFiles as ScriptFilesService;
+use crate::systems::ScriptFileService as ScriptFilesService;
 use crate::{FileFailure, Node, Result};
 
 impl ScriptFilesService {

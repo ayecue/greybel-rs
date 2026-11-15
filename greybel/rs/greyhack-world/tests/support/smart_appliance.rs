@@ -1,5 +1,6 @@
-use greyhack_behaviour::{DeviceKind, ROOT_USER};
-use greyhack_world::{ComputerId, SmartApplianceSettings, World, WorldOptions};
+use greyhack_behaviour::{DeviceKind, ROOT_USER, SmartApplianceSettings};
+use greyhack_world::{World, WorldOptions};
+use greyhack_world_core::ComputerId;
 
 pub async fn appliance_and_camera() -> (World, ComputerId, ComputerId) {
     let world = World::generate(&WorldOptions {

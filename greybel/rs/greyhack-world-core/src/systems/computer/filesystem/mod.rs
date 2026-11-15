@@ -21,18 +21,18 @@ pub mod sizes;
 pub mod write;
 
 /// File-system services.
-pub struct FileSystems {
+pub struct FileSystemService {
     pub(crate) node_rows: Rc<NodeRepository>,
     pub(crate) library_rows: Rc<LibraryIdentityRepository>,
-    pub changes: Dep<FileChanges>,
+    pub changes: Dep<FileChangeService>,
     pub lookup: Dep<FileLookup>,
-    pub permissions: Dep<FilePermissions>,
-    pub sizes: Dep<FileSizes>,
-    pub libraries: Dep<LibraryFiles>,
-    pub scripts: Dep<ScriptFiles>,
+    pub permissions: Dep<FilePermissionService>,
+    pub sizes: Dep<FileSizeService>,
+    pub libraries: Dep<LibraryFileService>,
+    pub scripts: Dep<ScriptFileService>,
 }
 
-impl FileSystems {
+impl FileSystemService {
     pub(crate) fn new(
         registry: &Rc<greyhack_world_modules::Registry>,
         node_rows: Rc<NodeRepository>,
@@ -51,8 +51,8 @@ impl FileSystems {
     }
 }
 
-impl AccountFiles for FileSystems {
-    fn root(&self, computer: ComputerId) -> crate::HookFuture<'_, Option<crate::Node>> {
+impl AccountFileService for FileSystemService {
+    fn root(&self, computer: ComputerId) -> crate::CallFuture<'_, Option<crate::Node>> {
         Box::pin(async move { self.lookup.root(computer).await })
     }
 
@@ -61,7 +61,7 @@ impl AccountFiles for FileSystems {
         computer: ComputerId,
         path: &'a str,
         follow: bool,
-    ) -> crate::HookFuture<'a, Option<crate::Node>> {
+    ) -> crate::CallFuture<'a, Option<crate::Node>> {
         Box::pin(async move { self.lookup.file(computer, path, follow).await })
     }
 
@@ -70,11 +70,11 @@ impl AccountFiles for FileSystems {
         computer: ComputerId,
         path: &'a str,
         follow: bool,
-    ) -> crate::HookFuture<'a, Option<crate::Node>> {
+    ) -> crate::CallFuture<'a, Option<crate::Node>> {
         Box::pin(async move { self.lookup.folder(computer, path, follow).await })
     }
 
-    fn folders<'a>(&'a self, folder: &'a crate::Node) -> crate::HookFuture<'a, Vec<crate::Node>> {
+    fn folders<'a>(&'a self, folder: &'a crate::Node) -> crate::CallFuture<'a, Vec<crate::Node>> {
         Box::pin(async move { self.lookup.folders(folder).await })
     }
 
@@ -82,20 +82,20 @@ impl AccountFiles for FileSystems {
         &'a self,
         folder: &'a crate::Node,
         node: &'a crate::NodeDraft,
-    ) -> crate::HookFuture<'a, crate::Node> {
+    ) -> crate::CallFuture<'a, crate::Node> {
         Box::pin(async move { self.changes.add_node(folder, node).await })
     }
 
-    fn remove_node<'a>(&'a self, node: &'a crate::Node) -> crate::HookFuture<'a, bool> {
+    fn remove_node<'a>(&'a self, node: &'a crate::Node) -> crate::CallFuture<'a, bool> {
         Box::pin(async move { self.changes.remove_node(node).await })
     }
 
-    fn save_node<'a>(&'a self, node: &'a crate::Node) -> crate::HookFuture<'a, ()> {
+    fn save_node<'a>(&'a self, node: &'a crate::Node) -> crate::CallFuture<'a, ()> {
         Box::pin(async move { self.changes.save_node(node).await })
     }
 }
 
-impl FileSystems {
+impl FileSystemService {
     /// Returns the node at `path` on `computer`, if one exists.
     pub async fn node_at(&self, computer: ComputerId, path: &str) -> Result<Option<Node>> {
         self.node_rows.node_at(computer, path).await

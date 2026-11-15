@@ -6,7 +6,7 @@ use greyhack_behaviour::{GpuFault, check_gpu};
 use greyhack_world_core::{ComputerService, WorldRef};
 use greyhack_world_modules::WorkId;
 
-use crate::storage::{MiningRepository, RoutineRepository};
+use crate::storage::{MineJobRepository, RoutineRepository};
 use crate::{
     CoinId, CoinRound, CoinService, ComputerId, MineJob, MineJobFailure, MineJobState, Result,
     WalletId, WalletService,
@@ -18,7 +18,7 @@ pub struct MineJobService {
     computers: greyhack_world_core::Dep<ComputerService>,
     coins: greyhack_world_core::Dep<CoinService>,
     wallets: greyhack_world_core::Dep<WalletService>,
-    jobs: Rc<MiningRepository>,
+    jobs: Rc<MineJobRepository>,
     routines: Rc<RoutineRepository>,
     work: Rc<greyhack_world_modules::WorkQueue>,
     coin_round: greyhack_world_core::Dep<CoinRound>,
@@ -28,7 +28,7 @@ pub(crate) struct MineJobServiceSupport {
     pub(crate) computers: greyhack_world_core::Dep<ComputerService>,
     pub(crate) coins: greyhack_world_core::Dep<CoinService>,
     pub(crate) wallets: greyhack_world_core::Dep<WalletService>,
-    pub(crate) jobs: Rc<MiningRepository>,
+    pub(crate) jobs: Rc<MineJobRepository>,
     pub(crate) routines: Rc<RoutineRepository>,
     pub(crate) work: Rc<greyhack_world_modules::WorkQueue>,
     pub(crate) coin_round: greyhack_world_core::Dep<CoinRound>,
@@ -73,7 +73,7 @@ impl MineJobService {
         }
 
         let Some(coin_data) = self.coins.coin(coin).await? else {
-            return Ok(Err(MineJobFailure::CoinGone));
+            return Ok(Err(MineJobFailure::CoinMissing));
         };
 
         if coin_data.mined_coins >= coin_data.max_supply {
@@ -81,7 +81,7 @@ impl MineJobService {
         }
 
         if self.wallets.subwallet(coin, subwallet).await?.is_none() {
-            return Ok(Err(MineJobFailure::SubwalletGone));
+            return Ok(Err(MineJobFailure::SubwalletMissing));
         }
 
         if self
@@ -110,7 +110,7 @@ impl MineJobService {
             .insert_mine_subscriber(coin, subwallet, computer)
             .await?
         else {
-            return Ok(Err(MineJobFailure::SubwalletGone));
+            return Ok(Err(MineJobFailure::SubwalletMissing));
         };
 
         self.work.link_computer(id, computer.0);
@@ -146,7 +146,7 @@ impl MineJobService {
         let mut work = self.coin_jobs(coin.id).await?;
 
         work.extend(self.routines.coin_round(coin.id).await?);
-        self.fail(&work, &MineJobFailure::CoinGone).await?;
+        self.fail(&work, &MineJobFailure::CoinMissing).await?;
         self.coins.coins.remove_coin(coin.id).await?;
 
         Ok(true)
@@ -162,7 +162,7 @@ impl MineJobService {
             .map(|job| job.id)
             .collect();
 
-        self.fail(&jobs, &MineJobFailure::SubwalletGone).await?;
+        self.fail(&jobs, &MineJobFailure::SubwalletMissing).await?;
 
         self.wallets.remove_subwallet(coin, user).await
     }

@@ -12,4 +12,4 @@ pub mod routers;
 
 pub use missions::MissionPlacement;
 pub use network::NetworkGeneration;
-pub use restore::Restores;
+pub use restore::RestoreService;

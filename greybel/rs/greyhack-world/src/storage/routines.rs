@@ -1,7 +1,9 @@
 //! Queries of the generic routine queue and the data tables shared with their owning domains.
 
+use greyhack_world_core::Result;
+
 use super::Database;
-use crate::{Result, ScheduledRoutine};
+use crate::ScheduledRoutine;
 
 /// Queries of the tables owned by this area.
 pub(crate) struct RoutineRepository {

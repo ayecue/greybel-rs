@@ -1,12 +1,12 @@
 //! Grey Hack failure text for smart appliances, police traffic networks, and clock phones.
 
-use super::computer::COMPUTER_GONE;
+use super::computer::COMPUTER_UNAVAILABLE;
 use crate::protocol::{AlarmFailure, DeviceFailure};
 
 /// Formats `SmartApplianceIntrinsics` and `TrafficNetIntrinsics` failures.
 pub(super) fn device_text(intrinsic: &str, failure: &DeviceFailure) -> String {
     match failure {
-        DeviceFailure::ComputerUnavailable => COMPUTER_GONE,
+        DeviceFailure::ComputerUnavailable => COMPUTER_UNAVAILABLE,
         DeviceFailure::NoInternet => "error: No internet access.",
         DeviceFailure::Malfunction => "error: Device hardware malfunction",
         DeviceFailure::Locked if intrinsic == "set_alarm" => {

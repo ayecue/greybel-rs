@@ -1,6 +1,7 @@
-use greyhack_world::{
-    Coin, Computer, Hardware, Library, Node, Port, Router, ScheduledRoutine, User, World,
-};
+use greyhack_world::{ScheduledRoutine, World};
+use greyhack_world_core::{Computer, Hardware, Node, Port, Router, User};
+use greyhack_world_economy::Coin;
+use greyhack_world_libraries::Library;
 
 use crate::support::{computers, routers};
 

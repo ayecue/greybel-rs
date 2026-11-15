@@ -11,7 +11,11 @@ use greyhack_world_router::protocol::{
 use crate::objects::ObjectTableExt;
 use crate::routes::protocol::IntoProtocol;
 
-pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -24,7 +28,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
 
             Ok(apt_outcome(
                 world
-                    .services()
+                    .module::<crate::ServicesModule>()
                     .apt
                     .add_apt_repository(access.computer, &message.repository, message.port)
                     .await?,
@@ -43,7 +47,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
 
             Ok(apt_outcome(
                 world
-                    .services()
+                    .module::<crate::ServicesModule>()
                     .apt
                     .remove_apt_repository(access.computer, &message.repository)
                     .await?,
@@ -65,7 +69,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
 
             Ok(apt_outcome(
                 world
-                    .services()
+                    .module::<crate::ServicesModule>()
                     .apt
                     .install_apt_package(
                         access.computer,
@@ -91,7 +95,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
 
             Ok(package_list(
                 world
-                    .services()
+                    .module::<crate::ServicesModule>()
                     .apt
                     .search_apt_packages(access.computer, &message.term, terminal_computers)
                     .await?,
@@ -111,7 +115,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
 
             Ok(package_list(
                 world
-                    .services()
+                    .module::<crate::ServicesModule>()
                     .apt
                     .show_apt_repository(access.computer, &message.repository, terminal_computers)
                     .await?,
@@ -132,7 +136,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
             require_connection(world, terminal_computers).await?;
 
             let lines = world
-                .services()
+                .module::<crate::ServicesModule>()
                 .apt
                 .update_apt_packages(access.computer, terminal_computers)
                 .await?;
@@ -158,7 +162,7 @@ pub(crate) fn register<W: crate::ServicesContext + 'static>(routes: &RouteTable)
 
             Ok(
                 match world
-                    .services()
+                    .module::<crate::ServicesModule>()
                     .apt
                     .check_apt_upgrade(access.computer, &message.path, terminal_computers)
                     .await?

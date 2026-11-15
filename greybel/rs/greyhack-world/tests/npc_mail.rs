@@ -1,4 +1,5 @@
-use greyhack_world::{Email, Login};
+use greyhack_world_core::Login;
+use greyhack_world_npcs::Email;
 
 use crate::support::npc_mail::{PASSWORD, inbox, inboxes, network};
 

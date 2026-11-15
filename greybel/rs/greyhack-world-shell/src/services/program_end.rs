@@ -96,14 +96,14 @@ impl ShellService {
 pub struct ShellService {
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) traces: greyhack_world_core::Dep<greyhack_world_guilds::Traces>,
+    pub(crate) traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
 }
 
 impl ShellService {
     pub(crate) fn new(
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        traces: greyhack_world_core::Dep<greyhack_world_guilds::Traces>,
+        traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
     ) -> Self {
         Self {
             computers,

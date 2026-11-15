@@ -2,7 +2,8 @@
 
 use greyhack_behaviour::{DeviceKind, FileKind, ROOT_USER};
 use greyhack_test_support_client::protocol::test_support::{LanNodeKind, NetworkSnapshot};
-use greyhack_world::{NetworkOptions, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_creation::NetworkOptions;
 
 use super::random_content::{Computer, Entry};
 

@@ -1,5 +1,5 @@
 use greyhack_behaviour::{NetworkKind, RENTAL_ADMIN_PRICE, SubscriptionKind};
-use greyhack_world::RentalAdminFailure;
+use greyhack_world_npcs::RentalAdminFailure;
 
 use crate::support::npcs_jobs::{public_ip, world_with};
 

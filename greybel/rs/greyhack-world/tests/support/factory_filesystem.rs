@@ -1,6 +1,7 @@
 use greybel_test_support::world::{computers, world_options};
 use greyhack_behaviour::{FileData, ServiceId};
-use greyhack_world::{Computer, ComputerId, World};
+use greyhack_world::World;
+use greyhack_world_core::{Computer, ComputerId};
 
 pub async fn world() -> World {
     World::generate(&world_options(42, 2))

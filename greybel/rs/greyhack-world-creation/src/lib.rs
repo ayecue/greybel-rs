@@ -4,13 +4,13 @@
 //! random files and mail, network NPCs, procedural-mission placement, and administrator restores.
 //!
 //! [`CreationModule`] registers the domain's empty schema and services, including core's lazy
-//! network-generation hook and the NPC domain's network-creation and restore hooks. The composition
+//! network-generation service and the NPC domain's network-creation and restore services. The composition
 //! root registers [`routes::register`] for its concrete world. Generation drafts, layout entities,
 //! object-table helpers, and services are re-exported at the crate root; creation owns no tables.
 
 pub mod generation;
-mod hooks;
 pub mod model;
+mod network_creation;
 pub mod objects;
 pub mod routes;
 pub mod services;
@@ -39,7 +39,7 @@ pub use greyhack_world_services::{
 use greyhack_world_storage::DomainSchema;
 pub use model::{DeviceLayout, ForwardLayout, LanNodeLayout, NetworkLayout};
 pub use objects::ObjectTableExt;
-pub use services::{MissionPlacement, NetworkGeneration, Restores};
+pub use services::{MissionPlacement, NetworkGeneration, RestoreService};
 
 /// Creation services built from core, NPC, services, libraries, and smart-device services.
 #[derive(Clone)]
@@ -49,7 +49,7 @@ pub struct CreationModule {
     /// Procedural-mission accounts, files, logs, and mail.
     pub mission_placement: Rc<MissionPlacement>,
     /// Administrator restoration of generated networks.
-    pub restores: Rc<Restores>,
+    pub restores: Rc<RestoreService>,
 }
 
 impl CreationModule {
@@ -59,7 +59,7 @@ impl CreationModule {
         Self {
             mission_placement: Rc::new(MissionPlacement::new(world, registry)),
             network_generation: Rc::new(NetworkGeneration::new(registry)),
-            restores: Rc::new(Restores::new(registry)),
+            restores: Rc::new(RestoreService::new(registry)),
         }
     }
 
@@ -92,12 +92,4 @@ impl Module for CreationModule {
 
         module
     }
-}
-
-/// Access to creation and all lower domain services used by its routes.
-pub trait CreationContext:
-    greyhack_world_libraries::LibraryContext + greyhack_world_services::ServicesContext
-{
-    /// Returns this world's creation module.
-    fn creation(&self) -> Rc<CreationModule>;
 }

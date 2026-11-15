@@ -8,9 +8,13 @@ use greyhack_world_router::protocol::{
 };
 
 use crate::routes::Result;
-use crate::{Record, RecordFailure, ServicesContext};
+use crate::{Record, RecordFailure};
 
-pub(crate) fn register<W: ServicesContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
@@ -31,7 +35,7 @@ pub(crate) fn register<W: ServicesContext + 'static>(routes: &RouteTable) {
                     message: AdminInstallSmartphoneAdb<'static>| {
             let world = &*ctx.modules;
             let Some(computer) = world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .routers
                 .computer_at(&message.public_ip, &message.lan_ip)
@@ -41,7 +45,7 @@ pub(crate) fn register<W: ServicesContext + 'static>(routes: &RouteTable) {
             };
 
             Ok(world
-                .services()
+                .module::<crate::ServicesModule>()
                 .installs
                 .install_smartphone_adb(computer)
                 .await?)
@@ -51,11 +55,11 @@ pub(crate) fn register<W: ServicesContext + 'static>(routes: &RouteTable) {
 
 /// Returns service records as UI-viewer JSON (`FileHelperServer.LeerFichaServerRpc`).
 async fn service_records(
-    world: &impl ServicesContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     message: &AdminServiceRecords<'_>,
 ) -> Result<Option<String>> {
     let Some(computer) = world
-        .core()
+        .module::<greyhack_world_core::CoreModule>()
         .networks
         .routers
         .computer_at(&message.public_ip, &message.lan_ip)
@@ -68,7 +72,7 @@ async fn service_records(
     };
 
     Ok(world
-        .services()
+        .module::<crate::ServicesModule>()
         .installs
         .service_records(computer, service)
         .await?
@@ -77,12 +81,12 @@ async fn service_records(
 
 /// Applies a UI-viewer record update and returns any failure (`FileHelperServer.UpdateFichaServerRpc`).
 async fn update_service_record(
-    world: &impl ServicesContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     message: &AdminUpdateServiceRecord<'_>,
 ) -> Result<Outcome> {
     let failure = |failure| Ok(Outcome::Failure(Failure::Admin(failure)));
     let Some(computer) = world
-        .core()
+        .module::<greyhack_world_core::CoreModule>()
         .networks
         .routers
         .computer_at(&message.public_ip, &message.lan_ip)
@@ -98,7 +102,7 @@ async fn update_service_record(
     };
 
     match world
-        .services()
+        .module::<crate::ServicesModule>()
         .installs
         .update_service_record(computer, service, record)
         .await?

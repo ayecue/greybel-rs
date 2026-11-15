@@ -37,7 +37,7 @@ pub struct ServicesModule {
     /// Root-only computer-service installation, start, and stop.
     pub control: Rc<ServiceControl>,
     /// Service files, ports, shop catalogs, and records.
-    pub installs: Rc<Installs>,
+    pub installs: Rc<InstallService>,
     /// Service-restart routine.
     pub restart: Rc<ServiceRestart>,
 }
@@ -47,7 +47,7 @@ impl ServicesModule {
         let world: &WorldRef = registry.world();
         let scheduler = registry.scheduler();
         let repositories = Rc::new(AptRepository::new(world.db().clone()));
-        let installs = Rc::new(Installs::new(
+        let installs = Rc::new(InstallService::new(
             registry.get(),
             registry.get(),
             registry.get(),
@@ -101,10 +101,4 @@ impl Module for ServicesModule {
 
         module
     }
-}
-
-/// Access to services, NPC, economy, and core services from a concrete assembled world.
-pub trait ServicesContext: greyhack_world_npcs::NpcContext {
-    /// Returns this world's services module.
-    fn services(&self) -> Rc<ServicesModule>;
 }

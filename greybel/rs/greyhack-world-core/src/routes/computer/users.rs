@@ -12,14 +12,14 @@ use crate::routes::conversions::IntoProtocol as _;
 ///
 /// Returns errors from database reads or writes.
 pub async fn change_password(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     user: &str,
     password: &str,
 ) -> Result<Outcome> {
     Ok(user_outcome(
         world
-            .core()
+            .module::<crate::CoreModule>()
             .computers
             .users
             .change_user_password(access.computer, &access.user, user, password)
@@ -33,13 +33,13 @@ pub async fn change_password(
 ///
 /// Returns errors from database reads.
 pub async fn groups(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     name: &str,
 ) -> Result<UserGroups> {
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .computers
             .users
             .user_groups(access.computer, name)
@@ -58,14 +58,14 @@ pub async fn groups(
 ///
 /// Returns errors from database reads or writes.
 pub async fn create_group(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     user: &str,
     group: &str,
 ) -> Result<Outcome> {
     Ok(user_outcome(
         world
-            .core()
+            .module::<crate::CoreModule>()
             .computers
             .users
             .add_user_to_group(access.computer, &access.user, user, group)
@@ -79,14 +79,14 @@ pub async fn create_group(
 ///
 /// Returns errors from database reads or writes.
 pub async fn delete_group(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     user: &str,
     group: &str,
 ) -> Result<Outcome> {
     Ok(user_outcome(
         world
-            .core()
+            .module::<crate::CoreModule>()
             .computers
             .users
             .remove_user_from_group(access.computer, &access.user, user, group)
@@ -100,14 +100,14 @@ pub async fn delete_group(
 ///
 /// Returns errors from database reads or writes.
 pub async fn create_user(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     user: &str,
     password: &str,
 ) -> Result<Outcome> {
     Ok(user_outcome(
         world
-            .core()
+            .module::<crate::CoreModule>()
             .computers
             .users
             .create_user_account(access.computer, &access.user, user, password)
@@ -121,14 +121,14 @@ pub async fn create_user(
 ///
 /// Returns errors from database reads or writes.
 pub async fn delete_user(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     name: &str,
     remove_home: bool,
 ) -> Result<Outcome> {
     Ok(user_outcome(
         world
-            .core()
+            .module::<crate::CoreModule>()
             .computers
             .users
             .delete_user_account(access.computer, &access.user, name, remove_home)
@@ -136,7 +136,7 @@ pub async fn delete_user(
     ))
 }
 
-/// Converts a user operation result, using `null` once the computer is gone.
+/// Converts a user operation result, using `null` once the computer no longer exists.
 fn user_outcome(result: Option<std::result::Result<(), crate::ComputerFailure>>) -> Outcome {
     match result {
         None => Outcome::Null,

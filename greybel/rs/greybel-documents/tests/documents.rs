@@ -97,19 +97,19 @@ fn should_record_a_cycle_not_fail_on_it() {
 #[test]
 fn should_name_who_asked_for_a_missing_file() {
     let projects: [&[(&str, &str)]; 3] = [
-        &[("/main.src", "#include \"gone\"")],
-        &[("/main.src", "print #inject \"gone\"")],
+        &[("/main.src", "#include \"missing\"")],
+        &[("/main.src", "print #inject \"missing\"")],
         &[],
     ];
     let [include, injection, target] = projects.map(|files| graph(files).err());
 
     assert_eq!(
         include.as_deref(),
-        Some("Dependency /gone.src does not exist...")
+        Some("Dependency /missing.src does not exist...")
     );
     assert_eq!(
         injection.as_deref(),
-        Some("Injection /gone.src does not exist...")
+        Some("Injection /missing.src does not exist...")
     );
     assert_eq!(
         target.as_deref(),
@@ -121,11 +121,11 @@ fn should_name_who_asked_for_a_missing_file() {
 fn should_report_errors_level_by_level() {
     let projects: [&[(&str, &str)]; 2] = [
         &[
-            ("/main.src", "#include \"a.src\"\n#include \"gone\""),
+            ("/main.src", "#include \"a.src\"\n#include \"missing\""),
             ("/a.src", "print ("),
         ],
         &[
-            ("/main.src", "#include \"a.src\"\n#include \"gone\""),
+            ("/main.src", "#include \"a.src\"\n#include \"missing\""),
             ("/a.src", "#include \"broken.src\""),
             ("/broken.src", "print ("),
         ],
@@ -136,7 +136,7 @@ fn should_report_errors_level_by_level() {
         syntax,
         "got EOL where number, string, or identifier is required"
     );
-    assert_eq!(missing, "Dependency /gone.src does not exist...");
+    assert_eq!(missing, "Dependency /missing.src does not exist...");
 }
 
 #[test]
@@ -526,7 +526,7 @@ fn should_report_no_removal_of_an_unknown_file() {
 
     workspace.remove_file(&uri("/main.src"));
 
-    let removed = workspace.remove_file(&uri("/gone.src"));
+    let removed = workspace.remove_file(&uri("/missing.src"));
 
     assert!(!removed);
 }
@@ -535,10 +535,10 @@ fn should_report_no_removal_of_an_unknown_file() {
 fn should_record_an_unknown_removed_file_as_missing() {
     let mut workspace = workspace_with_two_edits();
 
-    workspace.remove_file(&uri("/gone.src"));
+    workspace.remove_file(&uri("/missing.src"));
 
-    let recorded = workspace.file(&uri("/gone.src")).is_some();
-    let text = workspace.text(&uri("/gone.src"));
+    let recorded = workspace.file(&uri("/missing.src")).is_some();
+    let text = workspace.text(&uri("/missing.src"));
 
     assert_eq!((recorded, text), (true, None));
 }

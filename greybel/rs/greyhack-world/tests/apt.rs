@@ -3,10 +3,11 @@ use greyhack_behaviour::{
     DEFAULT_REPOSITORY_PORT, FileData, FileKind, GUEST_USER, LibraryKind, NetworkKind, ROOT_USER,
     ServiceId, format_apt_sources,
 };
-use greyhack_world::{
-    AptFailure, AptUpdateLine, ConnectionFailure, DeviceLayout, Library, PackageEntry,
-    PlayerOptions, Port, RepositoryConfig, World,
-};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::{ConnectionFailure, Port};
+use greyhack_world_creation::DeviceLayout;
+use greyhack_world_libraries::Library;
+use greyhack_world_services::{AptFailure, AptUpdateLine, PackageEntry, RepositoryConfig};
 
 use crate::support::apt::{file, online, put, shop_file_names, world_with_shop_source};
 use crate::support::generation::add_typed_network;
@@ -856,7 +857,7 @@ async fn should_serve_the_catalog_of_a_copied_repository_computer() {
         file(
             "repod.conf",
             FileData::text(
-                r#"{"path_repo": "/packages", "repo_sources": {"tool": "A copied tool.", "gone": "Not in the folder."}}"#,
+                r#"{"path_repo": "/packages", "repo_sources": {"tool": "A copied tool.", "missing": "Not in the folder."}}"#,
             ),
         ),
     );
@@ -907,7 +908,7 @@ async fn should_serve_the_catalog_of_a_copied_repository_computer() {
                 description: Some("A copied tool.".to_owned()),
             },
             PackageEntry {
-                name: "gone".to_owned(),
+                name: "missing".to_owned(),
                 description: Some("Not in the folder.".to_owned()),
             },
         ])
@@ -938,9 +939,9 @@ async fn should_serve_the_catalog_of_a_copied_repository_computer() {
             .modules
             .services
             .apt
-            .install_apt_package(player, ROOT_USER, "gone", "/etc/apt", &[])
+            .install_apt_package(player, ROOT_USER, "missing", "/etc/apt", &[])
             .await
             .unwrap(),
-        Err(AptFailure::MissingPackageFile("gone".to_owned()))
+        Err(AptFailure::MissingPackageFile("missing".to_owned()))
     );
 }

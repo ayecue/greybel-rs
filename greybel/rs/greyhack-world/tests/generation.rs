@@ -1,9 +1,8 @@
-use greyhack_behaviour::{DeviceKind, NetworkKind, ServiceId};
-use greyhack_world::{
-    ComputerOptions, NetworkOptions, PlayerOptions, RecordKind, SmartApplianceSettings, World,
-    WorldOptions,
-};
+use greyhack_behaviour::{DeviceKind, NetworkKind, ServiceId, SmartApplianceSettings};
+use greyhack_world::{PlayerOptions, World, WorldOptions};
 use greyhack_world_assets::content_file;
+use greyhack_world_creation::{ComputerOptions, NetworkOptions};
+use greyhack_world_services::RecordKind;
 
 use crate::support::generation::add_typed_network;
 
@@ -590,7 +589,7 @@ async fn should_authenticate_cctv_and_install_adb_only_on_smartphones() {
             .access_cctv(camera, Some("wrong"))
             .await
             .unwrap(),
-        Err(greyhack_world::CctvFailure::WrongPassword)
+        Err(greyhack_world_smart_devices::CctvFailure::WrongPassword)
     );
 
     let password = world
@@ -683,7 +682,7 @@ async fn should_authenticate_cctv_and_install_adb_only_on_smartphones() {
             .access_cctv(camera, Some(&password))
             .await
             .unwrap(),
-        Err(greyhack_world::CctvFailure::NoExternalAccess)
+        Err(greyhack_world_smart_devices::CctvFailure::NoExternalAccess)
     );
     world
         .modules

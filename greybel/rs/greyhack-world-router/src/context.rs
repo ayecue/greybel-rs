@@ -12,6 +12,9 @@ use crate::CycleAccess;
 pub trait WorldContext {
     /// Typed computer handle stored by connections and routes.
     type Computer: Copy + PartialEq;
+
+    /// Returns module `M` from this world's typed registry.
+    fn module<M: 'static>(&self) -> Rc<M>;
 }
 
 /// Tree and program that sent one operation.

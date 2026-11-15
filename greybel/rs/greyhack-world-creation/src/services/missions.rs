@@ -442,7 +442,7 @@ impl MissionPlacement {
 pub struct MissionPlacement {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) generator: greyhack_world_core::Dep<greyhack_world_libraries::Generator>,
     pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,

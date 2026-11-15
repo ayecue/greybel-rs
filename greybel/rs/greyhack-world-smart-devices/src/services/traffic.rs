@@ -23,7 +23,7 @@ impl From<ConnectionLoss> for TrafficFailure {
 /// Vehicle lookup errors (`TrafficNetIntrinsics.locate_vehicle`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TrafficFailure {
-    /// The camera device's computer is gone.
+    /// The camera device's computer no longer exists.
     ComputerUnavailable,
     /// The camera device has no internet access.
     NoInternet,
@@ -338,7 +338,7 @@ pub struct Traffic {
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) jobs: greyhack_world_core::Dep<greyhack_world_npcs::JobService>,
     pub(crate) guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
-    pub(crate) appliances: greyhack_world_core::Dep<crate::Appliances>,
+    pub(crate) appliances: greyhack_world_core::Dep<crate::ApplianceService>,
     pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
 }
 
@@ -364,14 +364,14 @@ impl greyhack_world_core::PersistentState for Traffic {
     fn load_state<'a>(
         &'a self,
         _: &'a greyhack_world_core::WorldRef,
-    ) -> greyhack_world_core::HookFuture<'a, ()> {
+    ) -> greyhack_world_core::CallFuture<'a, ()> {
         Box::pin(async move { self.load_state().await })
     }
 
     fn save_state<'a>(
         &'a self,
         _: &'a greyhack_world_core::WorldRef,
-    ) -> greyhack_world_core::HookFuture<'a, ()> {
+    ) -> greyhack_world_core::CallFuture<'a, ()> {
         Box::pin(async move { self.save_state().await })
     }
 }

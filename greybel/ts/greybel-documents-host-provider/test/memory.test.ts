@@ -13,7 +13,7 @@ describe('MemoryEditor', () => {
 
   it('should respond with null for a missing file', async () => {
     const server = connect(FILES);
-    const contents = server.send(new ReadFile({ uri: 'file:///work/gone.src' }));
+    const contents = server.send(new ReadFile({ uri: 'file:///work/missing.src' }));
 
     await expect(contents).resolves.toBeNull();
   });

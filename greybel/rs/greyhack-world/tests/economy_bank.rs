@@ -1,4 +1,4 @@
-use greyhack_world::BankTransferFailure;
+use greyhack_world_economy::BankTransferFailure;
 
 use crate::support::economy_bank::bank_world;
 

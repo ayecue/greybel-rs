@@ -1462,7 +1462,7 @@ export abstract class DeviceFailure {
   }
 }
 export namespace DeviceFailure {
-  /** Device's computer is gone. */
+  /** Device's computer no longer exists. */
   export class ComputerUnavailable extends DeviceFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -1561,7 +1561,7 @@ export namespace DeviceFailure {
       return new DeviceFailure.CamerasDisabled();
     }
   }
-  /** Computer of the NPC whose account opens the camera system is gone; contains their full name. */
+  /** Computer of the NPC whose account opens the camera system no longer exists; contains their full name. */
   export class MissingWorkstation extends DeviceFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [{
@@ -2924,7 +2924,7 @@ export abstract class ShellFailure {
   }
 }
 export namespace ShellFailure {
-  /** Shell's computer is gone. */
+  /** Shell's computer no longer exists. */
   export class ComputerUnavailable extends ShellFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -3692,7 +3692,7 @@ export namespace MailFailure {
       return new MailFailure.NoInternet();
     }
   }
-  /** Object's computer is gone. */
+  /** Object's computer no longer exists. */
   export class ComputerUnavailable extends MailFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -3725,7 +3725,7 @@ export namespace MailFailure {
       return new MailFailure.AccountInactive();
     }
   }
-  /** The account cannot be read again: it is gone. */
+  /** The account cannot be read again: it no longer exists. */
   export class RefreshFailed extends MailFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -3773,7 +3773,7 @@ export abstract class Capture {
   }
 }
 export namespace Capture {
-  /** The computer is gone or the capture ran; the intrinsic returns null. */
+  /** The computer no longer exists, or the capture ran; the intrinsic returns null. */
   export class Null extends Capture {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -3830,7 +3830,7 @@ export abstract class KeyRecovery {
   }
 }
 export namespace KeyRecovery {
-  /** Null when the computer or the file is gone, no router has the captured Wi-Fi, or recovery failed. */
+  /** Null when the computer or the file no longer exists, no router has the captured Wi-Fi, or recovery failed. */
   export class Null extends KeyRecovery {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -4044,7 +4044,7 @@ export abstract class UserGroups {
   }
 }
 export namespace UserGroups {
-  /** Null when the computer is gone. */
+  /** Null when the computer no longer exists. */
   export class Null extends UserGroups {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -4723,7 +4723,7 @@ export abstract class ProcessFailure {
   }
 }
 export namespace ProcessFailure {
-  /** Computer is gone. */
+  /** Computer no longer exists. */
   export class ComputerUnavailable extends ProcessFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -4798,7 +4798,7 @@ export abstract class NetCardFailure {
   }
 }
 export namespace NetCardFailure {
-  /** Computer is gone. */
+  /** Computer no longer exists. */
   export class ComputerUnavailable extends NetCardFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -4809,7 +4809,7 @@ export namespace NetCardFailure {
       return new NetCardFailure.ComputerUnavailable();
     }
   }
-  /** Router, or its network, is gone. */
+  /** Router, or its network, no longer exists. */
   export class UnknownRouter extends NetCardFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -4942,7 +4942,7 @@ export abstract class FileEntries {
   }
 }
 export namespace FileEntries {
-  /** Null when the folder or its shell user is gone or cannot be traversed. */
+  /** Null when the folder or its shell user no longer exists or cannot be traversed. */
   export class Null extends FileEntries {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -5037,7 +5037,7 @@ export abstract class FileContent {
   }
 }
 export namespace FileContent {
-  /** Null when the file is gone. */
+  /** Null when the file no longer exists. */
   export class Null extends FileContent {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -5124,7 +5124,7 @@ export abstract class FileChange {
   }
 }
 export namespace FileChange {
-  /** Null when the file or its computer is gone. */
+  /** Null when the file or its computer no longer exists. */
   export class Null extends FileChange {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -5221,7 +5221,7 @@ export abstract class FileFailure {
   }
 }
 export namespace FileFailure {
-  /** Computer of the change is gone. */
+  /** Computer of the change no longer exists. */
   export class ComputerUnavailable extends FileFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -6150,7 +6150,7 @@ export namespace AptFailure {
       value: string;
     }
   }
-  /** Computer is gone. */
+  /** Computer no longer exists. */
   export class ComputerUnavailable extends AptFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -7954,7 +7954,7 @@ export abstract class RshellClientOutcome {
   }
 }
 export namespace RshellClientOutcome {
-  /** The metaxploit computer is gone. */
+  /** The metaxploit computer no longer exists. */
   export class Null extends RshellClientOutcome {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -8683,7 +8683,7 @@ export abstract class UnmetRequirement {
   static read(reader: BinaryReader): UnmetRequirement {
     const index = reader.u32();
     switch (index) {
-      case 0: return UnmetRequirement.TargetGone.read(reader);
+      case 0: return UnmetRequirement.TargetMissing.read(reader);
       case 1: return UnmetRequirement.MissingLibrary.read(reader);
       case 2: return UnmetRequirement.OldLibrary.read(reader);
       case 3: return UnmetRequirement.TooFewUsers.read(reader);
@@ -8700,15 +8700,15 @@ export abstract class UnmetRequirement {
   }
 }
 export namespace UnmetRequirement {
-  /** Target is gone. */
-  export class TargetGone extends UnmetRequirement {
+  /** The target no longer exists. */
+  export class TargetMissing extends UnmetRequirement {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
       writer.u32(0);
     }
-    static read(reader: BinaryReader): UnmetRequirement.TargetGone {
-      return new UnmetRequirement.TargetGone();
+    static read(reader: BinaryReader): UnmetRequirement.TargetMissing {
+      return new UnmetRequirement.TargetMissing();
     }
   }
   /** The required library, by its file name, is not installed. */
@@ -8992,7 +8992,7 @@ export namespace AttackReward {
       value: string;
     }
   }
-  /** Named weakness folder is gone. */
+  /** Named weakness folder no longer exists. */
   export class MissingResource extends AttackReward {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [{
@@ -10571,7 +10571,7 @@ export namespace SmtpFailure {
       return new SmtpFailure.InvalidAddress();
     }
   }
-  /** Computer making the query is gone. */
+  /** Computer making the query no longer exists. */
   export class HostDown extends SmtpFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -11371,7 +11371,7 @@ export namespace EconomyFailure {
       return new EconomyFailure.NoInternet();
     }
   }
-  /** Library's computer is gone. */
+  /** Library's computer no longer exists. */
   export class ComputerUnavailable extends EconomyFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -11826,9 +11826,9 @@ export abstract class MineJobFailure {
     const index = reader.u32();
     switch (index) {
       case 0: return MineJobFailure.ComputerUnavailable.read(reader);
-      case 1: return MineJobFailure.CoinGone.read(reader);
+      case 1: return MineJobFailure.CoinMissing.read(reader);
       case 2: return MineJobFailure.AllMined.read(reader);
-      case 3: return MineJobFailure.SubwalletGone.read(reader);
+      case 3: return MineJobFailure.SubwalletMissing.read(reader);
       case 4: return MineJobFailure.SecondMineJob.read(reader);
       case 5: return MineJobFailure.DamagedGpu.read(reader);
       case 6: return MineJobFailure.CorruptedGpu.read(reader);
@@ -11837,7 +11837,7 @@ export abstract class MineJobFailure {
   }
 }
 export namespace MineJobFailure {
-  /** Computer mining is gone. */
+  /** The mining computer no longer exists. */
   export class ComputerUnavailable extends MineJobFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -11849,14 +11849,14 @@ export namespace MineJobFailure {
     }
   }
   /** Coin no longer exists. */
-  export class CoinGone extends MineJobFailure {
+  export class CoinMissing extends MineJobFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
       writer.u32(1);
     }
-    static read(reader: BinaryReader): MineJobFailure.CoinGone {
-      return new MineJobFailure.CoinGone();
+    static read(reader: BinaryReader): MineJobFailure.CoinMissing {
+      return new MineJobFailure.CoinMissing();
     }
   }
   /** All coins of the named coin have been mined. */
@@ -11891,14 +11891,14 @@ export namespace MineJobFailure {
     }
   }
   /** Sub-wallet no longer exists. */
-  export class SubwalletGone extends MineJobFailure {
+  export class SubwalletMissing extends MineJobFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
       writer.u32(3);
     }
-    static read(reader: BinaryReader): MineJobFailure.SubwalletGone {
-      return new MineJobFailure.SubwalletGone();
+    static read(reader: BinaryReader): MineJobFailure.SubwalletMissing {
+      return new MineJobFailure.SubwalletMissing();
     }
   }
   /** Sub-wallet already mines the coin from the computer. */
@@ -13910,7 +13910,7 @@ export abstract class FloodResult {
   static read(reader: BinaryReader): FloodResult {
     const index = reader.u32();
     switch (index) {
-      case 0: return FloodResult.Gone.read(reader);
+      case 0: return FloodResult.Missing.read(reader);
       case 1: return FloodResult.Reboot.read(reader);
       case 2: return FloodResult.Active.read(reader);
       default: throw new RangeError(`no variant ${index} of \`FloodResult\``);
@@ -13918,15 +13918,15 @@ export abstract class FloodResult {
   }
 }
 export namespace FloodResult {
-  /** Session's computer is gone. */
-  export class Gone extends FloodResult {
+  /** Session's computer no longer exists. */
+  export class Missing extends FloodResult {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
       writer.u32(0);
     }
-    static read(reader: BinaryReader): FloodResult.Gone {
-      return new FloodResult.Gone();
+    static read(reader: BinaryReader): FloodResult.Missing {
+      return new FloodResult.Missing();
     }
   }
   /** Computer reboots and the script continues. */
@@ -15191,7 +15191,7 @@ export namespace ShopFailure {
       return new ShopFailure.InvalidPath();
     }
   }
-  /** The computer that receives the file is gone. */
+  /** The computer that receives the file no longer exists. */
   export class UnknownComputer extends ShopFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
@@ -19291,7 +19291,7 @@ export namespace ComputerIsNetworkActive {
     computer: ObjectId;
   }
 }
-/** Gets the computer name, or null when it is gone. */
+/** Gets the computer name, or null when it no longer exists. */
 export class ComputerGetName extends Message<WorldPeer.Program, ComputerGetName.Fields, ValueResponse<string | null, ScriptFailure>> {
   static readonly id = 33;
   static readonly since = 0;
@@ -19356,7 +19356,7 @@ export namespace ComputerGetName {
     computer: ObjectId;
   }
 }
-/** Gets the kind of the active network card, or null when the computer is gone. */
+/** Gets the kind of the active network card, or null when the computer no longer exists. */
 export class ComputerActiveNetCard extends Message<WorldPeer.Program, ComputerActiveNetCard.Fields, ValueResponse<ActiveCard | null, ScriptFailure>> {
   static readonly id = 34;
   static readonly since = 0;
@@ -19421,7 +19421,7 @@ export namespace ComputerActiveNetCard {
     computer: ObjectId;
   }
 }
-/** Gets the gateway address, or null when the computer is gone. */
+/** Gets the gateway address, or null when the computer no longer exists. */
 export class ComputerNetworkGateway extends Message<WorldPeer.Program, ComputerNetworkGateway.Fields, ValueResponse<string | null, ScriptFailure>> {
   static readonly id = 35;
   static readonly since = 0;
@@ -19608,7 +19608,7 @@ export namespace ComputerPublicIp {
     computer: ObjectId;
   }
 }
-/** Gets the network cards, or null when the computer is gone. */
+/** Gets the network cards, or null when the computer no longer exists. */
 export class ComputerNetworkDevices extends Message<WorldPeer.Program, ComputerNetworkDevices.Fields, ValueResponse<NetworkDevice[] | null, ScriptFailure>> {
   static readonly id = 38;
   static readonly since = 0;
@@ -21037,7 +21037,7 @@ export namespace RouterKernelVersion {
     router: ObjectId;
   }
 }
-/** Gets the connection speed of the router's network (`NetworkLan.netSpeed`); null when the router is gone. */
+/** Gets the connection speed of the router's network (`NetworkLan.netSpeed`); null when the router no longer exists. */
 export class RouterNetSpeed extends Message<WorldPeer.Program, RouterNetSpeed.Fields, ValueResponse<number | null, ScriptFailure>> {
   static readonly id = 56;
   static readonly since = 0;
@@ -22283,7 +22283,7 @@ export namespace MetaxploitLoad {
     path: string;
   }
 }
-/** Gets weak addresses in `library` and whether unscanned zones remain. Returns null when the library is gone. */
+/** Gets weak addresses in `library` and whether unscanned zones remain. Returns null when the library no longer exists. */
 export class MetaxploitScan extends Message<WorldPeer.Program, MetaxploitScan.Fields, ValueResponse<LibraryScan | null, ScriptFailure>> {
   static readonly id = 74;
   static readonly since = 0;
@@ -30076,7 +30076,7 @@ export namespace PlayerWhois {
 }
 /**
 * Resolves `path` as the script user for `cd`, starting at root even for relative paths. Returns null when
-* the computer is gone.
+* the computer no longer exists.
 */
 export class PlayerCd extends Message<WorldPeer.Program, PlayerCd.Fields, ValueResponse<FolderChange | null, ScriptFailure>> {
   static readonly id = 172;

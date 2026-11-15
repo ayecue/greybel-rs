@@ -125,7 +125,7 @@ impl ProcessesService {
     /// access, and safe mode only on the player's computer. The player's computer starts again as
     /// its client does when the script's terminal is connected to it (`Terminal.RebootingSystem`):
     /// in safe mode, or with the desktop connecting to the most recent saved Wi-Fi network. Returns
-    /// `false` if the computer is gone.
+    /// `false` if the computer no longer exists.
     ///
     /// # Errors
     ///

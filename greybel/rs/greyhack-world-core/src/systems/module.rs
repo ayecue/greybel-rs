@@ -1,7 +1,5 @@
 use std::rc::Rc;
 
-use greyhack_world_router::WorldContext;
-
 use crate::storage::world_meta::WorldMeta;
 use crate::storage::*;
 use crate::systems::computer::hardware::Hardware;
@@ -17,7 +15,7 @@ pub struct CoreModule {
     /// Computer services.
     pub computers: Rc<ComputerService>,
     /// File-system services.
-    pub files: Rc<FileSystems>,
+    pub files: Rc<FileSystemService>,
     /// Network services.
     pub networks: Rc<NetworkService>,
     /// Load/save capabilities contributed by all modules.
@@ -30,7 +28,7 @@ impl CoreModule {
     pub fn new(world: &WorldRef, registry: &Rc<greyhack_world_modules::Registry>) -> Rc<Self> {
         registry.register_service(registry.capabilities());
 
-        let repositories = CoreRepositories::new(world.db().clone());
+        let repositories = CoreStorage::new(world.db().clone());
         let computer_rows = repositories.computers.clone();
         let hardware_rows = repositories.hardware.clone();
         let node_rows = repositories.nodes.clone();
@@ -48,21 +46,21 @@ impl CoreModule {
 
         let lookup = Rc::new(FileLookup::new(registry, node_rows.clone()));
 
-        let library_files = Rc::new(LibraryFiles::new(
+        let library_files = Rc::new(LibraryFileService::new(
             registry,
             node_rows.clone(),
             library_rows.clone(),
         ));
 
-        let permissions = Rc::new(FilePermissions::new(registry, node_rows.clone()));
+        let permissions = Rc::new(FilePermissionService::new(registry, node_rows.clone()));
 
-        let sizes = Rc::new(FileSizes::new(
+        let sizes = Rc::new(FileSizeService::new(
             registry,
             node_rows.clone(),
             hardware_rows.clone(),
         ));
 
-        let changes = Rc::new(FileChanges::new(
+        let changes = Rc::new(FileChangeService::new(
             registry,
             node_rows.clone(),
             library_rows.clone(),
@@ -81,9 +79,9 @@ impl CoreModule {
             router_rows.clone(),
         ));
 
-        let logs = Rc::new(Logs::new(registry));
+        let logs = Rc::new(LogService::new(registry));
 
-        let scripts = Rc::new(ScriptFiles::new(registry, computer_rows.clone()));
+        let scripts = Rc::new(ScriptFileService::new(registry, computer_rows.clone()));
 
         let startup = Rc::new(Startup::new(registry, computer_rows.clone()));
 
@@ -148,7 +146,7 @@ impl CoreModule {
             person_rows.clone(),
         ));
 
-        let files = Rc::new(FileSystems::new(
+        let files = Rc::new(FileSystemService::new(
             registry,
             node_rows.clone(),
             library_rows.clone(),
@@ -156,7 +154,7 @@ impl CoreModule {
 
         let networks = Rc::new(NetworkService::new(registry, router_rows.clone()));
 
-        registry.register_service::<dyn AccountFiles>(files.clone());
+        registry.register_service::<dyn AccountFileService>(files.clone());
         registry.register_service(users.clone());
         registry.register_service(lookup.clone());
         registry.register_service(library_files.clone());
@@ -269,12 +267,4 @@ impl CoreModule {
 
         Ok(())
     }
-}
-
-/// A world root that exposes its core module to core-owned routes.
-pub trait CoreContext: WorldContext<Computer = ComputerId> {
-    /// Returns the shared world handle.
-    fn world_ref(&self) -> WorldRef;
-    /// Returns the core module built for this world.
-    fn core(&self) -> Rc<CoreModule>;
 }

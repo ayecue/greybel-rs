@@ -1,6 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::{FIRST_VERSION, FileData, LibraryKind};
-use greyhack_world::{Library, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_libraries::Library;
 
 use crate::support::add_library;
 use crate::support::scripts::run_on_host;

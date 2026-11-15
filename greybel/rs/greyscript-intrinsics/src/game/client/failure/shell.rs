@@ -1,6 +1,6 @@
 //! Grey Hack shell failure text for program launch and build operations.
 
-use super::computer::{COMPUTER_GONE, process_text};
+use super::computer::{COMPUTER_UNAVAILABLE, process_text};
 use crate::protocol::{ImportFailure, LaunchFailure, ShellFailure};
 
 /// Formats `ShellIntrinsics.launch` receiving a game map without a shell helper.
@@ -30,7 +30,7 @@ pub(in crate::game) fn launch_text(failure: &LaunchFailure) -> String {
 /// Formats `ShellIntrinsics.build` and `ShellIntrinsics.connect_service` failures.
 pub(in crate::game) fn shell_text(failure: &ShellFailure) -> String {
     match failure {
-        ShellFailure::ComputerUnavailable => COMPUTER_GONE.to_owned(),
+        ShellFailure::ComputerUnavailable => COMPUTER_UNAVAILABLE.to_owned(),
         ShellFailure::InvalidPasswordCharacter(token) => invalid_password_text(token),
         ShellFailure::MissingSource(path) | ShellFailure::MissingFolder(path) => {
             format!("Can't find {path}")

@@ -8,7 +8,7 @@ namespace GreyHackTestSupport.Tests.Session;
 public class SessionFileTests
 {
     [Fact]
-    public void ShouldReadNoLiveSessionWhoseHostIsGone()
+    public void ShouldReadNoLiveSessionWhoseHostIsMissing()
     {
         using var folder = new TemporaryFolder();
         var session = new SessionFile(new WorkFolder(folder.Path));

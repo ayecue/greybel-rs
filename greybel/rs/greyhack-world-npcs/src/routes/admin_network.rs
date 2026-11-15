@@ -7,18 +7,22 @@ use greyhack_world_router::protocol::{
     AdminSetPhoneAlarm, Failure, JobFailure, Outcome, PhoneAlarmConfig, ScriptFailure,
 };
 
+use crate::PhoneAlarm;
 use crate::routes::protocol::IntoProtocol;
 use crate::routes::{OperationError, Result};
-use crate::{NpcContext, PhoneAlarm};
 
-pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
                     message: AdminFireNpc<'static>| {
             Ok(job_outcome(
                 ctx.modules
-                    .npcs()
+                    .module::<crate::NpcModule>()
                     .jobs
                     .fire_npc(&message.public_ip, &message.user)
                     .await?,
@@ -39,7 +43,7 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
 
             Ok(job_outcome(
                 ctx.modules
-                    .npcs()
+                    .module::<crate::NpcModule>()
                     .jobs
                     .hire_npc(&message.public_ip, role)
                     .await?,
@@ -53,7 +57,7 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
                     message: AdminHireRentalAdmin<'static>| {
             Ok(job_outcome(
                 ctx.modules
-                    .npcs()
+                    .module::<crate::NpcModule>()
                     .jobs
                     .hire_rental_admin(&message.public_ip)
                     .await?,
@@ -67,7 +71,7 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
                     message: AdminFireRentalAdmin<'static>| {
             Ok(job_outcome(
                 ctx.modules
-                    .npcs()
+                    .module::<crate::NpcModule>()
                     .jobs
                     .fire_rental_admin(&message.public_ip)
                     .await?,
@@ -81,7 +85,7 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
                     message: AdminSetPhoneAlarm<'static>| {
             match ctx
                 .modules
-                .npcs()
+                .module::<crate::NpcModule>()
                 .schedules
                 .set_phone_alarm(
                     &message.public_ip,
@@ -106,7 +110,7 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
                     message: AdminPhoneAlarm<'static>| {
             Ok(ctx
                 .modules
-                .npcs()
+                .module::<crate::NpcModule>()
                 .schedules
                 .phone_alarm(&message.public_ip, &message.user)
                 .await?

@@ -10,14 +10,18 @@ use crate::routes::protocol::{
     BlockchainGetCoin, BlockchainGetCoinName, BlockchainLoginWallet, BlockchainShowHistory,
     CoinLogin, EconomyFailure, Failure, WalletLogin,
 };
-use crate::{ComputerId, Connectivity, EconomyContext, WalletId};
+use crate::{ComputerId, Connectivity, WalletId};
 
 mod coins;
 mod logins;
 use self::coins::{coin_price, mined_amount, show_history};
 use self::logins::{create_wallet, delete_coin, get_coin, get_coin_name, login_wallet};
 
-pub(crate) fn register<W: EconomyContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -216,12 +220,12 @@ pub enum Login<T> {
 
 /// Returns [`EconomyFailure::NoInternet`] unless the blockchain computer is online.
 pub(super) async fn require_online(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     terminal_computers: &[ComputerId],
 ) -> Result<Result<(), Failure>> {
     if world
-        .economy()
+        .module::<crate::EconomyModule>()
         .coins
         .connectivity(blockchain.computer, terminal_computers)
         .await?

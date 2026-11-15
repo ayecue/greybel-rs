@@ -21,10 +21,10 @@ public class ProtocolTests
     {
         Direction direction = CreateDirection("FirstRpc");
 
-        var ordering = () => ProtocolWriter.Order(direction, ["FirstRpc", "GoneRpc"]);
+        var ordering = () => ProtocolWriter.Order(direction, ["FirstRpc", "MissingRpc"]);
 
         var error = Assert.Throws<ContractException>(ordering);
-        Assert.Contains("GoneRpc", error.Message);
+        Assert.Contains("MissingRpc", error.Message);
     }
 
     [Theory]

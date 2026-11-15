@@ -192,7 +192,10 @@ pub fn mission_found(
     found
 }
 
-pub async fn simulated_files(world: &World, computer: greyhack_world::ComputerId) -> Vec<Observed> {
+pub async fn simulated_files(
+    world: &World,
+    computer: greyhack_world_core::ComputerId,
+) -> Vec<Observed> {
     let mut found = Vec::new();
     let mut folders = vec![
         world

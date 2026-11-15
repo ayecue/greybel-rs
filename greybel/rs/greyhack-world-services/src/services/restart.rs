@@ -17,7 +17,7 @@ use crate::storage::schema;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ServiceRestartFailure {
     /// The service's computer no longer exists.
-    ComputerGone,
+    ComputerMissing,
 }
 
 /// Service-restart failures produced during one scheduler call.
@@ -66,7 +66,7 @@ impl ServiceRestart {
                 .world_mut()
                 .state_mut::<ServiceRestartReport>()
                 .errors
-                .push(ServiceRestartFailure::ComputerGone);
+                .push(ServiceRestartFailure::ComputerMissing);
 
             return Ok(());
         }

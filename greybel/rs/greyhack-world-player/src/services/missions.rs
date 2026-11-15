@@ -24,7 +24,7 @@ pub struct AcceptedMission {
 }
 
 /// Methods of [`World`] for player missions.
-impl MissionOffers {
+impl MissionOfferService {
     pub async fn accept_procedural_mission(
         &self,
         shop_ip: &str,
@@ -105,7 +105,7 @@ impl MissionOffers {
 }
 
 /// A world service with only its declared dependencies.
-pub struct MissionOffers {
+pub struct MissionOfferService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) network_generation:
@@ -113,7 +113,7 @@ pub struct MissionOffers {
     pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
 }
 
-impl MissionOffers {
+impl MissionOfferService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,

@@ -3,8 +3,8 @@ use std::time::Duration;
 
 use duplex_test_support::local::run_local;
 use greyhack_behaviour::{START_DATE, SubscriptionKind, TIME_SCALE};
-use greyhack_world::prelude::DatabaseOpen;
-use greyhack_world::{Database, PlayerOptions, World};
+use greyhack_world::{DatabaseOpen, PlayerOptions, World};
+use greyhack_world_core::Database;
 use greyhack_world_operations::{TickOptions, WorldServer};
 use scheduler::ManualClock;
 

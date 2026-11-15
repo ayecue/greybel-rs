@@ -171,10 +171,10 @@ fn should_penalize_a_missing_administrator_and_recover_ten_points_a_day() {
     assert_eq!(admin_arrives(Some(recovering), 13), AdminArrival::Same);
     assert_eq!(admin_arrives(None, 13), AdminArrival::Same);
 
-    let gone_again = admin_absent(Some(recovering), 14).expect("a changed record");
+    let absent_again = admin_absent(Some(recovering), 14).expect("a changed record");
 
-    assert_eq!(gone_again.percent, 50);
-    assert!(!gone_again.recovering);
+    assert_eq!(absent_again.percent, 50);
+    assert!(!absent_again.recovering);
     assert_eq!(
         admin_arrives(
             Some(AdminAbsence {

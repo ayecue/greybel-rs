@@ -1,5 +1,7 @@
 use greyhack_behaviour::{FileData, PermissionSet, ROOT_USER};
-use greyhack_world::{ComputerId, DebugAccount, NodeDraft, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::ComputerId;
+use greyhack_world_libraries::{DebugAccount, NodeDraft};
 
 pub const LIBRARY_PATH: &str = "/lib/metaxploit.so";
 

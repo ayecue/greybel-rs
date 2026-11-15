@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use std::sync::atomic::Ordering;
 
-use support::{StubHooks, database, player};
+use support::{TestServices, database, player};
 
 use crate::{ComputerId, CoreModule, WorldRef};
 
@@ -12,12 +12,12 @@ mod support;
 async fn should_load_the_state_a_commit_stored() {
     // Arrange
     let database = database().await;
-    let hooks = Rc::new(StubHooks::default());
+    let services = Rc::new(TestServices::default());
     let world = WorldRef::on(database.clone(), 7, ComputerId(0), 100);
     let registry = Rc::new(greyhack_world_modules::Registry::new(world.clone()));
     let core = CoreModule::new(&world, &registry);
 
-    support::bind(&registry, &hooks);
+    support::bind(&registry, &services);
 
     world.world_mut().player_person = player(&database).await;
     world.world_mut().time_seconds = 160;
@@ -27,7 +27,7 @@ async fn should_load_the_state_a_commit_stored() {
 
     let (loaded, loaded_core, loaded_registry) = CoreModule::load(&database).await.unwrap();
 
-    support::bind(&loaded_registry, &hooks);
+    support::bind(&loaded_registry, &services);
     loaded_core.load_state().await.unwrap();
 
     // Assert
@@ -50,22 +50,22 @@ async fn should_fail_to_load_a_database_without_a_world() {
 }
 
 #[tokio::test]
-async fn should_ask_the_hook_for_the_router_of_an_unknown_address() {
+async fn should_ask_the_generator_for_the_router_of_an_unknown_address() {
     // Arrange
     let database = database().await;
-    let hooks = Rc::new(StubHooks::default());
+    let services = Rc::new(TestServices::default());
     let world = WorldRef::on(database, 1, ComputerId(0), 0);
     let registry = Rc::new(greyhack_world_modules::Registry::new(world.clone()));
     let core = CoreModule::new(&world, &registry);
 
-    support::bind(&registry, &hooks);
+    support::bind(&registry, &services);
 
     // Act
     let whois = core.networks.dns.whois("8.8.8.8").await.unwrap();
 
     // Assert
     assert_eq!(whois, None);
-    assert_eq!(hooks.generated.load(Ordering::Relaxed), 1);
+    assert_eq!(services.generated.load(Ordering::Relaxed), 1);
 }
 
 #[tokio::test]

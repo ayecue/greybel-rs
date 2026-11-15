@@ -1,6 +1,6 @@
 [package]
 name = "greyhack-world-core"
-description = "Core of the Grey Hack world: the world state and its lifecycle, computers and networks with their tables, and the hooks higher domains install"
+description = "Core of the Grey Hack world: world state and lifecycle, computers and networks with their tables, and higher-domain service contracts"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

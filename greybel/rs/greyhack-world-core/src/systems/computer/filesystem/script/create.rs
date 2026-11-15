@@ -6,7 +6,7 @@ use greyhack_behaviour::{
 };
 
 use super::failure::ScriptFileFailure;
-use crate::systems::ScriptFiles as ScriptFilesService;
+use crate::systems::ScriptFileService as ScriptFilesService;
 use crate::{ComputerId, FileFailure, NodeDraft, Result};
 
 impl ScriptFilesService {
@@ -62,7 +62,7 @@ impl ScriptFilesService {
     }
 
     /// Creates an empty text file `name` under `folder` as `user` (`ComputerIntrinsics.touch`).
-    /// Returns `None` if `computer` is gone.
+    /// Returns `None` if `computer` no longer exists.
     ///
     /// # Errors
     ///
@@ -166,7 +166,7 @@ impl ScriptFilesService {
     }
 
     /// Creates a directory `name` under `folder` as `user` (`ComputerIntrinsics.create_folder`).
-    /// Returns `None` if `computer` is gone.
+    /// Returns `None` if `computer` no longer exists.
     ///
     /// # Errors
     ///

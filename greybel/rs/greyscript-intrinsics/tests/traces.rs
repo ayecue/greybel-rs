@@ -52,15 +52,15 @@ fn should_queue_a_company_computer_for_the_passive_trace_after_a_login_and_a_del
     assert_eq!(error, None);
     assert_eq!(output, "shell\n");
     assert_eq!(
-        block_on(world.modules.guilds.traces.passive_traces()).unwrap(),
+        block_on(world.modules.traces.traces.passive_traces()).unwrap(),
         [target.computer]
     );
     assert!(
-        block_on(world.modules.guilds.traces.active_traces())
+        block_on(world.modules.traces.traces.active_traces())
             .unwrap()
             .is_empty()
     );
-    assert_eq!(block_on(world.modules.guilds.traces.strikes()).unwrap(), 0);
+    assert_eq!(block_on(world.modules.traces.traces.strikes()).unwrap(), 0);
 }
 
 /// Logging in to a computer of a network the player made queues nothing (`Computer.IsSpawnedByPlayer`).
@@ -101,7 +101,7 @@ fn should_not_queue_a_computer_of_a_rented_network() {
     assert_eq!(error, None);
     assert_eq!(output, "shell");
     assert!(
-        block_on(world.modules.guilds.traces.passive_traces())
+        block_on(world.modules.traces.traces.passive_traces())
             .unwrap()
             .is_empty()
     );

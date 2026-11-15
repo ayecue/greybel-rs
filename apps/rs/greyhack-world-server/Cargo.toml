@@ -12,6 +12,7 @@ autotests = false
 clap.workspace = true
 duplex-driver-stdio.workspace = true
 greyhack-world.workspace = true
+greyhack-world-core.workspace = true
 greyhack-world-operations.workspace = true
 scheduler = { workspace = true, features = ["tokio"] }
 thiserror.workspace = true

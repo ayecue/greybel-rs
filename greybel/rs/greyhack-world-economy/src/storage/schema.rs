@@ -183,7 +183,7 @@ pub const DAILY_UPKEEP: TableSet = TableSet::new(
 );
 
 /// Mining subscribers owned by the economy domain.
-pub const MINING_SUBSCRIBERS: TableSet = TableSet::new(
+pub const MINE_SUBSCRIBERS: TableSet = TableSet::new(
     "-- programs mining a coin through a sub-wallet on a computer (`BlockchainSystem.pcInfo`); volatile at open
 CREATE TABLE IF NOT EXISTS mining_subscribers (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -196,4 +196,13 @@ CREATE INDEX IF NOT EXISTS mining_subscribers_computer ON mining_subscribers (co
 
 ",
     &["mining_subscribers"],
+);
+
+/// Deletes mining subscriptions when the world opens.
+pub(crate) const MINE_VOLATILE: TableSet =
+    TableSet::volatile("DELETE FROM mining_subscribers;\n");
+
+/// Deletes unfinished mining-round routines when the world opens.
+pub(crate) const MINE_ROUND_VOLATILE: TableSet = TableSet::volatile(
+    "DELETE FROM routines WHERE id IN (SELECT routine_id FROM routine_mining_rounds);\n",
 );

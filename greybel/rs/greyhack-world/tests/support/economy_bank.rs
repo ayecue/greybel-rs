@@ -1,5 +1,7 @@
 use greyhack_behaviour::hash_password;
-use greyhack_world::{Coin, CoinId, PlayerOptions, SubWallet, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::CoinId;
+use greyhack_world_economy::{Coin, SubWallet};
 
 pub async fn bank_world(source_money: f64, destination_money: f64) -> World {
     let world = World::new(&PlayerOptions::default()).await.unwrap();

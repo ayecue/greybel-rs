@@ -4,7 +4,7 @@ use greyhack_behaviour::Reward;
 use greyhack_test_support_client::protocol::test_support::{
     ComputerSnapshot, LanNodeKind, NetworkSnapshot,
 };
-use greyhack_world::{Library, Weakness};
+use greyhack_world_libraries::{Library, Weakness};
 
 use super::mirror::library;
 

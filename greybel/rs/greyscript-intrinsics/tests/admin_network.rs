@@ -1,5 +1,6 @@
 use greybel_test_support::future::block_on;
-use greyhack_world::{ComputerOptions, NetworkOptions, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_creation::{ComputerOptions, NetworkOptions};
 
 use crate::support::network::literal;
 use crate::support::scripts::run_on_host;

@@ -1,9 +1,8 @@
 use std::any::Any;
 use std::rc::Rc;
 
+use greyhack_world_npcs::NpcEvent;
 use greyhack_world_routines::Entry;
-
-use crate::{MineJobFailure, NpcEvent};
 
 /// Routine and its due world second.
 #[derive(Clone)]
@@ -53,8 +52,20 @@ impl std::fmt::Debug for ScheduledRoutine {
     }
 }
 
+/// A domain-owned nonfatal routine result.
+pub trait RoutineReport: Any + std::fmt::Debug {
+    /// Returns the concrete domain report for typed inspection.
+    fn as_any(&self) -> &dyn Any;
+}
+
+impl<T: Any + std::fmt::Debug> RoutineReport for T {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
 /// EventQueue and errors produced while advancing the world.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct TickReport {
     /// World second at which the report started.
     pub at: u64,
@@ -64,15 +75,6 @@ pub struct TickReport {
     pub routines: Vec<&'static str>,
     /// NPC login changes produced by routines.
     pub npc_events: Vec<NpcEvent>,
-    /// Routine failures that do not stop the tick.
-    pub errors: Vec<RoutineFailure>,
-}
-
-/// Routine execution failure.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RoutineFailure {
-    /// A mine job in a coin round failed.
-    MineJob(MineJobFailure),
-    /// The service-restart computer no longer exists.
-    ServiceComputerGone,
+    /// Domain-owned routine failures that do not stop the tick, in production order.
+    pub errors: Vec<Box<dyn RoutineReport>>,
 }

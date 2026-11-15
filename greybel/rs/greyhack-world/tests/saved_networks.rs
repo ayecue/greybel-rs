@@ -1,5 +1,7 @@
 use greyhack_behaviour::SAFE_MODE_TERMINAL;
-use greyhack_world::{DeviceLayout, PlayerOptions, SavedNetwork, SavedWifiFailure, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::{SavedNetwork, SavedWifiFailure};
+use greyhack_world_creation::DeviceLayout;
 
 use crate::support::layout::layout;
 use crate::support::saved_networks::{
@@ -264,7 +266,7 @@ async fn should_connect_to_the_most_recent_saved_network_when_the_player_restart
 async fn should_ignore_older_saved_networks_when_the_player_restarts() {
     let older = SavedNetwork {
         bssid: "00:00:00:00:00:00".to_owned(),
-        essid: "gone".to_owned(),
+        essid: "missing".to_owned(),
         password: "x".to_owned(),
         public_ip: "1.2.3.4".to_owned(),
     };

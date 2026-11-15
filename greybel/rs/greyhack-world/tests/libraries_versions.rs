@@ -1,7 +1,8 @@
 use greyhack_behaviour::{
     LibraryKind, MAX_WEAKNESS_USES, ROOT_USER, Reward, library_check_seconds,
 };
-use greyhack_world::{PlayerOptions, WeaknessReportFailure, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_libraries::WeaknessReportFailure;
 
 use crate::support::exploit_shop::{VERSION, offers, shop_world};
 use crate::support::exploits::{ADDRESS, LIBRARY_PATH, UNSEC_VALUE, install_weakness, weakness};

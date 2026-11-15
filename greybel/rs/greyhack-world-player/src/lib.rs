@@ -24,8 +24,8 @@ pub use model::{CtfAccount, CtfEvent, CtfFailure, CtfPlayer};
 pub use objects::{CtfHandle, CtfRef, ObjectTableExt};
 pub use services::{
     AcceptedMission, Ctf, CtfPasswordFailure, FolderChange, FolderLookup, GameOver, GameOverEvent,
-    IncludedLibrary, MissionFailure, MissionOffers, PlayerAccount, PlayerService, ctf, game_over,
-    lookups, missions,
+    IncludedLibrary, MissionFailure, MissionOfferService, PlayerAccount, PlayerService, ctf,
+    game_over, lookups, missions,
 };
 use storage::CtfRepository;
 
@@ -37,7 +37,7 @@ pub struct PlayerModule {
     /// CTF accounts, events, participation, completion, and ratings.
     pub ctf: Rc<Ctf>,
     /// Procedural-mission acceptance and contract delivery.
-    pub mission_offers: Rc<MissionOffers>,
+    pub mission_offers: Rc<MissionOfferService>,
     /// Third-strike removal of the player and their world state.
     pub game_over: Rc<GameOver>,
 }
@@ -55,7 +55,7 @@ impl PlayerModule {
         Self {
             player: Rc::new(PlayerService::new(registry)),
             ctf: ctf.clone(),
-            mission_offers: Rc::new(MissionOffers::new(
+            mission_offers: Rc::new(MissionOfferService::new(
                 world,
                 registry.get(),
                 registry.get(),
@@ -79,7 +79,7 @@ impl Module for PlayerModule {
         let module = Self::new(registry);
         let game_over = module.game_over.clone();
 
-        registry.register_async_subscriber(move |strike: &greyhack_world_guilds::StrikeEvent| {
+        registry.register_async_subscriber(move |strike: &greyhack_world_traces::StrikeEvent| {
             let game_over = game_over.clone();
 
             Box::pin(async move {
@@ -103,10 +103,4 @@ impl Module for PlayerModule {
 
         module
     }
-}
-
-/// Access to player and all lower domain services used by its routes.
-pub trait PlayerContext: greyhack_world_creation::CreationContext {
-    /// Returns this world's player module.
-    fn player(&self) -> Rc<PlayerModule>;
 }

@@ -267,7 +267,12 @@ impl Shop {
             return Ok(Err(FileFailure::TooManyFiles));
         }
 
-        if data.size as f64 / BYTES_PER_MB > self.files.sizes.free_space_mb(folder.computer).await?
+        if data.size as f64 / BYTES_PER_MB
+            > self
+                .files
+                .sizes
+                .available_storage_mb(folder.computer)
+                .await?
         {
             return Ok(Err(FileFailure::DiskFull));
         }
@@ -293,7 +298,7 @@ pub struct Shop {
     pub(crate) exploits: std::rc::Rc<crate::storage::ExploitRepository>,
     pub(crate) libraries: std::rc::Rc<crate::storage::LibraryRepository>,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) bank: greyhack_world_core::Dep<greyhack_world_economy::Bank>,
     pub(crate) generator: greyhack_world_core::Dep<crate::Generator>,

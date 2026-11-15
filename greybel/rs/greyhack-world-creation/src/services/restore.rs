@@ -13,7 +13,7 @@ use crate::generation::lan::{ComputerPlan, LanPlan};
 use crate::{ComputerDraft, ComputerId, Node, Result, Router, User};
 
 /// Administrator network restoration.
-impl Restores {
+impl RestoreService {
     pub async fn restore_admin_network(&self, admin_computer: ComputerId) -> Result<()> {
         let Some(computer) = self.computers.computer(admin_computer).await? else {
             return Ok(());
@@ -141,7 +141,7 @@ impl Restores {
     }
 }
 
-impl Restores {
+impl RestoreService {
     pub(crate) async fn restore_npc_computer(
         &self,
         main: &Router,
@@ -463,21 +463,21 @@ fn computer_at<'p>(plan: &'p LanPlan, local_ip: &str) -> Option<&'p ComputerPlan
 }
 
 /// A world service with only its declared dependencies.
-pub struct Restores {
+pub struct RestoreService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) mission_placement: greyhack_world_core::Dep<crate::MissionPlacement>,
     pub(crate) network_generation: greyhack_world_core::Dep<crate::NetworkGeneration>,
-    pub(crate) updates: greyhack_world_core::Dep<greyhack_world_libraries::Updates>,
-    pub(crate) installs: greyhack_world_core::Dep<greyhack_world_services::Installs>,
+    pub(crate) updates: greyhack_world_core::Dep<greyhack_world_libraries::UpdateService>,
+    pub(crate) installs: greyhack_world_core::Dep<greyhack_world_services::InstallService>,
     pub(crate) libraries: greyhack_world_core::Dep<greyhack_world_libraries::LibraryService>,
     pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
-    pub(crate) appliances: greyhack_world_core::Dep<greyhack_world_smart_devices::Appliances>,
+    pub(crate) appliances: greyhack_world_core::Dep<greyhack_world_smart_devices::ApplianceService>,
 }
 
-impl Restores {
+impl RestoreService {
     pub(crate) fn new(registry: &std::rc::Rc<greyhack_world_modules::Registry>) -> Self {
         Self {
             world: registry.world::<greyhack_world_core::WorldRef>().clone(),

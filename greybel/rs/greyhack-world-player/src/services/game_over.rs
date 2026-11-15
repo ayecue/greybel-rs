@@ -139,7 +139,7 @@ pub struct GameOver {
     pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
     pub(crate) bank: greyhack_world_core::Dep<greyhack_world_economy::Bank>,
     pub(crate) guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
-    pub(crate) traces: greyhack_world_core::Dep<greyhack_world_guilds::Traces>,
+    pub(crate) traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
     pub(crate) routines: std::rc::Rc<greyhack_world_routines::Scheduler>,
     pub(crate) mine_jobs: std::rc::Rc<greyhack_world_modules::WorkQueue>,
 }

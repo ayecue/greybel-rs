@@ -6,7 +6,8 @@ use super::connection::UNPAID_REMOTE;
 use crate::protocol::{ComputerFailure, NetCardFailure, ProcessFailure, UserFailure};
 
 /// Failure text for an unavailable computer.
-pub(in crate::game) const COMPUTER_GONE: &str = "Unknown error: Unable to access to local computer";
+pub(in crate::game) const COMPUTER_UNAVAILABLE: &str =
+    "Unknown error: Unable to access to local computer";
 
 /// Formats `failure` for `intrinsic` using `ComputerIntrinsics` messages.
 pub(in crate::game) fn computer_text(intrinsic: &str, failure: &ComputerFailure) -> String {
@@ -86,7 +87,7 @@ fn user_text(failure: &UserFailure) -> String {
 /// Formats `Computer.CheckMemoryAvailable` and terminal-limit failures.
 pub(in crate::game) fn process_text(failure: ProcessFailure) -> String {
     match failure {
-        ProcessFailure::ComputerUnavailable => COMPUTER_GONE.to_owned(),
+        ProcessFailure::ComputerUnavailable => COMPUTER_UNAVAILABLE.to_owned(),
         ProcessFailure::TooManyTerminals => {
             "Maximum number of Terminals in execution reached.".to_owned()
         }
@@ -104,7 +105,7 @@ pub(in crate::game) fn process_text(failure: ProcessFailure) -> String {
 /// Formats `NetworkLan.ConnectWifi` and `NetworkLan.ConnectEthernet` failures.
 fn net_card_text(failure: &NetCardFailure) -> String {
     match failure {
-        NetCardFailure::ComputerUnavailable => COMPUTER_GONE.to_owned(),
+        NetCardFailure::ComputerUnavailable => COMPUTER_UNAVAILABLE.to_owned(),
         NetCardFailure::UnknownRouter => "router not found".to_owned(),
         NetCardFailure::DisabledHomeNetwork => {
             "can't connect: the home network has been temporarily disabled due to non-payment"

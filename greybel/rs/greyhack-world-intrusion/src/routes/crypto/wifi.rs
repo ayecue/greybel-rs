@@ -3,7 +3,6 @@
 use greyhack_world_core::Access;
 use greyhack_world_router::{Call, RouteContext};
 
-use crate::IntrusionContext;
 use crate::routes::protocol::{
     Capture, Failure, IntoProtocol as _, KeyRecovery, Outcome, PrintLine,
 };
@@ -11,14 +10,14 @@ use crate::routes::{OperationError, Result};
 
 /// Sets monitor mode on `device` to `start`.
 pub(super) async fn airmon(
-    world: &impl IntrusionContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     access: &Access,
     start: bool,
     device: &str,
 ) -> Result<Outcome> {
     Ok(
         match world
-            .intrusion()
+            .module::<crate::IntrusionModule>()
             .crypto
             .set_monitor_mode(access.computer, device, start)
             .await?
@@ -32,7 +31,10 @@ pub(super) async fn airmon(
 /// Captures Wi-Fi ACKs for `bssid`/`essid` and writes `file.cap` under `folder`. Returns startup or save
 /// failures.
 pub(super) async fn aireplay(
-    ctx: &RouteContext<'_, impl IntrusionContext>,
+    ctx: &RouteContext<
+        '_,
+        impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+    >,
     call: Call,
     access: &Access,
     network: (&str, &str),
@@ -43,7 +45,7 @@ pub(super) async fn aireplay(
 
     Ok(
         match world
-            .intrusion()
+            .module::<crate::IntrusionModule>()
             .crypto
             .capture_wifi(access.computer, &access.user, network, max_acks, folder)
             .await?
@@ -82,7 +84,10 @@ pub(super) async fn aireplay(
 
 /// Recovers a Wi-Fi password from `path`, returning capture or lookup failures.
 pub(super) async fn aircrack(
-    ctx: &RouteContext<'_, impl IntrusionContext>,
+    ctx: &RouteContext<
+        '_,
+        impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+    >,
     call: Call,
     access: &Access,
     path: &str,
@@ -91,7 +96,7 @@ pub(super) async fn aircrack(
 
     Ok(
         match world
-            .intrusion()
+            .module::<crate::IntrusionModule>()
             .crypto
             .recover_wifi_password(access.computer, &access.user, path)
             .await?

@@ -1,6 +1,6 @@
 use greyhack_behaviour::{NetworkKind, SECONDS_PER_DAY, day_of_year};
-use greyhack_world::prelude::*;
-use greyhack_world::{Database, World};
+use greyhack_world::{DatabaseOpen, World};
+use greyhack_world_core::Database;
 
 use crate::support::npcs_jobs::{public_ip, world_with};
 

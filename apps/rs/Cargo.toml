@@ -27,6 +27,7 @@ greybel-test-support = { path = "../../greybel/rs/greybel-test-support" }
 greyhack-message-hook-client = { path = "../../greybel/rs/greyhack-message-hook-client" }
 greyhack-terminal-text = { path = "../../greybel/rs/greyhack-terminal-text" }
 greyhack-world = { path = "../../greybel/rs/greyhack-world" }
+greyhack-world-core = { path = "../../greybel/rs/greyhack-world-core" }
 greyhack-world-operations = { path = "../../greybel/rs/greyhack-world-operations" }
 greyscript-intrinsics = { path = "../../greybel/rs/greyscript-intrinsics" }
 

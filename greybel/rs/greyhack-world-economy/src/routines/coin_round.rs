@@ -84,11 +84,14 @@ impl CoinRound {
                 .world_mut()
                 .state_mut::<MineJobReport>()
                 .errors
-                .push(MineJobFailure::CoinGone);
+                .push(MineJobFailure::CoinMissing);
 
             let work = self.coin_jobs(coin).await?;
 
-            return self.mine_jobs.fail(&work, &MineJobFailure::CoinGone).await;
+            return self
+                .mine_jobs
+                .fail(&work, &MineJobFailure::CoinMissing)
+                .await;
         };
         let now = self.world.time_seconds();
         let mut candidates = Vec::new();
@@ -97,7 +100,7 @@ impl CoinRound {
         for job in self.mine_jobs.coin_subscribers(coin).await? {
             if self.computers.has_computer(job.computer).await? {
                 // The game selects a wallet by total power, then uniformly among all its machines.
-                let power = self.computers.hardware(job.computer).await?.mining_power();
+                let power = self.computers.hardware(job.computer).await?.mine_power();
 
                 candidates.push(Candidate {
                     job: job.id,

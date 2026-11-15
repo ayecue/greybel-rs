@@ -13,7 +13,11 @@ use crate::routes::conversions::IntoProtocol;
 use crate::routes::{OperationError, Result};
 use crate::{PortLookup, Router, RouterId, TablePort};
 
-pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: RouterPublicIp| {
             let world = &*ctx.modules;
@@ -43,7 +47,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<crate::CoreModule>()
                 .networks
                 .routers
                 .essid_name(ctx.trees.objects(call.tree).router(message.router)?)
@@ -55,7 +59,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<crate::CoreModule>()
                 .networks
                 .routers
                 .bssid_name(ctx.trees.objects(call.tree).router(message.router)?)
@@ -67,7 +71,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<crate::CoreModule>()
                 .networks
                 .routers
                 .kernel_version(ctx.trees.objects(call.tree).router(message.router)?)
@@ -79,7 +83,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<crate::CoreModule>()
                 .networks
                 .settings
                 .net_speed(ctx.trees.objects(call.tree).router(message.router)?)
@@ -118,7 +122,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<crate::CoreModule>()
                 .networks
                 .routers
                 .visible_table_ports(ctx.trees.objects(call.tree).router(message.router)?)
@@ -131,7 +135,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<crate::CoreModule>()
                 .networks
                 .routers
                 .table_port(
@@ -157,7 +161,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
 
             Ok(
                 match world
-                    .core()
+                    .module::<crate::CoreModule>()
                     .networks
                     .routers
                     .device_ports(
@@ -180,12 +184,12 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
 
 /// Applies `read` to `router` if it exists; otherwise returns `None`.
 async fn on_router<T>(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     router: RouterId,
     read: impl FnOnce(&Router) -> T,
 ) -> Result<Option<T>> {
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .routers
         .router(router)
@@ -196,13 +200,13 @@ async fn on_router<T>(
 /// Looks up the service and library version at `lan_ip`/`internal_port` through `router`
 /// (`Router.GetPortVersion`).
 async fn port_info(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     router: RouterId,
     lan_ip: &str,
     internal_port: u16,
 ) -> Result<Option<PortService>> {
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .routers
         .port_service(router, lan_ip, internal_port)
@@ -215,11 +219,11 @@ async fn port_info(
 
 /// Lists the router's firewall rules.
 async fn firewall_rules(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     router: RouterId,
 ) -> Result<Option<Vec<FirewallEntry>>> {
     if world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .routers
         .router(router)
@@ -231,7 +235,7 @@ async fn firewall_rules(
 
     Ok(Some(
         world
-            .core()
+            .module::<crate::CoreModule>()
             .networks
             .router_config
             .firewall_rules(router)
@@ -245,15 +249,21 @@ async fn firewall_rules(
 /// Lists the router's LAN (`Router.GetComputersIPs`): reachable computers using it as gateway, followed by
 /// all network routers and switches.
 async fn devices_lan_ip(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     router: RouterId,
 ) -> Result<Option<Vec<String>>> {
-    let Some(router) = world.core().networks.routers.router(router).await? else {
+    let Some(router) = world
+        .module::<crate::CoreModule>()
+        .networks
+        .routers
+        .router(router)
+        .await?
+    else {
         return Ok(None);
     };
 
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .lan
         .lan(router.network)

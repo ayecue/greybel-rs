@@ -1,6 +1,6 @@
 use greyhack_behaviour::SubscriptionKind;
-use greyhack_world::prelude::*;
-use greyhack_world::{Database, World};
+use greyhack_world::{DatabaseOpen, World};
+use greyhack_world_core::Database;
 
 use crate::support::economy_bank::{bank_world, get_coin};
 

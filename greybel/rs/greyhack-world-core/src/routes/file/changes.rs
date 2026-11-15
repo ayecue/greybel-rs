@@ -17,7 +17,7 @@ use crate::{ComputerId, DeletionOrigin, Node};
 ///
 /// Returns errors from database reads or writes.
 pub async fn copy(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     folder: &str,
     name: &str,
@@ -28,7 +28,7 @@ pub async fn copy(
 
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .scripts
             .copy_entry(&node, &file.access.user, folder, name)
@@ -36,7 +36,7 @@ pub async fn copy(
         {
             Ok(copy) => {
                 let replacement = (world
-                    .core()
+                    .module::<crate::CoreModule>()
                     .files
                     .lookup
                     .node(file.access.computer, file.node)
@@ -69,7 +69,7 @@ pub async fn copy(
 /// Returns [`greyhack_world_router::protocol::ScriptFailure::TooManyFolders`] when `folder` has more than 16 folders, or a
 /// database read/write failure.
 pub async fn r#move(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     folder: &str,
     name: &str,
@@ -80,7 +80,7 @@ pub async fn r#move(
 
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .scripts
             .move_entry(&node, &file.access.user, folder, name)
@@ -105,7 +105,7 @@ pub async fn r#move(
 /// Returns [`greyhack_world_router::protocol::ScriptFailure::TooManyFolders`] when `folder` has more than 16 folders, or a
 /// database read/write failure.
 pub async fn symlink(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     folder: &str,
     name: &str,
@@ -116,7 +116,7 @@ pub async fn symlink(
 
     crate::routes::computer::creation_outcome(
         world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .scripts
             .symlink_entry(&node, &file.access.user, folder, name)
@@ -130,14 +130,14 @@ pub async fn symlink(
 ///
 /// Returns errors from database reads or writes.
 pub async fn rename(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     name: &str,
 ) -> Result<(FileChange, Option<Node>)> {
     let Some(node) = resolve(world, file, false).await? else {
         return Ok(
             if world
-                .core()
+                .module::<crate::CoreModule>()
                 .networks
                 .topology
                 .computer(file.access.computer)
@@ -156,7 +156,7 @@ pub async fn rename(
 
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .scripts
             .rename_entry(&node, &file.access.user, name)
@@ -180,7 +180,7 @@ pub async fn rename(
 ///
 /// Returns errors from database reads or writes.
 pub async fn delete(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     terminal: u64,
     last_shell: ComputerId,
@@ -188,7 +188,7 @@ pub async fn delete(
     let computer = file.access.computer;
 
     if world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .topology
         .computer(computer)
@@ -211,7 +211,7 @@ pub async fn delete(
 
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .scripts
             .delete_entry(&node, &file.access.user, &origin)

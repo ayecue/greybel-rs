@@ -1,5 +1,6 @@
 use greybel_test_support::future::block_on;
-use greyhack_world::{LoginFailure, ServiceFailure, World};
+use greyhack_world::World;
+use greyhack_world_core::{LoginFailure, ServiceFailure};
 
 use crate::support::network::{
     SERVICE_SEED, connect_to, first_remote_service, literal, rebooted_service,

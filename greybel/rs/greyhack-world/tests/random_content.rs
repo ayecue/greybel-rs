@@ -1,6 +1,7 @@
 use greyhack_behaviour::{DeviceKind, FileKind, PermissionSet};
-use greyhack_world::{NetworkOptions, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
 use greyhack_world_assets::WorldItemTable;
+use greyhack_world_creation::NetworkOptions;
 
 use crate::support::computers;
 use crate::support::random_content::{generated, random_files};

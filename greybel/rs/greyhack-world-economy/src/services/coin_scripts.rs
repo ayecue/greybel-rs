@@ -15,8 +15,8 @@ const MAX_SUBWALLETS_PER_COIN: usize = 10;
 /// Whether a computer can reach the network (`Computer.IsNetworkActive`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Connectivity {
-    /// The computer is gone.
-    Gone,
+    /// The computer no longer exists.
+    Missing,
     /// The computer cannot reach the network.
     Offline,
     /// The computer can reach the network.
@@ -31,7 +31,7 @@ impl CoinService {
         terminal_computers: &[ComputerId],
     ) -> Result<Connectivity> {
         if self.networks.topology.computer(computer).await?.is_none() {
-            return Ok(Connectivity::Gone);
+            return Ok(Connectivity::Missing);
         }
 
         Ok(

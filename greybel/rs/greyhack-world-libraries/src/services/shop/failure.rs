@@ -11,7 +11,7 @@ pub enum ExploitShopFailure {
     NoResults,
     /// The destination folder is not a valid path (`BankHelperServer.BuyItem`).
     InvalidPath,
-    /// The computer that receives the file is gone.
+    /// The computer that receives the file no longer exists.
     UnknownComputer,
     /// The computer that receives the file has no network access.
     NoInternet,

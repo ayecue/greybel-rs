@@ -1,5 +1,6 @@
 use greyhack_behaviour::hash_password;
-use greyhack_world::{CtfEvent, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_player::CtfEvent;
 
 use crate::support::save_copy;
 use crate::support::scripts::run_code_in;

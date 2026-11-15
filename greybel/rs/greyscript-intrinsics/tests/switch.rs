@@ -1,6 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::DeviceKind;
-use greyhack_world::{ComputerOptions, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_creation::ComputerOptions;
 
 use crate::support;
 use crate::support::read_computer;

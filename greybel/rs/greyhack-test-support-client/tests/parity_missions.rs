@@ -10,7 +10,8 @@
 
 use greybel_test_support::game::Game;
 use greyhack_behaviour::{MissionKind, WorldSeed, mission_for_group};
-use greyhack_world::{PlayerOptions, World, mission_json};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_missions::mission_json;
 use serde_json::Value;
 
 use crate::support::game::{setup_player, test_client};

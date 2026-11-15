@@ -5,9 +5,7 @@ use crate::routes::protocol::{
     EconomyFailure, Failure, IntoProtocol as _, ObjectId, Outcome, ScriptFailure,
 };
 use crate::routes::{OperationError, Result};
-use crate::{
-    Coin, CoinId, ComputerId, Connectivity, EconomyContext, EconomyFailure as WorldFailure,
-};
+use crate::{Coin, CoinId, ComputerId, Connectivity, EconomyFailure as WorldFailure};
 
 /// Returns the ID of the coin object `id` after the per-method computer checks in
 /// `CoinIntrinsics.CheckStatus`.
@@ -16,7 +14,7 @@ use crate::{
 ///
 /// Returns [`ScriptFailure::Refused`] for a missing or offline computer, or a database read error.
 pub(super) async fn online_coin(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     objects: &greyhack_world_router::ObjectTableHandle<ComputerId>,
     terminal_computers: &[ComputerId],
     id: ObjectId,
@@ -24,32 +22,32 @@ pub(super) async fn online_coin(
     let CoinRef { coin, computer } = objects.coin(id)?;
 
     match world
-        .economy()
+        .module::<crate::EconomyModule>()
         .coins
         .connectivity(computer, terminal_computers)
         .await?
     {
         Connectivity::Online => Ok(coin),
-        Connectivity::Gone => Err(refusal(EconomyFailure::ComputerUnavailable)),
+        Connectivity::Missing => Err(refusal(EconomyFailure::ComputerUnavailable)),
         Connectivity::Offline => Err(refusal(EconomyFailure::NoInternet)),
     }
 }
 
 /// Applies `read` to `coin` if it still exists; otherwise returns `None`.
 pub(super) async fn on_coin<T>(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     coin: CoinId,
     read: impl FnOnce(&Coin) -> T,
 ) -> Result<Option<T>> {
     Ok(world
-        .economy()
+        .module::<crate::EconomyModule>()
         .coins
         .coin(coin)
         .await?
         .map(|coin| read(&coin)))
 }
 
-/// Converts a coin setting result: `None` once the coin is gone, or a refusal.
+/// Converts a coin setting result: `None` once the coin no longer exists, or a refusal.
 pub(super) fn setting_result(
     result: std::result::Result<bool, WorldFailure>,
 ) -> Result<Option<bool>> {
@@ -72,17 +70,21 @@ pub(super) fn refusal_of(failure: WorldFailure) -> OperationError {
 
 /// Moves `amount` from sub-wallet `origin` into `destination`.
 pub(super) async fn transaction(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     coin: CoinId,
     origin: &str,
     destination: &str,
     amount: i64,
 ) -> Result<Outcome> {
-    let date = world.world_ref().date();
+    let date = world
+        .module::<greyhack_world_core::CoreModule>()
+        .world
+        .clone()
+        .date();
 
     Ok(
         match world
-            .economy()
+            .module::<crate::EconomyModule>()
             .wallets
             .transaction(coin, origin, destination, amount, &date)
             .await?

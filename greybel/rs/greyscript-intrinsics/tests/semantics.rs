@@ -2,7 +2,8 @@ use std::rc::Rc;
 
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::FirewallRule;
-use greyhack_world::{ConnectionFailure, LanFailure, LoginFailure, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::{ConnectionFailure, LanFailure, LoginFailure};
 use scheduler::ManualClock;
 
 use crate::support::network::{SERVICE_SEED, first_remote_service, literal};
@@ -255,7 +256,7 @@ fn should_only_list_routers_within_wifi_range() {
     let world = world_with_player_router_at_origin();
     let player = world.handle.player();
     let near = block_on(world.modules.creation.network_generation.add_network(
-        &greyhack_world::NetworkOptions {
+        &greyhack_world_creation::NetworkOptions {
             public_ip: Some("8.8.8.8".to_owned()),
             position: Some([0.4, 0.0]),
             ..Default::default()
@@ -263,7 +264,7 @@ fn should_only_list_routers_within_wifi_range() {
     ))
     .unwrap();
     let far = block_on(world.modules.creation.network_generation.add_network(
-        &greyhack_world::NetworkOptions {
+        &greyhack_world_creation::NetworkOptions {
             public_ip: Some("9.9.9.9".to_owned()),
             position: Some([0.6, 0.0]),
             ..Default::default()
@@ -291,7 +292,7 @@ fn should_only_list_routers_within_wifi_range() {
 fn should_reject_a_wifi_router_out_of_range() {
     let world = world_with_player_router_at_origin();
     let router = block_on(world.modules.creation.network_generation.add_network(
-        &greyhack_world::NetworkOptions {
+        &greyhack_world_creation::NetworkOptions {
             public_ip: Some("9.9.9.9".to_owned()),
             position: Some([0.6, 0.0]),
             essid: Some("far".to_owned()),
@@ -317,7 +318,7 @@ fn should_reject_a_wifi_router_out_of_range() {
 fn should_throttle_wifi_reconnection() {
     let world = world_with_player_router_at_origin();
     let router = block_on(world.modules.creation.network_generation.add_network(
-        &greyhack_world::NetworkOptions {
+        &greyhack_world_creation::NetworkOptions {
             public_ip: Some("8.8.8.8".to_owned()),
             position: Some([0.1, 0.0]),
             wifi_password: Some("pw".to_owned()),

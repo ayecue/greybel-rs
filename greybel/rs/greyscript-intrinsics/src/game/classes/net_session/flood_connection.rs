@@ -24,7 +24,7 @@ pub fn flood_connection(vm: &mut Vm, this: &Value) -> Result<NativeFuture, Intri
         match operate(NAME, request).await {
             Ok(FloodResult::Active) => std::future::pending().await,
             Ok(FloodResult::Reboot) => NativeOutput::new(Value::Null),
-            Ok(FloodResult::Gone) => NativeOutput::new(Value::Null),
+            Ok(FloodResult::Missing) => NativeOutput::new(Value::Null),
             Err(error) => NativeOutput::new(Err::<Value, _>(error)),
         }
     }))

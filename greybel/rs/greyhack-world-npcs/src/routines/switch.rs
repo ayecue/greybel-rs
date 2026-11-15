@@ -11,7 +11,7 @@ use greyhack_world_storage::TableSet;
 use greyhack_world_storage::sql::{execute, fetch_column, fetch_value};
 use turso::{Connection, params};
 
-use crate::{Npc, NpcEvent, PersonId, Schedules};
+use crate::{Npc, NpcEvent, PersonId, ScheduleService};
 
 /// NPC login changes emitted while routines run.
 #[derive(Default)]
@@ -23,14 +23,14 @@ pub struct NpcRoutineState {
 /// An NPC logs in or out.
 pub struct NpcSwitch {
     world: WorldRef,
-    schedules: greyhack_world_core::Dep<Schedules>,
+    schedules: greyhack_world_core::Dep<ScheduleService>,
     scheduler: Rc<Scheduler>,
 }
 
 impl NpcSwitch {
     pub(crate) fn new(
         world: &WorldRef,
-        schedules: greyhack_world_core::Dep<Schedules>,
+        schedules: greyhack_world_core::Dep<ScheduleService>,
         scheduler: Rc<Scheduler>,
     ) -> Self {
         Self {
@@ -90,7 +90,7 @@ impl NpcSwitch {
     }
 }
 
-impl Schedules {
+impl ScheduleService {
     pub(crate) async fn switch_npc(&self, id: PersonId) -> crate::Result<()> {
         let Some(mut npc) = self.npcs.npc(id).await? else {
             return Ok(());

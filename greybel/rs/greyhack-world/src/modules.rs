@@ -14,6 +14,7 @@ use greyhack_world_player::PlayerModule;
 use greyhack_world_services::ServicesModule;
 use greyhack_world_shell::ShellModule;
 use greyhack_world_smart_devices::SmartDevicesModule;
+use greyhack_world_traces::TracesModule;
 
 /// Domain modules in dependency order.
 pub struct ModuleSet {
@@ -23,8 +24,10 @@ pub struct ModuleSet {
     pub economy: Rc<EconomyModule>,
     /// People, jobs, schedules, and mail.
     pub npcs: NpcModule,
-    /// Guilds and traces.
+    /// Guilds, companies, and CrownShield.
     pub guilds: GuildModule,
+    /// Active and passive administrator traces.
+    pub traces: TracesModule,
     /// Package and computer services.
     pub services: Rc<ServicesModule>,
     /// Cryptography, sniffers, and floods.
@@ -73,6 +76,8 @@ pub fn assemble(world: WorldRef) -> WorldAssembly {
 
     registry.register_routes(greyhack_world_guilds::routes::register::<crate::World>);
 
+    let traces = TracesModule::register(&registry);
+
     let services = Rc::new(ServicesModule::register(&registry));
 
     registry.register_routes(greyhack_world_services::routes::register::<crate::World>);
@@ -119,6 +124,7 @@ pub fn assemble(world: WorldRef) -> WorldAssembly {
         economy,
         npcs,
         guilds,
+        traces,
         services,
         intrusion,
         smart_devices,

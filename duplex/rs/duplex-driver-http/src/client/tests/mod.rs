@@ -34,16 +34,16 @@ fn should_hand_what_the_client_posts_to_its_transport_until_it_disconnects() {
 }
 
 #[test]
-fn should_be_gone_only_once_idle_without_requests_or_open_streams() {
+fn should_disconnect_only_once_idle_without_requests_or_open_streams() {
     let client = Client::new(LIMIT);
     let streaming = client.begin_stream();
-    let while_streaming = (0..3).any(|_| client.is_gone_after(SWEEP, SWEEP));
+    let while_streaming = (0..3).any(|_| client.should_disconnect_after(SWEEP, SWEEP));
 
     drop(streaming);
 
-    let after_its_last_request = client.is_gone_after(SWEEP, SWEEP);
-    let idle_for_one = client.is_gone_after(SWEEP, SWEEP);
-    let idle_past_it = client.is_gone_after(SWEEP, SWEEP);
+    let after_its_last_request = client.should_disconnect_after(SWEEP, SWEEP);
+    let idle_for_one = client.should_disconnect_after(SWEEP, SWEEP);
+    let idle_past_it = client.should_disconnect_after(SWEEP, SWEEP);
 
     assert!(!while_streaming);
     assert!(!after_its_last_request);
@@ -52,14 +52,14 @@ fn should_be_gone_only_once_idle_without_requests_or_open_streams() {
 }
 
 #[test]
-fn should_be_gone_once_its_client_is_too_far_behind() {
+fn should_disconnect_once_its_client_is_too_far_behind() {
     let client = Client::new(4);
 
     client.send(&[1, 2, 3]);
 
     client.send(&[4, 5]);
 
-    assert!(client.is_gone_after(SWEEP, Duration::MAX));
+    assert!(client.should_disconnect_after(SWEEP, Duration::MAX));
 }
 
 #[test]

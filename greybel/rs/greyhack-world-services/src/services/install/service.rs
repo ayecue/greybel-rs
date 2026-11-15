@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// Methods of [`World`] for services install service.
-impl Installs {
+impl InstallService {
     pub async fn service_address(
         &self,
         computer: ComputerId,
@@ -88,7 +88,7 @@ impl Installs {
     }
 }
 
-impl Installs {
+impl InstallService {
     pub async fn configure(&self, computer: ComputerId, id: ServiceId, domain: &str) -> Result<()> {
         let daemon = Script::find(id.daemon());
         let data = daemon.map_or_else(FileData::default, |script| {
@@ -252,17 +252,17 @@ impl Installs {
 }
 
 /// A world service with only its declared dependencies.
-pub struct Installs {
+pub struct InstallService {
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
 }
 
-impl Installs {
+impl InstallService {
     pub(crate) fn new(
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
         mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
     ) -> Self {

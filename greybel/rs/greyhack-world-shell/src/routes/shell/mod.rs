@@ -12,9 +12,13 @@ use crate::routes::protocol::{
     ShellPing, ShellScp, ShellStartTerminal, ShellWriteBinary,
 };
 use crate::routes::{OperationError, Result};
-use crate::{Launch, LaunchedProgram, ShellContext, TerminalFailure, TerminalProgram};
+use crate::{Launch, LaunchedProgram, TerminalFailure, TerminalProgram};
 
-pub(crate) fn register<W: ShellContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -22,7 +26,7 @@ pub(crate) fn register<W: ShellContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .reach
                 .ping(
@@ -211,7 +215,7 @@ pub(crate) fn register<W: ShellContext + 'static>(routes: &RouteTable) {
                         ctx.trees.objects(call.tree).session(session_id)?.computer;
                     let shell = ctx.trees.objects(call.tree).shell(message.shell)?.clone();
                     let launch = world
-                        .shell()
+                        .module::<crate::ShellModule>()
                         .launches
                         .launch_program(
                             shell.computer,
@@ -224,7 +228,7 @@ pub(crate) fn register<W: ShellContext + 'static>(routes: &RouteTable) {
                         .await?;
 
                     Ok(match launch {
-                        Launch::Gone => LaunchOutcome::Refusal,
+                        Launch::Missing => LaunchOutcome::Refusal,
                         Launch::Refusal(failure) => {
                             ctx.print(
                                 call,
@@ -263,7 +267,7 @@ pub(crate) fn register<W: ShellContext + 'static>(routes: &RouteTable) {
                             // `ShellIntrinsics.launch`: the program's shell on a company's computer starts an
                             // active trace, which ends with the program.
                             world
-                                .shell()
+                                .module::<crate::ShellModule>()
                                 .connections
                                 .trace_shell(shell_at.0, shell_at.1, u64::from(child.id))
                                 .await?;
@@ -326,7 +330,7 @@ pub(crate) fn register<W: ShellContext + 'static>(routes: &RouteTable) {
 
                     Ok(
                         match world
-                            .shell()
+                            .module::<crate::ShellModule>()
                             .launches
                             .terminal_program(shell.computer, &shell.user, ctx.depth(call, program))
                             .await?
@@ -355,7 +359,7 @@ pub(crate) fn register<W: ShellContext + 'static>(routes: &RouteTable) {
 
                                 if let Some((computer, pid)) = launched_process {
                                     world
-                                        .core()
+                                        .module::<greyhack_world_core::CoreModule>()
                                         .computers
                                         .processes
                                         .end_process(computer, pid)
@@ -388,7 +392,7 @@ pub(crate) fn register<W: ShellContext + 'static>(routes: &RouteTable) {
                                 // `ShellIntrinsics.start_terminal`: the terminal's shell on a company's
                                 // computer starts an active trace for the script that started it.
                                 world
-                                    .shell()
+                                    .module::<crate::ShellModule>()
                                     .connections
                                     .trace_shell(shell_at.0, shell_at.1, u64::from(program.id))
                                     .await?;
@@ -435,7 +439,7 @@ pub use connect::{ServiceAccess, ServiceLogin, complete_encrypted_login, connect
 ///
 /// Returns errors from database reads.
 pub async fn scp(
-    world: &impl ShellContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     from: &Access,
     to: Option<&Access>,
     source: &str,
@@ -443,7 +447,7 @@ pub async fn scp(
     upload: bool,
 ) -> Result<Outcome> {
     let result = world
-        .shell()
+        .module::<crate::ShellModule>()
         .builds
         .scp(
             (from.computer, &from.user),
@@ -469,7 +473,7 @@ pub async fn scp(
 ///
 /// Returns errors from database reads.
 pub async fn build(
-    world: &impl ShellContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     shell: &Access,
     session: &Access,
     source: &str,
@@ -477,7 +481,7 @@ pub async fn build(
 ) -> Result<BuildSource> {
     Ok(
         match world
-            .shell()
+            .module::<crate::ShellModule>()
             .builds
             .build_source(
                 (shell.computer, &shell.user),
@@ -507,7 +511,7 @@ pub async fn build(
 ///
 /// Returns errors from database reads.
 pub async fn write_binary(
-    world: &impl ShellContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     shell: &Access,
     folder: &str,
     name: &str,
@@ -517,7 +521,7 @@ pub async fn write_binary(
 ) -> Result<Outcome> {
     Ok(
         match world
-            .shell()
+            .module::<crate::ShellModule>()
             .builds
             .write_binary(
                 shell.computer,

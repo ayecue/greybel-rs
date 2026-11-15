@@ -80,7 +80,7 @@ impl StartupService {
 pub struct Startup {
     pub(crate) computer_rows: Rc<ComputerRepository>,
     pub(crate) lookup: Dep<FileLookup>,
-    pub(crate) library_files: Dep<LibraryFiles>,
+    pub(crate) library_files: Dep<LibraryFileService>,
 }
 
 impl Startup {

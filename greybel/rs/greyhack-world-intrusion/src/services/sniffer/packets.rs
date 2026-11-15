@@ -4,7 +4,7 @@ use greyhack_behaviour::SSHD_CONFIG_PATH;
 use greyhack_world_core::{ComputerId, Result};
 use greyhack_world_services::{DEFAULT_ENCODE_PATH, SshdConfig};
 
-use crate::{SnifferPacket, Sniffers};
+use crate::{SnifferPacket, SnifferService};
 
 pub(crate) struct LoginPacket<'a> {
     source: ComputerId,
@@ -36,7 +36,7 @@ impl<'a> LoginPacket<'a> {
 }
 
 /// Methods of [`World`] for intrusion sniffer packets.
-impl Sniffers {
+impl SnifferService {
     pub async fn record_packet(
         &self,
         source: ComputerId,
@@ -86,7 +86,7 @@ impl Sniffers {
     }
 }
 
-impl Sniffers {
+impl SnifferService {
     pub(crate) async fn record_packet_impl(
         &self,
         packet: LoginPacket<'_>,

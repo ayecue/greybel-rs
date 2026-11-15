@@ -397,14 +397,14 @@ impl Crypto {
 /// A world service with only its declared dependencies.
 pub struct Crypto {
     pub(crate) world: greyhack_world_core::WorldRef,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
 }
 
 impl Crypto {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     ) -> Self {
         Self {

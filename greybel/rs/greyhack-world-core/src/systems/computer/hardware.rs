@@ -91,9 +91,9 @@ impl Hardware {
         path: &str,
         version: &str,
     ) -> Result<bool> {
-        let hooks = self.libraries.clone();
+        let services = self.libraries.clone();
 
-        hooks
+        services
             .set_library_version(&self.world, computer, path, version)
             .await
     }
@@ -134,7 +134,7 @@ pub struct Hardware {
     pub(crate) user_rows: Rc<UserRepository>,
     pub(crate) library_rows: Rc<LibraryIdentityRepository>,
     pub(crate) users: Dep<UserService>,
-    pub libraries: Dep<dyn crate::LibraryVersions>,
+    pub libraries: Dep<dyn crate::LibraryVersionService>,
 }
 
 impl Hardware {

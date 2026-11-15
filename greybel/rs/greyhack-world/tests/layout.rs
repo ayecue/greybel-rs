@@ -1,5 +1,8 @@
 use greyhack_behaviour::{DeviceKind, FileData, PermissionSet, ROOT_USER, parse_date};
-use greyhack_world::{DeviceLayout, NodeDraft, PlayerOptions, World, WorldError};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::WorldError;
+use greyhack_world_creation::DeviceLayout;
+use greyhack_world_libraries::NodeDraft;
 
 use crate::support::layout::layout;
 
@@ -114,10 +117,10 @@ async fn should_refuse_a_layout_without_the_players_computer() {
 async fn should_save_a_laid_out_networks_administrator() {
     let mut network = layout();
 
-    network.admin = Some(greyhack_world::NetworkAdmin {
+    network.admin = Some(greyhack_behaviour::NetworkAdmin {
         intelligence: 10,
         pc_experience: 10,
-        work_performance: greyhack_world::WorkPerformance::Excellent,
+        work_performance: greyhack_behaviour::WorkPerformance::Excellent,
         dead_or_fired: false,
     });
 

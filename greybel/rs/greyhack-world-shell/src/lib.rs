@@ -98,9 +98,3 @@ impl Module for ShellModule {
         module
     }
 }
-
-/// Access to shell and all lower domain services from a concrete assembled world.
-pub trait ShellContext: greyhack_world_libraries::LibraryContext {
-    /// Returns this world's shell module.
-    fn shell(&self) -> Rc<ShellModule>;
-}

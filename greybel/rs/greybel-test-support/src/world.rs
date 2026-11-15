@@ -1,10 +1,11 @@
 //! Helpers for constructing, persisting, mutating, and inspecting test worlds.
 
-use greyhack_world::prelude::*;
-use greyhack_world::{
-    CoinId, Computer, ComputerId, Database, Library, PlayerOptions, Router, RouterId, StrikeEvent,
-    SubWallet, WorkEnvelope, World, WorldOptions,
-};
+use greyhack_world::{DatabaseOpen, PlayerOptions, World, WorldOptions};
+use greyhack_world_core::{CoinId, Computer, ComputerId, Database, Router, RouterId};
+use greyhack_world_economy::SubWallet;
+use greyhack_world_libraries::Library;
+use greyhack_world_modules::WorkEnvelope;
+use greyhack_world_traces::StrikeEvent;
 
 /// Creates `WorldOptions` with the requested seed, network count, and default player.
 #[must_use]

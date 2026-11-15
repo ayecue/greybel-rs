@@ -2,7 +2,6 @@
 
 use greyhack_world_router::RouteTable;
 
-use crate::IntrusionContext;
 use crate::objects::ObjectTableExt as _;
 use crate::routes::protocol::{
     CryptoAircrack, CryptoAireplay, CryptoAirmon, CryptoDecipher, CryptoDecrypt, CryptoEncrypt,
@@ -14,7 +13,11 @@ mod wifi;
 use self::files::{decrypt, encrypt, is_encrypted};
 use self::wifi::{aircrack, aireplay, airmon};
 
-pub(crate) fn register<W: IntrusionContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
@@ -22,7 +25,7 @@ pub(crate) fn register<W: IntrusionContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .computers
                 .users
                 .password_of_hash(&message.hash)

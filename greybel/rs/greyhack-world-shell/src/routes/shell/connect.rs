@@ -9,7 +9,7 @@ use crate::routes::protocol::{
     SourceFile,
 };
 use crate::routes::{OperationError, Result};
-use crate::{ComputerId, Encryption, EncryptionScript, ServiceOpen, ServiceRequest, ShellContext};
+use crate::{ComputerId, Encryption, EncryptionScript, ServiceOpen, ServiceRequest};
 
 /// Result of a `connect_service` login.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -43,7 +43,7 @@ pub struct ServiceLogin<'a> {
 ///
 /// Returns connection, argument, network, or database search failures.
 pub async fn connect_service(
-    world: &impl ShellContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     shell: &Access,
     terminal_computers: &[ComputerId],
     login: &ServiceLogin<'_>,
@@ -78,12 +78,12 @@ pub async fn connect_service(
         password,
     };
     let (target, origin, failure, encryption) = match world
-        .shell()
+        .module::<crate::ShellModule>()
         .connections
         .open_service(shell.computer, &shell.prev_ip, terminal_computers, &request)
         .await?
     {
-        ServiceOpen::Gone => {
+        ServiceOpen::Missing => {
             return Ok(ServiceAccess::Failure(Failure::Shell(
                 ShellFailure::ComputerUnavailable,
             )));
@@ -149,14 +149,14 @@ fn source_file(script: EncryptionScript) -> SourceFile {
 ///
 /// Returns database search or packet-recording failures.
 pub async fn complete_encrypted_login(
-    world: &impl ShellContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     source: &Access,
     target: &Access,
     terminal_computers: &[ComputerId],
     login: &ShellCompleteEncryptedLogin<'_>,
 ) -> Result<std::result::Result<Access, LoginFailure>> {
     let origin = world
-        .core()
+        .module::<greyhack_world_core::CoreModule>()
         .networks
         .topology
         .public_ip(source.computer)
@@ -172,7 +172,7 @@ pub async fn complete_encrypted_login(
         // `ShellIntrinsics.connect_service` retries authentication when
         // `HelperScript.HelperSshSec.Completed` decodes a different password, replacing the initial result.
         world
-            .shell()
+            .module::<crate::ShellModule>()
             .connections
             .retry_service_login(
                 source.computer,
@@ -189,7 +189,7 @@ pub async fn complete_encrypted_login(
     };
 
     world
-        .shell()
+        .module::<crate::ShellModule>()
         .connections
         .finish_encrypted_login(
             (source.computer, &source.prev_ip),

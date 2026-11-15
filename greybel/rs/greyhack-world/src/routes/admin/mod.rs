@@ -1,19 +1,12 @@
-//! Global `admin.so` operations (`admin`) for clocks, networks, programs, credentials, and snapshots.
+//! Global `admin.so` operations for clocks, random seeds, and snapshots.
 
 use greyhack_world_router::RouteTable;
 
-use crate::CoreObjectTableExt as _;
 use crate::routes::CyclesExt;
-use crate::routes::conversions::{
-    AdminCreateProgram, AdminNetworks, AdminRegisterPassword, AdminSeed, AdminSetDate,
-    AdminSnapshot, AdminTick,
-};
-
-mod networks;
-use self::networks::create_program;
+use crate::routes::conversions::{AdminSeed, AdminSetDate, AdminSnapshot, AdminTick};
 
 pub(crate) fn register(routes: &RouteTable) {
-    routes.read::<_, _, crate::World, crate::WorldError>(
+    routes.read::<_, _, crate::World, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, crate::World>,
                     _call,
                     _message: AdminSeed| {
@@ -22,22 +15,7 @@ pub(crate) fn register(routes: &RouteTable) {
             Ok(world.handle.world().seed)
         },
     );
-    routes.read::<_, _, crate::World, crate::WorldError>(
-        async move |ctx: &greyhack_world_router::RouteContext<'_, crate::World>,
-                    _call,
-                    _message: AdminNetworks| {
-            let world = &*ctx.modules;
-
-            Ok(world
-                .modules
-                .core
-                .networks
-                .routers
-                .public_addresses()
-                .await?)
-        },
-    );
-    routes.wait::<_, _, crate::World, crate::WorldError>(
+    routes.wait::<_, _, crate::World, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, crate::World>,
                     call,
                     message: AdminTick| {
@@ -67,7 +45,7 @@ pub(crate) fn register(routes: &RouteTable) {
                 .await)
         },
     );
-    routes.change::<_, _, crate::World, crate::WorldError>(
+    routes.change::<_, _, crate::World, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, crate::World>,
                     _call,
                     message: AdminSetDate<'static>| {
@@ -76,44 +54,9 @@ pub(crate) fn register(routes: &RouteTable) {
             Ok(world.modules.routines.set_date(&message.date))
         },
     );
-    routes.change::<_, _, crate::World, crate::WorldError>(
-        async move |ctx: &greyhack_world_router::RouteContext<'_, crate::World>,
-                    call,
-                    message: AdminCreateProgram<'static>| {
-            let world = &*ctx.modules;
-            let session = &ctx.trees.objects(call.tree).session(
-                ctx.session(call)
-                    .expect("dispatch checked the active program"),
-            )?;
-
-            create_program(
-                world,
-                session.computer,
-                &session.user,
-                &message.path,
-                &message.source,
-            )
-            .await
-        },
-    );
-    routes.wait::<_, _, crate::World, crate::WorldError>(
+    routes.wait::<_, _, crate::World, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, crate::World>,
                     _call,
                     _: AdminSnapshot| { Ok(ctx.cycles().save().await) },
-    );
-    routes.change::<_, _, crate::World, crate::WorldError>(
-        async move |ctx: &greyhack_world_router::RouteContext<'_, crate::World>,
-                    _call,
-                    message: AdminRegisterPassword<'static>| {
-            let world = &*ctx.modules;
-
-            Ok(world
-                .modules
-                .core
-                .computers
-                .users
-                .register_password(&message.password)
-                .await?)
-        },
     );
 }

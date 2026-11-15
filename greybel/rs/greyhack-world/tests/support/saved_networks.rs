@@ -1,9 +1,8 @@
 //! Worlds with networks to connect to by Wi-Fi, and a player computer with saved networks.
 
-use greyhack_world::{
-    ComputerId, DeviceLayout, Hardware, MiningHardware, NetCard, NetworkOptions, PlayerOptions,
-    RouterId, SavedNetwork, World,
-};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::{ComputerId, Hardware, MinerHardware, NetCard, RouterId, SavedNetwork};
+use greyhack_world_creation::{DeviceLayout, NetworkOptions};
 
 use super::layout::{layout, startup_files};
 
@@ -83,7 +82,7 @@ pub async fn world_on_lan(saved: Vec<SavedNetwork>, ethernet: bool) -> (World, C
             },
         ];
 
-        player.hardware = Hardware::standard(2048, 10_000.0, &MiningHardware::default(), cards);
+        player.hardware = Hardware::standard(2048, 10_000.0, &MinerHardware::default(), cards);
         player.saved_networks = saved;
         startup_files(player);
     }

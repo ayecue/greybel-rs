@@ -5,11 +5,11 @@ use greyhack_world_core::Access;
 use super::require_online;
 use crate::routes::Result;
 use crate::routes::protocol::{CoinPrice, EconomyFailure, Failure, Figure, PriceHistory};
-use crate::{Coin, ComputerId, EconomyContext};
+use crate::{Coin, ComputerId};
 
 /// Looks up coin `name` and reads its figure with `read`, returning connection or lookup failures.
 pub(super) async fn on_coin(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     terminal_computers: &[ComputerId],
     name: &str,
@@ -19,7 +19,12 @@ pub(super) async fn on_coin(
         return Ok(Figure::Failure(failure));
     }
 
-    let Some(coin) = world.economy().coins.coin_by_name(name).await? else {
+    let Some(coin) = world
+        .module::<crate::EconomyModule>()
+        .coins
+        .coin_by_name(name)
+        .await?
+    else {
         return Ok(Figure::Failure(Failure::Economy(
             EconomyFailure::UnknownCoin(name.to_owned()),
         )));
@@ -30,14 +35,14 @@ pub(super) async fn on_coin(
 
 /// Returns the script-visible price of `name` (`BlockchainSystem.CoinValue`, [`World::visible_price`]).
 pub(super) async fn coin_price(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     terminal_computers: &[ComputerId],
     name: &str,
 ) -> Result<Figure> {
     on_coin(world, blockchain, terminal_computers, name, async |coin| {
         Ok(world
-            .economy()
+            .module::<crate::EconomyModule>()
             .market
             .visible_price(coin.id)
             .await?
@@ -48,7 +53,7 @@ pub(super) async fn coin_price(
 
 /// Returns the mined balance of coin `name`.
 pub(super) async fn mined_amount(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     terminal_computers: &[ComputerId],
     name: &str,
@@ -61,7 +66,7 @@ pub(super) async fn mined_amount(
 
 /// Returns price history in chronological order (`BlockchainSystem.GetHistory`).
 pub(super) async fn show_history(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     blockchain: &Access,
     terminal_computers: &[ComputerId],
     name: &str,
@@ -70,13 +75,18 @@ pub(super) async fn show_history(
         return Ok(PriceHistory::Failure(failure));
     }
 
-    let Some(coin) = world.economy().coins.coin_by_name(name).await? else {
+    let Some(coin) = world
+        .module::<crate::EconomyModule>()
+        .coins
+        .coin_by_name(name)
+        .await?
+    else {
         return Ok(PriceHistory::Null);
     };
 
     Ok(PriceHistory::Prices(
         world
-            .economy()
+            .module::<crate::EconomyModule>()
             .market
             .price_history(coin.id)
             .await?

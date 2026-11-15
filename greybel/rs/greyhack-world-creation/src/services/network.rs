@@ -235,16 +235,16 @@ impl NetworkGeneration {
 pub struct NetworkGeneration {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) installs: greyhack_world_core::Dep<greyhack_world_services::Installs>,
+    pub(crate) installs: greyhack_world_core::Dep<greyhack_world_services::InstallService>,
     pub(crate) jobs: greyhack_world_core::Dep<greyhack_world_npcs::JobService>,
     pub(crate) mail: greyhack_world_core::Dep<greyhack_world_npcs::Mail>,
     pub(crate) npcs: greyhack_world_core::Dep<greyhack_world_npcs::NpcService>,
     pub(crate) libraries: greyhack_world_core::Dep<greyhack_world_libraries::LibraryService>,
-    pub(crate) updates: greyhack_world_core::Dep<greyhack_world_libraries::Updates>,
+    pub(crate) updates: greyhack_world_core::Dep<greyhack_world_libraries::UpdateService>,
     pub(crate) traffic: greyhack_world_core::Dep<greyhack_world_smart_devices::Traffic>,
-    pub(crate) appliances: greyhack_world_core::Dep<greyhack_world_smart_devices::Appliances>,
+    pub(crate) appliances: greyhack_world_core::Dep<greyhack_world_smart_devices::ApplianceService>,
     pub(crate) mission_placement: greyhack_world_core::Dep<crate::MissionPlacement>,
 }
 

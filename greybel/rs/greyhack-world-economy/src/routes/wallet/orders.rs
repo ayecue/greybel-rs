@@ -5,7 +5,7 @@ use crate::routes::protocol::{
     CancelTrade, EconomyFailure, Failure, GlobalOffer, GlobalOffers, IntoProtocol as _,
     PendingTrade, TradeOutcome,
 };
-use crate::{EconomyContext, Side, Trade, WalletId};
+use crate::{Side, Trade, WalletId};
 
 /// Places a buy order for `amount` of `coin` at `price` and returns its trade state or failure.
 ///
@@ -13,7 +13,7 @@ use crate::{EconomyContext, Side, Trade, WalletId};
 ///
 /// Returns errors from database reads.
 pub(super) async fn buy_coin(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     wallet: WalletId,
     amount: f64,
     coin: &str,
@@ -22,7 +22,7 @@ pub(super) async fn buy_coin(
 ) -> Result<TradeOutcome> {
     Ok(trade_outcome(
         world
-            .economy()
+            .module::<crate::EconomyModule>()
             .market
             .buy_coin(coin, amount, price, wallet, subwallet)
             .await?,
@@ -35,7 +35,7 @@ pub(super) async fn buy_coin(
 ///
 /// Returns errors from database reads.
 pub(super) async fn sell_coin(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     wallet: WalletId,
     amount: f64,
     coin: &str,
@@ -44,7 +44,7 @@ pub(super) async fn sell_coin(
 ) -> Result<TradeOutcome> {
     Ok(trade_outcome(
         world
-            .economy()
+            .module::<crate::EconomyModule>()
             .market
             .sell_coin(coin, amount, price, wallet, subwallet)
             .await?,
@@ -70,20 +70,30 @@ pub(super) fn trade_outcome(
 ///
 /// Returns errors from database reads.
 pub(super) async fn pending_trade(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     wallet: WalletId,
     coin: &str,
 ) -> Result<PendingTrade> {
-    let Some(wallet) = world.economy().wallets.wallet(wallet).await? else {
+    let Some(wallet) = world
+        .module::<crate::EconomyModule>()
+        .wallets
+        .wallet(wallet)
+        .await?
+    else {
         return Ok(PendingTrade::Null);
     };
-    let Some(coin) = world.economy().coins.coin_id(coin).await? else {
+    let Some(coin) = world
+        .module::<crate::EconomyModule>()
+        .coins
+        .coin_id(coin)
+        .await?
+    else {
         return Ok(economy_failure(EconomyFailure::UnknownCoin(
             coin.to_owned(),
         )));
     };
     let offer = world
-        .economy()
+        .module::<crate::EconomyModule>()
         .market
         .offers_of_wallet(wallet.id)
         .await?
@@ -106,22 +116,39 @@ pub(super) async fn pending_trade(
 ///
 /// Returns errors from database reads.
 pub(super) async fn cancel_pending_trade(
-    world: &impl EconomyContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     wallet: WalletId,
     coin: &str,
 ) -> Result<CancelTrade> {
-    if world.economy().wallets.wallet(wallet).await?.is_none() {
+    if world
+        .module::<crate::EconomyModule>()
+        .wallets
+        .wallet(wallet)
+        .await?
+        .is_none()
+    {
         return Ok(CancelTrade::Null);
     }
 
-    if world.economy().coins.coin_id(coin).await?.is_none() {
+    if world
+        .module::<crate::EconomyModule>()
+        .coins
+        .coin_id(coin)
+        .await?
+        .is_none()
+    {
         return Ok(CancelTrade::Failure(Failure::Economy(
             EconomyFailure::UnknownCoin(coin.to_owned()),
         )));
     }
 
     Ok(
-        if world.economy().market.cancel_trade(coin, wallet).await? {
+        if world
+            .module::<crate::EconomyModule>()
+            .market
+            .cancel_trade(coin, wallet)
+            .await?
+        {
             CancelTrade::Success
         } else {
             CancelTrade::Failure(Failure::Economy(EconomyFailure::NoPendingTrades))
@@ -134,8 +161,16 @@ pub(super) async fn cancel_pending_trade(
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub(super) async fn global_offers(world: &impl EconomyContext, coin: &str) -> Result<GlobalOffers> {
-    let Some(coin) = world.economy().coins.coin_by_name(coin).await? else {
+pub(super) async fn global_offers(
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+    coin: &str,
+) -> Result<GlobalOffers> {
+    let Some(coin) = world
+        .module::<crate::EconomyModule>()
+        .coins
+        .coin_by_name(coin)
+        .await?
+    else {
         return Ok(GlobalOffers::Failure(Failure::Economy(
             EconomyFailure::UnknownCoin(coin.to_owned()),
         )));
@@ -143,8 +178,18 @@ pub(super) async fn global_offers(world: &impl EconomyContext, coin: &str) -> Re
     let mut offers = Vec::new();
 
     for side in [Side::Buy, Side::Sell] {
-        for offer in world.economy().market.offers(coin.id, side).await? {
-            let Some(wallet) = world.economy().wallets.wallet(offer.wallet).await? else {
+        for offer in world
+            .module::<crate::EconomyModule>()
+            .market
+            .offers(coin.id, side)
+            .await?
+        {
+            let Some(wallet) = world
+                .module::<crate::EconomyModule>()
+                .wallets
+                .wallet(offer.wallet)
+                .await?
+            else {
                 continue;
             };
 

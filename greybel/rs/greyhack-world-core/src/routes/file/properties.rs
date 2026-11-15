@@ -13,12 +13,12 @@ use crate::routes::{Result, node};
 ///
 /// Returns errors from database reads.
 pub async fn path(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     original: bool,
 ) -> Result<Option<String>> {
     if world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .topology
         .computer(file.access.computer)
@@ -47,7 +47,10 @@ pub async fn path(
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn parent(world: &impl crate::CoreContext, file: &FileRef) -> Result<Option<Node>> {
+pub async fn parent(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<Option<Node>> {
     let Some(node) = resolve(world, file, true).await? else {
         return Ok(None);
     };
@@ -56,7 +59,7 @@ pub async fn parent(world: &impl crate::CoreContext, file: &FileRef) -> Result<O
     };
 
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .files
         .lookup
         .node(node.computer, parent)
@@ -68,7 +71,10 @@ pub async fn parent(world: &impl crate::CoreContext, file: &FileRef) -> Result<O
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn name(world: &impl crate::CoreContext, file: &FileRef) -> Result<Option<String>> {
+pub async fn name(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<Option<String>> {
     Ok(resolve(world, file, false)
         .await?
         .map(|node| node.name().to_owned()))
@@ -79,7 +85,10 @@ pub async fn name(world: &impl crate::CoreContext, file: &FileRef) -> Result<Opt
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn is_folder(world: &impl crate::CoreContext, file: &FileRef) -> Result<Option<bool>> {
+pub async fn is_folder(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<Option<bool>> {
     Ok(resolve(world, file, true)
         .await?
         .map(|node| node.is_folder()))
@@ -90,7 +99,10 @@ pub async fn is_folder(world: &impl crate::CoreContext, file: &FileRef) -> Resul
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn is_symlink(world: &impl crate::CoreContext, file: &FileRef) -> Result<Option<bool>> {
+pub async fn is_symlink(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<Option<bool>> {
     Ok(resolve(world, file, false)
         .await?
         .map(|node| node.is_symlink()))
@@ -101,14 +113,17 @@ pub async fn is_symlink(world: &impl crate::CoreContext, file: &FileRef) -> Resu
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn size(world: &impl crate::CoreContext, file: &FileRef) -> Result<Option<String>> {
+pub async fn size(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<Option<String>> {
     let Some(node) = resolve(world, file, false).await? else {
         return Ok(None);
     };
 
     Ok(Some(
         world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .sizes
             .size(&node, false)
@@ -122,7 +137,10 @@ pub async fn size(world: &impl crate::CoreContext, file: &FileRef) -> Result<Opt
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn date(world: &impl crate::CoreContext, file: &FileRef) -> Result<Option<String>> {
+pub async fn date(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<Option<String>> {
     Ok(resolve(world, file, false)
         .await?
         .map(|node| greyhack_behaviour::format_file_date(node.timestamp)))
@@ -133,7 +151,10 @@ pub async fn date(world: &impl crate::CoreContext, file: &FileRef) -> Result<Opt
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn is_binary(world: &impl crate::CoreContext, file: &FileRef) -> Result<Option<bool>> {
+pub async fn is_binary(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<Option<bool>> {
     Ok(resolve(world, file, true)
         .await?
         .map(|node| node.data().is_none_or(FileData::is_binary)))
@@ -144,7 +165,10 @@ pub async fn is_binary(world: &impl crate::CoreContext, file: &FileRef) -> Resul
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn allow_import(world: &impl crate::CoreContext, file: &FileRef) -> Result<bool> {
+pub async fn allow_import(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<bool> {
     Ok(resolve(world, file, true)
         .await?
         .and_then(|node| node.data().cloned())
@@ -157,7 +181,7 @@ pub async fn allow_import(world: &impl crate::CoreContext, file: &FileRef) -> Re
 ///
 /// Returns errors from database reads.
 pub async fn permissions(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
 ) -> Result<Option<String>> {
     Ok(resolve(world, file, true)
@@ -170,7 +194,10 @@ pub async fn permissions(
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn owner(world: &impl crate::CoreContext, file: &FileRef) -> Result<Option<String>> {
+pub async fn owner(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<Option<String>> {
     Ok(resolve(world, file, true).await?.map(|node| node.owner))
 }
 
@@ -179,7 +206,10 @@ pub async fn owner(world: &impl crate::CoreContext, file: &FileRef) -> Result<Op
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn group(world: &impl crate::CoreContext, file: &FileRef) -> Result<Option<String>> {
+pub async fn group(
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
+    file: &FileRef,
+) -> Result<Option<String>> {
     Ok(resolve(world, file, true).await?.map(|node| node.group))
 }
 
@@ -189,7 +219,7 @@ pub async fn group(world: &impl crate::CoreContext, file: &FileRef) -> Result<Op
 ///
 /// Returns errors from database reads.
 pub async fn has_permission(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &FileRef,
     permission: &str,
 ) -> Result<Option<bool>> {
@@ -202,7 +232,7 @@ pub async fn has_permission(
 
     Ok(Some(
         world
-            .core()
+            .module::<crate::CoreModule>()
             .files
             .permissions
             .user_has_permission(node.computer, &file.access.user, &node, permission)

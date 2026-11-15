@@ -1,5 +1,5 @@
 use greyhack_behaviour::NetworkKind;
-use greyhack_world::AlarmFailure;
+use greyhack_world_npcs::AlarmFailure;
 
 use crate::support::npcs_jobs::{public_ip, world_with};
 

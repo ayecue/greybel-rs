@@ -1,4 +1,4 @@
-use greyhack_world::{GuildDraft, GuildFailure};
+use greyhack_world_guilds::{GuildDraft, GuildFailure};
 
 use crate::support::guilds_records::{guild, world_with_companies};
 

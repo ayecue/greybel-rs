@@ -103,15 +103,15 @@ protocol World = "greyhack-world" {
         /// Adds folder `name` in `folder`.
         message ComputerCreateFolder { program: ProgramId, computer: ObjectId, folder: string, name: string } -> Result<Outcome, ScriptFailure>
         message ComputerIsNetworkActive { program: ProgramId, computer: ObjectId } -> Result<bool, ScriptFailure>
-        /// Gets the computer name, or null when it is gone.
+        /// Gets the computer name, or null when it no longer exists.
         message ComputerGetName { program: ProgramId, computer: ObjectId } -> Result<string?, ScriptFailure>
-        /// Gets the kind of the active network card, or null when the computer is gone.
+        /// Gets the kind of the active network card, or null when the computer no longer exists.
         message ComputerActiveNetCard { program: ProgramId, computer: ObjectId } -> Result<ActiveCard?, ScriptFailure>
-        /// Gets the gateway address, or null when the computer is gone.
+        /// Gets the gateway address, or null when the computer no longer exists.
         message ComputerNetworkGateway { program: ProgramId, computer: ObjectId } -> Result<string?, ScriptFailure>
         message ComputerLocalIp { program: ProgramId, computer: ObjectId } -> Result<string?, ScriptFailure>
         message ComputerPublicIp { program: ProgramId, computer: ObjectId } -> Result<string, ScriptFailure>
-        /// Gets the network cards, or null when the computer is gone.
+        /// Gets the network cards, or null when the computer no longer exists.
         message ComputerNetworkDevices { program: ProgramId, computer: ObjectId } -> Result<list<NetworkDevice>?, ScriptFailure>
         /// Gets processes in `ps` format.
         message ComputerShowProcs { program: ProgramId, computer: ObjectId } -> Result<list<ProcessUsage>?, ScriptFailure>
@@ -161,7 +161,7 @@ protocol World = "greyhack-world" {
         message RouterEssidName { program: ProgramId, router: ObjectId } -> Result<string?, ScriptFailure>
         message RouterBssidName { program: ProgramId, router: ObjectId } -> Result<string?, ScriptFailure>
         message RouterKernelVersion { program: ProgramId, router: ObjectId } -> Result<string?, ScriptFailure>
-        /// Gets the connection speed of the router's network (`NetworkLan.netSpeed`); null when the router is gone.
+        /// Gets the connection speed of the router's network (`NetworkLan.netSpeed`); null when the router no longer exists.
         message RouterNetSpeed { program: ProgramId, router: ObjectId } -> Result<u8?, ScriptFailure>
         /// Gets the service and its library's version behind a port, as the router finds them now
         /// (`Router.GetPortVersion`); null when it finds none.
@@ -210,7 +210,7 @@ protocol World = "greyhack-world" {
 
         /// Reads the `metaLib` at `path`, following a final symlink. Returns null for non-library files.
         message MetaxploitLoad { program: ProgramId, metaxploit: ObjectId, path: string } -> Result<ObjectId?, ScriptFailure>
-        /// Gets weak addresses in `library` and whether unscanned zones remain. Returns null when the library is gone.
+        /// Gets weak addresses in `library` and whether unscanned zones remain. Returns null when the library no longer exists.
         message MetaxploitScan { program: ProgramId, metaxploit: ObjectId, library: ObjectId } -> Result<LibraryScan?, ScriptFailure>
         /// Gets the weaknesses at `address` in `library`. `metaxploit` is absent when the script `self` is a game
         /// object of another class. The game reads it only for an address with weaknesses and then crashes the
@@ -584,7 +584,7 @@ protocol World = "greyhack-world" {
         /// Gets the owner of the network at public `address`.
         message PlayerWhois { program: ProgramId, address: string } -> Result<Whois, ScriptFailure>
         /// Resolves `path` as the script user for `cd`, starting at root even for relative paths. Returns null when
-        /// the computer is gone.
+        /// the computer no longer exists.
         message PlayerCd { program: ProgramId, current: string, path: string } -> Result<FolderChange?, ScriptFailure>
         /// Gets the world date in `current_date` format.
         message PlayerCurrentDate { program: ProgramId } -> Result<string, ScriptFailure>
@@ -968,7 +968,7 @@ union Failure {
 
 /// Smart appliance or police traffic network request failure (`SmartApplianceIntrinsics`, `TrafficNetIntrinsics`).
 union DeviceFailure {
-    /// Device's computer is gone.
+    /// Device's computer no longer exists.
     ComputerUnavailable,
     /// Device has no internet access.
     NoInternet,
@@ -986,7 +986,7 @@ union DeviceFailure {
     Cooldown,
     /// Network disabled the traffic cameras.
     CamerasDisabled,
-    /// Computer of the NPC whose account opens the camera system is gone; contains their full name.
+    /// Computer of the NPC whose account opens the camera system no longer exists; contains their full name.
     MissingWorkstation(string),
     /// The password does not open the camera system.
     IncorrectPassword,
@@ -1149,7 +1149,7 @@ union MetaxploitFailure {
 
 /// Failure of a shell to perform a script request (`ShellIntrinsics`).
 union ShellFailure {
-    /// Shell's computer is gone.
+    /// Shell's computer no longer exists.
     ComputerUnavailable,
     /// Password to log in with has a character the game forbids.
     InvalidPasswordCharacter(string),
@@ -1225,13 +1225,13 @@ union CtfFailure {
 union MailFailure {
     /// Computer has no internet access.
     NoInternet,
-    /// Object's computer is gone.
+    /// Object's computer no longer exists.
     ComputerUnavailable,
     /// The address or password does not open an account.
     WrongCredentials,
     /// Password is correct, but the account belongs to an NPC who is dead or fired.
     AccountInactive,
-    /// The account cannot be read again: it is gone.
+    /// The account cannot be read again: it no longer exists.
     RefreshFailed,
     /// Object has no account to send from.
     NoAccount,
@@ -1241,7 +1241,7 @@ union MailFailure {
 
 /// Result of `aireplay`. Capture output arrives separately as [`ProgramPrint`] notifications.
 union Capture {
-    /// The computer is gone or the capture ran; the intrinsic returns null.
+    /// The computer no longer exists, or the capture ran; the intrinsic returns null.
     Null,
     /// Reason the capture did not start; the intrinsic returns it.
     Failure(Failure),
@@ -1249,7 +1249,7 @@ union Capture {
 
 /// Password recovered by `aircrack`.
 union KeyRecovery {
-    /// Null when the computer or the file is gone, no router has the captured Wi-Fi, or recovery failed.
+    /// Null when the computer or the file no longer exists, no router has the captured Wi-Fi, or recovery failed.
     Null,
     Password(string),
 }
@@ -1284,7 +1284,7 @@ union CryptoFailure {
 
 /// User groups or the reason they cannot be listed.
 union UserGroups {
-    /// Null when the computer is gone.
+    /// Null when the computer no longer exists.
     Null,
     Groups(list<string>),
     Failure(Failure),
@@ -1360,7 +1360,7 @@ union UserFailure {
 
 /// Reason the computer cannot start another process.
 union ProcessFailure {
-    /// Computer is gone.
+    /// Computer no longer exists.
     ComputerUnavailable,
     /// Computer already runs the maximum number of terminals.
     TooManyTerminals,
@@ -1370,9 +1370,9 @@ union ProcessFailure {
 
 /// Network connection failure (`NetworkLan.ConnectWifi`, `NetworkLan.ConnectEthernet`).
 union NetCardFailure {
-    /// Computer is gone.
+    /// Computer no longer exists.
     ComputerUnavailable,
-    /// Router, or its network, is gone.
+    /// Router, or its network, no longer exists.
     UnknownRouter,
     /// Computer's own network is disabled for not having been paid for.
     DisabledHomeNetwork,
@@ -1390,7 +1390,7 @@ union NetCardFailure {
 
 /// Folder entries or the reason they cannot be listed.
 union FileEntries {
-    /// Null when the folder or its shell user is gone or cannot be traversed.
+    /// Null when the folder or its shell user no longer exists or cannot be traversed.
     Null,
     Entries(list<ObjectId>),
     /// The folder is not readable.
@@ -1399,7 +1399,7 @@ union FileEntries {
 
 /// File text or the reason it cannot be read.
 union FileContent {
-    /// Null when the file is gone.
+    /// Null when the file no longer exists.
     Null,
     Content(string),
     Failure(Failure),
@@ -1407,7 +1407,7 @@ union FileContent {
 
 /// Result of a file change. The intrinsic returns an empty string when complete.
 union FileChange {
-    /// Null when the file or its computer is gone.
+    /// Null when the file or its computer no longer exists.
     Null,
     Done,
     Failure(Failure),
@@ -1415,7 +1415,7 @@ union FileChange {
 
 /// File or folder read, creation, or modification failure (`FileIntrinsics`, `ComputerIntrinsics`, `PlayerUtils`).
 union FileFailure {
-    /// Computer of the change is gone.
+    /// Computer of the change no longer exists.
     ComputerUnavailable,
     /// File is not at the path.
     MissingFile(string),
@@ -1503,7 +1503,7 @@ union AptFailure {
     UnknownPackage(string),
     /// Repository lists the package, but its server has no file of it.
     MissingPackageFile(string),
-    /// Computer is gone.
+    /// Computer no longer exists.
     ComputerUnavailable,
     /// Folder to install into is not at the path.
     MissingFolder(string),
@@ -1769,7 +1769,7 @@ union NetUseFailure {
 
 /// Result of `rshell_client`.
 union RshellClientOutcome {
-    /// The metaxploit computer is gone.
+    /// The metaxploit computer no longer exists.
     Null,
     /// Connection to the server established.
     True,
@@ -1850,8 +1850,8 @@ union AttackResult {
 
 /// Weakness requirement not met by the target.
 union UnmetRequirement {
-    /// Target is gone.
-    TargetGone,
+    /// The target no longer exists.
+    TargetMissing,
     /// The required library, by its file name, is not installed.
     MissingLibrary(string),
     /// Required library is older than the weakness needs.
@@ -1882,7 +1882,7 @@ union AttackReward {
     NoUser,
     /// User privileges obtained as a shell or folder.
     Privileges(string),
-    /// Named weakness folder is gone.
+    /// Named weakness folder no longer exists.
     MissingResource(string),
     /// Router's attack names no valid LAN address.
     InvalidLanAddress,
@@ -2064,7 +2064,7 @@ union SmtpUserList {
 union SmtpFailure {
     /// The address is not a valid IP address.
     InvalidAddress,
-    /// Computer making the query is gone.
+    /// Computer making the query no longer exists.
     HostDown,
     /// There is no computer with the LAN address, or none is at the address the router's port leads to.
     UnknownHost,
@@ -2156,7 +2156,7 @@ union CoinName {
 union EconomyFailure {
     /// Library's computer has no internet access.
     NoInternet,
-    /// Library's computer is gone.
+    /// Library's computer no longer exists.
     ComputerUnavailable,
     /// There is no coin with the name.
     UnknownCoin(string),
@@ -2220,14 +2220,14 @@ union TransferFailure {
 
 /// Sub-wallet mining job failed to start or ended without a reward (`SubWalletIntrinsics.mining`).
 union MineJobFailure {
-    /// Computer mining is gone.
+    /// The mining computer no longer exists.
     ComputerUnavailable,
     /// Coin no longer exists.
-    CoinGone,
+    CoinMissing,
     /// All coins of the named coin have been mined.
     AllMined(string),
     /// Sub-wallet no longer exists.
-    SubwalletGone,
+    SubwalletMissing,
     /// Sub-wallet already mines the coin from the computer.
     SecondMineJob,
     /// Computer GPU health is below 5.
@@ -2450,8 +2450,8 @@ union ServiceFailure {
 /// `flood_connection` result, including LAN rejection after reaching a computer (`PlayerUtils.FirewallPingStatus`).
 /// Flood output arrives separately as [`ProgramPrint`] notifications.
 union FloodResult {
-    /// Session's computer is gone.
-    Gone,
+    /// Session's computer no longer exists.
+    Missing,
     /// Computer reboots and the script continues.
     Reboot,
     /// Computer remains active and the script waits until stopped.
@@ -2596,7 +2596,7 @@ union ShopFailure {
     NoResults,
     /// The destination folder is not a valid path.
     InvalidPath,
-    /// The computer that receives the file is gone.
+    /// The computer that receives the file no longer exists.
     UnknownComputer,
     /// The computer that receives the file has no network access.
     NoInternet,

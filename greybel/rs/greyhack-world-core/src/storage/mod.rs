@@ -27,7 +27,7 @@ pub(crate) use world_meta::WorldMetaRepository;
 
 /// Repositories shared by core services and built once with their module.
 #[derive(Clone)]
-pub(crate) struct CoreRepositories {
+pub(crate) struct CoreStorage {
     pub computers: Rc<ComputerRepository>,
     pub hardware: Rc<HardwareRepository>,
     pub nodes: Rc<NodeRepository>,
@@ -38,7 +38,7 @@ pub(crate) struct CoreRepositories {
     pub world_meta: Rc<WorldMetaRepository>,
 }
 
-impl CoreRepositories {
+impl CoreStorage {
     pub(crate) fn new(db: Database) -> Rc<Self> {
         Rc::new(Self {
             computers: Rc::new(ComputerRepository::new(db.clone())),

@@ -28,7 +28,7 @@ pub struct NodeLog {
 }
 
 /// The logs of the computers and routers of a network, by LAN address.
-pub type Logs = BTreeMap<String, NodeLog>;
+pub type LogService = BTreeMap<String, NodeLog>;
 
 /// The ID of the player and the trace token that the entries a script adds name.
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -106,7 +106,7 @@ pub fn log_entries(snapshot: &NetworkSnapshot) -> Entries {
 }
 
 /// The system logs the game has in `snapshot`, with the `old` entries each had before the script.
-pub fn game_logs(snapshot: &NetworkSnapshot, old: &Entries) -> Logs {
+pub fn game_logs(snapshot: &NetworkSnapshot, old: &Entries) -> LogService {
     let mut identity = Identity::default();
     let logs = snapshot
         .nodes
@@ -139,7 +139,7 @@ pub fn game_logs(snapshot: &NetworkSnapshot, old: &Entries) -> Logs {
 }
 
 /// The system logs `world` has for the nodes of `snapshot`, with the `old` entries each had before the script.
-pub fn world_logs(world: &World, snapshot: &NetworkSnapshot, old: &Entries) -> Logs {
+pub fn world_logs(world: &World, snapshot: &NetworkSnapshot, old: &Entries) -> LogService {
     let mut identity = Identity::default();
     let logs = snapshot
         .nodes
@@ -183,7 +183,7 @@ pub fn world_logs(world: &World, snapshot: &NetworkSnapshot, old: &Entries) -> L
 /// Runs `script` in the game and in the simulated copy of the game's network as it is now, asserts that both print
 /// the same and leave the same system logs, with the same dates, on every computer and router of the network, and
 /// returns the game's outcome and logs. Whatever random user a script's attack names is left out.
-pub async fn compare_logs(client: &TestClient, user: &str, script: &str) -> (Outcome, Logs) {
+pub async fn compare_logs(client: &TestClient, user: &str, script: &str) -> (Outcome, LogService) {
     compare_typed_logs(client, user, script, &[]).await
 }
 
@@ -194,7 +194,7 @@ pub async fn compare_typed_logs(
     user: &str,
     script: &str,
     inputs: &[String],
-) -> (Outcome, Logs) {
+) -> (Outcome, LogService) {
     let before = client.network_state().await.expect("the network is read");
     let (terminal, error, world) = tokio::task::LocalSet::new()
         .run_until(async {

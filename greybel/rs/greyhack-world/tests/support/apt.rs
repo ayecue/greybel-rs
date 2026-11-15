@@ -1,10 +1,9 @@
 use greyhack_behaviour::{
     DEFAULT_REPOSITORY_PORT, FileData, NetworkKind, PermissionSet, ROOT_USER,
 };
-use greyhack_world::{
-    ComputerDraft, ComputerId, FileSystemDraft, Hardware, MiningHardware, NetCard, NodeDraft,
-    PlayerOptions, World,
-};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::{ComputerId, Hardware, MinerHardware, NetCard};
+use greyhack_world_libraries::{ComputerDraft, FileSystemDraft, NodeDraft};
 
 use super::generation::add_typed_network;
 use super::layout::startup_files;
@@ -42,7 +41,7 @@ pub fn online(computer: &mut ComputerDraft) {
         ..NetCard::new(false, false)
     }];
 
-    computer.hardware = Hardware::standard(2048, 10_000.0, &MiningHardware::default(), cards);
+    computer.hardware = Hardware::standard(2048, 10_000.0, &MinerHardware::default(), cards);
     startup_files(computer);
 }
 

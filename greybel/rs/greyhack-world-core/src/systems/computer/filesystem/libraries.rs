@@ -3,7 +3,7 @@
 use std::rc::Rc;
 
 use crate::storage::*;
-use crate::systems::{LibraryFiles as LibraryFilesService, *};
+use crate::systems::{LibraryFileService as LibraryFilesService, *};
 use crate::*;
 
 impl LibraryFilesService {
@@ -78,13 +78,13 @@ impl LibraryFilesService {
 }
 
 /// Links between library identities and files.
-pub struct LibraryFiles {
+pub struct LibraryFileService {
     pub(crate) node_rows: Rc<NodeRepository>,
     pub(crate) library_rows: Rc<LibraryIdentityRepository>,
     pub(crate) lookup: Dep<FileLookup>,
 }
 
-impl LibraryFiles {
+impl LibraryFileService {
     pub(crate) fn new(
         registry: &Rc<greyhack_world_modules::Registry>,
         node_rows: Rc<NodeRepository>,

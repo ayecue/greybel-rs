@@ -5,7 +5,11 @@ use greyhack_world_router::RouteTable;
 use crate::LibraryReportFailure;
 use crate::routes::protocol::{AdminFailure, AdminReportLibraryUpdate, Failure, Outcome};
 
-pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
@@ -13,7 +17,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
             Ok(
                 match ctx
                     .modules
-                    .libraries()
+                    .module::<crate::LibraryModule>()
                     .updates
                     .report_library_update(&message.public_ip, &message.library)
                     .await?

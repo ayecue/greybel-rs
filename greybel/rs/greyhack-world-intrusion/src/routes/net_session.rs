@@ -6,9 +6,13 @@ use crate::routes::OperationError;
 use crate::routes::protocol::{
     FloodResult, FloodWarning as WarningKind, NetSessionFloodConnection, PrintLine,
 };
-use crate::{Flood, FloodWarning, IntrusionContext};
+use crate::{Flood, FloodWarning};
 
-pub(crate) fn register<W: IntrusionContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.wait::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -22,14 +26,14 @@ pub(crate) fn register<W: IntrusionContext + 'static>(routes: &RouteTable) {
                 false,
                 async move |ctx: &greyhack_world_router::RouteContext<'_, W>, call| {
                     let world = &*ctx.modules;
-                    let intrusion = world.intrusion();
+                    let intrusion = world.module::<crate::IntrusionModule>();
                     let objects = ctx.trees.objects(call.tree);
                     let Some((computer, origin)) = intrusion
                         .library_objects
                         .flood_session(&objects, message.net_session)
                         .await?
                     else {
-                        return Ok::<_, OperationError>(FloodResult::Gone);
+                        return Ok::<_, OperationError>(FloodResult::Missing);
                     };
                     let attempt = intrusion.floods.flood_from(computer, origin).await?;
                     let address = attempt.address;

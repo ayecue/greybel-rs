@@ -42,7 +42,7 @@ impl CoinService {
 
     pub async fn mine(&self, coin: CoinId, user: &str) -> Result<Result<(), MineJobFailure>> {
         let Some(mut data) = self.coins.coin(coin).await? else {
-            return Ok(Err(MineJobFailure::CoinGone));
+            return Ok(Err(MineJobFailure::CoinMissing));
         };
 
         if data.mined_coins >= data.max_supply {
@@ -50,7 +50,7 @@ impl CoinService {
         }
 
         let Some(mut subwallet) = self.subwallets.subwallet(coin, user).await? else {
-            return Ok(Err(MineJobFailure::SubwalletGone));
+            return Ok(Err(MineJobFailure::SubwalletMissing));
         };
         let reward = round_reward(data.reward, data.max_supply, data.mined_coins);
 

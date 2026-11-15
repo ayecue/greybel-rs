@@ -14,7 +14,11 @@ use crate::routes::protocol::{
 };
 use crate::{DebugPayload, PartialObject as WorldPartialObject};
 
-pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -26,7 +30,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
                 .debug_library(message.library)?;
 
             world
-                .libraries()
+                .module::<crate::LibraryModule>()
                 .debug
                 .scan_debug_library(library.access.computer, &library.path)
                 .await?
@@ -49,7 +53,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
                 .debug_library(message.library)?;
 
             world
-                .libraries()
+                .module::<crate::LibraryModule>()
                 .debug
                 .patch_debug_library(library.access.computer, &library.path, &message.path)
                 .await?
@@ -80,7 +84,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
                 .user;
 
             world
-                .libraries()
+                .module::<crate::LibraryModule>()
                 .debug
                 .run_debug_library_tests(
                     library.access.computer,
@@ -113,7 +117,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
                 ..origin.clone()
             };
             let payload = world
-                .libraries()
+                .module::<crate::LibraryModule>()
                 .debug
                 .debug_library_payload(
                     library.access.computer,

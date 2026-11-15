@@ -1,10 +1,12 @@
 //! Server operations exposed to wait routes.
 
+use greyhack_world_core::WorldError;
+use greyhack_world_modules::WorkCancel;
 use greyhack_world_router::protocol::ProgramId;
 use greyhack_world_router::{Call, CycleAccess, Cycles, RouteContext};
 
 use super::Result;
-use crate::{WorkCancel, World, WorldError};
+use crate::World;
 
 impl CyclesExt for Cycles<'_> {
     async fn change<T: 'static>(

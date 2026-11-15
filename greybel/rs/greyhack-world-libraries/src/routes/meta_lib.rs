@@ -14,7 +14,11 @@ use crate::routes::protocol::{
 use crate::routes::{OperationError, Result};
 use crate::{DebugLibraryPatch, ExploitOutcome, Library};
 
-pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -57,7 +61,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
 
             Ok(
                 match world
-                    .libraries()
+                    .module::<crate::LibraryModule>()
                     .debug
                     .login_debug(&message.user, &message.password)
                     .await?
@@ -85,7 +89,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
 
             Ok(
                 match world
-                    .libraries()
+                    .module::<crate::LibraryModule>()
                     .debug
                     .debug_library_patch(library.access.computer, &library.path, message.date)
                     .await?
@@ -128,7 +132,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
                 ),
                 MetaLibRef::Kernel(kernel) => (
                     world
-                        .core()
+                        .module::<greyhack_world_core::CoreModule>()
                         .networks
                         .topology
                         .public_ip(kernel.origin)
@@ -141,7 +145,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
             let report = match &meta_lib {
                 MetaLibRef::File(file) => {
                     world
-                        .libraries()
+                        .module::<crate::LibraryModule>()
                         .overflows
                         .overflow_file(
                             file.access.computer,
@@ -154,7 +158,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
                 }
                 MetaLibRef::Kernel(kernel) => {
                     world
-                        .libraries()
+                        .module::<crate::LibraryModule>()
                         .overflows
                         .overflow_router(
                             kernel.router,
@@ -176,7 +180,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
                 ExploitOutcome::Shell { computer, user } => {
                     // The shell's previous address is the metaxploit computer's public address.
                     let origin_ip = world
-                        .libraries()
+                        .module::<crate::LibraryModule>()
                         .overflows
                         .log_overflow_shell(
                             library_name.as_deref().unwrap_or_default(),
@@ -244,26 +248,32 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
 ///
 /// Returns errors from database reads.
 pub(crate) async fn library<T>(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     library: &MetaLibRef,
     read: impl FnOnce(&Library) -> T,
 ) -> Result<Option<T>> {
     match library {
         MetaLibRef::File(file) => Ok(world
-            .libraries()
+            .module::<crate::LibraryModule>()
             .generator
             .full_file_library(file.access.computer, &file.path, false)
             .await?
             .map(|library| read(&library))),
         MetaLibRef::Kernel(kernel) => {
             let file = world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .routers
                 .kernel_file(kernel.router)
                 .await?;
             let library = match &file {
-                Some(file) => world.libraries().generator.full_library_of(file).await?,
+                Some(file) => {
+                    world
+                        .module::<crate::LibraryModule>()
+                        .generator
+                        .full_library_of(file)
+                        .await?
+                }
                 None => None,
             };
 
@@ -278,7 +288,7 @@ pub(crate) async fn library<T>(
 ///
 /// Returns errors from database reads.
 pub async fn lib_name(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     meta_lib: &MetaLibRef,
 ) -> Result<Option<String>> {
     library(world, meta_lib, |library| library.kind.file_name()).await
@@ -290,7 +300,7 @@ pub async fn lib_name(
 ///
 /// Returns errors from database reads.
 pub async fn version(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     meta_lib: &MetaLibRef,
 ) -> Result<Option<String>> {
     library(world, meta_lib, |library| library.version.clone()).await

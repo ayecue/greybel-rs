@@ -57,7 +57,7 @@ pub struct WifiRequest<'a> {
 /// What a network switch did.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SwitchResult {
-    /// The computer is gone, or the script gave no text for an argument.
+    /// The computer no longer exists, or the script gave no text for an argument.
     Null,
     /// The computer joined the network.
     Connect,
@@ -85,7 +85,7 @@ impl NetworkSwitch {
 
 impl NetCardsService {
     /// Lists the network cards of `computer` (`ComputerIntrinsics.network_devices`), or `None` if it
-    /// is gone.
+    /// no longer exists.
     ///
     /// # Errors
     ///
@@ -115,7 +115,7 @@ impl NetCardsService {
     }
 
     /// Returns the kind of the active network card (`ComputerIntrinsics.active_net_card`), or `None`
-    /// if `computer` is gone.
+    /// if `computer` no longer exists.
     ///
     /// # Errors
     ///
@@ -133,7 +133,7 @@ impl NetCardsService {
     }
 
     /// Lists the Wi-Fi networks `device` of `computer` reaches (`ComputerIntrinsics.wifi_networks`),
-    /// or `None` if the computer is gone.
+    /// or `None` if the computer no longer exists.
     ///
     /// # Errors
     ///

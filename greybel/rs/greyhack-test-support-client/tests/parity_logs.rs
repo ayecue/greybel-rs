@@ -84,11 +84,11 @@ async fn should_match_intrinsics_for_delete_logs() {
         &account.root_password,
     );
     let scripts = [
-        "pc = get_shell.host_computer\npc.touch(home_dir, \"gone.txt\")\nprint pc.File(home_dir + \"/gone.txt\").delete\nprint pc.File(\"/var/system.log\").date".to_owned(),
+        "pc = get_shell.host_computer\npc.touch(home_dir, \"missing.txt\")\nprint pc.File(home_dir + \"/missing.txt\").delete\nprint pc.File(\"/var/system.log\").date".to_owned(),
         "pc = get_shell.host_computer\npc.create_folder(home_dir, \"dir\")\npc.touch(home_dir + \"/dir\", \"inner.txt\")\nprint pc.File(home_dir + \"/dir\").delete".to_owned(),
         "pc = get_shell.host_computer\nprint pc.File(\"/etc/passwd\").delete".to_owned(),
         format!(
-            "{remote}\npc = shell.host_computer\npc.touch(\"/home/guest\", \"gone.txt\")\nprint pc.File(\"/home/guest/gone.txt\").delete\n{LOG_DATE}"
+            "{remote}\npc = shell.host_computer\npc.touch(\"/home/guest\", \"missing.txt\")\nprint pc.File(\"/home/guest/missing.txt\").delete\n{LOG_DATE}"
         ),
         format!(
             "{remote}\npc = shell.host_computer\nprint pc.File(\"/var/system.log\").delete\nprint pc.File(\"/var/system.log\") == null\n{LOG_DATE}"

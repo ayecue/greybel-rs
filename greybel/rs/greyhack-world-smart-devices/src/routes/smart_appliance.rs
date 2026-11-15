@@ -2,14 +2,17 @@
 
 use greyhack_world_router::RouteTable;
 
-use crate::SmartDevicesContext;
 use crate::objects::ObjectTableExt;
 use crate::routes::protocol::{
     ApplianceModel, Failure, IntoProtocol as _, Outcome, SmartApplianceModel,
     SmartApplianceOverrideSettings, SmartApplianceSetAlarm,
 };
 
-pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -23,7 +26,7 @@ pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
             Ok(
                 match ctx
                     .modules
-                    .smart_devices()
+                    .module::<crate::SmartDevicesModule>()
                     .appliances
                     .appliance_model(computer)
                     .await?
@@ -48,7 +51,7 @@ pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
 
             Ok(ctx
                 .modules
-                .smart_devices()
+                .module::<crate::SmartDevicesModule>()
                 .appliances
                 .override_appliance(computer, message.power, message.temperature)
                 .await?
@@ -70,7 +73,7 @@ pub(crate) fn register<W: SmartDevicesContext + 'static>(routes: &RouteTable) {
 
             Ok(ctx
                 .modules
-                .smart_devices()
+                .module::<crate::SmartDevicesModule>()
                 .appliances
                 .set_appliance_alarm(computer, message.enable)
                 .await?

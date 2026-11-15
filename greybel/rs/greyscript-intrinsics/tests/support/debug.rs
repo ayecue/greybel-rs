@@ -1,6 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::{FileData, LibraryKind, PermissionSet};
-use greyhack_world::{DebugAccount, Library, NodeDraft, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_libraries::{DebugAccount, Library, NodeDraft};
 
 use super::set_library;
 

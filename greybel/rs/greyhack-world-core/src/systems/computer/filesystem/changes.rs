@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use crate::storage::nodes::NodeSpec;
 use crate::storage::*;
-use crate::systems::{FileChanges as FileChangesService, *};
+use crate::systems::{FileChangeService as FileChangesService, *};
 use crate::*;
 
 impl FileChangesService {
@@ -113,19 +113,19 @@ impl FileChangesService {
 }
 
 /// File creation, writing, copying, moving, and deletion.
-pub struct FileChanges {
+pub struct FileChangeService {
     pub(crate) world: WorldRef,
     pub(crate) node_rows: Rc<NodeRepository>,
     pub(crate) library_rows: Rc<LibraryIdentityRepository>,
     pub(crate) lookup: Dep<FileLookup>,
-    pub(crate) permissions: Dep<FilePermissions>,
-    pub(crate) sizes: Dep<FileSizes>,
-    pub(crate) library_files: Dep<LibraryFiles>,
+    pub(crate) permissions: Dep<FilePermissionService>,
+    pub(crate) sizes: Dep<FileSizeService>,
+    pub(crate) library_files: Dep<LibraryFileService>,
     pub(crate) computer_rows: Rc<ComputerRepository>,
     pub(crate) users: Dep<UserService>,
 }
 
-impl FileChanges {
+impl FileChangeService {
     pub(crate) fn new(
         registry: &Rc<greyhack_world_modules::Registry>,
         node_rows: Rc<NodeRepository>,

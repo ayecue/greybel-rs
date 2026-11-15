@@ -12,7 +12,7 @@ use super::report::{
 use crate::{ComputerId, Result, RouterId, Weakness};
 
 /// Methods of [`World`] for exploits overflow computer.
-impl Overflows {
+impl OverflowService {
     pub async fn overflow_file(
         &self,
         computer: ComputerId,
@@ -159,7 +159,7 @@ impl Overflows {
     }
 }
 
-impl Overflows {
+impl OverflowService {
     pub async fn unmet_requirement(
         &self,
         computer: ComputerId,
@@ -167,7 +167,7 @@ impl Overflows {
         library: &mut Option<String>,
     ) -> Result<Option<UnmetRequirement>> {
         let Some(target) = self.networks.topology.computer(computer).await? else {
-            return Ok(Some(UnmetRequirement::TargetGone));
+            return Ok(Some(UnmetRequirement::TargetMissing));
         };
         let id = target.id;
 
@@ -423,20 +423,20 @@ impl Overflows {
 }
 
 /// A world service with only its declared dependencies.
-pub struct Overflows {
+pub struct OverflowService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) guilds: greyhack_world_core::Dep<greyhack_world_guilds::GuildService>,
     pub(crate) jobs: greyhack_world_core::Dep<greyhack_world_npcs::JobService>,
-    pub(crate) appliances: greyhack_world_core::Dep<greyhack_world_smart_devices::Appliances>,
+    pub(crate) appliances: greyhack_world_core::Dep<greyhack_world_smart_devices::ApplianceService>,
     pub(crate) traffic: greyhack_world_core::Dep<greyhack_world_smart_devices::Traffic>,
     pub(crate) generator: greyhack_world_core::Dep<crate::Generator>,
     pub(crate) versions: greyhack_world_core::Dep<crate::VersionService>,
 }
 
-impl Overflows {
+impl OverflowService {
     pub(crate) fn new(registry: &std::rc::Rc<greyhack_world_modules::Registry>) -> Self {
         Self {
             world: registry.world::<greyhack_world_core::WorldRef>().clone(),

@@ -9,7 +9,7 @@ use crate::{ComputerId, Result};
 
 impl UsersService {
     /// Changes `user`'s password as `actor` (`ComputerIntrinsics.change_password`). Returns `None` if
-    /// `computer` is gone.
+    /// `computer` no longer exists.
     ///
     /// # Errors
     ///
@@ -42,7 +42,7 @@ impl UsersService {
         Ok(Some(Ok(())))
     }
 
-    /// Returns the groups of `name` (`ComputerIntrinsics.groups`), or `None` if `computer` is gone.
+    /// Returns the groups of `name` (`ComputerIntrinsics.groups`), or `None` if `computer` no longer exists.
     ///
     /// # Errors
     ///
@@ -63,7 +63,7 @@ impl UsersService {
     }
 
     /// Adds `user` to `group` as `actor` (`ComputerIntrinsics.create_group`). Returns `None` if
-    /// `computer` is gone.
+    /// `computer` no longer exists.
     ///
     /// # Errors
     ///
@@ -97,7 +97,7 @@ impl UsersService {
     }
 
     /// Removes `user` from `group` as `actor` (`ComputerIntrinsics.delete_group`). Returns `None` if
-    /// `computer` is gone.
+    /// `computer` no longer exists.
     ///
     /// # Errors
     ///
@@ -132,7 +132,7 @@ impl UsersService {
     }
 
     /// Creates `user` with `password` as `actor` (`ComputerIntrinsics.create_user`). Returns `None`
-    /// if `computer` is gone.
+    /// if `computer` no longer exists.
     ///
     /// # Errors
     ///
@@ -164,7 +164,7 @@ impl UsersService {
     }
 
     /// Deletes `name` as `actor`, with its home folder when `remove_home` is set
-    /// (`ComputerIntrinsics.delete_user`). Returns `None` if `computer` is gone.
+    /// (`ComputerIntrinsics.delete_user`). Returns `None` if `computer` no longer exists.
     ///
     /// # Errors
     ///

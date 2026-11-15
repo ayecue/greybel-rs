@@ -1,6 +1,6 @@
 //! Permission-filtered tree deletion matching Grey Hack.
 
-use crate::systems::FileChanges as FileChangesService;
+use crate::systems::FileChangeService as FileChangesService;
 use crate::{FileFailure, Node, Result, User};
 
 impl FileChangesService {
@@ -71,12 +71,12 @@ impl FileChangesService {
             return Ok(Err(FileFailure::DeletePermission(node.path.clone())));
         }
 
-        let (any_success, node_gone) = self.delete_entries(node, user).await?;
+        let (any_success, node_absent) = self.delete_entries(node, user).await?;
 
         if !any_success {
             return Ok(Err(FileFailure::DeletePermission(node.path.clone())));
         }
 
-        Ok(Ok(!node_gone))
+        Ok(Ok(!node_absent))
     }
 }

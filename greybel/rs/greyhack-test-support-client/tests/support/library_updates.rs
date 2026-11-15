@@ -9,7 +9,7 @@ use greyhack_test_support_client::TestClient;
 use greyhack_test_support_client::protocol::test_support::{
     GuildsReply, LanNodeKind, NetworkSnapshot,
 };
-use greyhack_world::LibraryReportFailure;
+use greyhack_world_libraries::LibraryReportFailure;
 
 use super::intrinsics::{PROGRAM_NAME, snapshot_world};
 use super::mirror::library;

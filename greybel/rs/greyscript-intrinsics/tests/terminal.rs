@@ -6,7 +6,8 @@ use greybel_test_support::greyhack;
 use greybel_test_support::interpreter::{
     constant_clock, constant_clock_options, with_captured_stdout,
 };
-use greyhack_world::{PlayerOptions, World, WorldError};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::WorldError;
 use greyhack_world_operations::WorldServer;
 use greyhack_world_router::RouteContext;
 use greyhack_world_router::protocol::{PlayerUserMailAddress, PrintLine};

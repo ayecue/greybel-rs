@@ -7,7 +7,7 @@ use greyhack_behaviour::Refusal;
 pub enum EconomyFailure {
     /// The computer has no internet access.
     NoInternet,
-    /// The computer is gone.
+    /// The computer no longer exists.
     ComputerUnavailable,
     /// There is no coin with the name; contains the name.
     UnknownCoin(String),

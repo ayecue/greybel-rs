@@ -47,7 +47,7 @@ pub enum AttackResult {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UnmetRequirement {
     /// The target no longer exists.
-    TargetGone,
+    TargetMissing,
     /// The required library filename is not installed.
     MissingLibrary(String),
     /// The required library version is too old.

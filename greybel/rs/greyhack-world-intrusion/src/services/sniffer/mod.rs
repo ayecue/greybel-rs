@@ -9,15 +9,15 @@ use greyhack_world_core::Result;
 use greyhack_world_modules::WorkId;
 
 /// A world service with only its declared dependencies.
-pub struct Sniffers {
+pub struct SnifferService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) subscribers: std::rc::Rc<crate::storage::SubscriberRepository>,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
 }
 
-impl Sniffers {
+impl SnifferService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         subscribers: std::rc::Rc<crate::storage::SubscriberRepository>,
@@ -33,7 +33,7 @@ impl Sniffers {
     }
 }
 
-impl Sniffers {
+impl SnifferService {
     /// Ends sniffer `id` with `result` and reports whether it existed.
     pub async fn end<T: 'static>(&self, id: WorkId, result: T) -> Result<bool> {
         let present = self.subscribers.remove_sniffer(id).await?;
@@ -57,10 +57,10 @@ impl Sniffers {
     }
 }
 
-impl greyhack_world_modules::WorkOwner for Sniffers {
+impl greyhack_world_modules::WorkOwner for SnifferService {
     fn cancel(&self, id: WorkId) -> greyhack_world_modules::WorkCancelFuture<'_> {
         Box::pin(async move {
-            Sniffers::cancel(self, id)
+            SnifferService::cancel(self, id)
                 .await
                 .map_err(greyhack_world_modules::EventError::new)
         })

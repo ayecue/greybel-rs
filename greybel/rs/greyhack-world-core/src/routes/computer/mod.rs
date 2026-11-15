@@ -26,7 +26,11 @@ use super::computer;
 use crate::WifiRequest;
 use crate::objects::{FileHandle, FileRef, ObjectTableExt};
 
-pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, crate::WorldError>(
         async |ctx: &RouteContext<'_, W>, call, message: ComputerGetPorts| {
             let world = &*ctx.modules;
@@ -87,7 +91,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<crate::CoreModule>()
                 .networks
                 .reach
                 .is_network_active(
@@ -152,7 +156,7 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
             let world = &*ctx.modules;
 
             Ok(world
-                .core()
+                .module::<crate::CoreModule>()
                 .networks
                 .topology
                 .public_ip(
@@ -292,8 +296,12 @@ pub(crate) fn register<W: crate::CoreContext + 'static>(routes: &RouteTable) {
             // `ComputerIntrinsics.reboot`: a remote computer that is the one the terminal runs on makes the
             // bash exit.
             if matches!(outcome, Outcome::True)
-                && access.computer != world.world_ref().player()
-                && access.computer == ctx.last_shell(call, world.world_ref().player())
+                && access.computer != world.module::<crate::CoreModule>().world.clone().player()
+                && access.computer
+                    == ctx.last_shell(
+                        call,
+                        world.module::<crate::CoreModule>().world.clone().player(),
+                    )
             {
                 ctx.reboot_terminal(call);
             }

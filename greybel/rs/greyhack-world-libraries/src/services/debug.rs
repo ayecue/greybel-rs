@@ -377,7 +377,7 @@ pub struct Debug {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) debug: std::rc::Rc<crate::storage::DebugRepository>,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
 }
 
 impl Debug {
@@ -385,7 +385,7 @@ impl Debug {
         world: &greyhack_world_core::WorldRef,
         debug: std::rc::Rc<crate::storage::DebugRepository>,
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     ) -> Self {
         Self {
             world: world.clone(),

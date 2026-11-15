@@ -195,7 +195,7 @@ impl ServerState {
             .world
             .handle
             .events()
-            .publish_now(greyhack_world::ClockAdvanceEnd)
+            .publish_now(greyhack_world_core::ClockAdvanceEnd)
             .await
         {
             self.record_failure(error.into());

@@ -10,18 +10,18 @@ use crate::{Repository, Result};
 pub struct Apt {
     pub(crate) repositories: std::rc::Rc<crate::storage::AptRepository>,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) installs: greyhack_world_core::Dep<crate::services::Installs>,
+    pub(crate) installs: greyhack_world_core::Dep<crate::services::InstallService>,
 }
 
 impl Apt {
     pub(crate) fn new(
         repositories: std::rc::Rc<crate::storage::AptRepository>,
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        installs: greyhack_world_core::Dep<crate::services::Installs>,
+        installs: greyhack_world_core::Dep<crate::services::InstallService>,
     ) -> Self {
         Self {
             repositories,

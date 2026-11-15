@@ -8,9 +8,13 @@ use greyhack_world_router::protocol::{
 
 use super::Result;
 use super::protocol::Creation;
-use crate::{CreationContext, ObjectTableExt as _};
+use crate::ObjectTableExt as _;
 
-pub(crate) fn register<W: CreationContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -29,10 +33,10 @@ pub(crate) fn register<W: CreationContext + 'static>(routes: &RouteTable) {
 
 /// Creates a network if neither its public address nor domain is already registered.
 async fn create_network(
-    world: &impl CreationContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     network: NetworkOptions,
 ) -> Result<Creation<RouterId>> {
-    let core = world.core();
+    let core = world.module::<greyhack_world_core::CoreModule>();
 
     if let Some(address) = &network.public_ip
         && core.networks.routers.router_at(address).await?.is_some()
@@ -51,7 +55,7 @@ async fn create_network(
     }
 
     let router = world
-        .creation()
+        .module::<crate::CreationModule>()
         .network_generation
         .add_network(&network.into())
         .await?;

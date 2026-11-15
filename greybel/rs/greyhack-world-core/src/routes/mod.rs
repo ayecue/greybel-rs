@@ -2,6 +2,7 @@
 
 pub mod conversions;
 
+mod admin;
 pub mod computer;
 pub mod file;
 pub mod port;
@@ -20,11 +21,11 @@ pub type Result<T> = std::result::Result<T, OperationError>;
 
 /// Looks up the computer referenced by `access`.
 pub(crate) async fn computer(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
 ) -> Result<Option<Computer>> {
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .topology
         .computer(access.computer)
@@ -33,11 +34,11 @@ pub(crate) async fn computer(
 
 /// Looks up the node for `file`, returning `None` after removal.
 pub(crate) async fn node(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     file: &crate::FileRef,
 ) -> Result<Option<Node>> {
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .files
         .lookup
         .node(file.access.computer, file.node)
@@ -47,14 +48,17 @@ pub(crate) async fn node(
 /// Requires network access from the player's computer for terminals in `terminal_computers`
 /// (`Computer.IsNetworkActive` of `GreyInterpreter.GetPlayerComputer`).
 pub async fn require_connection(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     terminal_computers: &[ComputerId],
 ) -> Result<()> {
     if world
-        .core()
+        .module::<crate::CoreModule>()
         .networks
         .reach
-        .is_network_active(world.world_ref().player(), terminal_computers)
+        .is_network_active(
+            world.module::<crate::CoreModule>().world.clone().player(),
+            terminal_computers,
+        )
         .await?
     {
         Ok(())
@@ -64,7 +68,10 @@ pub async fn require_connection(
 }
 
 /// Registers every core route in a driver-independent table.
-pub fn register<W: crate::CoreContext + 'static>(routes: &greyhack_world_router::RouteTable) {
+pub fn register<W: greyhack_world_router::WorldContext<Computer = crate::ComputerId> + 'static>(
+    routes: &greyhack_world_router::RouteTable,
+) {
+    admin::register::<W>(routes);
     computer::register::<W>(routes);
     file::register::<W>(routes);
     router::register::<W>(routes);

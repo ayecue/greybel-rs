@@ -27,13 +27,13 @@ fn should_read_nothing_for_a_missing_file_by_uri() {
         .expect("reads");
 
     let missing = host
-        .drive(host.provider.read(&uri("file:///work/gone.src")))
+        .drive(host.provider.read(&uri("file:///work/missing.src")))
         .expect("reads");
 
     assert_eq!(missing, None);
     assert_eq!(
         host.files.reads(),
-        ["file:///work/My%20Folder/a.src", "file:///work/gone.src"]
+        ["file:///work/My%20Folder/a.src", "file:///work/missing.src"]
     );
 }
 

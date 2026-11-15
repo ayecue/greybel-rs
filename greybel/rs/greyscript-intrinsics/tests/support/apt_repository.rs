@@ -1,6 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::{NetworkKind, kind_for_ip};
-use greyhack_world::{NetworkOptions, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_creation::NetworkOptions;
 
 /// A world with a generated HackShop, and the address of its router.
 pub fn world_with_hackshop() -> (World, String) {

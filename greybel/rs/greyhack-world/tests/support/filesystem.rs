@@ -1,5 +1,7 @@
 use greyhack_behaviour::{FileData, PermissionSet, ROOT_USER};
-use greyhack_world::{ComputerId, NodeDraft, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::ComputerId;
+use greyhack_world_libraries::NodeDraft;
 
 use crate::support::factory_filesystem::{npc, world as generated_world};
 

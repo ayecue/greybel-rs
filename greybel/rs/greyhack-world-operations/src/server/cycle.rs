@@ -1,7 +1,7 @@
 //! Cycles: acquiring the world, budgets, settling events, and committing.
 
 use greyhack_behaviour::MILLIS_PER_SECOND;
-use greyhack_world::WorldError;
+use greyhack_world_core::WorldError;
 use tokio::sync::MutexGuard;
 
 use super::budget::Owner;

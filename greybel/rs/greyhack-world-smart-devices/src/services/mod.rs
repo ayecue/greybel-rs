@@ -4,6 +4,6 @@ pub(crate) mod appliance;
 pub(crate) mod cctv;
 pub(crate) mod traffic;
 
-pub use appliance::{ApplianceFailure, Appliances};
+pub use appliance::{ApplianceFailure, ApplianceService};
 pub use cctv::{Cctv, CctvFailure};
 pub use traffic::{Traffic, TrafficFailure};

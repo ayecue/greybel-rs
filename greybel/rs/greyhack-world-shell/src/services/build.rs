@@ -32,7 +32,7 @@ pub enum ImportFailure {
 /// Why a build or a binary write fails (`ShellIntrinsics.build`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BuildFailure {
-    /// The shell's computer is gone.
+    /// The shell's computer no longer exists.
     ComputerUnavailable,
     /// No source file is at the path.
     MissingSource(String),
@@ -339,7 +339,7 @@ impl BuildService {
 pub struct BuildService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
     pub(crate) generator: greyhack_world_core::Dep<greyhack_world_libraries::Generator>,
 }
@@ -348,7 +348,7 @@ impl BuildService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
         generator: greyhack_world_core::Dep<greyhack_world_libraries::Generator>,
     ) -> Self {

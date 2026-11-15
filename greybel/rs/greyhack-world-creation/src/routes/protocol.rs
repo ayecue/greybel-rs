@@ -41,7 +41,7 @@ impl From<ComputerOptionsMessage> for crate::ComputerOptions {
             }),
             services: computer.services,
             is_switch: computer.is_switch,
-            mining_hardware: greyhack_world_core::MiningHardware {
+            miner_hardware: greyhack_world_core::MinerHardware {
                 cpu_speed: hardware.cpu_speed,
                 cpu_cores: hardware.cpu_cores,
                 ram_model: hardware.ram_model,

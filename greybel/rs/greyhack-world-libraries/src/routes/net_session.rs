@@ -10,7 +10,11 @@ use crate::routes::protocol::{
 };
 use crate::{ComputerId, RouterId};
 
-pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -124,7 +128,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
 ///
 /// Returns errors from database reads.
 async fn count(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     session: &NetSessionRef,
     router: impl AsyncFnOnce(RouterId) -> Result<usize>,
     computer: impl AsyncFnOnce(ComputerId) -> Result<usize>,
@@ -132,7 +136,7 @@ async fn count(
     let count = match session {
         NetSessionRef::Router(kernel) => Some(router(kernel.router).await?),
         NetSessionRef::Service { .. } => match world
-            .libraries()
+            .module::<crate::LibraryModule>()
             .metaxploit
             .session_computer(session)
             .await?
@@ -150,17 +154,20 @@ async fn count(
 /// # Errors
 ///
 /// Returns errors from database reads.
-pub async fn dump_lib(world: &impl crate::LibraryContext, session: &NetSessionRef) -> Result<bool> {
+pub async fn dump_lib(
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+    session: &NetSessionRef,
+) -> Result<bool> {
     let exists = match session {
         NetSessionRef::Service { file, .. } => world
-            .core()
+            .module::<greyhack_world_core::CoreModule>()
             .files
             .lookup
             .file(file.access.computer, &file.path, false)
             .await?
             .is_some(),
         NetSessionRef::Router(kernel) => world
-            .core()
+            .module::<greyhack_world_core::CoreModule>()
             .networks
             .routers
             .kernel_library(kernel.router)
@@ -177,18 +184,24 @@ pub async fn dump_lib(world: &impl crate::LibraryContext, session: &NetSessionRe
 ///
 /// Returns errors from database reads.
 pub async fn get_num_users(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     session: &NetSessionRef,
 ) -> Result<Option<u32>> {
     let Some(computer) = world
-        .libraries()
+        .module::<crate::LibraryModule>()
         .metaxploit
         .session_computer(session)
         .await?
     else {
         return Ok(None);
     };
-    let count = world.core().computers.users.users(computer).await?.len();
+    let count = world
+        .module::<greyhack_world_core::CoreModule>()
+        .computers
+        .users
+        .users(computer)
+        .await?
+        .len();
 
     Ok(Some(u32::try_from(count).unwrap_or(u32::MAX)))
 }
@@ -199,7 +212,7 @@ pub async fn get_num_users(
 ///
 /// Returns errors from database reads.
 pub async fn get_num_portforward(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     session: &NetSessionRef,
 ) -> Result<Option<u32>> {
     count(
@@ -207,7 +220,7 @@ pub async fn get_num_portforward(
         session,
         async |router| {
             Ok(world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .routers
                 .router_port_forwards(router)
@@ -215,7 +228,7 @@ pub async fn get_num_portforward(
         },
         async |computer| {
             Ok(world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .routers
                 .port_forwards_to(computer)
@@ -231,7 +244,7 @@ pub async fn get_num_portforward(
 ///
 /// Returns errors from database reads.
 pub async fn get_num_conn_gateway(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     session: &NetSessionRef,
 ) -> Result<Option<u32>> {
     count(
@@ -239,7 +252,7 @@ pub async fn get_num_conn_gateway(
         session,
         async |router| {
             Ok(world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .routers
                 .router_gateway_connections(router)
@@ -247,7 +260,7 @@ pub async fn get_num_conn_gateway(
         },
         async |computer| {
             Ok(world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .routers
                 .gateway_connections(computer)
@@ -263,11 +276,11 @@ pub async fn get_num_conn_gateway(
 ///
 /// Returns errors from database reads.
 pub async fn is_any_active_user(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     session: &NetSessionRef,
 ) -> Result<Option<bool>> {
     let Some(computer) = world
-        .libraries()
+        .module::<crate::LibraryModule>()
         .metaxploit
         .session_computer(session)
         .await?
@@ -277,7 +290,7 @@ pub async fn is_any_active_user(
 
     Ok(Some(
         world
-            .core()
+            .module::<greyhack_world_core::CoreModule>()
             .computers
             .users
             .is_any_active_user(computer)
@@ -291,11 +304,11 @@ pub async fn is_any_active_user(
 ///
 /// Returns errors from database reads.
 pub async fn is_root_active_user(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     session: &NetSessionRef,
 ) -> Result<Option<bool>> {
     let Some(computer) = world
-        .libraries()
+        .module::<crate::LibraryModule>()
         .metaxploit
         .session_computer(session)
         .await?
@@ -305,7 +318,7 @@ pub async fn is_root_active_user(
 
     Ok(Some(
         world
-            .core()
+            .module::<greyhack_world_core::CoreModule>()
             .computers
             .users
             .is_root_active_user(computer)

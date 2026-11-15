@@ -16,7 +16,7 @@ interpreter = ["io", "dep:scheduler", "dep:greybel-core", "dep:greybel-documents
 # Program execution through the Grey Hack host.
 greyhack = ["interpreter", "world", "dep:greyscript-intrinsics", "dep:greyhack-world-operations", "dep:duplex-core", "duplex-test-support/tokio"]
 # Test-world generation, persistence, and inspection.
-world = ["dep:greyhack-world", "dep:greyhack-world-modules"]
+world = ["dep:greyhack-world", "dep:greyhack-world-core", "dep:greyhack-world-economy", "dep:greyhack-world-libraries", "dep:greyhack-world-modules", "dep:greyhack-world-traces"]
 # Headless Grey Hack launched by greybel/dotnet/greyhack-test-support.
 game = ["dep:greyhack-message-hook-client", "dep:serde_json", "dep:tokio", "tokio/time"]
 # In-memory documents protocol editor.
@@ -50,7 +50,11 @@ greybel-io-web = { workspace = true, optional = true }
 greyhack-message-hook-client = { workspace = true, optional = true }
 greyscript-intrinsics = { workspace = true, optional = true }
 greyhack-world = { workspace = true, optional = true }
+greyhack-world-core = { workspace = true, optional = true }
+greyhack-world-economy = { workspace = true, optional = true }
+greyhack-world-libraries = { workspace = true, optional = true }
 greyhack-world-modules = { workspace = true, optional = true }
+greyhack-world-traces = { workspace = true, optional = true }
 greyhack-world-operations = { workspace = true, optional = true }
 scheduler = { workspace = true, optional = true, features = ["manual"] }
 indexmap = { workspace = true, optional = true }

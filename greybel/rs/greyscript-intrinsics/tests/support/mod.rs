@@ -32,7 +32,9 @@ use greybel_test_support::future::block_on;
 use greybel_test_support::world;
 pub use greybel_test_support::world::{save_copy, world_options};
 use greyhack_behaviour::{FileData, PermissionSet};
-use greyhack_world::{Computer, ComputerId, Library, NodeDraft, Router, RouterId, World};
+use greyhack_world::World;
+use greyhack_world_core::{Computer, ComputerId, Router, RouterId};
+use greyhack_world_libraries::{Library, NodeDraft};
 
 /// The computer `id` of `world`, as it is now.
 pub fn read_computer(world: &World, id: ComputerId) -> Computer {

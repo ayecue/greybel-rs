@@ -4,16 +4,19 @@ use greyhack_world_core::Access;
 use greyhack_world_router::RouteTable;
 use greyhack_world_router::protocol::{CryptoSmtpUserList, SmtpUserList};
 
-use crate::NpcContext;
 use crate::routes::Result;
 use crate::routes::protocol::IntoProtocol as _;
 
-pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
                     message: CryptoSmtpUserList<'static>| {
-            let npcs = ctx.modules.npcs();
+            let npcs = ctx.modules.module::<crate::NpcModule>();
             let objects = ctx.trees.objects(call.tree);
             let access = npcs.smtp_access.access(&objects, message.crypto)?;
 
@@ -24,14 +27,14 @@ pub(crate) fn register<W: NpcContext + 'static>(routes: &RouteTable) {
 
 /// Lists SMTP accounts at `address:port` through `access`.
 async fn smtp_user_list(
-    world: &impl NpcContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     access: &Access,
     address: &str,
     port: u16,
 ) -> Result<SmtpUserList> {
     Ok(
         match world
-            .npcs()
+            .module::<crate::NpcModule>()
             .mail
             .smtp_users(access.computer, address, port)
             .await?

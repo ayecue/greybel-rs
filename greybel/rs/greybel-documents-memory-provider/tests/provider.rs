@@ -51,14 +51,14 @@ fn should_read_only_files_it_holds() {
     let provider = files_in_lib();
     let uris = [
         MemoryProvider::uri("/lib/a.src"),
-        MemoryProvider::uri("/gone.src"),
+        MemoryProvider::uri("/missing.src"),
         Uri::file("/lib/a.src"),
     ];
-    let [held, gone, elsewhere] =
+    let [held, missing, elsewhere] =
         uris.map(|uri| ResourceProvider::read(&provider, &uri).ok().flatten());
 
     assert_eq!(held.as_deref(), Some("a"));
-    assert_eq!(gone, None);
+    assert_eq!(missing, None);
     assert_eq!(elsewhere, None);
 }
 
@@ -68,11 +68,11 @@ fn should_append_the_configured_extensions() {
 
     provider.insert("/lib.src", "a");
 
-    let targets = ["lib", "gone"];
+    let targets = ["lib", "missing"];
     let [found, missing] = targets.map(|target| relative(&provider, "/main.ms", target));
 
     assert_eq!(found, "memory:///lib.src");
-    assert_eq!(missing, "memory:///gone.ms");
+    assert_eq!(missing, "memory:///missing.ms");
 }
 
 #[test]

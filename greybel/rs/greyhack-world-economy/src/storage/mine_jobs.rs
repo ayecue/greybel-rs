@@ -28,11 +28,11 @@ impl FromRow for MineJobRow {
 }
 
 /// Queries of mining-subscriber rows.
-pub(crate) struct MiningRepository {
+pub(crate) struct MineJobRepository {
     db: Database,
 }
 
-impl MiningRepository {
+impl MineJobRepository {
     pub(crate) fn new(db: Database) -> Self {
         Self { db }
     }

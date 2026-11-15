@@ -13,11 +13,11 @@ use crate::{ComputerId, ProcessClose};
 ///
 /// Returns errors from database reads.
 pub async fn show_procs(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
 ) -> Result<Option<Vec<ProcessUsage>>> {
     Ok(world
-        .core()
+        .module::<crate::CoreModule>()
         .computers
         .processes
         .process_usage(access.computer)
@@ -43,7 +43,7 @@ pub async fn show_procs(
 ///
 /// Returns errors from database reads or writes.
 pub async fn close_program(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     pid: i32,
     script_process: Option<(ComputerId, u32)>,
@@ -51,7 +51,7 @@ pub async fn close_program(
 ) -> Result<ProgramClose> {
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .computers
             .processes
             .close_process(
@@ -63,7 +63,7 @@ pub async fn close_program(
             )
             .await?
         {
-            ProcessClose::Gone => ProgramClose::Outcome(Outcome::Null),
+            ProcessClose::ComputerMissing => ProgramClose::Outcome(Outcome::Null),
             ProcessClose::Missing => ProgramClose::Outcome(Outcome::False),
             ProcessClose::Success => ProgramClose::Outcome(Outcome::True),
             ProcessClose::OwnProcess => ProgramClose::OwnProcess,
@@ -80,14 +80,14 @@ pub async fn close_program(
 ///
 /// Returns errors from database reads or writes.
 pub async fn reboot(
-    world: &impl crate::CoreContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = crate::ComputerId>,
     access: &Access,
     terminal_computers: &[ComputerId],
     safe_mode: bool,
 ) -> Result<Outcome> {
     Ok(
         match world
-            .core()
+            .module::<crate::CoreModule>()
             .computers
             .processes
             .reboot_as(access.computer, &access.user, terminal_computers, safe_mode)

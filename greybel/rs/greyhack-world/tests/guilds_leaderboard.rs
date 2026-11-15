@@ -1,4 +1,5 @@
-use greyhack_world::{GuildDraft, JobRole};
+use greyhack_behaviour::JobRole;
+use greyhack_world_guilds::GuildDraft;
 
 use crate::support::guilds_records::{
     DAY, LEVEL_FIVE, SHARES, guild, has_crown, network_of, own, world_with_companies,

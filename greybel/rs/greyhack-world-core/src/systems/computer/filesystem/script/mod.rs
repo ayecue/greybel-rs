@@ -13,19 +13,19 @@ pub mod failure;
 pub mod transfer;
 
 /// File operations exposed to scripts.
-pub struct ScriptFiles {
+pub struct ScriptFileService {
     pub(crate) world: WorldRef,
     pub(crate) users: Dep<UserService>,
-    pub(crate) changes: Dep<FileChanges>,
+    pub(crate) changes: Dep<FileChangeService>,
     pub(crate) lookup: Dep<FileLookup>,
-    pub(crate) permissions: Dep<FilePermissions>,
-    pub(crate) sizes: Dep<FileSizes>,
-    pub(crate) logs: Dep<Logs>,
-    pub traces: Dep<dyn crate::PlayerTraces>,
+    pub(crate) permissions: Dep<FilePermissionService>,
+    pub(crate) sizes: Dep<FileSizeService>,
+    pub(crate) logs: Dep<LogService>,
+    pub traces: Dep<dyn crate::PlayerTraceService>,
     pub(crate) computer_rows: Rc<ComputerRepository>,
 }
 
-impl ScriptFiles {
+impl ScriptFileService {
     pub(crate) fn new(
         registry: &Rc<greyhack_world_modules::Registry>,
         computer_rows: Rc<ComputerRepository>,

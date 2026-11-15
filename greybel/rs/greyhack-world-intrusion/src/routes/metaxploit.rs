@@ -4,11 +4,15 @@ use greyhack_world_core::{Access, ObjectTableExt as _};
 use greyhack_world_router::protocol::ScriptFailure;
 use greyhack_world_router::{CycleAccess, RouteTable};
 
+use crate::SnifferPacket;
 use crate::routes::protocol::{FileFailure, IntoProtocol as _, MetaxploitSniffer, SniffedPacket};
 use crate::routes::{OperationError, Result};
-use crate::{IntrusionContext, SnifferPacket};
 
-pub(crate) fn register<W: IntrusionContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.wait::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -21,7 +25,7 @@ pub(crate) fn register<W: IntrusionContext + 'static>(routes: &RouteTable) {
                 false,
                 async move |ctx: &greyhack_world_router::RouteContext<'_, W>, call| {
                     let world = &*ctx.modules;
-                    let intrusion = world.intrusion();
+                    let intrusion = world.module::<crate::IntrusionModule>();
                     let access = intrusion
                         .library_objects
                         .metaxploit_access(&ctx.trees.objects(call.tree), message.metaxploit)?;
@@ -75,7 +79,7 @@ pub(crate) fn register<W: IntrusionContext + 'static>(routes: &RouteTable) {
 /// Describes a captured `packet` (`HelperScript.GetPendingSniffers`). When `encode_source` is set, saves
 /// its encoder beside `program_path` as `user`.
 async fn capture(
-    world: &impl IntrusionContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     access: &Access,
     packet: SnifferPacket,
     encode_source: bool,
@@ -84,7 +88,7 @@ async fn capture(
 ) -> Result<SniffedPacket> {
     let encoder_failure = if encode_source {
         world
-            .intrusion()
+            .module::<crate::IntrusionModule>()
             .sniffers
             .save_packet_encoder(access.computer, &packet, program_path, user)
             .await?

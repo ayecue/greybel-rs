@@ -10,7 +10,7 @@ const RECOVERY_SECONDS: u64 = 24 * 60 * 60;
 /// Why a device cannot be used over the network.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConnectionLoss {
-    /// The computer is gone.
+    /// The computer no longer exists.
     ComputerUnavailable,
     /// The computer has no router.
     NoInternet,
@@ -19,7 +19,7 @@ pub enum ConnectionLoss {
 /// Why a smart-appliance operation failed (`SmartApplianceIntrinsics`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ApplianceFailure {
-    /// The appliance's computer is gone.
+    /// The appliance's computer no longer exists.
     ComputerUnavailable,
     /// The appliance has no internet access.
     NoInternet,
@@ -42,7 +42,7 @@ impl From<ConnectionLoss> for ApplianceFailure {
     }
 }
 
-impl Appliances {
+impl ApplianceService {
     /// Returns the smart-appliance settings of `computer`, if it is an appliance.
     pub async fn smart(&self, computer: ComputerId) -> Result<Option<SmartApplianceSettings>> {
         self.smart_devices.smart(computer).await
@@ -159,7 +159,7 @@ impl Appliances {
     }
 }
 
-impl Appliances {
+impl ApplianceService {
     /// Returns an appliance only when it is present, connected, and not broken.
     pub async fn usable_appliance(
         &self,
@@ -199,19 +199,19 @@ impl Appliances {
 }
 
 /// Smart-appliance settings, overrides, alarms, and accidents.
-pub struct Appliances {
+pub struct ApplianceService {
     pub(crate) world: greyhack_world_core::WorldRef,
     pub(crate) smart_devices: std::rc::Rc<crate::storage::SmartDeviceRepository>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) schedules: greyhack_world_core::Dep<greyhack_world_npcs::Schedules>,
+    pub(crate) schedules: greyhack_world_core::Dep<greyhack_world_npcs::ScheduleService>,
 }
 
-impl Appliances {
+impl ApplianceService {
     pub(crate) fn new(
         world: &greyhack_world_core::WorldRef,
         smart_devices: std::rc::Rc<crate::storage::SmartDeviceRepository>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        schedules: greyhack_world_core::Dep<greyhack_world_npcs::Schedules>,
+        schedules: greyhack_world_core::Dep<greyhack_world_npcs::ScheduleService>,
     ) -> Self {
         Self {
             world: world.clone(),

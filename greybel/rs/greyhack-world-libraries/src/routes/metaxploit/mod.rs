@@ -19,7 +19,11 @@ use self::rshell::rshell_client;
 use self::scan::{scan, scan_address, scan_address_without_metaxploit};
 use self::session::net_use_with_optional_access;
 
-pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) {
+pub(crate) fn register<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId> + 'static,
+>(
+    routes: &RouteTable,
+) {
     routes.read::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     call,
@@ -32,7 +36,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
                 .access
                 .clone();
             let path = world
-                .libraries()
+                .module::<crate::LibraryModule>()
                 .metaxploit
                 .library_file_path(access.computer, &message.path)
                 .await?;
@@ -170,7 +174,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
             require_connection(world, terminal_computers).await?;
 
             let origin = world
-                .core()
+                .module::<greyhack_world_core::CoreModule>()
                 .networks
                 .topology
                 .public_ip(access.computer)
@@ -178,7 +182,7 @@ pub(crate) fn register<W: crate::LibraryContext + 'static>(routes: &RouteTable) 
 
             Ok(
                 match world
-                    .libraries()
+                    .module::<crate::LibraryModule>()
                     .metaxploit
                     .rshell_clients(access.computer)
                     .await?

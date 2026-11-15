@@ -17,8 +17,8 @@ pub enum ServiceControlFailure {
 /// What starting a service did (`ServicesIntrinsics.start_service`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ServiceStart {
-    /// The computer is gone.
-    Gone,
+    /// The computer no longer exists.
+    Missing,
     /// The service started.
     Success,
     /// The service did not start.
@@ -58,7 +58,7 @@ impl ServiceControl {
         let version = self.service_client_version(computer, service).await?;
 
         if self.networks.topology.computer(computer).await?.is_none() {
-            return Ok(Ok(ServiceStart::Gone));
+            return Ok(Ok(ServiceStart::Missing));
         }
 
         Ok(Ok(
@@ -143,16 +143,16 @@ impl ServiceControl {
 pub struct ServiceControl {
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
-    pub(crate) installs: greyhack_world_core::Dep<crate::services::Installs>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) installs: greyhack_world_core::Dep<crate::services::InstallService>,
 }
 
 impl ServiceControl {
     pub(crate) fn new(
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
-        installs: greyhack_world_core::Dep<crate::services::Installs>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
+        installs: greyhack_world_core::Dep<crate::services::InstallService>,
     ) -> Self {
         Self {
             computers,

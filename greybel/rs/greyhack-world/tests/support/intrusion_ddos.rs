@@ -1,5 +1,8 @@
 use greyhack_behaviour::NetworkKind;
-use greyhack_world::{GuildDraft, NetworkOptions, PlayerOptions, RouterId, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::RouterId;
+use greyhack_world_creation::NetworkOptions;
+use greyhack_world_guilds::GuildDraft;
 
 const SHARES: u32 = 100_000;
 const GUILD_EXP: u32 = 275 * 25;

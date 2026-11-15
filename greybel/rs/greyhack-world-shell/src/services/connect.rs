@@ -44,8 +44,8 @@ pub struct Encryption {
 /// What opening a service connection did.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ServiceOpen {
-    /// The script's computer is gone.
-    Gone,
+    /// The script's computer no longer exists.
+    Missing,
     /// The script's computer has no network access.
     Offline,
     /// The connection failed before reaching a computer.
@@ -73,7 +73,7 @@ impl ConnectionService {
         request: &ServiceRequest<'_>,
     ) -> Result<ServiceOpen> {
         if self.networks.topology.computer(from).await?.is_none() {
-            return Ok(ServiceOpen::Gone);
+            return Ok(ServiceOpen::Missing);
         }
 
         if !self
@@ -301,19 +301,19 @@ impl ConnectionService {
 /// A world service with only its declared dependencies.
 pub struct ConnectionService {
     pub(crate) computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
     pub(crate) networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-    pub(crate) traces: greyhack_world_core::Dep<greyhack_world_guilds::Traces>,
-    pub(crate) sniffers: greyhack_world_core::Dep<greyhack_world_intrusion::Sniffers>,
+    pub(crate) traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
+    pub(crate) sniffers: greyhack_world_core::Dep<greyhack_world_intrusion::SnifferService>,
 }
 
 impl ConnectionService {
     pub(crate) fn new(
         computers: greyhack_world_core::Dep<greyhack_world_core::ComputerService>,
-        files: greyhack_world_core::Dep<greyhack_world_core::FileSystems>,
+        files: greyhack_world_core::Dep<greyhack_world_core::FileSystemService>,
         networks: greyhack_world_core::Dep<greyhack_world_core::NetworkService>,
-        traces: greyhack_world_core::Dep<greyhack_world_guilds::Traces>,
-        sniffers: greyhack_world_core::Dep<greyhack_world_intrusion::Sniffers>,
+        traces: greyhack_world_core::Dep<greyhack_world_traces::TraceService>,
+        sniffers: greyhack_world_core::Dep<greyhack_world_intrusion::SnifferService>,
     ) -> Self {
         Self {
             computers,

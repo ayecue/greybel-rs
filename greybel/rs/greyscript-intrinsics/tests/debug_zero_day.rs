@@ -1,6 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::Requirement;
-use greyhack_world::{DebugAccount, World};
+use greyhack_world::World;
+use greyhack_world_libraries::DebugAccount;
 
 use crate::support::debug::debug_world;
 use crate::support::save_copy;

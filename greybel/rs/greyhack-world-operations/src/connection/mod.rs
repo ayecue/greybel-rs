@@ -8,7 +8,8 @@ use duplex_core::{
     Channel, Dispatch, Driver, NextMessage, NextNotification, NotificationMessage, Responder,
     ValidatedDecode, ValidatedEncode,
 };
-use greyhack_world::{World, WorldError};
+use greyhack_world::World;
+use greyhack_world_core::WorldError;
 use greyhack_world_router::{
     Call, CycleDriverRef, Cycles, Operation, OperationResponse, ResponderOf, RouteCall,
     RouteContext, RouteKind,

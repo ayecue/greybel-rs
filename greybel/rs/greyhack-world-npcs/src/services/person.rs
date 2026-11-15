@@ -11,7 +11,7 @@ pub struct NpcService {
     pub(crate) npcs: std::rc::Rc<crate::storage::NpcRepository>,
     pub(crate) network_admins: std::rc::Rc<crate::storage::NetworkAdminRepository>,
     pub(crate) computers: Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: Dep<greyhack_world_core::FileSystemService>,
     pub(crate) mail: Dep<Mail>,
     pub(crate) bank: Dep<Bank>,
     pub(crate) network_creation: Dep<dyn NetworkCreation>,
@@ -22,7 +22,7 @@ pub(crate) struct NpcServiceSupport {
     pub(crate) npcs: std::rc::Rc<crate::storage::NpcRepository>,
     pub(crate) network_admins: std::rc::Rc<crate::storage::NetworkAdminRepository>,
     pub(crate) computers: Dep<greyhack_world_core::ComputerService>,
-    pub(crate) files: Dep<greyhack_world_core::FileSystems>,
+    pub(crate) files: Dep<greyhack_world_core::FileSystemService>,
     pub(crate) mail: Dep<Mail>,
     pub(crate) bank: Dep<Bank>,
     pub(crate) scheduler: std::rc::Rc<greyhack_world_routines::Scheduler>,
@@ -92,12 +92,12 @@ impl NpcService {
     }
 }
 
-impl greyhack_world_core::NpcHook for NpcService {
+impl greyhack_world_core::NpcState for NpcService {
     fn npc_state<'a>(
         &'a self,
         world: &'a WorldRef,
         lookup: greyhack_world_core::NpcLookup<'a>,
-    ) -> greyhack_world_core::HookFuture<'a, Option<greyhack_world_core::NpcState>> {
+    ) -> greyhack_world_core::CallFuture<'a, Option<greyhack_world_core::NpcStatus>> {
         Box::pin(async move {
             let npc = match lookup {
                 greyhack_world_core::NpcLookup::Person(person) => self.npc(person).await?,
@@ -107,7 +107,7 @@ impl greyhack_world_core::NpcHook for NpcService {
             };
             let now = world.world().time_seconds;
 
-            Ok(npc.map(|npc| greyhack_world_core::NpcState {
+            Ok(npc.map(|npc| greyhack_world_core::NpcStatus {
                 dead: npc.is_dead(now),
                 dead_or_fired: npc.is_dead_or_fired(now),
                 online: npc.online,
@@ -117,12 +117,12 @@ impl greyhack_world_core::NpcHook for NpcService {
     }
 }
 
-impl greyhack_world_core::NetworkAdminHook for NpcService {
+impl greyhack_world_core::NetworkAdminLookup for NpcService {
     fn network_admin_person<'a>(
         &'a self,
         _: &'a WorldRef,
         network: NetworkId,
-    ) -> greyhack_world_core::HookFuture<'a, Option<PersonId>> {
+    ) -> greyhack_world_core::CallFuture<'a, Option<PersonId>> {
         Box::pin(async move { self.network_admin_person(network).await })
     }
 }

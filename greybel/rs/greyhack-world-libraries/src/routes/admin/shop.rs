@@ -15,12 +15,18 @@ use crate::{ComputerId, ExploitPurchase, ExploitShopFailure};
 ///
 /// Returns errors from database reads and writes.
 pub(super) async fn exploit_shop(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     library: &str,
     version: &str,
 ) -> Result<ExploitListing> {
     let result = match LibraryKind::of_file(library) {
-        Some(kind) => world.libraries().shop.exploit_offers(kind, version).await?,
+        Some(kind) => {
+            world
+                .module::<crate::LibraryModule>()
+                .shop
+                .exploit_offers(kind, version)
+                .await?
+        }
         None if is_valid_version(version) => Err(ExploitShopFailure::NoResults),
         None => Err(ExploitShopFailure::InvalidVersion),
     };
@@ -47,7 +53,7 @@ pub(super) async fn exploit_shop(
 ///
 /// Returns errors from database reads and writes.
 pub(super) async fn buy_exploit(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     computer: ComputerId,
     user: &str,
     terminal_computers: &[ComputerId],
@@ -59,7 +65,7 @@ pub(super) async fn buy_exploit(
         )));
     };
     let sale = world
-        .libraries()
+        .module::<crate::LibraryModule>()
         .shop
         .buy_exploit(
             computer,

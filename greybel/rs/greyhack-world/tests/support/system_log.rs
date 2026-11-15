@@ -1,5 +1,6 @@
 use greyhack_behaviour::{LogAction, SYSTEM_LOG_PATH, SystemLog};
-use greyhack_world::{ComputerId, LogWrite, PlayerOptions, World};
+use greyhack_world::{PlayerOptions, World};
+use greyhack_world_core::{ComputerId, LogWrite};
 
 pub const FIRST: &str = "03/Dec/2000 - 08:30";
 pub const SECOND: &str = "04/Dec/2000 - 09:45";

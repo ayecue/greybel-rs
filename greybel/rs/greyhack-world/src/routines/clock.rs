@@ -1,7 +1,8 @@
 //! World clock: advancing it by seconds, ticks, or budgeted steps, and setting its date.
 
+use greyhack_world_core::Result;
+
 use super::TickReport;
-use crate::Result;
 use crate::routines::RoutineService;
 
 /// Methods of [`World`] for routines clock.

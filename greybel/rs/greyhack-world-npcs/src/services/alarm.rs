@@ -2,7 +2,7 @@
 
 use greyhack_world_core::{ComputerId, PersonId};
 
-use crate::{AlarmConfig, NpcSwitch, Result, Schedules};
+use crate::{AlarmConfig, NpcSwitch, Result, ScheduleService};
 
 /// Phone alarm errors (`FileHelperServer.ModifyClockPhoneServerRpc`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -22,7 +22,7 @@ pub struct PhoneAlarm {
 }
 
 /// Methods of [`World`] for npcs alarm.
-impl Schedules {
+impl ScheduleService {
     pub async fn kill_npcs_at_appliance(&self, appliance: ComputerId) -> Result<Vec<PersonId>> {
         let Some(row) = self.computers.computer(appliance).await? else {
             return Ok(Vec::new());

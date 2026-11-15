@@ -1,5 +1,5 @@
-use greyhack_behaviour::NetworkKind;
-use greyhack_world::{FireFailure, HireFailure, JobRole};
+use greyhack_behaviour::{JobRole, NetworkKind};
+use greyhack_world_npcs::{FireFailure, HireFailure};
 
 use crate::support::npcs_jobs::{public_ip, world_with};
 

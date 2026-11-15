@@ -3,7 +3,7 @@
 use greybel_test_support::game::Game;
 use greyhack_behaviour::{Reward, WorldSeed};
 use greyhack_test_support_client::protocol::test_support::LanNodeKind;
-use greyhack_world::WifiGenerator;
+use greyhack_world_creation::WifiGenerator;
 
 use crate::support::game::{
     join_network, join_network_where, join_new_network_where, setup_player, test_client,

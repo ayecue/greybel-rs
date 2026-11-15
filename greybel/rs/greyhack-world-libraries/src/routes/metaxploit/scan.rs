@@ -8,7 +8,9 @@ use crate::routes::{OperationError, Result};
 
 /// Lists weak addresses supported by metaxploit `version` and flags unscanned zones that may contain
 /// weaknesses.
-pub(super) async fn scan<W: crate::LibraryContext>(
+pub(super) async fn scan<
+    W: greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
+>(
     ctx: &RouteContext<'_, W>,
     call: Call,
     meta_lib: &MetaLibRef,
@@ -22,7 +24,7 @@ pub(super) async fn scan<W: crate::LibraryContext>(
 
     Ok(ctx
         .modules
-        .libraries()
+        .module::<crate::LibraryModule>()
         .metaxploit
         .scan_library(&library, version)
         .await?
@@ -39,7 +41,7 @@ pub(super) async fn scan<W: crate::LibraryContext>(
 
 /// Scans `address` without a metaxploit helper; the game dereferences the helper only when weaknesses exist.
 pub(super) async fn scan_address_without_metaxploit(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     meta_lib: &MetaLibRef,
     address: &str,
 ) -> Result<Option<ZoneScan>> {
@@ -57,7 +59,7 @@ pub(super) async fn scan_address_without_metaxploit(
 
 /// Lists weaknesses at `address` supported by metaxploit `version`.
 pub(super) async fn scan_address(
-    world: &impl crate::LibraryContext,
+    world: &impl greyhack_world_router::WorldContext<Computer = greyhack_world_core::ComputerId>,
     meta_lib: &MetaLibRef,
     version: &str,
     address: &str,

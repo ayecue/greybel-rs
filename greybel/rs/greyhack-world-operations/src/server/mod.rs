@@ -18,8 +18,9 @@ use std::rc::Rc;
 use budget::BudgetTable;
 use deferred_jobs::DeferredJob;
 use duplex_core::{Channel, ChannelOptions, Driver, Transport};
-use greyhack_world::{ComputerId, Database, RebootEvent, WorkEnvelope, World, WorldError};
-use greyhack_world_modules::WorkCompletion;
+use greyhack_world::World;
+use greyhack_world_core::{ComputerId, Database, RebootEvent, WorldError};
+use greyhack_world_modules::{WorkCompletion, WorkEnvelope};
 use greyhack_world_router::{PrintQueue, ProgramTree, ProgramTreePool, TreeId};
 use scheduler::Clock;
 pub use ticks::TickOptions;
@@ -103,7 +104,7 @@ impl WorldServer {
     /// # Errors
     ///
     /// Returns an error if subscription payment timers cannot be restored.
-    pub async fn new(world: World, clock: Rc<dyn Clock>) -> greyhack_world::Result<Self> {
+    pub async fn new(world: World, clock: Rc<dyn Clock>) -> greyhack_world_core::Result<Self> {
         Self::on(world, clock, None).await
     }
 
@@ -111,7 +112,7 @@ impl WorldServer {
         world: World,
         clock: Rc<dyn Clock>,
         database: Option<Database>,
-    ) -> greyhack_world::Result<Self> {
+    ) -> greyhack_world_core::Result<Self> {
         world.modules.economy.bank.restore_payments().await?;
 
         let trees = Rc::new(ProgramTreePool::default());
@@ -159,8 +160,8 @@ impl WorldServer {
                 }
             }
         });
-        events.on(|_: &greyhack_world::StrikeEvent| {});
-        events.on(|_: &greyhack_world::GameOverEvent| {});
+        events.on(|_: &greyhack_world_traces::StrikeEvent| {});
+        events.on(|_: &greyhack_world_player::GameOverEvent| {});
 
         Ok(Self(state))
     }
@@ -184,7 +185,7 @@ impl WorldServer {
         world: World,
         database: Database,
         clock: Rc<dyn Clock>,
-    ) -> greyhack_world::Result<Self> {
+    ) -> greyhack_world_core::Result<Self> {
         world.save_into(&database).await?;
 
         Self::on(World::load(&database).await?, clock, Some(database)).await
@@ -195,7 +196,10 @@ impl WorldServer {
     /// # Errors
     ///
     /// Returns world-loading errors.
-    pub async fn open(database: Database, clock: Rc<dyn Clock>) -> greyhack_world::Result<Self> {
+    pub async fn open(
+        database: Database,
+        clock: Rc<dyn Clock>,
+    ) -> greyhack_world_core::Result<Self> {
         let world = World::load(&database).await?;
 
         Self::on(world, clock, Some(database)).await
@@ -212,7 +216,7 @@ impl WorldServer {
     /// # Errors
     ///
     /// Returns a pending commit failure or the current write error.
-    pub async fn save(&self) -> greyhack_world::Result<()> {
+    pub async fn save(&self) -> greyhack_world_core::Result<()> {
         self.0.cycle(async |_| (), true).await;
 
         match self.0.failure.take() {
