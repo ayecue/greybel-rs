@@ -322,8 +322,8 @@ namespace GreyHackMessageHook
             }
         }
 
-        private static Dictionary<string, ContextProcess> contextRegistry =
-            new Dictionary<string, ContextProcess>();
+        private static readonly ConcurrentDictionary<string, ContextProcess> contextRegistry =
+            new ConcurrentDictionary<string, ContextProcess>();
 
         public static string CreateContext(
             string id,
@@ -362,7 +362,11 @@ namespace GreyHackMessageHook
             );
 
             // AppInstance.Start may precede the process.Start return, so register its terminal first.
-            contextRegistry.Add(id, process);
+            if (!contextRegistry.TryAdd(id, process))
+            {
+                throw new InvalidOperationException($"Context already exists: {id}");
+            }
+
             process.Start();
 
             return id;
@@ -396,7 +400,7 @@ namespace GreyHackMessageHook
 
             process.Dispose();
 
-            return contextRegistry.Remove(id);
+            return contextRegistry.TryRemove(id, out _);
         }
     }
 }

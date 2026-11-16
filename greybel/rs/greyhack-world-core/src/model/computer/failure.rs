@@ -96,6 +96,10 @@ pub enum NetCardFailure {
     UnknownRouter,
     /// The computer network is disabled for nonpayment (`NetworkLan.ConnectEthernet`).
     DisabledHomeNetwork,
+    /// The player has no rental home IP configured for Ethernet.
+    NoRentalHome,
+    /// The configured rental home IP has no ISP router.
+    MissingIsp,
     /// The gateway address identifies the computer itself.
     SelfGateway,
     /// No network device has the gateway address.

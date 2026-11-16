@@ -2,7 +2,7 @@
 
 use greyhack_behaviour::{FileKind, LanFailure, is_device, is_lan_ip, is_valid_ip, library_path};
 use greyhack_world_core::systems::network::reach::is_closed;
-use greyhack_world_core::{ComputerId, Result, RouterId};
+use greyhack_world_core::{ComputerId, Result, RouterId, WorldError};
 
 use crate::{Metaxploit, NetUseFailure, NetUseSession};
 
@@ -181,6 +181,14 @@ impl Metaxploit {
             .is_none_or(|data| data.kind != FileKind::Library)
         {
             return Ok(Err(NetUseFailure::InvalidLibrary(service)));
+        }
+
+        if let Some(data) = file.data()
+            && !data.content.is_empty()
+        {
+            // `MetaExploitIntrinsics.net_use` deserializes outside a catch, unlike `connect_service`.
+            serde_json::from_str::<serde_json::Value>(&data.content)
+                .map_err(|error| WorldError::MalformedLibrary(error.to_string()))?;
         }
 
         if !self.computers.startup.is_valid_library(&file).await? {

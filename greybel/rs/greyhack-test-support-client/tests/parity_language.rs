@@ -3,7 +3,7 @@
 use greybel_test_support::game::Game;
 
 use crate::support::game::{setup_player, test_client};
-use crate::support::parity::{game_outcomes, intrinsics_outcomes};
+use crate::support::parity::{compare_in_real_time, game_outcomes, intrinsics_outcomes};
 
 #[tokio::test]
 async fn should_match_intrinsics_for_basic_game_scripts() {
@@ -64,6 +64,171 @@ async fn should_match_intrinsics_for_core_functions() {
         "f = funcRef; print typeof(f); print f.hasIndex(\"x\"); g = function; end function; print typeof(@g); print @g isa funcRef",
         "print 1; yield; print 2; for i in range(1, 3); yield; end for; print 3",
         "print typeof(number); print typeof(string); print typeof(list); print typeof(map); print \"a\" isa string; print 1 isa number; print [] isa list; print {} isa map",
+    ];
+    let expected = intrinsics_outcomes(&scripts, &user);
+    let actual = game_outcomes(&client, &scripts).await;
+    let differences: Vec<_> = actual
+        .iter()
+        .zip(&expected)
+        .filter(|(actual, expected)| actual != expected)
+        .collect();
+
+    assert!(differences.is_empty(), "{differences:#?}");
+    client.shutdown();
+}
+
+/// Edge cases of the MiniScript intrinsics which Grey Hack replaces or extends.
+#[tokio::test]
+async fn should_match_intrinsics_for_language_edges() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let scripts = [
+        "print bitwise(1, 1, 0); print bitwise(\"&\", \"x\", 0); print bitwise(\"?\", 1, 0)",
+        "print bitwise(\"~\", 5); print bitwise(\"&\", 7, 3); print bitwise(\"|\", 4, 3); print bitwise(\"^\", 7, 3); print bitwise(\"<<\", 3, 2); print bitwise(\">>\", -8, 2); print bitwise(\">>>\", -8, 60)",
+        "char(-1)",
+        "char(55296)",
+        "char(65536)",
+        "code(\"\")",
+        "print code(\"A\"); print code(null); print code(123)",
+        "code(\"😀\")",
+        "print funcRef == funcRef; print list == list; print map == map; print number == number; print string == string",
+        "x = [10, 20]; print x.hasIndex(0); print x.hasIndex(-2); print x.hasIndex(-3); print x.hasIndex(2); print x.hasIndex(1.9); print x.hasIndex(\"1\")",
+        "s = \"ab\"; print s.hasIndex(0); print s.hasIndex(-2); print s.hasIndex(-3); print s.hasIndex(2); print s.hasIndex(null)",
+        "m = {\"a\": 1}; print m.hasIndex(\"a\"); print m.hasIndex(\"b\"); print hasIndex(1, \"x\"); print indexes(1)",
+        "m = {}; m[null] = 1; print m.indexes; print m.remove(null); print m.len",
+        "x = [1, 2, 1]; print x.indexOf(1); print x.indexOf(1, 0); print x.indexOf(1, -1); print x.indexOf(1, -2); print x.indexOf(1, 2); print x.indexOf(1, 3)",
+        "s = \"ababa\"; print s.indexOf(\"a\"); print s.indexOf(\"ba\"); print s.indexOf(null); print s.indexOf(\"a\", 0); print s.indexOf(\"a\", -2); print s.indexOf(\"a\", 4); print s.indexOf(\"\", 2)",
+        "m = {\"a\": 1, \"b\": 2, \"c\": 1}; print m.indexOf(1); print m.indexOf(1, \"a\"); print m.indexOf(2, \"a\"); print m.indexOf(3); print indexOf(1, 1)",
+        "x = [1]; x.insert(null, 2)",
+        "x = [1]; x.insert(\"x\", 2)",
+        "x = [1]; print x.insert(0, 2) == x; print x; print x.insert(-1, 3); print x",
+        "x = [1]; x.insert(2, 3)",
+        "print \"ab\".insert(1, \"X\"); print \"ab\".insert(-1, \"Y\"); print \"ab\".insert(2, null)",
+        "\"ab\".insert(3, \"X\")",
+        "insert({}, 0, 1)",
+        "print join(\"abc\", \",\"); print [1, null, 3].join(\"|\"); print [].join",
+        "[1].join(\"a\" * 129)",
+        "print log(100); print log(8, 2); print log(8, 2.718282); print log(8, 2.718283)",
+        "print lower(1); print upper(null); print lower([1])",
+        "print \"first\"; print(\"a\\nb\", 0, 0); print(\"c\\nd\", 0, 1)",
+        "x = [1, 2]; print x.pop; print x; print [].pop; print pop(1)",
+        "m = {\"a\": 1, \"b\": 2}; print m.pop; print m; print {}.pop",
+        "get_shell.pop",
+        "x = [1, 2]; print x.pull; print x; print [].pull; print pull(1)",
+        "m = {\"a\": 1, \"b\": 2}; print m.pull; print m; print {}.pull",
+        "get_shell.pull",
+        "x = []; x.push(x)",
+        "get_shell.push(1)",
+        "m = {}; print m.push(\"a\") == m; print m; m.push(null)",
+        "print push(1, 2)",
+        "range(null, 1)",
+        "print range(3, 1); print range(1, 5, 2); print range(3, 1, -1)",
+        "range(0, 16777215)",
+        "range(1, 3, -1)",
+        // The exact int.MaxValue + 1 wrap reaches the game's negative-capacity catch without an overflowing double cast.
+        "range(0, 2147483647)",
+        "get_shell.remove(\"x\")",
+        "x = [1, 2, 3]; print x.remove(0); print x; print x.remove(-1); print x",
+        "x = [1]; x.remove(null)",
+        "x = [1]; x.remove(2)",
+        "print \"aba\".remove(\"b\"); print \"aba\".remove(\"z\"); print \"aba\".remove(1)",
+        "\"aba\".remove(null)",
+        "remove(1, 0)",
+        "replace(null, 1, 2)",
+        "x = [1]; print x.replace(1, 2, 0) == x; print x",
+        "get_shell.replace(1, 2)",
+        "m = {\"a\": 1, \"b\": 1, \"c\": 2}; print m.replace(1, 3, 1) == m; print m; print m.replace(9, 8) == m; print m",
+        "x = [1, 1, 2]; print x.replace(1, 3, 1) == x; print x; print x.replace(9, 8) == x; print x",
+        "replace(\"abc\", \"a\", \"x\")",
+        "replace(1, 1, 2)",
+        "print round(1.2345678901234567, 20)",
+        "rnd(42); print rnd(); print rnd()",
+        "a = rnd(); b = rnd(); print a >= 0 and a < 1; print b >= 0 and b < 1",
+        "print sort(1); x = []; print x.sort == x; y = [1]; print y.sort == y",
+        "x = [2, 1, 3]; print x.sort(null, 0) == x; print x",
+        "x = [{\"n\": 2}, {\"x\": 0}, {\"n\": 1}]; x.sort(\"n\"); print x; x.sort(\"n\", 0); print x",
+        "x = [[2, \"b\"], [\"only\"], [1, \"a\"]]; x.sort(1); print x; x.sort(5); print x",
+        "print str(null); print str(1.2); print str(); print str([1, null])",
+        "get_shell.shuffle",
+        "print shuffle(1); print sum(\"abc\")",
+        "print values(\"ab\"); print values(1); x = [1, 2]; print values(x) == x",
+        "wait(301)",
+    ];
+    let expected = intrinsics_outcomes(&scripts, &user);
+    let actual = game_outcomes(&client, &scripts).await;
+    let differences: Vec<_> = actual
+        .iter()
+        .zip(&expected)
+        .filter(|(actual, expected)| actual != expected)
+        .collect();
+
+    assert!(differences.is_empty(), "{differences:#?}");
+
+    let snapshot = client.network_state().await.expect("the network is read");
+
+    compare_in_real_time(
+        &client,
+        &user,
+        &snapshot,
+        &["a = time; wait(0.02); b = time; print a >= 0; print b > a".to_owned()],
+    )
+    .await;
+    client.shutdown();
+}
+
+/// `push` can grow a list beyond `ValList.maxSize`, which `join` rejects before allocating its result.
+#[tokio::test]
+async fn should_match_intrinsics_for_the_join_list_limit() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let scripts = [
+        // List multiplication builds the same over-limit list natively, without a speed-dependent interpreter loop.
+        "x = [0] * 16777216; print x.len; x.join",
+    ];
+    let expected = intrinsics_outcomes(&scripts, &user);
+    let actual = game_outcomes(&client, &scripts).await;
+
+    assert_eq!(actual, expected);
+    client.shutdown();
+}
+
+/// String and regular-expression intrinsics from `BasicIntrinsics`.
+#[tokio::test]
+async fn should_match_intrinsics_for_basic_regex_and_strings() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let scripts = [
+        "x = [1, 2, 3]; print x.reverse; print x; print reverse(1); s = \"ab\"; print s.reverse; print s",
+        "print split(1, \".\"); print \"a\".split(1); print \"a\".split(\"a\", 1)",
+        "print \"a\".split(\"a\", \"q\")",
+        "print \"ab\".split(\"\"); print \"\".split(\"\")",
+        "s = \"a\" * 40 + \"b\"; print s.split(\"(a|aa)+(?=b)c\")",
+        "print \"x\".split(\"(\")",
+        "print \"a\".replace(\"a\", \"b\", \"q\")",
+        "print \"\".replace(\"a\", \"b\"); print \"\".replace(\"(\", \"b\")",
+        "s = \"a\" * 40 + \"b\"; print s.replace(\"(a|aa)+(?=b)c\", \"x\")",
+        "replace_regex(1, \"a\", \"b\")",
+        "replace_regex(\"a\", 1, \"b\")",
+        "replace_regex(\"a\", \"a\", \"b\", 1)",
+        "is_match(1, \"x\")",
+        "is_match(\"x\", 1)",
+        "is_match(\"x\", \"x\", 1)",
+        "s = \"a\" * 40 + \"b\"; print s.is_match(\"(a|aa)+(?=b)c\")",
+        "\"abc\".matches(\"\")",
+        "print \"abc\".matches(\"a\", \"q\")",
+        "print \"a1b22\".matches(\"[0-9]+\"); print \"x\".matches(\"z\"); print \"AbA\".matches(\"a\", \"i\")",
+        "s = \"a\" * 40 + \"b\"; print s.matches(\"(a|aa)+(?=b)c\")",
+        "print \"x\".matches(\"(\")",
+        "matches(1, \"x\")",
+        "\"x\".matches(1)",
+        "\"x\".matches(\"x\", 1)",
+        "print trim(1); print trim(null)",
+        "print \"aba\".lastIndexOf(\"a\"); print \"aba\".lastIndexOf(\"b\"); print \"aba\".lastIndexOf(\"\"); print \"éé\".lastIndexOf(\"é\")",
+        "print lastIndexOf(1, \"a\"); print \"a\".lastIndexOf(1); print \"a\".lastIndexOf(null)",
+        "print to_int(2.5); print to_int(null); print to_int([1]); print to_int({})",
     ];
     let expected = intrinsics_outcomes(&scripts, &user);
     let actual = game_outcomes(&client, &scripts).await;

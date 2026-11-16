@@ -1291,6 +1291,7 @@ dependencies = [
  "greybel-documents",
  "greybel-documents-fs-provider",
  "greybel-project",
+ "greybel-symbols",
  "greybel-transpiler",
  "greybel-type-analyzer",
  "rustc-hash 2.1.3",
@@ -1677,6 +1678,7 @@ dependencies = [
  "greyhack-world-smart-devices",
  "greyhack-world-storage",
  "mono-random",
+ "serde_json",
  "turso",
 ]
 
@@ -1767,6 +1769,7 @@ dependencies = [
  "greyhack-world-smart-devices",
  "greyhack-world-storage",
  "greyhack-world-traces",
+ "serde_json",
  "turso",
 ]
 

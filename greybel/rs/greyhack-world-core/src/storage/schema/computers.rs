@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS computers (
     npc_owner   INTEGER REFERENCES persons(id) ON DELETE SET NULL,
     -- the kind of network it was made for (`Computer.tipoRed`), which stays when it joins another network
     network_kind INTEGER NOT NULL,
+    -- player home network used for Ethernet (`PlayerConfigOS.rentalHomeIP`)
+    rental_home_ip TEXT NOT NULL DEFAULT '',
     UNIQUE (parent_id, parent_seq)
 );
 CREATE INDEX IF NOT EXISTS computers_network ON computers (network_id, local_ip);

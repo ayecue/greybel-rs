@@ -46,6 +46,8 @@ impl IntoProtocol for crate::NetCardFailure {
             crate::NetCardFailure::ComputerUnavailable => NetCardFailure::ComputerUnavailable,
             crate::NetCardFailure::UnknownRouter => NetCardFailure::UnknownRouter,
             crate::NetCardFailure::DisabledHomeNetwork => NetCardFailure::DisabledHomeNetwork,
+            crate::NetCardFailure::NoRentalHome => NetCardFailure::NoRentalHome,
+            crate::NetCardFailure::MissingIsp => NetCardFailure::MissingIsp,
             crate::NetCardFailure::SelfGateway => NetCardFailure::SelfGateway,
             crate::NetCardFailure::UnknownGateway(gateway) => {
                 NetCardFailure::UnknownGateway(gateway)
@@ -103,6 +105,7 @@ impl IntoProtocol for crate::ComputerFailure {
             crate::ComputerFailure::UndeletableUser => ComputerFailure::UndeletableUser,
             crate::ComputerFailure::User(failure) => ComputerFailure::User(failure.into_protocol()),
             crate::ComputerFailure::GuestUser => ComputerFailure::GuestUser,
+            crate::ComputerFailure::SmartphoneWifi => ComputerFailure::SmartphoneWifi,
             crate::ComputerFailure::MissingNetDevice => ComputerFailure::MissingNetDevice,
             crate::ComputerFailure::WifiCardsOnly => ComputerFailure::WifiCardsOnly,
             crate::ComputerFailure::EthernetCardsOnly => ComputerFailure::EthernetCardsOnly,

@@ -1,6 +1,6 @@
 //! Network cards, Wi-Fi, and Ethernet of a computer as scripts see them (`ComputerIntrinsics`).
 
-use greyhack_behaviour::{GUEST_USER, NetworkKind, is_valid_ip, same_subnet};
+use greyhack_behaviour::{DeviceKind, GUEST_USER, NetworkKind, is_valid_ip, same_subnet};
 
 use crate::systems::NetCardService as NetCardsService;
 use crate::systems::computer::failure::ComputerFailure;
@@ -183,6 +183,17 @@ impl NetCardsService {
             return Ok(NetworkSwitch::refusal(ComputerFailure::GuestUser, false));
         }
 
+        let Some(row) = self.topology.computer(computer).await? else {
+            return Ok(null);
+        };
+
+        if row.kind == DeviceKind::Smartphone {
+            return Ok(NetworkSwitch::refusal(
+                ComputerFailure::SmartphoneWifi,
+                false,
+            ));
+        }
+
         let WifiRequest {
             device: Some(device),
             bssid: Some(bssid),
@@ -190,10 +201,6 @@ impl NetCardsService {
             password: Some(password),
         } = *request
         else {
-            return Ok(null);
-        };
-
-        let Some(row) = self.topology.computer(computer).await? else {
             return Ok(null);
         };
         let cards = self.net_cards(computer).await?;
@@ -290,12 +297,12 @@ impl NetCardsService {
         (device, address, gateway): (&str, &str, &str),
         wait: bool,
     ) -> Result<NetworkSwitch> {
-        if self.topology.computer(computer).await?.is_none() {
+        let Some(row) = self.topology.computer(computer).await? else {
             return Ok(NetworkSwitch {
                 result: SwitchResult::Null,
                 starts_wait: false,
             });
-        }
+        };
 
         if user == GUEST_USER {
             return Ok(NetworkSwitch::refusal(ComputerFailure::GuestUser, false));
@@ -342,6 +349,24 @@ impl NetCardsService {
                 ComputerFailure::ReconnectTooSoon,
                 false,
             ));
+        }
+
+        if computer == self.world.player() {
+            if row.rental_home_ip.is_empty() {
+                return Ok(NetworkSwitch::refusal(
+                    ComputerFailure::NetCard(crate::NetCardFailure::NoRentalHome),
+                    true,
+                ));
+            }
+
+            if self.topology.public_ip(computer).await? != row.rental_home_ip
+                && self.routers.router_at(&row.rental_home_ip).await?.is_none()
+            {
+                return Ok(NetworkSwitch::refusal(
+                    ComputerFailure::NetCard(crate::NetCardFailure::MissingIsp),
+                    true,
+                ));
+            }
         }
 
         Ok(NetworkSwitch {

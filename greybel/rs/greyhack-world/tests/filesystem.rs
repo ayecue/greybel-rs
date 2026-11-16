@@ -2,7 +2,8 @@ use greyhack_behaviour::{
     FileData, MAX_FILES, MAX_FILES_PER_FOLDER, Permission, PermissionSet, ROOT_USER, parse_date,
 };
 use greyhack_world::{PlayerOptions, World};
-use greyhack_world_core::{FileFailure, NodeDraft};
+use greyhack_world_core::{FileFailure, NodeDraft, ScriptFileFailure};
+use greyhack_world_creation::DeviceLayout;
 use greyhack_world_services::AptFailure;
 
 use crate::support::filesystem::{add_source_file, computers_for_copy, tree};
@@ -431,6 +432,93 @@ async fn should_move_a_folder() {
             .unwrap()
             .is_some()
     );
+}
+
+/// `PlayerUtils.CrearArchivo` rejects even empty files and symlink targets when no space remains.
+#[tokio::test]
+async fn should_reject_file_creation_and_symlinks_without_free_space() {
+    let mut layout = crate::support::layout::layout();
+
+    for node in &mut layout.nodes {
+        if let DeviceLayout::Computer(computer) = &mut node.device
+            && computer.is_player
+        {
+            computer.hardware.hard_disks[0].size_mb = -1.0;
+        }
+    }
+
+    let world = World::new(&PlayerOptions {
+        network: Some(layout),
+        ..PlayerOptions::default()
+    })
+    .await
+    .unwrap();
+    let computer = world.handle.player();
+    let available = world
+        .modules
+        .core
+        .files
+        .sizes
+        .available_storage_mb(computer)
+        .await
+        .unwrap();
+
+    assert!(available < 0.0, "available storage: {available}");
+
+    let touched = world
+        .modules
+        .core
+        .files
+        .scripts
+        .touch_file(computer, ROOT_USER, "/", "new")
+        .await
+        .unwrap();
+
+    assert!(
+        matches!(
+            touched,
+            Some(Err(ScriptFileFailure::File(FileFailure::DiskFull)))
+        ),
+        "{touched:?}"
+    );
+
+    let root = world
+        .modules
+        .core
+        .files
+        .lookup
+        .root(computer)
+        .await
+        .unwrap()
+        .unwrap();
+    let target = world
+        .modules
+        .libraries
+        .generator
+        .add_full_node(
+            &root,
+            &NodeDraft::file(
+                "target",
+                ROOT_USER,
+                PermissionSet::default_for(false),
+                FileData::text(""),
+            ),
+        )
+        .await
+        .unwrap();
+    let linked = world
+        .modules
+        .core
+        .files
+        .scripts
+        .symlink_entry(&target, ROOT_USER, "/", "link")
+        .await
+        .unwrap();
+
+    assert!(matches!(
+        linked,
+        Err(ScriptFileFailure::File(FileFailure::DiskFull))
+    ));
 }
 
 #[tokio::test]

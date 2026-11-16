@@ -198,6 +198,20 @@ impl NetworkReachService {
             return Ok(Err(ConnectionFailure::UnknownAddress.into()));
         };
 
+        if let Some(forward) = self.router_rows.port_forward(router.id, port).await?
+            && !self
+                .computer_rows
+                .ports(target)
+                .await?
+                .iter()
+                .any(|open| open.service == forward.port.service)
+        {
+            return Ok(Err(ConnectionFailure::MissingComputerPort(
+                forward.port.number,
+            )
+            .into()));
+        }
+
         Ok(
             match self
                 .firewall_ping_status(router.network, &source, address, port)

@@ -46,6 +46,7 @@ impl NetworkAdmin {
     #[must_use]
     pub fn is_super_admin_by_stats(&self) -> bool {
         self.work_performance > WorkPerformance::Normal
-            && f32::from(self.intelligence + self.pc_experience) / 2.0 >= SUPER_ADMIN_AVERAGE
+            && f64::from(self.intelligence + self.pc_experience) / f64::from(2.0_f32)
+                >= f64::from(SUPER_ADMIN_AVERAGE)
     }
 }

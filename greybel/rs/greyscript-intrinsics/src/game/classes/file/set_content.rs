@@ -14,7 +14,7 @@ pub fn set_content(
     #[default("")] content: &Value,
 ) -> Result<NativeFuture, IntrinsicError> {
     let Some(file) = file(vm, this, "set_content").filter(|_| !content.is_null()) else {
-        return Ok(NativeOutput::ready(Value::Null));
+        return Ok(NativeOutput::ready(Value::from(0.0)));
     };
     let content = vm.heap().display(content).to_string();
 

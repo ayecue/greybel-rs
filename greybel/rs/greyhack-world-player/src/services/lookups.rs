@@ -5,7 +5,7 @@ use greyhack_behaviour::{
     DeviceKind, FileKind, LibraryClass, Permission, Refusal, check_ctf_password, is_lan_ip,
     is_valid_ip, verify_password,
 };
-use greyhack_world_core::{ComputerId, Login, Result, RouterId};
+use greyhack_world_core::{ComputerId, Login, Result, RouterId, WorldError};
 
 /// Account field of the player's person (`PlayerIntrinsics.user_mail_address`, `user_bank_number`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -157,14 +157,18 @@ impl Player {
             return Ok(None);
         };
 
-        if !node
-            .data()
-            .is_some_and(|data| data.kind == FileKind::Library)
-        {
+        let Some(data) = node.data().filter(|data| data.kind == FileKind::Library) else {
             return Ok(None);
-        }
+        };
 
         let Some(library) = self.generator.full_library_of(&node).await? else {
+            if data.content.is_empty() {
+                return Ok(None);
+            }
+
+            serde_json::from_str::<serde_json::Value>(&data.content)
+                .map_err(|error| WorldError::MalformedLibrary(error.to_string()))?;
+
             return Ok(None);
         };
 

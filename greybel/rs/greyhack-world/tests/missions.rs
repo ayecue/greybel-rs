@@ -1,10 +1,12 @@
-use greyhack_behaviour::{MissionKind, NetworkKind, ServiceId, mission_for_group};
+use greyhack_behaviour::{
+    MissionKind, NetworkKind, ServiceId, kind_for_ip, mission_for_group, random_group_for_mission,
+};
 use greyhack_world::{PlayerOptions, World};
 use greyhack_world_missions::mission_json;
 use greyhack_world_player::MissionFailure;
 
 use crate::support::missions::{
-    LISTED, mission_file_names, mission_world, network_files, shop_address,
+    LISTED, mission_file_names, mission_world, mission_world_at, network_files, shop_address,
 };
 
 /// The networks of a hackshop procedural mission hold the files the mission's templates ask for, and the closure's
@@ -397,4 +399,47 @@ async fn should_add_the_files_of_a_mission_after_the_services_of_its_computers()
             .any(|(path, _)| path == "/server/Project.pdf")
     );
     assert!(!repod.1.contains("helloworld"));
+}
+
+/// A zero-day mission's repository configuration replaces the one `Router.PostGenComputer` writes for a HackShop,
+/// because `Router.GeneraLanPc` calls `Router.PostGenMission` afterwards.
+#[tokio::test]
+async fn should_put_a_zero_day_missions_repository_config_over_the_hackshops() {
+    let probe = World::from_seed("procedural missions", &PlayerOptions::default())
+        .await
+        .unwrap();
+    let seed = probe.handle.world_seed();
+    let start = (0..1_000)
+        .find(|start| {
+            random_group_for_mission(&seed, MissionKind::ZeroDay, 0, *start)
+                .is_some_and(|group| kind_for_ip(&seed, &group[2]) == NetworkKind::HackShop)
+        })
+        .expect("a zero-day group whose third network is a HackShop");
+    let (world, group) = mission_world_at(MissionKind::ZeroDay, 0, start).await;
+    let address = &group[2];
+
+    assert_eq!(
+        kind_for_ip(&world.handle.world_seed(), address),
+        NetworkKind::HackShop
+    );
+
+    let files = network_files(&world, address).await;
+    let configs: Vec<serde_json::Value> = files
+        .iter()
+        .filter(|(path, _)| path == "/server/conf/repod.conf")
+        .map(|(_, content)| serde_json::from_str(content).unwrap())
+        .collect();
+    let config = configs
+        .iter()
+        .find(|config| config["path_repo"] == "/etc")
+        .expect("the mission's repod.conf");
+    let sources: Vec<&str> = config["repo_sources"]
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(String::as_str)
+        .collect();
+
+    assert_eq!(config["path_repo"], "/etc");
+    assert_eq!(sources, ["decipher", "scanlib", "scanrouter"]);
 }

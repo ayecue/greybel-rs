@@ -2,7 +2,7 @@
 
 use greyhack_behaviour::{
     FileData, MAX_FILES, MAX_FILES_PER_FOLDER, PermissionSet, check_file_name, check_folder_name,
-    path,
+    file_size_mb, path,
 };
 
 use super::failure::ScriptFileFailure;
@@ -48,6 +48,10 @@ impl ScriptFilesService {
                 folder: folder_path.to_owned(),
                 name: name.to_owned(),
             }));
+        }
+
+        if file_size_mb(data.size) > self.sizes.available_storage_mb(computer).await? {
+            return Ok(Err(FileFailure::DiskFull.into()));
         }
 
         if self.lookup.children(&folder).await?.len() > MAX_FILES_PER_FOLDER {

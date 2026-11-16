@@ -122,8 +122,8 @@ impl NetworkGeneration {
                 has_plan: false,
                 public_ip: layout.public_ip.clone(),
                 domain: layout.domain.clone(),
-                contact: None,
-                position: greyhack_behaviour::position_for_ip(&layout.public_ip),
+                contact: layout.contact.clone(),
+                position: layout.position,
             })
             .await?;
 

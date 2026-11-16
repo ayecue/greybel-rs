@@ -107,14 +107,18 @@ impl FileData {
         if !self.is_binary() {
             self.size = length as u64;
         } else if self.kind == FileKind::Program && !self.default_content {
+            // `(long)((float)length * 0.65f)`: the game's runtime multiplies the two floats without rounding the
+            // product back to float before truncating, so a length of 2080 gives 1351, not 1352.
             #[expect(
                 clippy::cast_possible_truncation,
                 clippy::cast_sign_loss,
                 clippy::cast_precision_loss,
-                reason = "Archivo.SetContenido uses C# float arithmetic and integral byte sizes"
+                reason = "Archivo.SetContenido truncates the unrounded product of two C# floats to an integral size"
             )]
             {
-                self.size = (length as f32 * 0.65).max(1.0) as u64;
+                let product = f64::from(length as f32) * f64::from(0.65_f32);
+
+                self.size = product.max(1.0) as u64;
             }
         }
     }

@@ -31,23 +31,32 @@ pub fn wifi_networks(
 
     Ok(settle(
         server(vm)?.send_computer_wifi_networks(&message),
-        move |_, networks| {
+        move |vm, networks| {
             networks
-                .map(|scan| scan.map(|scan| network_lines(&name, scan)))
+                .map(|scan| scan.map(|scan| network_value(vm, &name, scan)))
                 .map_err(|failure| raise("wifi_networks", failure))
         },
     ))
 }
 
-/// Lists networks as `<bssid> <power>% <essid>`, or the game's message for a missing or non-Wi-Fi card
+/// Lists networks as `<bssid> <power>% <essid>`, or returns the game's string for a missing or non-Wi-Fi card
 /// `device`.
-fn network_lines(device: &str, scan: WifiScan) -> Vec<String> {
+fn network_value(vm: &mut Vm, device: &str, scan: WifiScan) -> Value {
     match scan {
-        WifiScan::NoDevice => vec![format!("wifi_networks: {device} not found.")],
-        WifiScan::NotWifi => vec![format!("wifi_networks: {device} is not a wifi card.")],
-        WifiScan::Networks(networks) => networks
-            .into_iter()
-            .map(|network| format!("{} {}% {}", network.bssid, network.power, network.essid))
-            .collect(),
+        WifiScan::NoDevice => Value::from(format!("wifi_networks: {device} not found.")),
+        WifiScan::NotWifi => Value::from(format!("wifi_networks: {device} is not a wifi card.")),
+        WifiScan::Networks(networks) => {
+            let networks = networks
+                .into_iter()
+                .map(|network| {
+                    Value::from(format!(
+                        "{} {}% {}",
+                        network.bssid, network.power, network.essid
+                    ))
+                })
+                .collect();
+
+            Value::List(vm.heap_mut().add_list(networks))
+        }
     }
 }

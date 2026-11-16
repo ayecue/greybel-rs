@@ -25,6 +25,7 @@ greyhack-world-effects.workspace = true
 greyhack-world-smart-devices.workspace = true
 greyhack-world-storage.workspace = true
 mono-random.workspace = true
+serde_json.workspace = true
 turso.workspace = true
 
 [lints]

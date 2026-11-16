@@ -1,10 +1,13 @@
 use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
 use std::rc::Rc;
+use std::sync::Arc;
 
-use greybel_interpreter::{Clock, InputFuture, InterpreterOptions, Key, Stdin, Stdout};
+use greybel_interpreter::{InputFuture, InterpreterOptions, Key, Stdin, Stdout};
 use greybel_test_support::future::block_on;
-use greybel_test_support::greyhack::{run_in, run_on_host_at, run_on_host_at_async};
+use greybel_test_support::greyhack::{
+    run_in, run_on_host_at, run_on_host_at_async, run_on_host_at_with_loaded_options,
+};
 use greybel_test_support::interpreter::{constant_clock, constant_clock_options};
 use greybel_test_support::io::MarkedStdout;
 use greyhack_behaviour::{AlarmConfig, CompanyAlign, JobRole, NpcSchedule, WorkPerformance};
@@ -12,7 +15,7 @@ use greyhack_test_support_client::protocol::test_support::{MailSnapshot, Network
 use greyhack_world::{DatabaseOpen, PlayerOptions, World};
 use greyhack_world_core::Database;
 use greyhack_world_libraries::DebugAccount;
-use greyhack_world_npcs::Email;
+use greyhack_world_npcs::{Email, MailSpamConfig};
 use greyhack_world_operations::WorldServer;
 use greyhack_world_player::CtfEvent;
 use greyhack_world_smart_devices::TrafficNet;
@@ -23,10 +26,48 @@ use super::mirror::economy;
 /// The name of the program the comparisons run, in the game and the intrinsics.
 pub const PROGRAM_NAME: &str = "test";
 
-/// Runs `code` as admin `user`, as the program `PROGRAM_NAME` in the user's home, on the player computer of a world like
-/// the game's new player, without mail or bank accounts or libraries besides `crypto.so`, returning printed output and
-/// any runtime error.
-pub fn run_on_new_player(code: &str, user: &str) -> (String, Option<String>) {
+/// Runs `scripts` in order in one world, matching the shared state of successive game executions.
+pub fn run_many_with_world(
+    scripts: &[&str],
+    user: &str,
+    world: World,
+    mut options: impl FnMut() -> InterpreterOptions,
+) -> Vec<(String, Option<String>)> {
+    let mut world = Some(world);
+    let path = format!("/home/{user}/{PROGRAM_NAME}");
+
+    scripts
+        .iter()
+        .map(|script| {
+            let run = run_on_host_at(
+                script,
+                world.take().expect("the previous run returned its world"),
+                user,
+                true,
+                &path,
+                options(),
+            );
+
+            world = Some(run.world);
+
+            (run.terminal, run.error)
+        })
+        .collect()
+}
+
+/// Runs `scripts` in order in one simulated world, matching the shared state of successive game executions.
+pub fn run_many_in_snapshot(
+    scripts: &[&str],
+    user: &str,
+    snapshot: &NetworkSnapshot,
+) -> Vec<(String, Option<String>)> {
+    run_many_with_world(scripts, user, snapshot_world(user, snapshot), || {
+        constant_clock_options()
+    })
+}
+
+/// Runs `scripts` in order in one new-player world.
+pub fn run_many_on_new_player(scripts: &[&str], user: &str) -> Vec<(String, Option<String>)> {
     let player = PlayerOptions {
         user: user.to_owned(),
         mail_address: None,
@@ -35,40 +76,62 @@ pub fn run_on_new_player(code: &str, user: &str) -> (String, Option<String>) {
         ..PlayerOptions::default()
     };
     let world = block_on(World::new(&player)).expect("a world");
-    let path = format!("/home/{user}/{PROGRAM_NAME}");
-    let run = run_on_host_at(code, world, user, true, &path, constant_clock_options());
 
-    (run.terminal, run.error)
+    run_many_with_world(scripts, user, world, constant_clock_options)
 }
 
-/// Runs `code` in a simulated copy of the player's network and global economy in `snapshot`.
-pub fn run_in_snapshot(
-    code: &str,
+/// [`run_many_in_snapshot`] with a fresh wait-advancing clock for each program.
+pub fn run_many_in_snapshot_with_wait_clock(
+    scripts: &[&str],
     user: &str,
     snapshot: &NetworkSnapshot,
-) -> (String, Option<String>) {
-    run_in_snapshot_with_options(code, user, snapshot, constant_clock_options())
+) -> Vec<(String, Option<String>)> {
+    run_many_with_world(scripts, user, snapshot_world(user, snapshot), || {
+        InterpreterOptions::new(Rc::new(ManualClock::advance_on_sleep()))
+    })
 }
 
-/// [`run_in_snapshot`] on a clock that `wait` advances, for call throttles (the world's clock stays put, as the game's
-/// is frozen by `setup_player`).
-pub fn run_in_snapshot_on_waiting_clock(
-    code: &str,
+/// [`run_many_in_snapshot`] with real waits and world ticks for each program.
+pub fn run_many_in_snapshot_real_time(
+    scripts: &[&str],
     user: &str,
     snapshot: &NetworkSnapshot,
-) -> (String, Option<String>) {
-    let clock: Rc<dyn Clock> = Rc::new(ManualClock::advance_on_sleep());
-
-    run_in_snapshot_with_options(code, user, snapshot, InterpreterOptions::new(clock))
+) -> Vec<(String, Option<String>)> {
+    run_many_with_world(scripts, user, snapshot_world(user, snapshot), || {
+        InterpreterOptions::new(Rc::new(scheduler::TokioScheduler::new()))
+    })
 }
 
-/// Runs `code` after priming each computer's flood count with distinct fake public origins.
-pub fn run_in_snapshot_flooded(
-    code: &str,
+/// Runs `scripts` on the base snapshot with additional networks available without joining them.
+pub fn run_many_in_snapshots(
+    scripts: &[&str],
+    user: &str,
+    base: &NetworkSnapshot,
+    additional: &[NetworkSnapshot],
+) -> Vec<(String, Option<String>)> {
+    let world = snapshot_world(user, base);
+
+    for network in additional {
+        block_on(
+            world
+                .modules
+                .creation
+                .network_generation
+                .add_network_layout(&super::mirror::layout(network)),
+        )
+        .expect("the additional network is mirrored");
+    }
+
+    run_many_with_world(scripts, user, world, constant_clock_options)
+}
+
+/// Runs `scripts` after priming each computer's flood count with distinct fake public origins.
+pub fn run_many_in_snapshot_with_floods(
+    scripts: &[&str],
     user: &str,
     snapshot: &NetworkSnapshot,
     floods: &[(String, String, u32)],
-) -> (String, Option<String>) {
+) -> Vec<(String, Option<String>)> {
     let world = snapshot_world(user, snapshot);
 
     for (address, origin, threshold) in floods {
@@ -93,24 +156,7 @@ pub fn run_in_snapshot_flooded(
         .expect("the flood is primed");
     }
 
-    let path = format!("/home/{user}/{PROGRAM_NAME}");
-    let run = run_on_host_at(code, world, user, true, &path, constant_clock_options());
-
-    (run.terminal, run.error)
-}
-
-/// Runs a snapshot comparison with real waits and world ticks, for behavior measured by a stopwatch in the game.
-pub fn run_in_snapshot_real_time(
-    code: &str,
-    user: &str,
-    snapshot: &NetworkSnapshot,
-) -> (String, Option<String>) {
-    run_in_snapshot_with_options(
-        code,
-        user,
-        snapshot,
-        InterpreterOptions::new(std::rc::Rc::new(scheduler::TokioScheduler::new())),
-    )
+    run_many_with_world(scripts, user, world, constant_clock_options)
 }
 
 /// Async snapshot run for a `LocalSet`, without moving the non-`Send` world to another thread.
@@ -171,6 +217,7 @@ fn run_in_snapshot_with_options(
 struct InteractiveStdin {
     inputs: RefCell<VecDeque<String>>,
     poll_started: Cell<bool>,
+    before_line: Option<Rc<dyn Fn()>>,
 }
 
 impl InteractiveStdin {
@@ -178,6 +225,15 @@ impl InteractiveStdin {
         Self {
             inputs: RefCell::new(inputs.iter().cloned().collect()),
             poll_started: Cell::new(false),
+            before_line: None,
+        }
+    }
+
+    fn with_action(inputs: &[String], before_line: Rc<dyn Fn()>) -> Self {
+        Self {
+            inputs: RefCell::new(inputs.iter().cloned().collect()),
+            poll_started: Cell::new(false),
+            before_line: Some(before_line),
         }
     }
 
@@ -192,6 +248,9 @@ impl InteractiveStdin {
 
 impl Stdin for InteractiveStdin {
     fn read_line(&self, _prompt: &str, _echo: greybel_interpreter::Echo) -> InputFuture<String> {
+        if let Some(action) = &self.before_line {
+            action();
+        }
         let line = self.inputs.borrow_mut().pop_front().unwrap_or_default();
 
         Box::pin(std::future::ready(Ok(line)))
@@ -230,6 +289,35 @@ pub fn run_interactive_in_snapshot(
             ..InterpreterOptions::new(Rc::new(scheduler::TokioScheduler::new()))
         },
     )
+}
+
+/// Runs an interactive script and invokes `action` immediately before each line input.
+pub fn run_interactive_action_in_snapshot(
+    code: &str,
+    user: &str,
+    snapshot: &NetworkSnapshot,
+    inputs: &[String],
+    action: Arc<dyn Fn(&World) + Send + Sync>,
+) -> (String, Option<String>) {
+    let world = snapshot_world(user, snapshot);
+    let path = format!("/home/{user}/{PROGRAM_NAME}");
+    let inputs = inputs.to_vec();
+    let run =
+        run_on_host_at_with_loaded_options(code, world, user, true, &path, move |action_world| {
+            InterpreterOptions {
+                stdin: Rc::new(InteractiveStdin::with_action(
+                    &inputs,
+                    Rc::new(move || {
+                        action(&action_world);
+                        // The input read is a read cycle; persist fixture mutations before the next program operation.
+                        let _ = block_on(action_world.database().conn.execute("COMMIT", ()));
+                    }),
+                )),
+                ..InterpreterOptions::new(Rc::new(scheduler::TokioScheduler::new()))
+            }
+        });
+
+    (run.terminal, run.error)
 }
 
 /// Builds the mirrored world once, so two programs can share it.
@@ -360,6 +448,13 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
         )
         .expect("the NPC workstation is read")
         .expect("the mirrored NPC workstation");
+        let users = block_on(world.modules.core.computers.users.users(computer))
+            .expect("the NPC workstation accounts are read");
+
+        if !users.iter().any(|user| user.name == npc.user) {
+            continue;
+        }
+
         let person = block_on(world.modules.npcs.npcs.add_npc(
             computer,
             &npc.user,
@@ -455,7 +550,7 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
         if snapshot
             .admin
             .as_ref()
-            .is_some_and(|admin| admin.user == npc.user)
+            .is_some_and(|admin| admin.persona_exists && admin.user == npc.user)
         {
             block_on(world.modules.npcs.npcs.appoint_network_admin(person))
                 .expect("the mirrored network administrator");
@@ -502,14 +597,8 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
             let npc = snapshot
                 .npcs
                 .iter()
-                .find(|npc| npc.dead && !npc.license_plate.is_empty())
-                .or_else(|| {
-                    snapshot
-                        .npcs
-                        .iter()
-                        .find(|npc| !npc.license_plate.is_empty())
-                })
-                .expect("the accident driver");
+                .find(|npc| Some(&npc.user) == traffic.accident_driver.as_ref())
+                .expect("the exact accident driver");
             let credentials_npc = snapshot
                 .npcs
                 .iter()
@@ -615,6 +704,23 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
             ))
             .expect("the recipient mail is mirrored");
         }
+    }
+
+    for mail in snapshot
+        .player_mail
+        .iter()
+        .chain(snapshot.recipient_mail.iter())
+        .chain(snapshot.npcs.iter().filter_map(|npc| npc.mail.as_ref()))
+    {
+        block_on(world.modules.npcs.mail.set_spam_config(
+            &mail.address,
+            MailSpamConfig {
+                player_pc_id: mail.player_pc_id.clone(),
+                filter: mail.spam_filter,
+                blacklist: mail.blacklist.clone(),
+            },
+        ))
+        .expect("the mirrored mail spam state");
     }
 
     block_on(

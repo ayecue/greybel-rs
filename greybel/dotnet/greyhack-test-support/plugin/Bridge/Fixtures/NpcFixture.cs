@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GreyHackTestSupport.Plugin.Bridge.Game;
 using GreyHackTestSupport.Protocol;
+using HarmonyLib;
 using Newtonsoft.Json;
 using OS = Util.OS;
 
@@ -79,6 +80,55 @@ internal sealed class NpcFixture : IFixture
         account.NextCita();
         Database.Singleton.SyncConfigOS(workstation);
         return new Reply.Applied();
+    }
+
+    /// <summary>Provides an ordinary NPC on a real workstation when a generated network has none.</summary>
+    internal static NpcInfo EnsureNpc(NetworkLan network, Router router, string localIp = null)
+    {
+        NpcInfo existing = network.GetNpcInfos().Values.FirstOrDefault(
+            npc => !npc.IsDevice() && network.GetLanPcInfo(npc.GetLocalIP()) != null
+        );
+        if (existing != null)
+        {
+            return existing;
+        }
+
+        LanPcInfo workstation = localIp == null
+            ? network.GetLanPcInfos().FirstOrDefault(info => info.typeDevice == NetworkLan.TypeDevice.COMPUTER)
+            : network.GetLanPcInfo(localIp);
+        if (workstation == null)
+        {
+            throw new InvalidOperationException("The fixture has no computer workstation for an NPC");
+        }
+
+        NpcInfo npc = new NpcInfo(
+            "FixtureWalker",
+            router.GetDomain(),
+            true,
+            new Random(0),
+            router.GetPublicIP()
+        );
+        // RentServer creates empty account lists for every workstation before any NPC exists.
+        Traverse.Create(network)
+            .Field("npcUserNames")
+            .GetValue<Dictionary<string, List<string>>>()
+            .Remove(workstation.GetID());
+        Traverse.Create(network)
+            .Field("userBankIds")
+            .GetValue<Dictionary<string, List<string>>>()
+            .Remove(workstation.GetID());
+        Traverse.Create(network)
+            .Method(
+                "AddNpcUser",
+                workstation.GetID(),
+                new List<string> { npc.GetSurname() },
+                new List<string> { string.Empty },
+                new Dictionary<string, NpcInfo> { { npc.GetSurname(), npc } }
+            )
+            .GetValue();
+        Traverse.Create(network).Method("UpdateNpcsLocalIps").GetValue();
+
+        return npc;
     }
 
     /// <summary>Gives NPCs a company stance and a zero-day contact as the zero-day rumor network does.</summary>

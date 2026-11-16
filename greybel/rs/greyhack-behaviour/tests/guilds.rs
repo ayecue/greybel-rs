@@ -65,6 +65,11 @@ fn should_find_a_majority_owner_above_half_and_the_first_of_equals() {
 }
 
 #[test]
+fn should_round_guild_points_from_the_unrounded_weighted_product() {
+    assert_eq!(guild_points(&[company(45, 70.0)], 1), 31);
+}
+
+#[test]
 fn should_issue_shares_by_network_kind() {
     assert_eq!(max_stocks(NetworkKind::Police), 1_000_000);
     assert_eq!(max_stocks(NetworkKind::HackShop), 500_000);

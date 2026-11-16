@@ -1,6 +1,5 @@
 //! Repository and package-installation operations (`AptClientIntrinsics`).
 
-use greyhack_world_core::routes::require_connection;
 use greyhack_world_programs::protocol::{
     AptClientAddRepo, AptClientCheckUpgrade, AptClientDelRepo, AptClientInstall, AptClientSearch,
     AptClientShow, AptClientUpdate, AptUpdate, Failure, Outcome, PackageEntry, PackageList,
@@ -73,8 +72,6 @@ fn register_apt_client_repositories<
                 .objects(call.tree)
                 .apt_client(message.apt_client)?;
             let terminal_computers = &ctx.terminal_computers(call);
-
-            require_connection(world, terminal_computers).await?;
 
             Ok(apt_outcome(
                 world
@@ -149,19 +146,30 @@ fn register_apt_client_queries<
                 .apt_client(message.apt_client)?;
             let terminal_computers = &ctx.terminal_computers(call);
 
-            require_connection(world, terminal_computers).await?;
-
             let lines = world
                 .module::<crate::ServicesModule>()
                 .apt
                 .update_apt_packages(access.computer, terminal_computers)
                 .await?;
 
+            let result = lines
+                .iter()
+                .find_map(|line| match line {
+                    crate::AptUpdateLine::UnknownRepository(source) => {
+                        Some(format!("{source} repository not found"))
+                    }
+                    crate::AptUpdateLine::MalformedSources => Some("0".to_owned()),
+                    _ => None,
+                })
+                .unwrap_or_default();
+
             for line in lines {
-                ctx.print(call, PrintLine::AptUpdate(line.into_protocol()));
+                if !matches!(line, crate::AptUpdateLine::UnknownRepository(_)) {
+                    ctx.print(call, PrintLine::AptUpdate(line.into_protocol()));
+                }
             }
 
-            Ok(AptUpdate {})
+            Ok(AptUpdate { result })
         },
     );
     // A HackShop's libraries are brought up to date on the way (`PlayerUtils.UpdateHackshopLibs`), which changes it.

@@ -35,7 +35,7 @@ pub fn show_procs(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicEr
                         "\n{} {} {}% {}% {}",
                         process.user,
                         process.pid,
-                        one_decimal(process.cpu),
+                        one_decimal_cpu(process.cpu),
                         one_decimal(process.memory),
                         process.name
                     );
@@ -50,7 +50,12 @@ pub fn show_procs(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicEr
 const PROCESS_HEADER: &str = "USER PID CPU MEM COMMAND";
 
 /// Formats like `value.ToString("N1")`: one decimal place and thousands separators.
-fn one_decimal(value: f32) -> String {
+fn one_decimal(value: f64) -> String {
+    mono_number::format_f64(value, "N1").expect("N1 applies to floats")
+}
+
+/// Formats a percentage already stored in a C# float, without an intervening arithmetic expression.
+fn one_decimal_cpu(value: f32) -> String {
     mono_number::format_f32(value, "N1").expect("N1 applies to floats")
 }
 

@@ -257,6 +257,7 @@ pub async fn send(
         {
             Ok(()) => Outcome::True,
             Err(SendMailFailure::NoAccount) => raise_mail_failure(MailFailure::NoAccount),
+            Err(SendMailFailure::Missing) => raise_mail_failure(MailFailure::WrongCredentials),
             Err(SendMailFailure::Refusal(refusal)) => {
                 Outcome::Failure(Failure::Refusal(refusal.into_protocol()))
             }
@@ -264,6 +265,11 @@ pub async fn send(
                 raise_mail_failure(MailFailure::AccountInactive)
             }
             Err(SendMailFailure::Undeliverable) => raise_mail_failure(MailFailure::NotDelivered),
+            Err(SendMailFailure::RecipientInBlacklist) => {
+                raise_mail_failure(MailFailure::RecipientInBlacklist)
+            }
+            Err(SendMailFailure::BlockedPlayers) => raise_mail_failure(MailFailure::BlockedPlayers),
+            Err(SendMailFailure::BlockedNpcs) => raise_mail_failure(MailFailure::BlockedNpcs),
         },
     })
 }

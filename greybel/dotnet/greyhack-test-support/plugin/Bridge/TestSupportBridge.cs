@@ -69,7 +69,7 @@ internal sealed class TestSupportBridge : IDisposable
                 npcs,
                 clock,
                 traffic,
-                new ApplianceFixture(player),
+                new ApplianceFixture(player, clock),
                 new ComputerFixture(player),
                 new RebootFixture(main, player),
                 exploitShop,

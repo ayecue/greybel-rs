@@ -143,57 +143,73 @@ async fn should_match_the_game_exploits_of_a_version_it_released() {
         .unwrap()
         .exploits;
 
-    let (copy_old, copy_new, copy_version, copy_metaxploit) = std::thread::scope(|scope| {
-        scope
-            .spawn(|| {
-                let world: World = copy_with_libraries(
-                    &user,
-                    &snapshot,
-                    &[&released.before, &released.metaxploit_before],
-                );
-                let version = block_on(
-                    world
-                        .modules
-                        .libraries
-                        .versions
-                        .release_library_version(LibraryKind::Ssh),
-                )
-                .expect("the version is released")
-                .expect("the library exists");
-                let old = block_on(
-                    world
-                        .modules
-                        .libraries
-                        .shop
-                        .exploit_offers(LibraryKind::Ssh, &before.version),
-                )
-                .expect("the offers are read")
-                .expect("the old version has offers");
-                let new = block_on(
-                    world
-                        .modules
-                        .libraries
-                        .shop
-                        .exploit_offers(LibraryKind::Ssh, &version),
-                )
-                .expect("the offers are read")
-                .expect("the new version has offers");
-                let metaxploit = block_on(
-                    world
-                        .modules
-                        .libraries
-                        .generator
-                        .latest_full_library(LibraryKind::Metaxploit),
-                )
-                .expect("metaxploit is read")
-                .expect("metaxploit exists")
-                .version;
+    let (copy_old, copy_new, copy_version, copy_metaxploit, copy_visible_new) =
+        std::thread::scope(|scope| {
+            scope
+                .spawn(|| {
+                    let world: World = copy_with_libraries(
+                        &user,
+                        &snapshot,
+                        &[&released.before, &released.metaxploit_before],
+                    );
+                    let version = block_on(
+                        world
+                            .modules
+                            .libraries
+                            .versions
+                            .release_library_version(LibraryKind::Ssh),
+                    )
+                    .expect("the version is released")
+                    .expect("the library exists");
+                    let old = block_on(
+                        world
+                            .modules
+                            .libraries
+                            .shop
+                            .exploit_offers(LibraryKind::Ssh, &before.version),
+                    )
+                    .expect("the offers are read")
+                    .expect("the old version has offers");
+                    let new = block_on(
+                        world
+                            .modules
+                            .libraries
+                            .shop
+                            .exploit_offers(LibraryKind::Ssh, &version),
+                    )
+                    .expect("the offers are read")
+                    .expect("the new version has offers");
+                    let metaxploit = block_on(
+                        world
+                            .modules
+                            .libraries
+                            .generator
+                            .latest_full_library(LibraryKind::Metaxploit),
+                    )
+                    .expect("metaxploit is read")
+                    .expect("metaxploit exists")
+                    .version;
 
-                (old, new, version, metaxploit)
-            })
-            .join()
-            .expect("the world runs")
-    });
+                    let visible_new = block_on(
+                        world
+                            .modules
+                            .libraries
+                            .generator
+                            .latest_full_library(LibraryKind::Ssh),
+                    )
+                    .expect("the released library is read")
+                    .expect("the released library exists")
+                    .zones
+                    .iter()
+                    .filter(|zone| !zone.hide)
+                    .map(|zone| zone.weaknesses.len())
+                    .sum::<usize>();
+
+                    (old, new, version, metaxploit, visible_new)
+                })
+                .join()
+                .expect("the world runs")
+        });
 
     assert_eq!(copy_version, after.version);
     assert_eq!(copy_metaxploit, metaxploit_after.version);
@@ -264,10 +280,18 @@ async fn should_match_the_game_exploits_of_a_version_it_released() {
         visible_weaknesses - patchable
     );
 
-    // The version released has an exploit for each visible weakness, aimed at it and later versions.
+    // `GeneraExploit` creates one offer per visible weakness in each world. New visible zones are then drawn independently
+    // in the game and the copy, so compare each offer list with the zones of its own released library, not with each other.
     let later = format!("libssh.so >= v{}", after.version);
+    let game_visible_new = after
+        .zones
+        .iter()
+        .filter(|zone| !zone.hide)
+        .map(|zone| zone.weaknesses.len())
+        .sum::<usize>();
 
-    assert_eq!(game_new.len(), copy_new.len());
+    assert_eq!(game_new.len(), game_visible_new, "{game_new:#?}");
+    assert_eq!(copy_new.len(), copy_visible_new, "{copy_new:#?}");
     assert!(
         game_new
             .iter()

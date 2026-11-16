@@ -1,7 +1,7 @@
 //! What scripts do to the processes of a computer through `ComputerIntrinsics`: listing and closing
 //! them.
 
-use greyhack_behaviour::{PROTECTED_PIDS, ROOT_USER};
+use greyhack_behaviour::{PROTECTED_PIDS, ROOT_USER, process_memory_percent};
 
 use crate::systems::ProcessService as ProcessesService;
 use crate::systems::computer::failure::ComputerFailure;
@@ -17,7 +17,7 @@ pub struct ProcessUsage {
     /// Processor use.
     pub cpu: f32,
     /// Share of the computer's memory in percent.
-    pub memory: f32,
+    pub memory: f64,
     /// Process name.
     pub name: String,
 }
@@ -44,16 +44,12 @@ impl ProcessesService {
     /// # Errors
     ///
     /// Returns any database read error.
-    #[expect(
-        clippy::cast_precision_loss,
-        reason = "ComputerIntrinsics.show_procs computes memory percentages with C# floats"
-    )]
     pub async fn process_usage(&self, computer: ComputerId) -> Result<Option<Vec<ProcessUsage>>> {
         if self.computer_rows.computer(computer).await?.is_none() {
             return Ok(None);
         }
 
-        let ram = self.hardware_rows.hardware(computer).await?.ram_mb() as f32;
+        let ram = self.hardware_rows.hardware(computer).await?.ram_mb();
 
         Ok(Some(
             self.process_table(computer)
@@ -63,7 +59,7 @@ impl ProcessesService {
                     user: process.user,
                     pid: process.pid,
                     cpu: process.cpu,
-                    memory: process.ram_mb * 100.0 / ram,
+                    memory: process_memory_percent(process.ram_mb, ram),
                     name: process.name,
                 })
                 .collect(),

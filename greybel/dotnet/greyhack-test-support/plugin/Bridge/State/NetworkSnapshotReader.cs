@@ -18,6 +18,28 @@ namespace GreyHackTestSupport.Plugin.Bridge.State;
 /// </summary>
 internal static class NetworkSnapshotReader
 {
+    private static ContactSnapshot ReadContact(Router router)
+    {
+        Persona admin = router.GetAdmin();
+        return admin == null
+            ? null
+            : new ContactSnapshot(
+                admin.GetNombreCompleto(),
+                admin.GetMailAdress(),
+                admin.npcInfo.GetPhoneNumber()
+            );
+    }
+
+    private static ContactSnapshot ReadRentalContact(NetworkLan lan)
+    {
+        if (!lan.IsSuperAdminRental())
+        {
+            return null;
+        }
+        NetworkLan.SuperAdminRentalHelper admin = lan.GetSuperAdminRental();
+        return new ContactSnapshot(admin.npcCompleteName, admin.mailAddress, admin.phoneNumber);
+    }
+
     /// <summary>Ticks of 1970-01-01, the zero of the snapshot's file dates.</summary>
     private const long UnixEpochTicks = 621355968000000000L;
 
@@ -30,7 +52,8 @@ internal static class NetworkSnapshotReader
         string debugUser,
         string debugPassword,
         string ctfEventName,
-        string trafficAccidentAt
+        string trafficAccidentAt,
+        string trafficAccidentDriver
     )
     {
         Router playerRouter = player.GetMainRouter();
@@ -38,6 +61,7 @@ internal static class NetworkSnapshotReader
             ServerMap.Singleton.GetRouter(new IP(playerRouter.GetPublicIP()), false)
             ?? playerRouter;
         NetworkLan lan = router.GetNetworkLan();
+        ServerMap.RouterNode routerNode = Database.Singleton.GetRouterNode(router.GetPublicIP());
         List<LanNodeSnapshot> nodes = new List<LanNodeSnapshot>();
 
         ReadDevice(router, lan, lan.routerDevice, null, player.GetID(), nodes);
@@ -50,9 +74,16 @@ internal static class NetworkSnapshotReader
             router.GetTipoRed().ToString(),
             router.GetWebAddress() ?? "",
             nodes,
-            NpcSnapshotReader.ReadAdmin(router.GetNetworkLan().GetAdminNpcInfo()),
+            NpcSnapshotReader.ReadAdmin(router),
+            ReadContact(router),
+            ReadRentalContact(lan),
             NpcSnapshotReader.ReadNpcs(router, lan),
-            NpcSnapshotReader.ReadTraffic(router, lan, trafficAccidentAt),
+            NpcSnapshotReader.ReadTraffic(
+                router,
+                lan,
+                trafficAccidentAt,
+                trafficAccidentDriver
+            ),
             economy.PlayerBank,
             AccountSnapshotReader.ReadMail(playerComputer.GetPlayerConfigOS().GetMailAccount()),
             AccountSnapshotReader.ReadMailAddress(
@@ -69,6 +100,7 @@ internal static class NetworkSnapshotReader
             router.GetNetworkLan().disabledNetwork,
             router.GetNetworkLan().IsSuperAdminRental(),
             (byte)router.GetNetworkLan().netSpeed,
+            new List<float> { routerNode.routerPos.x, routerNode.routerPos.y },
             Convert.FromBase64String(Database.Singleton.GetWorldSecret()),
             BankFixture.Read(playerComputer.GetPlayerID()),
             VersionsControl
@@ -161,9 +193,18 @@ internal static class NetworkSnapshotReader
     {
         FileSystem.Archivo kernel = router.GetFileSystem().GetArchivo("/lib/kernel_router.so");
 
-        return kernel == null
-            ? ""
-            : JsonConvert.DeserializeObject<Library>(kernel.GetContenido()).GetStrVersion();
+        if (kernel == null || !kernel.IsTypeFile(FileSystem.Fichero.TypeFile.Library))
+        {
+            return "";
+        }
+        try
+        {
+            return JsonConvert.DeserializeObject<Library>(kernel.GetContenido()).GetStrVersion();
+        }
+        catch (JsonException)
+        {
+            return "";
+        }
     }
 
     private static string ReadKernelContent(Router router)
@@ -183,9 +224,16 @@ internal static class NetworkSnapshotReader
     /// </summary>
     private static (string Service, string Version) ReadPortService(Router main, Puerto port)
     {
-        string[] words = main.GetPortVersion(port).Split(' ');
+        try
+        {
+            string[] words = main.GetPortVersion(port).Split(' ');
 
-        return (port.ID.ToString(), words.Length > 1 ? words[1] : "unknown");
+            return (port.ID.ToString(), words.Length > 1 ? words[1] : "unknown");
+        }
+        catch (JsonException)
+        {
+            return (port.ID.ToString(), "unknown");
+        }
     }
 
     /// <summary>Router port-table entry with its service and version, see <c>ReadPortService</c>.</summary>
@@ -211,7 +259,8 @@ internal static class NetworkSnapshotReader
             .Select(user => new UserSnapshot(
                 user.nombreUsuario,
                 user.passPlano,
-                user.grupos.ToList()
+                user.grupos.ToList(),
+                user.isDeletable
             ))
             .ToList();
     }
@@ -222,7 +271,12 @@ internal static class NetworkSnapshotReader
         List<UserSnapshot> users = ReadUsers(computer);
         List<ProcessSnapshot> processes = computer
             .GetProcesos()
-            .Select(process => new ProcessSnapshot(process.nombreProceso, process.nombreUser))
+            .Select(process => new ProcessSnapshot(
+                process.nombreProceso,
+                process.nombreUser,
+                process.isTerminal,
+                process.ramUsedMb
+            ))
             .ToList();
         List<Persona> npcs = new List<Persona>();
         if (!computer.IsSpawnedByPlayer() && !computer.IsRouter())
@@ -275,7 +329,13 @@ internal static class NetworkSnapshotReader
                 ))
                 .ToList(),
             computer.GetTipoRed().ToString(),
-            computer is SmartAppliance appliance ? ReadSmartAppliance(appliance) : null
+            computer is SmartAppliance appliance ? ReadSmartAppliance(appliance) : null,
+            computer.GetHardware().hardDisk.GetSizeMB(),
+            (computer as PlayerComputer)?.GetPlayerConfigOS().rentalHomeIP ?? "",
+            computer.GetConfigOS().IsRebooting(),
+            (uint)computer.GetHardware().GetTotalMemoryRam(),
+            computer.GetHardware().gpu?.health ?? 0,
+            computer.GetHardware().gpu?.hashrate ?? 0
         );
     }
 
@@ -360,7 +420,9 @@ internal static class NetworkSnapshotReader
                 Math.Max(
                     0L,
                     (entry.GetTimestamp().Ticks - UnixEpochTicks) / TimeSpan.TicksPerSecond
-                )
+                ),
+            entry.isProtected,
+            entry is FileSystem.Archivo archivo ? archivo.GetEncryptPassword() : ""
         );
     }
 }

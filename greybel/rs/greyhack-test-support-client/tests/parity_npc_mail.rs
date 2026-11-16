@@ -9,7 +9,7 @@
 use greybel_test_support::game::Game;
 
 use crate::support::game::{setup_player, test_client};
-use crate::support::parity::compare_in_real_time;
+use crate::support::parity::compare_in_on_waiting_clock;
 use crate::support::parity_npc_mail::{
     COOLDOWN, accounts, addresses, dismissal, join_mail_network, mail_npcs,
 };
@@ -139,7 +139,7 @@ print mails.len >= 1"#,
         player_password = player.password,
     );
 
-    compare_in_real_time(&client, &user, &snapshot, &[script]).await;
+    compare_in_on_waiting_clock(&client, &user, &snapshot, &[script]).await;
     client.shutdown();
 }
 
@@ -181,6 +181,6 @@ end for"#,
         cooldown = COOLDOWN,
     );
 
-    compare_in_real_time(&client, &user, &snapshot, &[script]).await;
+    compare_in_on_waiting_clock(&client, &user, &snapshot, &[script]).await;
     client.shutdown();
 }

@@ -1,17 +1,15 @@
 //! Helpers of the library version parity tests: a version the game released, and the same release in a copy of its state.
 
-use greybel_interpreter::RuntimeErrorKind;
 use greybel_test_support::future::block_on;
-use greybel_test_support::greyhack::run_on_host_at;
 use greybel_test_support::interpreter::constant_clock_options;
 use greyhack_behaviour::LibraryKind;
 use greyhack_test_support_client::TestClient;
 use greyhack_test_support_client::protocol::test_support::{LibraryReleasedReply, NetworkSnapshot};
 use greyhack_world::World;
 
-use super::intrinsics::{PROGRAM_NAME, snapshot_world};
+use super::intrinsics::{run_many_with_world, snapshot_world};
 use super::mirror::library;
-use super::parity::{Outcome, game_error, without_ack_counts};
+use super::parity::{Outcome, game_outcomes, outcomes_from_runs};
 
 /// A copy of `snapshot` whose newest libraries are the game's `registered` ones, which the game keeps in
 /// `VersionsControl.lastLibs` whether a computer has them or not.
@@ -32,45 +30,33 @@ pub fn copy_with_libraries(user: &str, snapshot: &NetworkSnapshot, registered: &
     world
 }
 
-/// Runs `script` in the game, then in the copy `make` builds on a thread of its own (the run blocks on its own executor,
-/// which can't run inside the test's runtime), and returns both outcomes.
-async fn run_apart(
+/// Runs `scripts` in order in the game and in one copy `make` builds, asserting both sequences match.
+async fn compare_runs(
     client: &TestClient,
     user: &str,
-    script: &str,
+    scripts: &[String],
     make: impl Fn() -> World + Sync,
-) -> (Outcome, Outcome) {
-    let result = client
-        .execute(script, "/project/test.src", "/project", PROGRAM_NAME)
-        .await
-        .unwrap_or_else(|error| panic!("{script}: {error}"));
-    let output = result.output.clone();
-    let actual = Outcome {
-        script: script.to_owned(),
-        failed: result.failed,
-        error: result.failed.then(|| game_error(&output)).flatten(),
-        output: (!result.failed).then(|| without_ack_counts(&output)),
-    };
-    let (output, error) = std::thread::scope(|scope| {
+) -> Vec<Outcome> {
+    let expected = std::thread::scope(|scope| {
         scope
             .spawn(|| {
-                let path = format!("/home/{user}/{PROGRAM_NAME}");
-                let run =
-                    run_on_host_at(script, make(), user, true, &path, constant_clock_options());
+                let scripts: Vec<&str> = scripts.iter().map(String::as_str).collect();
+                let results = run_many_with_world(&scripts, user, make(), constant_clock_options);
 
-                (run.terminal, run.error)
+                outcomes_from_runs(&scripts, results)
             })
             .join()
             .expect("the intrinsics run")
     });
-    let expected = Outcome {
-        script: script.to_owned(),
-        failed: error.is_some(),
-        output: error.is_none().then(|| without_ack_counts(&output)),
-        error: error.filter(|error| *error != RuntimeErrorKind::GameCrash.to_string()),
-    };
+    let actual = game_outcomes(
+        client,
+        &scripts.iter().map(String::as_str).collect::<Vec<_>>(),
+    )
+    .await;
 
-    (actual, expected)
+    assert_eq!(actual, expected);
+
+    actual
 }
 
 /// Runs each of `scripts` in the game and in a copy of `snapshot` whose newest libraries are the game's `registered`
@@ -82,19 +68,10 @@ pub async fn compare_with_libraries(
     registered: &[&str],
     scripts: &[String],
 ) -> Vec<Outcome> {
-    let mut outcomes = Vec::new();
-
-    for script in scripts {
-        let (actual, expected) = run_apart(client, user, script, || {
-            copy_with_libraries(user, snapshot, registered)
-        })
-        .await;
-
-        assert_eq!(actual, expected);
-        outcomes.push(actual);
-    }
-
-    outcomes
+    compare_runs(client, user, scripts, || {
+        copy_with_libraries(user, snapshot, registered)
+    })
+    .await
 }
 
 /// Releases the next version of the library file `name` in the game, which `snapshot` was read before, and in a copy
@@ -112,33 +89,26 @@ pub async fn compare_after_release(
         .await
         .expect("the game releases a version");
     let kind = LibraryKind::of_file(name).expect("a library of the game");
-    let mut outcomes = Vec::new();
+    let outcomes = compare_runs(client, user, scripts, || {
+        let world = copy_with_libraries(
+            user,
+            snapshot,
+            &[&released.before, &released.metaxploit_before],
+        );
 
-    for script in scripts {
-        let (actual, expected) = run_apart(client, user, script, || {
-            let world = copy_with_libraries(
-                user,
-                snapshot,
-                &[&released.before, &released.metaxploit_before],
-            );
-
-            block_on(
-                world
-                    .modules
-                    .libraries
-                    .versions
-                    .release_library_version(kind),
-            )
-            .expect("the version is released")
-            .expect("the library exists");
-
+        block_on(
             world
-        })
-        .await;
+                .modules
+                .libraries
+                .versions
+                .release_library_version(kind),
+        )
+        .expect("the version is released")
+        .expect("the library exists");
 
-        assert_eq!(actual, expected);
-        outcomes.push(actual);
-    }
+        world
+    })
+    .await;
 
     (released, outcomes)
 }

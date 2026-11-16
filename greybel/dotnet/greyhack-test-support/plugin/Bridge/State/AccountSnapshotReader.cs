@@ -55,7 +55,10 @@ internal static class AccountSnapshotReader
                     email.messages.Skip(1).Select(message => message.mensaje).ToList()
                 ))
                 .ToList(),
-            mail.npcContentsGenerated
+            mail.npcContentsGenerated,
+            mail.playerPcID ?? "",
+            (byte)mail.spamFilter,
+            mail.blacklist.ToList()
         );
     }
 

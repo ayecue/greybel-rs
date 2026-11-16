@@ -1,4 +1,4 @@
-use greyhack_behaviour::{FileData, timestamp_hash};
+use greyhack_behaviour::{FileData, file_size_mb, stored_file_size_mb, timestamp_hash};
 
 #[test]
 fn should_hash_timestamps_over_utf16_code_units() {
@@ -19,4 +19,19 @@ fn should_recompute_text_and_nondefault_program_sizes() {
     assert_eq!(text.size, 4);
     assert_eq!(program.size, 2);
     assert_eq!(default_program.size, 99);
+}
+
+#[test]
+fn should_compare_and_store_file_megabytes_at_the_csharp_precision_boundaries() {
+    assert_eq!(file_size_mb(1), 9.999_999_974_752_427e-7);
+    assert_eq!(stored_file_size_mb(1), 1E-6_f32);
+    assert!(file_size_mb(1) <= f64::from(1E-6_f32));
+    assert!(1.0_f64 / 1_000_000.0 > f64::from(1E-6_f32));
+}
+
+#[test]
+fn should_truncate_the_unrounded_program_size_product_like_the_game() {
+    let program = FileData::binary_from_source(&"a".repeat(2080));
+
+    assert_eq!(program.size, 1351);
 }

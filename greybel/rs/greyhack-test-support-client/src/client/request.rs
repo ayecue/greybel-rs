@@ -90,6 +90,24 @@ pub(super) enum RequestKind {
         user: String,
         password: String,
     },
+    ConfigureEconomy {
+        fixture: String,
+        coin: String,
+        wallet: String,
+        subwallet: String,
+    },
+    ConfigureMail {
+        fixture: String,
+        address: String,
+        sender: String,
+    },
+    DeleteCtf {
+        event_name: String,
+    },
+    ConfigureAppliance {
+        local_ip: String,
+        fixture: String,
+    },
     SetupForeignCoin {
         coin_name: String,
         user: String,
@@ -218,6 +236,10 @@ pub(super) enum RequestKind {
         difficulty: i64,
     },
     SpawnCtfNetwork,
+    ConfigureComputer {
+        local_ip: String,
+        fixture: String,
+    },
 }
 
 /// A guild the game gets: see `SetupGuildRpc`.

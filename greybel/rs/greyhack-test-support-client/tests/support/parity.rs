@@ -1,12 +1,16 @@
 //! Compares outcomes of the same scripts in live Grey Hack and the intrinsics.
 
+use std::future::Future;
+use std::sync::Arc;
+
 use greybel_interpreter::RuntimeErrorKind;
-use greyhack_test_support_client::TestClient;
 use greyhack_test_support_client::protocol::test_support::NetworkSnapshot;
+use greyhack_test_support_client::{ExecutionStep, TestClient};
 
 use super::intrinsics::{
-    PROGRAM_NAME, run_in_snapshot, run_in_snapshot_flooded, run_in_snapshot_on_waiting_clock,
-    run_in_snapshot_real_time, run_interactive_in_snapshot, run_on_new_player,
+    PROGRAM_NAME, run_interactive_action_in_snapshot, run_interactive_in_snapshot,
+    run_many_in_snapshot, run_many_in_snapshot_real_time, run_many_in_snapshot_with_floods,
+    run_many_in_snapshot_with_wait_clock, run_many_in_snapshots, run_many_on_new_player,
     run_pair_in_snapshot,
 };
 
@@ -123,6 +127,60 @@ pub async fn compare_interactive(
     assert_eq!(actual, expected);
 }
 
+/// Runs an interactive script with an action before each input on both sides.
+pub async fn compare_interactive_action<F>(
+    client: &TestClient,
+    user: &str,
+    snapshot: &NetworkSnapshot,
+    script: &str,
+    inputs: &[String],
+    mirror_action: Arc<dyn Fn(&greyhack_world::World) + Send + Sync>,
+    mut game_action: impl FnMut() -> F,
+) where
+    F: Future<Output = ()> + Send,
+{
+    let (output, error) = std::thread::scope(|scope| {
+        scope
+            .spawn(|| {
+                run_interactive_action_in_snapshot(script, user, snapshot, inputs, mirror_action)
+            })
+            .join()
+            .expect("the interactive action run")
+    });
+    let expected = Outcome {
+        script: script.to_owned(),
+        failed: error.is_some(),
+        output: error.is_none().then(|| without_ack_counts(&output)),
+        error: error.filter(|error| *error != RuntimeErrorKind::GameCrash.to_string()),
+    };
+    let mut step = client
+        .execute_until_input(script, "/project/test.src", "/project", PROGRAM_NAME)
+        .await
+        .unwrap_or_else(|error| panic!("{script}: {error}"));
+    let mut inputs = inputs.iter();
+    let result = loop {
+        match step {
+            ExecutionStep::Input => {
+                game_action().await;
+                step = client
+                    .type_input(inputs.next().map_or("", String::as_str))
+                    .await
+                    .unwrap_or_else(|error| panic!("{script}: {error}"));
+            }
+            ExecutionStep::End(result) => break result,
+        }
+    };
+    let output = result.output.clone();
+    let actual = Outcome {
+        script: script.to_owned(),
+        failed: result.failed,
+        error: result.failed.then(|| game_error(&output)).flatten(),
+        output: (!result.failed).then(|| without_ack_counts(&output)),
+    };
+
+    assert_eq!(actual, expected);
+}
+
 /// Executes two scripts concurrently in independent game contexts.
 pub async fn game_pair_outcomes(client: &TestClient, scripts: [&str; 2]) -> [Outcome; 2] {
     let result = client
@@ -160,38 +218,47 @@ pub async fn game_pair_outcomes(client: &TestClient, scripts: [&str; 2]) -> [Out
 
 /// Runs each script through the intrinsics as admin `user` and returns outcomes in input order.
 pub fn intrinsics_outcomes(scripts: &[&str], user: &str) -> Vec<Outcome> {
-    outcomes(scripts, |script| run_on_new_player(script, user))
+    outcomes(scripts, |scripts| run_many_on_new_player(scripts, user))
 }
 
 /// Runs each script as [`intrinsics_outcomes`] does, in the simulated copy of `snapshot`: the player's network with
 /// its NPCs, the game's date and the global economy. Never only the network's layout: NPC logins decide active users,
-/// phones and administrators.
+/// phones and administrators. All scripts share one world, in input order.
 pub fn snapshot_outcomes(scripts: &[&str], user: &str, snapshot: &NetworkSnapshot) -> Vec<Outcome> {
-    outcomes(scripts, |script| run_in_snapshot(script, user, snapshot))
+    outcomes(scripts, |scripts| {
+        run_many_in_snapshot(scripts, user, snapshot)
+    })
 }
 
-/// The outcome of `run` for each script, in input order.
+/// The outcome of every script run, in input order.
 fn outcomes(
     scripts: &[&str],
-    run: impl Fn(&str) -> (String, Option<String>) + Sync,
+    run: impl Fn(&[&str]) -> Vec<(String, Option<String>)> + Sync,
+) -> Vec<Outcome> {
+    // On a thread of its own: the run blocks on its own executor, which can't run inside the test's runtime.
+    let results = std::thread::scope(|scope| {
+        scope
+            .spawn(|| run(scripts))
+            .join()
+            .expect("the intrinsics run")
+    });
+
+    outcomes_from_runs(scripts, results)
+}
+
+/// Converts each script's printed output and error into an [`Outcome`].
+pub fn outcomes_from_runs(
+    scripts: &[&str],
+    results: Vec<(String, Option<String>)>,
 ) -> Vec<Outcome> {
     scripts
         .iter()
-        .map(|script| {
-            // On a thread of its own: the run blocks on its own executor, which can't run inside the test's runtime.
-            let (output, error) = std::thread::scope(|scope| {
-                scope
-                    .spawn(|| run(script))
-                    .join()
-                    .expect("the intrinsics run")
-            });
-
-            Outcome {
-                script: (*script).to_owned(),
-                failed: error.is_some(),
-                output: error.is_none().then(|| without_ack_counts(&output)),
-                error: error.filter(|error| *error != RuntimeErrorKind::GameCrash.to_string()),
-            }
+        .zip(results)
+        .map(|(script, (output, error))| Outcome {
+            script: (*script).to_owned(),
+            failed: error.is_some(),
+            output: error.is_none().then(|| without_ack_counts(&output)),
+            error: error.filter(|error| *error != RuntimeErrorKind::GameCrash.to_string()),
         })
         .collect()
 }
@@ -202,24 +269,9 @@ fn real_time_snapshot_outcomes(
     user: &str,
     snapshot: &NetworkSnapshot,
 ) -> Vec<Outcome> {
-    scripts
-        .iter()
-        .map(|script| {
-            let (output, error) = std::thread::scope(|scope| {
-                scope
-                    .spawn(|| run_in_snapshot_real_time(script, user, snapshot))
-                    .join()
-                    .expect("the intrinsics run")
-            });
-
-            Outcome {
-                script: (*script).to_owned(),
-                failed: error.is_some(),
-                output: error.is_none().then(|| without_ack_counts(&output)),
-                error: error.filter(|error| *error != RuntimeErrorKind::GameCrash.to_string()),
-            }
-        })
-        .collect()
+    outcomes(scripts, |scripts| {
+        run_many_in_snapshot_real_time(scripts, user, snapshot)
+    })
 }
 
 /// Runs `scripts` in the game and in a simulated network laid out like `snapshot`, asserts both give the same, and
@@ -240,6 +292,40 @@ pub async fn compare_in(
     actual
 }
 
+/// [`compare_in`] with the fixture state included in a failed assertion.
+pub async fn compare_labeled(
+    client: &TestClient,
+    user: &str,
+    snapshot: &NetworkSnapshot,
+    label: &str,
+    scripts: &[String],
+) -> Vec<Outcome> {
+    let scripts: Vec<&str> = scripts.iter().map(String::as_str).collect();
+    let expected = snapshot_outcomes(&scripts, user, snapshot);
+    let actual = game_outcomes(client, &scripts).await;
+
+    assert_eq!(actual, expected, "{label}");
+
+    actual
+}
+
+/// [`compare_labeled`] with additional networks mirrored without joining them.
+pub async fn compare_labeled_with_networks(
+    client: &TestClient,
+    user: &str,
+    base: &NetworkSnapshot,
+    additional: &[NetworkSnapshot],
+    label: &str,
+    script: &str,
+) {
+    let expected = outcomes(&[script], |scripts| {
+        run_many_in_snapshots(scripts, user, base, additional)
+    });
+    let actual = game_outcomes(client, &[script]).await;
+
+    assert_eq!(actual, expected, "{label}");
+}
+
 /// [`compare_in`] after priming the same flood counts as the game fixture.
 pub async fn compare_in_flooded(
     client: &TestClient,
@@ -248,29 +334,26 @@ pub async fn compare_in_flooded(
     scripts: &[String],
     floods: &[(String, String, u32)],
 ) -> Vec<Outcome> {
-    let scripts: Vec<&str> = scripts.iter().map(String::as_str).collect();
-    let expected = scripts
-        .iter()
-        .map(|script| {
-            let (output, error) = std::thread::scope(|scope| {
-                scope
-                    .spawn(|| run_in_snapshot_flooded(script, user, snapshot, floods))
-                    .join()
-                    .expect("the intrinsics run")
-            });
+    compare_in_flooded_labeled(client, user, snapshot, "flooded", scripts, floods).await
+}
 
-            Outcome {
-                script: (*script).to_owned(),
-                failed: error.is_some(),
-                output: error.is_none().then(|| without_ack_counts(&output)),
-                error: error.filter(|error| *error != RuntimeErrorKind::GameCrash.to_string()),
-            }
-        })
-        .collect::<Vec<_>>();
+/// [`compare_in_flooded`] with the fixture state included in a failed assertion.
+pub async fn compare_in_flooded_labeled(
+    client: &TestClient,
+    user: &str,
+    snapshot: &NetworkSnapshot,
+    label: &str,
+    scripts: &[String],
+    floods: &[(String, String, u32)],
+) -> Vec<Outcome> {
+    let scripts: Vec<&str> = scripts.iter().map(String::as_str).collect();
+    let expected = outcomes(&scripts, |scripts| {
+        run_many_in_snapshot_with_floods(scripts, user, snapshot, floods)
+    });
 
     let actual = game_outcomes(client, &scripts).await;
 
-    assert_eq!(actual, expected);
+    assert_eq!(actual, expected, "{label}");
 
     actual
 }
@@ -280,6 +363,17 @@ pub async fn compare_pair_in(
     client: &TestClient,
     user: &str,
     snapshot: &NetworkSnapshot,
+    scripts: [&str; 2],
+) {
+    compare_pair_labeled(client, user, snapshot, "concurrent pair", scripts).await;
+}
+
+/// [`compare_pair_in`] with the fixture state included in a failed assertion.
+pub async fn compare_pair_labeled(
+    client: &TestClient,
+    user: &str,
+    snapshot: &NetworkSnapshot,
+    label: &str,
     scripts: [&str; 2],
 ) {
     let expected = std::thread::scope(|scope| {
@@ -301,7 +395,8 @@ pub async fn compare_pair_in(
 
     assert_eq!(
         actual.into_iter().collect::<Vec<_>>(),
-        expected.collect::<Vec<_>>()
+        expected.collect::<Vec<_>>(),
+        "{label}"
     );
 }
 
@@ -313,8 +408,8 @@ pub async fn compare_in_on_waiting_clock(
     scripts: &[String],
 ) -> Vec<Outcome> {
     let scripts: Vec<&str> = scripts.iter().map(String::as_str).collect();
-    let expected = outcomes(&scripts, |script| {
-        run_in_snapshot_on_waiting_clock(script, user, snapshot)
+    let expected = outcomes(&scripts, |scripts| {
+        run_many_in_snapshot_with_wait_clock(scripts, user, snapshot)
     });
     let actual = game_outcomes(client, &scripts).await;
 

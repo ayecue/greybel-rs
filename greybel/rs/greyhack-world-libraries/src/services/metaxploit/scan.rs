@@ -102,6 +102,12 @@ impl Metaxploit {
             .full_library_of(&node)
             .await?
             .is_some()
-            .then_some(node.path))
+            .then(|| {
+                if path.starts_with('/') {
+                    path.to_owned()
+                } else {
+                    node.path
+                }
+            }))
     }
 }

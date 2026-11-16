@@ -1981,6 +1981,7 @@ dependencies = [
  "greyhack-world-smart-devices",
  "greyhack-world-storage",
  "mono-random",
+ "serde_json",
  "turso",
 ]
 
@@ -2090,6 +2091,7 @@ dependencies = [
  "greyhack-world-smart-devices",
  "greyhack-world-storage",
  "greyhack-world-traces",
+ "serde_json",
  "turso",
 ]
 

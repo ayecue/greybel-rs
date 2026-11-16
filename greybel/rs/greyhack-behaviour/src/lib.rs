@@ -38,8 +38,8 @@ pub use computer::computers::{
     CLOCK_PROGRAM_NAME, CLOCK_PROGRAM_PATH, DeviceKind, FIRST_SPAWN_PID, FLOOD_REBOOT_MINUTES,
     MAX_LAUNCH_DEPTH, MAX_PROCESS_NAME, MAX_TERMINALS, MAX_USERS, PROCESS_RAM_MB, PROTECTED_PIDS,
     REBOOT_MINUTES, RESERVED_PROCESS_NAMES, SAFE_MODE_TERMINAL, SAFE_MODE_TERMINAL_RAM_MB,
-    SESSION_PROCESS, SYSTEM_PROCESSES, check_process_name, is_system_process, reboot_seconds,
-    session_pid,
+    SESSION_PROCESS, SYSTEM_PROCESSES, check_process_name, is_system_process,
+    process_memory_percent, reboot_seconds, session_pid,
 };
 pub use computer::credentials::{
     AccountRefusal, CredentialError, GUEST_USER, MAX_CREDENTIAL, MAX_CTF_PASSWORD,
@@ -56,7 +56,7 @@ pub use computer::filesystem::kinds::{Command, FileKind};
 pub use computer::filesystem::limits::{
     BYTES_PER_MB, MAX_CONTENT, MAX_FILES, MAX_FILES_PER_FOLDER, MAX_IMPORTED_CODE, MAX_NAME,
     MAX_SYMLINKS, METADATA_SIZE, check_content, check_file_name, check_folder_name, check_new_name,
-    check_target_name,
+    check_target_name, file_size_mb, stored_file_size_mb,
 };
 pub use computer::filesystem::paths::{
     BASH_PATH, DOWNLOADS_PATH, PASSWD_FOLDER, PASSWD_NAME, PASSWD_PATH, WEBSITE_PATH,

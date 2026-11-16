@@ -159,12 +159,43 @@ protocol TestSupport = "greyhack_test_support" {
             user: string,
             password: string,
         }
+        /// Applies a mail fixture. `long_body` adds a long incoming message; the other cases set recipient filters or
+        /// delete an account while a script is paused.
+        message ConfigureMailRpc {
+            request: u32,
+            /// `long_body`, `blacklist`, `block_players`, `block_npcs`, `npc_sender`, or `delete_account`.
+            fixture: string,
+            address: string,
+            sender: string,
+        }
+        /// Deletes a CTF event after its object has been created.
+        message DeleteCtfRpc {
+            request: u32,
+            event_name: string,
+        }
+        /// Applies an appliance fault or puts its next accident within five minutes of the current clock.
+        message ConfigureApplianceRpc {
+            request: u32,
+            local_ip: string,
+            /// `broken` or `timed_accident`.
+            fixture: string,
+        }
         /// Sets up a coin owned by a fixture counterparty, with creator credentials a script can use but not reset.
         message SetupForeignCoinRpc {
             request: u32,
             coin_name: string,
             user: string,
             password: string,
+        }
+        /// Applies an exact economy boundary state through the game's wallet, coin, database and hardware methods.
+        /// `wallet` and `subwallet` identify the account where the fixture needs one.
+        message ConfigureEconomyRpc {
+            request: u32,
+            /// `delete_wallet`, `delete_coin`, `delete_subwallet`, `unbanked_wallet`, `fully_mined`, or `damaged_gpu`.
+            fixture: string,
+            coin: string,
+            wallet: string,
+            subwallet: string,
         }
         /// Forwards a public port on the player's current main router to a LAN service using the router port table.
         message ForwardServiceRpc {
@@ -444,6 +475,20 @@ protocol TestSupport = "greyhack_test_support" {
         message SpawnCtfNetworkRpc {
             request: u32,
         }
+        /// Configures a deterministic computer boundary or fault state through the game's own computer, filesystem,
+        /// hardware and configuration methods. Empty `local_ip` selects the player computer. Supported fixtures are
+        /// `permissions`, `users`, `full_folder`, `full_filesystem`, `full_disk`, `disabled_wifi`, `ethernet_home`,
+        /// `missing_isp`, `deep_tree`, `low_ram`, `terminal_limit`, `rebooting`, `closed_public_service`,
+        /// `missing_machine`, `missing_ssh_service`, `unreachable`, `firewall_deny`, `chat_program`, and
+        /// `gui_program`, `root_only`, `startup_error`, `malformed_metaxploit`, `ssh_service`, `missing_kernel`,
+        /// `invalid_kernel`, `symlink_kernel`, `closed_ports`, `home_readonly`, `crypto_files`, `distant_router`,
+        /// `unsupported_monitor`,
+        /// `invalid_smtp_target`, and `missing_smtp_service`.
+        message ConfigureComputerRpc {
+            request: u32,
+            local_ip: string,
+            fixture: string,
+        }
     }
 
     /// Rust test client that receives plugin replies.
@@ -657,6 +702,8 @@ struct CompanySnapshot {
     public_ip: string,
     seed: i32,
     holders: list<HolderSnapshot>,
+    /// Whether the listed company currently has its DDoS ranking penalty.
+    ddos_penalty: bool,
 }
 
 /// Shares one bank account holds of a company (`StocksCompany.stocks`).
@@ -731,6 +778,8 @@ struct AdminSnapshot {
     /// `NpcInfo.WorkStatus` number.
     work_performance: u8,
     dead_or_fired: bool,
+    /// Whether `Router.admin` exists. `Computer.ValidateUserPass` checks this Persona, not `adminInfo` alone.
+    persona_exists: bool,
     /// Account name of the NPC (`NpcInfo.GetSurname`).
     user: string,
 }
@@ -791,6 +840,15 @@ struct TrafficSnapshot {
     override_used: bool,
     /// Frozen game date when the accident ran, allowing the mirror to expire its world-time cooldown identically.
     accident_at: string?,
+    /// Username of the exact driver passed to `PlayerHelperServer.SetNpcInfoCar` for the accident.
+    accident_driver: string?,
+}
+
+/// Administrative contact returned by `whois`.
+struct ContactSnapshot {
+    name: string,
+    mail: string,
+    phone: string,
 }
 
 struct NetworkSnapshot {
@@ -803,6 +861,10 @@ struct NetworkSnapshot {
     nodes: list<LanNodeSnapshot>,
     /// Network's administrator (`NetworkLan.adminInfo`), if it has one.
     admin?: AdminSnapshot,
+    /// Ordinary administrative contact (`Router.GetAdmin`), if it has one.
+    contact: ContactSnapshot?,
+    /// Hired rental administrator's contact (`NetworkLan.SuperAdminRentalHelper`), if active.
+    rental_contact: ContactSnapshot?,
     /// All NPCs and their exact schedules read by the traffic intrinsics (`NetworkLan.npcInfos`).
     npcs: list<NpcSnapshot>,
     /// Police traffic-camera credentials and override state, present only for a police network.
@@ -833,6 +895,8 @@ struct NetworkSnapshot {
     rental_admin: bool,
     /// Network's connection speed (`NetworkLan.netSpeed`).
     net_speed: u8,
+    /// Main router map position (`ServerMap.RouterNode.routerPos`) as `[x, y]`.
+    position: list<f32>,
     /// Secret from which every derived value is generated (`InfoGen.WorldSecret`).
     world_secret: bytes,
     /// The player's monthly bank payments (`BankSubs.Payment`), bank fees first, then rentals, then admins.
@@ -864,6 +928,11 @@ struct MailAccountSnapshot {
     emails: list<MailSnapshot>,
     /// True if the NPC's mails were generated (`UserMail.npcContentsGenerated`).
     generated: bool,
+    /// Player computer ID, empty for an NPC account (`UserMail.playerPcID`).
+    player_pc_id: string,
+    /// Spam filter mode: 0 blocks all players, 1 blocks NPC senders, 2 allows them.
+    spam_filter: u8,
+    blacklist: list<string>,
 }
 
 /// Inbox message, including the first message of its thread (`UserMail.Mail`).
@@ -1023,6 +1092,18 @@ struct ComputerSnapshot {
     network_kind: string,
     /// Settings for a fridge or microwave (`SmartAppliance`).
     smart?: SmartApplianceSnapshot,
+    /// Total hard-disk capacity in MB (`Hardware.HardDisk.totalSize`).
+    disk_mb: f32,
+    /// Player home network used for Ethernet (`PlayerConfigOS.rentalHomeIP`), empty on other computers.
+    rental_home_ip: string,
+    /// Whether `ConfigOS.IsRebooting` currently makes the computer unavailable.
+    rebooting: bool,
+    /// Total RAM in MB (`Hardware.GetTotalMemoryRam`).
+    ram_mb: u32,
+    /// Installed GPU health, or 0 without a GPU (`Hardware.gpu.health`).
+    gpu_health: f32,
+    /// Installed GPU hash rate, or 0 without a GPU (`Hardware.gpu.hashrate`).
+    gpu_hashrate: f32,
 }
 
 /// Smart appliance's model and settings (`SmartAppliance.Model`, `SmartAppConfigOS`).
@@ -1059,6 +1140,10 @@ struct NetCardSnapshot {
 struct ProcessSnapshot {
     name: string,
     user: string,
+    /// `Computer.Proceso.isTerminal`, counted by the 15-terminal launch guard.
+    terminal: bool,
+    /// `Computer.Proceso.ramUsedMb`, included in subsequent launch RAM checks.
+    ram_mb: f32,
 }
 
 /// User account (`Computer.User`).
@@ -1066,6 +1151,8 @@ struct UserSnapshot {
     name: string,
     password: string,
     groups: list<string>,
+    /// Whether `Computer.DeleteUser` may remove the account (`Computer.User.isDeletable`).
+    deletable: bool,
 }
 
 /// Port a device listens on (`Puerto`), with the version of its service's library.
@@ -1096,6 +1183,10 @@ struct FileSnapshot {
     /// The file's date, in seconds since 1970-01-01 (`Fichero.GetTimestamp`): for the active system log, that of its
     /// last entry.
     timestamp: u64,
+    /// Whether game permission checks treat the file as protected (`Fichero.isProtected`).
+    protected: bool,
+    /// Password set by `Archivo.Encrypt`, empty for an unencrypted file.
+    encrypt_password: string,
 }
 
 /// A mission of the game: its group of addresses, the mission as JSON (the parts `MissionGen.GetMission` or
@@ -1151,6 +1242,8 @@ struct FixtureTarget {
     location: string,
     /// Empty means use the normal generated root password; otherwise set this password.
     root_password: string,
+    /// Empty for a valid SSH library, or missing/invalid/unexpected/malformed for the initial libssh state.
+    library_state: string,
     services: list<FixtureService>,
 }
 

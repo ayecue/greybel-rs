@@ -26,8 +26,11 @@ internal static class EconomySnapshotReader
         if (!string.IsNullOrEmpty(playerWallet) && !wallets.ContainsKey(playerWallet))
         {
             BlockchainSystem.Wallet wallet = Database.Singleton.GetWallet(playerWallet);
-            wallets.Add(playerWallet, ReadWallet(wallet));
-            ReadBank(wallet.GetUserBank(), banks);
+            if (wallet != null)
+            {
+                wallets.Add(playerWallet, ReadWallet(wallet));
+                ReadBank(wallet.GetUserBank(), banks);
+            }
         }
         foreach (string name in Database.Singleton.GetCoinNames())
         {
@@ -38,8 +41,11 @@ internal static class EconomySnapshotReader
                 if (!wallets.ContainsKey(walletId))
                 {
                     BlockchainSystem.Wallet wallet = Database.Singleton.GetWallet(walletId);
-                    wallets.Add(walletId, ReadWallet(wallet));
-                    ReadBank(wallet.GetUserBank(), banks);
+                    if (wallet != null)
+                    {
+                        wallets.Add(walletId, ReadWallet(wallet));
+                        ReadBank(wallet.GetUserBank(), banks);
+                    }
                 }
             }
             foreach (KeyValuePair<string, BlockchainSystem.HelperOffer> offer in coin.buyOffers)

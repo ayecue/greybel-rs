@@ -2,10 +2,11 @@
 
 use greyhack_behaviour::{
     APT_PACKAGE_SIZE, FileData, FileKind, LibraryKind, OFFICIAL_OMISSIONS, OFFICIAL_SERVER,
-    PermissionSet, ROOT_USER, default_apt_install_folder,
+    PermissionSet, ROOT_USER, default_apt_install_folder, file_size_mb, path,
 };
 use greyhack_world_core::{ComputerId, LibraryId, NodeDraft, Result};
 
+use super::updates::AptCache;
 use crate::services::Apt;
 use crate::{AptFailure, PackageEntry, RepositoryConfig};
 
@@ -34,6 +35,10 @@ pub(super) fn repository_packages(config: &RepositoryConfig) -> impl Iterator<It
 
 /// Methods of [`World`] for services apt packages.
 impl Apt {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Apt install preserves the game's validation and repository error order"
+    )]
     pub async fn install_apt_package(
         &self,
         computer: ComputerId,
@@ -42,11 +47,23 @@ impl Apt {
         folder: &str,
         terminal_computers: &[ComputerId],
     ) -> Result<Result<(), AptFailure>> {
-        let official = match self.apt_cache_official(computer).await? {
-            Ok(official) => official,
+        if !self
+            .networks
+            .reach
+            .is_network_active(computer, terminal_computers)
+            .await?
+        {
+            return Ok(Err(AptFailure::NoInternet));
+        }
+
+        let content = match self.apt_cache_content(computer).await? {
+            Ok(content) => content,
             Err(failure) => return Ok(Err(failure)),
         };
-        let repositories = self.apt_sources(computer).await?;
+        let Ok(cache) = serde_json::from_str::<AptCache>(&content) else {
+            return Ok(Err(AptFailure::MalformedCache));
+        };
+        let official = cache.official_server;
 
         if official
             && !OFFICIAL_OMISSIONS.contains(&package)
@@ -73,6 +90,13 @@ impl Apt {
             let Some(target) = self.files.lookup.folder(computer, folder, true).await? else {
                 return Ok(Err(AptFailure::MissingFolder(folder.to_owned())));
             };
+
+            if file_size_mb(APT_PACKAGE_SIZE)
+                > self.files.sizes.available_storage_mb(computer).await?
+            {
+                return Ok(Err(AptFailure::NoSpace));
+            }
+
             let user = self.computers.users.user(computer, user).await?;
 
             if !self
@@ -92,13 +116,34 @@ impl Apt {
             return Ok(Ok(()));
         }
 
-        for source in &repositories {
-            let Some((server, source_path)) = self
-                .source_package(computer, source, package, terminal_computers)
-                .await?
-            else {
+        for (address, server_entry) in &cache.server_list {
+            if !server_entry.package_list.contains_key(package) {
                 continue;
+            }
+
+            let source = greyhack_behaviour::AptSource {
+                address: address.clone(),
+                port: server_entry.server_port,
             };
+            let (server, source_path) = match self
+                .source_package(computer, &source, package, terminal_computers)
+                .await?
+            {
+                Ok(package) => package,
+                Err(AptFailure::UnknownRepository(_)) => continue,
+                Err(failure) => return Ok(Err(failure)),
+            };
+
+            if self
+                .files
+                .lookup
+                .folder(server, path::parent(&source_path), true)
+                .await?
+                .is_none()
+            {
+                return Ok(Err(AptFailure::MissingRepositoryFolder));
+            }
+
             let Some(node) = self.files.lookup.file(server, &source_path, true).await? else {
                 return Ok(Err(AptFailure::MissingPackageFile(package.to_owned())));
             };
@@ -148,7 +193,7 @@ impl Apt {
         }
 
         for source in &self.apt_sources(computer).await? {
-            if let Some((_, config)) = self
+            if let Ok((_, config)) = self
                 .remote_repository(computer, source, terminal_computers)
                 .await?
             {
@@ -171,13 +216,17 @@ impl Apt {
         repository: &str,
         terminal_computers: &[ComputerId],
     ) -> Result<Result<Vec<PackageEntry>, AptFailure>> {
-        if let Err(failure) = self.apt_cache_official(computer).await? {
+        if let Err(failure) = self.apt_cache_content(computer).await? {
             return Ok(Err(failure));
         }
 
-        // `AptClientIntrinsics.show` answers `official_server` whatever the cache's `official_server` says.
+        // `AptClientIntrinsics.show` answers `official_server` before it deserializes the cache.
         if repository == OFFICIAL_SERVER {
             return Ok(Ok(official_packages().collect()));
+        }
+
+        if let Err(failure) = self.apt_cache_official(computer).await? {
+            return Ok(Err(failure));
         }
 
         for source in &self.apt_sources(computer).await? {
@@ -185,7 +234,7 @@ impl Apt {
                 continue;
             }
 
-            let Some((_, config)) = self
+            let Ok((_, config)) = self
                 .remote_repository(computer, source, terminal_computers)
                 .await?
             else {

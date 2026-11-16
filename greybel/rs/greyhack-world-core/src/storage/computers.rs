@@ -16,7 +16,7 @@ use crate::{
 /// Database columns for [`Computer`].
 const COMPUTER_COLUMNS: &str = "computers.id, computers.kind, computers.network_id, computers.parent_id, \
      computers.router_id, computers.gateway, computers.name, computers.local_ip, computers.next_pid, \
-     computers.reboot_end, computers.hidden, computers.npc_owner, computers.network_kind FROM computers";
+     computers.reboot_end, computers.hidden, computers.npc_owner, computers.network_kind, computers.rental_home_ip FROM computers";
 
 /// Database columns for [`Port`], including its library version.
 const PORT_COLUMNS: &str = "computer_ports.number, computer_ports.service, libraries.version, computer_ports.closed, \
@@ -46,6 +46,7 @@ impl FromRow for Computer {
             hidden: row.get("hidden")?,
             npc_owner: row.get::<Option<u32>>("npc_owner")?.map(PersonId),
             network_kind: row.get_code("network_kind")?,
+            rental_home_ip: row.get("rental_home_ip")?,
         })
     }
 }
@@ -200,7 +201,7 @@ impl ComputerRepository {
     pub async fn save_computer(&self, computer: &Computer) -> Result<()> {
         execute(
             &self.db.connection(),
-            "UPDATE computers SET kind = ?2, name = ?3, local_ip = ?4, next_pid = ?5, reboot_end = ?6 WHERE id = ?1",
+            "UPDATE computers SET kind = ?2, name = ?3, local_ip = ?4, next_pid = ?5, reboot_end = ?6, rental_home_ip = ?7 WHERE id = ?1",
             params![
                 computer.id.0,
                 computer.kind.code(),
@@ -208,6 +209,7 @@ impl ComputerRepository {
                 computer.local_ip.as_str(),
                 computer.next_pid,
                 seconds(computer.reboot_end),
+                computer.rental_home_ip.as_str(),
             ],
         )
         .await?;
@@ -246,9 +248,9 @@ impl ComputerRepository {
         let id = insert(
             &self.db.connection(),
             "INSERT INTO computers (kind, network_id, parent_id, parent_seq, router_id, gateway, name, local_ip, \
-             next_pid, reboot_end, hidden, npc_owner, network_kind) VALUES (?1, ?2, ?3, CASE WHEN ?3 IS NULL THEN \
+             next_pid, reboot_end, hidden, npc_owner, network_kind, rental_home_ip) VALUES (?1, ?2, ?3, CASE WHEN ?3 IS NULL THEN \
              NULL ELSE (SELECT COALESCE(MAX(parent_seq), 0) + 1 FROM computers WHERE parent_id = ?3) END, ?4, ?5, \
-             ?6, ?7, ?8, ?9, ?10, ?11, COALESCE(?12, (SELECT kind FROM networks WHERE id = ?2)))",
+             ?6, ?7, ?8, ?9, ?10, ?11, COALESCE(?12, (SELECT kind FROM networks WHERE id = ?2)), ?13)",
             params![
                 draft.kind.code(),
                 network.0,
@@ -262,6 +264,7 @@ impl ComputerRepository {
                 draft.hidden,
                 draft.npc_owner.map(|person| person.0),
                 draft.network_kind.map(NetworkKind::code),
+                draft.rental_home_ip.as_str(),
             ],
         )
         .await?;

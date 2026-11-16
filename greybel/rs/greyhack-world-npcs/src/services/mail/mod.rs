@@ -8,6 +8,14 @@ use greyhack_world_core::{PersonId, Result, WorldRef};
 use greyhack_world_modules::Dep;
 pub use messages::{MailRefusal, SendMailFailure};
 
+/// Spam-filter state carried by a mirrored `UserMail`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MailSpamConfig {
+    pub player_pc_id: String,
+    pub filter: u8,
+    pub blacklist: Vec<String>,
+}
+
 use crate::storage::{MailRepository, NetworkAdminRepository, NpcRepository};
 
 /// Mail accounts, messages, NPC inboxes, and SMTP users.
@@ -40,6 +48,15 @@ impl Mail {
             networks,
             network_generation,
         }
+    }
+
+    /// Applies the spam-filter fields of a mirrored account and persists them with the world.
+    pub async fn set_spam_config(&self, address: &str, config: MailSpamConfig) -> Result<()> {
+        self.rows.set_spam_config(address, &config).await
+    }
+
+    pub(crate) async fn spam_config(&self, address: &str) -> Result<Option<MailSpamConfig>> {
+        self.rows.spam_config(address).await
     }
 
     /// Returns the mail address linked to `person`, if any.

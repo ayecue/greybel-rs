@@ -14,6 +14,139 @@ use crate::support::generation::add_typed_network;
 use crate::support::layout::layout;
 
 #[tokio::test]
+async fn should_reject_an_official_install_when_the_disk_is_full() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    world
+        .database()
+        .conn
+        .execute("UPDATE hard_disks SET size_mb = 0", ())
+        .await
+        .unwrap();
+    let computer = world.handle.player();
+
+    let folder = world
+        .modules
+        .core
+        .files
+        .lookup
+        .folder(computer, "/etc/apt", false)
+        .await
+        .unwrap()
+        .unwrap();
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .add_node_with(
+            &folder,
+            &file(
+                "aptcache.bin",
+                FileData {
+                    kind: FileKind::Binary,
+                    content: "{\"official_server\":true,\"serverList\":{}}".to_owned(),
+                    ..FileData::default()
+                },
+            ),
+            async |_| Ok(greyhack_world_core::LibraryId(0)),
+        )
+        .await
+        .unwrap();
+
+    let result = world
+        .modules
+        .services
+        .apt
+        .install_apt_package(computer, "test", "blockchain.so", "", &[computer])
+        .await
+        .unwrap();
+
+    assert!(matches!(result, Err(AptFailure::NoSpace)), "{result:?}");
+}
+
+#[tokio::test]
+async fn should_skip_cached_sources_that_do_not_list_the_package() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
+    let folder = world
+        .modules
+        .core
+        .files
+        .lookup
+        .folder(computer, "/etc/apt", false)
+        .await
+        .unwrap()
+        .unwrap();
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .add_node_with(
+            &folder,
+            &file(
+                "aptcache.bin",
+                FileData {
+                    kind: FileKind::Binary,
+                    content: "{\"official_server\":false,\"serverList\":{\"203.0.113.250\":{\"serverPort\":1542,\"pkgList\":{\"other\":{}}}}}"
+                        .to_owned(),
+                    ..FileData::default()
+                },
+            ),
+            async |_| Ok(greyhack_world_core::LibraryId(0)),
+        )
+        .await
+        .unwrap();
+
+    let result = world
+        .modules
+        .services
+        .apt
+        .install_apt_package(computer, ROOT_USER, "metaxploit.so", "/root", &[])
+        .await
+        .unwrap();
+
+    assert!(
+        matches!(result, Err(AptFailure::UnknownPackage(_))),
+        "{result:?}"
+    );
+
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .add_node_with(
+            &folder,
+            &file(
+                "aptcache.bin",
+                FileData {
+                    kind: FileKind::Binary,
+                    content: "{\"official_server\":false,\"serverList\":{\"203.0.113.250\":{\"serverPort\":1542,\"pkgList\":{\"metaxploit.so\":{}}}}}"
+                        .to_owned(),
+                    ..FileData::default()
+                },
+            ),
+            async |_| Ok(greyhack_world_core::LibraryId(0)),
+        )
+        .await
+        .unwrap();
+
+    let result = world
+        .modules
+        .services
+        .apt
+        .install_apt_package(computer, ROOT_USER, "metaxploit.so", "/root", &[])
+        .await
+        .unwrap();
+
+    assert!(
+        matches!(result, Err(AptFailure::Connection(_))),
+        "{result:?}"
+    );
+}
+
+#[tokio::test]
 async fn should_edit_sources_and_return_update_lines() {
     let world = World::new(&PlayerOptions::default()).await.unwrap();
     let computer = world.handle.player();
@@ -472,6 +605,169 @@ async fn should_refuse_to_check_an_upgrade_with_a_cache_that_is_not_one() {
             .await
             .unwrap(),
         Err(AptFailure::MalformedCache)
+    );
+}
+
+#[tokio::test]
+async fn should_reject_malformed_cache_for_every_reader() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
+
+    world
+        .modules
+        .services
+        .apt
+        .update_apt_packages(computer, &[])
+        .await
+        .unwrap();
+
+    let mut cache = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(computer, APT_CACHE_PATH, true)
+        .await
+        .unwrap()
+        .unwrap();
+
+    cache.data_mut().unwrap().set_content("not json");
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .save_node(&cache)
+        .await
+        .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .check_apt_upgrade(computer, "/lib/blockchain.so", &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::MalformedCache)
+    );
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .install_apt_package(computer, "root", "blockchain.so", "/root", &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::MalformedCache)
+    );
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .search_apt_packages(computer, "blockchain", &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::MalformedCache)
+    );
+    assert!(
+        world
+            .modules
+            .services
+            .apt
+            .show_apt_repository(computer, "official_server", &[])
+            .await
+            .unwrap()
+            .is_ok()
+    );
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .show_apt_repository(computer, "custom", &[])
+            .await
+            .unwrap(),
+        Err(AptFailure::MalformedCache)
+    );
+}
+
+#[tokio::test]
+async fn should_validate_sources_before_editing_repositories() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
+    let mut sources = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(computer, APT_SOURCES_PATH, true)
+        .await
+        .unwrap()
+        .unwrap();
+
+    sources.data_mut().unwrap().kind = FileKind::Binary;
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .save_node(&sources)
+        .await
+        .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .add_apt_repository(computer, "1.2.3.4", 80)
+            .await
+            .unwrap(),
+        Err(AptFailure::BinarySources)
+    );
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .remove_apt_repository(computer, "1.2.3.4")
+            .await
+            .unwrap(),
+        Err(AptFailure::BinarySources)
+    );
+
+    sources.data_mut().unwrap().kind = FileKind::Text;
+    sources.data_mut().unwrap().set_content("not json");
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .save_node(&sources)
+        .await
+        .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .add_apt_repository(computer, "1.2.3.4", 80)
+            .await
+            .unwrap(),
+        Err(AptFailure::MalformedSources)
+    );
+    assert_eq!(
+        world
+            .modules
+            .services
+            .apt
+            .remove_apt_repository(computer, "1.2.3.4")
+            .await
+            .unwrap(),
+        Err(AptFailure::MalformedSources)
     );
 }
 

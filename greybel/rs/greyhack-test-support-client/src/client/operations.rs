@@ -87,6 +87,19 @@ impl TestClient {
     }
 
     /// Generates debug credentials for the current player through the game.
+    /// Applies a deterministic File/Computer boundary or fault fixture to a computer in the player's network.
+    pub async fn configure_computer(
+        &self,
+        local_ip: &str,
+        fixture: &str,
+    ) -> Result<(), TestClientError> {
+        self.apply_fixture(RequestKind::ConfigureComputer {
+            local_ip: local_ip.to_owned(),
+            fixture: fixture.to_owned(),
+        })
+        .await
+    }
+
     pub async fn setup_debug(&self) -> Result<DebugReadyReply, TestClientError> {
         match self.request(RequestKind::SetupDebug).await? {
             Reply::DebugReady(result) => Ok(result),
@@ -388,11 +401,64 @@ impl TestClient {
         .await
     }
 
+    /// Applies an exact stale-account, market, or mining boundary state.
+    pub async fn configure_economy(
+        &self,
+        fixture: &str,
+        coin: &str,
+        wallet: &str,
+        subwallet: &str,
+    ) -> Result<(), TestClientError> {
+        self.apply_fixture(RequestKind::ConfigureEconomy {
+            fixture: fixture.to_owned(),
+            coin: coin.to_owned(),
+            wallet: wallet.to_owned(),
+            subwallet: subwallet.to_owned(),
+        })
+        .await
+    }
+
     /// Creates a player-owned wallet with its initial password reset available.
     pub async fn setup_wallet(&self, user: &str, password: &str) -> Result<(), TestClientError> {
         self.apply_fixture(RequestKind::SetupWallet {
             user: user.to_owned(),
             password: password.to_owned(),
+        })
+        .await
+    }
+
+    /// Applies a mail body/filter fixture or removes an account during a paused script.
+    pub async fn configure_mail(
+        &self,
+        fixture: &str,
+        address: &str,
+        sender: &str,
+    ) -> Result<(), TestClientError> {
+        self.apply_fixture(RequestKind::ConfigureMail {
+            fixture: fixture.to_owned(),
+            address: address.to_owned(),
+            sender: sender.to_owned(),
+        })
+        .await
+    }
+
+    /// Deletes an event after its CTF object has been created.
+    pub async fn delete_ctf(&self, event_name: &str) -> Result<(), TestClientError> {
+        self.apply_fixture(RequestKind::DeleteCtf {
+            event_name: event_name.to_owned(),
+        })
+        .await
+    }
+
+    /// Applies a broken or timed-accident appliance state.
+    pub async fn configure_appliance(
+        &self,
+        local_ip: &str,
+        fixture: &str,
+    ) -> Result<(), TestClientError> {
+        self.apply_fixture(RequestKind::ConfigureAppliance {
+            local_ip: local_ip.to_owned(),
+            fixture: fixture.to_owned(),
         })
         .await
     }

@@ -1,6 +1,7 @@
 using System;
 using GreyHackTestSupport.Plugin.Bridge.Game;
 using GreyHackTestSupport.Protocol;
+using HarmonyLib;
 using MailConfig;
 using ServiceConfig;
 using ServicioID = ServiceConfig.ServicioID;
@@ -126,6 +127,64 @@ internal sealed class AccountFixture(Player player) : IFixture
         }
 
         return new Reply.CtfRated(new CtfRatedReply(output));
+    }
+
+    /// <summary>Applies mail body and recipient-filter state, or removes an account during a paused script.</summary>
+    public Reply ConfigureMail(ConfigureMailRpc request)
+    {
+        switch (request.Fixture)
+        {
+            case "long_body":
+                UserMail account = Database.Singleton.GetMailAccount(request.Address, out _);
+                account.RecibirMail("Long body", new string('x', 200), "fixture@example");
+                Database.Singleton.UserMailUpdate(account);
+                break;
+            case "delete_account":
+                object db = Traverse.Create(Database.Singleton)
+                    .Method("Config", "DELETE FROM MailAccounts WHERE User=@address")
+                    .GetValue();
+                db.GetType()
+                    .GetMethod("AddParameter", new[] { typeof(string), typeof(string) })
+                    .Invoke(db, new object[] { "@address", request.Address });
+                db.GetType().GetMethod("ExecuteNonQuery", Type.EmptyTypes).Invoke(db, null);
+                ((IDisposable)db).Dispose();
+                break;
+            case "blacklist":
+            case "block_players":
+            case "block_npcs":
+            case "npc_sender":
+                UserMail recipient = Database.Singleton.GetMailAccount(request.Address, out _);
+                recipient.playerPcID = "fixture-recipient";
+                recipient.spamFilter = request.Fixture == "block_players" ? 0 : request.Fixture == "block_npcs" || request.Fixture == "npc_sender" ? 1 : 2;
+                if (request.Fixture == "blacklist" && !recipient.blacklist.Contains(request.Sender))
+                {
+                    recipient.blacklist.Add(request.Sender);
+                }
+                Database.Singleton.UserMailUpdate(recipient);
+                if (request.Fixture == "npc_sender")
+                {
+                    UserMail sender = Database.Singleton.GetMailAccount(request.Sender, out _);
+                    sender.playerPcID = "";
+                    Database.Singleton.UserMailUpdate(sender);
+                }
+                break;
+            default:
+                throw new InvalidOperationException("Unknown mail fixture: " + request.Fixture);
+        }
+
+        return new Reply.Applied();
+    }
+
+    /// <summary>Deletes an event through the game's own CTF database operation.</summary>
+    public Reply DeleteCtf(DeleteCtfRpc request)
+    {
+        CTF_Event gameEvent = Database.Singleton.GetEvent(request.EventName);
+        if (gameEvent == null)
+        {
+            throw new InvalidOperationException("The CTF event does not exist");
+        }
+        Database.Singleton.DeleteEvent(gameEvent);
+        return new Reply.Applied();
     }
 
     /// <summary>

@@ -11,12 +11,20 @@ use crate::{Email, Mail};
 pub enum SendMailFailure {
     /// The sender has no address.
     NoAccount,
+    /// The sender account was deleted after the mail object was created.
+    Missing,
     /// An argument breaks a rule.
     Refusal(Refusal),
     /// The sender's account belongs to a dead or fired NPC.
     AccountInactive,
     /// The recipient account does not exist.
     Undeliverable,
+    /// The recipient blacklisted this sender.
+    RecipientInBlacklist,
+    /// The recipient blocks all player senders.
+    BlockedPlayers,
+    /// The recipient blocks NPC senders.
+    BlockedNpcs,
 }
 
 /// Mail account refresh errors (`HelperScript.HelperMailUser.RefreshAccount`).
@@ -91,6 +99,10 @@ impl Mail {
             return Ok(Err(SendMailFailure::NoAccount));
         }
 
+        if self.rows.mail_account(from).await?.is_none() {
+            return Ok(Err(SendMailFailure::Missing));
+        }
+
         if let Err(refusal) = check_mail(to, subject, message) {
             return Ok(Err(SendMailFailure::Refusal(refusal)));
         }
@@ -98,6 +110,27 @@ impl Mail {
         // `PlayerUtils.SendMail` loads the sender with `requireActiveAccount`.
         if self.is_mail_account_disabled(from).await? {
             return Ok(Err(SendMailFailure::AccountInactive));
+        }
+
+        if let Some(recipient) = self.spam_config(to).await?
+            && !recipient.player_pc_id.is_empty()
+        {
+            if recipient.blacklist.iter().any(|address| address == from) {
+                return Ok(Err(SendMailFailure::RecipientInBlacklist));
+            }
+
+            if recipient.filter == 0 {
+                return Ok(Err(SendMailFailure::BlockedPlayers));
+            }
+
+            let sender_is_npc = self
+                .spam_config(from)
+                .await?
+                .is_none_or(|sender| sender.player_pc_id.is_empty());
+
+            if recipient.filter == 1 && sender_is_npc {
+                return Ok(Err(SendMailFailure::BlockedNpcs));
+            }
         }
 
         Ok(

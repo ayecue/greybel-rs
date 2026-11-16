@@ -8,7 +8,7 @@ use crate::support::game::{join_fixture, join_network, setup_player, ssh_network
 use crate::support::metaxploit::{
     computer_library, fixture_reply_weakness, fixture_weakness, overflow_script, router_library,
 };
-use crate::support::parity::{compare_in, compare_in_any_user};
+use crate::support::parity::{compare_in, compare_in_any_user, compare_labeled};
 use crate::support::remote::fixture_account;
 use crate::support::steps::{Step, WorldChange, compare_stepped};
 
@@ -66,6 +66,21 @@ async fn should_match_intrinsics_for_a_super_admin_until_fired() {
             .as_deref()
             .is_some_and(|output| output.contains("attack intercepted by administrator"))
     }));
+
+    let (zone, weakness) = fixture_reply_weakness(&library, &installed.weaknesses[0]);
+    let guest_homes = format!(
+        "shell = mx.net_use(\"{}\", {}).dump_lib.overflow(\"{zone}\", \"{}\"); pc = shell.host_computer; for home in pc.File(\"/home\").get_folders; print [home.path, home.owner, home.group, home.permissions, pc.touch(home.path, \"x.src\")]; end for",
+        account.address, account.port, weakness.unsec_value
+    );
+
+    compare_labeled(
+        &client,
+        &user,
+        &snapshot,
+        "super-admin-guest-home-permissions",
+        &[guest_homes],
+    )
+    .await;
 
     let admin = snapshot.admin.as_ref().unwrap().user.clone();
 

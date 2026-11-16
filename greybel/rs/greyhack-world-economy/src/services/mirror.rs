@@ -51,6 +51,10 @@ impl Bank {
         }
 
         for draft in &layout.wallets {
+            if !layout.banks.iter().any(|bank| bank.number == draft.bank) {
+                self.add_bank(&draft.bank, "", 0.0).await?;
+            }
+
             let id = self
                 .wallets
                 .add_wallet(&draft.user, &draft.password, &draft.pin, &draft.bank)
@@ -61,8 +65,12 @@ impl Bank {
 
         for draft in &layout.wallets {
             for subwallet in &draft.subwallets {
-                let coin = coins[&subwallet.coin];
-                let wallet = wallets[&subwallet.wallet_user];
+                let Some(&coin) = coins.get(&subwallet.coin) else {
+                    continue;
+                };
+                let Some(&wallet) = wallets.get(&subwallet.wallet_user) else {
+                    continue;
+                };
 
                 self.wallets
                     .add_subwallet(
@@ -84,10 +92,16 @@ impl Bank {
         }
 
         for offer in &layout.offers {
+            let (Some(&coin), Some(&wallet)) =
+                (coins.get(&offer.coin), wallets.get(&offer.wallet_user))
+            else {
+                continue;
+            };
+
             self.offers
                 .insert_offer(&Offer {
-                    coin: coins[&offer.coin],
-                    wallet: wallets[&offer.wallet_user],
+                    coin,
+                    wallet,
                     subwallet: offer.subwallet.clone(),
                     side: offer.side,
                     price: offer.price,

@@ -94,6 +94,25 @@ fn should_check_write_on_the_file_for_set_content_and_update_size_and_date() {
     );
 }
 
+/// Validation wording and false results of `FileIntrinsics.copy`, `symlink`, and `set_content`.
+#[test]
+fn should_word_file_validation_failures_like_the_game() {
+    let world = world();
+    let code = r#"f = get_shell.host_computer.File("/bin/ls")
+print f.copy("/" + "a/" * 17, "x")
+print f.symlink(home_dir, "x" * 129)
+print set_content({}, "x")
+f = get_shell.host_computer.File("/etc/passwd")
+print f.set_content(null)"#;
+    let (output, error, _world) = run_on_host(code, world, true);
+
+    assert_eq!(error, None);
+    assert_eq!(
+        output,
+        "move: path too large\nmove: name cannot exceed the 128 character limit.\n0\n0"
+    );
+}
+
 #[test]
 fn should_word_listing_and_self_copy_failures_like_the_game() {
     let world = world();

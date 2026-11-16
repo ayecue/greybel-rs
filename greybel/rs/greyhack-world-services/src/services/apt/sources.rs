@@ -2,7 +2,7 @@
 
 use greyhack_behaviour::{
     APT_CACHE_NAME, APT_CACHE_PATH, APT_SOURCES_PATH, AptSource, DOWNLOADS_PATH, FIRST_VERSION,
-    ServiceId, format_apt_sources, is_lan_ip, is_valid_ip, parse_apt_official, parse_apt_sources,
+    FileKind, ServiceId, format_apt_sources, is_valid_ip, parse_apt_official, parse_apt_sources,
 };
 use greyhack_world_core::systems::network::connect::ServiceCheck;
 use greyhack_world_core::{ComputerId, Result};
@@ -103,10 +103,11 @@ impl Apt {
         &self,
         computer: ComputerId,
     ) -> Result<Result<bool, AptFailure>> {
-        Ok(self
-            .apt_cache_content(computer)
-            .await?
-            .map(|content| parse_apt_official(&content)))
+        Ok(self.apt_cache_content(computer).await?.and_then(|content| {
+            serde_json::from_str::<serde_json::Value>(&content)
+                .map_err(|_| AptFailure::MalformedCache)
+                .map(|_| parse_apt_official(&content))
+        }))
     }
 
     pub async fn apt_official(&self, computer: ComputerId) -> Result<bool> {
@@ -131,40 +132,22 @@ impl Apt {
         from: ComputerId,
         source: &AptSource,
         terminal_computers: &[ComputerId],
-    ) -> Result<Option<(ComputerId, RepositoryConfig)>> {
+    ) -> Result<Result<(ComputerId, RepositoryConfig), AptFailure>> {
         let Some(address) = self.source_address(source).await? else {
-            return Ok(None);
+            return Ok(Err(AptFailure::UnknownRepository(source.address.clone())));
         };
-        let target = if is_lan_ip(&address) {
-            match self.networks.topology.router_of(from).await? {
-                Some(router) => {
-                    self.networks
-                        .topology
-                        .device(router.network, &address)
-                        .await?
-                }
-                None => None,
-            }
-        } else {
-            let Some(router) = self.networks.routers.router_at(&address).await? else {
-                return Ok(None);
-            };
-            let table = self.networks.lan.port_table(router.id).await?;
-            let Some(entry) = table.iter().find(|entry| entry.number == source.port) else {
-                return Ok(None);
-            };
-
-            self.networks
-                .topology
-                .device(router.network, &entry.lan_ip)
-                .await?
-        };
-        let Some(target) = target else {
-            return Ok(None);
+        let target = match self
+            .networks
+            .connect
+            .connect_computer(from, &address, source.port)
+            .await?
+        {
+            Ok(target) => target,
+            Err(failure) => return Ok(Err(AptFailure::Connection(failure))),
         };
         let public = self.networks.topology.public_ip(from).await?;
 
-        if self
+        if let Some(failure) = self
             .networks
             .connect
             .check_service(&ServiceCheck {
@@ -177,24 +160,26 @@ impl Apt {
                 terminal_computers,
             })
             .await?
-            .is_some()
         {
-            return Ok(None);
+            return Ok(Err(AptFailure::Service(failure)));
         }
 
-        let Some(content) = self
+        let Some(node) = self
             .files
             .lookup
-            .content(target, ServiceId::Repository.config_path(), true)
+            .file(target, ServiceId::Repository.config_path(), true)
             .await?
         else {
-            return Ok(None);
+            return Ok(Err(AptFailure::MissingConfig));
         };
-        let Ok(config) = serde_json::from_str::<RepositoryConfig>(&content) else {
-            return Ok(None);
+        let Some(data) = node.data() else {
+            return Ok(Err(AptFailure::MissingConfig));
+        };
+        let Ok(config) = serde_json::from_str::<RepositoryConfig>(&data.content) else {
+            return Ok(Err(AptFailure::MalformedConfig));
         };
 
-        Ok(Some((target, config)))
+        Ok(Ok((target, config)))
     }
 
     pub async fn source_package(
@@ -203,23 +188,44 @@ impl Apt {
         source: &AptSource,
         name: &str,
         terminal_computers: &[ComputerId],
-    ) -> Result<Option<(ComputerId, String)>> {
-        let Some((server, config)) = self
+    ) -> Result<Result<(ComputerId, String), AptFailure>> {
+        let (server, config) = match self
             .remote_repository(computer, source, terminal_computers)
             .await?
-        else {
-            return Ok(None);
+        {
+            Ok(repository) => repository,
+            Err(failure) => return Ok(Err(failure)),
         };
-
-        if !config.repo_sources.contains_key(name) {
-            return Ok(None);
-        }
 
         self.installs
             .update_hackshop_libs(server, DOWNLOADS_PATH)
             .await?;
 
-        Ok(Some((server, format!("{}/{name}", config.path_repo))))
+        Ok(Ok((server, format!("{}/{name}", config.path_repo))))
+    }
+
+    async fn validate_sources_for_edit(&self, computer: ComputerId) -> Result<Option<AptFailure>> {
+        let Some(node) = self
+            .files
+            .lookup
+            .file(computer, APT_SOURCES_PATH, true)
+            .await?
+        else {
+            return Ok(Some(AptFailure::MissingSources));
+        };
+        let Some(data) = node.data() else {
+            return Ok(Some(AptFailure::BinarySources));
+        };
+
+        if data.kind == FileKind::Binary {
+            return Ok(Some(AptFailure::BinarySources));
+        }
+
+        if serde_json::from_str::<serde_json::Value>(&data.content).is_err() {
+            return Ok(Some(AptFailure::MalformedSources));
+        }
+
+        Ok(None)
     }
 
     pub async fn add_apt_repository(
@@ -228,6 +234,10 @@ impl Apt {
         repository: &str,
         port: u16,
     ) -> Result<Result<(), AptFailure>> {
+        if let Some(failure) = self.validate_sources_for_edit(computer).await? {
+            return Ok(Err(failure));
+        }
+
         if !is_valid_ip(repository) {
             return Ok(Err(AptFailure::InvalidAddress(repository.to_owned())));
         }
@@ -255,6 +265,10 @@ impl Apt {
         computer: ComputerId,
         repository: &str,
     ) -> Result<Result<(), AptFailure>> {
+        if let Some(failure) = self.validate_sources_for_edit(computer).await? {
+            return Ok(Err(failure));
+        }
+
         let mut repositories = self.apt_sources(computer).await?;
 
         if !repositories.iter().any(|repo| repo.address == repository) {

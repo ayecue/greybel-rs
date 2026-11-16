@@ -1,7 +1,9 @@
 //! Library scans, net sessions, reverse shells, and packet sniffing (`MetaExploitIntrinsics`).
 
-use greyhack_world_core::routes::require_connection;
-use greyhack_world_core::{Access, AccessHandle, AccessKind, ReverseShellHandle};
+use greyhack_world_core::routes::{OperationError, require_connection};
+use greyhack_world_core::{Access, AccessHandle, AccessKind, ReverseShellHandle, WorldError};
+use greyhack_world_programs::RouteError;
+use greyhack_world_programs::protocol::ScriptFailure;
 use greyhack_world_router::RouteTable;
 
 use crate::RshellServerFailure;
@@ -133,8 +135,13 @@ fn register_metaxploit_sessions<
                     &message.address,
                     message.port,
                 )
-                .await?
-                {
+                .await
+                .map_err(|error| match error {
+                    RouteError::World(WorldError::MalformedLibrary(_)) => {
+                        OperationError::Script(ScriptFailure::GameCrash)
+                    }
+                    error => error,
+                })? {
                     Ok(Some(session)) => NetUseTarget::Session(
                         ctx.trees
                             .objects(call.tree)
@@ -193,9 +200,8 @@ fn register_metaxploit_server<
                 .objects(call.tree)
                 .metaxploit(message.metaxploit)?
                 .access;
-            let terminal_computers = &ctx.terminal_computers(call);
-
-            require_connection(world, terminal_computers).await?;
+            // `MetaExploitIntrinsics.rshell_server` checks only the player's computer, not every terminal in the chain.
+            require_connection(world, &[]).await?;
 
             let origin = world
                 .module::<greyhack_world_core::CoreModule>()

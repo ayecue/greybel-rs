@@ -58,8 +58,9 @@ internal static class NpcSnapshotReader
             .ToList();
     }
 
-    public static AdminSnapshot ReadAdmin(NpcInfo admin)
+    public static AdminSnapshot ReadAdmin(Router router)
     {
+        NpcInfo admin = router.GetNetworkLan().GetAdminNpcInfo();
         if (admin == null)
         {
             return null;
@@ -70,11 +71,17 @@ internal static class NpcSnapshotReader
             (byte)(int)GameField.NpcPcExperience.GetValue(admin),
             (byte)admin.GetWorkPerformance(),
             admin.IsDeadOrFired(),
+            router.admin != null,
             admin.GetSurname()
         );
     }
 
-    public static TrafficSnapshot ReadTraffic(Router router, NetworkLan lan, string accidentAt)
+    public static TrafficSnapshot ReadTraffic(
+        Router router,
+        NetworkLan lan,
+        string accidentAt,
+        string accidentDriver
+    )
     {
         if (router.GetTipoRed() != ServerMap.TipoRed.Comisaria)
         {
@@ -86,7 +93,8 @@ internal static class NpcSnapshotReader
             Traverse.Create(lan).Field<string>("trafficCredentials").Value ?? "",
             router.GetConfigOS().IsOverrideSettingsEnabled(),
             router.GetConfigOS().IsOverrideUsed(),
-            accidentAt
+            accidentAt,
+            accidentDriver
         );
     }
 }

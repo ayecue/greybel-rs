@@ -1245,6 +1245,12 @@ union MailFailure {
     NoAccount,
     /// There is no account with the address to deliver to.
     NotDelivered,
+    /// Recipient blacklisted the sender.
+    RecipientInBlacklist,
+    /// Recipient blocks all player mail.
+    BlockedPlayers,
+    /// Recipient blocks mail from NPC accounts.
+    BlockedNpcs,
 }
 
 /// Result of `aireplay`. Capture output arrives separately as [`ProgramPrint`] notifications.
@@ -1270,10 +1276,14 @@ union CryptoFailure {
     NotEncrypted,
     /// The password does not decrypt the file.
     IncorrectPassword,
+    /// Wi-Fi is disabled on the computer.
+    WifiOff,
     /// Monitor mode requires a Wi-Fi card.
     NotWifiCard,
     /// The card's chipset does not support monitor mode.
     NoMonitorSupport,
+    /// The router is outside Wi-Fi range.
+    OutOfRange,
     /// There is no router with the Wi-Fi.
     UnknownRouter,
     /// Wi-Fi card is not in monitor mode.
@@ -1326,6 +1336,8 @@ union ComputerFailure {
     Process(ProcessFailure),
     /// Guests cannot change the network.
     GuestUser,
+    /// Smartphones do not expose Wi-Fi configuration.
+    SmartphoneWifi,
     /// Computer has no network card of the name.
     MissingNetDevice,
     /// `connect_wifi` requires a Wi-Fi card.
@@ -1384,6 +1396,10 @@ union NetCardFailure {
     UnknownRouter,
     /// Computer's own network is disabled for not having been paid for.
     DisabledHomeNetwork,
+    /// Player has no rental home IP configured for Ethernet.
+    NoRentalHome,
+    /// Configured rental home IP has no ISP router.
+    MissingIsp,
     /// Gateway is the computer itself.
     SelfGateway,
     /// There is no device of the network with the gateway's address.
@@ -1515,6 +1531,8 @@ union AptFailure {
     ComputerUnavailable,
     /// Folder to install into is not at the path.
     MissingFolder(string),
+    /// The package does not fit in the remaining disk space.
+    NoSpace,
     /// User cannot write into the folder.
     NoPermission,
     /// The package could not be copied from its server.
@@ -1523,6 +1541,12 @@ union AptFailure {
     NoInternet,
     /// The package name is empty.
     EmptyPackageName,
+    /// `sources.txt` is missing when adding or removing a repository.
+    MissingSources,
+    /// `sources.txt` is a binary file when adding or removing a repository.
+    BinarySources,
+    /// `sources.txt` contains malformed JSON.
+    MalformedSources,
     /// The cache is not made as `update` makes it.
     MalformedCache,
     /// The file the library or program is checked at is not in the computer's file system.
@@ -1533,6 +1557,10 @@ union AptFailure {
     Service(ServiceFailure),
     /// The server has no repository configuration file.
     MissingConfig,
+    /// The server's repository configuration contains malformed JSON during installation.
+    MalformedConfig,
+    /// The server's repository configuration contains malformed JSON during an upgrade check; contains the package.
+    MalformedConfigUpgrade(string),
     /// The server's repository folder does not exist.
     MissingRepositoryFolder,
 }
@@ -1687,8 +1715,8 @@ struct ProcessUsage {
     pid: u32,
     /// Processor usage percentage.
     cpu: f32,
-    /// Computer memory use percentage.
-    memory: f32,
+    /// Computer memory use percentage, before the unrounded C# float expression is formatted.
+    memory: f64,
     name: string,
 }
 
@@ -2116,10 +2144,19 @@ union SmtpFailure {
 
 // AptClient data types
 
-/// No return data from `update`; its source lines arrive separately as [`ProgramPrint`] notifications.
-struct AptUpdate {}
+/// Return value of `update`; its source lines arrive separately as [`ProgramPrint`] notifications.
+struct AptUpdate {
+    /// Empty on success, `0` when malformed sources abort the update.
+    result: string,
+}
 
 union AptUpdateLine {
+    /// `sources.txt` did not exist and was created with the default configuration.
+    MissingSources,
+    /// `sources.txt` contains malformed JSON.
+    MalformedSources,
+    /// No router exists for a configured domain.
+    UnknownRepository(string),
     /// Source identified by address is being updated.
     Update(string),
     /// Connection failure from `PlayerUtils.ConnectComputer`.
@@ -2128,6 +2165,8 @@ union AptUpdateLine {
     Service(ServiceFailure),
     /// Repository's server has no repository configuration file.
     MissingConfig,
+    /// The repository's configuration file is binary.
+    InvalidConfig,
     /// The repository's configuration file is not the game's format.
     MalformedConfig,
 }

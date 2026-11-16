@@ -5,11 +5,15 @@ use crate::error::IntrinsicError;
 use crate::game::client::server::{program, raise, server, settle};
 use crate::protocol::AptClientUpdate;
 
-/// Prints one update line per source and returns an empty string.
+/// Prints one update line per source and returns `0` when malformed sources abort it.
 #[native(method)]
 pub fn update(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicError> {
     let Some(access) = access(vm, this) else {
-        return Ok(NativeOutput::ready(Value::Null));
+        return Ok(NativeOutput::ready(if matches!(this, Value::Map(_)) {
+            Value::Null
+        } else {
+            Value::FALSE
+        }));
     };
     let message = AptClientUpdate {
         program: program(vm)?,
@@ -19,9 +23,9 @@ pub fn update(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicError>
     Ok(settle(
         server(vm)?.send_apt_client_update(&message),
         |_vm, update| {
-            update.map_err(|failure| raise("update", failure))?;
+            let update = update.map_err(|failure| raise("update", failure))?;
 
-            Ok::<_, IntrinsicError>(String::new())
+            Ok::<_, IntrinsicError>(update.result)
         },
     ))
 }

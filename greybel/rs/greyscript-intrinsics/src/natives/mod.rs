@@ -6,7 +6,7 @@ pub mod math;
 pub mod strings;
 pub mod system;
 
-use collections::{join, pop, pull, push, remove, replace, reverse, shuffle};
+use collections::{insert, join, pop, pull, push, remove, replace, reverse, shuffle};
 use greybel_interpreter::{Api, ValueType, natives};
 use greybel_ms_intrinsics::natives::{
     collections as ms_collections, math as ms_math, strings as ms_strings, system as ms_system,
@@ -40,7 +40,7 @@ pub const API: Api = Api::new()
         "hasIndex" => ms_collections::has_index,
         ms_collections::indexes,
         "indexOf" => ms_collections::index_of_value,
-        ms_collections::insert,
+        insert,
         join,
         ms_collections::len,
         ms_system::list,
@@ -91,7 +91,7 @@ pub const API: Api = Api::new()
             "hasIndex" => ms_collections::has_index,
             ms_collections::indexes,
             "indexOf" => ms_collections::index_of_value,
-            ms_collections::insert,
+            insert,
             join,
             ms_collections::len,
             pop,
@@ -112,7 +112,7 @@ pub const API: Api = Api::new()
             "hasIndex" => ms_collections::has_index,
             ms_collections::indexes,
             "indexOf" => ms_collections::index_of_value,
-            ms_collections::insert,
+            insert,
             code,
             ms_collections::len,
             ms_strings::lower,

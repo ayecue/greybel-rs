@@ -115,6 +115,8 @@ pub struct Computer {
     pub npc_owner: Option<PersonId>,
     /// Original network kind (`Computer.tipoRed`), retained after joining another network.
     pub network_kind: NetworkKind,
+    /// Player home network used for Ethernet (`PlayerConfigOS.rentalHomeIP`), empty on other computers.
+    pub rental_home_ip: String,
 }
 
 impl Computer {
@@ -151,6 +153,8 @@ pub struct ComputerDraft<L = crate::Library, S = ()> {
     /// Wi-Fi networks the computer connected to, the last the most recent
     /// (`ConfigOS.savedNetworks`).
     pub saved_networks: Vec<SavedNetwork>,
+    /// Player home network used for Ethernet (`PlayerConfigOS.rentalHomeIP`).
+    pub rental_home_ip: String,
 }
 
 impl<L, S> ComputerDraft<L, S> {
@@ -179,6 +183,7 @@ impl<L, S> ComputerDraft<L, S> {
             npc_owner: None,
             network_kind: None,
             saved_networks: Vec::new(),
+            rental_home_ip: String::new(),
         }
     }
 

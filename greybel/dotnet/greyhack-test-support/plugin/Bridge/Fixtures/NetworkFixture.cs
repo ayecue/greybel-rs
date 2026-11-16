@@ -59,6 +59,12 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore, Fixtur
         string publicIp = router.GetPublicIP();
         store.AddNetwork(publicIp);
         NetworkLan network = router.GetNetworkLan();
+        if (request.Targets.Any(target => target.Device == "SMARTPHONE"))
+        {
+            DateTime now = ClockServer.Singleton.GetDateTime();
+            DateTime work = now.AddDays((8 - (int)now.DayOfWeek) % 7).Date.AddHours(10);
+            GameField.ClockCurrentTime.SetValue(ClockServer.Singleton, work);
+        }
         NetworkLan.GlobalLan globalLan = (NetworkLan.GlobalLan)
             GameField.NetworkGlobalLan.GetValue(network);
         NetworkLan.RouterNet child = AddLayout(router, network, globalLan, request.Layout);
@@ -109,14 +115,13 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore, Fixtur
             {
                 ServicioID serviceId = (ServicioID)
                     Enum.Parse(typeof(ServicioID), fixtureService.Service, true);
-                if (
-                    fixtureService.PublicPort is ushort publicPort
-                    && router.GetConfigOS().puertos.ExistePuertoExterno(publicPort)
-                )
+                if (fixtureService.PublicPort is ushort publicPort)
                 {
-                    throw new InvalidOperationException(
-                        "The requested public port is already used"
-                    );
+                    // A generated network may already forward this external port. Replace that forward as router
+                    // configuration would, retaining its generated service without public forwarding.
+                    router
+                        .GetConfigOS()
+                        .puertos.allPorts.RemoveAll(port => port.externalPort == publicPort);
                 }
                 Servicio service = new Servicio(
                     XmlGlobal.Singleton.tipoServidor.GetServicio(serviceId)
@@ -168,6 +173,20 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore, Fixtur
             {
                 gateway = parent.localIp,
             };
+            if (device == NetworkLan.TypeDevice.SMARTPHONE)
+            {
+                DateTime now = ClockServer.Singleton.GetDateTime();
+                string owner = network
+                    .GetNpcInfos()
+                    .Values.FirstOrDefault(npc =>
+                    {
+                        Activity activity = npc.schedule.GetCurrentActivity(now.DayOfWeek, now.TimeOfDay);
+                        return activity == Activity.Trabajando || activity == Activity.DescansoBreve;
+                    })
+                    ?.GetSurname()
+                    ?? throw new InvalidOperationException("No working NPC can own the smartphone");
+                GameField.LanNpcOwner.SetValue(info, owner);
+            }
             foreach (
                 FixtureService fixtureService in target.Services.Where(service =>
                     service.OldestLibrary
@@ -203,6 +222,7 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore, Fixtur
                 ?? throw new InvalidOperationException(
                     "The game did not materialize a fixture target"
                 );
+            ApplyLibraryState(computer, target.LibraryState);
             if (
                 kind == ServerMap.TipoRed.Comisaria
                 && target.Name == "workstation"
@@ -602,6 +622,35 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore, Fixtur
         device.localIp == address
         || device.GetLanPcInfos().Any(computer => computer.localIp == address)
         || device.GetDevices().Any(child => HasAddress(child, address));
+
+    private static void ApplyLibraryState(Computer computer, string state)
+    {
+        if (state.Length == 0)
+        {
+            return;
+        }
+        FileSystem fs = computer.GetFileSystem();
+        FileSystem.Carpeta lib = fs.GetCarpeta("/lib");
+        switch (state)
+        {
+            case "missing":
+                lib.RemoveFichero(lib.GetFichero("libssh.so"), true);
+                break;
+            case "invalid":
+                lib.AddFile(new FileSystem.Archivo("libssh.so", "not a library", "root", false, true));
+                break;
+            case "unexpected":
+                fs.GetArchivo("/lib/libssh.so").SetContenido("{\"idLib\":\"LIBFTP\"}", true);
+                break;
+            case "malformed":
+                FileSystem.Archivo badLibrary = fs.GetArchivo("/lib/libssh.so");
+                badLibrary.SetContentId(Computer.Md5Sum("not json"), "");
+                Database.Singleton.SetContenido(badLibrary, "not json", "");
+                break;
+            default:
+                throw new InvalidOperationException("Unknown library state: " + state);
+        }
+    }
 
     private static Router SpawnFresh(ServerMap.TipoRed kind)
     {

@@ -74,6 +74,7 @@ pub async fn service_network(
                 device: "COMPUTER".to_owned(),
                 location: "main".to_owned(),
                 root_password: String::new(),
+                library_state: String::new(),
                 services: vec![FixtureService {
                     service: service.to_owned(),
                     internal_port,
@@ -98,6 +99,7 @@ pub async fn old_ssh_network(client: &TestClient) -> FixtureNetworkReply {
                 device: "COMPUTER".to_owned(),
                 location: "main".to_owned(),
                 root_password: String::new(),
+                library_state: String::new(),
                 services: vec![FixtureService {
                     service: "ssh".to_owned(),
                     internal_port: 10_022,
@@ -130,6 +132,7 @@ pub async fn dual_service_network(client: &TestClient) -> FixtureNetworkReply {
                 device: "COMPUTER".to_owned(),
                 location: "main".to_owned(),
                 root_password: String::new(),
+                library_state: String::new(),
                 services: vec![
                     FixtureService {
                         service: "ssh".to_owned(),
@@ -167,9 +170,18 @@ pub async fn ftp_network(client: &TestClient) -> FixtureNetworkReply {
 
 /// Creates a fresh supermarket with public SSH and a child router, optionally with a switch too.
 pub async fn router_ssh_network(client: &TestClient, switch: bool) -> FixtureNetworkReply {
+    router_ssh_network_of_kind(client, DEFAULT_NETWORK_KIND, switch).await
+}
+
+/// [`router_ssh_network`] on the selected network kind.
+pub async fn router_ssh_network_of_kind(
+    client: &TestClient,
+    kind: &str,
+    switch: bool,
+) -> FixtureNetworkReply {
     client
         .create_fixture_network(
-            DEFAULT_NETWORK_KIND,
+            kind,
             if switch { "router_switch" } else { "router" },
             false,
             vec![FixtureTarget {
@@ -177,6 +189,7 @@ pub async fn router_ssh_network(client: &TestClient, switch: bool) -> FixtureNet
                 device: "COMPUTER".to_owned(),
                 location: "main".to_owned(),
                 root_password: String::new(),
+                library_state: String::new(),
                 services: vec![FixtureService {
                     service: "ssh".to_owned(),
                     internal_port: 10_022,
@@ -201,6 +214,7 @@ pub async fn routed_ssh_network(client: &TestClient) -> FixtureNetworkReply {
                 device: "COMPUTER".to_owned(),
                 location: "lan_router".to_owned(),
                 root_password: String::new(),
+                library_state: String::new(),
                 services: vec![FixtureService {
                     service: "ssh".to_owned(),
                     internal_port: 10_022,
@@ -211,6 +225,31 @@ pub async fn routed_ssh_network(client: &TestClient) -> FixtureNetworkReply {
         )
         .await
         .expect("the routed SSH fixture is created")
+}
+
+/// Creates a fresh supermarket with a smartphone running SSH.
+pub async fn smartphone_network(client: &TestClient) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            DEFAULT_NETWORK_KIND,
+            "flat",
+            false,
+            vec![FixtureTarget {
+                name: "phone".to_owned(),
+                device: "SMARTPHONE".to_owned(),
+                location: "main".to_owned(),
+                root_password: String::new(),
+                library_state: String::new(),
+                services: vec![FixtureService {
+                    service: "ssh".to_owned(),
+                    internal_port: 10_022,
+                    public_port: Some(10_022),
+                    oldest_library: false,
+                }],
+            }],
+        )
+        .await
+        .expect("the smartphone fixture is created")
 }
 
 /// Creates a fresh FastFood network with a reachable smart-appliance fridge.
@@ -225,6 +264,7 @@ pub async fn fridge_network(client: &TestClient) -> FixtureNetworkReply {
                 device: "FRIDGE".to_owned(),
                 location: "main".to_owned(),
                 root_password: String::new(),
+                library_state: String::new(),
                 services: vec![FixtureService {
                     service: "smartappliance".to_owned(),
                     internal_port: 1221,
@@ -235,6 +275,31 @@ pub async fn fridge_network(client: &TestClient) -> FixtureNetworkReply {
         )
         .await
         .expect("the fridge fixture is created")
+}
+
+/// Creates a fridge on an adminless RentServer network so an overflow is not intercepted.
+pub async fn adminless_fridge_network(client: &TestClient) -> FixtureNetworkReply {
+    client
+        .create_fixture_network(
+            "RentServer",
+            "flat",
+            false,
+            vec![FixtureTarget {
+                name: "fridge".to_owned(),
+                device: "FRIDGE".to_owned(),
+                location: "main".to_owned(),
+                root_password: String::new(),
+                library_state: String::new(),
+                services: vec![FixtureService {
+                    service: "smartappliance".to_owned(),
+                    internal_port: 1221,
+                    public_port: None,
+                    oldest_library: false,
+                }],
+            }],
+        )
+        .await
+        .expect("the adminless fridge fixture is created")
 }
 
 /// Creates a fresh network of `kind` without extra targets; its generated content remains intact.
@@ -258,6 +323,7 @@ pub async fn police_workstation(client: &TestClient) -> FixtureNetworkReply {
                     device: "COMPUTER".to_owned(),
                     location: "main".to_owned(),
                     root_password: String::new(),
+                    library_state: String::new(),
                     services: vec![FixtureService {
                         service: "criminals".to_owned(),
                         internal_port: 154,
@@ -270,6 +336,7 @@ pub async fn police_workstation(client: &TestClient) -> FixtureNetworkReply {
                     device: "COMPUTER".to_owned(),
                     location: "main".to_owned(),
                     root_password: String::new(),
+                    library_state: String::new(),
                     services: vec![FixtureService {
                         service: "ssh".to_owned(),
                         internal_port: 10_022,
@@ -295,6 +362,7 @@ pub async fn hackshop_repository(client: &TestClient) -> FixtureNetworkReply {
                 device: "COMPUTER".to_owned(),
                 location: "main".to_owned(),
                 root_password: String::new(),
+                library_state: String::new(),
                 services: vec![
                     FixtureService {
                         service: "http".to_owned(),
@@ -322,6 +390,7 @@ pub async fn mail_network(client: &TestClient, npc_computers: usize) -> FixtureN
         device: "COMPUTER".to_owned(),
         location: "main".to_owned(),
         root_password: String::new(),
+        library_state: String::new(),
         services: vec![FixtureService {
             service: "smtp".to_owned(),
             internal_port: 10_025,
@@ -335,6 +404,7 @@ pub async fn mail_network(client: &TestClient, npc_computers: usize) -> FixtureN
         device: "COMPUTER".to_owned(),
         location: "main".to_owned(),
         root_password: String::new(),
+        library_state: String::new(),
         services: Vec::new(),
     }));
 

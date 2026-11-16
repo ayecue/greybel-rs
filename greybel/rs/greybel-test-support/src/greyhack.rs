@@ -38,6 +38,39 @@ pub fn run_on_host(
     run_on_host_within(code, world, user, admin, options, ())
 }
 
+/// Runs a host program with options built after the server database is loaded.
+///
+/// This is used by parity fixtures that must change live database state from an input callback.
+pub fn run_on_host_at_with_loaded_options(
+    code: &str,
+    world: World,
+    user: &str,
+    admin: bool,
+    path: &str,
+    make_options: impl FnOnce(World) -> InterpreterOptions,
+) -> HostRun {
+    run_local(async move {
+        let stdout = Rc::new(MarkedStdout::default());
+        let server = WorldServer::new(world, constant_clock())
+            .await
+            .expect("the live world server starts");
+        let loaded = server.world_clone().await;
+        let options = InterpreterOptions {
+            stdout: Rc::clone(&stdout) as Rc<dyn Stdout>,
+            ..make_options(loaded)
+        };
+        let error = run_program(&server, code, user, admin, (Some(path), false), options).await;
+        let world = server.world_clone().await;
+
+        HostRun {
+            output: stdout.text(),
+            terminal: stdout.terminal_text(),
+            error,
+            world,
+        }
+    })
+}
+
 /// Equivalent to [`run_on_host`], but identifies the program by `path` just as editor-run programs are identified
 /// by their binary.
 pub fn run_on_host_at(

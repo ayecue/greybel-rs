@@ -113,7 +113,9 @@ pub fn layout() -> NetworkLayout {
     NetworkLayout {
         kind: NetworkKind::Residential,
         public_ip: "45.45.45.45".to_owned(),
+        position: greyhack_behaviour::position_for_ip("45.45.45.45"),
         domain: String::new(),
+        contact: None,
         admin: None,
         disabled: false,
         net_speed: greyhack_behaviour::DEFAULT_NET_SPEED,

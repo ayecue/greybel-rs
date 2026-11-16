@@ -26,7 +26,7 @@ pub static NATIVE: Native = Native::from_async_fn(None, PARAMS, true, call);
 
 fn call(vm: &mut Vm, args: &ArgContainer) -> NativeFuture {
     let Some(access) = super::shell(vm, args.self_value(), "build") else {
-        return NativeOutput::ready("Invalid shell");
+        return NativeOutput::ready("build: Invalid arguments");
     };
     let (Some(source_path), Some(folder), Some(allow)) = (
         args.get("pathSource").as_str(),

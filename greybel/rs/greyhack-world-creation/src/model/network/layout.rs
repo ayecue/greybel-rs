@@ -1,5 +1,5 @@
 use greyhack_behaviour::{NetworkAdmin, NetworkKind};
-use greyhack_world_core::Port;
+use greyhack_world_core::{Contact, Port};
 use greyhack_world_libraries::{ComputerDraft, RouterDraft};
 
 /// Explicit node-by-node network layout used to reproduce another network, including layouts copied
@@ -8,7 +8,11 @@ use greyhack_world_libraries::{ComputerDraft, RouterDraft};
 pub struct NetworkLayout {
     pub kind: NetworkKind,
     pub public_ip: String,
+    /// Main router position on the world map.
+    pub position: [f32; 2],
     pub domain: String,
+    /// Administrative contact returned by `whois`, with a rental contact taking precedence in snapshots.
+    pub contact: Option<Contact>,
     /// Devices and computers in main-router-first, parent-before-child order.
     pub nodes: Vec<LanNodeLayout>,
     pub admin: Option<NetworkAdmin>,

@@ -2,7 +2,7 @@
 
 use std::rc::Rc;
 
-use greyhack_behaviour::{BYTES_PER_MB, path};
+use greyhack_behaviour::{path, stored_file_size_mb};
 use greyhack_world_modules::Dep;
 
 use crate::storage::{HardwareRepository, NodeRepository};
@@ -55,22 +55,18 @@ impl FileSizesService {
     /// # Errors
     ///
     /// Returns any database read error.
-    #[expect(
-        clippy::cast_precision_loss,
-        reason = "Computer.GetFreeSpaceMB converts the byte total to floating-point megabytes"
-    )]
     pub async fn available_storage_mb(&self, computer: ComputerId) -> Result<f64> {
         let Some(root) = self.lookup.root(computer).await? else {
             return Ok(0.0);
         };
-        let usage_mb = self.size(&root, false).await? as f64 / BYTES_PER_MB;
+        let usage_mb = stored_file_size_mb(self.size(&root, false).await?);
+        let capacity_mb = self
+            .hardware_rows
+            .hardware(computer)
+            .await?
+            .disk_capacity_mb();
 
-        Ok(f64::from(
-            self.hardware_rows
-                .hardware(computer)
-                .await?
-                .disk_capacity_mb(),
-        ) - usage_mb)
+        Ok(f64::from(capacity_mb - usage_mb))
     }
 }
 

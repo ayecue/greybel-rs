@@ -44,6 +44,9 @@ pub(in crate::game) fn computer_text(intrinsic: &str, failure: &ComputerFailure)
         ComputerFailure::GuestUser => {
             format!("{intrinsic}: permission denied. Guest users can not execute this method")
         }
+        ComputerFailure::SmartphoneWifi => {
+            "connect_wifi: wifi configuration is currently unavailable on this device.".to_owned()
+        }
         ComputerFailure::MissingNetDevice => format!("{intrinsic}: Network device not found"),
         ComputerFailure::WifiCardsOnly => "connect_wifi: Only wifi cards are supported".to_owned(),
         ComputerFailure::EthernetCardsOnly => {
@@ -110,6 +113,12 @@ fn net_card_text(failure: &NetCardFailure) -> String {
         NetCardFailure::DisabledHomeNetwork => {
             "can't connect: the home network has been temporarily disabled due to non-payment"
                 .to_owned()
+        }
+        NetCardFailure::NoRentalHome => {
+            "Error: Ethernet card not connected to the network".to_owned()
+        }
+        NetCardFailure::MissingIsp => {
+            "Unable to find ISP network to connect using Ethernet card".to_owned()
         }
         NetCardFailure::SelfGateway => {
             "Error: the gateway cannot be the same device to connect".to_owned()

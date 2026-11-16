@@ -7,6 +7,7 @@ mod admin_restore;
 mod apis;
 mod apt;
 mod bank_payments;
+mod contacts;
 mod creation_missions;
 mod creation_services;
 mod economy_bank;

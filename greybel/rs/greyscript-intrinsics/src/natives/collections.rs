@@ -3,6 +3,24 @@ use greybel_ms_intrinsics::natives::collections as base;
 
 use crate::error::IntrinsicError;
 
+/// Inserts into a list or string. Grey Hack dereferences a null string insertion value and crashes the script.
+#[native(method)]
+pub fn insert(
+    vm: &mut Vm,
+    this: &Value,
+    index: &Value,
+    value: &Value,
+) -> Result<Value, IntrinsicError> {
+    if matches!(this, Value::String(_)) && value.is_null() {
+        // Validate the index first; the game only dereferences the value after its type and range checks.
+        base::insert(vm, this, index, &Value::from(""))?;
+
+        return Err(IntrinsicError::GameCrash);
+    }
+
+    Ok(base::insert(vm, this, index, value)?)
+}
+
 /// C# `ValList.maxSize` limit.
 const MAX_LIST_SIZE: usize = 0xFF_FFFF;
 const MAX_DELIMITER_LEN: usize = 128;

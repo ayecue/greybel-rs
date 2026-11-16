@@ -11,9 +11,13 @@ internal sealed class TrafficFixture(Player player, ClockFixture clock) : IFixtu
     /// <summary>Accident timestamp set by <see cref="RunAccident"/> and returned by network queries.</summary>
     public string AccidentAt { get; private set; }
 
+    /// <summary>Username of the driver passed to the game's car-accident RPC.</summary>
+    public string AccidentDriver { get; private set; }
+
     public void Reset()
     {
         AccidentAt = null;
+        AccidentDriver = null;
     }
 
     /// <summary>
@@ -23,11 +27,13 @@ internal sealed class TrafficFixture(Player player, ClockFixture clock) : IFixtu
     public Reply Create()
     {
         Router router = player.Computer.GetMainRouter();
-        NpcInfo driver = router
-            .GetNetworkLan()
-            .GetNpcInfos()
+        NetworkLan lan = router.GetNetworkLan();
+        NpcInfo admin = lan.GetAdminNpcInfo();
+        NpcInfo driver = lan.GetNpcInfos()
             .Values.First(npc =>
-                !string.IsNullOrEmpty(npc.GetLicensePlate()) && !IsFixtureWorkstation(router, npc)
+                !string.IsNullOrEmpty(npc.GetLicensePlate())
+                && npc != admin
+                && !IsFixtureWorkstation(router, npc)
             );
         DateTime date = ClockServer.Singleton.GetDateTime().Date;
         if (date.DayOfWeek == DayOfWeek.Saturday)
@@ -54,6 +60,7 @@ internal sealed class TrafficFixture(Player player, ClockFixture clock) : IFixtu
     {
         PlayerServer server = player.Server;
         AccidentAt = ClockServer.Singleton.GetFechaCompleta();
+        AccidentDriver = request.User;
         server.playerHelper.SetNpcInfoCar(request.User, request.PublicIp, request.PoliceIp);
         server.playerHelper.EnableCarAccidentServerRpc();
         if (!player.Computer.GetMainRouter().GetConfigOS().IsOverrideUsed())

@@ -1,6 +1,6 @@
 //! Grey Hack-compatible tree copy validation, filtering, accounting, and cross-computer copies.
 
-use greyhack_behaviour::{BYTES_PER_MB, MAX_FILES, MAX_FILES_PER_FOLDER, path};
+use greyhack_behaviour::{MAX_FILES, MAX_FILES_PER_FOLDER, file_size_mb, path};
 
 use crate::model::computer::filesystem::CopyPlan;
 use crate::storage::nodes::NodeSpec;
@@ -363,10 +363,6 @@ impl FileChangesService {
     /// # Errors
     ///
     /// Returns any database error; the inner error explains why no entries can be copied.
-    #[expect(
-        clippy::cast_precision_loss,
-        reason = "PlayerUtils.PrepararScpUpload compares byte counts using C# float megabytes"
-    )]
     pub async fn copy_with_rules(
         &self,
         source: &Node,
@@ -412,9 +408,7 @@ impl FileChangesService {
             Err(failure) => return Ok(Err(failure)),
         };
 
-        if plan.file_size as f64 / BYTES_PER_MB
-            > self.sizes.available_storage_mb(folder.computer).await?
-        {
+        if file_size_mb(plan.file_size) > self.sizes.available_storage_mb(folder.computer).await? {
             return Ok(Err(FileFailure::DiskFull));
         }
 

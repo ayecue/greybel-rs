@@ -16,7 +16,7 @@ pub use alarm::{AlarmFailure, PhoneAlarm};
 pub use events::{AdminAbsence, AdminArrival, NpcJobChange};
 pub use jobs::{FireFailure, HireFailure, JobService};
 pub use login_capture::NpcLoginCapture;
-pub use mail::{Mail, MailRefusal, SendMailFailure};
+pub use mail::{Mail, MailRefusal, MailSpamConfig, SendMailFailure};
 pub use network_creation::{NetworkCreation, NetworkRestore};
 pub use person::NpcService;
 pub(crate) use person::NpcServiceSupport;

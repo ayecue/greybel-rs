@@ -252,6 +252,11 @@ internal sealed class GuildFixture(Player player) : IFixture
                 )
             );
         }
-        return new CompanySnapshot(companyIp, router.GetNetworkLan().GetSeed(), holders);
+        return new CompanySnapshot(
+            companyIp,
+            router.GetNetworkLan().GetSeed(),
+            holders,
+            Database.Singleton.GetStocks(companyIp).HasDdosRankingPenalty()
+        );
     }
 }

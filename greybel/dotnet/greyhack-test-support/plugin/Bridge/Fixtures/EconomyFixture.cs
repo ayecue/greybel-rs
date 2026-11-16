@@ -1,6 +1,7 @@
 using System;
 using GreyHackTestSupport.Plugin.Bridge.Game;
 using GreyHackTestSupport.Protocol;
+using HarmonyLib;
 using Newtonsoft.Json;
 using OS = Util.OS;
 
@@ -141,6 +142,84 @@ internal sealed class EconomyFixture(Player player)
         GameField.CoinNextCycle.SetValue(coin, ClockServer.Singleton.GetDateTime().AddHours(-1));
         Database.Singleton.SyncCoin(coin);
         return new Reply.BlockchainReady(new BlockchainReadyReply(bankNumber));
+    }
+
+    /// <summary>Applies an exact stale-account, market, or mining boundary state.</summary>
+    public Reply Configure(ConfigureEconomyRpc request)
+    {
+        switch (request.Fixture)
+        {
+            case "delete_wallet":
+                foreach (string coinName in Database.Singleton.GetCoinNames())
+                {
+                    BlockchainSystem.Coin coin = Database.Singleton.GetCoin(coinName);
+                    coin.buyOffers.Remove(request.Wallet);
+                    coin.sellOffers.Remove(request.Wallet);
+                    Database.Singleton.SyncCoin(coin);
+                }
+                object db = Traverse
+                    .Create(Database.Singleton)
+                    .Method("Config", "DELETE FROM Wallets WHERE WalletID = @walletID")
+                    .GetValue();
+                Traverse.Create(db).Method("AddParameter", "@walletID", request.Wallet).GetValue();
+                Traverse.Create(db).Method("ExecuteNonQuery").GetValue();
+                (db as IDisposable)?.Dispose();
+                object clear = Traverse
+                    .Create(Database.Singleton)
+                    .Method("Config", "UPDATE Players SET WalletID = '' WHERE PlayerID = @playerID")
+                    .GetValue();
+                Traverse
+                    .Create(clear)
+                    .Method("AddParameter", "@playerID", player.Server.playerID)
+                    .GetValue();
+                Traverse.Create(clear).Method("ExecuteNonQuery").GetValue();
+                (clear as IDisposable)?.Dispose();
+                player.Computer.GetPlayerConfigOS().SetWallet("");
+                Database.Singleton.SyncConfigOS(player.Computer);
+                break;
+            case "delete_coin":
+                Database.Singleton.DeleteCoin(request.Coin);
+                break;
+            case "delete_subwallet":
+                BlockchainSystem.Wallet wallet = Database.Singleton.GetWallet(request.Wallet);
+                wallet.RemoveSubWallet(request.Coin, request.Subwallet, out _);
+                Database.Singleton.SyncWallet(wallet);
+                break;
+            case "unbanked_wallet":
+                BlockchainSystem.Wallet unbanked = new BlockchainSystem.Wallet(
+                    "fixture-" + Guid.NewGuid().ToString("N"),
+                    request.Wallet,
+                    "matrix1",
+                    "missing-bank"
+                );
+                Database.Singleton.AddWallet(unbanked);
+                string error = BlockchainSystem.AddSubWallet(
+                    request.Coin,
+                    request.Wallet,
+                    unbanked.GetPin(),
+                    request.Subwallet,
+                    "pass1"
+                );
+                if (error.Length > 0)
+                {
+                    throw new InvalidOperationException(error);
+                }
+                break;
+            case "fully_mined":
+                BlockchainSystem.Coin mined = Database.Singleton.GetCoin(request.Coin);
+                mined.mined = BlockchainSystem.MAX_COINS;
+                Database.Singleton.SyncCoin(mined);
+                break;
+            case "damaged_gpu":
+                Hardware hardware = player.Computer.GetHardware();
+                hardware.gpu = new Hardware.GPU("fixture", 1, new Random(1));
+                hardware.gpu.health = 4;
+                Database.Singleton.SyncHardwareDB(player.Computer.GetID(), hardware);
+                break;
+            default:
+                throw new InvalidOperationException("Unknown economy fixture: " + request.Fixture);
+        }
+        return new Reply.Applied();
     }
 
     /// <summary>Creates a player wallet with no password-reset cooldown.</summary>

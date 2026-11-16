@@ -1,5 +1,6 @@
 //! `netSession` operations (`NetSessionIntrinsics`) on service libraries and routers.
 
+use greyhack_behaviour::FileKind;
 use greyhack_world_core::{ComputerId, RouterId};
 use greyhack_world_router::RouteTable;
 
@@ -165,7 +166,10 @@ pub async fn dump_lib(
             .lookup
             .file(file.access.computer, &file.path, false)
             .await?
-            .is_some(),
+            .is_some_and(|node| {
+                node.data()
+                    .is_some_and(|data| data.kind == FileKind::Library)
+            }),
         NetSessionRef::Router(kernel) => world
             .module::<greyhack_world_core::CoreModule>()
             .networks

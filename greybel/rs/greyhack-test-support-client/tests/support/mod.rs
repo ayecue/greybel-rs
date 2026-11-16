@@ -15,6 +15,8 @@ pub mod parity;
 #[cfg(feature = "game")]
 pub mod parity_bank_payments;
 #[cfg(feature = "game")]
+pub mod parity_computers;
+#[cfg(feature = "game")]
 pub mod parity_exploit_shop;
 #[cfg(feature = "game")]
 pub mod parity_game_over;

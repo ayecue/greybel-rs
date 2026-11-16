@@ -76,6 +76,18 @@ pub fn range(
         return Err(IntrinsicError::RangeNull);
     };
 
+    let numeric_step = match step {
+        Value::Number(step) => step.get(),
+        _ if to >= from => 1.0,
+        _ => -1.0,
+    };
+
+    // The game casts the quotient to int and then adds one. At int.MaxValue that addition wraps to a negative capacity,
+    // which its allocation catch reports as `range() error`; Rust's float cast would instead report `list too large`.
+    if numeric_step != 0.0 && (to - from) / numeric_step >= f64::from(i32::MAX) {
+        return Err(greybel_ms_intrinsics::IntrinsicError::Range.into());
+    }
+
     Ok(base_range::range(from, to, step)?)
 }
 

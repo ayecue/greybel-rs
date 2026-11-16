@@ -3,7 +3,7 @@
 
 use greyhack_behaviour::{
     FileData, FileKind, LogAction, MAX_FILES, Permission, PermissionSet, check_new_name,
-    check_target_name, path,
+    check_target_name, file_size_mb, path,
 };
 
 use super::failure::ScriptFileFailure;
@@ -258,6 +258,12 @@ impl ScriptFilesService {
                 folder: folder.to_owned(),
                 name: name.to_owned(),
             }));
+        }
+
+        let target_len = target_path.encode_utf16().count();
+
+        if file_size_mb(target_len as u64) > self.sizes.available_storage_mb(computer).await? {
+            return Ok(Err(FileFailure::DiskFull.into()));
         }
 
         let data = target.data().cloned().unwrap_or_default();

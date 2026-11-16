@@ -3,10 +3,25 @@ use greyhack_behaviour::NetworkKind;
 use greyhack_world::{PlayerOptions, World};
 use greyhack_world_libraries::ReverseShell;
 
-use crate::support::network::first_remote_service;
+use crate::support::network::{SERVICE_SEED, first_remote_service};
 use crate::support::rshell::{prepare_rshell, prepare_rshell_service};
 use crate::support::scripts::{run_code_in, run_on_host};
 use crate::support::{read_computer, save_copy, world_options};
+
+#[test]
+fn should_check_rshell_service_after_losing_the_host_init_file() {
+    let world = block_on(World::generate(&world_options(SERVICE_SEED, 1))).expect("a world");
+    let target = first_remote_service(&world);
+    let code = format!(
+        "remote = get_shell.connect_service(\"{}\", {}, \"{}\", \"{}\"); remote.host_computer.File(\"/lib/init.so\").delete; print include_lib(\"/lib/metaxploit.so\").rshell_server",
+        target.address, target.port, target.user, target.password
+    );
+
+    let (output, error, _) = run_on_host(&code, world, true);
+
+    assert_eq!(error, None);
+    assert_eq!(output, "error: service rshelld is not running");
+}
 
 #[test]
 fn should_register_a_reverse_shell_and_return_it_from_the_server() {

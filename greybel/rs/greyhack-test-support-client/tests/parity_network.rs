@@ -2,21 +2,27 @@
 
 use greybel_test_support::game::Game;
 use greyhack_behaviour::{Reward, WorldSeed};
-use greyhack_test_support_client::protocol::test_support::LanNodeKind;
+use greyhack_test_support_client::GuildSetup;
+use greyhack_test_support_client::protocol::test_support::{
+    FixtureService, FixtureTarget, LanNodeKind,
+};
 use greyhack_world_creation::WifiGenerator;
 
 use crate::support::game::{
     devices_above, dual_service_network, empty_network, join_fixture, join_network,
     routed_ssh_network, router_ssh_network, service_network, setup_player, ssh_network,
-    test_client,
+    ssh_network_of_kind, test_client,
 };
 use crate::support::metaxploit::{
     fixture_reply_weakness, fixture_weakness, overflow_script, router_library,
 };
 use crate::support::parity::{
-    assert_port_info_lines, assert_succeeded, compare_in, compare_in_flooded, game_outcomes,
-    intrinsics_outcomes, snapshot_outcomes,
+    assert_port_info_lines, assert_succeeded, compare_in, compare_in_flooded,
+    compare_in_flooded_labeled, compare_labeled, game_outcomes, intrinsics_outcomes,
+    snapshot_outcomes,
 };
+use crate::support::parity_bank_payments::rent_network;
+use crate::support::parity_guilds::LEVEL_FIVE;
 use crate::support::parity_missions::use_game_word_lists;
 use crate::support::remote::{fixture_account, script_string};
 
@@ -37,6 +43,70 @@ async fn should_match_intrinsics_for_addresses_reached_for_the_first_time() {
     let actual = game_outcomes(&client, &scripts).await;
 
     assert_eq!(actual, expected);
+    client.shutdown();
+}
+
+/// `whois` on a rented network with its administrator contact block.
+#[tokio::test]
+async fn should_match_intrinsics_for_whois_variants() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let rented = rent_network(&client, std::process::id() % 10000).await;
+
+    client.hire_rental_admin(&rented).await.unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+
+    assert!(
+        snapshot.rental_admin,
+        "the rental administrator fixture is active"
+    );
+    compare_in(
+        &client,
+        &user,
+        &snapshot,
+        &[format!("print whois(\"{rented}\")")],
+    )
+    .await;
+    client.shutdown();
+}
+
+/// A reachable public router can still be offline or fail its own startup checks.
+#[tokio::test]
+async fn should_match_intrinsics_for_router_host_errors() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let current = ssh_network(&client).await;
+
+    for fixture in ["disabled", "startup_error"] {
+        let target = empty_network(&client, "Supermercados").await;
+        let target_ip = target.public_ip.clone();
+
+        join_fixture(&client, &target).await;
+        if fixture == "disabled" {
+            client.disable_network(&target_ip, true).await.unwrap();
+        } else {
+            client
+                .configure_computer(&target.main_local_ip, "startup_error")
+                .await
+                .unwrap();
+        }
+
+        join_fixture(&client, &current).await;
+
+        let snapshot = client.network_state().await.unwrap();
+
+        compare_in(
+            &client,
+            &user,
+            &snapshot,
+            &[format!("print get_router(\"{target_ip}\")")],
+        )
+        .await;
+    }
+
     client.shutdown();
 }
 
@@ -244,6 +314,64 @@ async fn should_match_intrinsics_for_ftp_transfers() {
     client.shutdown();
 }
 
+/// `scp` and `build` argument, permission, source-type, and destination-creation failures.
+#[tokio::test]
+async fn should_match_intrinsics_for_scp_and_build_edges() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+
+    client.configure_computer("", "permissions").await.unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+    let prelude = r#"root = get_shell("root", "test")
+limited = get_shell("limited", "pass1")
+pc = root.host_computer
+b = "/home/limited/matrix"
+pc.touch(b + "/open", "code.src")
+pc.File(b + "/open/code.src").set_content("print 1")
+root.build(b + "/open/code.src", b + "/open")
+pc.touch(b + "/open", "plain")
+pc.File(b + "/open/plain").set_content("print 1")
+pc.touch(b + "/open", "empty.src")
+pc.File(b + "/open/empty.src").set_content("")
+"#;
+    let scripts = vec![
+        "print scp(1, \"/etc/passwd\", home_dir, get_shell); print get_shell.scp(1, home_dir, get_shell); print get_shell.scp(\"\", home_dir, get_shell); print get_shell.scp(\"/etc/passwd\", \"\", get_shell); print get_shell.scp(\"/etc/passwd\", home_dir, {})".to_owned(),
+        "print limited.scp(b + \"/locked.txt\", b + \"/open\", root); print limited.scp(b + \"/locked\", b + \"/open\", root); print root.scp(\"/\", home_dir, root); print limited.scp(b + \"/mixed\", b + \"/destination\", root)".to_owned(),
+        "print build(1, home_dir, home_dir); print build({}, home_dir, home_dir); print root.build(\"\", home_dir); print root.build(home_dir, \"\")".to_owned(),
+        "print root.build(b + \"/missing.src\", b + \"/open\"); print root.build(b + \"/open/code.src\", b + \"/missing\"); print limited.build(b + \"/locked.txt\", b + \"/open\"); print limited.build(b + \"/open/code.src\", b + \"/destination_locked\")".to_owned(),
+        "print root.build(b + \"/open/code\", b + \"/open\"); print root.build(b + \"/open/plain\", b + \"/open\"); print root.build(b + \"/open/empty.src\", b + \"/open\")".to_owned(),
+        "print limited.launch(\"/etc/passwd\"); pc.File(b + \"/open/code\").chmod(\"o-x\"); print limited.launch(b + \"/open/code\"); print root.launch(b + \"/open/code\", \"[\")".to_owned(),
+        "print get_shell.ping(1); print get_shell.ping(\"bad\"); print ping({}, \"1.2.3.4\"); get_shell.host_computer.File(\"/lib/init.so\").delete; print get_shell.ping(\"1.2.3.4\")".to_owned(),
+    ]
+    .into_iter()
+    .map(|script| format!("{prelude}\n{script}"))
+    .collect::<Vec<_>>();
+
+    compare_in(&client, &user, &snapshot, &scripts).await;
+
+    for fixture in ["full_disk", "full_filesystem"] {
+        let user = setup_player(&client).await;
+
+        client.configure_computer("", fixture).await.unwrap();
+
+        let snapshot = client.network_state().await.unwrap();
+        let destination = if fixture == "full_disk" {
+            "home_dir".to_owned()
+        } else {
+            "home_dir + \"/full_filesystem\"".to_owned()
+        };
+        let scripts = vec![format!(
+            "print get_shell.scp(\"/etc/passwd\", {destination}, get_shell); print get_shell.build(\"/etc/passwd\", {destination})"
+        )];
+
+        compare_in(&client, &user, &snapshot, &scripts).await;
+    }
+
+    client.shutdown();
+}
+
 /// SSH and FTP run a reached computer's encode/decode scripts for successful and failed logins, retry a changed
 /// decoded password, and honour the encryption message (`ShellIntrinsics.connect_service`, `PlayerUtils.ConnectService`).
 #[tokio::test]
@@ -313,6 +441,192 @@ async fn should_match_intrinsics_for_encrypted_service_logins() {
         "FTP must complete an encrypted login: {:?}",
         outcomes[0]
     );
+    client.shutdown();
+}
+
+/// `connect_service` validates its arguments and the source computer before it resolves the target.
+#[tokio::test]
+async fn should_match_intrinsics_for_connection_argument_and_source_errors() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let network = dual_service_network(&client).await;
+    let public = fixture_account(&network, "dual", "ssh", true);
+    let local = fixture_account(&network, "dual", "ssh", false);
+    let ftp = fixture_account(&network, "dual", "ftp", false);
+    let address = public.address.clone();
+    let port = public.port;
+    let password = public.root_password.clone();
+    let snapshot = join_fixture(&client, &network).await;
+    let scripts = vec![
+        "print connect_service(1, \"1.2.3.4\", 22, \"root\", \"x\"); print get_shell.connect_service(\"\", 22, \"root\", \"x\"); print get_shell.connect_service(\"1.2.3.4\", \"22\", \"root\", \"x\")".to_owned(),
+        "print get_shell.connect_service(\"1.2.3.4\", 22, \"root\", \"[\")".to_owned(),
+        format!("print get_shell.connect_service(\"{address}\", {port}, \"root\", \"{password}\", \"http\")"),
+        "print get_shell.connect_service(\"no-such-domain.invalid\", 22, \"root\", \"x\"); print get_shell.connect_service(\"10.0.0.1\", 22, \"root\", \"x\")".to_owned(),
+        format!("print get_shell.connect_service(\"{address}\", 1, \"root\", \"{password}\"); print get_shell.connect_service(\"{}\", 1, \"root\", \"{}\")", local.address, local.root_password),
+        format!("print get_shell.connect_service(\"{}\", {}, \"root\", \"{}\", \"ssh\")", local.address, ftp.port, local.root_password),
+        format!("s = get_shell.connect_service(\"{address}\", {port}, \"root\", \"{password}\"); s.host_computer.File(\"/lib/init.so\").delete; print s.connect_service(\"{address}\", {port}, \"root\", \"{password}\")"),
+        format!("get_shell.host_computer.File(\"/lib/init.so\").delete; print get_shell.connect_service(\"{address}\", {port}, \"root\", \"{password}\"); print get_shell.ping(\"{address}\")"),
+    ];
+
+    compare_in(&client, &user, &snapshot, &scripts).await;
+    client.shutdown();
+}
+
+/// Public-forward, target-availability, firewall, and service-library errors in their game validation order.
+#[tokio::test]
+async fn should_match_intrinsics_for_connection_target_faults() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+
+    for fixture in [
+        "closed_public_service",
+        "missing_machine",
+        "unreachable",
+        "rebooting",
+        "firewall_deny",
+    ] {
+        let user = setup_player(&client).await;
+        let network = ssh_network(&client).await;
+        let public = fixture_account(&network, "ssh", "ssh", true);
+        let local = fixture_account(&network, "ssh", "ssh", false);
+
+        join_fixture(&client, &network).await;
+        client
+            .configure_computer(&local.address, fixture)
+            .await
+            .unwrap();
+
+        let snapshot = client.network_state().await.unwrap();
+        let script = format!(
+            "print get_shell.connect_service(\"{}\", {}, \"root\", \"{}\"); print get_shell.ping(\"{}\")",
+            public.address, public.port, public.root_password, public.address
+        );
+
+        compare_labeled(
+            &client,
+            &user,
+            &snapshot,
+            &format!("connection-target:{fixture}"),
+            &[script],
+        )
+        .await;
+    }
+
+    let user = setup_player(&client).await;
+    let network = client
+        .create_fixture_network(
+            "RentServer",
+            "flat",
+            false,
+            vec![FixtureTarget {
+                name: "dual".to_owned(),
+                device: "COMPUTER".to_owned(),
+                location: "main".to_owned(),
+                root_password: String::new(),
+                library_state: String::new(),
+                services: vec![
+                    FixtureService {
+                        service: "ftp".to_owned(),
+                        internal_port: 10_021,
+                        public_port: Some(10_021),
+                        oldest_library: false,
+                    },
+                    FixtureService {
+                        service: "ssh".to_owned(),
+                        internal_port: 10_022,
+                        public_port: Some(10_022),
+                        oldest_library: false,
+                    },
+                ],
+            }],
+        )
+        .await
+        .unwrap();
+    let ftp = fixture_account(&network, "dual", "ftp", true);
+    let local = fixture_account(&network, "dual", "ftp", false);
+
+    join_fixture(&client, &network).await;
+    client
+        .configure_computer(&local.address, "missing_ssh_service")
+        .await
+        .unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+
+    assert!(
+        snapshot.admin.is_none(),
+        "connection-target:missing_ssh_service"
+    );
+
+    let script = format!(
+        "print get_shell.connect_service(\"{}\", {}, \"root\", \"{}\")",
+        ftp.address, ftp.port, ftp.root_password
+    );
+
+    compare_labeled(
+        &client,
+        &user,
+        &snapshot,
+        "connection-target:missing_ssh_service",
+        &[script],
+    )
+    .await;
+
+    client.shutdown();
+}
+
+/// Each service-library fault starts with one valid original library and no NPC administrator to restore it.
+#[tokio::test]
+async fn should_match_intrinsics_for_connection_library_faults() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+
+    for fixture in ["missing", "invalid", "unexpected", "malformed"] {
+        let user = setup_player(&client).await;
+        let network = client
+            .create_fixture_network(
+                "RentServer",
+                "flat",
+                false,
+                vec![FixtureTarget {
+                    name: "ssh".to_owned(),
+                    device: "COMPUTER".to_owned(),
+                    location: "main".to_owned(),
+                    root_password: String::new(),
+                    library_state: fixture.to_owned(),
+                    services: vec![FixtureService {
+                        service: "ssh".to_owned(),
+                        internal_port: 31_022,
+                        public_port: Some(31_022),
+                        oldest_library: false,
+                    }],
+                }],
+            )
+            .await
+            .unwrap();
+        let account = fixture_account(&network, "ssh", "ssh", true);
+
+        join_network(&client, &network.public_ip).await;
+
+        let snapshot = client.network_state().await.unwrap();
+
+        assert!(
+            snapshot.admin.is_none(),
+            "library_state={fixture}: the fixture must not have an NPC administrator"
+        );
+
+        let connect = format!(
+            "s = get_shell.connect_service(\"{}\", {}, \"root\", \"{}\"); print typeof(s); if typeof(s) == \"shell\" then print s.host_computer.local_ip; if typeof(s) == \"shell\" then print s.host_computer.File(\"/lib/libssh.so\") == null",
+            account.address, account.port, account.root_password
+        );
+
+        let expected = snapshot_outcomes(&[&connect], &user, &snapshot);
+        let actual = game_outcomes(&client, &[&connect]).await;
+
+        assert_eq!(actual, expected, "library_state={fixture}");
+    }
+
     client.shutdown();
 }
 
@@ -486,6 +800,267 @@ async fn should_match_intrinsics_for_net_session_queries_and_flooding() {
     )];
 
     compare_in_flooded(&client, &user, &snapshot, &scripts, &floods).await;
+    client.shutdown();
+}
+
+/// Wrong router, port and net-session receivers, including their distinct helper crashes.
+#[tokio::test]
+async fn should_match_intrinsics_for_router_port_and_session_receivers() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let snapshot = client.network_state().await.unwrap();
+    let scripts = vec![
+        "print get_router.net_speed; print [essid_name({}), bssid_name({}), net_speed({}), firewall_rules({}), kernel_version({}), devices_lan_ip({}), used_ports({})]".to_owned(),
+        "print [device_ports(get_router, \"\"), device_ports(get_router, 1), device_ports({}, \"10.0.0.1\"), ping_port(get_router, \"x\"), ping_port({}, 22)]".to_owned(),
+        "print [get_lan_ip(1), is_closed(1)]".to_owned(),
+        "print [dump_lib({}), get_num_users({}), get_num_portforward({}), get_num_conn_gateway({}), is_any_active_user({}), is_root_active_user({}), flood_connection({})]".to_owned(),
+        "print get_lan_ip({})".to_owned(),
+        "print is_closed({})".to_owned(),
+    ];
+
+    compare_labeled(&client, &user, &snapshot, "receiver-errors", &scripts).await;
+    client.shutdown();
+}
+
+/// A router without its kernel has no version, and a service computer without ports returns an empty list.
+#[tokio::test]
+async fn should_match_intrinsics_for_router_kernel_and_device_port_edges() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+
+    for fixture in [
+        "missing_kernel",
+        "invalid_kernel",
+        "portless",
+        "out_of_network",
+    ] {
+        let user = setup_player(&client).await;
+        let network = if fixture == "portless" {
+            client
+                .create_fixture_network(
+                    "RentServer",
+                    "flat",
+                    false,
+                    vec![FixtureTarget {
+                        name: "portless".to_owned(),
+                        device: "COMPUTER".to_owned(),
+                        location: "main".to_owned(),
+                        root_password: String::new(),
+                        library_state: String::new(),
+                        services: Vec::new(),
+                    }],
+                )
+                .await
+                .unwrap()
+        } else {
+            ssh_network(&client).await
+        };
+
+        join_fixture(&client, &network).await;
+
+        if fixture == "missing_kernel" || fixture == "invalid_kernel" {
+            client
+                .configure_computer(&network.main_local_ip, fixture)
+                .await
+                .unwrap();
+        }
+
+        let other = if fixture == "out_of_network" {
+            Some(ssh_network_of_kind(&client, "RentServer").await)
+        } else {
+            None
+        };
+        let snapshot = client.network_state().await.unwrap();
+        let local = network.targets[0].local_ip.clone();
+        let script = match fixture {
+            "missing_kernel" | "invalid_kernel" => "print get_router.kernel_version".to_owned(),
+            "portless" => format!("print get_router.device_ports(\"{local}\")"),
+            "out_of_network" => format!(
+                "r = get_router(\"{}\"); print r.device_ports(\"{local}\")",
+                other.unwrap().public_ip
+            ),
+            _ => unreachable!(),
+        };
+
+        compare_labeled(
+            &client,
+            &user,
+            &snapshot,
+            &format!("router-device:{fixture}"),
+            &[script],
+        )
+        .await;
+    }
+
+    client.shutdown();
+}
+
+/// A net session keeps its object after its service library disappears, but can no longer dump it.
+#[tokio::test]
+async fn should_match_intrinsics_for_a_stale_net_session_library() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+
+    for fixture in ["missing", "invalid"] {
+        let user = setup_player(&client).await;
+        let network = ssh_network_of_kind(&client, "RentServer").await;
+        let account = fixture_account(&network, "ssh", "ssh", false);
+        let snapshot = join_fixture(&client, &network).await;
+        let action = if fixture == "missing" {
+            "pc.File(\"/lib/libssh.so\").delete"
+        } else {
+            "pc.touch(\"/root\", \"notlib.txt\"); pc.File(\"/root/notlib.txt\").move(\"/lib\", \"libssh.so\")"
+        };
+        let script = format!(
+            "remote = get_shell.connect_service(\"{}\", {}, \"root\", \"{}\"); pc = remote.host_computer; mx = include_lib(\"/lib/metaxploit.so\"); session = mx.net_use(\"{}\", {}); {action}; print session.dump_lib",
+            account.address, account.port, account.root_password, account.address, account.port
+        );
+
+        compare_labeled(
+            &client,
+            &user,
+            &snapshot,
+            &format!("stale-dump-lib:{fixture}"),
+            &[script],
+        )
+        .await;
+    }
+
+    client.shutdown();
+}
+
+/// A hired rental administrator raises the flood threshold and prints the super-administrator warning.
+#[tokio::test]
+async fn should_match_intrinsics_for_a_super_admin_flood() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let suffix = std::process::id() % 10000;
+
+    client
+        .setup_blockchain(&format!("Sa{suffix}"), &format!("w{suffix}"))
+        .await
+        .unwrap();
+
+    let network = ssh_network_of_kind(&client, "RentServer").await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+
+    join_fixture(&client, &network).await;
+    client.hire_rental_admin(&network.public_ip).await.unwrap();
+    client.prime_flood(&account.address).await.unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+
+    assert!(snapshot.rental_admin, "super-admin-flood");
+
+    let threshold = u32::from(snapshot.net_speed) * 3;
+    let floods = (1..threshold)
+        .map(|origin| {
+            (
+                account.address.clone(),
+                format!("fixture-{origin}"),
+                threshold,
+            )
+        })
+        .collect::<Vec<_>>();
+    let scripts = vec![format!(
+        "mx = include_lib(\"/lib/metaxploit.so\"); session = mx.net_use(\"{}\", {}); print session.flood_connection",
+        account.address, account.port
+    )];
+
+    compare_in_flooded_labeled(
+        &client,
+        &user,
+        &snapshot,
+        "super-admin-flood",
+        &scripts,
+        &floods,
+    )
+    .await;
+    client.shutdown();
+}
+
+/// A flood on a listed company reaches its reboot and records the DDoS ranking penalty.
+#[tokio::test]
+async fn should_match_intrinsics_for_a_listed_company_flood() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let suffix = std::process::id() % 10000;
+    let bank = client
+        .setup_blockchain(&format!("Lc{suffix}"), &format!("w{suffix}"))
+        .await
+        .unwrap()
+        .bank_number
+        .clone();
+    let network = ssh_network(&client).await;
+    let account = fixture_account(&network, "ssh", "ssh", false);
+
+    join_fixture(&client, &network).await;
+    client
+        .setup_guild(GuildSetup {
+            name: format!("Listed{suffix}"),
+            bank_account: bank,
+            total_exp: LEVEL_FIVE,
+            investment_perks: 1,
+            join: true,
+            company_ip: network.public_ip.clone(),
+            crown: false,
+            shield_ip: String::new(),
+            admin_restore_perks: 0,
+            admin_restore_off: false,
+        })
+        .await
+        .unwrap();
+    client.prime_flood(&account.address).await.unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+    let super_admin = snapshot.rental_admin
+        || snapshot.admin.as_ref().is_some_and(|admin| {
+            admin.work_performance > 2
+                && u16::midpoint(
+                    u16::from(admin.intelligence),
+                    u16::from(admin.pc_experience),
+                ) >= 8
+                && !admin.dead_or_fired
+        });
+    let mut threshold = u32::from(snapshot.net_speed) * 3;
+
+    if !super_admin {
+        threshold = (threshold * 3).div_ceil(4);
+    }
+
+    let floods = (1..threshold)
+        .map(|origin| {
+            (
+                account.address.clone(),
+                format!("fixture-{origin}"),
+                threshold,
+            )
+        })
+        .collect::<Vec<_>>();
+    let scripts = vec![format!(
+        "mx = include_lib(\"/lib/metaxploit.so\"); session = mx.net_use(\"{}\", {}); print session.flood_connection",
+        account.address, account.port
+    )];
+
+    compare_in_flooded_labeled(
+        &client,
+        &user,
+        &snapshot,
+        "listed-company-flood",
+        &scripts,
+        &floods,
+    )
+    .await;
+
+    let companies = client
+        .query_guilds(std::slice::from_ref(&snapshot.public_ip))
+        .await
+        .unwrap();
+
+    assert!(companies.companies[0].ddos_penalty);
     client.shutdown();
 }
 

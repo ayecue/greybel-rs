@@ -33,6 +33,13 @@ CREATE TABLE IF NOT EXISTS email_replies (
 );
 CREATE INDEX IF NOT EXISTS email_replies_thread ON email_replies (email_id, id);
 
+CREATE TABLE IF NOT EXISTS mail_spam (
+    address      TEXT PRIMARY KEY REFERENCES mail_accounts(address) ON DELETE CASCADE,
+    player_pc_id TEXT NOT NULL DEFAULT '',
+    filter       INTEGER NOT NULL DEFAULT 1,
+    blacklist    TEXT NOT NULL DEFAULT '[]'
+);
+
 ",
-    &["mail_accounts", "person_mail", "emails", "email_replies"],
+    &["mail_accounts", "person_mail", "emails", "email_replies", "mail_spam"],
 );

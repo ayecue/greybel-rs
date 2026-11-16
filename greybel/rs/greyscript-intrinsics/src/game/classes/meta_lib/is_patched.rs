@@ -14,6 +14,11 @@ pub fn is_patched(
     let Some(library) = library(vm, this) else {
         return Ok(NativeOutput::ready(Value::Null));
     };
+
+    if getdate.as_number().is_none() {
+        return Ok(NativeOutput::ready(Value::Null));
+    }
+
     let message = MetaLibIsPatched {
         program: program(vm)?,
         library,

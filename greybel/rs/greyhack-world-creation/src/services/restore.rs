@@ -208,6 +208,17 @@ impl RestoreService {
                 .await?;
         }
 
+        // `Router.GeneraLanPc` runs `Router.PostGenComputer` before `Router.PostGenMission`.
+        if let Some(kind) = self
+            .networks
+            .settings
+            .network(row.network)
+            .await?
+            .map(|network| network.kind)
+        {
+            self.installs.configure_shop(computer_id, kind).await?;
+        }
+
         if let Original::Plan(entry) = original
             && let (computer_plan, Some(mission), _) = &**entry
             && mission.assignment_at(&computer_plan.local_ip).is_some()
@@ -232,16 +243,6 @@ impl RestoreService {
             .await?;
         for node in nodes_to_retain {
             self.restore_node_copy(node).await?;
-        }
-
-        if let Some(kind) = self
-            .networks
-            .settings
-            .network(row.network)
-            .await?
-            .map(|network| network.kind)
-        {
-            self.installs.configure_shop(computer_id, kind).await?;
         }
 
         Ok(())

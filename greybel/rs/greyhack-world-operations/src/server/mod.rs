@@ -261,6 +261,11 @@ impl WorldServer {
         WorldView(self.0.world.lock().await)
     }
 
+    /// Clones the live world handle so a fixture callback can mutate the same database as the running server.
+    pub async fn world_clone(&self) -> World {
+        self.0.world.lock().await.world.as_ref().clone()
+    }
+
     /// Runs a read-only world operation and rolls back its transaction.
     pub async fn read_world<T>(&self, read: impl AsyncFnOnce(&World) -> T) -> T {
         self.0

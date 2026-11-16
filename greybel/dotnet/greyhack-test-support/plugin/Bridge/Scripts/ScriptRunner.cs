@@ -291,6 +291,13 @@ internal sealed class ScriptRunner(MainThread main, Player player)
             throw;
         }
         ContextManager.ContextProcess process = ContextManager.GetContext(id);
+        if (process == null)
+        {
+            // A very short program can finish on the script thread before CreateContext returns. Its completion message
+            // is still handled below and resolves the execution; there is no live PID left to record.
+            return;
+        }
+
         execution.Pid = process.Pid;
     }
 

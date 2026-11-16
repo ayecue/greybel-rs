@@ -6,7 +6,8 @@ use crate::support::game::{
     devices_above, join_fixture, routed_ssh_network, setup_player, ssh_network, test_client,
 };
 use crate::support::parity::{
-    Outcome, compare_in_real_time, compare_interactive, game_outcomes, intrinsics_outcomes,
+    Outcome, compare_in, compare_in_real_time, compare_interactive, game_outcomes,
+    intrinsics_outcomes,
 };
 use crate::support::remote::{fixture_account, script_string};
 use crate::support::steps::{Step, WorldChange, compare_stepped};
@@ -107,6 +108,7 @@ async fn should_match_intrinsics_for_what_the_terminal_shows() {
         "print(\"one\", true); print \"two\"; wait(0.1); print(\"three\", true); print \"four\"",
         "print \"one\"; wait(0.1); print \"two\"; print(\"three\", true)",
         "print \"one\"; clear_screen; print \"two\"",
+        "clear_screen; clear_screen",
         "sh = get_shell; pc = sh.host_computer; pc.touch(home_dir, \"child.src\"); pc.File(home_dir + \"/child.src\").set_content(\"print 2\"); sh.build(home_dir + \"/child.src\", home_dir); print(1, true); sh.launch(home_dir + \"/child\"); print 3",
     ];
     let expected = intrinsics_outcomes(&scripts, &user);
@@ -199,9 +201,15 @@ print "ready"
 wait(0.3)
 print poll_input
 print poll_input
+print "ready"
+wait(0.2)
+print user_input("History: ", 0, 0, 1, 0)
+print "ready"
+wait(0.2)
+print user_input("Quiet key: ", 0, 1, 1, 0)
 exit("done")
 print "unreachable""#;
-    let inputs = ["hello", "secret", "x", "p"].map(str::to_owned);
+    let inputs = ["hello", "secret", "x", "p", "history", "q"].map(str::to_owned);
 
     compare_interactive(&client, &user, &snapshot, script, &inputs).await;
     client.shutdown();
@@ -350,6 +358,105 @@ pc.File("{folder}/selfclose.src").set_content({})
         compare_interactive(&client, &user, &snapshot, &script, &inputs).await;
     }
 
+    client.shutdown();
+}
+
+/// Native GUI programs, missing native programs, and the terminal/RAM process guards.
+#[tokio::test]
+async fn should_match_intrinsics_for_native_and_resource_launch_errors() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let snapshot = client.network_state().await.unwrap();
+    let missing = "print get_shell.launch(\"/usr/bin/Chat.exe\"); print get_shell.start_terminal(\"/usr/bin/Chat.exe\"); print get_shell.launch(\"/usr/bin/Notepad.exe\"); print get_shell.start_terminal(\"/usr/bin/Notepad.exe\"); print start_terminal({}, home_dir)".to_owned();
+
+    compare_in(&client, &user, &snapshot, &[missing]).await;
+
+    for fixture in ["low_ram", "terminal_limit"] {
+        let user = setup_player(&client).await;
+
+        client.configure_computer("", fixture).await.unwrap();
+
+        let snapshot = client.network_state().await.unwrap();
+        let script = if fixture == "low_ram" {
+            "print get_shell.host_computer.show_procs; print get_shell.launch(\"/bin/ScanLan.exe\"); print get_shell.start_terminal(\"/bin/ScanLan.exe\")".to_owned()
+        } else {
+            "print get_shell.launch(\"/bin/ScanLan.exe\"); print get_shell.start_terminal(\"/bin/ScanLan.exe\")".to_owned()
+        };
+
+        compare_in(&client, &user, &snapshot, &[script]).await;
+    }
+
+    let user = setup_player(&client).await;
+
+    client.configure_computer("", "gui_program").await.unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+    let gui = "print get_shell.launch(\"/usr/bin/Notepad.exe\"); print get_shell.start_terminal(\"/usr/bin/Notepad.exe\")".to_owned();
+
+    compare_in(&client, &user, &snapshot, &[gui]).await;
+
+    let user = setup_player(&client).await;
+
+    client.configure_computer("", "chat_program").await.unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+
+    compare_interactive(
+        &client,
+        &user,
+        &snapshot,
+        "print get_shell.start_terminal(\"/usr/bin/Chat.exe\")",
+        &["exit".to_owned()],
+    )
+    .await;
+    client.shutdown();
+}
+
+/// A self-launching program reaches the game's 32 pending-VM limit without an unbounded loop.
+#[tokio::test]
+async fn should_match_intrinsics_for_the_launch_stack_limit() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let snapshot = client.network_state().await.unwrap();
+    let source = script_string(
+        "n = params[0].to_int\nif not get_shell.launch(program_path, str(n + 1)) then print \"refused at \" + n",
+    );
+    let script = format!(
+        "pc = get_shell.host_computer; pc.touch(home_dir, \"nested.src\"); pc.File(home_dir + \"/nested.src\").set_content({source}); get_shell.build(home_dir + \"/nested.src\", home_dir); print get_shell.launch(home_dir + \"/nested\", \"0\")"
+    );
+
+    let outcomes = compare_in(&client, &user, &snapshot, &[script]).await;
+
+    assert!(
+        outcomes[0]
+            .output
+            .as_deref()
+            .is_some_and(|output| output.contains("refused at 32"))
+    );
+    client.shutdown();
+}
+
+/// Chat is the native program `launch` is allowed to start, after which it receives terminal input.
+#[tokio::test]
+async fn should_match_intrinsics_for_launching_chat() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+
+    client.configure_computer("", "chat_program").await.unwrap();
+
+    let snapshot = client.network_state().await.unwrap();
+
+    compare_interactive(
+        &client,
+        &user,
+        &snapshot,
+        "print get_shell.launch(\"/usr/bin/Chat.exe\")",
+        &["exit".to_owned()],
+    )
+    .await;
     client.shutdown();
 }
 

@@ -47,14 +47,15 @@ pub fn dismissal(snapshot: &NetworkSnapshot) -> Option<&NpcSnapshot> {
         .copied()
 }
 
-/// A mail network with at least four NPCs that have mail accounts, one of which `dismissal` finds. It is a network
-/// the copy of the game has not generated before: the fixed network every test starts on keeps what earlier tests did
-/// to it, and a library update an administrator reported there makes the game's next read of a LAN router of it
-/// write inside its own open read of that router's row (`Database.RestoreLanRouter`,
+/// A mail network with at least four NPCs that have mail accounts, one of which `dismissal` finds. One workstation
+/// already supplies enough accounts for every assertion; adding more only repeats the two-second cooldown once per
+/// account in both runs. It is a network the copy of the game has not generated before: the fixed network every test
+/// starts on keeps what earlier tests did to it, and a library update an administrator reported there makes the game's
+/// next read of a LAN router of it write inside its own open read of that router's row (`Database.RestoreLanRouter`,
 /// `Database.ApplyReportedLibUpdates`, `Database.SyncFileSystemDB`), which SQLite refuses as "database is locked"
 /// after its 30-second wait.
 pub async fn join_mail_network(client: &TestClient) -> NetworkSnapshot {
-    let network = mail_network(client, 4).await;
+    let network = mail_network(client, 1).await;
     let snapshot = join_fixture(client, &network).await;
 
     assert!(mail_npcs(&snapshot).len() >= 4);

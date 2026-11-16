@@ -32,7 +32,7 @@ pub fn copy(
     }
 
     if path::has_too_many_folders(folder) {
-        return Err(IntrinsicError::TooManyFolders("copy"));
+        return Err(IntrinsicError::TooManyFolders("move"));
     }
 
     let message = FileCopy {

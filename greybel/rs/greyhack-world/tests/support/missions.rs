@@ -4,10 +4,15 @@ use greyhack_world_core::ComputerId;
 
 /// A world that has generated the networks of the mission `index` of `kind`.
 pub async fn mission_world(kind: MissionKind, index: u32) -> (World, Vec<String>) {
+    mission_world_at(kind, index, 4_242).await
+}
+
+/// A world that has generated the networks of the mission `index` of `kind`, from group draw `start`.
+pub async fn mission_world_at(kind: MissionKind, index: u32, start: u32) -> (World, Vec<String>) {
     let world = World::from_seed("procedural missions", &PlayerOptions::default())
         .await
         .unwrap();
-    let group = random_group_for_mission(&world.handle.world_seed(), kind, index, 4_242).unwrap();
+    let group = random_group_for_mission(&world.handle.world_seed(), kind, index, start).unwrap();
 
     if kind == MissionKind::ZeroDay {
         world.modules.routines.set_date("01/Feb/2000 - 06:00");

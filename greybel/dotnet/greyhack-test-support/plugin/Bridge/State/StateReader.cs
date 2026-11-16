@@ -46,7 +46,8 @@ internal sealed class StateReader(Player player, AccountFixture accounts, Traffi
                     accounts.DebugUser,
                     accounts.DebugPassword,
                     accounts.CtfEventName,
-                    traffic.AccidentAt
+                    traffic.AccidentAt,
+                    traffic.AccidentDriver
                 )
             )
         );

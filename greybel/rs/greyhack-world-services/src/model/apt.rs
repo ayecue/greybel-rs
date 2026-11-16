@@ -59,6 +59,8 @@ pub enum AptFailure {
     ComputerUnavailable,
     /// The installation path does not identify a folder.
     MissingFolder(String),
+    /// The package does not fit in the remaining disk space.
+    NoSpace,
     /// The user cannot write to the installation folder.
     NoPermission,
     /// The package could not be copied from its server.
@@ -67,6 +69,12 @@ pub enum AptFailure {
     NoInternet,
     /// The package name is empty.
     EmptyPackageName,
+    /// `sources.txt` is missing when adding or removing a repository.
+    MissingSources,
+    /// `sources.txt` is a binary file when adding or removing a repository.
+    BinarySources,
+    /// `sources.txt` contains malformed JSON.
+    MalformedSources,
     /// `/etc/apt/aptcache.bin` is a binary an apt cache is not made of.
     MalformedCache,
     /// The file the library or program is checked at is not in the computer's file system.
@@ -77,6 +85,10 @@ pub enum AptFailure {
     Service(ServiceFailure),
     /// The server has no repository configuration file.
     MissingConfig,
+    /// The server's repository configuration contains malformed JSON during installation.
+    MalformedConfig,
+    /// The server's repository configuration contains malformed JSON during an upgrade check; contains the package.
+    MalformedConfigUpgrade(String),
     /// The server's repository folder does not exist.
     MissingRepositoryFolder,
 }

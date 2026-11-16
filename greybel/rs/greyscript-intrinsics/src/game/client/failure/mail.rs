@@ -16,5 +16,14 @@ pub(super) fn mail_text(intrinsic: &str, failure: MailFailure) -> String {
         MailFailure::RefreshFailed => "MetaMail: Unable to refresh mail account.".to_owned(),
         MailFailure::NoAccount => "send: Unable to access mail account.".to_owned(),
         MailFailure::NotDelivered => "Mail not delivered".to_owned(),
+        MailFailure::RecipientInBlacklist => {
+            "The email couldn't be sent. The recipient has blocked this email address.".to_owned()
+        }
+        MailFailure::BlockedPlayers => {
+            "The email couldn't be sent. The recipient has blocked emails sent by other players.".to_owned()
+        }
+        MailFailure::BlockedNpcs => {
+            "The email couldn't be sent. The recipient has blocked emails sent by other players using npcs accounts.".to_owned()
+        }
     }
 }

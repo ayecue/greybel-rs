@@ -74,6 +74,18 @@ pub const PROCESS_RAM_MB: f32 = 25.0;
 pub const SAFE_MODE_TERMINAL: &str = "Terminal-safemode";
 /// RAM of the safe-mode terminal process.
 pub const SAFE_MODE_TERMINAL_RAM_MB: f32 = 0.1;
+
+/// Formats the memory expression used directly by `Proceso.GetRamUsed` before `ToString("N1")`.
+/// Mono does not round the product and quotient separately before formatting.
+#[must_use]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "C# casts total RAM to float inside the unrounded percentage expression"
+)]
+pub fn process_memory_percent(ram_used_mb: f32, total_ram_mb: u32) -> f64 {
+    f64::from(ram_used_mb) * f64::from(100.0_f32) / f64::from(total_ram_mb as f32)
+}
+
 /// Maximum number of concurrent terminal processes per computer.
 pub const MAX_TERMINALS: usize = 15;
 /// Grey Hack limit for nested program launches.

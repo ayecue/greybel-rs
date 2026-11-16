@@ -12,7 +12,7 @@ use greyhack_test_support_client::protocol::test_support::{
 };
 use greyhack_world::World;
 use greyhack_world_core::{
-    Hardware, MinerHardware, NetCard, Part, Port, Process, SavedNetwork, User,
+    Contact, Hardware, MinerHardware, NetCard, Part, Port, Process, SavedNetwork, User,
 };
 use greyhack_world_creation::{DeviceLayout, ForwardLayout, LanNodeLayout, NetworkLayout};
 use greyhack_world_economy::{
@@ -29,22 +29,40 @@ pub fn layout(snapshot: &NetworkSnapshot) -> NetworkLayout {
     NetworkLayout {
         kind: NetworkKind::of_game_name(&snapshot.kind).unwrap_or(NetworkKind::Unknown),
         public_ip: snapshot.public_ip.clone(),
+        position: if snapshot.position.len() == 2 {
+            [snapshot.position[0], snapshot.position[1]]
+        } else {
+            greyhack_behaviour::position_for_ip(&snapshot.public_ip)
+        },
         // The snapshot has the web address; the domain is what follows its `www.` (`ServerMap.RouterNode.GetDomain`).
         domain: snapshot
             .domain
             .strip_prefix("www.")
             .unwrap_or(&snapshot.domain)
             .to_owned(),
+        contact: snapshot
+            .rental_contact
+            .as_ref()
+            .or(snapshot.contact.as_ref())
+            .map(|contact| Contact {
+                name: contact.name.clone(),
+                mail: contact.mail.clone(),
+                phone: contact.phone.clone(),
+            }),
         disabled: snapshot.disabled,
         net_speed: snapshot.net_speed,
         rental_admin: snapshot.rental_admin,
-        admin: snapshot.admin.as_ref().map(|admin| NetworkAdmin {
-            intelligence: admin.intelligence,
-            pc_experience: admin.pc_experience,
-            work_performance: WorkPerformance::from_code(admin.work_performance)
-                .expect("the game's work performance"),
-            dead_or_fired: admin.dead_or_fired,
-        }),
+        admin: snapshot
+            .admin
+            .as_ref()
+            .filter(|admin| admin.persona_exists)
+            .map(|admin| NetworkAdmin {
+                intelligence: admin.intelligence,
+                pc_experience: admin.pc_experience,
+                work_performance: WorkPerformance::from_code(admin.work_performance)
+                    .expect("the game's work performance"),
+                dead_or_fired: admin.dead_or_fired,
+            }),
         nodes: snapshot
             .nodes
             .iter()
@@ -189,6 +207,7 @@ fn router_layout(local_ip: &str, router: &RouterSnapshot) -> DeviceLayout {
                     .iter()
                     .map(|user| User {
                         groups: user.groups.iter().map(ToString::to_string).collect(),
+                        deletable: user.deletable,
                         ..User::new(&user.name, &user.password)
                     })
                     .collect(),
@@ -241,6 +260,7 @@ fn computer_draft(local_ip: &str, computer: &ComputerSnapshot) -> ComputerDraft 
             .iter()
             .map(|user| User {
                 groups: user.groups.iter().map(ToString::to_string).collect(),
+                deletable: user.deletable,
                 ..User::new(&user.name, &user.password)
             })
             .collect(),
@@ -256,15 +276,16 @@ fn computer_draft(local_ip: &str, computer: &ComputerSnapshot) -> ComputerDraft 
                 ram_mb: if process.name == SAFE_MODE_TERMINAL {
                     SAFE_MODE_TERMINAL_RAM_MB
                 } else {
-                    0.0
+                    process.ram_mb
                 },
                 protected: process.name == "Xorg"
                     || process.name == "kernel_task"
                     || process.name == SAFE_MODE_TERMINAL,
                 service: None,
-                is_terminal: process.name == SAFE_MODE_TERMINAL,
+                is_terminal: process.terminal,
             })
             .collect(),
+        rental_home_ip: computer.rental_home_ip.clone(),
         saved_networks: computer
             .saved_networks
             .iter()
@@ -283,6 +304,7 @@ fn computer_draft(local_ip: &str, computer: &ComputerSnapshot) -> ComputerDraft 
         ports: computer.ports.iter().filter_map(port).collect(),
         filesystem: filesystem(&computer.files),
         hardware: hardware(computer),
+        reboot_end: if computer.rebooting { u64::MAX } else { 0 },
         smart: computer.smart.as_ref().map(|smart| SmartApplianceSettings {
             model: smart.model.clone(),
             required_power: smart.required_power,
@@ -323,7 +345,21 @@ fn hardware(computer: &ComputerSnapshot) -> Hardware {
         })
         .collect();
 
-    Hardware::standard(2048, 10_000.0, &MinerHardware::default(), cards)
+    let mut hardware = Hardware::standard(
+        computer.ram_mb,
+        computer.disk_mb,
+        &MinerHardware {
+            gpu_hashrate: computer.gpu_hashrate,
+            ..MinerHardware::default()
+        },
+        cards,
+    );
+
+    if let Some(gpu) = hardware.gpus.first_mut() {
+        gpu.part.health = computer.gpu_health;
+    }
+
+    hardware
 }
 
 /// The kind of a computer as the game names it (`NetworkLan.TypeDevice`).
@@ -379,6 +415,7 @@ fn filesystem(files: &[FileSnapshot]) -> FileSystemDraft {
 
         node.group.clone_from(&file.group);
         node.symlink.clone_from(&file.symlink);
+        node.protected = file.protected;
         node.timestamp = file.timestamp;
         node.library = (FileKind::of_layout(file.type_file, file.binary) == FileKind::Library)
             .then(|| library(&file.content))
@@ -401,6 +438,7 @@ fn file_data(file: &FileSnapshot) -> FileData {
             .then(|| Command::of_name(&file.command))
             .flatten(),
         size: file.size,
+        encrypt_password: file.encrypt_password.clone(),
         ..FileData::default()
     }
 }

@@ -111,6 +111,9 @@ internal sealed class PluginRouter(
     public override void OnSpawnCtfNetworkRpc(SpawnCtfNetworkRpc message) =>
         Respond(message.Request, message, () => networks.SpawnCtf(message));
 
+    public override void OnConfigureComputerRpc(ConfigureComputerRpc message) =>
+        Respond(message.Request, message, () => computer.Configure(message));
+
     public override void OnSetupMailRpc(SetupMailRpc message) =>
         Respond(message.Request, message, () => accounts.CreateMail(message));
 
@@ -120,8 +123,20 @@ internal sealed class PluginRouter(
     public override void OnSetupWalletRpc(SetupWalletRpc message) =>
         Respond(message.Request, message, () => economy.CreateWallet(message));
 
+    public override void OnConfigureMailRpc(ConfigureMailRpc message) =>
+        Respond(message.Request, message, () => accounts.ConfigureMail(message));
+
+    public override void OnDeleteCtfRpc(DeleteCtfRpc message) =>
+        Respond(message.Request, message, () => accounts.DeleteCtf(message));
+
+    public override void OnConfigureApplianceRpc(ConfigureApplianceRpc message) =>
+        Respond(message.Request, message, () => appliances.Configure(message));
+
     public override void OnSetupForeignCoinRpc(SetupForeignCoinRpc message) =>
         Respond(message.Request, message, () => economy.CreateForeignCoin(message));
+
+    public override void OnConfigureEconomyRpc(ConfigureEconomyRpc message) =>
+        Respond(message.Request, message, () => economy.Configure(message));
 
     public override void OnPromoteAdminRpc(PromoteAdminRpc message) =>
         Respond(message.Request, message, () => npcs.PromoteAdmin(message));

@@ -19,10 +19,14 @@ pub enum CryptoFailure {
     NoEncryption,
     /// The password does not decrypt the file.
     IncorrectPassword,
+    /// Wi-Fi is disabled on the computer.
+    WifiOff,
     /// The device is not a Wi-Fi card.
     NotWifiCard,
     /// The card cannot enter monitor mode.
     NoMonitorSupport,
+    /// The router is outside Wi-Fi range.
+    OutOfRange,
     /// No router has the BSSID and ESSID.
     UnknownRouter,
     /// No network card is in monitor mode.
@@ -148,6 +152,16 @@ impl Crypto {
         device: &str,
         start: bool,
     ) -> Result<std::result::Result<bool, CryptoFailure>> {
+        if self
+            .networks
+            .net_cards
+            .active_net_card(computer)
+            .await?
+            .is_none()
+        {
+            return Ok(Err(CryptoFailure::WifiOff));
+        }
+
         let cards = self.networks.net_cards.net_cards(computer).await?;
         let Some(index) = NetCard::position(&cards, device) else {
             return Ok(Ok(false));
@@ -171,6 +185,10 @@ impl Crypto {
         Ok(Ok(true))
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Wi-Fi validation, capture, and file creation follow the game's intrinsic order"
+    )]
     pub async fn capture_wifi(
         &self,
         computer: ComputerId,
@@ -179,6 +197,16 @@ impl Crypto {
         max_acks: i32,
         folder: &str,
     ) -> Result<Option<std::result::Result<WifiCaptureRun, CryptoFailure>>> {
+        if self
+            .networks
+            .net_cards
+            .active_net_card(computer)
+            .await?
+            .is_none()
+        {
+            return Ok(Some(Err(CryptoFailure::WifiOff)));
+        }
+
         let (bssid, essid) = network;
         // Search the computer's LAN first (`NetworkLan.FindRouterLan`), then the map.
         let own = self
@@ -221,6 +249,15 @@ impl Crypto {
         }) else {
             return Ok(Some(Err(CryptoFailure::UnknownRouter)));
         };
+
+        if !self
+            .networks
+            .net_cards
+            .wifi_in_range(computer, router.id)
+            .await?
+        {
+            return Ok(Some(Err(CryptoFailure::OutOfRange)));
+        }
 
         if !self
             .networks

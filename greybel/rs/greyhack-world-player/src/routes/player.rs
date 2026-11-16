@@ -2,8 +2,10 @@
 
 use greyhack_behaviour::LibraryClass;
 use greyhack_world_core::routes::conversions::IntoProtocol;
-use greyhack_world_core::routes::require_connection;
-use greyhack_world_core::{Access, AccessHandle, AccessKind, Login, ObjectTableExt as _};
+use greyhack_world_core::routes::{OperationError, require_connection};
+use greyhack_world_core::{
+    Access, AccessHandle, AccessKind, Login, ObjectTableExt as _, WorldError,
+};
 use greyhack_world_creation::ObjectTableExt as _;
 use greyhack_world_economy::BlockchainHandle;
 use greyhack_world_intrusion::CryptoHandle;
@@ -13,7 +15,7 @@ use greyhack_world_programs::protocol::{
     CtfFailure, Failure, IncludedLibrary, MailFailure, ObjectOutcome, Outcome, PlayerCd,
     PlayerCurrentDate, PlayerGetCtf, PlayerGetRouter, PlayerGetShell, PlayerGetSwitch,
     PlayerIncludeLib, PlayerMailLogin, PlayerNslookup, PlayerResetCtfPassword,
-    PlayerUserBankNumber, PlayerUserMailAddress, PlayerWhois, ShellLogin, Whois,
+    PlayerUserBankNumber, PlayerUserMailAddress, PlayerWhois, ScriptFailure, ShellLogin, Whois,
 };
 use greyhack_world_router::RouteTable;
 use greyhack_world_services::ServiceRef;
@@ -186,7 +188,13 @@ fn register_player_files<
                 .module::<crate::PlayerModule>()
                 .player
                 .included_library(access.computer, &message.path)
-                .await?
+                .await
+                .map_err(|error| match error {
+                    WorldError::MalformedLibrary(_) => {
+                        OperationError::Script(ScriptFailure::GameCrash)
+                    }
+                    error => error.into(),
+                })?
             else {
                 return Ok(IncludedLibrary::Null);
             };

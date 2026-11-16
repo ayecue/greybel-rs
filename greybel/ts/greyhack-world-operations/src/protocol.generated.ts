@@ -3708,6 +3708,9 @@ export abstract class MailFailure {
       case 4: return MailFailure.RefreshFailed.read(reader);
       case 5: return MailFailure.NoAccount.read(reader);
       case 6: return MailFailure.NotDelivered.read(reader);
+      case 7: return MailFailure.RecipientInBlacklist.read(reader);
+      case 8: return MailFailure.BlockedPlayers.read(reader);
+      case 9: return MailFailure.BlockedNpcs.read(reader);
       default: throw new RangeError(`no variant ${index} of \`MailFailure\``);
     }
   }
@@ -3788,6 +3791,39 @@ export namespace MailFailure {
     }
     static read(reader: BinaryReader): MailFailure.NotDelivered {
       return new MailFailure.NotDelivered();
+    }
+  }
+  /** Recipient blacklisted the sender. */
+  export class RecipientInBlacklist extends MailFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(7);
+    }
+    static read(reader: BinaryReader): MailFailure.RecipientInBlacklist {
+      return new MailFailure.RecipientInBlacklist();
+    }
+  }
+  /** Recipient blocks all player mail. */
+  export class BlockedPlayers extends MailFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(8);
+    }
+    static read(reader: BinaryReader): MailFailure.BlockedPlayers {
+      return new MailFailure.BlockedPlayers();
+    }
+  }
+  /** Recipient blocks mail from NPC accounts. */
+  export class BlockedNpcs extends MailFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(9);
+    }
+    static read(reader: BinaryReader): MailFailure.BlockedNpcs {
+      return new MailFailure.BlockedNpcs();
     }
   }
 }
@@ -3914,15 +3950,17 @@ export abstract class CryptoFailure {
       case 0: return CryptoFailure.Encrypted.read(reader);
       case 1: return CryptoFailure.NotEncrypted.read(reader);
       case 2: return CryptoFailure.IncorrectPassword.read(reader);
-      case 3: return CryptoFailure.NotWifiCard.read(reader);
-      case 4: return CryptoFailure.NoMonitorSupport.read(reader);
-      case 5: return CryptoFailure.UnknownRouter.read(reader);
-      case 6: return CryptoFailure.NoMonitorCard.read(reader);
-      case 7: return CryptoFailure.UnreadableCapture.read(reader);
-      case 8: return CryptoFailure.InvalidCapture.read(reader);
-      case 9: return CryptoFailure.EncryptedCapture.read(reader);
-      case 10: return CryptoFailure.CorruptedCapture.read(reader);
-      case 11: return CryptoFailure.MoreAcksNeeded.read(reader);
+      case 3: return CryptoFailure.WifiOff.read(reader);
+      case 4: return CryptoFailure.NotWifiCard.read(reader);
+      case 5: return CryptoFailure.NoMonitorSupport.read(reader);
+      case 6: return CryptoFailure.OutOfRange.read(reader);
+      case 7: return CryptoFailure.UnknownRouter.read(reader);
+      case 8: return CryptoFailure.NoMonitorCard.read(reader);
+      case 9: return CryptoFailure.UnreadableCapture.read(reader);
+      case 10: return CryptoFailure.InvalidCapture.read(reader);
+      case 11: return CryptoFailure.EncryptedCapture.read(reader);
+      case 12: return CryptoFailure.CorruptedCapture.read(reader);
+      case 13: return CryptoFailure.MoreAcksNeeded.read(reader);
       default: throw new RangeError(`no variant ${index} of \`CryptoFailure\``);
     }
   }
@@ -3961,12 +3999,23 @@ export namespace CryptoFailure {
       return new CryptoFailure.IncorrectPassword();
     }
   }
+  /** Wi-Fi is disabled on the computer. */
+  export class WifiOff extends CryptoFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(3);
+    }
+    static read(reader: BinaryReader): CryptoFailure.WifiOff {
+      return new CryptoFailure.WifiOff();
+    }
+  }
   /** Monitor mode requires a Wi-Fi card. */
   export class NotWifiCard extends CryptoFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(3);
+      writer.u32(4);
     }
     static read(reader: BinaryReader): CryptoFailure.NotWifiCard {
       return new CryptoFailure.NotWifiCard();
@@ -3977,10 +4026,21 @@ export namespace CryptoFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(4);
+      writer.u32(5);
     }
     static read(reader: BinaryReader): CryptoFailure.NoMonitorSupport {
       return new CryptoFailure.NoMonitorSupport();
+    }
+  }
+  /** The router is outside Wi-Fi range. */
+  export class OutOfRange extends CryptoFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(6);
+    }
+    static read(reader: BinaryReader): CryptoFailure.OutOfRange {
+      return new CryptoFailure.OutOfRange();
     }
   }
   /** There is no router with the Wi-Fi. */
@@ -3988,7 +4048,7 @@ export namespace CryptoFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(5);
+      writer.u32(7);
     }
     static read(reader: BinaryReader): CryptoFailure.UnknownRouter {
       return new CryptoFailure.UnknownRouter();
@@ -3999,7 +4059,7 @@ export namespace CryptoFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(6);
+      writer.u32(8);
     }
     static read(reader: BinaryReader): CryptoFailure.NoMonitorCard {
       return new CryptoFailure.NoMonitorCard();
@@ -4010,7 +4070,7 @@ export namespace CryptoFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(7);
+      writer.u32(9);
     }
     static read(reader: BinaryReader): CryptoFailure.UnreadableCapture {
       return new CryptoFailure.UnreadableCapture();
@@ -4021,7 +4081,7 @@ export namespace CryptoFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(8);
+      writer.u32(10);
     }
     static read(reader: BinaryReader): CryptoFailure.InvalidCapture {
       return new CryptoFailure.InvalidCapture();
@@ -4032,7 +4092,7 @@ export namespace CryptoFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(9);
+      writer.u32(11);
     }
     static read(reader: BinaryReader): CryptoFailure.EncryptedCapture {
       return new CryptoFailure.EncryptedCapture();
@@ -4043,7 +4103,7 @@ export namespace CryptoFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(10);
+      writer.u32(12);
     }
     static read(reader: BinaryReader): CryptoFailure.CorruptedCapture {
       return new CryptoFailure.CorruptedCapture();
@@ -4054,7 +4114,7 @@ export namespace CryptoFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(11);
+      writer.u32(13);
     }
     static read(reader: BinaryReader): CryptoFailure.MoreAcksNeeded {
       return new CryptoFailure.MoreAcksNeeded();
@@ -4175,19 +4235,20 @@ export abstract class ComputerFailure {
       case 10: return ComputerFailure.User.read(reader);
       case 11: return ComputerFailure.Process.read(reader);
       case 12: return ComputerFailure.GuestUser.read(reader);
-      case 13: return ComputerFailure.MissingNetDevice.read(reader);
-      case 14: return ComputerFailure.WifiCardsOnly.read(reader);
-      case 15: return ComputerFailure.EthernetCardsOnly.read(reader);
-      case 16: return ComputerFailure.ReconnectTooSoon.read(reader);
-      case 17: return ComputerFailure.RentedComputer.read(reader);
-      case 18: return ComputerFailure.DisabledNetwork.read(reader);
-      case 19: return ComputerFailure.UnknownWifi.read(reader);
-      case 20: return ComputerFailure.OutOfReach.read(reader);
-      case 21: return ComputerFailure.IncorrectWifiPassword.read(reader);
-      case 22: return ComputerFailure.InvalidAddress.read(reader);
-      case 23: return ComputerFailure.InvalidGateway.read(reader);
-      case 24: return ComputerFailure.DifferentSubnets.read(reader);
-      case 25: return ComputerFailure.NetCard.read(reader);
+      case 13: return ComputerFailure.SmartphoneWifi.read(reader);
+      case 14: return ComputerFailure.MissingNetDevice.read(reader);
+      case 15: return ComputerFailure.WifiCardsOnly.read(reader);
+      case 16: return ComputerFailure.EthernetCardsOnly.read(reader);
+      case 17: return ComputerFailure.ReconnectTooSoon.read(reader);
+      case 18: return ComputerFailure.RentedComputer.read(reader);
+      case 19: return ComputerFailure.DisabledNetwork.read(reader);
+      case 20: return ComputerFailure.UnknownWifi.read(reader);
+      case 21: return ComputerFailure.OutOfReach.read(reader);
+      case 22: return ComputerFailure.IncorrectWifiPassword.read(reader);
+      case 23: return ComputerFailure.InvalidAddress.read(reader);
+      case 24: return ComputerFailure.InvalidGateway.read(reader);
+      case 25: return ComputerFailure.DifferentSubnets.read(reader);
+      case 26: return ComputerFailure.NetCard.read(reader);
       default: throw new RangeError(`no variant ${index} of \`ComputerFailure\``);
     }
   }
@@ -4462,12 +4523,23 @@ export namespace ComputerFailure {
       return new ComputerFailure.GuestUser();
     }
   }
+  /** Smartphones do not expose Wi-Fi configuration. */
+  export class SmartphoneWifi extends ComputerFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(13);
+    }
+    static read(reader: BinaryReader): ComputerFailure.SmartphoneWifi {
+      return new ComputerFailure.SmartphoneWifi();
+    }
+  }
   /** Computer has no network card of the name. */
   export class MissingNetDevice extends ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(13);
+      writer.u32(14);
     }
     static read(reader: BinaryReader): ComputerFailure.MissingNetDevice {
       return new ComputerFailure.MissingNetDevice();
@@ -4478,7 +4550,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(14);
+      writer.u32(15);
     }
     static read(reader: BinaryReader): ComputerFailure.WifiCardsOnly {
       return new ComputerFailure.WifiCardsOnly();
@@ -4489,7 +4561,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(15);
+      writer.u32(16);
     }
     static read(reader: BinaryReader): ComputerFailure.EthernetCardsOnly {
       return new ComputerFailure.EthernetCardsOnly();
@@ -4500,7 +4572,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(16);
+      writer.u32(17);
     }
     static read(reader: BinaryReader): ComputerFailure.ReconnectTooSoon {
       return new ComputerFailure.ReconnectTooSoon();
@@ -4511,7 +4583,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(17);
+      writer.u32(18);
     }
     static read(reader: BinaryReader): ComputerFailure.RentedComputer {
       return new ComputerFailure.RentedComputer();
@@ -4522,7 +4594,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(18);
+      writer.u32(19);
     }
     static read(reader: BinaryReader): ComputerFailure.DisabledNetwork {
       return new ComputerFailure.DisabledNetwork();
@@ -4552,7 +4624,7 @@ export namespace ComputerFailure {
       return this[BODY].essid;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(19);
+      writer.u32(20);
       const body = this[BODY];
       writer.string(body.bssid);
       writer.string(body.essid);
@@ -4577,7 +4649,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(20);
+      writer.u32(21);
     }
     static read(reader: BinaryReader): ComputerFailure.OutOfReach {
       return new ComputerFailure.OutOfReach();
@@ -4588,7 +4660,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(21);
+      writer.u32(22);
     }
     static read(reader: BinaryReader): ComputerFailure.IncorrectWifiPassword {
       return new ComputerFailure.IncorrectWifiPassword();
@@ -4599,7 +4671,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(22);
+      writer.u32(23);
     }
     static read(reader: BinaryReader): ComputerFailure.InvalidAddress {
       return new ComputerFailure.InvalidAddress();
@@ -4610,7 +4682,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(23);
+      writer.u32(24);
     }
     static read(reader: BinaryReader): ComputerFailure.InvalidGateway {
       return new ComputerFailure.InvalidGateway();
@@ -4621,7 +4693,7 @@ export namespace ComputerFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(24);
+      writer.u32(25);
     }
     static read(reader: BinaryReader): ComputerFailure.DifferentSubnets {
       return new ComputerFailure.DifferentSubnets();
@@ -4644,7 +4716,7 @@ export namespace ComputerFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(25);
+      writer.u32(26);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -4820,11 +4892,13 @@ export abstract class NetCardFailure {
       case 0: return NetCardFailure.ComputerUnavailable.read(reader);
       case 1: return NetCardFailure.UnknownRouter.read(reader);
       case 2: return NetCardFailure.DisabledHomeNetwork.read(reader);
-      case 3: return NetCardFailure.SelfGateway.read(reader);
-      case 4: return NetCardFailure.UnknownGateway.read(reader);
-      case 5: return NetCardFailure.AddressInUse.read(reader);
-      case 6: return NetCardFailure.NoWifiCard.read(reader);
-      case 7: return NetCardFailure.NoEthernetCard.read(reader);
+      case 3: return NetCardFailure.NoRentalHome.read(reader);
+      case 4: return NetCardFailure.MissingIsp.read(reader);
+      case 5: return NetCardFailure.SelfGateway.read(reader);
+      case 6: return NetCardFailure.UnknownGateway.read(reader);
+      case 7: return NetCardFailure.AddressInUse.read(reader);
+      case 8: return NetCardFailure.NoWifiCard.read(reader);
+      case 9: return NetCardFailure.NoEthernetCard.read(reader);
       default: throw new RangeError(`no variant ${index} of \`NetCardFailure\``);
     }
   }
@@ -4863,12 +4937,34 @@ export namespace NetCardFailure {
       return new NetCardFailure.DisabledHomeNetwork();
     }
   }
+  /** Player has no rental home IP configured for Ethernet. */
+  export class NoRentalHome extends NetCardFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(3);
+    }
+    static read(reader: BinaryReader): NetCardFailure.NoRentalHome {
+      return new NetCardFailure.NoRentalHome();
+    }
+  }
+  /** Configured rental home IP has no ISP router. */
+  export class MissingIsp extends NetCardFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(4);
+    }
+    static read(reader: BinaryReader): NetCardFailure.MissingIsp {
+      return new NetCardFailure.MissingIsp();
+    }
+  }
   /** Gateway is the computer itself. */
   export class SelfGateway extends NetCardFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(3);
+      writer.u32(5);
     }
     static read(reader: BinaryReader): NetCardFailure.SelfGateway {
       return new NetCardFailure.SelfGateway();
@@ -4891,7 +4987,7 @@ export namespace NetCardFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(4);
+      writer.u32(6);
       const body = this[BODY];
       writer.string(body.value);
     }
@@ -4922,7 +5018,7 @@ export namespace NetCardFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(5);
+      writer.u32(7);
       const body = this[BODY];
       writer.string(body.value);
     }
@@ -4941,7 +5037,7 @@ export namespace NetCardFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(6);
+      writer.u32(8);
     }
     static read(reader: BinaryReader): NetCardFailure.NoWifiCard {
       return new NetCardFailure.NoWifiCard();
@@ -4952,7 +5048,7 @@ export namespace NetCardFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(7);
+      writer.u32(9);
     }
     static read(reader: BinaryReader): NetCardFailure.NoEthernetCard {
       return new NetCardFailure.NoEthernetCard();
@@ -5928,16 +6024,22 @@ export abstract class AptFailure {
       case 8: return AptFailure.MissingPackageFile.read(reader);
       case 9: return AptFailure.ComputerUnavailable.read(reader);
       case 10: return AptFailure.MissingFolder.read(reader);
-      case 11: return AptFailure.NoPermission.read(reader);
-      case 12: return AptFailure.Copy.read(reader);
-      case 13: return AptFailure.NoInternet.read(reader);
-      case 14: return AptFailure.EmptyPackageName.read(reader);
-      case 15: return AptFailure.MalformedCache.read(reader);
-      case 16: return AptFailure.MissingLocalFile.read(reader);
-      case 17: return AptFailure.Connection.read(reader);
-      case 18: return AptFailure.Service.read(reader);
-      case 19: return AptFailure.MissingConfig.read(reader);
-      case 20: return AptFailure.MissingRepositoryFolder.read(reader);
+      case 11: return AptFailure.NoSpace.read(reader);
+      case 12: return AptFailure.NoPermission.read(reader);
+      case 13: return AptFailure.Copy.read(reader);
+      case 14: return AptFailure.NoInternet.read(reader);
+      case 15: return AptFailure.EmptyPackageName.read(reader);
+      case 16: return AptFailure.MissingSources.read(reader);
+      case 17: return AptFailure.BinarySources.read(reader);
+      case 18: return AptFailure.MalformedSources.read(reader);
+      case 19: return AptFailure.MalformedCache.read(reader);
+      case 20: return AptFailure.MissingLocalFile.read(reader);
+      case 21: return AptFailure.Connection.read(reader);
+      case 22: return AptFailure.Service.read(reader);
+      case 23: return AptFailure.MissingConfig.read(reader);
+      case 24: return AptFailure.MalformedConfig.read(reader);
+      case 25: return AptFailure.MalformedConfigUpgrade.read(reader);
+      case 26: return AptFailure.MissingRepositoryFolder.read(reader);
       default: throw new RangeError(`no variant ${index} of \`AptFailure\``);
     }
   }
@@ -6224,12 +6326,23 @@ export namespace AptFailure {
       value: string;
     }
   }
+  /** The package does not fit in the remaining disk space. */
+  export class NoSpace extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(11);
+    }
+    static read(reader: BinaryReader): AptFailure.NoSpace {
+      return new AptFailure.NoSpace();
+    }
+  }
   /** User cannot write into the folder. */
   export class NoPermission extends AptFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(11);
+      writer.u32(12);
     }
     static read(reader: BinaryReader): AptFailure.NoPermission {
       return new AptFailure.NoPermission();
@@ -6252,7 +6365,7 @@ export namespace AptFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(12);
+      writer.u32(13);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -6271,7 +6384,7 @@ export namespace AptFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(13);
+      writer.u32(14);
     }
     static read(reader: BinaryReader): AptFailure.NoInternet {
       return new AptFailure.NoInternet();
@@ -6282,10 +6395,43 @@ export namespace AptFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(14);
+      writer.u32(15);
     }
     static read(reader: BinaryReader): AptFailure.EmptyPackageName {
       return new AptFailure.EmptyPackageName();
+    }
+  }
+  /** `sources.txt` is missing when adding or removing a repository. */
+  export class MissingSources extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(16);
+    }
+    static read(reader: BinaryReader): AptFailure.MissingSources {
+      return new AptFailure.MissingSources();
+    }
+  }
+  /** `sources.txt` is a binary file when adding or removing a repository. */
+  export class BinarySources extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(17);
+    }
+    static read(reader: BinaryReader): AptFailure.BinarySources {
+      return new AptFailure.BinarySources();
+    }
+  }
+  /** `sources.txt` contains malformed JSON. */
+  export class MalformedSources extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(18);
+    }
+    static read(reader: BinaryReader): AptFailure.MalformedSources {
+      return new AptFailure.MalformedSources();
     }
   }
   /** The cache is not made as `update` makes it. */
@@ -6293,7 +6439,7 @@ export namespace AptFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(15);
+      writer.u32(19);
     }
     static read(reader: BinaryReader): AptFailure.MalformedCache {
       return new AptFailure.MalformedCache();
@@ -6316,7 +6462,7 @@ export namespace AptFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(16);
+      writer.u32(20);
       const body = this[BODY];
       writer.string(body.value);
     }
@@ -6347,7 +6493,7 @@ export namespace AptFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(17);
+      writer.u32(21);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -6378,7 +6524,7 @@ export namespace AptFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(18);
+      writer.u32(22);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -6397,10 +6543,52 @@ export namespace AptFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(19);
+      writer.u32(23);
     }
     static read(reader: BinaryReader): AptFailure.MissingConfig {
       return new AptFailure.MissingConfig();
+    }
+  }
+  /** The server's repository configuration contains malformed JSON during installation. */
+  export class MalformedConfig extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(24);
+    }
+    static read(reader: BinaryReader): AptFailure.MalformedConfig {
+      return new AptFailure.MalformedConfig();
+    }
+  }
+  /** The server's repository configuration contains malformed JSON during an upgrade check; contains the package. */
+  export class MalformedConfigUpgrade extends AptFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: AptFailure.MalformedConfigUpgrade.Fields;
+    constructor(body: AptFailure.MalformedConfigUpgrade.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): string {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(25);
+      const body = this[BODY];
+      writer.string(body.value);
+    }
+    static read(reader: BinaryReader): AptFailure.MalformedConfigUpgrade {
+      const value = reader.string();
+      return new AptFailure.MalformedConfigUpgrade({ value });
+    }
+  }
+  export namespace MalformedConfigUpgrade {
+    export interface Fields {
+      value: string;
     }
   }
   /** The server's repository folder does not exist. */
@@ -6408,7 +6596,7 @@ export namespace AptFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(20);
+      writer.u32(26);
     }
     static read(reader: BinaryReader): AptFailure.MissingRepositoryFolder {
       return new AptFailure.MissingRepositoryFolder();
@@ -7367,7 +7555,7 @@ export class ProcessUsage {
   get cpu(): number {
     return this[BODY].cpu;
   }
-  /** Computer memory use percentage. */
+  /** Computer memory use percentage, before the unrounded C# float expression is formatted. */
   get memory(): number {
     return this[BODY].memory;
   }
@@ -7379,14 +7567,14 @@ export class ProcessUsage {
     writer.string(body.user);
     writer.u32(body.pid);
     writer.f32(body.cpu);
-    writer.f32(body.memory);
+    writer.f64(body.memory);
     writer.string(body.name);
   }
   static read(reader: BinaryReader): ProcessUsage {
     const fieldUser = reader.string();
     const fieldPid = reader.u32();
     const fieldCpu = reader.f32();
-    const fieldMemory = reader.f32();
+    const fieldMemory = reader.f64();
     const fieldName = reader.string();
     return new ProcessUsage({
       user: fieldUser,
@@ -10863,13 +11051,34 @@ export namespace SmtpFailure {
     }
   }
 }
-/** No return data from `update`; its source lines arrive separately as [`ProgramPrint`] notifications. */
+/** Return value of `update`; its source lines arrive separately as [`ProgramPrint`] notifications. */
 export class AptUpdate {
   static readonly tags: ReadonlyArray<Tag> = [];
-  static readonly fields: ReadonlyArray<FieldTagContainer> = [];
-  write(writer: BinaryWriter): void {}
+  static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "result",
+    property: "result",
+    tags: []
+  }];
+  protected readonly [BODY]: AptUpdate.Fields;
+  constructor(body: AptUpdate.Fields) {
+    this[BODY] = body;
+  }
+  /** Empty on success, `0` when malformed sources abort the update. */
+  get result(): string {
+    return this[BODY].result;
+  }
+  write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    writer.string(body.result);
+  }
   static read(reader: BinaryReader): AptUpdate {
-    return new AptUpdate();
+    const fieldResult = reader.string();
+    return new AptUpdate({ result: fieldResult });
+  }
+}
+export namespace AptUpdate {
+  export interface Fields {
+    result: string;
   }
 }
 export abstract class AptUpdateLine {
@@ -10878,16 +11087,73 @@ export abstract class AptUpdateLine {
   static read(reader: BinaryReader): AptUpdateLine {
     const index = reader.u32();
     switch (index) {
-      case 0: return AptUpdateLine.Update.read(reader);
-      case 1: return AptUpdateLine.Connection.read(reader);
-      case 2: return AptUpdateLine.Service.read(reader);
-      case 3: return AptUpdateLine.MissingConfig.read(reader);
-      case 4: return AptUpdateLine.MalformedConfig.read(reader);
+      case 0: return AptUpdateLine.MissingSources.read(reader);
+      case 1: return AptUpdateLine.MalformedSources.read(reader);
+      case 2: return AptUpdateLine.UnknownRepository.read(reader);
+      case 3: return AptUpdateLine.Update.read(reader);
+      case 4: return AptUpdateLine.Connection.read(reader);
+      case 5: return AptUpdateLine.Service.read(reader);
+      case 6: return AptUpdateLine.MissingConfig.read(reader);
+      case 7: return AptUpdateLine.InvalidConfig.read(reader);
+      case 8: return AptUpdateLine.MalformedConfig.read(reader);
       default: throw new RangeError(`no variant ${index} of \`AptUpdateLine\``);
     }
   }
 }
 export namespace AptUpdateLine {
+  /** `sources.txt` did not exist and was created with the default configuration. */
+  export class MissingSources extends AptUpdateLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+    }
+    static read(reader: BinaryReader): AptUpdateLine.MissingSources {
+      return new AptUpdateLine.MissingSources();
+    }
+  }
+  /** `sources.txt` contains malformed JSON. */
+  export class MalformedSources extends AptUpdateLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(1);
+    }
+    static read(reader: BinaryReader): AptUpdateLine.MalformedSources {
+      return new AptUpdateLine.MalformedSources();
+    }
+  }
+  /** No router exists for a configured domain. */
+  export class UnknownRepository extends AptUpdateLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: AptUpdateLine.UnknownRepository.Fields;
+    constructor(body: AptUpdateLine.UnknownRepository.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): string {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(2);
+      const body = this[BODY];
+      writer.string(body.value);
+    }
+    static read(reader: BinaryReader): AptUpdateLine.UnknownRepository {
+      const value = reader.string();
+      return new AptUpdateLine.UnknownRepository({ value });
+    }
+  }
+  export namespace UnknownRepository {
+    export interface Fields {
+      value: string;
+    }
+  }
   /** Source identified by address is being updated. */
   export class Update extends AptUpdateLine {
     static readonly tags: ReadonlyArray<Tag> = [];
@@ -10905,7 +11171,7 @@ export namespace AptUpdateLine {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(0);
+      writer.u32(3);
       const body = this[BODY];
       writer.string(body.value);
     }
@@ -10936,7 +11202,7 @@ export namespace AptUpdateLine {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(1);
+      writer.u32(4);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -10967,7 +11233,7 @@ export namespace AptUpdateLine {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(2);
+      writer.u32(5);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -10986,10 +11252,21 @@ export namespace AptUpdateLine {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(3);
+      writer.u32(6);
     }
     static read(reader: BinaryReader): AptUpdateLine.MissingConfig {
       return new AptUpdateLine.MissingConfig();
+    }
+  }
+  /** The repository's configuration file is binary. */
+  export class InvalidConfig extends AptUpdateLine {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(7);
+    }
+    static read(reader: BinaryReader): AptUpdateLine.InvalidConfig {
+      return new AptUpdateLine.InvalidConfig();
     }
   }
   /** The repository's configuration file is not the game's format. */
@@ -10997,7 +11274,7 @@ export namespace AptUpdateLine {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(4);
+      writer.u32(8);
     }
     static read(reader: BinaryReader): AptUpdateLine.MalformedConfig {
       return new AptUpdateLine.MalformedConfig();
@@ -34967,7 +35244,7 @@ export const World = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 1490798418 }],
+  versions: [{ fingerprint: 1483666248 }],
   peers: [WorldPeer.Program, WorldPeer.GameServer],
   messages: [[
     ProgramEnd,

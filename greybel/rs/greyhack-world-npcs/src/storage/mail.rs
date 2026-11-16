@@ -6,7 +6,19 @@ use greyhack_world_storage::sql::{
 };
 use turso::params;
 
-use crate::{Email, MailAccount};
+use crate::{Email, MailAccount, MailSpamConfig};
+
+impl FromRow for MailSpamConfig {
+    fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
+        let blacklist: String = row.get("blacklist")?;
+
+        Ok(Self {
+            player_pc_id: row.get("player_pc_id")?,
+            filter: u8::try_from(row.get::<i64>("filter")?).unwrap_or(1),
+            blacklist: serde_json::from_str(&blacklist).unwrap_or_default(),
+        })
+    }
+}
 
 impl FromRow for Email {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
@@ -147,6 +159,48 @@ impl MailRepository {
             password_hash: account.password_hash,
             inbox: Vec::new(),
         }))
+    }
+
+    pub(crate) async fn remove_mail_account(&self, address: &str) -> Result<()> {
+        execute(
+            &self.db.connection(),
+            "DELETE FROM mail_accounts WHERE address = ?1",
+            params![address],
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub(crate) async fn spam_config(&self, address: &str) -> Result<Option<MailSpamConfig>> {
+        Ok(fetch_opt(
+            &self.db.connection(),
+            "SELECT player_pc_id, filter, blacklist FROM mail_spam WHERE address = ?1",
+            params![address],
+        )
+        .await?)
+    }
+
+    pub(crate) async fn set_spam_config(
+        &self,
+        address: &str,
+        config: &MailSpamConfig,
+    ) -> Result<()> {
+        execute(
+            &self.db.connection(),
+            "INSERT INTO mail_spam (address, player_pc_id, filter, blacklist) VALUES (?1, ?2, ?3, ?4) \
+             ON CONFLICT (address) DO UPDATE SET player_pc_id = excluded.player_pc_id, \
+             filter = excluded.filter, blacklist = excluded.blacklist",
+            params![
+                address,
+                config.player_pc_id.as_str(),
+                i64::from(config.filter),
+                serde_json::to_string(&config.blacklist).unwrap_or_else(|_| "[]".to_owned())
+            ],
+        )
+        .await?;
+
+        Ok(())
     }
 
     pub(crate) async fn insert_mail_account(&self, address: &str, password: &str) -> Result<()> {

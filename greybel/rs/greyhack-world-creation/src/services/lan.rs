@@ -337,6 +337,9 @@ impl NetworkGeneration {
                 .await?;
         }
 
+        // `Router.GeneraLanPc` runs `Router.PostGenComputer` before `Router.PostGenMission`.
+        self.installs.configure_shop(computer, kind).await?;
+
         if let Some(placement) = mission
             && placement.assignment_at(&computer_plan.local_ip).is_some()
         {
@@ -350,8 +353,6 @@ impl NetworkGeneration {
                 )
                 .await?;
         }
-
-        self.installs.configure_shop(computer, kind).await?;
 
         Ok(computer)
     }

@@ -89,6 +89,12 @@ internal static class GameField
         BindingFlags.Instance | BindingFlags.NonPublic
     );
 
+    /// <summary>NPC surname owning a smartphone (`LanPcInfo.npcOwner`).</summary>
+    public static readonly FieldInfo LanNpcOwner = typeof(LanPcInfo).GetField(
+        "npcOwner",
+        BindingFlags.Instance | BindingFlags.NonPublic
+    );
+
     /// <summary>Fresh LAN generation context used to add game-style child devices.</summary>
     public static readonly FieldInfo NetworkGlobalLan = typeof(NetworkLan).GetField(
         "globalLan",

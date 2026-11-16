@@ -1,8 +1,8 @@
 //! Updating package caches and checking for upgrades.
 
 use greyhack_behaviour::{
-    APT_CACHE_NAME, APT_FOLDER, DOWNLOADS_PATH, FileData, OFFICIAL_OMISSIONS, PermissionSet,
-    ROOT_USER, ServiceId, compare_versions, path,
+    APT_CACHE_NAME, APT_FOLDER, APT_SOURCES_PATH, DOWNLOADS_PATH, FileData, OFFICIAL_OMISSIONS,
+    PermissionSet, ROOT_USER, ServiceId, compare_versions, format_apt_sources, path,
 };
 use greyhack_world_core::systems::network::connect::ServiceCheck;
 use greyhack_world_core::{ComputerId, ConnectionFailure, NodeDraft, Result, ServiceFailure};
@@ -15,34 +15,77 @@ use crate::{AptFailure, RepositoryConfig};
 /// Output line produced by `AptClientIntrinsics.update` for one source.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AptUpdateLine {
+    /// `sources.txt` did not exist and was created with the default configuration.
+    MissingSources,
+    /// `sources.txt` contains malformed JSON.
+    MalformedSources,
+    /// No router exists for a configured domain.
+    UnknownRepository(String),
     /// The source at this address is updating.
     Update(String),
     Connection(ConnectionFailure),
     Service(ServiceFailure),
     /// The repository server has no repository configuration file.
     MissingConfig,
+    /// The repository configuration is a binary file.
+    InvalidConfig,
     /// The repository configuration does not use Grey Hack's format.
     MalformedConfig,
 }
 
 /// Methods of [`World`] for services apt updates.
 impl Apt {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Apt update follows the game's source-file and per-repository error order"
+    )]
     pub async fn update_apt_packages(
         &self,
         computer: ComputerId,
         terminal_computers: &[ComputerId],
     ) -> Result<Vec<AptUpdateLine>> {
+        let source_file = self
+            .files
+            .lookup
+            .file(computer, APT_SOURCES_PATH, true)
+            .await?;
+
+        if source_file.is_none() {
+            if let Some(folder) = self.files.lookup.folder(computer, APT_FOLDER, true).await? {
+                let sources = NodeDraft::file(
+                    "sources.txt",
+                    ROOT_USER,
+                    PermissionSet::default_for(false),
+                    FileData::text(&format_apt_sources(&[], true)),
+                );
+
+                self.files.changes.add_node(&folder, &sources).await?;
+            }
+
+            return Ok(vec![AptUpdateLine::MissingSources]);
+        }
+
+        if source_file.as_ref().is_some_and(|node| {
+            node.data().is_some_and(|data| {
+                serde_json::from_str::<serde_json::Value>(&data.content).is_err()
+            })
+        }) {
+            return Ok(vec![AptUpdateLine::MalformedSources]);
+        }
+
         let sources = self.apt_sources(computer).await?;
         let official = self.apt_official(computer).await?;
         let mut output = Vec::new();
         let mut servers = serde_json::Map::new();
 
         for source in &sources {
-            output.push(AptUpdateLine::Update(source.address.clone()));
-
             let Some(address) = self.source_address(source).await? else {
+                output.push(AptUpdateLine::UnknownRepository(source.address.clone()));
                 continue;
             };
+
+            output.push(AptUpdateLine::Update(source.address.clone()));
+
             let target = match self
                 .networks
                 .connect
@@ -75,16 +118,27 @@ impl Apt {
                 continue;
             }
 
-            let Some(content) = self
+            let Some(node) = self
                 .files
                 .lookup
-                .content(target, ServiceId::Repository.config_path(), true)
+                .file(target, ServiceId::Repository.config_path(), true)
                 .await?
             else {
                 output.push(AptUpdateLine::MissingConfig);
                 continue;
             };
-            let Ok(config) = serde_json::from_str::<RepositoryConfig>(&content) else {
+
+            let Some(data) = node.data() else {
+                output.push(AptUpdateLine::InvalidConfig);
+                continue;
+            };
+
+            if data.kind == greyhack_behaviour::FileKind::Binary {
+                output.push(AptUpdateLine::InvalidConfig);
+                continue;
+            }
+
+            let Ok(config) = serde_json::from_str::<RepositoryConfig>(&data.content) else {
                 output.push(AptUpdateLine::MalformedConfig);
                 continue;
             };
@@ -127,6 +181,10 @@ impl Apt {
         Ok(self.apt_cache_official(computer).await?.map(|_| ()))
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Repository connection, config, and package-version checks follow C# order"
+    )]
     async fn check_repository_upgrade(
         &self,
         computer: ComputerId,
@@ -164,12 +222,15 @@ impl Apt {
             return Ok(RepositoryUpgrade::Failure(AptFailure::Service(failure)));
         }
 
-        let Some(config) = self
+        let Some(node) = self
             .files
             .lookup
-            .content(target, ServiceId::Repository.config_path(), true)
+            .file(target, ServiceId::Repository.config_path(), true)
             .await?
         else {
+            return Ok(RepositoryUpgrade::Failure(AptFailure::MissingConfig));
+        };
+        let Some(data) = node.data() else {
             return Ok(RepositoryUpgrade::Failure(AptFailure::MissingConfig));
         };
 
@@ -177,9 +238,10 @@ impl Apt {
             .update_hackshop_libs(target, DOWNLOADS_PATH)
             .await?;
 
-        // The game says the file is malformed in the server and goes on with the next one.
-        let Ok(config) = serde_json::from_str::<RepositoryConfig>(&config) else {
-            return Ok(RepositoryUpgrade::Next);
+        let Ok(config) = serde_json::from_str::<RepositoryConfig>(&data.content) else {
+            return Ok(RepositoryUpgrade::Failure(
+                AptFailure::MalformedConfigUpgrade(name.to_owned()),
+            ));
         };
 
         if self
@@ -318,7 +380,6 @@ impl Apt {
                 )
                 .await?
             {
-                RepositoryUpgrade::Next => {}
                 RepositoryUpgrade::Upgrade(upgrade) => return Ok(Ok(upgrade)),
                 RepositoryUpgrade::Failure(failure) => return Ok(Err(failure)),
             }
@@ -330,7 +391,6 @@ impl Apt {
 
 /// Result of checking one repository source.
 enum RepositoryUpgrade {
-    Next,
     Upgrade(bool),
     Failure(AptFailure),
 }
@@ -338,18 +398,18 @@ enum RepositoryUpgrade {
 /// What `update` saved in `aptcache.bin` (`Service_repod.ClientCacheRepos`).
 #[derive(Deserialize, Default)]
 #[serde(default)]
-struct AptCache {
-    official_server: bool,
+pub(crate) struct AptCache {
+    pub(crate) official_server: bool,
     #[serde(rename = "serverList")]
-    server_list: IndexMap<String, CachedServer>,
+    pub(crate) server_list: IndexMap<String, CachedServer>,
 }
 
 /// A source's entry in the apt cache (`Service_repod.HelperClientCache`).
 #[derive(Deserialize, Default)]
 #[serde(default)]
-struct CachedServer {
+pub(crate) struct CachedServer {
     #[serde(rename = "serverPort")]
-    server_port: u16,
+    pub(crate) server_port: u16,
     #[serde(rename = "pkgList")]
-    package_list: IndexMap<String, serde_json::Value>,
+    pub(crate) package_list: IndexMap<String, serde_json::Value>,
 }

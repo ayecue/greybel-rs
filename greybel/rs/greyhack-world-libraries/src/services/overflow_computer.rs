@@ -34,7 +34,7 @@ impl OverflowService {
 
         let weakness = self
             .generator
-            .full_file_library(computer, library_path, false)
+            .full_file_library(computer, library_path, true)
             .await?
             .and_then(|library| library.weakness(address, unsec_value).cloned());
         let Some(weakness) = weakness else {

@@ -44,7 +44,10 @@ pub fn guild_points(companies: &[RankedCompany], max_companies: u32) -> i64 {
 
         let percent = company.owner_percent.clamp(0.0, 100.0);
 
-        total += f64::from(after_penalties * (percent / 100.0)).round_ties_even() as i64;
+        let points_with_owner =
+            f64::from(after_penalties) * (f64::from(percent) / f64::from(100.0_f32));
+
+        total += points_with_owner.round_ties_even() as i64;
     }
 
     total

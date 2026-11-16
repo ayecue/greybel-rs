@@ -7,14 +7,16 @@ use greyhack_behaviour::{Reward, WorldSeed, license_plate};
 use greyhack_test_support_client::protocol::test_support::{LanNodeKind, NetworkSnapshot};
 
 use crate::support::game::{
-    empty_network, fixture_target, fridge_network, join_fixture, police_workstation, setup_player,
-    test_client,
+    adminless_fridge_network, empty_network, fixture_target, fridge_network, join_fixture,
+    police_workstation, setup_player, test_client,
 };
 use crate::support::metaxploit::{
     computer_library, fixture_reply_weakness, fixture_weakness, overflow_script, player_libraries,
     weakness,
 };
-use crate::support::parity::{assert_succeeded, compare_in, compare_in_on_waiting_clock};
+use crate::support::parity::{
+    assert_succeeded, compare_in, compare_in_on_waiting_clock, compare_labeled,
+};
 use crate::support::remote::{fixture_account, script_string};
 
 /// The rewards only the smart-appliance and traffic libraries have: on the player's computer of the fixture network,
@@ -153,7 +155,7 @@ async fn should_match_intrinsics_for_smart_appliance_settings() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    let network = fridge_network(&client).await;
+    let network = adminless_fridge_network(&client).await;
     let target = fixture_target(&network, "fridge");
     let fridge = target.local_ip.clone();
     let port = target.services[0].internal_port;
@@ -173,6 +175,9 @@ async fn should_match_intrinsics_for_smart_appliance_settings() {
         .await
         .unwrap();
     let snapshot = client.network_state().await.unwrap();
+
+    assert!(snapshot.admin.is_none(), "smart-appliance-settings");
+
     let library = computer_library(&snapshot, &fridge, "libsmartappliance.so");
     let (unlock_zone, unlock_weakness) = fixture_reply_weakness(&library, &installed.weaknesses[0]);
     let (shell_zone, shell_weakness) = fixture_reply_weakness(&library, &installed.weaknesses[1]);
@@ -197,23 +202,38 @@ print app.model
 print app.set_alarm(1)
 print app.override_settings(900, 200)
 print app.set_alarm(0)
+print app.override_settings(0, 0)
 print app.override_settings(900, 200)",
     );
-    let on_fridge = format!(
-        "shell = mx.net_use(\"{fridge}\", {port}).dump_lib.overflow(\"{shell_zone}\", \"{}\")
+    let on_fridge = |source: &str| {
+        let binary = source.strip_suffix(".src").expect("the source suffix");
+
+        format!(
+            "shell = mx.net_use(\"{fridge}\", {port}).dump_lib.overflow(\"{shell_zone}\", \"{}\")
 print typeof(shell)
 pc = shell.host_computer
 {folder}
-pc.touch(folder, \"app.src\")
-print pc.File(folder + \"/app.src\").set_content({program})
-print shell.build(folder + \"/app.src\", folder)
-print shell.launch(folder + \"/app\")",
-        shell_weakness.unsec_value
+pc.touch(folder, \"{source}\")
+print pc.File(folder + \"/{source}\").set_content({program})
+print shell.build(folder + \"/{source}\", folder)
+print shell.launch(folder + \"/{binary}\")",
+            shell_weakness.unsec_value
+        )
+    };
+    let locked = format!(
+        "mx = include_lib(\"/lib/metaxploit.so\")\n{}",
+        on_fridge("app.src")
     );
-    let locked = format!("mx = include_lib(\"/lib/metaxploit.so\")\n{on_fridge}");
     let unlock = overflow_script("", Some((&fridge, port)), unlock_zone, unlock_weakness, "");
-    let unlocked = format!("{unlock}\n{on_fridge}");
-    let outcomes = compare_in(&client, &user, &snapshot, &[locked, unlocked]).await;
+    let unlocked = format!("{unlock}\n{}", on_fridge("app2.src"));
+    let outcomes = compare_labeled(
+        &client,
+        &user,
+        &snapshot,
+        "smart-appliance-settings",
+        &[locked, unlocked],
+    )
+    .await;
 
     assert_succeeded(&outcomes);
     assert!(
@@ -222,6 +242,65 @@ print shell.launch(folder + \"/app\")",
             .as_deref()
             .is_some_and(|output| !output.contains("Error"))),
         "the program on the fridge failed: {outcomes:?}"
+    );
+    client.shutdown();
+}
+
+/// A guest shell on a smart appliance sees the same home folders and write permissions in both worlds.
+#[tokio::test]
+async fn should_match_intrinsics_for_guest_home_permissions_on_a_fridge() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let network = fridge_network(&client).await;
+    let target = fixture_target(&network, "fridge");
+    let fridge = target.local_ip.clone();
+    let port = target.services[0].internal_port;
+
+    join_fixture(&client, &network).await;
+    client.promote_admin(&network.public_ip).await.unwrap();
+
+    let installed = client
+        .install_fixture_library(
+            &fridge,
+            "libsmartappliance.so",
+            vec![
+                fixture_weakness(Reward::OverrideSettings, &[], "guest", ""),
+                fixture_weakness(Reward::Shell, &[], "normal_user", ""),
+            ],
+            false,
+        )
+        .await
+        .unwrap();
+    let snapshot = client.network_state().await.unwrap();
+
+    assert!(snapshot.admin.is_some(), "fridge-guest-home-permissions");
+
+    let library = computer_library(&snapshot, &fridge, "libsmartappliance.so");
+    let (unlock_zone, unlock_weakness) = fixture_reply_weakness(&library, &installed.weaknesses[0]);
+    let (zone, weakness) = fixture_reply_weakness(&library, &installed.weaknesses[1]);
+    let script = format!(
+        "mx = include_lib(\"/lib/metaxploit.so\"); shell = mx.net_use(\"{fridge}\", {port}).dump_lib.overflow(\"{zone}\", \"{}\"); pc = shell.host_computer; for home in pc.File(\"/home\").get_folders; print [home.path, home.owner, home.group, home.permissions, pc.touch(home.path, \"x.src\")]; end for",
+        weakness.unsec_value
+    );
+    let unlock = overflow_script("", Some((&fridge, port)), unlock_zone, unlock_weakness, "");
+    let scripts = [script.clone(), format!("{unlock}\n{script}")];
+
+    let outcomes = compare_labeled(
+        &client,
+        &user,
+        &snapshot,
+        "fridge-guest-home-permissions",
+        &scripts,
+    )
+    .await;
+
+    assert!(
+        outcomes[0]
+            .output
+            .as_deref()
+            .is_some_and(|output| output.contains("attack intercepted by administrator")),
+        "fridge-guest-home-permissions was not intercepted: {outcomes:?}"
     );
     client.shutdown();
 }

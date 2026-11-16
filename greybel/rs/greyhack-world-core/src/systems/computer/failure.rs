@@ -41,6 +41,8 @@ pub enum ComputerFailure {
     User(UserFailure),
     /// Guests cannot change the network.
     GuestUser,
+    /// Smartphones do not expose Wi-Fi configuration.
+    SmartphoneWifi,
     /// The computer has no network card of the name.
     MissingNetDevice,
     /// `connect_wifi` requires a Wi-Fi card.

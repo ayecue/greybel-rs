@@ -74,8 +74,16 @@ pub fn position_for_ip(address: &str) -> [f32; 2] {
 
 /// Computes Euclidean distance between map positions.
 #[must_use]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "CustomVector.Vector2.Distance casts Math.Sqrt's double result back to float"
+)]
 pub fn map_distance(a: [f32; 2], b: [f32; 2]) -> f32 {
-    ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt()
+    // The coordinate differences are stored as floats; their squares, sum, and Math.Sqrt use doubles.
+    let x = a[0] - b[0];
+    let y = a[1] - b[1];
+
+    (f64::from(x).powi(2) + f64::from(y).powi(2)).sqrt() as f32
 }
 
 enum_def! {

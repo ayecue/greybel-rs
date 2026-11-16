@@ -1,15 +1,15 @@
 use std::rc::Rc;
 
 use greybel_test_support::future::block_on;
-use greyhack_behaviour::{FirewallRule, LanFailure};
+use greyhack_behaviour::{DeviceKind, FirewallRule, LanFailure};
 use greyhack_world::{PlayerOptions, World};
 use greyhack_world_core::{ConnectionFailure, LoginFailure};
 use scheduler::ManualClock;
 
 use crate::support::network::{SERVICE_SEED, first_remote_service, literal};
-use crate::support::scripts::{run_code_in, run_game_with_io, run_on_host};
+use crate::support::scripts::{run_code, run_code_in, run_game_with_io, run_on_host};
 use crate::support::semantics::{PollStdin, world_with_player_router_at_origin};
-use crate::support::{read_computer, read_router, read_routers, world_options};
+use crate::support::{change_computer, read_computer, read_router, read_routers, world_options};
 
 #[test]
 fn should_resolve_the_router_of_a_lan_device() {
@@ -208,6 +208,72 @@ fn should_deny_reboot_to_a_user_outside_the_root_group() {
     );
 }
 
+/// Argument and detached-map failures of `ComputerIntrinsics.connect_ethernet`.
+#[test]
+fn should_validate_ethernet_arguments_before_the_computer_helper() {
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let (output, error, _) = run_on_host(
+        "print get_shell.host_computer.connect_ethernet(1, \"10.0.0.5\", \"10.0.0.1\")\nprint connect_ethernet({}, \"eth0\", \"10.0.0.5\", \"10.0.0.1\")",
+        world,
+        true,
+    );
+
+    assert_eq!(error, None);
+    assert_eq!(
+        output,
+        "connect_ethernet: Invalid arguments\nconnect_ethernet: Invalid arguments"
+    );
+}
+
+/// `ComputerIntrinsics.connect_ethernet` returns its offline text instead of failing the operation.
+#[test]
+fn should_return_ethernet_offline_text() {
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let (output, error, _) = run_on_host(
+        "pc = get_shell.host_computer; pc.File(\"/lib/init.so\").delete; print pc.connect_ethernet(\"eth0\", \"10.0.0.5\", \"10.0.0.1\")",
+        world,
+        true,
+    );
+
+    assert_eq!(error, None);
+    assert_eq!(output, "connect_ethernet: No internet connection");
+}
+
+/// A smartphone refuses Wi-Fi configuration before looking up its router (`ComputerIntrinsics.connect_wifi`).
+#[test]
+fn should_reject_wifi_configuration_on_a_smartphone() {
+    let mut world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let computer = world.handle.player();
+
+    change_computer(&mut world, computer, |row| {
+        row.kind = DeviceKind::Smartphone
+    });
+
+    let (output, error, _) = run_on_host(
+        "print get_shell.host_computer.connect_wifi(\"wlan0\", \"missing\", \"missing\", \"pw\")",
+        world,
+        true,
+    );
+
+    assert_eq!(error, None);
+    assert_eq!(
+        output,
+        "connect_wifi: wifi configuration is currently unavailable on this device."
+    );
+}
+
+/// A missing or non-Wi-Fi card returns text, not a one-element list (`ComputerIntrinsics.wifi_networks`).
+#[test]
+fn should_return_wifi_card_errors_as_strings() {
+    let (output, error) = run_code_in(
+        "print get_shell.host_computer.wifi_networks(\"eth0\")",
+        true,
+    );
+
+    assert_eq!(error, None);
+    assert_eq!(output, "wifi_networks: eth0 not found.");
+}
+
 #[test]
 fn should_list_wifi_networks_with_their_names() {
     let code = "print get_shell.host_computer.wifi_networks(\"wlan0\")";
@@ -215,6 +281,58 @@ fn should_list_wifi_networks_with_their_names() {
 
     assert_eq!(error, None);
     assert!(output.contains("test_net"), "{output}");
+}
+
+#[test]
+fn should_reject_airmon_and_aireplay_when_wifi_is_disabled() {
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let player = world.handle.player();
+    let cards = block_on(world.modules.core.networks.net_cards.net_cards(player))
+        .expect("the network cards are read");
+
+    for (index, card) in cards.into_iter().enumerate() {
+        block_on(world.modules.core.networks.net_cards.save_net_card(
+            player,
+            index,
+            &greyhack_world_core::NetCard {
+                active: false,
+                ..card
+            },
+        ))
+        .expect("the card is disabled");
+    }
+
+    let (output, error, _) = run_on_host(
+        "crypto = include_lib(\"/lib/crypto.so\"); print crypto.airmon(\"start\", \"wlan0\"); print crypto.aireplay(\"x\", \"y\")",
+        world,
+        true,
+    );
+
+    assert_eq!(error, None);
+    assert_eq!(
+        output,
+        "wifi_networks: wifi card is disabled\nwifi_networks: wifi card is disabled"
+    );
+}
+
+#[test]
+fn should_reject_aireplay_when_the_router_is_out_of_range() {
+    let world = block_on(World::generate(&world_options(7, 1))).expect("a generated world");
+    let mut router = read_routers(&world).swap_remove(1);
+
+    router.map[0] += 1000.0;
+    block_on(world.modules.core.networks.routers.save_router(&router))
+        .expect("the distant router is saved");
+
+    let script = format!(
+        "print include_lib(\"/lib/crypto.so\").aireplay(\"{}\", \"{}\")",
+        router.bssid.unwrap(),
+        router.essid.unwrap()
+    );
+    let (output, error, _) = run_on_host(&script, world, true);
+
+    assert_eq!(error, None);
+    assert_eq!(output, "Can't connect. Target is out of reach.");
 }
 
 #[test]
@@ -429,6 +547,19 @@ fn should_connect_an_ethernet_card_with_a_valid_address() {
 }
 
 #[test]
+fn should_reject_touch_when_the_file_already_exists() {
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let (output, error, _) = run_on_host(
+        "pc = get_shell.host_computer; print pc.touch(home_dir, \"same.txt\"); print pc.touch(home_dir, \"same.txt\")",
+        world,
+        true,
+    );
+
+    assert_eq!(error, None);
+    assert_eq!(output, "1\nThe file already exists");
+}
+
+#[test]
 fn should_write_file_content_up_to_the_game_limit() {
     let code = r#"
 pc = get_shell.host_computer
@@ -446,6 +577,26 @@ print file.set_content(content + "a")
     assert_eq!(
         output,
         "1\n160000\nI can't save the file. The maximum of 160,000 characters has been exceeded."
+    );
+}
+
+#[test]
+fn should_match_build_argument_and_missing_folder_errors() {
+    let code = r#"
+print build(1, home_dir, home_dir)
+print build({}, home_dir, home_dir)
+pc = get_shell.host_computer
+pc.touch(home_dir, "code.src")
+pc.File(home_dir + "/code.src").set_content("print 1")
+print get_shell.build(home_dir + "/code.src", home_dir + "/missing")
+"#;
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let (output, error, _) = run_on_host(code, world, true);
+
+    assert_eq!(error, None);
+    assert_eq!(
+        output,
+        "build: Invalid arguments\nbuild: Invalid arguments\nCan't find /home/test"
     );
 }
 
@@ -534,6 +685,38 @@ fn should_crash_the_script_on_the_sign_of_nan() {
         error,
         Some(greybel_interpreter::RuntimeErrorKind::GameCrash.to_string())
     );
+}
+
+/// The game's string insertion dereferences a null value instead of displaying it (`Intrinsics.insert`).
+#[test]
+fn should_crash_the_script_when_inserting_null_into_a_string() {
+    let (output, error) = run_code("print \"ab\".insert(1, null)");
+
+    assert_eq!(output, "");
+    assert_eq!(
+        error,
+        Some(greybel_interpreter::RuntimeErrorKind::GameCrash.to_string())
+    );
+
+    let (_, error) = run_code("\"ab\".insert(null, null)");
+
+    assert_eq!(error.as_deref(), Some("insert: index argument required"));
+
+    let (_, error) = run_code("\"ab\".insert(3, null)");
+
+    assert_eq!(
+        error.as_deref(),
+        Some("Index Error: index (3) out of range (0 to 2)")
+    );
+}
+
+/// An overflowing range count becomes a negative allocation capacity in the game (`Intrinsics.range`).
+#[test]
+fn should_report_a_range_error_when_the_computed_count_overflows() {
+    let (output, error) = run_code("range(0, 2147483647)");
+
+    assert_eq!(output, "");
+    assert_eq!(error.as_deref(), Some("range() error"));
 }
 
 /// Each output as Grey Hack prints it for the same script.

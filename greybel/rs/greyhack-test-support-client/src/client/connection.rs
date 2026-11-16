@@ -12,10 +12,11 @@ use tokio::task::LocalSet;
 use super::request::{Request, RequestKind};
 use crate::protocol::TestClientNotification;
 use crate::protocol::test_support::{
-    AdvanceClockRpc, AllowFirewallRpc, BuyExploitRpc, ConfigZeroDayInfoRpc, ConnectNetworkRpc,
-    CreateFixtureNetworkRpc, CreateNetworkRpc, DisableNetworkRpc, EndGameRpc, ExecuteInTerminalRpc,
-    ExecuteInteractiveRpc, ExecutePairRpc, ExecuteRpc, ExecuteUntilInputRpc, FireNpcRpc,
-    ForceAdminLoginRpc, ForwardServiceRpc, FreezeClockRpc, HireRentalAdminRpc,
+    AdvanceClockRpc, AllowFirewallRpc, BuyExploitRpc, ConfigZeroDayInfoRpc, ConfigureApplianceRpc,
+    ConfigureComputerRpc, ConfigureEconomyRpc, ConfigureMailRpc, ConnectNetworkRpc,
+    CreateFixtureNetworkRpc, CreateNetworkRpc, DeleteCtfRpc, DisableNetworkRpc, EndGameRpc,
+    ExecuteInTerminalRpc, ExecuteInteractiveRpc, ExecutePairRpc, ExecuteRpc, ExecuteUntilInputRpc,
+    FireNpcRpc, ForceAdminLoginRpc, ForwardServiceRpc, FreezeClockRpc, HireRentalAdminRpc,
     InstallFixtureLibraryRpc, InstallLibraryRpc, LockApplianceRpc, MissionRpc, PrimeFloodRpc,
     PromoteAdminRpc, QueryExploitsRpc, QueryFileRpc, QueryGuildsRpc, QueryNetworkRpc,
     QueryPlayerRpc, QueryTracesRpc, QueryWordListsRpc, RateCtfRpc, RebootPlayerRpc,
@@ -158,7 +159,7 @@ impl Connection {
                         replies.borrow_mut().insert(request, response);
                         let result = match &kind {
                             RequestKind::SetupPlayer | RequestKind::ConnectNetwork { .. } | RequestKind::WriteFile { .. } | RequestKind::CreateNetwork { .. } | RequestKind::CreateFixtureNetwork { .. } | RequestKind::SetupDebug | RequestKind::SetupCtf { .. } | RequestKind::Execute { .. } | RequestKind::ExecuteInteractive { .. } | RequestKind::ExecuteUntilInput { .. } => send_bootstrap(&channel, request, kind),
-                            RequestKind::TypeInput { .. } | RequestKind::ExecutePair { .. } | RequestKind::QueryPlayer | RequestKind::QueryFile { .. } | RequestKind::SetRouterKernelRequirement { .. } | RequestKind::WriteRouterKernel { .. } | RequestKind::QueryNetwork | RequestKind::InstallLibrary { .. } | RequestKind::InstallFixtureLibrary { .. } | RequestKind::SetupBlockchain { .. } | RequestKind::SetupMail { .. } | RequestKind::SetupWallet { .. } => send_execution(&channel, request, kind),
+                            RequestKind::TypeInput { .. } | RequestKind::ExecutePair { .. } | RequestKind::QueryPlayer | RequestKind::QueryFile { .. } | RequestKind::SetRouterKernelRequirement { .. } | RequestKind::WriteRouterKernel { .. } | RequestKind::QueryNetwork | RequestKind::InstallLibrary { .. } | RequestKind::InstallFixtureLibrary { .. } | RequestKind::SetupBlockchain { .. } | RequestKind::SetupMail { .. } | RequestKind::SetupWallet { .. } | RequestKind::ConfigureComputer { .. } | RequestKind::ConfigureEconomy { .. } | RequestKind::ConfigureMail { .. } | RequestKind::DeleteCtf { .. } | RequestKind::ConfigureAppliance { .. } => send_execution(&channel, request, kind),
                             RequestKind::SetupForeignCoin { .. } | RequestKind::ForwardService { .. } | RequestKind::LockAppliance { .. } | RequestKind::PrimeFlood { .. } | RequestKind::FreezeClock | RequestKind::DisableNetwork { .. } | RequestKind::PromoteAdmin { .. } | RequestKind::FireNpc { .. } => send_network(&channel, request, kind),
                             RequestKind::RefreshNpcAccount { .. } | RequestKind::ConfigZeroDayInfo { .. } | RequestKind::SetPhoneAlarm { .. } | RequestKind::SetupTraffic | RequestKind::TrafficAccident { .. } | RequestKind::ResetTrafficCooldown | RequestKind::HireRentalAdmin { .. } | RequestKind::SpawnNetwork { .. } | RequestKind::AllowFirewall { .. } | RequestKind::ForceAdminLogin { .. } | RequestKind::AdvanceClock { .. } => send_network_admin(&channel, request, kind),
                             RequestKind::Mission { .. } | RequestKind::QueryExploits { .. } | RequestKind::BuyExploit { .. } | RequestKind::RentNetwork { .. } | RequestKind::RentalAdminService { .. } | RequestKind::RunPayments | RequestKind::SetPlayerMoney { .. } | RequestKind::RebootPlayer { .. } | RequestKind::ReportLibraryUpdate { .. } | RequestKind::ReleaseLibraryVersion { .. } | RequestKind::SetupGuild(_) | RequestKind::QueryTraces => send_economy(&channel, request, kind),
@@ -269,6 +270,10 @@ fn send_bootstrap(
     .map_err(Into::into)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Test-support request kinds share one wire-dispatch table"
+)]
 fn send_execution(
     channel: &Channel<TestProtocol, StreamDriver>,
     request: u32,
@@ -314,6 +319,13 @@ fn send_execution(
             })
         }
         RequestKind::QueryNetwork => channel.send(&QueryNetworkRpc { request }),
+        RequestKind::ConfigureComputer { local_ip, fixture } => {
+            channel.send(&ConfigureComputerRpc {
+                request,
+                local_ip: local_ip.into(),
+                fixture: fixture.into(),
+            })
+        }
         RequestKind::InstallLibrary {
             local_ip,
             name,
@@ -353,6 +365,39 @@ fn send_execution(
             request,
             user: user.into(),
             password: password.into(),
+        }),
+        RequestKind::ConfigureMail {
+            fixture,
+            address,
+            sender,
+        } => channel.send(&ConfigureMailRpc {
+            request,
+            fixture: fixture.into(),
+            address: address.into(),
+            sender: sender.into(),
+        }),
+        RequestKind::DeleteCtf { event_name } => channel.send(&DeleteCtfRpc {
+            request,
+            event_name: event_name.into(),
+        }),
+        RequestKind::ConfigureAppliance { local_ip, fixture } => {
+            channel.send(&ConfigureApplianceRpc {
+                request,
+                local_ip: local_ip.into(),
+                fixture: fixture.into(),
+            })
+        }
+        RequestKind::ConfigureEconomy {
+            fixture,
+            coin,
+            wallet,
+            subwallet,
+        } => channel.send(&ConfigureEconomyRpc {
+            request,
+            fixture: fixture.into(),
+            coin: coin.into(),
+            wallet: wallet.into(),
+            subwallet: subwallet.into(),
         }),
         _ => unreachable!(),
     }

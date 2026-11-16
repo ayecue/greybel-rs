@@ -1,12 +1,70 @@
 use greyhack_behaviour::SAFE_MODE_TERMINAL;
 use greyhack_world::{PlayerOptions, World};
-use greyhack_world_core::{SavedNetwork, SavedWifiFailure};
+use greyhack_world_core::{
+    ComputerFailure, NetCard, NetCardFailure, SavedNetwork, SavedWifiFailure, SwitchResult,
+};
 use greyhack_world_creation::DeviceLayout;
 
 use crate::support::layout::layout;
 use crate::support::saved_networks::{
     MAIN_IP, gateway, lan_network, world_on_lan, world_with_networks,
 };
+
+/// Player Ethernet checks the rental home and its ISP before changing the LAN (`NetworkLan.ConnectEthernet`).
+#[tokio::test]
+async fn should_validate_the_player_rental_home_for_ethernet() {
+    let mut layout = layout();
+
+    for node in &mut layout.nodes {
+        if let DeviceLayout::Computer(computer) = &mut node.device
+            && computer.is_player
+        {
+            computer.hardware.net_cards.push(NetCard::new(false, false));
+        }
+    }
+
+    let world = World::new(&PlayerOptions {
+        network: Some(layout),
+        ..PlayerOptions::default()
+    })
+    .await
+    .unwrap();
+    let player = world.handle.player();
+    let connect = || {
+        world.modules.core.networks.net_cards.join_ethernet(
+            player,
+            "root",
+            ("eth0", "192.168.1.250", "192.168.1.1"),
+            false,
+        )
+    };
+    let result = connect().await.unwrap();
+
+    assert!(matches!(
+        result.result,
+        SwitchResult::Refusal(ComputerFailure::NetCard(NetCardFailure::NoRentalHome))
+    ));
+
+    let mut computer = greybel_test_support::world::computer(&world, player).await;
+
+    computer.rental_home_ip = "203.0.113.1".to_owned();
+
+    world
+        .modules
+        .core
+        .networks
+        .topology
+        .save_computer(&computer)
+        .await
+        .unwrap();
+
+    let result = connect().await.unwrap();
+
+    assert!(matches!(
+        result.result,
+        SwitchResult::Refusal(ComputerFailure::NetCard(NetCardFailure::MissingIsp))
+    ));
+}
 
 /// Connecting by Wi-Fi remembers the router as the computer's most recent network (`ConfigOS.SetIpAddress`).
 #[tokio::test]

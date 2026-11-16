@@ -12,7 +12,9 @@ pub const WIFI_RANGE: f32 = 0.5;
     reason = "Terminal.ResumeAireplay truncates signal strength like C# (int)"
 )]
 pub fn signal_strength(distance: f32) -> i32 {
-    100 - (distance * 200.0) as i32
+    let distance_percent = f64::from(distance) * f64::from(100.0_f32) / f64::from(WIFI_RANGE);
+
+    100 - distance_percent as i32
 }
 
 /// Derives a stable capture signal strength from a BSSID.

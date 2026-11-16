@@ -15,6 +15,27 @@ pub const MAX_SYMLINKS: u32 = 3;
 pub const METADATA_SIZE: u64 = 14_000;
 /// Number of bytes in one megabyte of disk space.
 pub const BYTES_PER_MB: f64 = 1_000_000.0;
+
+/// Converts bytes with the unrounded `(float)bytes * 1E-06f` expression used in disk comparisons.
+#[must_use]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "C# converts the byte count to float before multiplying it by 1E-06f"
+)]
+pub fn file_size_mb(bytes: u64) -> f64 {
+    f64::from(bytes as f32) * f64::from(1E-6_f32)
+}
+
+/// Converts bytes as `Carpeta.GetSizeMB`, which stores the expression in its float return value.
+#[must_use]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Carpeta.GetSizeMB returns the unrounded expression as a C# float"
+)]
+pub fn stored_file_size_mb(bytes: u64) -> f32 {
+    file_size_mb(bytes) as f32
+}
+
 /// File-content limit in UTF-16 code units.
 pub const MAX_CONTENT: usize = 160_000;
 /// `import_code` size limit in UTF-16 code units.

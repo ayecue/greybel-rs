@@ -1,7 +1,38 @@
 use greyhack_world_core::Login;
-use greyhack_world_npcs::Email;
+use greyhack_world_npcs::{Email, SendMailFailure};
 
 use crate::support::npc_mail::{PASSWORD, inbox, inboxes, network};
+
+#[tokio::test]
+async fn should_reject_sending_after_the_account_is_deleted() {
+    let (world, _, members) = network().await;
+    let address = "stale@example.com";
+
+    world
+        .modules
+        .npcs
+        .mail
+        .add_mail_account(address, PASSWORD)
+        .await
+        .unwrap();
+    world
+        .modules
+        .npcs
+        .mail
+        .delete_mail_account(address)
+        .await
+        .unwrap();
+
+    assert!(matches!(
+        world
+            .modules
+            .npcs
+            .mail
+            .send_mail(address, &members[0].address, "subject", "body")
+            .await,
+        Ok(Err(SendMailFailure::Missing))
+    ));
+}
 
 #[tokio::test]
 async fn should_generate_the_mails_of_an_npc_account_on_its_first_login_only() {

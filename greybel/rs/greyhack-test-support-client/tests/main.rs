@@ -11,6 +11,8 @@ mod cs;
 #[cfg(feature = "game")]
 mod game;
 #[cfg(feature = "game")]
+mod parity_appliance_edges;
+#[cfg(feature = "game")]
 mod parity_apt;
 #[cfg(feature = "game")]
 mod parity_bank_payments;
@@ -30,6 +32,8 @@ mod parity_ctf;
 mod parity_debug_libraries;
 #[cfg(feature = "game")]
 mod parity_devices;
+#[cfg(feature = "game")]
+mod parity_economy_edges;
 #[cfg(feature = "game")]
 mod parity_exploit_shop;
 #[cfg(feature = "game")]
@@ -69,5 +73,9 @@ mod parity_random_content;
 #[cfg(feature = "game")]
 mod parity_restart;
 #[cfg(feature = "game")]
+mod parity_services;
+#[cfg(feature = "game")]
 mod parity_traces;
+#[cfg(feature = "game")]
+mod parity_traffic_edges;
 mod support;

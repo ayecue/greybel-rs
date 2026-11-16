@@ -146,6 +146,11 @@ impl Mail {
         Ok(true)
     }
 
+    /// Removes an account when a fixture deletes it while a MetaMail object is still alive.
+    pub async fn delete_mail_account(&self, address: &str) -> Result<()> {
+        self.rows.remove_mail_account(address).await
+    }
+
     pub async fn mail_login(&self, address: &str, password: &str) -> Result<Login> {
         let valid = self
             .rows

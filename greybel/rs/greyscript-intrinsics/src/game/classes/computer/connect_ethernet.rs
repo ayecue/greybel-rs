@@ -1,8 +1,8 @@
-use greybel_interpreter::{NativeFuture, NativeOutput, Value, Vm, native};
+use greybel_interpreter::{NativeFuture, Value, Vm, native};
 
 use super::{computer, restart_switch_watch, switch_wait};
 use crate::error::IntrinsicError;
-use crate::game::client::server::{program, respond, server};
+use crate::game::client::server::{program, raise, server, settle};
 use crate::protocol::{ComputerConnectEthernet, EthernetSettings};
 
 #[native(method)]
@@ -13,17 +13,22 @@ pub fn connect_ethernet(
     address: &Value,
     gateway: &Value,
 ) -> Result<NativeFuture, IntrinsicError> {
+    if !matches!(this, Value::Map(_))
+        || net_device.as_str().is_none()
+        || address.as_str().is_none()
+        || gateway.as_str().is_none()
+    {
+        return Err(IntrinsicError::InvalidArguments("connect_ethernet"));
+    }
+
     let Some(access) = computer(vm, this, "connect_ethernet") else {
-        return Ok(NativeOutput::ready(Value::Null));
+        return Err(IntrinsicError::InvalidArguments("connect_ethernet"));
     };
-    let settings = match (net_device.as_str(), address.as_str(), gateway.as_str()) {
-        (Some(device), Some(address), Some(gateway)) => Some(EthernetSettings {
-            device: device.to_owned(),
-            address: address.to_owned(),
-            gateway: gateway.to_owned(),
-        }),
-        _ => None,
-    };
+    let settings = Some(EthernetSettings {
+        device: net_device.as_str().unwrap().to_owned(),
+        address: address.as_str().unwrap().to_owned(),
+        gateway: gateway.as_str().unwrap().to_owned(),
+    });
     let (now, wait) = switch_wait(vm);
     let message = ComputerConnectEthernet {
         program: program(vm)?,
@@ -32,10 +37,11 @@ pub fn connect_ethernet(
         wait,
     };
 
-    Ok(respond(
-        vm,
+    Ok(settle(
         server(vm)?.send_computer_connect_ethernet(&message),
         move |vm, connection| {
+            let connection = connection.map_err(|failure| raise("connect_ethernet", failure))?;
+
             restart_switch_watch(vm, now, connection.starts_wait);
 
             connection.outcome.into_value_or_empty("connect_ethernet")

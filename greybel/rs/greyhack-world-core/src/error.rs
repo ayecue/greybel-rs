@@ -29,6 +29,9 @@ pub enum WorldError {
     /// An asynchronous event subscriber failed.
     #[error(transparent)]
     Event(#[from] greyhack_world_effects::EventError),
+    /// Nonempty library content is not valid JSON (`PlayerIntrinsics.include_lib`).
+    #[error("malformed library JSON: {0}")]
+    MalformedLibrary(String),
     /// A `NetworkLayout` references a missing or later device, or gives a computer no
     /// parent.
     #[error("invalid network layout: {0}")]

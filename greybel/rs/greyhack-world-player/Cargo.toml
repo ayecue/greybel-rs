@@ -30,6 +30,7 @@ greyhack-world-effects.workspace = true
 greyhack-world-services.workspace = true
 greyhack-world-smart-devices.workspace = true
 greyhack-world-storage.workspace = true
+serde_json.workspace = true
 turso.workspace = true
 
 [lints]
