@@ -92,7 +92,7 @@ fn should_crash_where_a_detached_method_dereferences_another_classs_missing_help
         "port_number(get_router.__isa)",
         "get_lan_ip(get_router)",
         "is_closed(get_router)",
-        "admin = include_lib(\"admin.so\"); r = admin.create_network({\"public_ip\": \"8.8.8.8\", \"computers\": 0}); lan = r.local_ip[:-1]; admin.network(\"8.8.8.8\").add_computer({\"lan_ip\": lan + \"10\", \"services\": [\"ssh\"]}); port_info(get_shell, r.used_ports[0])",
+        "admin = get_greybel_util(); r = admin.create_network({\"public_ip\": \"8.8.8.8\", \"computers\": 0}); lan = r.local_ip[:-1]; admin.network(\"8.8.8.8\").add_computer({\"lan_ip\": lan + \"10\", \"services\": [\"ssh\"]}); port_info(get_shell, r.used_ports[0])",
         "aircrack(get_shell, \"/capture.cap\")",
         "airmon(get_shell, \"start\", \"eth0\")",
         "aireplay(get_shell, \"AA:BB\", \"wifi\", 1)",

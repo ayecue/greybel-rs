@@ -41,7 +41,7 @@ print two.fetch"#;
 
 #[test]
 fn should_read_and_delete_lists_of_mail_ids_in_the_current_inbox() {
-    let code = r#"admin = include_lib("admin.so")
+    let code = r#"admin = get_greybel_util()
 admin.create_mail_account("neo@test.com", "matrix1")
 mail = mail_login("test@test.com", "test")
 other = mail_login("neo@test.com", "matrix1")

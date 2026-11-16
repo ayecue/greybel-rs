@@ -277,8 +277,9 @@ internal sealed class ComputerFixture(Player player)
                     trafficNetwork.GetNpcInfoTrafficCrecentials()
                     ?? NpcFixture.EnsureNpc(trafficNetwork, computer.GetMainRouter());
                 Traverse.Create(trafficNetwork).Field("trafficCredentials").SetValue(trafficNpc.GetSurname());
-                LanPcInfo workstation = trafficNetwork.GetLanPcInfo(trafficNpc.GetLocalIP())
-                    ?? throw new InvalidOperationException("The traffic fixture has no NPC workstation");
+                LanPcInfo workstation = trafficNetwork.GetLanPcInfo(computer.GetID())
+                    ?? throw new InvalidOperationException("The traffic fixture has no target workstation");
+                trafficNpc.SetLocalIP(workstation.localIp);
                 workstation.SetHidden(true);
                 break;
             case "router_ssh":

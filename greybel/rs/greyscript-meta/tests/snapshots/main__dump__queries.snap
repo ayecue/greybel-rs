@@ -2058,6 +2058,18 @@ get_global_offers:
       origin: wallet
       search:
         - wallet
+get_greybel_util:
+  all:
+    origin: ~
+    search: []
+  any:
+    origin: ~
+    search: []
+  each:
+    general:
+      origin: general
+      search:
+        - general
 get_info:
   all:
     origin: subWallet

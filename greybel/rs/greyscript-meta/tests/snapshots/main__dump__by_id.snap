@@ -284,6 +284,8 @@ get_folders:
 get_global_offers:
   - general
   - wallet
+get_greybel_util:
+  - general
 get_info:
   - general
   - subWallet

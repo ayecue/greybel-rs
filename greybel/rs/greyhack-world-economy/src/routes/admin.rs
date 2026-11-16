@@ -1,4 +1,4 @@
-//! Economy operations of the global `admin.so` program.
+//! Economy operations of the global `get_greybel_util()` program.
 
 use greyhack_world_programs::protocol::{
     AdminDeposit, AdminGrantCoins, AdminRemoveNetwork, AdminSetNetSpeed,

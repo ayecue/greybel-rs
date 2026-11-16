@@ -15,6 +15,7 @@ pub(crate) mod format_columns;
 pub(crate) mod get_abs_path;
 pub(crate) mod get_ctf;
 pub(crate) mod get_custom_object;
+pub(crate) mod get_greybel_util;
 pub(crate) mod get_router;
 pub(crate) mod get_shell;
 pub(crate) mod get_switch;

@@ -23,7 +23,7 @@ print crypto.is_encrypted(home_dir + "/missing")
 
 // decipher a known user's password hash via md5.
 hash = md5("toor")
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 router = admin.create_network({"public_ip": "8.8.8.8", "domain": "m.com", "computers": 0})
 lan = router.local_ip[:-1]
 admin.network("8.8.8.8").add_computer({"name": "mail", "lan_ip": lan + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["smtp"]})

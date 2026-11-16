@@ -71,7 +71,7 @@ sources rather than placeholders for every file. Service installation uses the
 extracted service table, SSH encode/decode sources, default and type-specific
 websites, repository packages, and record-viewer launchers. `include_lib`
 requires a file whose stored kind and metadata identify a library; a text file
-named `*.so` is not enough. `admin.so` is a separate sandbox exception described
+named `*.so` is not enough. `get_greybel_util()` is a separate sandbox exception described
 below.
 
 ## World clock, ticks, and scheduled work
@@ -330,9 +330,9 @@ game's lists, weighting, guest override, and .NET random stream. Differential
 coverage is fixture-based; it does not establish equality for every generated
 challenge or every remote credential flow.
 
-## `admin.so`: sandbox-only helpers
+## `get_greybel_util()`: sandbox-only helpers
 
-`admin.so` is not a Grey Hack library. It is enabled by default in
+`get_greybel_util()` is not a Grey Hack library. It is enabled by default in
 `GreyHackInterpreter`, and `with_admin(false)` removes it to approximate a
 normal game. Its methods exist to construct, inspect, and drive worlds from
 tests and sandboxes; they must not be cited as game-intrinsic parity.

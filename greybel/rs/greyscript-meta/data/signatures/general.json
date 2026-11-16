@@ -687,9 +687,25 @@
         "aptClient",
         "smartAppliance",
         "trafficNet",
-        "admin",
         "null",
         "string"
+      ]
+    },
+    "get_greybel_util": {
+      "id": "get_greybel_util",
+      "type": "function",
+      "tags": [
+        "function",
+        "general",
+        "greybel"
+      ],
+      "arguments": [],
+      "returnVariations": [
+        "get_greybel_util() is disabled by the host"
+      ],
+      "returns": [
+        "admin",
+        "null"
       ]
     },
     "import_code": {

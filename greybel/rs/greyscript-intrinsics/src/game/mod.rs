@@ -30,6 +30,7 @@ const PLAYER_GLOBALS: &[NativeWithName] = natives![
     player::get_switch::get_switch,
     player::include_lib::include_lib,
     player::get_custom_object::get_custom_object,
+    player::get_greybel_util::get_greybel_util,
     player::nslookup::nslookup,
     player::whois::whois,
     player::active_user::active_user,

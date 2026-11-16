@@ -127,6 +127,7 @@ internal sealed class NpcFixture : IFixture
             )
             .GetValue();
         Traverse.Create(network).Method("UpdateNpcsLocalIps").GetValue();
+        npc.SetLocalIP(workstation.localIp);
 
         return npc;
     }

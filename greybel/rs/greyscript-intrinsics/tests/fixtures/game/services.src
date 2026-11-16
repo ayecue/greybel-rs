@@ -1,6 +1,6 @@
 // A service runs as a process that binds a port; start/stop and launch.
 // Service control needs root, so take a root session on our own computer.
-include_lib("admin.so").sudo
+get_greybel_util().sudo
 shell = get_shell
 computer = shell.host_computer
 print computer.get_ports.len

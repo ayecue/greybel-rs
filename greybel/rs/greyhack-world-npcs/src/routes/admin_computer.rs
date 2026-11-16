@@ -1,4 +1,4 @@
-//! NPC operations of the single-computer `admin.so` object.
+//! NPC operations of the single-computer `get_greybel_util()` object.
 
 use greyhack_world_programs::protocol::{AdminAddNpc, AdminNpcLogin};
 use greyhack_world_router::RouteTable;

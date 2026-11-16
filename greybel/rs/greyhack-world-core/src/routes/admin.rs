@@ -1,4 +1,4 @@
-//! Core-owned `admin.so` operations for computers, credentials, and networks.
+//! Core-owned `get_greybel_util()` operations for computers, credentials, and networks.
 
 use greyhack_world_programs::protocol::{
     AdminAddNetCard, AdminDisableNetwork, AdminLogin, AdminNetworks, AdminRegisterPassword,

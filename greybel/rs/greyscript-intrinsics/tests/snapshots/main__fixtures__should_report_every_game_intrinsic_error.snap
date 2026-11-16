@@ -54,21 +54,21 @@ clear_screen; clear_screen
   raises You must wait 0.1 seconds before you can launch clear_screen again
 include_lib("")
   returns include_lib: Invalid arguments
-include_lib("admin.so").create_network(1)
+get_greybel_util().create_network(1)
   returns create_network: Invalid arguments
-include_lib("admin.so").create_network({"essid": 1})
+get_greybel_util().create_network({"essid": 1})
   returns create_network: Invalid arguments
-include_lib("admin.so").network(1)
+get_greybel_util().network(1)
   returns network: Invalid arguments
-include_lib("admin.so").network(get_router.public_ip).add_computer(1)
+get_greybel_util().network(get_router.public_ip).add_computer(1)
   returns add_computer: Invalid arguments
-include_lib("admin.so").network(get_router.public_ip).add_computer({"users": [1]})
+get_greybel_util().network(get_router.public_ip).add_computer({"users": [1]})
   returns add_computer: Invalid arguments
-include_lib("admin.so").network(get_router.public_ip).computer(1)
+get_greybel_util().network(get_router.public_ip).computer(1)
   returns computer: Invalid arguments
-include_lib("admin.so").network(get_router.public_ip).computer(get_shell.host_computer.local_ip).shell(1)
+get_greybel_util().network(get_router.public_ip).computer(get_shell.host_computer.local_ip).shell(1)
   returns shell: Invalid arguments
-include_lib("admin.so").set_date(1)
+get_greybel_util().set_date(1)
   returns set_date: Invalid arguments
 get_router.device_ports("")
   returns device_ports: Invalid arguments

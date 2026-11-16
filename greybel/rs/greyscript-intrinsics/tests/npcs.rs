@@ -89,7 +89,7 @@ async fn should_preserve_npcs_and_their_next_action_across_a_reload() {
 #[test]
 fn should_control_an_npc_through_admin() {
     let code = r#"
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 admin.set_date("01/Jan/1970 - 00:00")
 admin.network(get_router.public_ip).computer(get_shell.host_computer.local_ip).add_npc("test", 60)
 print admin.tick(60)
@@ -105,7 +105,7 @@ print admin.tick(60)
 #[test]
 fn should_fire_and_hire_npcs_and_a_rented_servers_admin_through_admin() {
     let code = r#"
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 network = admin.network(get_router.public_ip)
 network.computer(get_shell.host_computer.local_ip).add_npc("test", 60)
 print network.fire_npc("nobody")

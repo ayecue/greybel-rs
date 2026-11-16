@@ -168,14 +168,14 @@ pub const GAME_ERRORS: &[&str] = &[
     "parent_path(\"\")",
     "clear_screen; clear_screen",
     "include_lib(\"\")",
-    "include_lib(\"admin.so\").create_network(1)",
-    "include_lib(\"admin.so\").create_network({\"essid\": 1})",
-    "include_lib(\"admin.so\").network(1)",
-    "include_lib(\"admin.so\").network(get_router.public_ip).add_computer(1)",
-    "include_lib(\"admin.so\").network(get_router.public_ip).add_computer({\"users\": [1]})",
-    "include_lib(\"admin.so\").network(get_router.public_ip).computer(1)",
-    "include_lib(\"admin.so\").network(get_router.public_ip).computer(get_shell.host_computer.local_ip).shell(1)",
-    "include_lib(\"admin.so\").set_date(1)",
+    "get_greybel_util().create_network(1)",
+    "get_greybel_util().create_network({\"essid\": 1})",
+    "get_greybel_util().network(1)",
+    "get_greybel_util().network(get_router.public_ip).add_computer(1)",
+    "get_greybel_util().network(get_router.public_ip).add_computer({\"users\": [1]})",
+    "get_greybel_util().network(get_router.public_ip).computer(1)",
+    "get_greybel_util().network(get_router.public_ip).computer(get_shell.host_computer.local_ip).shell(1)",
+    "get_greybel_util().set_date(1)",
     "get_router.device_ports(\"\")",
     "nslookup(\"\")",
     "whois(1)",
@@ -189,14 +189,14 @@ pub const GAME_ERRORS: &[&str] = &[
 /// computer.
 pub const CHANGES: &str = r#"
             get_shell.host_computer.touch(home_dir, "kept.txt")
-            include_lib("admin.so").create_network({"public_ip": "5.5.5.5", "computers": 1})
+            get_greybel_util().create_network({"public_ip": "5.5.5.5", "computers": 1})
         "#;
 
 /// Prints whether the world has the `CHANGES`.
 pub const CHECKS: &str = r#"
             print get_shell.host_computer.File(home_dir + "/kept.txt") != null
             print get_router("5.5.5.5") != null and get_router("5.5.5.5").devices_lan_ip.len >= 1
-            print include_lib("admin.so").networks.len
+            print get_greybel_util().networks.len
         "#;
 
 /// Runs `code` on the world `options` generates, written to `database` at the end; responds with what it printed.

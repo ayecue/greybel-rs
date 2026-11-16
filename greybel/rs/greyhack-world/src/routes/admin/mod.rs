@@ -1,4 +1,4 @@
-//! Global `admin.so` operations for clocks, random seeds, and snapshots.
+//! Global `get_greybel_util()` operations for clocks, random seeds, and snapshots.
 
 use greyhack_world_programs::protocol::{AdminSeed, AdminSetDate, AdminSnapshot, AdminTick};
 use greyhack_world_router::RouteTable;

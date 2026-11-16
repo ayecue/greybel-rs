@@ -7,7 +7,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -29,7 +29,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -47,7 +47,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -77,7 +77,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -95,7 +95,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -117,7 +117,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -135,7 +135,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -157,7 +157,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -179,7 +179,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -197,7 +197,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -219,7 +219,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -237,7 +237,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "returns": [
         "number",

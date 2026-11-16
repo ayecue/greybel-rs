@@ -19,7 +19,7 @@ use crate::protocol::{ObjectId, Port};
 use crate::runtime::Handle;
 
 /// Identity backing a game object.
-/// Most variants wrap server objects; ports store values, while `admin.so` objects identify sandbox state.
+/// Most variants wrap server objects; ports store values, while `get_greybel_util()` objects identify sandbox state.
 #[derive(Debug)]
 pub(crate) enum GameObject {
     Shell(Access),
@@ -44,15 +44,15 @@ pub(crate) enum GameObject {
     SmartAppliance(Handle),
     TrafficNet(Handle),
     DebugLibrary(Handle),
-    /// Sandbox-only `admin.so`, absent from Grey Hack.
+    /// Sandbox-only `get_greybel_util()`, absent from Grey Hack.
     Admin,
-    /// Network at a public address accessed through `admin.so`.
+    /// Network at a public address accessed through `get_greybel_util()`.
     AdminNetwork(String),
-    /// Computer accessed through `admin.so`.
+    /// Computer accessed through `get_greybel_util()`.
     AdminComputer(ComputerAddress),
 }
 
-/// Defines identity within each object kind: server-object identity, port values (`Puerto.Equals`), or `admin.so` target identity.
+/// Defines identity within each object kind: server-object identity, port values (`Puerto.Equals`), or `get_greybel_util()` target identity.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum ObjectKey {
     Server(u32),

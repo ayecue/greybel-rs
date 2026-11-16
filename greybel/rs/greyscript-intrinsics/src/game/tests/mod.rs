@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::ptr;
 
 #[path = "support/mod.rs"]
@@ -6,7 +6,7 @@ mod support;
 
 use greybel_interpreter::{Native, ValueType};
 use support::{
-    GREYBEL_ONLY, container, differences, is_greybel_only, reference_type, value_type_name,
+    GREYBEL_TAG, container, differences, is_greybel_only, reference_type, value_type_name,
 };
 
 use super::client::object::Kind;
@@ -86,6 +86,38 @@ fn should_give_every_game_class_method_as_the_same_global() {
 }
 
 #[test]
+fn should_not_register_admin_class_methods_as_globals() {
+    let game_natives: HashSet<*const Native> = CLASSES
+        .iter()
+        .flat_map(|(table, _)| table.iter().map(|&(_, native)| std::ptr::from_ref(native)))
+        .collect();
+    let admin_natives: HashMap<*const Native, &str> =
+        [Kind::Admin, Kind::AdminNetwork, Kind::AdminComputer]
+            .into_iter()
+            .flat_map(|kind| {
+                kind.methods()
+                    .iter()
+                    .map(move |&(name, native)| (std::ptr::from_ref(native), name))
+            })
+            .collect();
+    let globals = CLASSES
+        .iter()
+        .flat_map(|(table, _)| table.iter().map(|&(_, native)| native))
+        .chain(crate::API.globals().iter().map(|&(_, native)| native))
+        .chain(PLAYER_GLOBALS.iter().map(|&(_, native)| native));
+
+    for native in globals {
+        let pointer = std::ptr::from_ref(native);
+        if let Some(name) = admin_natives.get(&pointer) {
+            assert!(
+                game_natives.contains(&pointer),
+                "admin method {name} is registered as a global"
+            );
+        }
+    }
+}
+
+#[test]
 fn should_describe_every_class_method_in_the_api_reference() {
     let mut problems = Vec::new();
 
@@ -114,8 +146,8 @@ fn should_describe_every_class_method_in_the_api_reference() {
                 problems.push(format!("{owner}.{name}: not registered"));
             }
 
-            if definition.has_tag(GREYBEL_ONLY) != is_greybel_only(kind) {
-                problems.push(format!("{owner}.{name}: `{GREYBEL_ONLY}` tag is wrong"));
+            if definition.has_tag(GREYBEL_TAG) != is_greybel_only(kind) {
+                problems.push(format!("{owner}.{name}: `{GREYBEL_TAG}` tag is wrong"));
             }
         }
     }

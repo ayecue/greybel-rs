@@ -1,6 +1,6 @@
 sh = get_shell
 pc = sh.host_computer
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 
 // A launched script runs for real, sees its params, and shares our output.
 print admin.create_program(home_dir + "/hello.src", "print(""hello "" + params[0])")

@@ -1,5 +1,5 @@
-// The exploit loop against a target built with admin.so.
-admin = include_lib("admin.so")
+// The exploit loop against a target built with get_greybel_util().
+admin = get_greybel_util()
 router = admin.create_network({"public_ip": "8.8.8.14", "domain": "t.com", "computers": 0})
 lan = router.local_ip[:-1]
 admin.network("8.8.8.14").add_computer({"name": "web", "lan_ip": lan + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["ssh"]})

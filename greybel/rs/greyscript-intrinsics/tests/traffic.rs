@@ -103,7 +103,7 @@ fn should_kill_the_driver_of_a_located_car_and_block_the_cameras_for_24_hours() 
     let code = format!(
         r#"
 device = include_lib("/lib/libtrafficnet.so")
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 print admin.traffic_accident
 print device.locate_vehicle("{plate}", "secret")
 print admin.traffic_accident

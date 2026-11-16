@@ -1,4 +1,4 @@
-//! Sandbox/test `adminComputer` objects obtained through `admin.so` (`admin.network(public_ip).computer(lan_ip)`).
+//! Sandbox/test `adminComputer` objects obtained through `get_greybel_util()` (`admin.network(public_ip).computer(lan_ip)`).
 
 use greybel_interpreter::{Native, Value, Vm};
 

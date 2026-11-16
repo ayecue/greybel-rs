@@ -3,7 +3,7 @@
 use greybel_test_support::game::Game;
 
 use crate::support::game::{join_fixture, setup_player, smtp_network, test_client};
-use crate::support::parity::{compare_in, snapshot_outcomes};
+use crate::support::parity::{compare_in, compare_labeled, snapshot_outcomes};
 use crate::support::remote::script_string;
 
 /// A CTF event created and accepted through the game's mission RPCs: credential failures, all event reads, one
@@ -59,7 +59,7 @@ print typeof(get_ctf({creator}, "newpass2", {event}))"#
     // `CTF_Event.AddScore` path through the bridge and compare both results with the intrinsic.
     let completed = client.network_state().await.unwrap();
     let rating = format!(
-        r#"admin = include_lib("admin.so")
+        r#"admin = get_greybel_util()
 print admin.rate_ctf_event({event}, 5, 4)
 print admin.rate_ctf_event({event}, 5, 4)"#
     );
@@ -75,6 +75,25 @@ print admin.rate_ctf_event({event}, 5, 4)"#
 
     assert_eq!(actual.join("\n"), expected.output.unwrap());
     client.shutdown();
+}
+
+/// Admin is a Greybel utility, not a library the game or Greybel can include.
+#[tokio::test]
+async fn should_treat_admin_so_as_an_unknown_library() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    let snapshot = client.network_state().await.unwrap();
+    let script = "print include_lib(\"admin.so\"); print include_lib(\"/lib/admin.so\")";
+
+    compare_labeled(
+        &client,
+        &user,
+        &snapshot,
+        "admin-so-is-unknown",
+        &[script.to_owned()],
+    )
+    .await;
 }
 
 /// Password validation happens before the game reports that this player has no CTF account.

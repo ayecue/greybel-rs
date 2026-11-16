@@ -28,7 +28,7 @@ print typeof(again)
 print chain.get_coin("Bitcoin", "neo", "matrix1")
 
 // ── Coin market arguments ──
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 admin.deposit("test", 1000000)
 admin.grant_coins("neo", "Bitcoin", 100)
 

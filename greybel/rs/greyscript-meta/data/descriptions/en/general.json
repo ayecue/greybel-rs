@@ -255,13 +255,22 @@
     ]
   },
   "include_lib": {
-    "description": "Loads a library binary and returns its library object, or `null` when it cannot be loaded. An empty or non-string path returns `\"include_lib: Invalid arguments\"`. The chat service and `libchat.so` are no longer available. In Greybel's simulated world, `include_lib(\"admin.so\")` returns the `admin` object, which the game doesn't have.",
+    "description": "Loads a library binary and returns its library object, or `null` when it cannot be loaded. An empty or non-string path returns `\"include_lib: Invalid arguments\"`. The chat service and `libchat.so` are no longer available. Greybel's admin object is available through `get_greybel_util()`, not through `include_lib`.",
     "example": [
       "crypto = include_lib(\"/lib/crypto.so\")",
       "if crypto == null then",
       "   print(\"Crypto library couldn't get imported.\")",
       "else",
       "   print(\"Crypto library got imported.\")",
+      "end if"
+    ]
+  },
+  "get_greybel_util": {
+    "description": "Returns Greybel's sandbox admin object, or `null` when the host disables this utility. The object is shared by repeated calls and is available only in Greybel, not in Grey Hack.",
+    "example": [
+      "admin = get_greybel_util()",
+      "if admin != null then",
+      "   print(admin.networks)",
       "end if"
     ]
   },

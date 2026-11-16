@@ -1,25 +1,25 @@
 {
   "$meta": {
-    "description": "The `admin` object belongs to Greybel's interpreter, not to the game: `include_lib(\"admin.so\")` returns it in Greybel's simulated world, and `null` in Grey Hack. Its methods build and change the world for tests and sandboxes, such as creating networks, moving the clock and doing what the game only does from its own interface. The `classID` used for this object is `\"admin\"`."
+    "description": "The `admin` object belongs to Greybel's interpreter, not to the game: `get_greybel_util()` returns it in Greybel's simulated world, and the function is unavailable in Grey Hack. Its methods build and change the world for tests and sandboxes, such as creating networks, moving the clock and doing what the game only does from its own interface. The `classID` used for this object is `\"admin\"`."
   },
   "seed": {
     "description": "Returns the seed the simulated world was generated from. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "print(admin.seed)"
     ]
   },
   "snapshot": {
     "description": "Writes the simulated world to its database now. Returns `1` when it was written, and `0` when the world has no database or the write failed. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "print(admin.snapshot)"
     ]
   },
   "tick": {
     "description": "Advances the world clock by `seconds`, running everything that falls due on the way, such as NPC logins, coin rounds and service restarts. Returns the world clock's time in seconds afterwards. A negative or non-number `seconds` raises `tick: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.tick(3600)",
       "print(current_date)"
     ]
@@ -27,14 +27,14 @@
   "traffic_accident": {
     "description": "Causes an accident with the car `locate_vehicle` found last, as the game's client does from a traffic camera: while the driver drives to or from work and the police network's traffic override is enabled and unused, the driver dies, the override counts as used and the cameras stay unusable for a day. Returns `1` when the driver died, otherwise `0`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "print(admin.traffic_accident)"
     ]
   },
   "set_date": {
     "description": "Sets the world clock to `date`, in the format `current_date` returns (`\"01/Jan/2000 - 00:00\"`). Returns `1`, or `0`, leaving the clock as it is, for a date in another format. A non-string `date` raises `set_date: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.set_date(\"15/Mar/2001 - 09:30\")",
       "print(current_date)"
     ]
@@ -42,7 +42,7 @@
   "networks": {
     "description": "Returns the public address of every network in the world. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "for address in admin.networks",
       "   print(address)",
       "end for"
@@ -51,7 +51,7 @@
   "network": {
     "description": "Returns the `adminNetwork` for the network at `publicIp`. The address isn't checked: the methods of an `adminNetwork` whose network doesn't exist fail as they would for any missing network. A non-string `publicIp` raises `network: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "network = admin.network(\"82.110.42.17\")",
       "print(network.computer(\"192.168.0.2\").shell.host_computer.get_name)"
     ]
@@ -59,7 +59,7 @@
   "create_network": {
     "description": "Adds a network and returns its main `router`. Every key of `options` is optional: `public_ip`, `essid`, `wifi_password`, `domain`, and `computers`, the number of computers to generate (at most 253). Without `computers`, the network is generated as the game generates one. A `public_ip` that isn't a public address returns `\"Error: <address> is not a public address\"`; other failures return an error `string`. Options that aren't a map, or keys of the wrong type, raise `create_network: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "router = admin.create_network({\"public_ip\": \"82.110.42.17\", \"domain\": \"target.com\", \"computers\": 2})",
       "print(router.local_ip)"
     ]
@@ -67,7 +67,7 @@
   "sudo": {
     "description": "Makes the running program's session root on its computer, so a script can test what only root may do. Returns `1`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.sudo",
       "print(active_user)"
     ]
@@ -75,7 +75,7 @@
   "create_program": {
     "description": "Writes `source` as an executable source file at `path`. Returns `1` when it was written, otherwise `0`. Non-string arguments raise `create_program: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.create_program(\"/home/test/hello.src\", \"print(\\\"hello\\\")\")",
       "print(get_shell.build(\"/home/test/hello.src\", \"/home/test\"))"
     ]
@@ -83,7 +83,7 @@
   "exploit_shop": {
     "description": "Lists the exploits the hack shop sells for the library file `library` (such as `\"libssh.so\"`) at `version`, as the shop's window does. Returns a list of maps with `name`, `description` (with the shop's markup) and `price`; the first call for a library version makes its exploits. A `version` that is not three integers returns `\"Invalid version format\"`, and a library version without exploits returns `\"No results found\"`. Non-string arguments raise `exploit_shop: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "offers = admin.exploit_shop(\"libssh.so\", \"1.0.0\")",
       "print(offers[0].name + \" $\" + offers[0].price)"
     ]
@@ -91,7 +91,7 @@
   "buy_exploit": {
     "description": "Buys the exploit `exploit` of the library file `library` at `version` into `folder` of this computer, as the shop's window does: the player's coupons pay for it, or the bank account when the coupons cannot. With `compile` not `0` the file is a program named `exploit`; otherwise it is source text named `exploit.src`. The shop makes no folders: when `folder` is not there the coupons or the bank account still pay and the failure text is that of the missing folder. Returns `1` when it was bought, otherwise the shop's failure text. Non-string arguments or a non-number `compile` raise `buy_exploit: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "offers = admin.exploit_shop(\"libssh.so\", \"1.0.0\")",
       "print(admin.buy_exploit(\"libssh.so\", \"1.0.0\", offers[0].name, home_dir, 0))"
     ]
@@ -99,7 +99,7 @@
   "register_password": {
     "description": "Adds `password` to the world's known passwords without an account, as the game's password database stores every password it hashes, and returns its MD5 hash. A non-string `password` raises `register_password: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "hash = admin.register_password(\"secret\")",
       "print(include_lib(\"/lib/crypto.so\").decipher(hash))"
     ]
@@ -107,7 +107,7 @@
   "create_mail_account": {
     "description": "Creates the mail account `address` with `password`. Returns `1` when it was created, otherwise `0`. Non-string arguments raise `create_mail_account: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.create_mail_account(\"someone@mail.com\", \"secret\")",
       "print(mail_login(\"someone@mail.com\", \"secret\"))"
     ]
@@ -115,21 +115,21 @@
   "create_ctf_account": {
     "description": "Creates the CTF account `user` with `password`, as the game's CTF website does. Returns `1` when it was created, otherwise `0`. Non-string arguments raise `create_ctf_account: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.create_ctf_account(\"ctfuser\", \"secret\")"
     ]
   },
   "accept_mission": {
     "description": "Accepts a procedural mission of the hack shop or police network at `shop_ip`, as the shop's website does: a group of public addresses is drawn for it, its first network is generated and the contract is mailed to the player's mail account from the shop's administrator. Returns the public address of the first network of the mission, or Grey Hack's reason when it is not accepted (`You must register an email account in order to accept a mission.` without a mail account; the mission-unavailable text for a network that is no mission shop). Returns `null` when the shop has no network or when called on anything but the `admin` object. Non-string arguments raise `accept_mission: Invalid arguments`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "print(admin.accept_mission(\"1.2.3.4\"))"
     ]
   },
   "create_debug_account": {
     "description": "Creates the debug account `user` with `password`, which `debug_tools` accepts. Returns `1` when it was created, otherwise `0`. Non-string arguments raise `create_debug_account: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.create_debug_account(\"dbg\", \"secret\")",
       "lib = include_lib(\"/lib/metaxploit.so\").load(\"/lib/init.so\")",
       "print(lib.debug_tools(\"dbg\", \"secret\"))"
@@ -138,21 +138,21 @@
   "deposit": {
     "description": "Adds `amount` to the bank account `number`. Returns `1` when the account exists, otherwise `0`. Arguments of the wrong type raise `deposit: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.deposit(user_bank_number, 5000)"
     ]
   },
   "grant_coins": {
     "description": "Sets the balance of the wallet `walletUser` in the coin `coin` to `amount`. Returns `1` when the wallet and coin exist, otherwise `0`. Arguments of the wrong type raise `grant_coins: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.grant_coins(\"neo\", \"Bitcoin\", 10)"
     ]
   },
   "create_ctf_event": {
     "description": "Creates a CTF event, as the game's CTF website does. Every key of `options` is a string: `eventName`, `user` and `password` (the creator's CTF account), `description`, `publicAddress`, `creatorName` and `mailContent`. Returns `1` when it was created, otherwise `0`. Options that aren't a map, or keys of the wrong type, raise `create_ctf_event: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "admin.create_ctf_account(\"ctfuser\", \"secret\")",
       "admin.create_ctf_event({\"eventName\": \"mission\", \"user\": \"ctfuser\", \"password\": \"secret\", \"description\": \"Find the flag\", \"publicAddress\": \"82.110.42.17\", \"creatorName\": \"creator\", \"mailContent\": \"Good luck\"})",
       "print(get_ctf(\"ctfuser\", \"secret\", \"mission\").get_description)"
@@ -161,28 +161,28 @@
   "rate_ctf_event": {
     "description": "Rates the CTF event `name` as the player, as the game's CTF website does once an event is completed, with `quality` and `difficulty`. Returns the rewards as a list: the participant's and the creator's. Otherwise it returns why the event can't be rated as a `string`. Non-number ratings raise `rate_ctf_event: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "print(admin.rate_ctf_event(\"mission\", 5, 3))"
     ]
   },
   "create_guild": {
     "description": "Creates the guild `name`, which holds company shares under the bank account `bank_account`, has `total_exp` experience, `investment_perks` investment licences and `admin_restore_perks` Admin Restore perks (none when omitted), and has the player as a member when `join` is not `0`. Guilds are made in the game's interface only. Returns `1`, or why the guild can't be created as a `string`. Arguments of the wrong type raise `create_guild: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "print(admin.create_guild(\"Owls\", user_bank_number, 1, 0, 0))"
     ]
   },
   "release_library_version": {
     "description": "Releases the next version of the library file `library` (such as `\"libssh.so\"`) now, as the game does for the first versions of a world: every visible weakness of its newest version counts as used up, the check for library versions patches them, and the exploits made from them target their version only. The new version appears on the official apt server and in `check_upgrade`, the hack shop's downloads follow, and metaxploit gets a version too (two for its own release). Returns the new version as a `string`, or `\"Error: Unknown lib <library>\"` when the world has no such library. A non-string `library` raises `release_library_version: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "print(admin.release_library_version(\"libssh.so\"))"
     ]
   },
   "report_exploit": {
     "description": "Reports the weakness `unsec_value` of the memory zone `zone` of the newest version of the library file `library` as used up, as the exploit report window does, so the next check for library versions (every fifteen minutes of real time) releases a version that patches it. Libraries `metaxploit.so`, `crypto.so` and `librshell.so` cannot be reported. A second report before that check counts the weakness all the same and returns `\"Your previous report is still processing. Please wait a few minutes before sending a new report.\"`. Returns `1`, or the failure as a `string`. Non-string arguments raise `report_exploit: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "print(admin.report_exploit(\"libssh.so\", \"0x1A2B3C\", \"buffer\"))"
     ]
   }

@@ -8,7 +8,7 @@ availableTags:
   - general
   - ssh incompatible
   - detached
-  - greybel only
+  - greybel
 primitives:
   - any
   - general

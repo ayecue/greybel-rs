@@ -18,7 +18,7 @@ pub struct Game {
     /// Process identity used by the script.
     pub program: ProgramId,
     pub session: Session,
-    /// Controls sandbox-only `include_lib("admin.so")` access; enabled by default.
+    /// Controls sandbox-only `get_greybel_util()` access; enabled by default.
     pub admin: bool,
     /// Initialized custom object shared by the launch tree.
     pub(crate) custom_object: Rc<RefCell<Option<Value>>>,

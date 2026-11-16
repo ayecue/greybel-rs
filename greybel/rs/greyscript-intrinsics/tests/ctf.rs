@@ -8,7 +8,7 @@ use crate::support::scripts::run_code_in;
 #[test]
 fn should_read_ctf_event_data_and_complete_a_player_once() {
     let code = r#"
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 admin.create_ctf_account("ctfuser", "old")
 admin.create_ctf_event({"eventName": "mission", "user": "ctfuser", "password": "old", "description": "desc", "publicAddress": "1.2.3.4", "creatorName": "creator", "mailContent": "mail"})
 ctf = get_ctf("ctfuser", "old", "mission")

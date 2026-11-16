@@ -1,4 +1,4 @@
-//! Exploit shop and coin grants (`admin.so`).
+//! Exploit shop and coin grants (`get_greybel_util()`).
 
 use greyhack_behaviour::{LibraryKind, is_valid_version};
 use greyhack_world_core::ComputerId;

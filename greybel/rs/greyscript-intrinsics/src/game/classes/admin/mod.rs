@@ -1,4 +1,4 @@
-//! Sandbox/test-only `admin.so` intrinsics for world construction and inspection; absent from Grey Hack.
+//! Sandbox/test-only `get_greybel_util()` intrinsics for world construction and inspection; absent from Grey Hack.
 //! Networks and computers use `adminNetwork` (`admin.network`) and `adminComputer` (`network.computer`) objects.
 
 use greybel_interpreter::{Native, Value, Vm};
@@ -30,9 +30,6 @@ mod snapshot;
 mod sudo;
 mod tick;
 mod traffic_accident;
-
-/// Library filename for which `include_lib` returns the admin object.
-pub(crate) const LIBRARY: &str = "admin.so";
 
 pub(crate) const METHODS: &[(&str, &Native)] = &[
     ("seed", &seed::seed::NATIVE),

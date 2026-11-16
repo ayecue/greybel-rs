@@ -49,7 +49,7 @@ fn should_drop_what_is_not_sent_when_the_screen_is_cleared() {
 fn should_apply_route_prints_before_the_intrinsics_continuation() {
     let code = r#"
         crypto = include_lib("/lib/crypto.so")
-        admin = include_lib("admin.so")
+        admin = get_greybel_util()
         r = admin.create_network({"public_ip": "9.9.9.9", "essid": "target_net", "computers": 0})
         crypto.airmon("start", "wlan0")
         crypto.aireplay(r.bssid_name, r.essid_name)

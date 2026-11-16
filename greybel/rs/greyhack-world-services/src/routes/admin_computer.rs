@@ -1,4 +1,4 @@
-//! Service operations of the single-computer `admin.so` object.
+//! Service operations of the single-computer `get_greybel_util()` object.
 
 use greyhack_behaviour::ServiceId;
 use greyhack_world_programs::protocol::{

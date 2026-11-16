@@ -1,9 +1,9 @@
-// admin.so builds networks the game would generate on its own.
-admin = include_lib("admin.so")
+// get_greybel_util() builds networks the game would generate on its own.
+admin = get_greybel_util()
 print typeof(admin)
 print admin.seed
 print admin.networks
-print include_lib("/lib/admin.so") == admin
+print include_lib("/lib/admin.so") == null
 print include_lib("/lib/crypto.so")
 
 router = admin.create_network({"public_ip": "8.8.8.8", "essid": "TestNet", "wifi_password": "hunter2", "computers": 0})

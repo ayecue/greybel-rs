@@ -90,7 +90,7 @@ fn should_reach_world_and_service_channels_through_admin_library() {
     }))
     .unwrap();
     let code = format!(
-        r#"admin = include_lib("admin.so")
+        r#"admin = get_greybel_util()
 computer = admin.network({}).computer({})
 print computer.add_net_card(1, 1)
 print computer.set_library_version("/lib/libssh.so", "9.8.7")
@@ -137,7 +137,7 @@ fn should_install_smartphone_adb_through_admin_library() {
     .unwrap();
 
     let code = format!(
-        "print include_lib(\"admin.so\").network({}).computer({}).install_smartphone_adb",
+        "print get_greybel_util().network({}).computer({}).install_smartphone_adb",
         literal(&public_ip),
         literal(&computer.local_ip)
     );

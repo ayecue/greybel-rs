@@ -10,7 +10,7 @@ use crate::support::scripts::run_on_host;
 fn should_credit_ctf_participant_and_creator_rewards() {
     let (world, owner) = scoring_world();
     let code = r#"
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 rewards = admin.rate_ctf_event("mission", 5, 4)
 print rewards[0]
 print rewards[1]

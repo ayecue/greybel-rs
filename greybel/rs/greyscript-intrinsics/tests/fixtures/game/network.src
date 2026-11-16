@@ -1,5 +1,5 @@
-// Connecting to other computers, from a network made with admin.so.
-admin = include_lib("admin.so")
+// Connecting to other computers, from a network made with get_greybel_util().
+admin = get_greybel_util()
 router = admin.create_network({"public_ip": "8.8.8.8", "domain": "target.com", "computers": 0})
 lan = router.local_ip[:-1]
 web = admin.network("8.8.8.8").add_computer({"name": "web", "lan_ip": lan + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["ssh", "ftp"]})

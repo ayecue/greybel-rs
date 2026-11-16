@@ -1,6 +1,6 @@
 // A computer reached over FTP exposes only File, create_folder and get_name
 // (`GreyInterpreter.FtpComputerType`), not the full computer surface.
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 router = admin.create_network({"public_ip": "8.8.8.8", "domain": "target.com", "computers": 0})
 lan = router.local_ip[:-1]
 web = admin.network("8.8.8.8").add_computer({"name": "web", "lan_ip": lan + "10", "root_password": "toor", "services": ["ftp"]})

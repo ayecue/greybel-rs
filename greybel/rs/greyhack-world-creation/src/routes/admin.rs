@@ -1,4 +1,4 @@
-//! Network creation through the global `admin.so` program.
+//! Network creation through the global `get_greybel_util()` program.
 
 use greyhack_world_core::RouterId;
 use greyhack_world_programs::protocol::{

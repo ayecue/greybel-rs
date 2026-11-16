@@ -89,8 +89,8 @@ fn should_not_see_the_saved_changes_in_a_fresh_world() {
             &database,
             r#"
                 print get_shell.host_computer.File(home_dir + "/kept.txt") != null
-                print include_lib("admin.so").networks.indexOf("5.5.5.5") == null
-                print include_lib("admin.so").networks.len
+                print get_greybel_util().networks.indexOf("5.5.5.5") == null
+                print get_greybel_util().networks.len
             "#,
         );
 
@@ -105,11 +105,7 @@ fn should_print_success_of_an_admin_snapshot() {
     block_on(async {
         let options = world_options(4, 2);
         let database = Database::in_memory().await.expect("database");
-        let output = run_generated(
-            &options,
-            &database,
-            "print include_lib(\"admin.so\").snapshot",
-        );
+        let output = run_generated(&options, &database, "print get_greybel_util().snapshot");
 
         assert_eq!(output, "1");
     });
@@ -130,7 +126,7 @@ fn should_load_what_an_admin_snapshot_wrote() {
         .expect("the world is written to the database");
         let (_, options) = snapshot_options();
         let user = PlayerOptions::default().user;
-        let code = "print include_lib(\"admin.so\").snapshot";
+        let code = "print get_greybel_util().snapshot";
 
         greyhack::run_in(&server, code, &user, true, options).await;
 
@@ -148,9 +144,22 @@ fn should_load_what_an_admin_snapshot_wrote() {
 }
 
 #[test]
-fn should_turn_admin_so_off() {
+fn should_turn_greybel_util_off() {
     let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
-    let (output, _, _) = run_on_host("print include_lib(\"admin.so\")", world, false);
+    let (output, _, _) = run_on_host("print get_greybel_util()", world, false);
 
     assert_eq!(output, "null");
+}
+
+#[test]
+fn should_share_the_utility_and_leave_admin_so_unavailable() {
+    let world = block_on(World::new(&PlayerOptions::default())).expect("a world");
+    let (output, error, _) = run_on_host(
+        "print [get_greybel_util() == get_greybel_util(), include_lib(\"admin.so\")]",
+        world,
+        true,
+    );
+
+    assert_eq!(error, None);
+    assert_eq!(output, "[1, null]");
 }

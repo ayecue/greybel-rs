@@ -7,7 +7,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -25,7 +25,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -44,7 +44,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "returns": [
         "number",
@@ -56,7 +56,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -74,7 +74,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -98,7 +98,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -120,7 +120,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "returnVariations": [
         "You already have an administrator hired for this network."
@@ -136,7 +136,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "returnVariations": [
         "You don't have any administrator hired on this network."
@@ -152,7 +152,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -187,7 +187,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -205,7 +205,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -227,7 +227,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -249,7 +249,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {
@@ -272,7 +272,7 @@
       "type": "function",
       "tags": [
         "method",
-        "greybel only"
+        "greybel"
       ],
       "arguments": [
         {

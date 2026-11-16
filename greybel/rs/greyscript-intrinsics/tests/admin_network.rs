@@ -34,7 +34,7 @@ fn should_change_and_read_an_npc_phone_alarm() {
 
     let user = npc.expect("a generated NPC");
     let code = format!(
-        r#"admin = include_lib("admin.so")
+        r#"admin = get_greybel_util()
 network = admin.network({})
 print network.set_phone_alarm({}, 24, 0, 0)
 alarm = network.set_phone_alarm({}, 7, 30, 0)
@@ -106,7 +106,7 @@ fn should_report_a_library_update_for_the_network() {
     }
 
     let code = format!(
-        r#"admin = include_lib("admin.so")
+        r#"admin = get_greybel_util()
 network = admin.network({})
 print network.report_library_update("libssh.so")
 print network.report_library_update("libnothing.so")"#,
@@ -167,7 +167,7 @@ fn should_skip_a_library_update_when_the_guild_turned_admin_restore_off() {
     );
 
     let code = format!(
-        r#"admin = include_lib("admin.so")
+        r#"admin = get_greybel_util()
 network = admin.network({})
 print admin.create_guild("Owls", "owls-bank", 0, 17600, 0, 1)
 print network.set_admin_restore("Owls", 0)

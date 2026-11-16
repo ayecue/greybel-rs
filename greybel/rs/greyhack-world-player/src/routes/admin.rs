@@ -1,4 +1,4 @@
-//! Player operations of the global `admin.so` program: missions and CTF events.
+//! Player operations of the global `get_greybel_util()` program: missions and CTF events.
 
 use greyhack_behaviour::hash_password;
 use greyhack_world_core::routes::conversions::IntoProtocol as _;

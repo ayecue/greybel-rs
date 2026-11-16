@@ -1,6 +1,6 @@
 // Cracking a neighbouring network's Wi-Fi: monitor mode, capture, crack.
 crypto = include_lib("/lib/crypto.so")
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 
 r = admin.create_network({"public_ip": "9.9.9.9", "essid": "target_net", "domain": "t.com", "computers": 0})
 bssid = r.bssid_name

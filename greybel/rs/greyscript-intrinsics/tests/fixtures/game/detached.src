@@ -1,6 +1,6 @@
 // Every game class's methods are also globals taking the object first (`TAC.Context.GetVar` finds a name it has no
 // variable for among the intrinsics), so each call below is written both ways and both results are printed.
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 router = admin.create_network({"public_ip": "8.8.8.8", "domain": "target.com", "computers": 0})
 lan = router.local_ip[:-1]
 admin.network("8.8.8.8").add_computer({"name": "web", "lan_ip": lan + "10", "root_password": "toor", "users": {"bob": "pass"}, "services": ["ssh", "ftp"]})

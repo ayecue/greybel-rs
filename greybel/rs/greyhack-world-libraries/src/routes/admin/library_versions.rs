@@ -1,4 +1,4 @@
-//! Releasing library versions and reporting weaknesses (`admin.so`).
+//! Releasing library versions and reporting weaknesses (`get_greybel_util()`).
 
 use greyhack_behaviour::LibraryKind;
 

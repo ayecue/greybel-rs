@@ -11,7 +11,7 @@ fn should_create_guilds_and_hand_out_shares_from_a_script() {
     let TrafficWorld { mut world, .. } = world_with_traffic();
     let address = add_company(&mut world);
     let code = format!(
-        r#"admin = include_lib("admin.so")
+        r#"admin = get_greybel_util()
 print admin.create_guild("Owls", "owls-bank", 1, 6875, 1)
 print admin.create_guild("Owls", "other", 0, 0, 0)
 print admin.create_guild("Hawks", "owls-bank", 0, 0, 0)

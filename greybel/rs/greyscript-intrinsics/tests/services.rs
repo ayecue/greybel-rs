@@ -11,7 +11,7 @@ use crate::support::{read_computer, world_options};
 #[test]
 fn should_install_a_service_through_its_native_object() {
     let code = r#"
-include_lib("admin.so").sudo
+get_greybel_util().sudo
 service = include_lib("/lib/libssh.so")
 print service.install_service
 print get_shell.host_computer.File("/server/conf/sshd.conf") != null
@@ -62,7 +62,7 @@ fn should_interrupt_the_objects_of_a_computer_that_rebooted() {
     let device = block_on(world.modules.core.networks.topology.devices(target.router)).unwrap()[0];
     let computer = read_computer(&world, device);
     let code = format!(
-        "admin = include_lib(\"admin.so\")\nadmin.sudo\ncomputer = admin.network({}).computer({}).shell.host_computer\nprint computer.reboot\nprint computer.get_name",
+        "admin = get_greybel_util()\nadmin.sudo\ncomputer = admin.network({}).computer({}).shell.host_computer\nprint computer.reboot\nprint computer.get_name",
         literal(&target.address),
         literal(&computer.local_ip)
     );

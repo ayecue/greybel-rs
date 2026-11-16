@@ -1,4 +1,4 @@
-//! Smart-appliance and CCTV operations of the single-computer `admin.so` object.
+//! Smart-appliance and CCTV operations of the single-computer `get_greybel_util()` object.
 
 use greyhack_behaviour::SmartApplianceSettings;
 use greyhack_world_programs::protocol::{

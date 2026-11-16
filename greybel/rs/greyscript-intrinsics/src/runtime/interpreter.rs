@@ -160,8 +160,8 @@ impl<P: AsyncResourceProvider> GreyHackInterpreter<P> {
         })
     }
 
-    /// Controls `include_lib("admin.so")` availability.
-    /// Enabled by default; disable for a normal game without the sandbox library.
+    /// Controls `get_greybel_util()` availability.
+    /// Enabled by default; disable for a normal game without the sandbox utility.
     #[must_use]
     pub fn with_admin(mut self, admin: bool) -> Self {
         self.interpreter.add_api(move |vm: &mut Vm| {

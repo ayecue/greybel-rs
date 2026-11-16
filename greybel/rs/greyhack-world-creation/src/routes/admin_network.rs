@@ -1,4 +1,4 @@
-//! Computer creation through a single-network `admin.so` object.
+//! Computer creation through a single-network `get_greybel_util()` object.
 
 use greyhack_behaviour::ROOT_USER;
 use greyhack_world_core::{Access, ComputerId};

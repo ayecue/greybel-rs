@@ -3,8 +3,8 @@ use meta_utils::{ArgumentDefault, Container, Definition};
 
 use crate::game::client::object::Kind;
 
-/// The tag of definitions only Greybel's interpreter has, such as `admin.so`'s classes.
-pub(super) const GREYBEL_ONLY: &str = "greybel only";
+/// The tag of definitions only Greybel's interpreter has, such as `get_greybel_util()`'s classes.
+pub(super) const GREYBEL_TAG: &str = "greybel";
 
 /// The meta type each value type's intrinsics are listed under.
 pub(super) fn value_type_name(kind: ValueType) -> &'static str {

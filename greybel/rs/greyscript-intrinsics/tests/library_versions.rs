@@ -58,7 +58,7 @@ print apt.check_upgrade(home_dir + "/blockchain.so")"#;
 
 #[test]
 fn should_offer_a_released_version_to_check_upgrade_and_install() {
-    let code = r#"admin = include_lib("admin.so")
+    let code = r#"admin = get_greybel_util()
 apt = include_lib("/lib/aptclient.so")
 mx = include_lib("/lib/metaxploit.so")
 print apt.update
@@ -77,7 +77,7 @@ print apt.check_upgrade(home_dir + "/libssh.so")"#;
 
 #[test]
 fn should_patch_the_exploits_of_the_released_version_in_the_shop() {
-    let code = r#"admin = include_lib("admin.so")
+    let code = r#"admin = get_greybel_util()
 for offer in admin.exploit_shop("libssh.so", "9.8.7")
   print offer.description.indexOf("libssh.so >= v9.8.7") != null
 end for
@@ -98,7 +98,7 @@ end for"#;
 
 #[test]
 fn should_refuse_to_release_a_library_the_world_does_not_have() {
-    let code = r#"admin = include_lib("admin.so")
+    let code = r#"admin = get_greybel_util()
 print admin.release_library_version("libnothing.so")
 print admin.release_library_version("libssh")
 print admin.release_library_version(1)"#;
@@ -114,7 +114,7 @@ print admin.release_library_version(1)"#;
 
 #[test]
 fn should_report_a_weakness_the_way_the_report_window_does() {
-    let code = r#"admin = include_lib("admin.so")
+    let code = r#"admin = get_greybel_util()
 print admin.report_exploit("libssh.so", "0xAB", "buffer")
 print admin.report_exploit("libssh.so", "0xAB", "loop")
 print admin.report_exploit("metaxploit.so", "0xAB", "buffer")
@@ -139,7 +139,7 @@ print admin.report_exploit("libssh.so", "0xAB", "nothing")"#;
 #[test]
 fn should_release_the_version_a_reported_weakness_is_patched_in_when_the_world_clock_passes_the_check()
  {
-    let code = r#"admin = include_lib("admin.so")
+    let code = r#"admin = get_greybel_util()
 print admin.report_exploit("libssh.so", "0xAB", "buffer")
 admin.tick(12599)
 print admin.exploit_shop("libssh.so", "9.8.8")

@@ -1,4 +1,4 @@
-//! Shell-related global `admin.so` operations.
+//! Shell-related global `get_greybel_util()` operations.
 
 use greyhack_behaviour::ROOT_USER;
 use greyhack_world_core::{Access, AccessHandle, AccessKind, ComputerId, ObjectTableExt as _};

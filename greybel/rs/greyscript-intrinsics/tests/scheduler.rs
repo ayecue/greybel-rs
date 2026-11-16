@@ -246,7 +246,7 @@ fn should_advance_time_through_the_admin_api() {
     .unwrap();
 
     let code = r#"
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 admin.set_date("31/Oct/2026 - 23:59")
 admin.tick(60)
 print current_date

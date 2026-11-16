@@ -1,4 +1,4 @@
-//! NPC operations of the global `admin.so` program.
+//! NPC operations of the global `get_greybel_util()` program.
 
 use greyhack_world_programs::protocol::AdminCreateMailAccount;
 use greyhack_world_router::RouteTable;

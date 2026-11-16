@@ -5,7 +5,7 @@
   "shell": {
     "description": "Returns a `shell` on this computer as `user`, without a password, or `null` when the computer or the user doesn't exist. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "print(computer.shell(\"root\").host_computer.get_name)"
     ]
@@ -13,7 +13,7 @@
   "login": {
     "description": "Opens a session for `user` on this computer, so the active-user checks of exploits and `netSession` see them. Returns `1` when it was opened, otherwise `0`. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "computer.login(\"root\")"
     ]
@@ -21,7 +21,7 @@
   "add_npc": {
     "description": "Adds an NPC who logs in to this computer as `user`, first after `delay` seconds, named `name`. Returns the NPC's id, or `null` when it couldn't be added. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "print(computer.add_npc(\"bob\", 60, \"Bob\"))"
     ]
@@ -29,7 +29,7 @@
   "npc_login": {
     "description": "Makes the NPC `user` of this computer log in to their SSH or FTP service, as the social-engineering mail does in the game: their credentials pass the sniffers on the way, and they stay logged in for an hour. Returns `1` when they logged in, otherwise `0`. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "print(computer.npc_login(\"bob\"))"
     ]
@@ -37,7 +37,7 @@
   "add_net_card": {
     "description": "Adds a network card to this computer: Wi-Fi when `wifi` is truthy, otherwise Ethernet, with monitor mode when `monitorSupport` is truthy. Returns `1` when it was added, otherwise `0`. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "computer.add_net_card(1, 1)"
     ]
@@ -45,7 +45,7 @@
   "add_smart_appliance": {
     "description": "Turns this computer into a smart appliance. Every key of `options` is optional: `model` (default `\"FR/unknown\"`), `power`, `temperature` and `overrideEnabled` (default `1`). Returns `1` when it was changed, otherwise `0`. Options that aren't a map, or keys of the wrong type, raise `add_smart_appliance: Invalid arguments`. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "computer.add_smart_appliance({\"model\": \"ACME/FR1\", \"power\": 100, \"temperature\": 4})"
     ]
@@ -53,7 +53,7 @@
   "set_library_version": {
     "description": "Sets the version of the library at `path` on this computer, such as `\"1.0.2\"`. Returns `1` when it was changed, otherwise `0`. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "computer.set_library_version(\"/lib/libssh.so\", \"1.0.2\")"
     ]
@@ -61,7 +61,7 @@
   "set_port_library_version": {
     "description": "Sets the version of the library of the service on this computer's `port`. Returns `1` when it was changed, otherwise `0`. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "computer.set_port_library_version(22, \"1.0.2\")"
     ]
@@ -69,7 +69,7 @@
   "service_records": {
     "description": "Returns the records of this computer's records `service`, `\"criminals\"`, `\"employees\"` or `\"students\"`, as JSON, as the game's records viewer shows them. Returns `null` when the computer doesn't run that service. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "print(computer.service_records(\"criminals\"))"
     ]
@@ -77,7 +77,7 @@
   "update_service_record": {
     "description": "Replaces the record of the same person in this computer's records `service` (`\"criminals\"`, `\"employees\"` or `\"students\"`) with the JSON `record`, as the game's records viewer does. Returns an empty `string` on success, otherwise the viewer's error. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "records = computer.service_records(\"employees\")"
     ]
@@ -85,7 +85,7 @@
   "access_cctv": {
     "description": "Opens this camera's feed with `password`, as the game's camera website does. Returns `null` when the camera asks for a password, the feed as JSON when the password is right (the camera's LAN address and the people of its network), or why it can't be opened as a `string`. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "print(computer.access_cctv(\"secret\"))"
     ]
@@ -93,7 +93,7 @@
   "install_smartphone_adb": {
     "description": "Installs the ADB service on this smartphone. Returns `1` when it was installed, otherwise `0`. Returns `null` when called on anything but an `adminComputer`.",
     "example": [
-      "admin = include_lib(\"admin.so\")",
+      "admin = get_greybel_util()",
       "computer = admin.network(\"82.110.42.17\").computer(\"192.168.0.2\")",
       "computer.install_smartphone_adb"
     ]

@@ -1,4 +1,4 @@
-//! Traffic-accident operation of the global `admin.so` object.
+//! Traffic-accident operation of the global `get_greybel_util()` object.
 
 use greyhack_world_programs::protocol::AdminTrafficAccident;
 use greyhack_world_router::RouteTable;

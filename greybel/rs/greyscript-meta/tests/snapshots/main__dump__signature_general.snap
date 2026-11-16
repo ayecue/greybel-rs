@@ -32,6 +32,7 @@ definitionOrder:
   - remove
   - user_input
   - include_lib
+  - get_greybel_util
   - import_code
   - exit
   - user_mail_address
@@ -4387,6 +4388,37 @@ definitions:
     typeString: function
     variations:
       ok: []
+  get_greybel_util:
+    argStrings: []
+    id: get_greybel_util
+    json:
+      arguments: []
+      description: "Returns Greybel's sandbox admin object, or `null` when the host disables this utility. The object is shared by repeated calls and is available only in Greybel, not in Grey Hack."
+      example:
+        - admin = get_greybel_util()
+        - if admin != null then
+        - "   print(admin.networks)"
+        - end if
+      isProtected: false
+      returns:
+        - admin
+        - "null"
+      type: function
+    origin: general
+    otherLanguageDescription: ~
+    returnStrings:
+      - admin
+      - "null"
+    returnVariations:
+      ok:
+        - get_greybel_util() is disabled by the host
+    tags:
+      - function
+      - general
+      - greybel
+    typeString: function
+    variations:
+      ok: []
   get_info:
     argStrings:
       - - subWallet
@@ -5458,7 +5490,7 @@ definitions:
           opt: false
           types:
             - string
-      description: "Loads a library binary and returns its library object, or `null` when it cannot be loaded. An empty or non-string path returns `\"include_lib: Invalid arguments\"`. The chat service and `libchat.so` are no longer available. In Greybel's simulated world, `include_lib(\"admin.so\")` returns the `admin` object, which the game doesn't have."
+      description: "Loads a library binary and returns its library object, or `null` when it cannot be loaded. An empty or non-string path returns `\"include_lib: Invalid arguments\"`. The chat service and `libchat.so` are no longer available. Greybel's admin object is available through `get_greybel_util()`, not through `include_lib`."
       example:
         - "crypto = include_lib(\"/lib/crypto.so\")"
         - if crypto == null then
@@ -5475,7 +5507,6 @@ definitions:
         - aptClient
         - smartAppliance
         - trafficNet
-        - admin
         - "null"
         - string
       type: function
@@ -5489,7 +5520,6 @@ definitions:
       - aptClient
       - smartAppliance
       - trafficNet
-      - admin
       - "null"
       - string
     returnVariations:
@@ -12045,6 +12075,7 @@ descriptionOrder:
   - remove
   - user_input
   - include_lib
+  - get_greybel_util
   - import_code
   - exit
   - user_mail_address
@@ -13081,6 +13112,13 @@ descriptions:
       - "    end if"
       - "    print quantity + \" coins with a unit price of \" + unitPrice"
       - end for
+  get_greybel_util:
+    description: "Returns Greybel's sandbox admin object, or `null` when the host disables this utility. The object is shared by repeated calls and is available only in Greybel, not in Grey Hack."
+    example:
+      - admin = get_greybel_util()
+      - if admin != null then
+      - "   print(admin.networks)"
+      - end if
   get_info:
     description: "Returns a `string` with the information stored by the coin creator. If an object is passed that is not a `subWallet`, this method will return `null`."
     example:
@@ -13300,7 +13338,7 @@ descriptions:
       - //Content of my_module.src
       - "print(\"hello!\")"
   include_lib:
-    description: "Loads a library binary and returns its library object, or `null` when it cannot be loaded. An empty or non-string path returns `\"include_lib: Invalid arguments\"`. The chat service and `libchat.so` are no longer available. In Greybel's simulated world, `include_lib(\"admin.so\")` returns the `admin` object, which the game doesn't have."
+    description: "Loads a library binary and returns its library object, or `null` when it cannot be loaded. An empty or non-string path returns `\"include_lib: Invalid arguments\"`. The chat service and `libchat.so` are no longer available. Greybel's admin object is available through `get_greybel_util()`, not through `include_lib`."
     example:
       - "crypto = include_lib(\"/lib/crypto.so\")"
       - if crypto == null then

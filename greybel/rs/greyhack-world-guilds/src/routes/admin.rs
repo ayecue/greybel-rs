@@ -1,4 +1,4 @@
-//! Guild operations of the global `admin.so` program.
+//! Guild operations of the global `get_greybel_util()` program.
 
 use greyhack_world_programs::protocol::{
     AdminCreateGuild, AdminHireCrownShield, AdminSetCompanyShares, Failure, Outcome,

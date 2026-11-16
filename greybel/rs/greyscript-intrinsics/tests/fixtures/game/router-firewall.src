@@ -1,5 +1,5 @@
 // Break a router's firewall through net_use with no service port.
-admin = include_lib("admin.so")
+admin = get_greybel_util()
 router = admin.create_network({"public_ip": "9.9.9.9", "domain": "fw.com", "computers": 0})
 print router.firewall_rules.len > 0
 

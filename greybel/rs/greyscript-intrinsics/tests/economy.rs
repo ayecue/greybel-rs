@@ -196,7 +196,7 @@ fn should_reset_a_wallet_password_and_log_in_with_the_new_one() {
     let code = r#"
 chain = include_lib("/lib/blockchain.so")
 wallet = chain.create_wallet("test", "test")
-include_lib("admin.so").tick(86401)
+get_greybel_util().tick(86401)
 print wallet.reset_password("newpass")
 print chain.login_wallet("test", "newpass") != null
 "#;

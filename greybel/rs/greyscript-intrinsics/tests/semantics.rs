@@ -50,7 +50,7 @@ print include_lib(home_dir + "/crypto.so") == null
 
 #[test]
 fn should_resolve_a_registered_domain_with_or_without_www() {
-    let code = r#"include_lib("admin.so").create_network({"public_ip": "5.5.5.5", "domain": "acme.com", "computers": 1})
+    let code = r#"get_greybel_util().create_network({"public_ip": "5.5.5.5", "domain": "acme.com", "computers": 1})
 print nslookup("acme.com")
 print nslookup("www.acme.com")
 print whois("5.5.5.5").split(char(10))[0]

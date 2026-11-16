@@ -1,4 +1,4 @@
-//! Library versions, exploit reports and purchases, and debug accounts (`admin.so`).
+//! Library versions, exploit reports and purchases, and debug accounts (`get_greybel_util()`).
 
 use greyhack_world_core::ObjectTableExt as _;
 use greyhack_world_router::RouteTable;
