@@ -44,7 +44,7 @@ fn should_include_the_negation_in_the_key() {
         value: LiteralValue::Number(1.5),
         negated: true,
     };
-    let key = key(&negated, "1.5");
+    let key = LiteralTable::key(&negated, "1.5");
 
     assert_eq!(key, "-1.5");
 }
@@ -52,7 +52,7 @@ fn should_include_the_negation_in_the_key() {
 #[test]
 fn should_borrow_the_key_of_a_literal_that_is_not_negated() {
     let literal = string();
-    let key = key(&literal, "\"abcd\"");
+    let key = LiteralTable::key(&literal, "\"abcd\"");
 
     assert!(matches!(key, Cow::Borrowed(_)));
 }

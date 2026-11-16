@@ -7,7 +7,6 @@ use crate::annotation::{
 };
 use crate::types::TypeId;
 
-/// `type Name<T> = ...`: resolved where the name is used, with the type parameters bound to the arguments.
 #[derive(Debug, Clone)]
 pub(super) struct TypeAlias {
     parameters: Vec<String>,
@@ -15,8 +14,6 @@ pub(super) struct TypeAlias {
 }
 
 impl Inference<'_> {
-    /// The `type` statements of a document: the declarations with members as virtual type docs (like `@vtype`)
-    /// with the statement's span, and the aliases registered by name.
     pub(super) fn type_statement_docs(&mut self, document: usize) -> Vec<(Span, TypeDoc)> {
         let ast = self.documents[document].ast;
         let mut docs = Vec::new();
@@ -125,8 +122,6 @@ impl Inference<'_> {
         doc
     }
 
-    /// The type of the alias `name` with `arguments` for its type parameters, while it isn't being resolved already
-    /// (a cyclic alias is `unknown`).
     pub(super) fn alias_type(&mut self, name: &str, arguments: &[TypeId]) -> Option<TypeId> {
         let alias = self.type_aliases.get(name)?.clone();
 

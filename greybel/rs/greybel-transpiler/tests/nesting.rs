@@ -1,7 +1,7 @@
 //! Tests that parser-depth-limit code transpiles in every mode without stack overflow on native and wasm targets.
 
 use greybel_test_support::node_depth::{assert_no_failures, programs_at_max_depth};
-use greybel_transpiler::{BeautifyOptions, BuildMode, TranspileOptions, UglifyOptions, transpile};
+use greybel_transpiler::{BeautifyOptions, BuildMode, TranspileOptions, Transpiler, UglifyOptions};
 
 #[test]
 fn should_transpile_code_at_the_depth_limit() {
@@ -21,7 +21,7 @@ fn should_transpile_code_at_the_depth_limit() {
                     ..TranspileOptions::default()
                 };
 
-                (shape, transpile(source, &options))
+                (shape, Transpiler::new(&options).transpile(source))
             })
         })
         .collect();

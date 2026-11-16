@@ -21,7 +21,6 @@ pub struct ParseStream {
     pub(crate) expression_depth: usize,
     pub(crate) over_depth_span: Option<Span>,
     pub(crate) statement: Option<u32>,
-    /// Set by ternary expressions, `??` and optional chains, which have [`ValueExpansions`].
     pub(crate) expands_values: bool,
     pub(crate) type_syntax: TypeSyntax,
 }

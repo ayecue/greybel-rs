@@ -28,7 +28,6 @@ impl AccessPath {
         self.members.is_empty().then_some(self.base)
     }
 
-    /// This path followed by `.name`.
     pub(crate) fn with_member(mut self, name: NameId) -> Self {
         let mut members = mem::take(&mut self.members).into_vec();
 
@@ -72,8 +71,21 @@ impl AccessPathTable {
     }
 }
 
-fn name_bit(name: NameId) -> u64 {
-    1 << (name.index() % 64)
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct NameMask(u64);
+
+impl NameMask {
+    fn bit(name: NameId) -> Self {
+        Self(1 << (name.index() % 64))
+    }
+
+    fn of(names: &[NameId]) -> Self {
+        Self(names.iter().fold(0, |mask, &name| mask | Self::bit(name).0))
+    }
+
+    const fn overlaps(self, other: Self) -> bool {
+        self.0 & other.0 != 0
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -81,7 +93,7 @@ struct MemberFact {
     path: AccessPathId,
     base: SlotId,
     last: NameId,
-    names: u64,
+    names: NameMask,
     fact: Fact,
 }
 
@@ -113,9 +125,7 @@ impl MemberFactList {
                         path,
                         base: access_path.base,
                         last: *members.last().expect("a member access path"),
-                        names: members
-                            .iter()
-                            .fold(0, |names, &name| names | name_bit(name)),
+                        names: NameMask::of(members),
                         fact: Fact::DECLARED_TYPE,
                     },
                 );
@@ -140,10 +150,10 @@ impl MemberFactList {
     }
 
     pub(crate) fn clear_name(&mut self, name: NameId, paths: &AccessPathTable) {
-        let bit = name_bit(name);
+        let bit = NameMask::bit(name);
 
         self.0.retain(|member| {
-            member.names & bit == 0 || !paths.members(member.path).contains(&name)
+            !member.names.overlaps(bit) || !paths.members(member.path).contains(&name)
         });
     }
 

@@ -21,7 +21,6 @@ pub(crate) struct CommentBlock {
 }
 
 impl CommentBlock {
-    /// The `@param` tags of the block with the source span of each name.
     pub fn param_names(&self) -> impl Iterator<Item = (&ParamDoc, Span)> {
         self.doc.params.iter().map(|param| {
             let position = param.name_position;

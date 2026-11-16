@@ -1,5 +1,5 @@
+mod client_requests;
 mod error;
-mod files;
 mod from_lsp;
 mod initialization;
 mod message;
@@ -8,10 +8,10 @@ mod server;
 mod settings;
 mod to_lsp;
 
-pub use error::{ResponseError, Result};
-pub use files::{
+pub use client_requests::{
     FileSearch, FindFilesRequest, Project, ProjectRequest, ProjectResult, ReadFile, ReadFileRequest,
 };
+pub use error::{ResponseError, Result};
 pub use gen_lsp_types as types;
 pub use greybel_documents::Uri;
 pub use initialization::InitializationOptions;

@@ -45,7 +45,7 @@ pub struct ImportRequest {
 #[tool_router(router = import_router, vis = "pub(super)")]
 impl Server {
     #[tool(
-        description = "Imports a file, or a folder of files, into Grey Hack's single-player game as they are, through its message hook."
+        description = "Imports a file or folder unchanged into Grey Hack's single-player game through the message hook."
     )]
     async fn import_into_game(
         &self,
@@ -88,6 +88,8 @@ impl Server {
             .await
             .map_err(|failure| ImportError::Import { failure })?;
 
-        Ok(format!("Imported {count} files into {ingame_directory}."))
+        let noun = if count == 1 { "file" } else { "files" };
+
+        Ok(format!("Imported {count} {noun} into {ingame_directory}."))
     }
 }

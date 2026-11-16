@@ -12,7 +12,7 @@ export function activate(context: ExtensionContext) {
 
       vscode.env.clipboard.writeText(link);
       vscode.window
-        .showInformationMessage('Editor link got created and copied to clipboard.', { modal: false }, 'Go to link')
+        .showInformationMessage('Editor link created and copied to the clipboard.', { modal: false }, 'Open link')
         .then(async () => {
           const uri = Uri.parse(link);
 

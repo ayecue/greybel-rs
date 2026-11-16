@@ -8,8 +8,6 @@ use crate::lexer::{AnyToken, Invalid};
 use crate::parser::Parser;
 use crate::position::Span;
 
-/// The types written in code (`port: number`, `): shell`, `function<T>`, `let x: T`), as source spans of the same
-/// type language as doc comments. Builds remove them; the type analyzer reads them.
 #[derive(Debug, Clone, Default)]
 pub struct TypeSyntax {
     parameters: FxHashMap<NodeId, Span>,
@@ -20,37 +18,31 @@ pub struct TypeSyntax {
 }
 
 impl TypeSyntax {
-    /// The type of the parameter whose name is the identifier `parameter`.
     #[must_use]
     pub fn parameter(&self, parameter: NodeId) -> Option<Span> {
         self.parameters.get(&parameter).copied()
     }
 
-    /// The return type of `function`.
     #[must_use]
     pub fn returns(&self, function: NodeId) -> Option<Span> {
         self.returns.get(&function).copied()
     }
 
-    /// The type parameter names of `function<T, U>`.
     #[must_use]
     pub fn templates(&self, function: NodeId) -> &[Span] {
         self.templates.get(&function).map_or(&[], Vec::as_slice)
     }
 
-    /// The type of `let name: T`, by the identifier `name`.
     #[must_use]
     pub fn variable(&self, name: NodeId) -> Option<Span> {
         self.variables.get(&name).copied()
     }
 
-    /// The `type` statements, in source order.
     #[must_use]
     pub fn declarations(&self) -> &[NodeId] {
         &self.declarations
     }
 
-    /// The spans of the parameter, return and variable types and of the type parameter names.
     pub fn spans(&self) -> impl Iterator<Item = Span> + '_ {
         self.parameters
             .values()
@@ -90,9 +82,6 @@ impl TypeSyntax {
     }
 }
 
-/// Finds the end of a type in source text: names with `<...>` arguments, `|` unions, string and number literals,
-/// `[a, b]` tuples, `(name: a) => b` and `function(a): b` functions, `name is T` guards and a `?` after a member
-/// name is not part of it. Spaces and tabs separate parts; a line break ends the type.
 pub(crate) struct TypeScan<'s> {
     source: &'s [u8],
     at: usize,
@@ -110,7 +99,6 @@ impl<'s> TypeScan<'s> {
         }
     }
 
-    /// The span of the type starting at the scan's start, after leading spaces.
     pub(crate) fn scan(mut self) -> Option<Span> {
         self.skip_spaces();
 
@@ -192,7 +180,6 @@ impl<'s> TypeScan<'s> {
         }
     }
 
-    /// `type, ...` up to `close`, after the opening bracket.
     fn list(&mut self, close: u8) -> Option<()> {
         loop {
             self.union()?;
@@ -207,7 +194,6 @@ impl<'s> TypeScan<'s> {
         }
     }
 
-    /// `(name: type, type, ...)`.
     fn parameters(&mut self) -> Option<()> {
         if !self.consume(b"(") {
             return None;
@@ -287,7 +273,6 @@ impl<'s> TypeScan<'s> {
         (self.at > start + 1 || self.source[start].is_ascii_digit()).then_some(())
     }
 
-    /// `word` after spaces, not followed by a name character.
     fn word(&mut self, word: &[u8]) -> bool {
         let save = self.at;
 
@@ -345,7 +330,6 @@ impl<'s> TypeScan<'s> {
 }
 
 impl Parser<'_> {
-    /// Reads a type starting at `start` and moves the parser to the token after it; reports a missing type.
     pub(crate) fn parse_type_text(&mut self, start: u32) -> ParseResult<Option<Span>> {
         let Some(span) = TypeScan::new(self.source(), start as usize).scan() else {
             let span = self.token().span();
@@ -367,8 +351,6 @@ impl Parser<'_> {
 }
 
 impl Ast {
-    /// The spans of every type written in code: parameter, return and `let` types, type parameter names, the names
-    /// and types of `type` statements, `as T` and `implements` lists.
     #[must_use]
     pub fn type_spans(&self) -> Vec<Span> {
         let mut spans: Vec<Span> = self.type_syntax.spans().collect();

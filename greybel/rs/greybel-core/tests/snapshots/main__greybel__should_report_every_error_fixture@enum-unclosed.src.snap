@@ -4,10 +4,10 @@ expression: rendered
 input_file: greybel-core/tests/fixtures/greybel/errors/enum-unclosed.src
 ---
 --- strict
-1:1 - 1:5 UnclosedBlock(4002): enum is missing end enum
+1:1 - 1:5 UnclosedBlock(4002): 'enum' without matching 'end enum'
 --- tree
 Chunk[1:1-3:1][
 	Identifier[2:2-2:3][A]
 ]
 --- errors
-1:1 - 1:5 UnclosedBlock(4002): enum is missing end enum
+1:1 - 1:5 UnclosedBlock(4002): 'enum' without matching 'end enum'

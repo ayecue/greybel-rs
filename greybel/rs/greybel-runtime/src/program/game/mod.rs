@@ -47,7 +47,7 @@ impl<'r, H: Host> GameProgram<'r, H> {
             .await
             .map_err(|error| {
                 LaunchFailure::unreachable(format!(
-                    "Grey Hack's message hook doesn't response on port {port}: {error}"
+                    "Grey Hack's message hook doesn't respond on port {port}: {error}"
                 ))
             })?;
         let mut program = Self {
@@ -68,14 +68,12 @@ impl<'r, H: Host> GameProgram<'r, H> {
     /// Checks single-player mode, creates and runs a game context to exit, then disposes it.
     async fn start(&mut self, client: &Client, program_name: &str) -> Result<Exit, LaunchFailure> {
         let status = client.health_check().await.map_err(|error| {
-            LaunchFailure::unreachable(format!(
-                "Grey Hack's message hook doesn't response: {error}"
-            ))
+            LaunchFailure::unreachable(format!("Grey Hack's message hook doesn't respond: {error}"))
         })?;
 
         if !status.is_single_player {
             return Err(LaunchFailure::unreachable(
-                "Grey Hack runs no single-player game: start one to run programs in it.",
+                "Grey Hack has no active single-player game; start one to run programs.",
             ));
         }
 

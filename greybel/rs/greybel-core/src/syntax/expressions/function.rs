@@ -19,16 +19,12 @@ pub struct Function {
     #[scope]
     pub scope: ScopeData,
     pub assignment: Option<NodeId>,
-    /// Written as `(x) => ...`; builds write it as `function(x)`.
     pub arrow: Option<ArrowBody>,
 }
 
-/// The body of a `(x) => ...` function.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArrowBody {
-    /// `(x) => x * 2`: the body is `return` of the expression.
     Expression,
-    /// `(x) =>` at the end of a line, with the body on the following lines up to `end function`.
     Block,
 }
 
@@ -128,8 +124,6 @@ impl KeywordStatement for EndFunctionRule {
 }
 
 impl Function {
-    /// How far [`Self::is_arrow_at`] looks for the `)` of the parameters, so a line of parentheses isn't scanned
-    /// once per `(`.
     pub const MAX_ARROW_PARAMETERS_LEN: usize = 256;
 
     #[must_use]
@@ -143,8 +137,6 @@ impl Function {
         }
     }
 
-    /// Whether the `(` at `start` opens the parameters of a `(x) =>` function: its `)` on the same line, within
-    /// [`Self::MAX_ARROW_PARAMETERS_LEN`] bytes, is followed by `=>`.
     #[must_use]
     pub fn is_arrow_at(source: &str, start: u32) -> bool {
         let tail = &source.as_bytes()[start as usize..];
@@ -187,7 +179,6 @@ impl Function {
         false
     }
 
-    /// `(x) => expression`, or `(x) =>` at the end of a line with a body up to `end function`.
     pub fn parse_arrow(parser: &mut Parser<'_>, base: Option<NodeId>) -> ParseResult<NodeId> {
         let start = parser.token().span();
         let function = parser.alloc(
@@ -313,8 +304,6 @@ impl Function {
         Ok(function)
     }
 
-    /// `name(parameters)` in a class body, after the name: a function assigned by `base`, with its body up to
-    /// `end function`.
     pub(crate) fn parse_method(parser: &mut Parser<'_>, base: NodeId) -> ParseResult<NodeId> {
         let start = parser.token().span();
         let function = parser.alloc(
@@ -359,7 +348,6 @@ impl Function {
         Ok(function)
     }
 
-    /// `<T, U>` after `function`, with types on.
     fn parse_templates(parser: &mut Parser<'_>, function: NodeId) -> ParseResult<()> {
         if !(parser.grammar().allows(SyntaxFeatures::TYPES) && parser.token().is_punct(Punct::Less))
         {
@@ -391,7 +379,6 @@ impl Function {
         Ok(())
     }
 
-    /// `: T` after the parameters, with types on.
     fn parse_return_type(parser: &mut Parser<'_>, function: NodeId) -> ParseResult<()> {
         if !Self::is_at_type(parser) {
             return Ok(());
@@ -406,7 +393,6 @@ impl Function {
         Ok(())
     }
 
-    /// A `:` that starts a type, with types on.
     fn is_at_type(parser: &Parser<'_>) -> bool {
         parser.grammar().allows(SyntaxFeatures::TYPES)
             && parser.token().kind() == TokenKind::SliceOperator

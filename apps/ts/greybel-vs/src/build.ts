@@ -48,7 +48,7 @@ export function activate(context: ExtensionContext, launcher: Launcher, projects
 
       const importNote = deploy ? ' and imported into Grey Hack' : '';
 
-      vscode.window.showInformationMessage(`Build done${importNote}. Available [here](${output.toString()}).`);
+      vscode.window.showInformationMessage(`Build complete${importNote}. [Open output](${output.toString()}).`);
     } catch (error) {
       showBuildFailure(error);
     }

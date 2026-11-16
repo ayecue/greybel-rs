@@ -316,7 +316,7 @@
       {
         "command": "greybel.gotoError",
         "category": "Utility",
-        "title": "Greybel: Goto Error"
+        "title": "Greybel: Go to error"
       },
       {
         "command": "greybel.resetWorld",
@@ -361,7 +361,7 @@
       {
         "command": "greybel.api",
         "category": "Utility",
-        "title": "Greybel: API Documentation"
+        "title": "Greybel: API documentation"
       },
       {
         "command": "greybel.preview",
@@ -439,13 +439,13 @@
           "greybel.diagnostic": {
             "type": "boolean",
             "default": true,
-            "description": "Enable Greybel diagnostic."
+            "description": "Enable Greybel diagnostics."
           },
           "greybel.strictMode": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "description": "Accept only what Grey Hack's compiler accepts (MiniScript 1.6.2 for MiniScript files): none of Greybel's syntax or conveniences, such as #include, & or +=."
+            "description": "Restrict syntax to Grey Hack's compiler (MiniScript 1.6.2 for MiniScript files), excluding Greybel extensions such as #include, &, and +=."
           },
           "greybel.syntax": {
             "scope": "resource",
@@ -481,24 +481,24 @@
             "scope": "resource",
             "type": "string",
             "default": "src,gs,ms",
-            "description": "Define allowed file extension."
+            "description": "Import file extensions in resolution order."
           },
           "greybel.rootFile": {
             "type": "string",
-            "description": "Define the root project file. If not set, the extension will rely on the given context to built or execute files.",
+            "description": "Root project file. If empty, build and run commands use the active or selected file.",
             "scope": "resource"
           },
           "greybel.profile": {
             "type": "string",
             "default": "",
             "scope": "resource",
-            "markdownDescription": "The profile of the project's `greybel.json` whose build and run settings builds, runs and imports use; empty for its base settings. It stays in the editor's settings, not in `greybel.json`: `Greybel: Select profile` or the status bar picks one."
+            "markdownDescription": "Project `greybel.json` profile for builds, runs, and imports; empty uses the base settings. This editor setting does not modify `greybel.json`. Select a profile with `Greybel: Select profile` or the status bar."
           },
           "greybel.autoCompile": {
             "scope": "resource",
             "type": "boolean",
             "default": true,
-            "description": "Enable auto compile."
+            "description": "Compile builds in-game and remove their source files."
           }
         }
       },
@@ -508,7 +508,7 @@
           "greybel.typeAnalyzer.exclude": {
             "type": "string",
             "default": "**/{node_modules,.*}/**",
-            "description": "Glob pattern of the files and folders the type analyzer leaves out of the workspace. Replaces `files.exclude` for its search.",
+            "description": "Glob for files and folders excluded from type analysis; used instead of `files.exclude`.",
             "scope": "resource"
           },
           "greybel.typeAnalyzer.inlayHints.variableTypes": {
@@ -600,13 +600,13 @@
           "greybel.interpreter.programName": {
             "type": "string",
             "default": "myprogram",
-            "description": "Name of the binary a run builds the program to in its user's home folder and runs as, so it can launch itself.",
+            "description": "Binary name for runs that build into the user's home folder so the program can launch itself.",
             "scope": "resource"
           },
           "greybel.interpreter.port": {
             "type": "number",
             "default": 7777,
-            "description": "Message-hook port for interpreter. (Only in-game env)",
+            "description": "Message-hook port for the in-game interpreter.",
             "scope": "resource"
           },
           "greybel.interpreter.memoryLimit": {
@@ -614,30 +614,30 @@
             "type": "integer",
             "default": 1024,
             "minimum": 1,
-            "description": "Memory in MiB a program may use before it is interrupted, as Grey Hack interrupts one that runs out of memory; there is no limit on how many calls nest. (Only mock env)"
+            "description": "Mock-program memory limit in MiB before interruption, matching Grey Hack's out-of-memory behavior. Call nesting is unlimited."
           },
           "greybel.interpreter.seed": {
             "scope": "resource",
             "type": "string",
             "default": "test",
-            "description": "Seed of the mock world, which the programs of all debug sessions of the window share; changing it starts a new world. (Only mock env)"
+            "description": "Seed for the mock world shared by all debug sessions in the window. A new seed starts a new world."
           },
           "greybel.interpreter.environmentVariables": {
             "type": "object",
             "default": {},
-            "description": "Environment variables.",
+            "description": "#envar values for runs.",
             "scope": "resource"
           },
           "greybel.interpreter.environmentFile": {
             "type": "string",
             "default": ".env",
-            "description": "Environment variables file.",
+            "description": "File with #envar values for runs.",
             "scope": "resource"
           },
           "greybel.interpreter.useDefaultArgs": {
             "type": "boolean",
             "default": false,
-            "description": "Prevent argument prompt and instead use default args.",
+            "description": "Use default arguments and skip the argument prompt.",
             "scope": "resource"
           },
           "greybel.interpreter.silenceErrorPopups": {
@@ -648,7 +648,7 @@
           "greybel.interpreter.defaultArgs": {
             "type": "string",
             "default": "",
-            "description": "Default arguments used for script.",
+            "description": "Default program arguments.",
             "scope": "resource"
           }
         }
@@ -664,7 +664,7 @@
               "Beautify"
             ],
             "default": "Default",
-            "description": "Build type.",
+            "description": "Build output mode.",
             "scope": "resource"
           },
           "greybel.transpiler.watch": {
@@ -675,60 +675,60 @@
           },
           "greybel.transpiler.outputFilename": {
             "type": "string",
-            "description": "Specify the name of the main output file. Please note that if you do not add an extension auto compile will not work.",
+            "description": "Main output filename. Auto-compile requires a file extension.",
             "scope": "resource"
           },
           "greybel.transpiler.environmentVariables": {
             "type": "object",
             "default": {},
-            "description": "Environment variables.",
+            "description": "#envar values for builds.",
             "scope": "resource"
           },
           "greybel.transpiler.environmentFile": {
             "type": "string",
             "default": ".env",
-            "description": "Environment variables file.",
+            "description": "File with #envar values for builds.",
             "scope": "resource"
           },
           "greybel.transpiler.dlo": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "description": "Disable literals optimization."
+            "description": "Preserve repeated literals during uglification."
           },
           "greybel.transpiler.dno": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "description": "Disable namespaces optimization."
+            "description": "Preserve names during uglification."
           },
           "greybel.transpiler.excludedNamespaces": {
             "type": "array",
             "default": [],
-            "description": "Excluded namespaces regarding optimization.",
+            "description": "Names excluded from uglification.",
             "scope": "resource"
           },
           "greybel.transpiler.obfuscation": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "description": "Allow special characters when uglifying."
+            "description": "Also shorten names accessed as strings, including map keys, during uglification."
           },
           "greybel.transpiler.ingameDirectoryPrompt": {
             "type": "boolean",
             "default": false,
-            "description": "Prompts you to select a destination for the files on each import."
+            "description": "Prompt for an in-game destination folder on each import."
           },
           "greybel.transpiler.ingameDirectory": {
             "scope": "resource",
             "type": "string",
             "default": "/root/",
-            "description": "Define ingame directory to where the files should be imported to."
+            "description": "In-game folder from which the build runs."
           },
           "greybel.transpiler.installer.active": {
             "type": "boolean",
             "default": true,
-            "description": "Generate installer when building.",
+            "description": "Generate installer files for each build.",
             "scope": "resource"
           },
           "greybel.transpiler.installer.maxChars": {
@@ -737,19 +737,19 @@
             "default": 160000,
             "minimum": 1000,
             "maximum": 160000,
-            "description": "Amount of characters allowed in one installer file, footer included, before splitting. The game allows at most 160000."
+            "description": "Maximum characters per installer file, including the footer; longer installers are split. The game allows at most 160000 characters."
           },
           "greybel.transpiler.installer.allowImport": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "description": "Enable allowImport when performing auto compile in installer."
+            "description": "Allow installer-compiled programs to import code at runtime."
           },
           "greybel.transpiler.beautify.keepParentheses": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "description": "Always keep the parentheses."
+            "description": "Preserve all source parentheses."
           },
           "greybel.transpiler.beautify.indentation": {
             "scope": "resource",
@@ -759,13 +759,13 @@
               "Whitespace"
             ],
             "default": "Tab",
-            "description": "Tab or whitespace. What should be used for indentation?"
+            "description": "Indentation character: Tab or Whitespace."
           },
           "greybel.transpiler.beautify.indentationSpaces": {
             "scope": "resource",
             "type": "number",
             "default": 2,
-            "description": "Define the amount of whitespaces when using whitespaces as indentation."
+            "description": "Spaces per indentation level when Whitespace is selected."
           }
         }
       },
@@ -814,7 +814,7 @@
             "properties": {
               "program": {
                 "type": "string",
-                "description": "Absolute path to a text file.",
+                "description": "Absolute path to a GreyScript file.",
                 "default": "${command:AskForProgramName}"
               }
             }
@@ -831,7 +831,7 @@
         "configurationSnippets": [
           {
             "label": "Greybel Debug: Launch",
-            "description": "A new configuration for 'debugging' a user selected greyscript file.",
+            "description": "Creates a debug configuration for a selected GreyScript file.",
             "body": {
               "type": "greyscript",
               "request": "launch",

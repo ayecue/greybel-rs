@@ -21,7 +21,9 @@ mod validation;
 use buffers::TypeBufferPool;
 use context::{Binding, BindingSet, BindingUse};
 use custom::TypeDeclaration;
-use flow::{AccessPathTable, FlowState, KindSet, LoopFrame, SideEffect, SideEffectFrame};
+use flow::{
+    AccessPathTable, FlowState, KindSet, LoopFrame, SideEffect, SideEffectFrame, SideEffectTable,
+};
 use greybel_core::{Ast, Atom, NodeId, NodeKind, Span};
 use greybel_documents::ImportKind;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -103,7 +105,7 @@ pub(crate) struct Inference<'a> {
 #[derive(Default)]
 struct PreviousPass {
     loop_back_states: FxHashMap<(Site, Option<CallContextId>), FlowState>,
-    function_side_effects: FxHashMap<Site, SideEffect>,
+    function_side_effects: SideEffectTable,
 }
 
 #[derive(Default)]
@@ -123,7 +125,7 @@ struct Pass {
     generic_instance_set: FxHashSet<GenericInstanceId>,
     diagnostics: Vec<(DocumentIndex, Diagnostic)>,
     deferred_diagnostics: Vec<DeferredDiagnostic>,
-    function_side_effects: FxHashMap<Site, SideEffect>,
+    function_side_effects: SideEffectTable,
     document_side_effects: FxHashMap<DocumentIndex, SideEffect>,
     invalid_operations: FxHashSet<Site>,
 }

@@ -10,11 +10,8 @@ use crate::lexer::{AnyToken, Punct, TEMPLATE_START, TemplateScan};
 use crate::parser::Parser;
 use crate::position::Span;
 
-/// `#"Hello {name}!"`: a string of text pieces with an expression between each two. Builds write it as
-/// `"Hello " + (name) + "!"`.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct Template {
-    /// The raw text before each expression and after the last one, one more than `expressions`.
     pub texts: Vec<Span>,
     #[child]
     pub expressions: NodeList,
@@ -35,7 +32,6 @@ impl AstNode for Template {
 }
 
 impl Template {
-    /// The value of a raw text piece: `""`, `{{` and `}}` stand for `"`, `{` and `}`.
     #[must_use]
     pub fn text(source: &str, span: Span) -> Cow<'_, str> {
         let raw = span.bytes().map_or("", |bytes| &source[bytes]);
@@ -54,8 +50,6 @@ impl Template {
         )
     }
 
-    /// Parses the template at the current token: each placeholder's expression is parsed from the source tokens
-    /// between its braces.
     pub(crate) fn parse(parser: &mut Parser<'_>) -> ParseResult<NodeId> {
         let token = *parser.token();
         let span = token.span();

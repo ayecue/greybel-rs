@@ -3,10 +3,7 @@
 use greybel_documents_fs_provider::FsProvider;
 use greybel_documents_memory_provider::MemoryProvider;
 use greybel_test_support::future::block_on;
-use greybel_transpiler::{
-    BeautifyOptions, BuildMode, TranspileOptions, UglifyOptions, transpile, transpile_project,
-    transpile_project_async,
-};
+use greybel_transpiler::{BeautifyOptions, BuildMode, TranspileOptions, Transpiler, UglifyOptions};
 
 use crate::support::greybel::{fixtures, modes, options, project};
 use crate::support::unobfuscated;
@@ -17,7 +14,9 @@ fn should_transpile_every_script_in_every_mode() {
         let source = std::fs::read_to_string(path).expect("script");
         let modes = modes();
 
-        let out = fixtures().sections(modes, |options| transpile(&source, &options));
+        let out = fixtures().sections(modes, |options| {
+            Transpiler::new(&options).transpile(&source)
+        });
 
         insta::assert_snapshot!(out);
     });
@@ -54,7 +53,7 @@ fn should_reject_unsupported_sugar_in_strict_mode() {
             if bundle {
                 project(path, &options)
             } else {
-                transpile(&source, &options)
+                Transpiler::new(&options).transpile(&source)
             }
         });
 
@@ -67,13 +66,11 @@ fn should_transpile_the_same_with_an_async_provider() {
     insta::glob!("fixtures/greybel/{scripts,special}/*.src", |path| {
         let options = unobfuscated(options(BuildMode::Uglify(UglifyOptions::default())));
         let entry = FsProvider::uri(path);
-        let sync = transpile_project(&entry, &FsProvider::default(), &options);
+        let transpiler = Transpiler::new(&options);
+        let sync = transpiler.transpile_project(&entry, &FsProvider::default());
 
-        let asynchronous = block_on(transpile_project_async(
-            &entry,
-            &FsProvider::default(),
-            &options,
-        ));
+        let asynchronous =
+            block_on(transpiler.transpile_project_async(&entry, &FsProvider::default()));
 
         assert_eq!(
             sync.map_err(|error| error.to_string()),
@@ -93,7 +90,9 @@ fn should_retain_multiline_strings_when_asked() {
         ..TranspileOptions::default()
     };
 
-    let output = transpile(source, &options).expect("a transpiled script");
+    let output = Transpiler::new(&options)
+        .transpile(source)
+        .expect("a transpiled script");
 
     assert_eq!(output, "a = \"one\ntwo\"");
 }
@@ -118,14 +117,11 @@ fn should_write_const_enum_values_across_files() {
         "print Port.Name\nf = function(Port)\n  return Port.Ssh\nend function",
     );
 
-    let outputs = transpile_project(
-        &MemoryProvider::uri("/project/main.src"),
-        &provider,
-        &unobfuscated(TranspileOptions {
-            dialect: greybel_core::Dialect::GreyScript,
-            ..TranspileOptions::default()
-        }),
-    )
+    let outputs = Transpiler::new(&unobfuscated(TranspileOptions {
+        dialect: greybel_core::Dialect::GreyScript,
+        ..TranspileOptions::default()
+    }))
+    .transpile_project(&MemoryProvider::uri("/project/main.src"), &provider)
     .expect("a build");
     let (main, lib, other) = (&outputs[0].code, &outputs[1].code, &outputs[2].code);
 

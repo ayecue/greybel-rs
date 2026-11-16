@@ -11,7 +11,6 @@ pub struct Member {
     pub base: NodeId,
     #[child]
     pub identifier: NodeId,
-    /// `base?.identifier`: the chain this member starts is `null` when `base` is `null`.
     pub optional: bool,
 }
 
@@ -60,7 +59,6 @@ impl InfixRule for MemberRule {
 }
 
 impl Member {
-    /// The name after `.` or `?.`.
     pub(crate) fn parse_name(
         parser: &mut Parser<'_>,
         base: NodeId,

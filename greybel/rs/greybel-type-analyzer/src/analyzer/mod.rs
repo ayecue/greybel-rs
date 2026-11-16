@@ -1,22 +1,13 @@
-mod call_hierarchy;
-mod code_actions;
-mod doc_completions;
 mod entries;
-mod import_path;
-mod imports;
-mod navigation;
-mod ranges;
-mod rename;
-mod symbols;
-mod type_hover;
 
-use greybel_core::{Ast, ColumnSettings, Dialect, ParserOptions, Position};
+use greybel_core::{Ast, ColumnSettings, Dialect, ParserOptions, Position, Range, Span};
 use greybel_documents::{DocumentOptions, SourceFile, Uri, Workspace};
 
 use crate::analysis::Analysis;
 use crate::database::{Analyze, Annotate, Database};
 use crate::diagnostic::Diagnostic;
-use crate::ide::{CompletionItem, Context, DocumentSymbol, Hover, SignatureHelp};
+use crate::ide::{Context, Location};
+use crate::model::DocumentIndex;
 
 #[derive(Clone, Copy)]
 pub struct Analyzer<'w> {
@@ -81,58 +72,11 @@ impl<'w> Analyzer<'w> {
     }
 
     #[must_use]
-    pub fn hover(&self, uri: &Uri, position: Position) -> Option<Hover> {
-        if let Some(hover) = self.import_hover(uri, position) {
-            return Some(hover);
-        }
-
-        if let Some(hover) = self.type_hover(uri, position) {
-            return Some(hover);
-        }
-
-        self.ide_context(uri, position)?.hover()
-    }
-
-    #[must_use]
-    pub fn completions(&self, uri: &Uri, position: Position) -> Vec<CompletionItem> {
-        if let Some(paths) = self.path_completions(uri, position) {
-            return paths;
-        }
-
-        if let Some(items) = self.comment_completions(uri, position) {
-            return items;
-        }
-
-        self.ide_context(uri, position)
-            .map(|context| context.completions())
-            .unwrap_or_default()
-    }
-
-    #[must_use]
-    pub fn signature_help(&self, uri: &Uri, position: Position) -> Option<SignatureHelp> {
-        self.ide_context(uri, position)?.signature_help()
-    }
-
-    #[must_use]
-    pub fn document_symbols(&self, uri: &Uri) -> Vec<DocumentSymbol> {
-        let Some(file) = self.workspace.file(uri) else {
-            return Vec::new();
-        };
-
-        let db = self.workspace.db();
-
-        file.parse(db)
-            .ast()
-            .map(|ast| DocumentSymbol::outline_with_types(ast, file.comments(db)))
-            .unwrap_or_default()
-    }
-
-    #[must_use]
     pub fn dialect(&self) -> Dialect {
         self.workspace.options().parser.dialect
     }
 
-    pub(super) fn file_analysis(self, file: SourceFile) -> Option<&'w Analysis> {
+    pub(crate) fn file_analysis(self, file: SourceFile) -> Option<&'w Analysis> {
         let db = self.workspace.db();
 
         file.text(db).as_ref()?;
@@ -140,7 +84,7 @@ impl<'w> Analyzer<'w> {
         file.analysis(db).as_ref()
     }
 
-    pub(super) fn locate(
+    pub(crate) fn locate(
         self,
         uri: &Uri,
         position: Position,
@@ -152,10 +96,69 @@ impl<'w> Analyzer<'w> {
         Some((file, ast, offset))
     }
 
-    fn ide_context(self, uri: &Uri, position: Position) -> Option<Context<'w>> {
+    pub(crate) fn ide_context(self, uri: &Uri, position: Position) -> Option<Context<'w>> {
         let (file, ast, offset) = self.locate(uri, position)?;
         let (_, analysis, document) = self.entry_analyses(file).into_iter().next()?;
 
         Some(Context::new(ast, analysis, document, offset))
+    }
+
+    pub(crate) fn analyses_of(self, file: SourceFile) -> Vec<(&'w Analysis, DocumentIndex)> {
+        std::iter::once(file)
+            .chain(self.dependent_closure(file))
+            .filter_map(|candidate_root| {
+                let analysis = self.file_analysis(candidate_root)?;
+                let document = analysis
+                    .documents()
+                    .iter()
+                    .position(|&candidate| candidate == file)?;
+
+                Some((analysis, DocumentIndex::try_from(document).ok()?))
+            })
+            .collect()
+    }
+
+    pub(crate) fn dependent_closure(self, file: SourceFile) -> Vec<SourceFile> {
+        let mut files = vec![file];
+        let mut next = 0;
+
+        while let Some(&current) = files.get(next) {
+            next += 1;
+
+            let uri = current.uri(self.workspace.db());
+
+            for dependent in self.workspace.dependents(uri) {
+                let Some(dependent) = self.workspace.file(&dependent) else {
+                    continue;
+                };
+
+                if !files.contains(&dependent) {
+                    files.push(dependent);
+                }
+            }
+        }
+
+        files.remove(0);
+
+        files
+    }
+
+    pub(crate) fn text_in(ast: &Ast, range: Range) -> Option<&str> {
+        let lines = ast.lines();
+        let start = lines.offset(range.start, ColumnSettings::default())? as usize;
+        let end = lines.offset(range.end, ColumnSettings::default())? as usize;
+
+        ast.source().get(start..end)
+    }
+
+    pub(crate) fn range(ast: &Ast, span: Span) -> Range {
+        ast.lines().range(span, ColumnSettings::default())
+    }
+
+    pub(crate) fn sort_locations(mut locations: Vec<Location>) -> Vec<Location> {
+        locations.sort_by(|a, b| (&a.uri, a.range.start).cmp(&(&b.uri, b.range.start)));
+        locations.dedup();
+
+        locations
     }
 }

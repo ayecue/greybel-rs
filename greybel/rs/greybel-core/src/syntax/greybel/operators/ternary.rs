@@ -6,7 +6,6 @@ use crate::parser::{ExprContext, InfixRule, Precedence, Trigger};
 use crate::syntax::{Call, Index, Member};
 use crate::{AstNode, DumpContext, NodeId, ParseResult, Parser, Punct, Span};
 
-/// `condition ? if_true : if_false`.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct Ternary {
     #[child]
@@ -35,7 +34,6 @@ impl AstNode for Ternary {
     }
 }
 
-/// `left ?? right`: `left` unless it is `null`, then `right`.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct Coalesce {
     #[child]
@@ -66,7 +64,7 @@ pub struct TernaryRule;
 
 impl InfixRule for TernaryRule {
     fn triggers(&self) -> &[Trigger] {
-        &[Trigger::Punct(Punct::Question)]
+        &[Trigger::Punct(Punct::Conditional)]
     }
 
     fn precedence(&self) -> Precedence {
@@ -102,7 +100,6 @@ impl InfixRule for TernaryRule {
         parser.advance()?;
         parser.consume_noop()?;
 
-        // Right-associative: `a ? b : c ? d : e` is `a ? b : (c ? d : e)`.
         let min = parser.rank(Precedence::Ternary);
         let if_false = parser.parse_expr_precedence(min, ExprContext::default())?;
 
@@ -150,7 +147,6 @@ impl InfixRule for CoalesceRule {
     }
 }
 
-/// `base?.name`, `base?.[index]` and `base?.(arguments)`.
 #[derive(Debug, Clone, Copy)]
 pub struct OptionalChainRule;
 

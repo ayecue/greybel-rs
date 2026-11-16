@@ -73,7 +73,7 @@ export function activate(
 
       if (!rootPath) {
         const value = await vscode.window.showInputBox({
-          placeHolder: 'Please enter the full file path',
+          placeHolder: 'Enter the full file path',
           value: 'test.src'
         });
 
@@ -85,7 +85,7 @@ export function activate(
       }
 
       const value = await vscode.window.showInputBox({
-        placeHolder: 'Please enter the name of a .src, .gs or .ms file in the workspace folder',
+        placeHolder: 'Enter the name of a .src, .gs, or .ms file in the workspace folder',
         value: 'test.src'
       });
 

@@ -47,8 +47,11 @@ impl fmt::Display for ParameterDefault<'_> {
 pub(crate) enum SignatureType<'a> {
     Value(TypeId),
     Api(&'a [TypeMeta]),
-    /// The return type `value is T` of a type guard, as written; calls of it return a number.
-    Guard(&'a TypeExpr),
+    /// The return type `value is T` of a type guard; calls of it return a number.
+    Guard {
+        parameter: &'a str,
+        ty: TypeId,
+    },
 }
 
 impl SemanticModel {
@@ -79,7 +82,14 @@ impl SemanticModel {
                     .collect();
 
                 let returns = match data.doc.as_ref().and_then(|doc| doc.returns.as_ref()) {
-                    Some(guard @ TypeExpr::Guard { .. }) => SignatureType::Guard(guard),
+                    Some(TypeExpr::Guard { parameter, .. }) => SignatureType::Guard {
+                        parameter,
+                        ty: self
+                            .guard_types
+                            .get(&id)
+                            .copied()
+                            .unwrap_or(TypeId::UNKNOWN),
+                    },
                     _ => SignatureType::Value(self.slot_type(data.return_slot)),
                 };
 

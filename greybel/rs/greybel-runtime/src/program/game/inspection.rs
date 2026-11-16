@@ -161,7 +161,7 @@ impl GameInspection {
     ) -> Result<String, EvaluationFailure> {
         let unassignable = || EvaluationFailure::CodeError {
             message: format!(
-                "{name} can't be set here: only the innermost frame's and global variables can."
+                "Cannot set \"{name}\" here; only variables in the innermost frame and global variables can be set."
             ),
         };
         let accessor = |entries: &[DebugEntry]| {

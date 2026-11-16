@@ -50,7 +50,7 @@ struct Problem {
 #[tool_router(router = check_router, vis = "pub(super)")]
 impl Server {
     #[tool(
-        description = "Checks GreyScript code, or a file with the files it imports, for syntax errors and what the type analyzer finds, as the language server shows them."
+        description = "Checks GreyScript code or a file and its imports for syntax errors and type-analyzer diagnostics, as in the language server."
     )]
     async fn check(
         &self,

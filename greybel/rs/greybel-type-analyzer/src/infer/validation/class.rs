@@ -7,19 +7,15 @@ use crate::infer::Inference;
 use crate::model::{DocumentIndex, Key, KeyRef, MapId, MapOrigin, ScopeId, Site};
 use crate::types::{Type, TypeId, TypeNotation};
 
-/// The maps of `class` statements: their names, private members, methods and `implements` types.
 #[derive(Debug, Default)]
 pub(crate) struct ClassTable {
     names: FxHashMap<MapId, String>,
     private: FxHashSet<(MapId, Box<str>)>,
-    /// The class map of each method's function.
     methods: FxHashMap<Site, MapId>,
-    /// The member identifiers of the classes' own `Name.member = value` statements, which may assign private members.
     declarations: FxHashSet<Site>,
     implementations: Vec<Implementation>,
 }
 
-/// `class Name implements Type`: checked once the types are final.
 #[derive(Debug)]
 struct Implementation {
     map: MapId,
@@ -29,8 +25,6 @@ struct Implementation {
 }
 
 impl Inference<'_> {
-    /// Registers the class map of a `class` statement, after its statements: its private members, its methods and
-    /// the types it implements.
     pub(crate) fn register_class(&mut self, class: &Class) {
         let ast = self.ast();
         let Some(&head) = ast.list(class.statements).first() else {
@@ -114,10 +108,6 @@ impl Inference<'_> {
         ast.text(target.identifier)
     }
 
-    /// Reports a read or assignment of a private member outside the methods of its class and the classes extending
-    /// it.
-    /// Reports a read of an optional member (`name?: T`, `@property {T} [name]`) of a custom type that isn't
-    /// preceded by `value.hasIndex("name")` or an assignment of it on every path.
     pub(crate) fn validate_optional_member(
         &mut self,
         node: NodeId,
@@ -181,11 +171,10 @@ impl Inference<'_> {
         self.report(
             DiagnosticKind::PrivateMember,
             node,
-            format!("\"{name}\" is private to {class}."),
+            format!("\"{name}\" is private to \"{class}\"."),
         );
     }
 
-    /// Reports an assignment of a `readonly` member of a custom type through a value of the type.
     pub(crate) fn validate_readonly_member(&mut self, node: NodeId, base: TypeId, name: &str) {
         if self.readonly_members.is_empty() {
             return;
@@ -209,12 +198,10 @@ impl Inference<'_> {
         self.report(
             DiagnosticKind::ReadonlyMember,
             node,
-            format!("\"{name}\" is readonly in {type_name}."),
+            format!("\"{name}\" is readonly in \"{type_name}\"."),
         );
     }
 
-    /// Whether the code being inferred is in a method of `owner` or of a class extending it, or in a function
-    /// inside one.
     fn is_in_method_of(&self, owner: MapId) -> bool {
         let mut scope = self.current_scope;
 
@@ -233,7 +220,6 @@ impl Inference<'_> {
         false
     }
 
-    /// Reports the members of each `implements` type a class doesn't define, or defines with another type.
     pub(crate) fn validate_implementations(&mut self) {
         let implementations = std::mem::take(&mut self.class_statements.implementations);
         let notation = TypeNotation::new(&self.model, &self.types);
@@ -282,7 +268,7 @@ impl Inference<'_> {
                             implementation,
                             DiagnosticKind::MissingImplementation,
                             format!(
-                                "{class} implements {} but has no \"{member}\".",
+                                "\"{class}\" implements \"{}\" but has no \"{member}\".",
                                 implementation.type_name
                             ),
                         ));
@@ -299,7 +285,7 @@ impl Inference<'_> {
                             implementation,
                             DiagnosticKind::MissingImplementation,
                             format!(
-                                "\"{member}\" is {} in {class} but {} in {}.",
+                                "\"{member}\" is {} in \"{class}\" but {} in \"{}\".",
                                 notation.display(actual),
                                 notation.display(target),
                                 implementation.type_name
@@ -324,7 +310,6 @@ impl Inference<'_> {
         self.class_statements.implementations = implementations;
     }
 
-    /// Whether every variant of a class member's type fits the type's member. Functions are compared by kind only.
     fn implements_member_type(&self, actual: TypeId, target: TypeId) -> bool {
         let is_function = |ty: TypeId| {
             self.types

@@ -10,7 +10,6 @@ pub struct Call {
     pub base: NodeId,
     #[child]
     pub arguments: NodeList,
-    /// `base?.(arguments)`: `null` without a call when `base` is `null`.
     pub optional: bool,
 }
 

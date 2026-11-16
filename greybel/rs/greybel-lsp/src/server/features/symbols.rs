@@ -1,15 +1,15 @@
 use gen_lsp_types as lsp;
 
-use super::Server;
+use super::{AnalyzedDocument, Server};
 use crate::error::Result;
-use crate::to_lsp;
+use crate::to_lsp::ToLsp;
 
 impl Server {
     pub(in crate::server) fn document_symbol(
         &mut self,
-        params: &lsp::DocumentSymbolParams,
+        params: lsp::DocumentSymbolParams,
     ) -> Result<Option<lsp::DocumentSymbolResponse>> {
-        let Some(document) = self.document_analysis(&params.text_document.uri)? else {
+        let Some(document) = AnalyzedDocument::of(self, &params.text_document.uri)? else {
             return Ok(None);
         };
 
@@ -18,21 +18,21 @@ impl Server {
                 .analyzer
                 .document_symbols(&document.uri)
                 .iter()
-                .map(to_lsp::document_symbol)
+                .map(ToLsp::to_lsp)
                 .collect(),
         )))
     }
 
     pub(in crate::server) fn workspace_symbol(
         &mut self,
-        params: &lsp::WorkspaceSymbolParams,
-    ) -> lsp::WorkspaceSymbolResponse {
-        lsp::WorkspaceSymbolResponse::WorkspaceSymbolList(
+        params: lsp::WorkspaceSymbolParams,
+    ) -> Result<Option<lsp::WorkspaceSymbolResponse>> {
+        Ok(Some(lsp::WorkspaceSymbolResponse::WorkspaceSymbolList(
             self.analyzer()
                 .workspace_symbols(&params.query)
                 .iter()
-                .map(to_lsp::workspace_symbol)
+                .map(ToLsp::to_lsp)
                 .collect(),
-        )
+        )))
     }
 }

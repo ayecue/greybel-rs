@@ -65,7 +65,9 @@ Injection is useful for static text and data. Changes to an injected file requir
 
 ## Syntax
 
-Greybel accepts `/* ... */` block comments, compound assignment, bitwise operators, single-line loop bodies, trailing commas in list and map literals, and string literals spanning multiple source lines. Grey Hack's lexer rejects those multiline strings, so a build writes each one as a call of a function it defines at the top of the built file, `__MSTR(["first line", "second line"])`, which joins the lines with `char(10)`. A `\r\n` or `\r` in the string becomes a `char(10)` too. Function-reference defaults such as `@name` are also accepted, outside strict mode, though the parameter receives `null`; in the game the same default holds the unevaluated reference (see [Functions](#guide-functions)). Other parameter defaults must remain literals.
+Greybel accepts `/* ... */` block comments, compound assignment, bitwise operators, single-line loop bodies, trailing commas in list and map literals, and string literals spanning multiple source lines. Grey Hack's lexer rejects those multiline strings, so a build writes each one as a call of a function it defines at the top of the built file, `__MSTR(["first line", "second line"])`, which joins the lines with `char(10)`. A `\r\n` or `\r` in the string becomes a `char(10)` too. Outside strict mode, a parameter default can be any expression, such as `function(items = [], count = items.len)`. It is evaluated on each call that omits the argument or passes `null`, and a build writes it as `if @items == null then items = []` at the start of the function. In strict mode defaults must be literals (see [Functions](#guide-functions)).
+
+Further syntax, such as string templates, destructuring, classes and types, is described in [Syntax features](#guide-syntax-features).
 
 Compound assignment supports `+=`, `-=`, `*=`, `/=`, `%=`, and `^=`. It applies the corresponding binary operator and assigns the result to the target.
 

@@ -12,7 +12,7 @@ export function showBuildFailure(error: unknown): void {
   } else if (failure instanceof BuildFailure.Unreachable) {
     vscode.window.showErrorMessage(failure.message);
   } else if (failure instanceof BuildFailure.Unavailable) {
-    vscode.window.showErrorMessage("Importing into Grey Hack isn't available here.");
+    vscode.window.showErrorMessage('Grey Hack import is not available here.');
   } else {
     vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error));
   }

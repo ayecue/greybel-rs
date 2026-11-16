@@ -7,9 +7,6 @@ use crate::model::DocumentIndex;
 use crate::types::TypeId;
 
 impl Inference<'_> {
-    /// Reports, once the types are final: parameters without a type in code or in `@param` and without a default,
-    /// functions without a written return type whose return type is `any` or `unknown`, and variables assigned a value
-    /// of `any` or `unknown` without a written type.
     pub(crate) fn validate_implicit_any(&mut self) {
         let mut reports: Vec<(DocumentIndex, NodeId, String)> = Vec::new();
 
@@ -37,7 +34,7 @@ impl Inference<'_> {
                     reports.push((
                         document,
                         parameter.node,
-                        format!("\"{}\" has no type and is any.", parameter.name),
+                        format!("The type of \"{}\" is implicitly any.", parameter.name),
                     ));
                 }
             }
@@ -50,7 +47,7 @@ impl Inference<'_> {
                 reports.push((
                     document,
                     node,
-                    "The return type is not written and is any.".to_owned(),
+                    "The return type is implicitly any.".to_owned(),
                 ));
             }
         }
@@ -83,7 +80,7 @@ impl Inference<'_> {
                 reports.push((
                     document,
                     assignment.variable,
-                    format!("\"{name}\" has no type and is any."),
+                    format!("The type of \"{name}\" is implicitly any."),
                 ));
             }
         }

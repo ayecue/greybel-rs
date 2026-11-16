@@ -15,39 +15,23 @@ use crate::syntax::{
     Return, Unary, UnaryOp, Unknown,
 };
 
-/// `class Name [extends Base] [implements Type, ...]` with fields (`[static] name = value`) and methods
-/// (`name(parameters)` up to `end function`) up to `end class`. `statements` are what it stands for: `Name = new Base`
-/// (or `{}`), then `Name.member = value` per method and `static` field in order. The constructor (the `constructor`
-/// method) starts with `self.name = value` per field without `static`, so each instance has its own, and returns
-/// `self`; a class with such fields and no constructor gets one. `Name.create(arguments)` is
-/// `(new Name).constructor(arguments)` (or `new Name` without a constructor): each class with a constructor or
-/// without a base gets a `create` with the constructor's parameters, unless it defines one. It creates `new self`,
-/// so a class that inherits `create` creates instances of itself. Builds write `statements`.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct Class {
     #[child]
     pub statements: NodeList,
     pub name: NodeId,
     pub base: Option<NodeId>,
-    /// The type names after `implements`.
     pub implements: Vec<Span>,
-    /// The members as written, without a generated constructor.
     pub members: Vec<ClassMember>,
-    /// The lines of the body as written (members and blank lines), for dev mode.
     pub body: NodeList,
-    /// The written constructor: its function, its body as written and its `return` statements that were written
-    /// without a value, for dev mode.
     pub constructor: Option<WrittenConstructor>,
 }
 
-/// A field or method of a class: its `Name.member = value` statement.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ClassMember {
     pub assignment: NodeId,
     pub private: bool,
-    /// `static name = value`: assigned on the class rather than in the constructor.
     pub is_static: bool,
-    /// Written as `name(parameters)` rather than `name = value`.
     pub method: bool,
 }
 
@@ -55,7 +39,7 @@ pub struct ClassMember {
 pub struct WrittenConstructor {
     pub function: NodeId,
     pub body: NodeList,
-    pub bare_returns: Vec<NodeId>,
+    pub self_returns: Vec<NodeId>,
 }
 
 impl AstNode for Class {
@@ -73,7 +57,6 @@ impl AstNode for Class {
 }
 
 impl Class {
-    /// Parses `class Name [extends Base] [implements Type, ...]` and opens the block of its members.
     pub(crate) fn open(parser: &mut Parser<'_>) -> ParseResult<()> {
         let start = parser.token().span();
 
@@ -154,8 +137,6 @@ impl Class {
         Ok(())
     }
 
-    /// A line of a class body: `name = value` or `name(parameters)` that starts a method, after `private` and
-    /// `static` in any order.
     pub(crate) fn parse_member(parser: &mut Parser<'_>) -> ParseResult<()> {
         let (mut private, mut is_static) = (false, false);
 
@@ -235,7 +216,6 @@ impl Class {
         Ok(())
     }
 
-    /// Reports a line of a class body that isn't a field or method and skips it.
     fn reject_line(parser: &mut Parser<'_>, span: Span) -> ParseResult<()> {
         parser.raise_at(GreybelDiagnostic::ClassMember, span)?;
 
@@ -270,7 +250,6 @@ impl Class {
 
 struct PendingClass {
     node: NodeId,
-    /// `class Name extends Base implements Type`.
     header: Span,
     name: NodeId,
     base: Option<NodeId>,
@@ -279,7 +258,6 @@ struct PendingClass {
     private: FxHashSet<String>,
     statics: FxHashSet<String>,
     methods: FxHashSet<String>,
-    /// The member assignments and blank lines, as the statement loop emits them.
     body: Vec<NodeId>,
 }
 
@@ -295,14 +273,11 @@ impl PendingClass {
         }
     }
 
-    /// Whether a member is an instance field: neither `static` nor a method.
     fn is_instance_field(&self, name: &str) -> bool {
         !self.statics.contains(name) && !self.methods.contains(name)
     }
 
-    /// Whether the class needs a written constructor: it extends another and has instance fields without one, and a
-    /// generated constructor would hide the base's, as it can't pass arguments on.
-    fn needs_constructor(&self, nodes: &NodeStore) -> bool {
+    fn requires_constructor(&self, nodes: &NodeStore) -> bool {
         if self.base.is_none() || self.names.contains(CONSTRUCTOR) {
             return false;
         }
@@ -323,8 +298,6 @@ impl PendingClass {
         identifier
     }
 
-    /// The instance fields' `name = value` statements as `self.name = value`, in the scope of the constructor being
-    /// built or resumed. The statements are reused, so the written names and values are the ones the constructor runs.
     fn instance_assignments(parser: &mut Parser<'_>, fields: &[NodeId], at: u32) -> Vec<NodeId> {
         for &assignment in fields {
             let NodeKind::Assignment(node) = parser.stream.nodes.get(assignment).kind.clone()
@@ -369,8 +342,6 @@ impl PendingClass {
         statement
     }
 
-    /// Adds the instance field assignments to the start of the written constructor, `self` to its `return` statements without a value
-    /// and `return self` to its end.
     fn extend_constructor(
         parser: &mut Parser<'_>,
         function: NodeId,
@@ -386,13 +357,13 @@ impl PendingClass {
 
         let mut body = Self::instance_assignments(parser, fields, start);
         let returns = parser.scope_data_mut().returns.clone();
-        let mut bare_returns = Vec::new();
+        let mut self_returns = Vec::new();
 
         for statement in returns {
             if let NodeKind::Return(Return { argument: None }) =
                 parser.stream.nodes.get(statement).kind
             {
-                bare_returns.push(statement);
+                self_returns.push(statement);
 
                 let at = parser.stream.nodes.get(statement).span.end;
                 let receiver = Self::identifier(parser, SELF, IdentifierKind::Variable, at);
@@ -428,11 +399,10 @@ impl PendingClass {
         WrittenConstructor {
             function,
             body: node.body,
-            bare_returns,
+            self_returns,
         }
     }
 
-    /// `Name.constructor = function` with the instance field assignments and `return self`.
     fn generated_constructor(&self, parser: &mut Parser<'_>, fields: &[NodeId], at: u32) -> NodeId {
         let assignment = parser.alloc(Invalid, Span::empty(at));
         let function = parser.alloc(
@@ -457,7 +427,6 @@ impl PendingClass {
         }
 
         let owner = parser.stream.nodes.clone_subtree(self.name);
-        // The generated member is defined at the class name, where go to definition leads.
         let name_start = parser.stream.nodes.get(self.name).span.start;
         let identifier =
             Self::identifier(parser, CONSTRUCTOR, IdentifierKind::Property, name_start);
@@ -486,8 +455,6 @@ impl PendingClass {
 }
 
 impl PendingClass {
-    /// Copies of the constructor's parameters for `create`, in its scope, and the `@parameter` reads that pass them
-    /// on.
     fn create_parameters(
         parser: &mut Parser<'_>,
         constructor: Option<NodeId>,
@@ -563,9 +530,6 @@ impl PendingClass {
         (parameters, arguments)
     }
 
-    /// `Name.create = function(parameters)` with `return (new self).constructor(@parameter, ...)`, or `return new
-    /// self` without a constructor. The parameters are copies of the constructor's, defaults included; the reads of
-    /// them have the spans of the parameters, so references see one place.
     fn create(&self, parser: &mut Parser<'_>, constructor: Option<NodeId>, at: u32) -> NodeId {
         let assignment = parser.alloc(Invalid, Span::empty(at));
         let function = parser.alloc(
@@ -635,7 +599,6 @@ impl PendingClass {
         }
 
         let owner = parser.stream.nodes.clone_subtree(self.name);
-        // The generated member is defined at the class name, where go to definition leads.
         let name_start = parser.stream.nodes.get(self.name).span.start;
         let identifier = Self::identifier(parser, CREATE, IdentifierKind::Property, name_start);
         let variable = parser.alloc(
@@ -663,7 +626,6 @@ impl PendingClass {
 }
 
 impl PendingClass {
-    /// `Name = new Base`, or `Name = {}` without a base.
     fn head(&self, parser: &mut Parser<'_>) -> NodeId {
         let header = self.header;
         let init = match self.base {
@@ -745,7 +707,6 @@ impl PendingBlock for PendingClass {
             }
 
             let at = parser.stream.nodes.get(node.variable).span;
-            // The copy of the name has its span, so references and renames of the class see one place.
             let owner = parser.stream.nodes.clone_subtree(self.name);
             let target = parser.alloc(
                 Member {
@@ -826,17 +787,17 @@ impl KeywordStatement for EndClassRule {
 
     fn parse(&self, parser: &mut Parser<'_>, _keyword: Keyword) -> ParseResult<()> {
         parser.parse_block_end(|parser| {
-            let Some((node, needs_constructor)) = parser
+            let Some((node, requires_constructor)) = parser
                 .stream
                 .blocks
                 .top_mut_as::<PendingClass>()
-                .map(|class| (class.node, class.needs_constructor(&parser.stream.nodes)))
+                .map(|class| (class.node, class.requires_constructor(&parser.stream.nodes)))
             else {
                 return parser.raise_without_starter(Keyword::EndClass.as_str());
             };
             let end = parser.prev().span();
 
-            if needs_constructor {
+            if requires_constructor {
                 let span = parser.stream.nodes.get(node).span.start;
 
                 parser.report_at(
@@ -854,7 +815,6 @@ impl KeywordStatement for EndClassRule {
 }
 
 impl Parser<'_> {
-    /// Whether the open block is a class body, where lines are fields and methods.
     #[must_use]
     pub(crate) fn is_in_class(&self) -> bool {
         self.stream.blocks.top_is::<PendingClass>()

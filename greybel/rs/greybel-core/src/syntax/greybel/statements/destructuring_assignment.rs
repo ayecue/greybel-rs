@@ -11,8 +11,6 @@ use crate::syntax::{
     UnaryOp,
 };
 
-/// `[user, host] = expr` or `{name, port as p, timeout = 30} = expr`. `statements` are the assignments it stands
-/// for (`__d0 = expr`, `user = @__d0[0]`, ...); builds write them.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct DestructuringAssignment {
     #[child]
@@ -58,10 +56,8 @@ pub(crate) struct MapElement {
 }
 
 impl DestructuringAssignment {
-    /// Prefix of the temporaries that store the destructured values, followed by the nesting depth.
     pub const TEMPORARY_PREFIX: &'static str = "__d";
 
-    /// Whether the statement at `start` is `[...]` or `{...}` followed by `=` (not `==`) on the same line.
     #[must_use]
     pub fn is_at(source: &str, start: u32) -> bool {
         let bytes = source.as_bytes();
@@ -209,7 +205,6 @@ impl DestructuringAssignment {
         Ok(Some(parser.parse_expr(None)?))
     }
 
-    /// Whether the word after the current token is `word`.
     fn is_word_after(parser: &Parser<'_>, word: &str) -> bool {
         let after = &parser.source()[parser.token().span().end as usize..];
         let after = after.trim_start_matches([' ', '\t']);
@@ -220,7 +215,6 @@ impl DestructuringAssignment {
     }
 }
 
-/// Builds the statements a destructuring target stands for.
 pub(crate) struct DestructuringExpansion<'p, 'src> {
     parser: &'p mut Parser<'src>,
     statements: Vec<NodeId>,
@@ -229,8 +223,6 @@ pub(crate) struct DestructuringExpansion<'p, 'src> {
 }
 
 impl<'p, 'src> DestructuringExpansion<'p, 'src> {
-    /// The statements that assign the parts of `value` to the names of `target`; synthesized nodes get an empty
-    /// span at `origin`.
     pub(crate) fn expand(
         parser: &'p mut Parser<'src>,
         target: &DestructuringTarget,
@@ -244,12 +236,12 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
             origin,
         };
 
-        expansion.lower(target, value)?;
+        expansion.eval(target, value)?;
 
         Ok(expansion.statements)
     }
 
-    fn lower(&mut self, target: &DestructuringTarget, value: NodeId) -> ParseResult<()> {
+    fn eval(&mut self, target: &DestructuringTarget, value: NodeId) -> ParseResult<()> {
         let base = if matches!(
             self.parser.stream.nodes.get(value).kind,
             NodeKind::Identifier(_)
@@ -268,7 +260,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
         match target {
             DestructuringTarget::List(elements) => {
                 for (position, element) in elements.iter().enumerate() {
-                    let read = self.list_read(base, position, element);
+                    let value = self.list_element(base, position, element);
                     let present = element.default.map(|_| {
                         let base = self.copy(base);
                         let length = self.member(base, "len");
@@ -286,7 +278,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
 
                     self.bind(
                         &element.target,
-                        read,
+                        value,
                         element.default,
                         present,
                         element.span,
@@ -297,7 +289,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
                 for element in elements {
                     let base_copy = self.copy(base);
                     let key = self.parser.stream.nodes.clone_subtree(element.key);
-                    let read = self.parser.alloc(
+                    let entry = self.parser.alloc(
                         Member {
                             base: base_copy,
                             identifier: key,
@@ -305,7 +297,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
                         },
                         element.span,
                     );
-                    let read = self.reference(read, element.span);
+                    let value = self.reference(entry, element.span);
                     let present = element.default.map(|_| {
                         let base = self.copy(base);
                         let has_index = self.member(base, "hasIndex");
@@ -331,7 +323,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
 
                     self.bind(
                         &element.target,
-                        read,
+                        value,
                         element.default,
                         present,
                         element.span,
@@ -343,12 +335,10 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
         Ok(())
     }
 
-    /// Assigns `read` to `target`; with a default, `if present and read != null then target = read else
-    /// target = default`.
     fn bind(
         &mut self,
         target: &Target,
-        read: NodeId,
+        value: NodeId,
         default: Option<NodeId>,
         present: Option<NodeId>,
         span: Span,
@@ -357,7 +347,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
             Target::Name(name) => *name,
             Target::Inner(target) => {
                 self.depth += 1;
-                self.lower(target, read)?;
+                self.eval(target, value)?;
                 self.depth -= 1;
 
                 return Ok(());
@@ -365,14 +355,14 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
         };
 
         let (Some(default), Some(present)) = (default, present) else {
-            let assignment = self.assignment(name, read, span);
+            let assignment = self.assignment(name, value, span);
 
             self.statements.push(assignment);
 
             return Ok(());
         };
 
-        let read_copy = self.parser.stream.nodes.clone_subtree(read);
+        let value_copy = self.parser.stream.nodes.clone_subtree(value);
         let null = self.parser.alloc(
             Literal {
                 value: LiteralValue::Nil,
@@ -383,7 +373,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
         let not_null = self.parser.alloc(
             Binary {
                 operator: BinaryOp::NotEqual,
-                left: read_copy,
+                left: value_copy,
                 right: null,
             },
             span,
@@ -397,9 +387,9 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
             span,
         );
         let fallback_name = self.parser.stream.nodes.clone_subtree(name);
-        let assign_read = self.assignment(name, read, span);
+        let assign_value = self.assignment(name, value, span);
         let assign_default = self.assignment(fallback_name, default, span);
-        let then_body = self.parser.stream.nodes.push_list(&[assign_read]);
+        let then_body = self.parser.stream.nodes.push_list(&[assign_value]);
         let else_body = self.parser.stream.nodes.push_list(&[assign_default]);
         let clause = self.parser.alloc(
             IfClause {
@@ -447,12 +437,11 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
         assignment
     }
 
-    /// `@read`, so a function value isn't called.
-    fn reference(&mut self, read: NodeId, span: Span) -> NodeId {
+    fn reference(&mut self, argument: NodeId, span: Span) -> NodeId {
         self.parser.alloc(
             Unary {
                 operator: UnaryOp::AddressOf,
-                argument: read,
+                argument,
             },
             span,
         )
@@ -479,8 +468,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
         identifier
     }
 
-    /// `@base[position]`, or `base[position:]` for `...name`.
-    fn list_read(&mut self, base: NodeId, position: usize, element: &ListElement) -> NodeId {
+    fn list_element(&mut self, base: NodeId, position: usize, element: &ListElement) -> NodeId {
         let base = self.copy(base);
         let left = self.number(position);
 
@@ -498,7 +486,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
             );
         }
 
-        let read = self.parser.alloc(
+        let index = self.parser.alloc(
             Index {
                 base,
                 index: left,
@@ -508,7 +496,7 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
             element.span,
         );
 
-        self.reference(read, element.span)
+        self.reference(index, element.span)
     }
 
     fn copy(&mut self, node: NodeId) -> NodeId {
@@ -548,7 +536,6 @@ impl<'p, 'src> DestructuringExpansion<'p, 'src> {
         )
     }
 
-    /// The empty span synthesized nodes get, at the statement start.
     fn at(&self) -> Span {
         Span::empty(self.origin)
     }

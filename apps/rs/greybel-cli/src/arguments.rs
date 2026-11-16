@@ -27,7 +27,7 @@ const LONG_NAMES: &[(&str, &str)] = &[
     ("-pg", "--program-name"),
 ];
 
-/// Converts greybel-js short options in `arguments` to long names, leaving arguments after `--` unchanged.
+/// Converts greybel-js short options in `arguments` to long names; arguments after `--` stay unchanged.
 pub fn with_long_names(arguments: impl IntoIterator<Item = OsString>) -> Vec<OsString> {
     let mut options = true;
 

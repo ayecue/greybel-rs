@@ -271,12 +271,9 @@ pub struct Compiler<'g> {
     included_native_imports: FxHashSet<ModuleId>,
     strings: FxHashSet<Rc<str>>,
     texts: FxHashMap<Rc<str>, Text>,
-    /// Optional chains being compiled, innermost last.
     chains: Vec<OptionalChain>,
 }
 
-/// A chain with `?.` links (`a?.b.c`): a link whose base is `null` jumps to `end` with that `null` as the chain's
-/// value.
 struct OptionalChain {
     end: Label,
     links: Vec<NodeId>,
@@ -593,7 +590,7 @@ impl<'g> Compiler<'g> {
             let line = self.location(node).line;
 
             self.warnings.push(format!(
-                "Found circular dependency between \"{}\" and \"{}\" at line {line}. Using noop instead to prevent overflow.",
+                "Circular dependency between \"{}\" and \"{}\" at line {line}; the import uses noop to prevent overflow.",
                 self.graph.module(self.module()).uri.label(),
                 self.graph.module(target).uri.label(),
             ));

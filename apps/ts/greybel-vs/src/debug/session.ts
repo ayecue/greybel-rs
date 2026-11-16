@@ -411,7 +411,7 @@ export class RuntimeDebugSession extends LoggingDebugSession {
   private async params(config: Configuration, project: Project): Promise<readonly string[]> {
     if (config.get('interpreter.useDefaultArgs')) return project.manifest.run.params;
 
-    const text = await vscode.window.showInputBox({ title: 'Enter execution parameters', ignoreFocusOut: true });
+    const text = await vscode.window.showInputBox({ title: 'Enter program arguments', ignoreFocusOut: true });
 
     return text && text.length > 0 ? text.split(' ') : [];
   }
@@ -435,16 +435,16 @@ export class RuntimeDebugSession extends LoggingDebugSession {
       message = failure.message;
       location = failure.location ?? undefined;
     } else if (failure instanceof LaunchFailure.Unavailable) {
-      message = "Running in Grey Hack isn't available here.";
+      message = 'Grey Hack execution is not available here.';
     } else if (failure instanceof LaunchFailure.Unreachable) {
       message = failure.message;
     } else if (failure instanceof LaunchFailure.Busy) {
-      message = 'A program already runs in this session.';
+      message = 'A program is already active in this session.';
     } else {
       message = error instanceof Error ? error.message : String(error);
     }
 
-    this.#connection.page.printError(`Couldn't start: ${message}`);
+    this.#connection.page.printError(`Could not start the program: ${message}`);
     if (config.get('interpreter.silenceErrorPopups')) return;
     showError(message, location);
   }
@@ -468,7 +468,7 @@ function evaluationMessage(error: unknown): string {
   const failure = error instanceof ChannelError ? error.failure : undefined;
 
   if (failure instanceof EvaluationFailure.CodeError) return failure.message;
-  if (failure instanceof EvaluationFailure.ActiveProgram) return 'The program runs: pause it to evaluate code.';
+  if (failure instanceof EvaluationFailure.ActiveProgram) return 'Pause the program before evaluation.';
 
   return String(error);
 }

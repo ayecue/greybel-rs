@@ -27,8 +27,10 @@ impl fmt::Display for LaunchFailure {
             Self::Invalid { message, .. } | Self::Unreachable { message } => {
                 formatter.write_str(message)
             }
-            Self::Unavailable => formatter.write_str("Grey Hack can't be reached from here."),
-            Self::Busy => formatter.write_str("A program runs already."),
+            Self::Unavailable => {
+                formatter.write_str("Grey Hack is not available in this environment.")
+            }
+            Self::Busy => formatter.write_str("A program is already active."),
         }
     }
 }
@@ -46,7 +48,9 @@ impl fmt::Display for EvaluationFailure {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::CodeError { message } => formatter.write_str(message),
-            Self::ActiveProgram => formatter.write_str("The program isn't stopped."),
+            Self::ActiveProgram => {
+                formatter.write_str("Pause the program before inspection or evaluation.")
+            }
         }
     }
 }

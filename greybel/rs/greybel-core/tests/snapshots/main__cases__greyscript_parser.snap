@@ -173,7 +173,7 @@ expression: parsed
     errors:
       - code: 3001
         hint: ~
-        message: expected import_code to have opening parenthesis
+        message: "expected '(' after import_code"
         range:
           - - 1
             - 1
@@ -203,7 +203,7 @@ expression: parsed
     errors:
       - code: 3001
         hint: ~
-        message: expected import_code argument to be string literal
+        message: expected a string literal as the import_code argument
         range:
           - - 1
             - 1

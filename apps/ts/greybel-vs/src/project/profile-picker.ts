@@ -13,7 +13,7 @@ export function activate(context: ExtensionContext, projects: ProjectReader): vo
 
   item.name = 'Greybel profile';
   item.command = 'greybel.selectProfile';
-  item.tooltip = 'The profile of greybel.json that builds and runs use';
+  item.tooltip = 'The greybel.json profile used by builds and runs';
 
   const show = () => {
     const document = vscode.window.activeTextEditor?.document;
@@ -50,7 +50,7 @@ export function activate(context: ExtensionContext, projects: ProjectReader): vo
 
       const choice = await vscode.window.showQuickPick([BASE, ...profiles], {
         placeHolder: profileOf(document) ?? BASE,
-        title: 'The profile builds and runs use'
+        title: 'Profile used by builds and runs'
       });
 
       if (choice === undefined) return;

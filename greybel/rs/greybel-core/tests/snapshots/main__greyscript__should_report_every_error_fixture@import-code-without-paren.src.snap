@@ -4,8 +4,8 @@ expression: "render_invalid(&read(path), &ParserOptions::new(Dialect::GreyScript
 input_file: greybel-core/tests/fixtures/greyscript/errors/import-code-without-paren.src
 ---
 --- strict
-1:1 - 1:20 ExpectedToken(3001): expected import_code to have opening parenthesis
+1:1 - 1:20 ExpectedToken(3001): expected '(' after import_code
 --- tree
 Chunk[1:1-2:1][]
 --- errors
-1:1 - 1:20 ExpectedToken(3001): expected import_code to have opening parenthesis
+1:1 - 1:20 ExpectedToken(3001): expected '(' after import_code

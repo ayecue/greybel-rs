@@ -29,8 +29,6 @@ impl NumericLiteral {
         Self::value_of(self.raw(source))
     }
 
-    /// The value of a number literal's text: decimal, or with the `0x`/`0o`/`0b` prefixes and `_` separators that
-    /// Greybel accepts.
     #[must_use]
     #[allow(clippy::cast_precision_loss)]
     pub fn value_of(raw: &str) -> f64 {
@@ -58,7 +56,6 @@ impl NumericLiteral {
             .expect("the lexer only accepts numbers in the shape `str::parse` reads")
     }
 
-    /// Whether `raw` is written the way MiniScript reads numbers, without Greybel's prefixes and separators.
     #[must_use]
     pub fn is_plain(raw: &str) -> bool {
         !raw.bytes().any(|byte| {
@@ -194,7 +191,6 @@ impl<'src> Lexer<'src> {
 }
 
 impl Lexer<'_> {
-    /// 16, 8 or 2 when the cursor is at `0x`, `0o` or `0b`.
     fn radix_prefix(&self, stream: &TokenStream) -> Option<u32> {
         if self.code_at(stream, 0) != b'0' {
             return None;
@@ -208,7 +204,6 @@ impl Lexer<'_> {
         }
     }
 
-    /// `0x` or `0b` and their digits, with `_` only between digits.
     fn scan_radix_number(
         &self,
         stream: &mut TokenStream,

@@ -177,7 +177,7 @@ fn should_build_with_the_settings_of_a_profile() {
     assert!(
         missing
             .stderr()
-            .contains("the project has no profile `staging`"),
+            .contains("the project has no profile \"staging\""),
         "{missing:?}"
     );
 }

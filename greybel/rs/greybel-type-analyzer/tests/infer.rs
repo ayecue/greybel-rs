@@ -457,6 +457,18 @@ fn should_narrow_the_subject_of_switch_cases() {
 }
 
 #[test]
+fn should_narrow_the_subject_of_union_type_cases() {
+    let source = "x = 1\nif rnd then x = \"s\"\nif rnd then x = [1]\nswitch x\n  case is string | number\n    a = x\n  else\n    b = x\nend switch";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let types = crate::support::globals_in(&workspace, PATH, &["a", "b"]);
+    let diagnostics = Analyzer::new(&workspace).diagnostics(&uri(PATH));
+
+    assert_eq!(types, ["number or string", "list<number>"]);
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+}
+
+#[test]
 fn should_hover_the_name_and_its_type() {
     let workspace = with_document(
         Dialect::GreyScript,
@@ -1049,6 +1061,15 @@ fn should_narrow_the_argument_of_a_type_guard() {
 }
 
 #[test]
+fn should_display_the_guarded_type_like_other_types() {
+    let source = "isValue = function(value): value is string | number\n  return value isa string or value isa number\nend function";
+
+    let types = globals(Dialect::Greybel, source, &["isValue"]);
+
+    assert_eq!(types, ["function(value: any): value is number or string"]);
+}
+
+#[test]
 fn should_report_switch_cases_missing_for_an_enum_type() {
     let source = "enum Protocol\n  Tcp = \"tcp\"\n  Udp = \"udp\"\n  Icmp = \"icmp\"\nend enum\nshow = function(protocol: Protocol)\n  switch protocol\n    case \"tcp\"\n      print 1\n    case Protocol.Udp, \"udp\"\n      print 2\n  end switch\nend function";
     let workspace = with_document(Dialect::Greybel, source);
@@ -1087,7 +1108,10 @@ fn should_report_readonly_assignments_and_skip_optional_members_of_implemented_t
     let readonly = messages_of_kind(&workspace, DiagnosticKind::ReadonlyMember);
     let implementations = messages_of_kind(&workspace, DiagnosticKind::MissingImplementation);
 
-    assert_eq!(readonly, owned(&[(6, "\"id\" is readonly in Options.")]));
+    assert_eq!(
+        readonly,
+        owned(&[(6, "\"id\" is readonly in \"Options\".")])
+    );
     assert_eq!(implementations, owned(&[]));
 }
 

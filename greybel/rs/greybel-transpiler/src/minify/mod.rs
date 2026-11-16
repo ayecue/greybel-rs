@@ -9,7 +9,7 @@ use literals::LiteralTable;
 
 use crate::bundle::{MULTILINE_STRING, RUNTIME_NAMES};
 use crate::emit::LineBreakStyle;
-use crate::names::{NameTable, variable_charset};
+use crate::names::{Charset, NameTable};
 use crate::options::TranspileOptions;
 
 const RESERVED_NAMES: &[&str] = &[
@@ -31,9 +31,12 @@ impl Minification {
             .chain(KEYWORDS.iter().map(|keyword| keyword.as_str()))
             .chain([Keyword::End.as_str()])
             .chain(options.excluded_names.iter().map(String::as_str));
-        let names: Vec<&str> = asts.iter().flat_map(|ast| variable_names(ast)).collect();
+        let names: Vec<&str> = asts
+            .iter()
+            .flat_map(|ast| Self::variable_names(ast))
+            .collect();
         let mut variables = NameTable::with_capacity(
-            variable_charset(options.obfuscation),
+            Charset::variables(options.obfuscation).chars(),
             RUNTIME_NAMES.len() + names.len(),
         )
         .forbid(forbidden);
@@ -77,28 +80,28 @@ impl Minification {
     ) -> impl Iterator<Item = (&'a str, String)> {
         self.literals.hoisted_entries(line_breaks)
     }
-}
 
-fn variable_names(ast: &Ast) -> impl Iterator<Item = &str> {
-    let scopes = std::iter::once(ast.scope()).chain(ast.scopes.iter().filter_map(|&scope| {
-        ast.kind(scope)
-            .as_node()
-            .as_scope()
-            .map(|scope| scope.scope())
-    }));
-    let mut atom_flags = vec![false; ast.nodes().atoms().len()];
+    fn variable_names(ast: &Ast) -> impl Iterator<Item = &str> {
+        let scopes = std::iter::once(ast.scope()).chain(ast.scopes.iter().filter_map(|&scope| {
+            ast.kind(scope)
+                .as_node()
+                .as_scope()
+                .map(|scope| scope.scope())
+        }));
+        let mut atom_flags = vec![false; ast.nodes().atoms().len()];
 
-    scopes
-        .flat_map(|scope| ast.list(scope.namespaces).iter().copied())
-        .filter_map(|id| identifier_atom(ast, id))
-        .filter(move |atom| !std::mem::replace(&mut atom_flags[atom.index()], true))
-        .map(|atom| ast.resolve(atom))
-}
+        scopes
+            .flat_map(|scope| ast.list(scope.namespaces).iter().copied())
+            .filter_map(|id| Self::identifier_atom(ast, id))
+            .filter(move |atom| !std::mem::replace(&mut atom_flags[atom.index()], true))
+            .map(|atom| ast.resolve(atom))
+    }
 
-fn identifier_atom(ast: &Ast, id: NodeId) -> Option<Atom> {
-    match ast.kind(id) {
-        NodeKind::Identifier(identifier) => Some(identifier.name),
-        NodeKind::Member(member) => identifier_atom(ast, member.identifier),
-        _ => None,
+    fn identifier_atom(ast: &Ast, id: NodeId) -> Option<Atom> {
+        match ast.kind(id) {
+            NodeKind::Identifier(identifier) => Some(identifier.name),
+            NodeKind::Member(member) => Self::identifier_atom(ast, member.identifier),
+            _ => None,
+        }
     }
 }

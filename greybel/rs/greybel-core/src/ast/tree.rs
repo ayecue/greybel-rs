@@ -20,8 +20,6 @@ pub struct Ast {
     pub scopes: Vec<NodeId>,
     line_items: Vec<NodeId>,
     nodes_by_line: OnceLock<NodesByLine>,
-    /// Per node, the source its subtree covers: its span joined with its children's. Differs from the span for nodes
-    /// that build statements contain written elsewhere, such as the field assignments of a class constructor.
     extents: OnceLock<Vec<Span>>,
     source: Arc<str>,
     lines: Arc<OnceLock<LineIndex>>,
@@ -30,9 +28,7 @@ pub struct Ast {
     pub injects: Vec<NodeId>,
     pub native_imports: Vec<NodeId>,
     pub debuggers: Vec<NodeId>,
-    /// The statements builds write for expressions GreyScript has no syntax for.
     pub expansions: ValueExpansions,
-    /// The types written in code.
     pub type_syntax: TypeSyntax,
 }
 
@@ -211,7 +207,6 @@ impl Ast {
                 continue;
             }
 
-            // A node written here can sit below a node written elsewhere, such as a class field in the constructor.
             if !self.push_descendant_at(current, offset, &mut path) {
                 return path;
             }
@@ -220,8 +215,6 @@ impl Ast {
         }
     }
 
-    /// Pushes the path from `id` down to a descendant whose span contains `offset`, through children whose extent
-    /// contains it.
     fn push_descendant_at(&self, id: NodeId, offset: u32, path: &mut Vec<NodeId>) -> bool {
         for child in self.nodes.children(id) {
             let extent = self.extent(child);
@@ -246,7 +239,6 @@ impl Ast {
         false
     }
 
-    /// The source the subtree of `id` covers.
     fn extent(&self, id: NodeId) -> Span {
         let extents = self.extents.get_or_init(|| {
             let mut extents = vec![Span::default(); self.nodes.len()];

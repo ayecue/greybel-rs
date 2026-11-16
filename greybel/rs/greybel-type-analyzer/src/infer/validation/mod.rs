@@ -16,7 +16,7 @@ use greybel_symbols::names::SELF;
 use rustc_hash::FxHashSet;
 
 pub(crate) use self::class::ClassTable;
-pub(crate) use self::operation::{Evaluation, Operand, binary_evaluation};
+pub(crate) use self::operation::{Evaluation, Operand};
 use crate::diagnostic::{Diagnostic, DiagnosticKind};
 use crate::infer::Inference;
 use crate::infer::generic::Evidence;
@@ -86,7 +86,6 @@ impl Inference<'_> {
         match (actual, target) {
             (Type::Class(actual), Type::Class(target)) => self.api.inherits(actual, target),
             (Type::Literal(actual), Type::Literal(target)) => actual == target,
-            // A literal value is inferred as `string` or `number`, so these fit literal types of their kind.
             (
                 Type::Literal(LiteralType::Number(_)) | Type::Number,
                 Type::Literal(LiteralType::Number(_)) | Type::Number,
@@ -131,7 +130,7 @@ impl Inference<'_> {
                 DiagnosticKind::CallOfNonCallable,
                 node,
                 vec![
-                    MessagePart::Text("Cannot call non-callable type ".into()),
+                    MessagePart::Text("Cannot call a value of type ".into()),
                     MessagePart::Type(callee),
                     MessagePart::Text(".".into()),
                 ],
@@ -162,7 +161,7 @@ impl Inference<'_> {
                 DiagnosticKind::CallArityMismatch,
                 node,
                 format!(
-                    "Call expected at most {max_parameters} arguments but got {}.",
+                    "Expected at most {max_parameters} arguments but got {}.",
                     arguments.len()
                 ),
             );
@@ -175,8 +174,6 @@ impl Inference<'_> {
         }
     }
 
-    /// Checks the arguments against the annotated parameter types; a literal argument is checked by its value
-    /// against a parameter type with literal types.
     fn validate_arguments(
         &mut self,
         node: NodeId,
@@ -289,7 +286,7 @@ impl Inference<'_> {
                 DiagnosticKind::IndexOfNonIndexable,
                 node,
                 vec![
-                    MessagePart::Text("Cannot index non-indexable type ".into()),
+                    MessagePart::Text("Cannot index a value of type ".into()),
                     MessagePart::Type(base),
                     MessagePart::Text(".".into()),
                 ],
@@ -320,7 +317,6 @@ impl Inference<'_> {
         }
     }
 
-    /// Reports a `let name: T = value` whose value doesn't fit `T`.
     pub(crate) fn validate_declared_type(
         &mut self,
         variable: NodeId,
@@ -402,7 +398,7 @@ impl Inference<'_> {
             self.report(
                 DiagnosticKind::NativeOverride,
                 node,
-                format!("Assigning \"{name}\" replaces the native function of that name."),
+                format!("Assignment to \"{name}\" replaces the native function of that name."),
             );
         }
     }

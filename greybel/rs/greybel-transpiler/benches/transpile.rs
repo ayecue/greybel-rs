@@ -5,9 +5,7 @@ use std::path::Path;
 
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
 use greybel_transpiler::documents::Uri;
-use greybel_transpiler::{
-    BeautifyOptions, BuildMode, TranspileOptions, UglifyOptions, parse, transpile,
-};
+use greybel_transpiler::{BeautifyOptions, BuildMode, TranspileOptions, Transpiler, UglifyOptions};
 
 const CORPUS: &[&str] = &[
     "superstartrek.ms",
@@ -50,15 +48,19 @@ fn bench(c: &mut Criterion) {
         };
 
         for source in &files {
-            transpile(source, &options).expect("corpus transpiles");
+            Transpiler::new(&options)
+                .transpile(source)
+                .expect("corpus transpiles");
         }
 
         group.bench_function(name, |b| {
             b.iter(|| {
                 for source in &files {
                     match mode {
-                        None => drop(black_box(parse(&Uri::memory("x"), source, &options))),
-                        Some(_) => drop(black_box(transpile(source, &options))),
+                        None => drop(black_box(
+                            Transpiler::new(&options).parse(&Uri::memory("x"), source),
+                        )),
+                        Some(_) => drop(black_box(Transpiler::new(&options).transpile(source))),
                     }
                 }
             });

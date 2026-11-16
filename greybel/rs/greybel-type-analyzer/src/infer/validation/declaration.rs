@@ -7,7 +7,6 @@ use crate::diagnostic::DiagnosticKind;
 use crate::infer::Inference;
 use crate::model::{DocumentIndex, Site, SlotId};
 
-/// An assignment statement to a name.
 struct NamedAssignment {
     site: Site,
     slot: SlotId,
@@ -15,8 +14,6 @@ struct NamedAssignment {
 }
 
 impl Inference<'_> {
-    /// Reports assignments to `const` variables, a second `let` or `const` for one variable, and (`missing-let`, off
-    /// by default) the first assignment to a variable without `let` or `const`.
     pub(crate) fn validate_declarations(&mut self) {
         let assignments = self.named_assignments();
         let mut declarations: IndexMap<SlotId, Vec<(Site, Declaration)>> = IndexMap::new();
@@ -112,10 +109,9 @@ impl Inference<'_> {
                     node: variable,
                 };
 
-                let temporary = document
-                    .ast
-                    .name(variable)
-                    .is_some_and(|name| name.starts_with(DestructuringAssignment::TEMPORARY_PREFIX));
+                let temporary = document.ast.name(variable).is_some_and(|name| {
+                    name.starts_with(DestructuringAssignment::TEMPORARY_PREFIX)
+                });
 
                 if !temporary && let &[slot] = self.references.slots(site) {
                     assignments.push(NamedAssignment {
@@ -130,7 +126,6 @@ impl Inference<'_> {
         assignments
     }
 
-    /// The variables and declarations of the assignment statements to names under `node`.
     fn statement_assignments(
         ast: &Ast,
         node: NodeId,

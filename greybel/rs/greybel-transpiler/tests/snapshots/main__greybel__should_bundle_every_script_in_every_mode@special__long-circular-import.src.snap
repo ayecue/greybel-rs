@@ -4,10 +4,10 @@ expression: out
 input_file: greybel-transpiler/tests/fixtures/greybel/special/long-circular-import.src
 ---
 === default
-error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src detected.
+error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src.
 === uglify
-error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src detected.
+error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src.
 === beautify
-error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src detected.
+error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src.
 === beautify, dev mode, keep parentheses, 10 spaces
-error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src detected.
+error: Circular dependency from dependencies/long-circular-import-3.src to dependencies/long-circular-import-1.src.

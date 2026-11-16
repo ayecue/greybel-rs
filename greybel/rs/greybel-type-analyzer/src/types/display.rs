@@ -61,7 +61,9 @@ impl<'a> TypeNotation<'a> {
     fn format_signature_type(self, ty: SignatureType<'_>) -> String {
         match ty {
             SignatureType::Value(ty) => self.display(ty).to_string(),
-            SignatureType::Guard(guard) => guard.to_string(),
+            SignatureType::Guard { parameter, ty } => {
+                format!("{parameter} is {}", self.display(ty))
+            }
             SignatureType::Api(types) => {
                 let types: Vec<String> = types.iter().map(ToString::to_string).collect();
 

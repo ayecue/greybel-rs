@@ -3,7 +3,7 @@
 use greybel_core::{Dialect, SyntaxFeatures};
 use greybel_documents::{AsyncResourceProvider, Uri};
 use greybel_source_map::SourceMap;
-use greybel_transpiler::{TranspileOptions, transpile_project_async};
+use greybel_transpiler::{TranspileOptions, Transpiler};
 use greyhack_behaviour::{Import, put_imports};
 use greyscript_intrinsics::ProgramBinary;
 
@@ -40,7 +40,8 @@ pub(crate) async fn build(
         retain_debugger,
         ..TranspileOptions::default()
     };
-    let mut outputs = transpile_project_async(&entry, provider, &options)
+    let mut outputs = Transpiler::new(&options)
+        .transpile_project_async(&entry, provider)
         .await
         .map_err(|error| LaunchFailure::invalid(error.to_string()))?
         .into_iter();

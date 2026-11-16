@@ -4,11 +4,11 @@ expression: rendered
 input_file: greybel-core/tests/fixtures/greybel/errors/type-statements.src
 ---
 --- strict
-2:7 - 2:13 UnexpectedToken(2001): a type body has members (name: type) and methods (name(parameters): type) only
+2:7 - 2:13 UnexpectedToken(2001): a type body can only contain members (name: type) and methods (name(parameters): type)
 --- tree
 Chunk[1:1-4:1][
 	CallStatment[2:2-2:13][CallExpression[2:2-2:13][Identifier[2:2-2:6][name](Identifier[2:7-2:13][string])]]
 	Literal[3:2-3:3][1]
 ]
 --- errors
-2:7 - 2:13 UnexpectedToken(2001): a type body has members (name: type) and methods (name(parameters): type) only
+2:7 - 2:13 UnexpectedToken(2001): a type body can only contain members (name: type) and methods (name(parameters): type)

@@ -102,7 +102,6 @@ impl Parser<'_> {
         Ok(left)
     }
 
-    /// `as` after an expression, with types on: `expression as T`.
     fn is_at_as_type(&self) -> bool {
         self.grammar().allows(SyntaxFeatures::TYPES)
             && self

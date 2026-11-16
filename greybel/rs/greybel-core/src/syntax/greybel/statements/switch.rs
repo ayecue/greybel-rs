@@ -6,14 +6,12 @@ use crate::error::ParseResult;
 use crate::lexer::{Keyword, Punct};
 use crate::parser::{Expect, KeywordStatement, Parser, PendingBlock};
 use crate::position::Span;
+use crate::syntax::greybel::operators::{Bitwise, BitwiseOp};
 use crate::syntax::{
     Assignment, Binary, BinaryOp, ElseClause, Identifier, IdentifierKind, If, IfClause,
     IfClauseKind, Isa, Logical, LogicalOp, Unary, UnaryOp,
 };
 
-/// `switch subject` with `case value, ...` and `else` clauses up to `end switch`. `statements` are the
-/// `__s = @subject` and `if __s == value or ... then` chain it stands for; builds write them. `cases` and
-/// `fallback` are the clauses as written, for dev mode.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct Switch {
     #[child]
@@ -23,7 +21,6 @@ pub struct Switch {
     pub fallback: Option<NodeList>,
 }
 
-/// `case "a", "b"` or `case is Dog`, with its body.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SwitchCase {
     pub values: Vec<NodeId>,
@@ -47,10 +44,8 @@ impl AstNode for Switch {
 }
 
 impl Switch {
-    /// Name of the temporary that stores the subject when it isn't a variable.
     pub const SUBJECT: &'static str = "__s";
 
-    /// Parses `switch subject` and opens the block of its clauses.
     pub(crate) fn open(parser: &mut Parser<'_>) -> ParseResult<()> {
         let start = parser.token().span();
 
@@ -79,7 +74,6 @@ impl Switch {
         Ok(())
     }
 
-    /// `case value, ...` or `case is Type` inside a switch: starts the next clause.
     pub(crate) fn parse_case(parser: &mut Parser<'_>) -> ParseResult<()> {
         let start = parser.token().span();
 
@@ -100,6 +94,13 @@ impl Switch {
             values.push(parser.parse_expr(None)?);
         }
 
+        if type_case {
+            values = values
+                .into_iter()
+                .flat_map(|value| Self::union_members(&parser.stream.nodes, value))
+                .collect();
+        }
+
         let span = parser.span_from(&start);
 
         Self::require_clause_start(parser, start)?;
@@ -111,7 +112,23 @@ impl Switch {
         Ok(())
     }
 
-    /// `else` inside a switch: starts the clause for values no case matches.
+    fn union_members(nodes: &NodeStore, value: NodeId) -> Vec<NodeId> {
+        match &nodes.get(value).kind {
+            NodeKind::Bitwise(Bitwise {
+                operator: BitwiseOp::Or,
+                left,
+                right,
+            }) => {
+                let mut members = Self::union_members(nodes, *left);
+
+                members.extend(Self::union_members(nodes, *right));
+
+                members
+            }
+            _ => vec![value],
+        }
+    }
+
     pub(crate) fn parse_fallback(parser: &mut Parser<'_>) -> ParseResult<()> {
         let span = parser.token().span();
 
@@ -131,7 +148,6 @@ impl Switch {
         Ok(())
     }
 
-    /// Reports statements of a switch before its first `case`, which no clause would run.
     fn require_clause_start(parser: &mut Parser<'_>, span: Span) -> ParseResult<()> {
         let outside = parser
             .stream
@@ -154,7 +170,6 @@ struct PendingSwitch {
     subject: NodeId,
     cases: Vec<(Vec<NodeId>, bool, Vec<NodeId>, Span)>,
     fallback: Option<Vec<NodeId>>,
-    /// The statements of the open clause.
     body: Vec<NodeId>,
 }
 
@@ -310,7 +325,6 @@ impl PendingSwitch {
         identifier
     }
 
-    /// `subject == a or subject == b`, or `subject isa Type` for a type case.
     fn condition(
         parser: &mut Parser<'_>,
         subject: NodeId,
@@ -392,7 +406,6 @@ impl KeywordStatement for EndSwitchRule {
 }
 
 impl Parser<'_> {
-    /// Whether the open block is a `switch`, where `case` and `else` start clauses.
     #[must_use]
     pub(crate) fn is_in_switch(&self) -> bool {
         self.stream.blocks.top_is::<PendingSwitch>()

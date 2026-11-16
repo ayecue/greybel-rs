@@ -31,7 +31,7 @@ fn should_refuse_to_initialize_in_an_unknown_dialect() {
 
     assert_eq!(
         (refused.code, refused.message.as_str()),
-        (ErrorCodes::InvalidParams, "Unknown dialect: lua")
+        (ErrorCodes::InvalidParams, "Unknown dialect: \"lua\"")
     );
 }
 

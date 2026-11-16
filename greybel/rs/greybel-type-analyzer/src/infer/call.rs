@@ -180,7 +180,7 @@ impl Inference<'_> {
                         .map(|parameter| match parameter.ty {
                             SignatureType::Value(ty) => ty,
                             SignatureType::Api(_) => TypeId::ANY,
-                            SignatureType::Guard(_) => TypeId::NUMBER,
+                            SignatureType::Guard { .. } => TypeId::NUMBER,
                         })
                         .collect()
                 })

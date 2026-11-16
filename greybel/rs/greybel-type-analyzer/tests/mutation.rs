@@ -150,7 +150,7 @@ fn should_report_a_mutates_tag_naming_no_parameter() {
         .map(|diagnostic| diagnostic.message.clone())
         .collect();
 
-    assert_eq!(messages, ["@mutates items names no @param"]);
+    assert_eq!(messages, ["@mutates \"items\" names no @param."]);
 }
 
 #[test]

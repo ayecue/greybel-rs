@@ -24,13 +24,9 @@ pub struct For {
     #[child]
     #[body]
     pub body: NodeList,
-    /// `for i, item in` or `for [x, y] in`: the names as written and how many statements at the start of `body`
-    /// assign them.
     pub header: Option<ForHeader>,
 }
 
-/// The names of a Greybel `for` header: an index name (`i = __item_idx`) and/or a destructuring of the item, assigned
-/// by the first `prelude` statements of the body.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ForHeader {
     pub span: Span,
@@ -140,10 +136,8 @@ impl KeywordStatement for ForRule {
 }
 
 impl ForRule {
-    /// The loop variable name for the items of `for [x, y] in`.
     pub const ITEM: &'static str = "__e";
 
-    /// Whether the header is `i, item`, `[x, y]` or `{key, value}` rather than one name.
     fn has_names(parser: &Parser<'_>) -> bool {
         let token = parser.token();
 
@@ -160,8 +154,6 @@ impl ForRule {
                 .starts_with(',')
     }
 
-    /// `[index,] name` or `[index,] [x, y]`: the loop variable and the statements at the start of the body that
-    /// assign the index and the destructured names.
     fn parse_names(parser: &mut Parser<'_>) -> ParseResult<(NodeId, Vec<NodeId>)> {
         let origin = parser.token().span().start;
         let index = if parser.token().as_identifier().is_some() {

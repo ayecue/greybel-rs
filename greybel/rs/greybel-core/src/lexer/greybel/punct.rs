@@ -8,8 +8,8 @@ pub const PUNCTUATORS: &[Punct] = &[
     Punct::UnsignedShiftRight,
     Punct::Ellipsis,
     Punct::Arrow,
-    Punct::Question,
+    Punct::Conditional,
     Punct::Coalesce,
     Punct::OptionalDot,
-    Punct::Bang,
+    Punct::Exist,
 ];

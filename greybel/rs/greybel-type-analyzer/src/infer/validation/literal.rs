@@ -7,8 +7,6 @@ use crate::infer::flow::KindSet;
 use crate::types::{LiteralType, Type, TypeId, TypeNotation};
 
 impl Inference<'_> {
-    /// Registers the values of an `enum` as a type: the union of their literal types, used for the enum's name in
-    /// annotations.
     pub(crate) fn register_enum_type(&mut self, enumeration: &Enum) {
         let ast = self.ast();
         let NodeKind::Assignment(assignment) = ast.kind(enumeration.assignment) else {
@@ -42,8 +40,6 @@ impl Inference<'_> {
         self.enum_types.insert(name, ty);
     }
 
-    /// Reports an assignment of an entry of a `const enum` (`Port.Ssh = 1`): builds write the entry's value where it
-    /// is read.
     pub(crate) fn validate_constant_entry(&mut self, member: NodeId) {
         if self.constant_enums.is_empty() {
             return;
@@ -60,13 +56,12 @@ impl Inference<'_> {
         if matches!(ast.kind(node.base), NodeKind::Identifier(_))
             && self.constant_enums.contains(name)
         {
-            let message = format!("\"{name}.{entry}\" is an entry of a const enum.");
+            let message = format!("Cannot assign to const enum entry \"{name}.{entry}\".");
 
             self.report(DiagnosticKind::ConstAssignment, member, message);
         }
     }
 
-    /// The literal type of a string or number literal node.
     pub(crate) fn literal_type_of(&mut self, node: NodeId) -> Option<TypeId> {
         let ast = self.ast();
         let NodeKind::Literal(literal) = ast.kind(node) else {
@@ -98,8 +93,6 @@ impl Inference<'_> {
         Some(ty)
     }
 
-    /// Reports `case` values the subject never equals: a literal missing from a subject that is a union of literal
-    /// types, or a value of another kind than every variant of the subject.
     fn validate_case_values(&mut self, switch: &Switch, subject: &[TypeId]) {
         let is_known = |types: &crate::types::TypeTable, ty: TypeId| {
             !matches!(
@@ -166,13 +159,11 @@ impl Inference<'_> {
         }
     }
 
-    /// Reports a `switch` without `else` over a union of literal types that has no case for some of them.
     pub(crate) fn validate_switch_cases(&mut self, node: NodeId, switch: &Switch) {
         if self.context.current.is_some() {
             return;
         }
 
-        // A variable subject is read through copies in the conditions, so its own node is inferred here.
         let subject = match self.node_types[self.current_document as usize][switch.subject.index()]
         {
             Some(subject) => subject,

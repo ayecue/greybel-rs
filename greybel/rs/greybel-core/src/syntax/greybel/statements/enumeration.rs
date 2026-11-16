@@ -8,14 +8,10 @@ use crate::parser::{ExprContext, Parser};
 use crate::position::Span;
 use crate::syntax::{Assignment, Literal, LiteralValue, Map, MapEntry};
 
-/// `enum Color` with one `Name [= value]` per line, then `end enum`. `assignment` is the
-/// `Color = {"Red": 0, ...}` it stands for; builds write that assignment.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct Enum {
     #[child]
     pub assignment: NodeId,
-    /// `const enum`: builds write the value of `Name.Entry` reads in every file of the build instead of reading the
-    /// map, which they write all the same.
     pub constant: bool,
 }
 
@@ -34,7 +30,6 @@ impl AstNode for Enum {
 }
 
 impl Enum {
-    /// `enum Name` with its entries; `constant` after `const`.
     pub(crate) fn parse(parser: &mut Parser<'_>, constant: bool) -> ParseResult<NodeId> {
         let start = parser.token().span();
 
@@ -158,8 +153,6 @@ impl Enum {
         ))
     }
 
-    /// The value after `=`, or the previous number plus 1 (0 first). After a string value the next entry has no
-    /// default.
     fn parse_value(
         parser: &mut Parser<'_>,
         name_span: Span,
@@ -214,8 +207,6 @@ impl Enum {
         Ok(value)
     }
 
-    /// Skips line breaks and comments; comments are recorded in the chunk but not attached to a statement, as the
-    /// enum is written as it is in dev mode.
     fn skip_lines(parser: &mut Parser<'_>) -> ParseResult<()> {
         loop {
             if parser.token().is_comment() {

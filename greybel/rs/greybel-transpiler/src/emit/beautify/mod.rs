@@ -5,8 +5,7 @@ mod shape;
 use greybel_core::{NodeId, NodeKind};
 use greybel_symbols::{Keyword, Punct};
 
-use super::nodes::{deferred_function, unwrap_from_parens};
-use super::{EmitFlags, EmitState, Emitter};
+use super::{EmitFlags, EmitFunctions, EmitState, Emitter};
 use crate::error::Result;
 use crate::options::{BeautifyOptions, Indentation};
 
@@ -103,7 +102,7 @@ impl BeautifyEmitter {
         match fields {
             [] => s.push_fmt(format_args!("{open}{close}")),
             &[field] => {
-                let deferred_functions = deferred_function(s, field, id);
+                let deferred_functions = s.deferred_function(field, id);
 
                 s.push_fmt(format_args!("{open} "));
 
@@ -152,7 +151,7 @@ impl BeautifyEmitter {
                         continue;
                     }
 
-                    let function = deferred_function(s, field, id);
+                    let function = s.deferred_function(field, id);
 
                     deferred_functions.extend(function);
 
@@ -183,7 +182,7 @@ impl BeautifyEmitter {
     }
 
     fn emit_without_parens(&mut self, s: &mut EmitState<'_>, id: NodeId) -> Result<()> {
-        self.emit(s, unwrap_from_parens(s, id), EmitFlags::default())
+        self.emit(s, s.unwrap_from_parens(id), EmitFlags::default())
     }
 
     fn emit_block(&mut self, s: &mut EmitState<'_>, body: &[NodeId], end: Keyword) -> Result<()> {

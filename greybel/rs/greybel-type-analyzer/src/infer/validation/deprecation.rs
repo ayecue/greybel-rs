@@ -3,7 +3,6 @@ use crate::infer::Inference;
 use crate::model::{Site, SlotId};
 
 impl Inference<'_> {
-    /// Reports each read of a variable or member that contains a function with a `@deprecated` tag.
     pub(crate) fn validate_deprecated_uses(&mut self) {
         let mut uses: Vec<(Site, String)> = Vec::new();
 

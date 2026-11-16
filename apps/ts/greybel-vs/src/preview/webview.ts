@@ -11,5 +11,5 @@ try {
   canvas.remove();
   document.body.style.color = '#00f0dd';
   document.body.style.font = '14px monospace';
-  document.body.textContent = `The preview cannot draw the terminal: ${error instanceof Error ? error.message : String(error)}`;
+  document.body.textContent = `Cannot render the terminal preview: ${error instanceof Error ? error.message : String(error)}`;
 }

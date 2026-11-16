@@ -95,7 +95,7 @@ fn should_apply_the_requested_profile_and_read_its_variables() {
     assert!(
         error
             .message
-            .contains("the project has no profile `staging`"),
+            .contains("the project has no profile \"staging\""),
         "{error:?}"
     );
 }

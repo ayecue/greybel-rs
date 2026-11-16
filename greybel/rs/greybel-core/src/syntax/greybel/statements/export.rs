@@ -9,14 +9,10 @@ use crate::syntax::{
     Assignment, Identifier, IdentifierKind, Map, Member, Unary, UnaryOp, parse_expression_statement,
 };
 
-/// `export name = value` at the top of a file loaded with `#import`. `statements` are the assignment, then
-/// `module.exports.name = @name`; the first export of a file starts with `module.exports = {}`. Builds write those
-/// statements.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct Export {
     #[child]
     pub statements: NodeList,
-    /// The assignment as written, for dev mode.
     pub assignment: NodeId,
 }
 
@@ -139,7 +135,6 @@ impl Export {
         ))
     }
 
-    /// `module.exports`.
     fn exports(parser: &mut Parser<'_>, at: Span) -> NodeId {
         let module = parser.stream.nodes.insert_atom(MODULE);
         let exports = parser.stream.nodes.insert_atom(EXPORTS);

@@ -107,29 +107,48 @@ impl Inference<'_> {
 
         self.infer_block(ast.list(declaration.body));
 
-        let annotated_returns = doc.as_ref().and_then(|doc| doc.returns.as_ref());
-        let returns_nothing = ast
-            .kind(node)
-            .as_scope()
-            .is_none_or(|scope| scope.scope().returns.is_empty());
-        let reaches_end = self.flow.is_reachable();
-
-        if let Some(annotation_type) = annotated_returns {
-            let annotation_type = self.resolve_signature_type(annotation_type);
-
-            self.widen(returns, annotation_type);
-        } else if reaches_end {
-            self.widen(returns, TypeId::NULL);
-        } else if returns_nothing {
-            self.widen(returns, TypeId::NEVER);
-        }
-
+        self.infer_return_type(
+            function,
+            node,
+            returns,
+            doc.as_ref().and_then(|doc| doc.returns.as_ref()),
+        );
         self.type_parameters_in_scope.truncate(depth);
         self.end_function_side_effect(self.model.function(function).site);
         self.exit_body(outer_body);
         self.current_scope = previous;
 
         function
+    }
+
+    fn infer_return_type(
+        &mut self,
+        function: FunctionId,
+        node: NodeId,
+        returns: SlotId,
+        annotation: Option<&TypeExpr>,
+    ) {
+        if let Some(TypeExpr::Guard { ty, .. }) = annotation {
+            let guard_type = self.resolve_type(ty);
+
+            self.model.set_guard_type(function, guard_type);
+        }
+
+        let returns_nothing = self
+            .ast()
+            .kind(node)
+            .as_scope()
+            .is_none_or(|scope| scope.scope().returns.is_empty());
+
+        if let Some(annotation) = annotation {
+            let annotation_type = self.resolve_signature_type(annotation);
+
+            self.widen(returns, annotation_type);
+        } else if self.flow.is_reachable() {
+            self.widen(returns, TypeId::NULL);
+        } else if returns_nothing {
+            self.widen(returns, TypeId::NEVER);
+        }
     }
 
     pub(super) fn resolve_signature_type(&mut self, expr: &TypeExpr) -> TypeId {

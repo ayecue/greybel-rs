@@ -41,7 +41,7 @@ impl LiteralTable {
     }
 
     pub(super) fn add(&mut self, literal: &Literal, source: &str, variables: &mut NameTable) {
-        let key = key(literal, source);
+        let key = Self::key(literal, source);
         let length = if key.is_ascii() {
             key.len()
         } else {
@@ -80,7 +80,7 @@ impl LiteralTable {
     }
 
     pub(super) fn hoisted_variable(&self, literal: &Literal, source: &str) -> Option<&str> {
-        let index = *self.by_key.get(key(literal, source).as_ref())?;
+        let index = *self.by_key.get(Self::key(literal, source).as_ref())?;
         let hoist = self.entries[index].hoist.as_ref()?;
 
         Some(&hoist.variable)
@@ -101,19 +101,19 @@ impl LiteralTable {
 
         plain.into_iter().chain(calls).map(|(_, entry)| entry)
     }
-}
 
-fn key<'s>(literal: &Literal, source: &'s str) -> Cow<'s, str> {
-    match (&literal.value, literal.negated) {
-        (LiteralValue::Nil, _) => Cow::Borrowed(NULL),
-        (LiteralValue::Boolean(value), negative) => Cow::Borrowed(match (negative, value) {
-            (false, true) => "1",
-            (false, false) => "0",
-            (true, true) => "-1",
-            (true, false) => "-0",
-        }),
-        (LiteralValue::Number(_), true) => Cow::Owned(format!("-{source}")),
-        (LiteralValue::Number(_) | LiteralValue::String(_), _) => Cow::Borrowed(source),
+    fn key<'s>(literal: &Literal, source: &'s str) -> Cow<'s, str> {
+        match (&literal.value, literal.negated) {
+            (LiteralValue::Nil, _) => Cow::Borrowed(NULL),
+            (LiteralValue::Boolean(value), negative) => Cow::Borrowed(match (negative, value) {
+                (false, true) => "1",
+                (false, false) => "0",
+                (true, true) => "-1",
+                (true, false) => "-0",
+            }),
+            (LiteralValue::Number(_), true) => Cow::Owned(format!("-{source}")),
+            (LiteralValue::Number(_) | LiteralValue::String(_), _) => Cow::Borrowed(source),
+        }
     }
 }
 

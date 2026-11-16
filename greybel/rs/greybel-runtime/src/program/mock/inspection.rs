@@ -133,7 +133,7 @@ impl MockInspection {
     ) -> Result<String, EvaluationFailure> {
         let unassignable = || EvaluationFailure::CodeError {
             message: format!(
-                "{name} can't be set here: only the innermost frame's and global variables can."
+                "Cannot set \"{name}\" here; only variables in the innermost frame and global variables can be set."
             ),
         };
         let index = (reference as usize)
@@ -251,7 +251,7 @@ impl MockInspection {
 
 fn unknown_variable(name: &str) -> EvaluationFailure {
     EvaluationFailure::CodeError {
-        message: format!("{name} isn't there anymore."),
+        message: format!("\"{name}\" is no longer available."),
     }
 }
 

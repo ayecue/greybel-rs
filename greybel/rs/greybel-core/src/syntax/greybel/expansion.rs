@@ -9,17 +9,6 @@ use crate::syntax::{
     Literal, Parenthesis, Return, Unary, While,
 };
 
-/// The statements builds write for `a ? b : c`, `a ?? b` and optional chains (`a?.b`), which GreyScript has no
-/// expressions for. A statement's values are computed into `__tN` temporaries by statements written before it,
-/// and the statement reads the temporaries; `x = c ? a : b` and `return c ? a : b` become an `if` statement.
-/// The interpreter and the type analyzer read the expressions themselves.
-///
-/// Values are computed before the remainder of their statement, and the operands that come earlier in evaluation order
-/// (except literals and a call's function) into temporaries before them, so the order stays: `print(f(), a ?? b)`
-/// is `__t0 = f()`, then `a ?? b` into `__t1`, then `print(@__t0, @__t1)`. A `while` condition with values becomes `while 1` with the values and an
-/// `if not (condition) then break` at the start of the body; an `else if` condition with values becomes an `else`
-/// that contains an `if`. A value whose evaluation depends on something else (the right side of `and`/`or`, a parameter
-/// default, an `assert` message) has no expansion; builds report it.
 #[derive(Debug, Clone, Default)]
 pub struct ValueExpansions {
     before: FxHashMap<NodeId, NodeList>,
@@ -29,32 +18,26 @@ pub struct ValueExpansions {
 }
 
 impl ValueExpansions {
-    /// Statements builds write before the statement `id`.
     #[must_use]
     pub fn before(&self, id: NodeId) -> Option<NodeList> {
         self.before.get(&id).copied()
     }
 
-    /// Statements builds write instead of the statement `id`.
     #[must_use]
     pub fn instead(&self, id: NodeId) -> Option<NodeList> {
         self.instead.get(&id).copied()
     }
 
-    /// The temporary builds read in place of the expression `id`.
     #[must_use]
     pub fn value(&self, id: NodeId) -> Option<NodeId> {
         self.values.get(&id).copied()
     }
 
-    /// Whether builds write the single-line `if` statement or clause `id` as a block, because one of its
-    /// statements has expansions.
     #[must_use]
     pub fn is_block(&self, id: NodeId) -> bool {
         self.blocks.contains(&id)
     }
 
-    /// Builds the expansions of every statement under `root`.
     pub(crate) fn of(nodes: &mut NodeStore, root: NodeId) -> Self {
         let mut expander = ValueExpander {
             nodes,
@@ -72,27 +55,19 @@ impl ValueExpansions {
     }
 }
 
-/// Where the value of an expansion goes.
 #[derive(Debug, Clone, Copy)]
 enum Sink {
-    /// `__tN = value`.
     Temporary(usize),
-    /// `target = value`, a copy of the assignment target in each branch.
     Assign(NodeId),
-    /// `return value`.
     Return,
-    /// The value as a statement of its own.
     Discard,
 }
 
 struct ValueExpander<'n> {
     nodes: &'n mut NodeStore,
     expansions: ValueExpansions,
-    /// Temporaries of the current statement; each statement starts at `__t0` again.
     temporaries: usize,
-    /// The temporaries each scope uses, for its namespaces.
     names: FxHashMap<NodeId, Vec<usize>>,
-    /// The scope of the statement being expanded.
     scope: NodeId,
     root: NodeId,
 }
@@ -141,7 +116,6 @@ impl ValueExpander<'_> {
         }
     }
 
-    /// The statements directly in `node`: a block's body or the statements a Greybel statement stands for.
     fn statements(&self, node: NodeId) -> Vec<NodeId> {
         let kind = self.kind(node);
         let list = match kind {
@@ -237,8 +211,6 @@ impl ValueExpander<'_> {
         !values.is_empty()
     }
 
-    /// `while 1`, the condition's values, `if not (condition) then break`, then the body: the values run before
-    /// each check, and `continue` reaches them again.
     fn while_loop(&mut self, condition: NodeId, body: NodeList) -> NodeList {
         let at = self.nodes.get(condition).span.start;
         let mut values = Vec::new();
@@ -292,8 +264,6 @@ impl ValueExpander<'_> {
         self.nodes.push_list(&[statement])
     }
 
-    /// An `if` whose `else if` condition at `k` has values, as the clauses before `k` with an `else` that contains an
-    /// `if` of the clauses from `k`, so the values run only when the earlier conditions are false.
     fn split_else_if(&mut self, clauses: NodeList) -> Option<NodeList> {
         let clauses = self.nodes.list(clauses).to_vec();
         let split = (1..clauses.len()).find(|&index| match self.kind(clauses[index]) {
@@ -352,8 +322,6 @@ impl ValueExpander<'_> {
         Some(self.nodes.push_list(&[outer]))
     }
 
-    /// The expressions of `statement` that always run before it completes, in evaluation order, each with whether
-    /// it is read as `plain` and may be computed ahead (see [`Self::collect_in_order`]).
     fn headers(&self, statement: NodeId) -> Vec<(NodeId, bool, bool)> {
         let expressions = match self.kind(statement) {
             NodeKind::Assignment(assignment) => {
@@ -401,8 +369,6 @@ impl ValueExpander<'_> {
             .collect()
     }
 
-    /// The operands an assignment target evaluates before the value, as in MiniScript (`m[f()] = g()` calls `f`
-    /// first): the base and index of `m[i]`, the base of `m.k`. A name has none, nor do `self` and `super`.
     fn target_operands(&self, target: NodeId) -> Vec<(NodeId, bool, bool)> {
         let operand = |node| (!self.is_receiver_name(node)).then_some((node, true, true));
 
@@ -418,8 +384,6 @@ impl ValueExpander<'_> {
         }
     }
 
-    /// The values under `node` that always run, in evaluation order. `plain` is set where the value is read as a
-    /// base or under `@`, so the temporary is read without `@`.
     fn collect(&self, node: NodeId, plain: bool, values: &mut Vec<(NodeId, bool)>) {
         if self.is_value(node) {
             values.push((node, plain));
@@ -440,8 +404,6 @@ impl ValueExpander<'_> {
         }
     }
 
-    /// The values under the children of `node`, in evaluation order. A link's base is read as `plain`; a call's
-    /// function isn't computed ahead, so a method retains its `self`.
     fn collect_children(&self, node: NodeId, values: &mut Vec<(NodeId, bool)>) {
         let kind = self.kind(node);
         let base = Self::link_base(kind);
@@ -455,9 +417,6 @@ impl ValueExpander<'_> {
         self.collect_in_order(&children, values);
     }
 
-    /// The values under `children` (each with whether it is read as `plain` and may be computed ahead). The
-    /// children before the last one with values are computed into temporaries first, so the statements of a later
-    /// value don't run before them: `print(f(), a ?? b)` computes `f()`, then `a ?? b`.
     fn collect_in_order(
         &self,
         children: &[(NodeId, bool, bool)],
@@ -476,7 +435,6 @@ impl ValueExpander<'_> {
         }
     }
 
-    /// An operand before a later value, computed into a temporary; literals and function literals stay in place.
     fn collect_ahead(&self, node: NodeId, plain: bool, values: &mut Vec<(NodeId, bool)>) {
         match self.kind(node) {
             NodeKind::Literal(_) | NodeKind::Function(_) => {}
@@ -498,7 +456,6 @@ impl ValueExpander<'_> {
         }
     }
 
-    /// Whether `node` is an expression GreyScript can't write: a ternary, `??` or an optional chain.
     fn is_value(&self, node: NodeId) -> bool {
         matches!(
             self.kind(node),
@@ -526,8 +483,6 @@ impl ValueExpander<'_> {
         }
     }
 
-    /// The innermost optional link of the chain `node` (under an optional `@`): its steps from `node` and the
-    /// link.
     fn optional_link(&self, node: NodeId) -> Option<(usize, NodeId)> {
         let mut current = match self.kind(node) {
             NodeKind::Unary(unary) if unary.operator == UnaryOp::AddressOf => unary.argument,
@@ -548,7 +503,6 @@ impl ValueExpander<'_> {
         innermost
     }
 
-    /// The node `steps` links below `node`.
     fn step(&self, node: NodeId, steps: usize) -> NodeId {
         let mut current = node;
 
@@ -562,12 +516,9 @@ impl ValueExpander<'_> {
         current
     }
 
-    /// Computes `value` (or an operand computed ahead of one) into a new temporary: the statements and the read of
-    /// the temporary.
     fn hoist(&mut self, value: NodeId, plain: bool) -> (Vec<NodeId>, NodeId) {
         let at = self.nodes.get(value).span.start;
         let temporary = self.next_temporary();
-        // An operand computed ahead is read in its place, so the assignment gets a copy of it.
         let source = if self.is_value(value) {
             value
         } else {
@@ -584,7 +535,6 @@ impl ValueExpander<'_> {
         (statements, read)
     }
 
-    /// The statements that put `value` into `sink`.
     fn branch(&mut self, sink: Sink, value: NodeId) -> Vec<NodeId> {
         let at = self.nodes.get(value).span.start;
 
@@ -616,7 +566,6 @@ impl ValueExpander<'_> {
         vec![self.sink_statement(sink, value)]
     }
 
-    /// `if condition then <sink = if_true> else <sink = if_false> end if`.
     fn ternary_if(&mut self, sink: Sink, ternary: &Ternary) -> NodeId {
         let at = self.nodes.get(ternary.condition).span.start;
         let if_true = self.branch(sink, ternary.if_true);
@@ -628,7 +577,6 @@ impl ValueExpander<'_> {
         statement
     }
 
-    /// `__t = left` and `if @__t == null then <sink = right>`.
     fn coalesce(&mut self, sink: Sink, coalesce: &Coalesce, at: u32) -> Vec<NodeId> {
         let temporary = match sink {
             Sink::Temporary(temporary) => temporary,
@@ -641,7 +589,6 @@ impl ValueExpander<'_> {
         vec![first, self.if_else(test, &right, None, at)]
     }
 
-    /// `__t = base` of the innermost optional link, then `if @__t != null then <sink = chain on __t>`.
     fn chain(
         &mut self,
         sink: Sink,
@@ -662,7 +609,6 @@ impl ValueExpander<'_> {
             return self.method_chain(sink, value, steps, link, at);
         }
 
-        // An optional call reads its base as a value: `f?.(x)` doesn't call `f` to get it.
         let base = if matches!(link_kind, NodeKind::Call(_)) {
             self.address_of(base, at)
         } else {
@@ -687,9 +633,6 @@ impl ValueExpander<'_> {
         vec![first, self.if_else(test, &inner, None, at)]
     }
 
-    /// `a.f?.(x)`: `__t = a`, then `if @__t.f != null then <sink = __t.f(x)>`, so `f` is called with `a` as `self`
-    /// and `a` runs once; a temporary sink is `null` when `f` is. `self` and `super` are read in place. `a[k]?.(x)`
-    /// stays a call of the function value: GreyScript has no `a[k](x)` call.
     fn method_chain(
         &mut self,
         sink: Sink,
@@ -845,7 +788,6 @@ impl ValueExpander<'_> {
         )
     }
 
-    /// `@__tN == null` or `@__tN != null`.
     fn null_test(&mut self, temporary: usize, operator: BinaryOp, at: u32) -> NodeId {
         let read = self.temporary(temporary, at);
         let left = self.address_of(read, at);
@@ -912,7 +854,6 @@ impl ValueExpander<'_> {
         )
     }
 
-    /// Adds the temporaries to the namespaces of the scopes that use them, so uglify renames them.
     fn register_names(&mut self) {
         let mut scopes: Vec<(NodeId, Vec<usize>)> =
             std::mem::take(&mut self.names).into_iter().collect();

@@ -85,7 +85,7 @@ impl UglifyEmitter {
 fn member_flags(s: &EmitState<'_>, base: greybel_core::NodeId) -> EmitFlags {
     EmitFlags {
         is_member: true,
-        base_is_scope: shape::is_scope_name(s, base),
+        base_is_scope: s.is_scope_name(base),
         ..EmitFlags::default()
     }
 }

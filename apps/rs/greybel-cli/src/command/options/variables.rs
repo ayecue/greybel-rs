@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use clap::Args;
 use greybel_documents_fs_provider::FsProvider;
-use greybel_project::{Project, VariableSettings, insert_assignments};
+use greybel_project::{Project, VariableFile, VariableSettings};
 
 use super::current_folder;
 use crate::report::Failure;
@@ -38,10 +38,12 @@ impl VariableOptions {
                 ))
             })?;
 
-            insert_assignments(content.lines(), &mut values);
+            VariableFile::new(&content).insert_into(&mut values);
         }
 
-        insert_assignments(self.assignments.iter().map(String::as_str), &mut values);
+        for assignment in &self.assignments {
+            VariableFile::new(assignment).insert_into(&mut values);
+        }
 
         Ok(values)
     }

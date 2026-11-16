@@ -7,8 +7,6 @@ use crate::lexer::{Keyword, Punct, TokenKind};
 use crate::parser::{Expect, Parser};
 use crate::position::Span;
 
-/// `type Name<T> = T` (an alias) or `type Name<T> extends Base` with members up to `end type` (a type without runtime
-/// code, like `@vtype`). Builds write nothing for it.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct TypeStatement {
     pub name: Span,
@@ -25,15 +23,12 @@ pub enum TypeBody {
     },
 }
 
-/// `[readonly] name[?]: T` or `name(parameter: T, ...): T` in a `type` body.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TypeMember {
     pub name: Span,
-    /// The member's type, or a method's return type.
     pub ty: Option<Span>,
     pub optional: bool,
     pub readonly: bool,
-    /// A method's parameters: each name with its type.
     pub parameters: Option<Vec<(Span, Option<Span>)>>,
 }
 
@@ -130,7 +125,6 @@ impl TypeStatement {
         Ok(names)
     }
 
-    /// `[extends Base]`, then a member per line up to `end type`.
     fn parse_members(parser: &mut Parser<'_>, start: Span) -> ParseResult<TypeBody> {
         let extends = if Self::is_at_word(parser, EXTENDS) {
             let type_start = parser.token().span().end;
@@ -184,7 +178,7 @@ impl TypeStatement {
 
         parser.advance()?;
 
-        let optional = parser.consume(Expect::Punct(Punct::Question))?;
+        let optional = parser.consume(Expect::Punct(Punct::Conditional))?;
         let parameters = if parser.token().is_punct(Punct::LParen) {
             Some(Self::parse_parameters(parser)?)
         } else {
@@ -215,7 +209,6 @@ impl TypeStatement {
         }))
     }
 
-    /// `(name: T, name, ...)`.
     fn parse_parameters(parser: &mut Parser<'_>) -> ParseResult<Vec<(Span, Option<Span>)>> {
         parser.advance()?;
 

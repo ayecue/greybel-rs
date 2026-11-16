@@ -105,16 +105,13 @@ fn should_name_who_asked_for_a_missing_file() {
 
     assert_eq!(
         include.as_deref(),
-        Some("Dependency /missing.src does not exist...")
+        Some("Dependency /missing.src does not exist.")
     );
     assert_eq!(
         injection.as_deref(),
-        Some("Injection /missing.src does not exist...")
+        Some("Injection /missing.src does not exist.")
     );
-    assert_eq!(
-        target.as_deref(),
-        Some("Target /main.src does not exist...")
-    );
+    assert_eq!(target.as_deref(), Some("Target /main.src does not exist."));
 }
 
 #[test]
@@ -136,7 +133,7 @@ fn should_report_errors_level_by_level() {
         syntax,
         "got EOL where number, string, or identifier is required"
     );
-    assert_eq!(missing, "Dependency /missing.src does not exist...");
+    assert_eq!(missing, "Dependency /missing.src does not exist.");
 }
 
 #[test]
@@ -193,10 +190,7 @@ fn should_report_a_removed_file_as_missing() {
         .err()
         .map(|error| error.to_string());
 
-    assert_eq!(
-        error.as_deref(),
-        Some("Dependency /a.src does not exist...")
-    );
+    assert_eq!(error.as_deref(), Some("Dependency /a.src does not exist."));
 }
 
 #[test]

@@ -1,7 +1,7 @@
 //! Snapshot tests for `tests/fixtures/greyscript/`. Update with `INSTA_UPDATE=always cargo test`.
 
 use greybel_documents_fs_provider::FsProvider;
-use greybel_transpiler::{transpile, transpile_project};
+use greybel_transpiler::Transpiler;
 
 use crate::support::greyscript::{fixtures, modes};
 use crate::support::unobfuscated;
@@ -12,7 +12,9 @@ fn should_transpile_every_script_in_every_mode() {
         let source = std::fs::read_to_string(path).expect("script");
         let modes = modes();
 
-        let out = fixtures().sections(modes, |options| transpile(&source, &options));
+        let out = fixtures().sections(modes, |options| {
+            Transpiler::new(&options).transpile(&source)
+        });
 
         insta::assert_snapshot!(out);
     });
@@ -29,7 +31,8 @@ fn should_bundle_every_script_in_every_mode() {
             .map(|(title, options)| (title, unobfuscated(options)));
 
         let out = fixtures().sections(modes, |options| {
-            transpile_project(&entry, &FsProvider::default(), &options)
+            Transpiler::new(&options)
+                .transpile_project(&entry, &FsProvider::default())
                 .map(|outputs| fixtures().outputs(&outputs))
         });
 

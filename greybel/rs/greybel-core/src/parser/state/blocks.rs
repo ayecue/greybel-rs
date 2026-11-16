@@ -102,7 +102,6 @@ impl BlockStack {
         self.blocks.len().saturating_sub(1)
     }
 
-    /// The statements of the file so far, outside any block.
     #[must_use]
     pub fn root_statements(&self) -> &[NodeId] {
         self.blocks.first().map_or(&[], |block| block.body())

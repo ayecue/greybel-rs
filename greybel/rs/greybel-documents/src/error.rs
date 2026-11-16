@@ -5,11 +5,11 @@ use vscode_uri::Uri;
 pub enum DocumentError {
     #[error("{error}")]
     Parse { target: Uri, error: ParseError },
-    #[error("Target {} does not exist...", target.label())]
+    #[error("Target {} does not exist.", target.label())]
     MissingTarget { target: Uri },
-    #[error("Dependency {} does not exist...", target.label())]
+    #[error("Dependency {} does not exist.", target.label())]
     MissingDependency { target: Uri, origin: Uri },
-    #[error("Injection {} does not exist...", target.label())]
+    #[error("Injection {} does not exist.", target.label())]
     MissingInjection { target: Uri, origin: Uri },
     #[error("Cannot resolve {target}: {source}")]
     Resolve {

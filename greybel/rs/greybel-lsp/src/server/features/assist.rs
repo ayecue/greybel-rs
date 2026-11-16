@@ -1,9 +1,11 @@
 use gen_lsp_types as lsp;
+use greybel_core::Position;
 use serde::{Deserialize, Serialize};
 
-use super::Server;
+use super::{AnalyzedDocument, Server};
 use crate::error::Result;
-use crate::{from_lsp, to_lsp};
+use crate::from_lsp::FromLsp;
+use crate::to_lsp::ToLsp;
 
 #[derive(Serialize, Deserialize)]
 struct CompletionData {
@@ -16,8 +18,9 @@ impl Server {
         &mut self,
         params: lsp::HoverParams,
     ) -> Result<Option<lsp::Hover>> {
-        let at = params.text_document_position_params;
-        let Some(document) = self.document_analysis(&at.text_document.uri)? else {
+        let Some((document, position)) =
+            AnalyzedDocument::at(self, &params.text_document_position_params)?
+        else {
             return Ok(None);
         };
 
@@ -25,9 +28,7 @@ impl Server {
             return Ok(None);
         }
 
-        let hover = document
-            .analyzer
-            .hover(&document.uri, from_lsp::position(at.position));
+        let hover = document.analyzer.hover(&document.uri, position);
 
         Ok(hover.map(|hover| document.markup.hover(&hover)))
     }
@@ -37,7 +38,7 @@ impl Server {
         params: lsp::CompletionParams,
     ) -> Result<Option<lsp::CompletionResponse>> {
         let at = params.text_document_position_params;
-        let Some(document) = self.document_analysis(&at.text_document.uri)? else {
+        let Some((document, position)) = AnalyzedDocument::at(self, &at)? else {
             return Ok(None);
         };
 
@@ -46,18 +47,17 @@ impl Server {
         }
 
         let data = serde_json::to_value(CompletionData {
-            uri: at.text_document.uri.clone(),
+            uri: at.text_document.uri,
             position: at.position,
         })
         .ok();
         let items = document
             .analyzer
-            .completions(&document.uri, from_lsp::position(at.position))
+            .completions(&document.uri, position)
             .iter()
-            .map(|item| {
-                let data = item.documentation.as_ref().and(data.clone());
-
-                to_lsp::completion_item(item, data)
+            .map(|item| lsp::CompletionItem {
+                data: item.documentation.as_ref().and(data.clone()),
+                ..item.to_lsp()
             })
             .collect();
 
@@ -75,12 +75,12 @@ impl Server {
         else {
             return Ok(item);
         };
-        let Some(document) = self.document_analysis(&data.uri)? else {
+        let Some(document) = AnalyzedDocument::of(self, &data.uri)? else {
             return Ok(item);
         };
         let documentation = document
             .analyzer
-            .completions(&document.uri, from_lsp::position(data.position))
+            .completions(&document.uri, Position::from_lsp(data.position))
             .into_iter()
             .find(|candidate| candidate.label == item.label)
             .and_then(|candidate| candidate.documentation);
@@ -96,13 +96,12 @@ impl Server {
         &mut self,
         params: lsp::SignatureHelpParams,
     ) -> Result<Option<lsp::SignatureHelp>> {
-        let at = params.text_document_position_params;
-        let Some(document) = self.document_analysis(&at.text_document.uri)? else {
+        let Some((document, position)) =
+            AnalyzedDocument::at(self, &params.text_document_position_params)?
+        else {
             return Ok(None);
         };
-        let help = document
-            .analyzer
-            .signature_help(&document.uri, from_lsp::position(at.position));
+        let help = document.analyzer.signature_help(&document.uri, position);
 
         Ok(help.map(|help| document.markup.signature_help(&help)))
     }

@@ -114,7 +114,6 @@ impl IsaTest {
     }
 }
 
-/// A test against literal values (`x == "tcp"`): the value is one of the literal types of a union, or none of them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub(crate) enum LiteralTest {
     #[default]
@@ -259,7 +258,6 @@ impl Guard {
         }
     }
 
-    /// `null` is the only kind that is always falsy; the other kinds can be either.
     fn truthy(path: AccessPath) -> Self {
         Self {
             when_true: FactTable::for_path(path, Restriction::of_kinds(!KindSet::NULL)),
@@ -382,8 +380,6 @@ impl Inference<'_> {
         }
     }
 
-    /// The guard of a type guard call: the argument is `ty` when the call is true, and not `ty` when it is false. A
-    /// map type is tested by its `__isa` chain, other types by their kinds.
     fn type_guard(&self, path: AccessPath, ty: TypeId) -> Guard {
         let maps: Vec<MapId> = self.types.object_maps(ty).collect();
 
@@ -454,7 +450,6 @@ impl Inference<'_> {
         }
     }
 
-    /// `value.hasIndex("name")`: the access path of `value.name`, which the call being true shows to exist.
     fn has_index_test(&mut self, call: &Call) -> Option<AccessPath> {
         let ast = self.ast();
         let NodeKind::Member(member) = ast.kind(call.base) else {
@@ -479,7 +474,6 @@ impl Inference<'_> {
         Some(self.access_path(member.base)?.with_member(name))
     }
 
-    /// The type recorded for the read `node` (inside parentheses and after `@`), or `any` when none is recorded.
     fn read_type(&self, node: NodeId) -> TypeId {
         let ast = self.ast();
         let node = match ast.kind(node) {
@@ -495,9 +489,6 @@ impl Inference<'_> {
             .unwrap_or(TypeId::ANY)
     }
 
-    /// `subject == literal` for a variable or member: the subject is that literal's kind and, for a union of literal
-    /// types, that literal; otherwise it isn't that literal. No guard when it changes nothing: every variant already
-    /// has that kind and none is a literal type.
     fn literal_guard(&mut self, subject: NodeId, against: NodeId) -> Option<Guard> {
         let ast = self.ast();
         let NodeKind::Literal(literal) = ast.kind(against) else {
@@ -561,7 +552,6 @@ impl Inference<'_> {
         }
     }
 
-    /// The literal types of `ty` that `test` allows; other variants stay.
     pub(crate) fn restrict_to_literals(&mut self, ty: TypeId, test: LiteralTest) -> TypeId {
         let (literals, only) = match test {
             LiteralTest::Unknown => return ty,

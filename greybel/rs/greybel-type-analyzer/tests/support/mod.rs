@@ -12,13 +12,13 @@ pub mod documents;
 pub mod features;
 pub mod ignores;
 pub mod import_path;
+pub mod infer;
 pub mod inlay;
+pub mod instances;
 pub mod keywords;
+pub mod narrowing;
 pub mod ranges;
 pub mod type_definition;
-pub mod infer;
-pub mod instances;
-pub mod narrowing;
 pub mod type_expr;
 pub mod workspace;
 

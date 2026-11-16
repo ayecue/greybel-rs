@@ -12,11 +12,12 @@ use greybel_symbols::delimiters::{
 use greybel_symbols::literals::NULL;
 use greybel_symbols::{Keyword, Punct};
 
-use super::shape::{count_operations, is_block_statement, shorthand};
 use super::{BeautifyEmitter, MAX_INLINE_ARGUMENTS, MAX_INLINE_OPERATIONS};
 use crate::bundle::MULTILINE_STRING;
-use crate::emit::nodes::{deferred_function, dependency_module, emitted_parameters, unwrap_value};
-use crate::emit::{EmitFlags, EmitOutput, EmitState, Emitter, LiteralStyle};
+use crate::emit::{
+    EmitExpressions, EmitFeatures, EmitFlags, EmitFunctions, EmitOutput, EmitState, EmitStatements,
+    Emitter, LiteralStyle,
+};
 use crate::error::Result;
 
 impl Emitter for BeautifyEmitter {
@@ -156,7 +157,7 @@ impl Emitter for BeautifyEmitter {
             };
 
             self.emit(s, item, statement)?;
-            if s.line_count() > first_line && is_block_statement(s, item) {
+            if s.line_count() > first_line && s.is_block_statement(item) {
                 Self::emit_trailing_comments(s, item, Some(first_line));
                 Self::emit_end_trailing_comments(s, item);
             } else {
@@ -203,7 +204,7 @@ impl Emitter for BeautifyEmitter {
         }
 
         self.emit(s, node.variable, EmitFlags::default())?;
-        if let Some(binary) = shorthand(s, node) {
+        if let Some(binary) = s.shorthand(node) {
             s.push_fmt(format_args!(
                 " {}{} ",
                 binary.operator.as_str(),
@@ -232,7 +233,7 @@ impl Emitter for BeautifyEmitter {
             self.emit_templates(s, id);
         } else {
             self.single_line(s, |this, s| {
-                let parameters = emitted_parameters(s, s.ast().list(node.parameters));
+                let parameters = s.emitted_parameters(s.ast().list(node.parameters));
 
                 s.keyword(Keyword::Function);
                 this.emit_templates(s, id);
@@ -373,7 +374,7 @@ impl Emitter for BeautifyEmitter {
             .ast()
             .list(node.arguments)
             .iter()
-            .filter_map(|&argument| deferred_function(s, argument, id))
+            .filter_map(|&argument| s.deferred_function(argument, id))
             .collect();
 
         if node.arguments.len() > MAX_INLINE_ARGUMENTS
@@ -417,7 +418,7 @@ impl Emitter for BeautifyEmitter {
             }
 
             let argument_flags = EmitFlags {
-                header_only: deferred_functions.contains(&unwrap_value(s, argument)),
+                header_only: deferred_functions.contains(&s.unwrap_value(argument)),
                 ..EmitFlags::default()
             };
 
@@ -572,7 +573,7 @@ impl Emitter for BeautifyEmitter {
     ) -> Result<()> {
         let operator = node.operator.as_str();
 
-        if count_operations(s, node.right) <= MAX_INLINE_OPERATIONS {
+        if s.count_operations(node.right) <= MAX_INLINE_OPERATIONS {
             let inner = EmitFlags {
                 logical_continuation: flags.logical_continuation,
                 ..EmitFlags::default()
@@ -674,7 +675,7 @@ impl Emitter for BeautifyEmitter {
             return Ok(());
         }
 
-        let Some(dependency) = dependency_module(s, id) else {
+        let Some(dependency) = s.dependency_module(id) else {
             {
                 let text = s.read(node.path);
 

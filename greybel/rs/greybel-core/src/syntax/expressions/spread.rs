@@ -4,7 +4,6 @@ use crate::error::ParseResult;
 use crate::lexer::Punct;
 use crate::parser::Parser;
 
-/// `...items` in a list or map literal. Builds write the literal as additions: `[...a, 1]` becomes `[] + a + [1]`.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct Spread {
     #[child]
@@ -26,7 +25,6 @@ impl AstNode for Spread {
 }
 
 impl Spread {
-    /// A spread when the current token is `...` and the grammar has Greybel's syntax features.
     pub(crate) fn parse(parser: &mut Parser<'_>, item: NodeId) -> ParseResult<Option<NodeKind>> {
         if !(parser.grammar().allows(SyntaxFeatures::SPREAD)
             && parser.token().is_punct(Punct::Ellipsis))

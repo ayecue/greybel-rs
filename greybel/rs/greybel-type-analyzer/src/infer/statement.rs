@@ -26,7 +26,6 @@ impl<'a> Inference<'a> {
                 continue;
             }
 
-            // A statement a build adds (an empty span, such as a constructor's `return self`) isn't written code.
             if let Some(terminator) = terminator
                 && !is_reported
                 && !self.ast().span(statement).is_empty()
@@ -34,7 +33,7 @@ impl<'a> Inference<'a> {
                 self.report(
                     DiagnosticKind::DeadCodeAfterTerminator,
                     statement,
-                    format!("Dead code after {terminator}."),
+                    format!("Unreachable code after {terminator}."),
                 );
                 is_reported = true;
             }
@@ -72,8 +71,6 @@ impl<'a> Inference<'a> {
         }
     }
 
-    /// Greybel's statement sugar: an `enum`, a destructuring assignment and a class as the statements they stand for, and an
-    /// `assert` as a narrowing by its condition.
     fn infer_greybel_statement(&mut self, node: NodeId) {
         let ast = self.ast();
 

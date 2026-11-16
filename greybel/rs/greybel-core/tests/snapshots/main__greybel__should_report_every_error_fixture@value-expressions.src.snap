@@ -4,9 +4,9 @@ expression: rendered
 input_file: greybel-core/tests/fixtures/greybel/errors/value-expressions.src
 ---
 --- strict
-1:1 - 1:5 InvalidAssignmentTarget(5005): an optional chain can't be assigned to
+1:1 - 1:5 InvalidAssignmentTarget(5005): cannot assign to an optional chain
 --- tree
 Chunk[1:1-3:1][]
 --- errors
-1:1 - 1:5 InvalidAssignmentTarget(5005): an optional chain can't be assigned to
-2:5 - 3:1 ExpectedToken(3001): a ternary expression needs ':' and a value for a false condition
+1:1 - 1:5 InvalidAssignmentTarget(5005): cannot assign to an optional chain
+2:5 - 3:1 ExpectedToken(3001): a ternary expression needs ':' followed by the value for a false condition

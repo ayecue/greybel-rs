@@ -20,6 +20,24 @@ pub(crate) enum Binding {
     Parameter(usize),
 }
 
+impl Binding {
+    fn of(ast: &Ast, parameters: &[Parameter], node: NodeId) -> Option<Self> {
+        let NodeKind::Identifier(identifier) = ast.kind(node) else {
+            return None;
+        };
+        let name = ast.resolve(identifier.name);
+
+        match parameters
+            .iter()
+            .position(|parameter| parameter.name == name)
+        {
+            Some(0) | None if name == SELF => Some(Self::Receiver),
+            Some(position) => Some(Self::Parameter(position)),
+            None => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) struct BindingSet {
     receiver: bool,
@@ -64,7 +82,7 @@ struct BindingSearch<'a> {
 
 impl BindingSearch<'_> {
     fn add_change(&mut self, node: NodeId) {
-        if let Some(binding) = binding_of(self.ast, self.parameters, node) {
+        if let Some(binding) = Binding::of(self.ast, self.parameters, node) {
             self.uses.additions.insert(binding);
         }
     }
@@ -101,14 +119,14 @@ impl Visitor for BindingSearch<'_> {
                 NodeKind::Member(member) => self.add_change(member.base),
                 _ => {
                     if let Some(binding) =
-                        binding_of(self.ast, self.parameters, assignment.variable)
+                        Binding::of(self.ast, self.parameters, assignment.variable)
                     {
                         self.uses.assignments.insert(binding);
                     }
                 }
             },
             NodeKind::For(statement) => {
-                if let Some(binding) = binding_of(self.ast, self.parameters, statement.variable) {
+                if let Some(binding) = Binding::of(self.ast, self.parameters, statement.variable) {
                     self.uses.assignments.insert(binding);
                 }
             }
@@ -133,22 +151,6 @@ impl Visitor for BindingSearch<'_> {
         }
 
         true
-    }
-}
-
-fn binding_of(ast: &Ast, parameters: &[Parameter], node: NodeId) -> Option<Binding> {
-    let NodeKind::Identifier(identifier) = ast.kind(node) else {
-        return None;
-    };
-    let name = ast.resolve(identifier.name);
-
-    match parameters
-        .iter()
-        .position(|parameter| parameter.name == name)
-    {
-        Some(0) | None if name == SELF => Some(Binding::Receiver),
-        Some(position) => Some(Binding::Parameter(position)),
-        None => None,
     }
 }
 

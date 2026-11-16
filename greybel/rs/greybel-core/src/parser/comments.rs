@@ -30,7 +30,6 @@ impl Parser<'_> {
                 .has_line_break(self.prev().span().start, self.token().span().start)
     }
 
-    /// Records the comment token in the chunk without attaching it to a statement.
     pub(crate) fn register_comment(&mut self) {
         let comment = self.comment();
 

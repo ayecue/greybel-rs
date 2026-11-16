@@ -4,8 +4,8 @@ expression: "render_invalid(&read(path), &ParserOptions::new(Dialect::GreyScript
 input_file: greybel-core/tests/fixtures/greyscript/errors/import-code-non-string.src
 ---
 --- strict
-1:1 - 1:14 ExpectedToken(3001): expected import_code argument to be string literal
+1:1 - 1:14 ExpectedToken(3001): expected a string literal as the import_code argument
 --- tree
 Chunk[1:1-2:1][]
 --- errors
-1:1 - 1:14 ExpectedToken(3001): expected import_code argument to be string literal
+1:1 - 1:14 ExpectedToken(3001): expected a string literal as the import_code argument

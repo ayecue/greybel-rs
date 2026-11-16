@@ -65,7 +65,7 @@ pub struct RunRequest {
 #[tool_router(router = run_router, vis = "pub(super)")]
 impl Server {
     #[tool(
-        description = "Runs a GreyScript program, given as code or a file, in a simulated Grey Hack world (`get_shell(\"root\", \"test\")` is the local root shell), with its params and input given in advance and the settings of its project's greybel.json. Returns what the terminal shows at its end, as plain text, and how it ended."
+        description = "Runs GreyScript code or a file in a simulated Grey Hack world. Uses preset `params`, preset input, and the project's `greybel.json` settings. Returns the final terminal text and exit status. `get_shell(\"root\", \"test\")` is the local root shell."
     )]
     async fn run(&self, Parameters(params): Parameters<RunRequest>) -> Result<String, RunError> {
         let (entry, memory) = Source::of(params.code, params.path)?.documents();

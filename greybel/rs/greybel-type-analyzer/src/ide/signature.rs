@@ -1,5 +1,9 @@
+use greybel_core::Position;
+use greybel_documents::Uri;
+
 use super::Context;
 use crate::analysis::Query;
+use crate::analyzer::Analyzer;
 use crate::model::Documentation;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,7 +21,7 @@ pub struct ParameterInformation {
 }
 
 impl Context<'_> {
-    pub(crate) fn signature_help(&self) -> Option<SignatureHelp> {
+    fn signature_help(&self) -> Option<SignatureHelp> {
         let text = self.source_text();
         let (callee_end, active_parameter) = text.open_call(self.offset as usize)?;
         let mut query = Query::new(self.analysis);
@@ -56,5 +60,12 @@ impl Context<'_> {
             active_parameter,
             documentation: model.documentation(self.analysis.api(), function),
         })
+    }
+}
+
+impl Analyzer<'_> {
+    #[must_use]
+    pub fn signature_help(&self, uri: &Uri, position: Position) -> Option<SignatureHelp> {
+        self.ide_context(uri, position)?.signature_help()
     }
 }

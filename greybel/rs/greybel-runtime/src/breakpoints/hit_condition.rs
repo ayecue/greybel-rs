@@ -3,7 +3,9 @@ use std::num::ParseIntError;
 /// Hit-condition validation error.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub(super) enum HitConditionError {
-    #[error("`{text}` isn't a hit count: write a number, optionally after ==, >=, >, <, <= or %.")]
+    #[error(
+        "`{text}` is not a hit count: write a number, optionally after =, ==, >=, >, <, <=, or %."
+    )]
     Count {
         text: String,
         #[source]

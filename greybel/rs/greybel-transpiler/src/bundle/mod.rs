@@ -12,54 +12,58 @@ use crate::documents::{AsyncResourceProvider, ModuleGraph, ResourceProvider, Uri
 use crate::emit::{BeautifyEmitter, DefaultEmitter, UglifyEmitter};
 use crate::error::{Result, TranspileError};
 use crate::minify::Minification;
-use crate::options::{BuildMode, TranspileOptions};
+use crate::options::BuildMode;
+use crate::transpiler::Transpiler;
 
-pub fn transpile_project(
-    entry: &Uri,
-    provider: &impl ResourceProvider,
-    options: &TranspileOptions,
-) -> Result<Vec<Output>> {
-    let load_options = options.load_options();
-    let graph = ModuleGraph::load(entry, &load_options, provider)?;
+impl Transpiler<'_> {
+    pub fn transpile_project(
+        &self,
+        entry: &Uri,
+        provider: &impl ResourceProvider,
+    ) -> Result<Vec<Output>> {
+        let load_options = self.options().load_options();
+        let graph = ModuleGraph::load(entry, &load_options, provider)?;
 
-    transpile_graph(&graph, options)
-}
-
-pub async fn transpile_project_async(
-    entry: &Uri,
-    provider: &impl AsyncResourceProvider,
-    options: &TranspileOptions,
-) -> Result<Vec<Output>> {
-    let load_options = options.load_options();
-    let graph = ModuleGraph::load_async(entry, &load_options, provider).await?;
-
-    transpile_graph(&graph, options)
-}
-
-pub fn transpile_graph(graph: &ModuleGraph, options: &TranspileOptions) -> Result<Vec<Output>> {
-    let Some(main) = graph.entry() else {
-        return Ok(Vec::new());
-    };
-
-    if let Some(cycle) = graph.cycle() {
-        return Err(TranspileError::CircularDependency {
-            from: cycle.from.clone(),
-            to: cycle.to.clone(),
-        });
+        self.transpile_graph(&graph)
     }
 
-    match &options.mode {
-        BuildMode::Default => Bundler::new(DefaultEmitter, graph, options)?.outputs(main),
-        BuildMode::Uglify(uglify) => {
-            let minification = Minification::analyze(&graph.dependency_order(main), options);
-            let emitter = UglifyEmitter::new(*uglify, minification);
+    pub async fn transpile_project_async(
+        &self,
+        entry: &Uri,
+        provider: &impl AsyncResourceProvider,
+    ) -> Result<Vec<Output>> {
+        let load_options = self.options().load_options();
+        let graph = ModuleGraph::load_async(entry, &load_options, provider).await?;
 
-            Bundler::new(emitter, graph, options)?.outputs(main)
+        self.transpile_graph(&graph)
+    }
+
+    pub fn transpile_graph(&self, graph: &ModuleGraph) -> Result<Vec<Output>> {
+        let options = self.options();
+        let Some(main) = graph.entry() else {
+            return Ok(Vec::new());
+        };
+
+        if let Some(cycle) = graph.cycle() {
+            return Err(TranspileError::CircularDependency {
+                from: cycle.from.clone(),
+                to: cycle.to.clone(),
+            });
         }
-        BuildMode::Beautify(beautify) => {
-            let emitter = BeautifyEmitter::new(*beautify);
 
-            Bundler::new(emitter, graph, options)?.outputs(main)
+        match &options.mode {
+            BuildMode::Default => Bundler::new(DefaultEmitter, graph, options)?.outputs(main),
+            BuildMode::Uglify(uglify) => {
+                let minification = Minification::analyze(&graph.dependency_order(main), options);
+                let emitter = UglifyEmitter::new(*uglify, minification);
+
+                Bundler::new(emitter, graph, options)?.outputs(main)
+            }
+            BuildMode::Beautify(beautify) => {
+                let emitter = BeautifyEmitter::new(*beautify);
+
+                Bundler::new(emitter, graph, options)?.outputs(main)
+            }
         }
     }
 }

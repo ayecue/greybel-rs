@@ -13,9 +13,9 @@ use super::source::into_tool_contents;
 
 #[derive(Debug, thiserror::Error)]
 enum ApiError {
-    #[error("The API has no type {owner}: find one with api_search.")]
+    #[error("The API has no type \"{owner}\"; use api_search to find one.")]
     UnknownType { owner: String },
-    #[error("{owner} has no member {member}.")]
+    #[error("\"{owner}\" has no member \"{member}\".")]
     UnknownMember { owner: String, member: String },
 }
 
@@ -57,14 +57,14 @@ impl Server {
         }
 
         if text.is_empty() {
-            "Nothing matches.".to_owned()
+            "No API types or members match.".to_owned()
         } else {
             text
         }
     }
 
     #[tool(
-        description = "The reference of a type (such as `shell`) or a member (such as `shell.host_computer`) of the GreyScript API, as Markdown: signatures, descriptions, examples."
+        description = "Returns Markdown reference for a GreyScript API type (such as `shell`) or member (such as `shell.host_computer`), including signatures, descriptions, and examples."
     )]
     async fn api_reference(
         &self,

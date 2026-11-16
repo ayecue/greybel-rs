@@ -34,7 +34,7 @@ impl<H: Host> RuntimeState<H> {
                 Ok(_) => {}
                 Err(failure) => {
                     self.log(
-                        format!("The breakpoint's condition `{condition}` failed: {failure}"),
+                        format!("The breakpoint condition `{condition}` failed: {failure}."),
                         &location,
                     );
 

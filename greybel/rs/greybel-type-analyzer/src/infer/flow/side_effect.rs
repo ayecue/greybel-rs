@@ -26,42 +26,57 @@ impl SideEffect {
     }
 }
 
-fn same_variables(left: &FxHashMap<Site, SideEffect>, right: &FxHashMap<Site, SideEffect>) -> bool {
-    left.len() == right.len()
-        && left.iter().all(|(site, left)| {
-            right
-                .get(site)
-                .is_some_and(|right| left.same_variables(right))
-        })
-}
+#[derive(Debug, Default)]
+pub(crate) struct SideEffectTable(FxHashMap<Site, SideEffect>);
 
-fn close_member_writes(side_effects: &mut FxHashMap<Site, SideEffect>) {
-    let sites: Vec<Site> = side_effects.keys().copied().collect();
-    let mut names: Vec<NameId> = Vec::new();
-    let mut changed = true;
+impl SideEffectTable {
+    fn get(&self, site: Site) -> Option<&SideEffect> {
+        self.0.get(&site)
+    }
 
-    while changed {
-        changed = false;
+    fn add(&mut self, site: Site, side_effect: &SideEffect) {
+        self.0.entry(site).or_default().extend(side_effect);
+    }
 
-        for &site in &sites {
-            let mut any_member = false;
+    fn same_variables(&self, other: &Self) -> bool {
+        self.0.len() == other.0.len()
+            && self.0.iter().all(|(site, left)| {
+                other
+                    .0
+                    .get(site)
+                    .is_some_and(|right| left.same_variables(right))
+            })
+    }
 
-            names.clear();
+    fn close_member_writes(&mut self) {
+        let side_effects = &mut self.0;
+        let sites: Vec<Site> = side_effects.keys().copied().collect();
+        let mut names: Vec<NameId> = Vec::new();
+        let mut changed = true;
 
-            for callee in &side_effects[&site].callees {
-                if let Some(callee) = side_effects.get(callee) {
-                    names.extend(&callee.member_names);
-                    any_member |= callee.any_member;
+        while changed {
+            changed = false;
+
+            for &site in &sites {
+                let mut any_member = false;
+
+                names.clear();
+
+                for callee in &side_effects[&site].callees {
+                    if let Some(callee) = side_effects.get(callee) {
+                        names.extend(&callee.member_names);
+                        any_member |= callee.any_member;
+                    }
                 }
+
+                let side_effect = side_effects.get_mut(&site).expect("a site of the map");
+                let count = side_effect.member_names.len();
+
+                side_effect.member_names.extend(names.drain(..));
+                changed |= side_effect.member_names.len() != count
+                    || any_member && !side_effect.any_member;
+                side_effect.any_member |= any_member;
             }
-
-            let side_effect = side_effects.get_mut(&site).expect("a site of the map");
-            let count = side_effect.member_names.len();
-
-            side_effect.member_names.extend(names.drain(..));
-            changed |=
-                side_effect.member_names.len() != count || any_member && !side_effect.any_member;
-            side_effect.any_member |= any_member;
         }
     }
 }
@@ -89,11 +104,7 @@ impl Inference<'_> {
     pub(crate) fn end_function_side_effect(&mut self, site: Site) {
         let side_effect = self.end_side_effect();
 
-        self.pass
-            .function_side_effects
-            .entry(site)
-            .or_default()
-            .extend(&side_effect);
+        self.pass.function_side_effects.add(site, &side_effect);
     }
 
     pub(crate) fn end_document_side_effect(&mut self, document: DocumentIndex) -> SideEffect {
@@ -112,15 +123,16 @@ impl Inference<'_> {
     }
 
     pub(crate) fn finish_pass_side_effects(&mut self) {
-        if !same_variables(
-            &self.pass.function_side_effects,
-            &self.previous.function_side_effects,
-        ) {
+        if !self
+            .pass
+            .function_side_effects
+            .same_variables(&self.previous.function_side_effects)
+        {
             self.pass.has_changes = true;
         }
 
         self.previous.function_side_effects = std::mem::take(&mut self.pass.function_side_effects);
-        close_member_writes(&mut self.previous.function_side_effects);
+        self.previous.function_side_effects.close_member_writes();
     }
 
     pub(crate) fn add_assignment(&mut self, scope: ScopeId, slot: SlotId) {
@@ -166,8 +178,8 @@ impl Inference<'_> {
         let any_variable = match self
             .pass
             .function_side_effects
-            .get(&site)
-            .or_else(|| self.previous.function_side_effects.get(&site))
+            .get(site)
+            .or_else(|| self.previous.function_side_effects.get(site))
         {
             Some(side_effect) => side_effect.any_variable,
             None => return,
@@ -177,8 +189,8 @@ impl Inference<'_> {
             self.add_unknown_assignment();
         }
 
-        let current = self.pass.function_side_effects.get(&site);
-        let previous = self.previous.function_side_effects.get(&site);
+        let current = self.pass.function_side_effects.get(site);
+        let previous = self.previous.function_side_effects.get(site);
 
         if !any_variable && let Some(variables) = current.or(previous) {
             for &slot in &variables.outer_slots {

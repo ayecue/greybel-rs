@@ -4,7 +4,7 @@ expression: rendered
 input_file: greybel-core/tests/fixtures/greybel/errors/classes.src
 ---
 --- strict
-5:2 - 5:7 UnexpectedToken(2001): a class body has fields (name = value) and methods (name(parameters)) only
+5:2 - 5:7 UnexpectedToken(2001): a class body can only contain fields (name = value) and methods (name(parameters))
 --- tree
 Chunk[1:1-11:1][
 	ClassStatement[1:1-2:10][
@@ -28,7 +28,7 @@ Chunk[1:1-11:1][
 	CallStatment[9:1-9:8][CallExpression[9:1-9:8][Identifier[9:1-9:6][class](Literal[9:7-9:8][1])]]
 ]
 --- errors
-5:2 - 5:7 UnexpectedToken(2001): a class body has fields (name = value) and methods (name(parameters)) only
-7:2 - 7:3 UnexpectedToken(2001): the class already has a member x
+5:2 - 5:7 UnexpectedToken(2001): a class body can only contain fields (name = value) and methods (name(parameters))
+7:2 - 7:3 UnexpectedToken(2001): the class already has a member 'x'
 3:1 - 8:10 UnexpectedToken(2001): a class that extends another needs a constructor when it has instance fields; write static before a field all instances share
 10:10 - 10:10 UnmatchedEnd(4001): 'end class' without matching block starter

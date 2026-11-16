@@ -101,7 +101,6 @@ impl ScopeStack {
         nested
     }
 
-    /// Continues collecting the data of the completed scope `scope`, until [`Self::exit`].
     pub fn resume_scope(&mut self, scope: NodeId, nodes: &mut NodeStore) {
         self.scopes.push(PendingScope::resume(scope, nodes));
     }

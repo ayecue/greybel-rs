@@ -5,7 +5,7 @@ use super::template::{HEADER, MODULE, Template, emit_boilerplate, emit_multiline
 use crate::documents::{ImportKind, ModuleGraph, ModuleId};
 use crate::emit::{ConstantTable, EmitFlags, EmitState, Emitter};
 use crate::error::Result;
-use crate::names::{NameTable, module_charset};
+use crate::names::{Charset, NameTable};
 use crate::options::TranspileOptions;
 
 pub(super) struct Bundler<'a, E> {
@@ -152,7 +152,7 @@ impl<'a, E: Emitter> Bundler<'a, E> {
 }
 
 fn module_namespaces(graph: &ModuleGraph, obfuscation: bool) -> Vec<String> {
-    let mut names = NameTable::new(module_charset(obfuscation));
+    let mut names = NameTable::new(Charset::modules(obfuscation).chars());
 
     graph
         .ids()

@@ -4,8 +4,6 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use super::{LiteralStyle, LiteralText};
 
-/// The entries of the `const enum`s of the files a build writes, by enum name and entry name, as the literal text
-/// builds write in place of `Name.Entry` reads. A name that two files declare with other entries is skipped.
 #[derive(Debug, Default)]
 pub struct ConstantTable {
     entries: FxHashMap<(String, String), String>,
@@ -13,7 +11,6 @@ pub struct ConstantTable {
     conflicts: FxHashSet<String>,
 }
 
-/// The file and enum statement that declares a `const enum` name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct NodeOwner {
     file: usize,
@@ -37,7 +34,6 @@ impl ConstantTable {
         self.entries.is_empty()
     }
 
-    /// The literal text of `name.entry`.
     #[must_use]
     pub fn get(&self, name: &str, entry: &str) -> Option<&str> {
         if self.conflicts.contains(name) {
@@ -49,8 +45,6 @@ impl ConstantTable {
             .map(String::as_str)
     }
 
-    /// The `const enum` names that `ast` also uses as a variable, parameter or loop variable outside its `const
-    /// enum` statements; their reads in `ast` aren't replaced.
     #[must_use]
     pub fn variable_names_in(&self, ast: &Ast) -> FxHashSet<String> {
         let enum_assignments: FxHashSet<NodeId> = ast

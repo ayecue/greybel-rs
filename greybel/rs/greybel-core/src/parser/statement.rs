@@ -181,8 +181,6 @@ impl Parser<'_> {
         self.require_statement_end()
     }
 
-    /// Consumes `let` or `const` when a name follows it on the line, as in `let count = 0`. Otherwise `let` and
-    /// `const` are names, as in `let = 1`.
     fn declaration_prefix(&mut self) -> ParseResult<Option<(Declaration, Span)>> {
         if !self.grammar().allows(SyntaxFeatures::DECLARATIONS) {
             return Ok(None);
@@ -211,7 +209,6 @@ impl Parser<'_> {
         Ok(Some((declaration, keyword)))
     }
 
-    /// `name: T = value` after `let` or `const`, with types on.
     fn parse_typed_declaration(&mut self) -> ParseResult<Option<NodeId>> {
         if !self.grammar().allows(SyntaxFeatures::TYPES) || self.token().as_identifier().is_none() {
             return Ok(None);
@@ -240,7 +237,6 @@ impl Parser<'_> {
         Assignment::parse(self, identifier, span).map(Some)
     }
 
-    /// `const enum Name`.
     fn is_at_const_enum(&self) -> bool {
         let token = self.token();
         let is_const = token
@@ -259,7 +255,6 @@ impl Parser<'_> {
             })
     }
 
-    /// Whether the current token is the word `word` followed by a name on the same line, as in `enum Color`.
     fn is_at_named_statement(&self, word: &str) -> bool {
         let token = self.token();
 
@@ -269,8 +264,6 @@ impl Parser<'_> {
             && self.is_followed_by_name(token.span())
     }
 
-    /// `word` (such as `assert` or `switch`) followed by a space and an expression, not an assignment or member
-    /// access of a variable named `word` (`assert = f`, `assert.x`).
     fn is_at_word_statement(&self, word: &str) -> bool {
         let token = self.token();
         let is_word = token
@@ -314,7 +307,6 @@ impl Parser<'_> {
             && DestructuringAssignment::is_at(self.source(), token.span().start)
     }
 
-    /// Marks the assignments of a destructuring assignment with `declaration`, except its temporaries.
     fn declare_destructuring_assignment(&mut self, statements: NodeList, declaration: Declaration) {
         for statement in self.stream.nodes.list(statements).to_vec() {
             let NodeKind::Assignment(assignment) = &self.stream.nodes.get(statement).kind else {
@@ -338,7 +330,6 @@ impl Parser<'_> {
         }
     }
 
-    /// Marks the assignment `item` with `declaration`, starting it at the keyword.
     fn declare(
         &mut self,
         item: NodeId,

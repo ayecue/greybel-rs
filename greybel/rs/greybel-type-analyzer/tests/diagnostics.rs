@@ -37,9 +37,9 @@ fn should_report_calls_with_more_arguments_than_parameters() {
     assert_eq!(
         reported,
         owned(&[
-            (5, "Call expected at most 2 arguments but got 3."),
-            (10, "Call expected at most 1 arguments but got 2."),
-            (13, "Call expected at most 2 arguments but got 3."),
+            (5, "Expected at most 2 arguments but got 3."),
+            (10, "Expected at most 1 arguments but got 2."),
+            (13, "Expected at most 2 arguments but got 3."),
         ])
     );
 }
@@ -90,8 +90,8 @@ fn should_report_statements_after_a_terminator_as_dead() {
     assert_eq!(
         reported,
         owned(&[
-            (3, "Dead code after return."),
-            (12, "Dead code after continue."),
+            (3, "Unreachable code after return."),
+            (12, "Unreachable code after continue."),
         ])
     );
 }
@@ -105,7 +105,10 @@ fn should_report_statements_after_every_path_ended_as_dead() {
 
     assert_eq!(
         reported,
-        owned(&[(7, "Dead code after if."), (12, "Dead code after while.")])
+        owned(&[
+            (7, "Unreachable code after if."),
+            (12, "Unreachable code after while.")
+        ])
     );
 }
 
@@ -116,7 +119,7 @@ fn should_report_statements_after_a_call_that_does_not_return_as_dead() {
 
     let reported = messages_of_kind(&workspace, DiagnosticKind::DeadCodeAfterTerminator);
 
-    assert_eq!(reported, owned(&[(4, "Dead code after exit.")]));
+    assert_eq!(reported, owned(&[(4, "Unreachable code after exit.")]));
 }
 
 #[test]
@@ -167,22 +170,22 @@ fn should_report_calling_or_indexing_what_cannot_be() {
             (
                 DiagnosticKind::CallOfNonCallable,
                 2,
-                "Cannot call non-callable type number.".to_owned()
+                "Cannot call a value of type number.".to_owned()
             ),
             (
                 DiagnosticKind::IndexOfNonIndexable,
                 4,
-                "Cannot index non-indexable type number.".to_owned()
+                "Cannot index a value of type number.".to_owned()
             ),
             (
                 DiagnosticKind::IndexOfNonIndexable,
                 8,
-                "Cannot index non-indexable type null.".to_owned()
+                "Cannot index a value of type null.".to_owned()
             ),
             (
                 DiagnosticKind::CallOfNonCallable,
                 12,
-                "Cannot call non-callable type string.".to_owned()
+                "Cannot call a value of type string.".to_owned()
             ),
         ]
     );
@@ -445,12 +448,12 @@ fn should_warn_about_assignments_replacing_native_functions() {
             (
                 DiagnosticKind::NativeOverride,
                 1,
-                "Assigning \"print\" replaces the native function of that name.".to_owned()
+                "Assignment to \"print\" replaces the native function of that name.".to_owned()
             ),
             (
                 DiagnosticKind::NativeOverride,
                 5,
-                "Assigning \"typeof\" replaces the native function of that name.".to_owned()
+                "Assignment to \"typeof\" replaces the native function of that name.".to_owned()
             ),
         ]
     );
@@ -668,6 +671,31 @@ fn should_report_members_a_map_of_the_script_never_has() {
             (3, "Cannot find \"b\" in this map."),
             (5, "Cannot find \"c\" in this map."),
             (8, "Cannot find \"d\" in this map.")
+        ])
+    );
+}
+
+#[test]
+fn should_report_api_types_used_as_values() {
+    let source = "a = new shell
+        shell.extra = 1
+        b = missing";
+    let workspace = with_document(Dialect::GreyScript, source);
+
+    let messages = messages_of_kind(&workspace, DiagnosticKind::UnresolvedReference);
+
+    assert_eq!(
+        messages,
+        owned(&[
+            (
+                1,
+                "\"shell\" is a type, not a value: it can't be extended or created with \"new\"."
+            ),
+            (
+                2,
+                "\"shell\" is a type, not a value: it can't be extended or created with \"new\"."
+            ),
+            (3, "Cannot find \"missing\".")
         ])
     );
 }
@@ -928,9 +956,9 @@ fn should_report_private_members_outside_the_methods_of_their_class() {
     assert_eq!(
         reported,
         owned(&[
-            (16, "\"tricks\" is private to Dog."),
-            (17, "\"tricks\" is private to Dog."),
-            (18, "\"tricks\" is private to Dog."),
+            (16, "\"tricks\" is private to \"Dog\"."),
+            (17, "\"tricks\" is private to \"Dog\"."),
+            (18, "\"tricks\" is private to \"Dog\"."),
         ])
     );
 }
@@ -945,8 +973,8 @@ fn should_report_members_an_implemented_type_has_but_the_class_has_not() {
     assert_eq!(
         reported,
         owned(&[
-            (6, "\"age\" is string in Dog but number in Pet."),
-            (6, "Dog implements Pet but has no \"sound\"."),
+            (6, "\"age\" is string in \"Dog\" but number in \"Pet\"."),
+            (6, "\"Dog\" implements \"Pet\" but has no \"sound\"."),
             (10, "Cannot find the type \"Missing\"."),
         ])
     );
@@ -972,9 +1000,9 @@ fn should_report_implicit_any_only_when_enabled() {
     assert_eq!(
         reported,
         [
-            (2, "The return type is not written and is any.".to_owned()),
-            (2, "\"name\" has no type and is any.".to_owned()),
-            (5, "\"x\" has no type and is any.".to_owned()),
+            (2, "The return type is implicitly any.".to_owned()),
+            (2, "The type of \"name\" is implicitly any.".to_owned()),
+            (5, "The type of \"x\" is implicitly any.".to_owned()),
         ]
     );
     assert_eq!(by_default, 0);
@@ -989,7 +1017,7 @@ fn should_report_assignments_of_const_enum_entries() {
 
     assert_eq!(
         reported,
-        owned(&[(7, "\"Port.Ssh\" is an entry of a const enum.")])
+        owned(&[(7, "Cannot assign to const enum entry \"Port.Ssh\".")])
     );
 }
 

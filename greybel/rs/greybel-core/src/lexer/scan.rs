@@ -113,7 +113,7 @@ impl<'src> Lexer<'src> {
         if let Some(punct) = self.punct_at(&self.source.as_bytes()[stream.cursor.index()..]) {
             // `c?.5:1` is `c ? .5 : 1`, as in JavaScript.
             let punct = if punct == Punct::OptionalDot && self.code_at(stream, 2).is_ascii_digit() {
-                Punct::Question
+                Punct::Conditional
             } else {
                 punct
             };

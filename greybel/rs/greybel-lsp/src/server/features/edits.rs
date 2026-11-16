@@ -1,33 +1,34 @@
 use gen_lsp_types as lsp;
-use greybel_core::ColumnSettings;
-use greybel_transpiler::{BuildMode, TranspileOptions};
+use greybel_core::{ColumnSettings, Range};
+use greybel_transpiler::{BuildMode, TranspileOptions, Transpiler};
 
-use super::Server;
+use super::{AnalyzedDocument, Server};
 use crate::error::Result;
-use crate::{from_lsp, to_lsp};
+use crate::from_lsp::FromLsp;
+use crate::to_lsp::ToLsp;
 
 impl Server {
     pub(in crate::server) fn code_action(
         &mut self,
-        params: &lsp::CodeActionParams,
+        params: lsp::CodeActionParams,
     ) -> Result<Option<Vec<lsp::CodeActionResponse>>> {
-        let Some(document) = self.document_analysis(&params.text_document.uri)? else {
+        let Some(document) = AnalyzedDocument::of(self, &params.text_document.uri)? else {
             return Ok(None);
         };
 
         Ok(Some(
             document
                 .analyzer
-                .code_actions(&document.uri, from_lsp::range(params.range))
+                .code_actions(&document.uri, Range::from_lsp(params.range))
                 .iter()
-                .map(|action| lsp::CodeActionResponse::CodeAction(to_lsp::code_action(action)))
+                .map(|action| lsp::CodeActionResponse::CodeAction(action.to_lsp()))
                 .collect(),
         ))
     }
 
     pub(in crate::server) fn format_document(
         &mut self,
-        params: &lsp::DocumentFormattingParams,
+        params: lsp::DocumentFormattingParams,
     ) -> Result<Option<Vec<lsp::TextEdit>>> {
         let uri = Self::requested_uri(&params.text_document.uri)?;
 
@@ -42,7 +43,6 @@ impl Server {
         let (Some(ast), []) = (parse.ast(), parse.errors()) else {
             return Ok(None);
         };
-        // Dev mode retains Greybel syntax (`+=`, bitwise operators, `debugger`, `#line`, expression defaults) as written.
         let options = TranspileOptions {
             dialect: self.dialect,
             mode: BuildMode::Beautify(self.settings.beautify_options()),
@@ -51,7 +51,7 @@ impl Server {
             retain_multiline_strings: true,
             ..TranspileOptions::default()
         };
-        let Ok(beautified_text) = greybel_transpiler::emit(ast, &options) else {
+        let Ok(beautified_text) = Transpiler::new(&options).emit(ast) else {
             return Ok(None);
         };
 
@@ -62,10 +62,13 @@ impl Server {
         Ok(Some(vec![lsp::TextEdit {
             range: lsp::Range {
                 start: lsp::Position::default(),
-                end: to_lsp::position(ast.lines().position(
-                    u32::try_from(ast.source().len()).unwrap_or(u32::MAX),
-                    ColumnSettings::default(),
-                )),
+                end: ast
+                    .lines()
+                    .position(
+                        u32::try_from(ast.source().len()).unwrap_or(u32::MAX),
+                        ColumnSettings::default(),
+                    )
+                    .to_lsp(),
             },
             new_text: beautified_text,
         }]))

@@ -15,7 +15,6 @@ pub(crate) enum TokenStart {
     Colon,
     Slash,
     Punct,
-    /// `#`: a template when `"` follows, else a directive name when the grammar has them.
     Hash,
 }
 

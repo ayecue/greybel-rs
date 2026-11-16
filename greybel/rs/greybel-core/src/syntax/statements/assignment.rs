@@ -14,7 +14,6 @@ pub struct Assignment {
     #[child]
     pub init: NodeId,
     pub shorthand: bool,
-    /// `let` or `const` before the assignment; builds write the assignment without it.
     pub declaration: Option<Declaration>,
 }
 
@@ -51,9 +50,9 @@ impl AstNode for Assignment {
     fn dump(&self, ctx: &DumpContext<'_>) -> String {
         let type_name = self.type_name();
 
-        let declaration = self
-            .declaration
-            .map_or(String::new(), |declaration| format!("{} ", declaration.as_str()));
+        let declaration = self.declaration.map_or(String::new(), |declaration| {
+            format!("{} ", declaration.as_str())
+        });
 
         format!(
             "{type_name}[{}][{declaration}{} = {}]",

@@ -7,9 +7,9 @@ pub mod error;
 pub mod minify;
 pub mod names;
 pub mod options;
-pub mod transpile;
+pub mod transpiler;
 
-pub use bundle::{Output, transpile_graph, transpile_project, transpile_project_async};
+pub use bundle::Output;
 pub use documents::{AsyncResourceProvider, ResourceProvider};
 pub use emit::{BeautifyEmitter, DefaultEmitter, EmitFlags, EmitState, Emitter, UglifyEmitter};
 pub use error::{Result, TranspileError};
@@ -17,4 +17,4 @@ pub use minify::Minification;
 pub use options::{
     BeautifyOptions, BuildMode, Indentation, PathMapping, TranspileOptions, UglifyOptions,
 };
-pub use transpile::{emit, parse, transpile};
+pub use transpiler::Transpiler;

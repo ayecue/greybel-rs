@@ -2,47 +2,49 @@ use crate::error::ErrorCode;
 
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 pub enum GreybelDiagnostic {
-    #[error("expected from keyword")]
+    #[error("expected 'from'")]
     MissingFromKeyword,
-    #[error("{keyword} needs an assignment to a name")]
+    #[error("'{keyword}' needs an assignment to a variable")]
     DeclarationWithoutAssignment { keyword: &'static str },
-    #[error("enum needs a name")]
+    #[error("'enum' needs a name")]
     EnumName,
     #[error("expected an enum entry name")]
     EnumEntryName,
     #[error("an enum value must be a number or string literal")]
     EnumValue,
-    #[error("an enum entry after a string value needs a value")]
+    #[error("an enum entry after a string value needs its own value")]
     MissingEnumValue,
-    #[error("the enum already has an entry {name}")]
+    #[error("the enum already has an entry '{name}'")]
     DuplicateEnumEntry { name: String },
-    #[error("enum is missing end enum")]
+    #[error("'enum' without matching 'end enum'")]
     UnclosedEnum,
-    #[error("a ternary expression needs ':' and a value for a false condition")]
+    #[error("a ternary expression needs ':' followed by the value for a false condition")]
     MissingTernaryElse,
-    #[error("an optional chain can't be assigned to")]
+    #[error("cannot assign to an optional chain")]
     OptionalChainAssignment,
-    #[error("export is only allowed at the top of a file")]
+    #[error("'export' is only allowed at the top level of a file")]
     NestedExport,
-    #[error("export needs an assignment to a name")]
+    #[error("'export' needs an assignment to a variable")]
     ExportWithoutAssignment,
-    #[error("a switch has only one else")]
+    #[error("a switch can have only one 'else'")]
     SecondSwitchElse,
-    #[error("statements of a switch belong in a case")]
+    #[error("statements in a switch must be inside a 'case'")]
     StatementOutsideCase,
     #[error("expected a type")]
     ExpectedType,
-    #[error("a type body has members (name: type) and methods (name(parameters): type) only")]
+    #[error(
+        "a type body can only contain members (name: type) and methods (name(parameters): type)"
+    )]
     TypeMember,
-    #[error("type is missing end type")]
+    #[error("'type' without matching 'end type'")]
     UnclosedType,
-    #[error("class needs a name")]
+    #[error("'class' needs a name")]
     ClassName,
-    #[error("implements needs type names")]
+    #[error("'implements' needs type names")]
     ImplementsName,
-    #[error("a class body has fields (name = value) and methods (name(parameters)) only")]
+    #[error("a class body can only contain fields (name = value) and methods (name(parameters))")]
     ClassMember,
-    #[error("the class already has a member {name}")]
+    #[error("the class already has a member '{name}'")]
     DuplicateClassMember { name: String },
     #[error(
         "a class that extends another needs a constructor when it has instance fields; write static before a field \
@@ -51,7 +53,7 @@ pub enum GreybelDiagnostic {
     InstanceFieldsWithoutConstructor,
     #[error("a template placeholder needs an expression")]
     EmptyTemplatePlaceholder,
-    #[error("expected }} after the expression of a template placeholder")]
+    #[error("expected '}}' after the expression of a template placeholder")]
     UnclosedTemplatePlaceholder,
 }
 

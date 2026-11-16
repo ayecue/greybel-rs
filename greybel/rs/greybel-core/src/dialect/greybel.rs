@@ -55,8 +55,5 @@ pub(super) fn precedence_table(version: Version) -> PrecedenceTable {
             &[Precedence::BitwiseOr, Precedence::BitwiseAnd],
         )
         .insert_after(Precedence::AddSub, &[Precedence::Shift])
-        .insert_before(
-            Precedence::Or,
-            &[Precedence::Ternary, Precedence::Coalesce],
-        )
+        .insert_before(Precedence::Or, &[Precedence::Ternary, Precedence::Coalesce])
 }

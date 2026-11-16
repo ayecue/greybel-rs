@@ -9,17 +9,12 @@ pub enum TypeExpr {
         arguments: Vec<TypeExpr>,
     },
     Union(Vec<TypeExpr>),
-    /// `"tcp"` or `22`: the one value as a type.
     Literal(TypeLiteral),
-    /// `[string, number]`: a list of the element types.
     Tuple(Vec<TypeExpr>),
-    /// `value is Dog` as a return type: the function returns whether its parameter `value` is a `Dog`.
     Guard {
         parameter: String,
         ty: Box<TypeExpr>,
     },
-    /// `(name: number, string) => string` or `function(name: number, string): string`; without a return type the
-    /// function returns `any`.
     Function {
         parameters: Vec<FunctionTypeParameter>,
         returns: Option<Box<TypeExpr>>,
@@ -29,7 +24,6 @@ pub enum TypeExpr {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TypeLiteral {
     String(String),
-    /// The text of the number, as written.
     Number(String),
 }
 
@@ -242,7 +236,6 @@ impl Parser<'_> {
         Some(TypeExpr::Name { name, arguments })
     }
 
-    /// `(name: type, type, ...)`.
     fn parse_parameters(&mut self, depth: usize) -> Option<Vec<FunctionTypeParameter>> {
         if !self.consume(b'(') {
             return None;
@@ -270,7 +263,6 @@ impl Parser<'_> {
         }
     }
 
-    /// A `name:` before a parameter type, consumed when there is one.
     fn parameter_name(&mut self) -> Option<String> {
         self.skip_whitespace();
 
@@ -295,7 +287,6 @@ impl Parser<'_> {
         None
     }
 
-    /// `"text"` with `""` for a quote.
     fn parse_string(&mut self) -> Option<String> {
         self.at += 1;
 
@@ -342,7 +333,6 @@ impl Parser<'_> {
         (self.at > digits && text.parse::<f64>().is_ok()).then(|| text.to_owned())
     }
 
-    /// `word` after whitespace, not followed by a name character.
     fn consume_word(&mut self, word: &[u8]) -> bool {
         let save = self.at;
 

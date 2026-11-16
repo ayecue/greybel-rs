@@ -1,56 +1,97 @@
 use gen_lsp_types as lsp;
-use greybel_type_analyzer::{CallHierarchyItem, DocumentSymbol, SymbolKind, WorkspaceSymbol};
+use greybel_type_analyzer::{
+    CallHierarchyCall, CallHierarchyItem, DocumentSymbol, SymbolKind, WorkspaceSymbol,
+};
 
-use super::{location, range, uri};
+use super::ToLsp;
 
-#[must_use]
-pub fn document_symbol(symbol: &DocumentSymbol) -> lsp::DocumentSymbol {
-    lsp::DocumentSymbol::new(
-        symbol.name.clone(),
-        None,
-        symbol_kind(symbol.kind),
-        None,
-        None,
-        range(symbol.range),
-        range(symbol.selection_range),
-        Some(symbol.children.iter().map(document_symbol).collect()),
-    )
+impl ToLsp for DocumentSymbol {
+    type Output = lsp::DocumentSymbol;
+
+    fn to_lsp(&self) -> lsp::DocumentSymbol {
+        lsp::DocumentSymbol::new(
+            self.name.clone(),
+            None,
+            self.kind.to_lsp(),
+            None,
+            None,
+            self.range.to_lsp(),
+            self.selection_range.to_lsp(),
+            Some(self.children.iter().map(ToLsp::to_lsp).collect()),
+        )
+    }
 }
 
-#[must_use]
-pub fn workspace_symbol(symbol: &WorkspaceSymbol) -> lsp::WorkspaceSymbol {
-    lsp::WorkspaceSymbol {
-        location: lsp::WorkspaceSymbolLocation::Location(location(&symbol.location)),
-        data: None,
-        base_symbol_information: lsp::BaseSymbolInformation {
-            name: symbol.name.clone(),
-            kind: symbol_kind(symbol.kind),
+impl ToLsp for WorkspaceSymbol {
+    type Output = lsp::WorkspaceSymbol;
+
+    fn to_lsp(&self) -> lsp::WorkspaceSymbol {
+        lsp::WorkspaceSymbol {
+            location: lsp::WorkspaceSymbolLocation::Location(self.location.to_lsp()),
+            data: None,
+            base_symbol_information: lsp::BaseSymbolInformation {
+                name: self.name.clone(),
+                kind: self.kind.to_lsp(),
+                tags: None,
+                container_name: self.container.clone(),
+            },
+        }
+    }
+}
+
+impl ToLsp for SymbolKind {
+    type Output = lsp::SymbolKind;
+
+    fn to_lsp(&self) -> lsp::SymbolKind {
+        match self {
+            SymbolKind::Variable => lsp::SymbolKind::Variable,
+            SymbolKind::Function => lsp::SymbolKind::Function,
+            SymbolKind::Property => lsp::SymbolKind::Property,
+            SymbolKind::File => lsp::SymbolKind::File,
+            SymbolKind::Type | SymbolKind::Class => lsp::SymbolKind::Class,
+        }
+    }
+}
+
+impl ToLsp for CallHierarchyItem {
+    type Output = lsp::CallHierarchyItem;
+
+    fn to_lsp(&self) -> lsp::CallHierarchyItem {
+        lsp::CallHierarchyItem {
+            name: self.name.clone(),
+            kind: self.kind.to_lsp(),
             tags: None,
-            container_name: symbol.container.clone(),
-        },
+            detail: None,
+            uri: self.uri.to_lsp(),
+            range: self.range.to_lsp(),
+            selection_range: self.selection_range.to_lsp(),
+            data: None,
+        }
     }
 }
 
-fn symbol_kind(kind: SymbolKind) -> lsp::SymbolKind {
-    match kind {
-        SymbolKind::Variable => lsp::SymbolKind::Variable,
-        SymbolKind::Function => lsp::SymbolKind::Function,
-        SymbolKind::Property => lsp::SymbolKind::Property,
-        SymbolKind::File => lsp::SymbolKind::File,
-        SymbolKind::Type | SymbolKind::Class => lsp::SymbolKind::Class,
+pub(crate) struct IncomingCall<'a>(pub &'a CallHierarchyCall);
+
+impl ToLsp for IncomingCall<'_> {
+    type Output = lsp::CallHierarchyIncomingCall;
+
+    fn to_lsp(&self) -> lsp::CallHierarchyIncomingCall {
+        lsp::CallHierarchyIncomingCall {
+            from: self.0.item.to_lsp(),
+            from_ranges: self.0.ranges.iter().map(ToLsp::to_lsp).collect(),
+        }
     }
 }
 
-#[must_use]
-pub fn call_hierarchy_item(item: &CallHierarchyItem) -> lsp::CallHierarchyItem {
-    lsp::CallHierarchyItem {
-        name: item.name.clone(),
-        kind: symbol_kind(item.kind),
-        tags: None,
-        detail: None,
-        uri: uri(&item.uri),
-        range: range(item.range),
-        selection_range: range(item.selection_range),
-        data: None,
+pub(crate) struct OutgoingCall<'a>(pub &'a CallHierarchyCall);
+
+impl ToLsp for OutgoingCall<'_> {
+    type Output = lsp::CallHierarchyOutgoingCall;
+
+    fn to_lsp(&self) -> lsp::CallHierarchyOutgoingCall {
+        lsp::CallHierarchyOutgoingCall {
+            to: self.0.item.to_lsp(),
+            from_ranges: self.0.ranges.iter().map(ToLsp::to_lsp).collect(),
+        }
     }
 }

@@ -36,8 +36,8 @@ vocabulary!(Punct {
     ShiftLeft => "<<",
     ShiftRight => ">>",
     UnsignedShiftRight => ">>>",
-    Question => "?",
+    Conditional => "?",
     Coalesce => "??",
     OptionalDot => "?.",
-    Bang => "!",
+    Exist => "!",
 });

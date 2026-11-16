@@ -2,7 +2,7 @@ use greybel_core::Dialect;
 use greybel_documents::{
     AsyncResourceProvider, ModuleGraph, ModuleId, ResourceProvider, Uri, Workspace,
 };
-use greybel_transpiler::{PathMapping, TranspileOptions, transpile_graph};
+use greybel_transpiler::{PathMapping, TranspileOptions, Transpiler};
 use vscode_uri::UriChange;
 
 use crate::destination::Destination;
@@ -90,11 +90,12 @@ impl Build {
             },
         };
         let options = self.transpile_options(mapping.clone());
+        let transpiler = Transpiler::new(&options);
         let mut files: Vec<OutputFile> = Vec::new();
         let mut entry_paths = Vec::new();
 
         for graph in &graphs {
-            let outputs = transpile_graph(graph, &options)?;
+            let outputs = transpiler.transpile_graph(graph)?;
 
             for (index, output) in outputs.into_iter().enumerate() {
                 let mut path = mapping

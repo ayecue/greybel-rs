@@ -5,7 +5,7 @@ use std::path::Path;
 
 use greybel_documents_fs_provider::FsProvider;
 use greybel_transpiler::{
-    BeautifyOptions, BuildMode, TranspileError, TranspileOptions, UglifyOptions, transpile_project,
+    BeautifyOptions, BuildMode, TranspileError, TranspileOptions, Transpiler, UglifyOptions,
 };
 
 use crate::support::{BEAUTIFY_CUSTOM, Fixtures};
@@ -39,6 +39,7 @@ pub fn modes() -> [(&'static str, TranspileOptions); 4] {
 }
 
 pub fn project(path: &Path, options: &TranspileOptions) -> Result<String, TranspileError> {
-    transpile_project(&FsProvider::uri(path), &FsProvider::default(), options)
+    Transpiler::new(options)
+        .transpile_project(&FsProvider::uri(path), &FsProvider::default())
         .map(|outputs| fixtures().outputs(&outputs))
 }

@@ -10,13 +10,11 @@ pub struct DocComment {
     pub params: Vec<ParamDoc>,
     pub returns: Option<TypeExpr>,
     pub returns_description: Option<String>,
-    /// The text of a `@deprecated` tag, empty when it has none.
     pub deprecation: Option<String>,
     pub defined_type: Option<TypeExpr>,
     pub mutated_parameter: Option<String>,
     pub templates: Vec<TemplateDoc>,
     pub types: Vec<TypeDoc>,
-    /// `@typedef {T} Name<U>`: names for types, like `type Name<U> = T`.
     pub aliases: Vec<AliasDoc>,
     pub invalid_tags: Vec<InvalidTag>,
 }
@@ -37,8 +35,6 @@ pub struct ParamDoc {
     pub optional: bool,
 }
 
-/// A byte range in one line of a comment block: `line` is the line's index in the block, `start` and `end` count
-/// from the start of the comment text after `//`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct TextPosition {
     pub line: usize,
@@ -66,20 +62,16 @@ pub struct TypeDoc {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PropertyDoc {
-    /// The index of the tag's line in the comment block.
     pub line: usize,
     pub path: Vec<String>,
     pub ty: TypeExpr,
     pub description: Option<String>,
-    /// `[name]`: the key may be missing from the map.
     pub optional: bool,
-    /// `{readonly T}`: only assigned where the type's maps are made.
     pub readonly: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FunctionDoc {
-    /// The index of the tag's line in the comment block.
     pub line: usize,
     pub name: String,
     pub params: Vec<ParamDoc>,
@@ -422,8 +414,6 @@ impl Reader {
         Some(Section::Other)
     }
 
-    /// `@typedef {T} Name` or `@typedef {T} Name<U, V>`; without `<...>` the `@template` names of the block are the
-    /// type parameters.
     fn read_typedef(&mut self, index: usize, remainder: &str) -> Option<Section> {
         let (expr, remainder) = TypeExpr::parse_braced_prefix(remainder);
         let Ok(Some(ty)) = expr else {
@@ -662,7 +652,7 @@ impl Reader {
 
             if !params.iter().any(|param| param.name == parameter) {
                 let message = format!(
-                    "{TAG_PREFIX}{} {parameter} names no {TAG_PREFIX}{}",
+                    "{TAG_PREFIX}{} \"{parameter}\" names no {TAG_PREFIX}{}.",
                     Tag::Mutates,
                     Tag::Param
                 );

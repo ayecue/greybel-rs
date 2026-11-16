@@ -186,11 +186,15 @@ impl<'a> Inference<'a> {
             return self.model.slot_type(slot);
         }
 
-        self.report(
-            DiagnosticKind::UnresolvedReference,
-            node,
-            format!("Cannot find \"{name}\"."),
-        );
+        let message = if self.api.class_name(name).is_some() {
+            format!(
+                "\"{name}\" is a type, not a value: it can't be extended or created with \"new\"."
+            )
+        } else {
+            format!("Cannot find \"{name}\".")
+        };
+
+        self.report(DiagnosticKind::UnresolvedReference, node, message);
 
         TypeId::UNKNOWN
     }

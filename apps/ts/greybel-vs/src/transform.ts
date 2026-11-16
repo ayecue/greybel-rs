@@ -43,7 +43,7 @@ export function activate(context: ExtensionContext, launcher: Launcher, projects
     const entireRange = new Range(document.lineAt(0).range.start, document.lineAt(document.lineCount - 1).range.end);
 
     await editor.edit((edit) => edit.replace(entireRange, code));
-    vscode.window.showInformationMessage('Transform done.');
+    vscode.window.showInformationMessage('Transform complete.');
   }
 
   context.subscriptions.push(

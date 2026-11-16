@@ -1,7 +1,7 @@
 use greybel_core::Dialect;
 use greybel_documents_memory_provider::MemoryProvider;
 use greybel_source_map::Location;
-use greybel_transpiler::{TranspileOptions, transpile_project};
+use greybel_transpiler::{TranspileOptions, Transpiler};
 
 use crate::support::source_map::origin;
 
@@ -24,12 +24,9 @@ fn should_map_each_built_line_to_the_file_it_came_from() {
         dialect: Dialect::GreyScript,
         ..TranspileOptions::default()
     };
-    let outputs = transpile_project(
-        &MemoryProvider::uri("/project/main.src"),
-        &provider,
-        &options,
-    )
-    .unwrap();
+    let outputs = Transpiler::new(&options)
+        .transpile_project(&MemoryProvider::uri("/project/main.src"), &provider)
+        .unwrap();
     let (main, lib) = (&outputs[0], &outputs[1]);
 
     assert_eq!(

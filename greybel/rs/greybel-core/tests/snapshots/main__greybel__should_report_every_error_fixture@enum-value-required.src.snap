@@ -4,7 +4,7 @@ expression: rendered
 input_file: greybel-core/tests/fixtures/greybel/errors/enum-value-required.src
 ---
 --- strict
-3:2 - 3:3 ExpectedExpression(3002): an enum entry after a string value needs a value
+3:2 - 3:3 ExpectedExpression(3002): an enum entry after a string value needs its own value
 --- tree
 Chunk[1:1-5:1][
 	EnumStatement[1:1-4:9][AssignmentStatement[1:1-4:9][Identifier[1:6-1:11][Color] = MapConstructor[1:1-4:9][
@@ -13,4 +13,4 @@ Chunk[1:1-5:1][
 	]]]
 ]
 --- errors
-3:2 - 3:3 ExpectedExpression(3002): an enum entry after a string value needs a value
+3:2 - 3:3 ExpectedExpression(3002): an enum entry after a string value needs its own value

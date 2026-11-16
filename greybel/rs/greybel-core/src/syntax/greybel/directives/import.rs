@@ -16,16 +16,12 @@ pub struct Import {
     #[child]
     pub name: NodeId,
     pub path: TextSpan,
-    /// `#import {parse, format as fmt} from "path"`: the assignments from the module (`name`, a `__m`
-    /// temporary) to the names, and the source of the names for dev mode.
     #[child]
     pub bindings: NodeList,
-    /// The source of `{parse, format as fmt}`.
     pub target: Option<Span>,
 }
 
 impl Import {
-    /// Name of the temporary that stores the module of a `#import {...}`.
     pub const MODULE: &'static str = "__m";
 }
 

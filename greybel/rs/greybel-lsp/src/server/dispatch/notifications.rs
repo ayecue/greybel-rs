@@ -8,54 +8,28 @@ struct Route {
     handle: fn(&mut Server, &Notification),
 }
 
+macro_rules! route {
+    ($notification:ty => $handler:ident) => {
+        Route {
+            method: <$notification>::METHOD,
+            handle: |server, notification| {
+                server.handle::<$notification>(notification, Server::$handler);
+            },
+        }
+    };
+}
+
 impl Server {
     const NOTIFICATIONS: &[Route] = &[
         Route {
             method: lsp::InitializedNotification::METHOD,
             handle: |server, _| server.discover_workspace(),
         },
-        Route {
-            method: lsp::DidOpenTextDocumentNotification::METHOD,
-            handle: |server, notification| {
-                server.handle::<lsp::DidOpenTextDocumentNotification>(notification, Self::did_open);
-            },
-        },
-        Route {
-            method: lsp::DidChangeTextDocumentNotification::METHOD,
-            handle: |server, notification| {
-                server.handle::<lsp::DidChangeTextDocumentNotification>(
-                    notification,
-                    Self::did_change,
-                );
-            },
-        },
-        Route {
-            method: lsp::DidCloseTextDocumentNotification::METHOD,
-            handle: |server, notification| {
-                server.handle::<lsp::DidCloseTextDocumentNotification>(
-                    notification,
-                    |server, params| Self::did_close(server, &params),
-                );
-            },
-        },
-        Route {
-            method: lsp::DidChangeConfigurationNotification::METHOD,
-            handle: |server, notification| {
-                server.handle::<lsp::DidChangeConfigurationNotification>(
-                    notification,
-                    |server, params| Self::did_change_configuration(server, &params),
-                );
-            },
-        },
-        Route {
-            method: lsp::DidChangeWatchedFilesNotification::METHOD,
-            handle: |server, notification| {
-                server.handle::<lsp::DidChangeWatchedFilesNotification>(
-                    notification,
-                    Self::did_change_watched_files,
-                );
-            },
-        },
+        route!(lsp::DidOpenTextDocumentNotification => did_open),
+        route!(lsp::DidChangeTextDocumentNotification => did_change),
+        route!(lsp::DidCloseTextDocumentNotification => did_close),
+        route!(lsp::DidChangeConfigurationNotification => did_change_configuration),
+        route!(lsp::DidChangeWatchedFilesNotification => did_change_watched_files),
     ];
 
     pub(in crate::server) fn notification(&mut self, notification: &Notification) {

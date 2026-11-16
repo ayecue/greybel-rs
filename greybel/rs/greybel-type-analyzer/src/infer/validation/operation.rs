@@ -52,37 +52,39 @@ struct Failure {
     type_mismatch: bool,
 }
 
-pub(crate) fn binary_evaluation(operator: BinaryOp, left: Operand, right: Operand) -> Evaluation {
-    let arithmetic = if left == Operand::Number && right.is_number_or_null() {
-        Evaluation::Value
-    } else {
-        Evaluation::Null
-    };
+impl Evaluation {
+    pub(crate) fn of_binary(operator: BinaryOp, left: Operand, right: Operand) -> Self {
+        let arithmetic = if left == Operand::Number && right.is_number_or_null() {
+            Self::Value
+        } else {
+            Self::Null
+        };
 
-    match operator {
-        BinaryOp::Equal | BinaryOp::NotEqual => Evaluation::Value,
-        BinaryOp::Add => match (left, right) {
-            (Operand::String, _)
-            | (_, Operand::String)
-            | (Operand::List, Operand::List)
-            | (Operand::Map, Operand::Map) => Evaluation::Value,
-            (Operand::List | Operand::Map, _) => Evaluation::TypeMismatch,
-            _ => arithmetic,
-        },
-        BinaryOp::Subtract => match (left, right) {
-            (Operand::String, Operand::String | Operand::Null) => Evaluation::Value,
-            _ => arithmetic,
-        },
-        BinaryOp::Multiply | BinaryOp::Divide => match (left, right) {
-            (Operand::String | Operand::List, Operand::Number) => Evaluation::Value,
-            (Operand::String | Operand::List, _) => Evaluation::TypeMismatch,
-            _ => arithmetic,
-        },
-        BinaryOp::Modulo | BinaryOp::Power => arithmetic,
-        BinaryOp::Less | BinaryOp::LessEqual | BinaryOp::Greater | BinaryOp::GreaterEqual => {
-            match (left, right) {
-                (Operand::String, Operand::String) => Evaluation::Value,
+        match operator {
+            BinaryOp::Equal | BinaryOp::NotEqual => Self::Value,
+            BinaryOp::Add => match (left, right) {
+                (Operand::String, _)
+                | (_, Operand::String)
+                | (Operand::List, Operand::List)
+                | (Operand::Map, Operand::Map) => Self::Value,
+                (Operand::List | Operand::Map, _) => Self::TypeMismatch,
                 _ => arithmetic,
+            },
+            BinaryOp::Subtract => match (left, right) {
+                (Operand::String, Operand::String | Operand::Null) => Self::Value,
+                _ => arithmetic,
+            },
+            BinaryOp::Multiply | BinaryOp::Divide => match (left, right) {
+                (Operand::String | Operand::List, Operand::Number) => Self::Value,
+                (Operand::String | Operand::List, _) => Self::TypeMismatch,
+                _ => arithmetic,
+            },
+            BinaryOp::Modulo | BinaryOp::Power => arithmetic,
+            BinaryOp::Less | BinaryOp::LessEqual | BinaryOp::Greater | BinaryOp::GreaterEqual => {
+                match (left, right) {
+                    (Operand::String, Operand::String) => Self::Value,
+                    _ => arithmetic,
+                }
             }
         }
     }
@@ -97,7 +99,7 @@ impl Inference<'_> {
         (right_node, right): (NodeId, TypeId),
     ) {
         let Some(operation_failure) = self.operation_failure(left, right, |left, right| {
-            binary_evaluation(operator, left, right)
+            Evaluation::of_binary(operator, left, right)
         }) else {
             return;
         };

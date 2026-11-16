@@ -28,6 +28,6 @@ impl InitializationOptions {
         Dialect::ALL
             .into_iter()
             .find(|dialect| dialect.name() == name)
-            .ok_or_else(|| ResponseError::invalid_params(format!("Unknown dialect: {name}")))
+            .ok_or_else(|| ResponseError::invalid_params(format!("Unknown dialect: \"{name}\"")))
     }
 }

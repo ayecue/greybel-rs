@@ -3,7 +3,6 @@ use crate::dialect::SyntaxFeatures;
 use crate::parser::{ExprContext, InfixRule, Precedence, Trigger};
 use crate::{AstNode, DumpContext, NodeId, ParseResult, Parser, Punct, Span};
 
-/// `expression!` or `expression as T`: the expression with a type for the analyzer. Builds write the expression.
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]
 pub struct TypeAssertion {
     #[child]
@@ -13,9 +12,7 @@ pub struct TypeAssertion {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AssertedType {
-    /// `expression!`: not `null`.
     NonNull,
-    /// `expression as T`, with the span of `T`.
     Type(Span),
 }
 
@@ -39,13 +36,12 @@ impl AstNode for TypeAssertion {
     }
 }
 
-/// `expression!`.
 #[derive(Debug, Clone, Copy)]
 pub struct NonNullRule;
 
 impl InfixRule for NonNullRule {
     fn triggers(&self) -> &[Trigger] {
-        &[Trigger::Punct(Punct::Bang)]
+        &[Trigger::Punct(Punct::Exist)]
     }
 
     fn precedence(&self) -> Precedence {
@@ -76,7 +72,6 @@ impl InfixRule for NonNullRule {
 }
 
 impl Parser<'_> {
-    /// `as T` after `left`, with types on.
     pub(crate) fn parse_as_type(&mut self, left: NodeId, start: Span) -> ParseResult<NodeId> {
         let type_start = self.token().span().end;
         let Some(ty) = self.parse_type_text(type_start)? else {

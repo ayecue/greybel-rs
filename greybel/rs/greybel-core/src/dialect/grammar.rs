@@ -41,8 +41,6 @@ impl Grammar {
             .get_or_init(|| Self::new(dialect, version, strict, SyntaxFeatures::ALL))
     }
 
-    /// The grammar with only the syntax features of `features` the dialect has. A grammar is built once per
-    /// distinct set and lives as long as the program.
     #[must_use]
     pub fn with_features(
         dialect: Dialect,
@@ -133,7 +131,6 @@ impl Grammar {
         self.strict
     }
 
-    /// Whether the grammar accepts every syntax feature of `features`.
     #[must_use]
     pub fn allows(&self, features: SyntaxFeatures) -> bool {
         self.features.contains(features)

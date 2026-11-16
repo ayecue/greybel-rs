@@ -1,13 +1,9 @@
-mod configuration;
-mod dependencies;
-mod diagnostics;
 mod dispatch;
+mod documents;
 mod features;
-mod lifecycle;
 mod project;
+mod session;
 mod state;
-mod sync;
-mod workspace;
 
 use gen_lsp_types as lsp;
 use greybel_core::Dialect;
@@ -16,8 +12,11 @@ use greybel_documents::{Uri, Workspace};
 use greybel_documents_fs_provider::FsProvider;
 use greybel_type_analyzer::{Analyzer, Database};
 use rustc_hash::FxHashMap;
-use state::{ClientFileTable, DocumentTable, FetchHandle, FileAccess, Outbound, ProjectTable};
 
+use self::documents::{ClientFileTable, DocumentTable};
+use self::project::ProjectTable;
+use self::session::ClientSupport;
+use self::state::{FetchHandle, FileAccess, Outbound};
 use crate::message::Message;
 use crate::settings::Settings;
 
@@ -27,13 +26,6 @@ enum State {
     Active,
     Teardown,
     Exit(i32),
-}
-
-#[derive(Debug, Clone, Copy, Default)]
-struct ClientSupport {
-    configuration: bool,
-    markdown: bool,
-    definition_links: bool,
 }
 
 pub struct Server {

@@ -1,15 +1,17 @@
 use gen_lsp_types as lsp;
+use greybel_core::{Position, Range};
 
-use super::Server;
+use super::{AnalyzedDocument, Server};
 use crate::error::Result;
-use crate::{from_lsp, to_lsp};
+use crate::from_lsp::FromLsp;
+use crate::to_lsp::{ColorPresentation, SelectionRange, ToLsp};
 
 impl Server {
     pub(in crate::server) fn folds(
         &mut self,
-        params: &lsp::FoldingRangeParams,
+        params: lsp::FoldingRangeParams,
     ) -> Result<Option<Vec<lsp::FoldingRange>>> {
-        let Some(document) = self.document_analysis(&params.text_document.uri)? else {
+        let Some(document) = AnalyzedDocument::of(self, &params.text_document.uri)? else {
             return Ok(None);
         };
 
@@ -18,16 +20,16 @@ impl Server {
                 .analyzer
                 .folds(&document.uri)
                 .iter()
-                .map(to_lsp::fold)
+                .map(ToLsp::to_lsp)
                 .collect(),
         ))
     }
 
     pub(in crate::server) fn selection_range(
         &mut self,
-        params: &lsp::SelectionRangeParams,
+        params: lsp::SelectionRangeParams,
     ) -> Result<Option<Vec<lsp::SelectionRange>>> {
-        let Some(document) = self.document_analysis(&params.text_document.uri)? else {
+        let Some(document) = AnalyzedDocument::of(self, &params.text_document.uri)? else {
             return Ok(None);
         };
 
@@ -38,9 +40,13 @@ impl Server {
                 .map(|&position| {
                     let ranges = document
                         .analyzer
-                        .selection_ranges(&document.uri, from_lsp::position(position));
+                        .selection_ranges(&document.uri, Position::from_lsp(position));
 
-                    to_lsp::selection_range(&ranges, position)
+                    SelectionRange {
+                        ranges: &ranges,
+                        fallback: position,
+                    }
+                    .to_lsp()
                 })
                 .collect(),
         ))
@@ -48,12 +54,12 @@ impl Server {
 
     pub(in crate::server) fn inlay_hints(
         &mut self,
-        params: &lsp::InlayHintParams,
+        params: lsp::InlayHintParams,
     ) -> Result<Option<Vec<lsp::InlayHint>>> {
-        let Some(document) = self.document_analysis(&params.text_document.uri)? else {
+        let Some(document) = AnalyzedDocument::of(self, &params.text_document.uri)? else {
             return Ok(None);
         };
-        let range = from_lsp::range(params.range);
+        let range = Range::from_lsp(params.range);
         let options = self.settings.inlay_hint_options();
 
         Ok(Some(
@@ -61,16 +67,16 @@ impl Server {
                 .analyzer
                 .inlay_hints(&document.uri, range, options)
                 .iter()
-                .map(to_lsp::inlay_hint)
+                .map(ToLsp::to_lsp)
                 .collect(),
         ))
     }
 
     pub(in crate::server) fn document_colors(
         &mut self,
-        params: &lsp::DocumentColorParams,
+        params: lsp::DocumentColorParams,
     ) -> Result<Vec<lsp::ColorInformation>> {
-        let Some(document) = self.document_analysis(&params.text_document.uri)? else {
+        let Some(document) = AnalyzedDocument::of(self, &params.text_document.uri)? else {
             return Ok(Vec::new());
         };
 
@@ -78,13 +84,19 @@ impl Server {
             .analyzer
             .document_colors(&document.uri)
             .iter()
-            .map(to_lsp::color_information)
+            .map(ToLsp::to_lsp)
             .collect())
     }
 
     pub(in crate::server) fn color_presentations(
-        params: &lsp::ColorPresentationParams,
-    ) -> Vec<lsp::ColorPresentation> {
-        vec![to_lsp::color_presentation(params.color, params.range)]
+        &mut self,
+        params: lsp::ColorPresentationParams,
+    ) -> Result<Vec<lsp::ColorPresentation>> {
+        let presentation = ColorPresentation {
+            color: params.color,
+            range: params.range,
+        };
+
+        Ok(vec![presentation.to_lsp()])
     }
 }

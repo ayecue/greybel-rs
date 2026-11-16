@@ -19,7 +19,9 @@ impl fmt::Display for BuildFailure {
             Self::Invalid { message, .. } | Self::Unreachable { message } => {
                 formatter.write_str(message)
             }
-            Self::Unavailable => formatter.write_str("Grey Hack can't be reached from here."),
+            Self::Unavailable => {
+                formatter.write_str("Grey Hack is not available in this environment.")
+            }
         }
     }
 }

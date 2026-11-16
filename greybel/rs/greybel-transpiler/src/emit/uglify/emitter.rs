@@ -4,11 +4,9 @@ use greybel_symbols::delimiters::QUOTE;
 use greybel_symbols::names::{LOOP_INDEX_PREFIX, LOOP_INDEX_SUFFIX};
 use greybel_symbols::{Keyword, Punct};
 
-use super::shape::{has_index_key_argument, string_value};
 use super::{UglifyEmitter, member_flags};
 use crate::bundle::MULTILINE_STRING;
-use crate::emit::nodes::emitted_parameters;
-use crate::emit::{EmitFlags, EmitState, Emitter, LiteralStyle};
+use crate::emit::{EmitExpressions, EmitFlags, EmitFunctions, EmitState, Emitter, LiteralStyle};
 use crate::error::Result;
 
 impl Emitter for UglifyEmitter {
@@ -31,7 +29,7 @@ impl Emitter for UglifyEmitter {
     }
 
     fn emit_parameters(&mut self, s: &mut EmitState<'_>, parameters: &[NodeId]) -> Result<()> {
-        let parameters = emitted_parameters(s, parameters);
+        let parameters = s.emitted_parameters(parameters);
 
         self.in_parameters(s, |this, s| {
             this.emit_with_separators(s, &parameters, Punct::Comma.as_str())
@@ -115,11 +113,11 @@ impl Emitter for UglifyEmitter {
     ) -> Result<()> {
         self.emit(s, node.base, EmitFlags::default())?;
 
-        let Some(argument) = has_index_key_argument(s, node) else {
+        let Some(argument) = s.has_index_key_argument(node) else {
             return self.emit_call_arguments(s, id, node);
         };
 
-        if let Some(name) = string_value(s, argument) {
+        if let Some(name) = s.string_value(argument) {
             let name = self.minification.rename(&name);
 
             s.punct(Punct::LParen);

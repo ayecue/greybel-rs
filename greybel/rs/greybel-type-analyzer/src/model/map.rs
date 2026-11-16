@@ -102,10 +102,7 @@ pub enum MapOrigin {
     Module(DocumentIndex),
     Singleton(&'static str),
     Custom(NameId),
-    NestedKey {
-        owner: MapId,
-        name: NameId,
-    },
+    NestedKey { owner: MapId, name: NameId },
     GenericInstance(GenericInstanceId),
     Instance(MapId),
 }

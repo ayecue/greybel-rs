@@ -4,8 +4,8 @@ expression: rendered
 input_file: greybel-core/tests/fixtures/greybel/errors/declaration-without-assignment.src
 ---
 --- strict
-1:1 - 1:8 InvalidAssignmentTarget(5005): const needs an assignment to a name
+1:1 - 1:8 InvalidAssignmentTarget(5005): 'const' needs an assignment to a variable
 --- tree
 Chunk[1:1-2:1][]
 --- errors
-1:1 - 1:8 InvalidAssignmentTarget(5005): const needs an assignment to a name
+1:1 - 1:8 InvalidAssignmentTarget(5005): 'const' needs an assignment to a variable

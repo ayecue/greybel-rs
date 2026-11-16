@@ -62,13 +62,13 @@ Open the Command Palette with `Ctrl+Shift+P` (`Cmd+Shift+P` on macOS). Most comm
 | **Greybel: Run file from context** / **Debug file from context** | Run or debug the active or selected file. |
 | **Greybel: Import file into the game** | Import the active file or a file/folder selected in the Explorer without building it. Desktop only. |
 | **Greybel: Preview output** | Open the TextMesh Pro output preview. |
-| **Greybel: API Documentation** | Open the searchable GreyScript API reference. |
+| **Greybel: API documentation** | Open the searchable GreyScript API reference. |
 | **Greybel: Snippets** | Open a game script snippet in a new document. |
 | **Greybel: Share** | Save the active file through the editor service and copy its link. |
 | **Greybel: Select profile** | Select the active project's build/run profile. |
 | **Greybel: Reset the mock world** | Discard the current mock world and generate a new one. |
 
-The editor's **Greybel: Transform** submenu contains **Transform**, **Uglify**, **Beautify**, and **Transform to clipboard**. **Greybel: Goto Error** in the editor context menu selects the next error in the current file.
+The editor's **Greybel: Transform** submenu contains **Transform**, **Uglify**, **Beautify**, and **Transform to clipboard**. **Greybel: Go to error** in the editor context menu selects the next error in the current file.
 
 ## Project configuration
 
@@ -369,7 +369,7 @@ The quick fixes "Ignore ... on this line" and "Ignore ... in this file" write th
 
 ### API reference
 
-**Greybel: API Documentation** opens the GreyScript API reference beside the editor. Examples can be inserted into the active document.
+**Greybel: API documentation** opens the GreyScript API reference beside the editor. Examples can be inserted into the active document.
 
 ![GreyScript API reference](../apps/ts/greybel-vs/assets/api-browser.png)
 
@@ -377,7 +377,7 @@ The quick fixes "Ignore ... on this line" and "Ignore ... in this file" write th
 
 - **Greybel: Snippets** opens a selected game script in a new GreyScript document.
 - **Greybel: Share** uploads the active file to the configured editor service and copies the resulting editor link.
-- **Greybel: Goto Error** moves to the next diagnostic error, wrapping to the first error when necessary.
+- **Greybel: Go to error** moves to the next diagnostic error, wrapping to the first error when necessary.
 
 ## Troubleshooting
 

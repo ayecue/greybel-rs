@@ -1,7 +1,7 @@
 use gen_lsp_types as lsp;
 use greybel_documents::Uri;
 
-use crate::files::{FileSearch, ReadFile};
+use crate::client_requests::{FileSearch, ReadFile};
 use crate::message::Response;
 use crate::server::Server;
 use crate::server::state::Expectation;

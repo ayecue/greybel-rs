@@ -22,12 +22,12 @@ enum DeployFailure {
         #[source]
         source: ClientError,
     },
-    #[error("Grey Hack didn't make the build: {source}")]
+    #[error("Grey Hack build failed: {source}")]
     Build {
         #[source]
         source: ClientError,
     },
-    #[error("Grey Hack didn't make the build: {}", outcome.error_message())]
+    #[error("Grey Hack build failed: {}", outcome.error_message())]
     Outcome { outcome: BuildOutcome },
 }
 

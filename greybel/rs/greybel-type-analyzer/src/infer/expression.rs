@@ -6,7 +6,7 @@ use greybel_core::{BinaryOp, LiteralValue, LogicalOp, NodeId, NodeKind, UnaryOp}
 use super::Inference;
 use super::call::CallSite;
 use super::flow::KindSet;
-use super::validation::{Evaluation, Operand, binary_evaluation};
+use super::validation::{Evaluation, Operand};
 use crate::annotation::TypeExpr;
 use crate::diagnostic::DiagnosticKind;
 use crate::model::{Key, MapId, MapOrigin};
@@ -55,7 +55,6 @@ impl<'a> Inference<'a> {
         }
     }
 
-    /// The union of both branches, each with the narrowing of the condition.
     fn infer_ternary(&mut self, node: NodeId) -> TypeId {
         let NodeKind::Ternary(ternary) = self.ast().kind(node) else {
             unreachable!()
@@ -81,7 +80,6 @@ impl<'a> Inference<'a> {
         self.types.union(if_true, if_false)
     }
 
-    /// The left side without `null`, or the right side when the left could be `null`.
     fn infer_coalesce(&mut self, node: NodeId) -> TypeId {
         let NodeKind::Coalesce(coalesce) = self.ast().kind(node) else {
             unreachable!()
@@ -103,7 +101,6 @@ impl<'a> Inference<'a> {
         self.types.union(present, right)
     }
 
-    /// Whether a value of `ty` can be `null`, the case `??` and `?.` handle.
     pub(super) fn includes_null(&self, ty: TypeId) -> bool {
         self.types.variants(ty).any(|variant| {
             matches!(
@@ -117,8 +114,6 @@ impl<'a> Inference<'a> {
         self.restrict_to_kinds(ty, !KindSet::NULL)
     }
 
-    /// Registers a call of a function whose return type is a type guard (`value is Dog`), so a condition with the
-    /// call narrows the argument.
     fn register_guard_call(&mut self, node: NodeId, callee: TypeId, method: bool) {
         let Type::Function(FunctionRef::Body(function)) = *self.types.get(callee) else {
             return;
@@ -297,7 +292,6 @@ impl<'a> Inference<'a> {
         object
     }
 
-    /// The item types a list spread adds: the item types of its lists, `any` for values of unknown type.
     fn spread_elements(&mut self, argument: TypeId) -> TypeId {
         let elements: Vec<TypeId> = self
             .types
@@ -312,8 +306,6 @@ impl<'a> Inference<'a> {
         self.types.union_all(elements)
     }
 
-    /// Copies the entries a map spread adds into `object`; a spread of a value that isn't a script map adds
-    /// entries of unknown keys.
     fn spread_entries(&mut self, object: TypeId, argument: TypeId) {
         let maps: Vec<MapId> = self.types.object_maps(argument).collect();
         let opaque = maps.is_empty()
@@ -420,7 +412,6 @@ impl<'a> Inference<'a> {
         self.types.function(FunctionRef::Body(function))
     }
 
-    /// `x!` without `null`, `x as T` as `T` (or the type of `x` when `T` is unknown).
     fn infer_type_assertion(&mut self, assertion: &TypeAssertion) -> TypeId {
         let ty = self.infer_value(assertion.expression);
 
@@ -579,7 +570,6 @@ impl<'a> Inference<'a> {
         self.types.union_all(results)
     }
 
-    /// The result of an operator that only works on a number with a number or `null`, and otherwise gives `null`.
     fn numeric_result(&mut self, left: TypeId, right: TypeId) -> TypeId {
         let mut results = Vec::new();
 
@@ -612,7 +602,7 @@ impl<'a> Inference<'a> {
         let (left_type, right_type) = (self.types.get(left).clone(), self.types.get(right).clone());
 
         if let (Some(left), Some(right)) = (Operand::of(&left_type), Operand::of(&right_type))
-            && binary_evaluation(operator, left, right) == Evaluation::Null
+            && Evaluation::of_binary(operator, left, right) == Evaluation::Null
         {
             return TypeId::NULL;
         }

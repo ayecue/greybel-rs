@@ -1,7 +1,7 @@
 use gen_lsp_types::{self as lsp, ErrorCodes, LspRequestMethod, Request as LspRequest};
 
+use crate::client_requests::Project;
 use crate::error::{ResponseError, Result};
-use crate::files::Project;
 use crate::message::{Request, Response};
 use crate::server::{Server, State};
 
@@ -10,185 +10,51 @@ struct Route {
     handle: fn(&mut Server, Request) -> Response,
 }
 
+macro_rules! route {
+    ($request:ty => $handler:ident) => {
+        Route {
+            method: <$request>::METHOD,
+            handle: |server, request| server.reply::<$request>(request, Server::$handler),
+        }
+    };
+}
+
 impl Server {
     const REQUESTS: &[Route] = &[
-        Route {
-            method: lsp::InitializeRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::InitializeRequest>(request, |server, params| {
-                    Self::initialize(server, &params)
-                })
-            },
-        },
+        route!(lsp::InitializeRequest => initialize),
         Route {
             method: lsp::ShutdownRequest::METHOD,
             handle: |server, request| {
-                server.reply::<lsp::ShutdownRequest>(request, |server, params| {
-                    server.shutdown(params);
+                server.reply::<lsp::ShutdownRequest>(request, |server, ()| {
+                    server.shutdown();
 
                     Ok(())
                 })
             },
         },
-        Route {
-            method: lsp::HoverRequest::METHOD,
-            handle: |server, request| server.reply::<lsp::HoverRequest>(request, Self::hover),
-        },
-        Route {
-            method: lsp::CompletionRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::CompletionRequest>(request, Self::completion)
-            },
-        },
-        Route {
-            method: lsp::CompletionResolveRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::CompletionResolveRequest>(request, Self::completion_resolve)
-            },
-        },
-        Route {
-            method: lsp::SignatureHelpRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::SignatureHelpRequest>(request, Self::signature_help)
-            },
-        },
-        Route {
-            method: lsp::DefinitionRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::DefinitionRequest>(request, Self::definition)
-            },
-        },
-        Route {
-            method: lsp::TypeDefinitionRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::TypeDefinitionRequest>(request, Self::type_definition)
-            },
-        },
-        Route {
-            method: lsp::CallHierarchyPrepareRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::CallHierarchyPrepareRequest>(
-                    request,
-                    Self::prepare_call_hierarchy,
-                )
-            },
-        },
-        Route {
-            method: lsp::CallHierarchyIncomingCallsRequest::METHOD,
-            handle: |server, request| {
-                server
-                    .reply::<lsp::CallHierarchyIncomingCallsRequest>(request, Self::incoming_calls)
-            },
-        },
-        Route {
-            method: lsp::CallHierarchyOutgoingCallsRequest::METHOD,
-            handle: |server, request| {
-                server
-                    .reply::<lsp::CallHierarchyOutgoingCallsRequest>(request, Self::outgoing_calls)
-            },
-        },
-        Route {
-            method: lsp::ReferencesRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::ReferencesRequest>(request, Self::references)
-            },
-        },
-        Route {
-            method: lsp::DocumentHighlightRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::DocumentHighlightRequest>(request, Self::document_highlight)
-            },
-        },
-        Route {
-            method: lsp::PrepareRenameRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::PrepareRenameRequest>(request, Self::prepare_rename)
-            },
-        },
-        Route {
-            method: lsp::RenameRequest::METHOD,
-            handle: |server, request| server.reply::<lsp::RenameRequest>(request, Self::rename),
-        },
-        Route {
-            method: lsp::SemanticTokensRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::SemanticTokensRequest>(request, |server, params| {
-                    Self::semantic_tokens_full(server, &params)
-                })
-            },
-        },
-        Route {
-            method: lsp::DocumentSymbolRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::DocumentSymbolRequest>(request, |server, params| {
-                    Self::document_symbol(server, &params)
-                })
-            },
-        },
-        Route {
-            method: lsp::WorkspaceSymbolRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::WorkspaceSymbolRequest>(request, |server, params| {
-                    Ok(Some(server.workspace_symbol(&params)))
-                })
-            },
-        },
-        Route {
-            method: lsp::CodeActionRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::CodeActionRequest>(request, |server, params| {
-                    Self::code_action(server, &params)
-                })
-            },
-        },
-        Route {
-            method: lsp::FoldingRangeRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::FoldingRangeRequest>(request, |server, params| {
-                    Self::folds(server, &params)
-                })
-            },
-        },
-        Route {
-            method: lsp::InlayHintRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::InlayHintRequest>(request, |server, params| {
-                    Self::inlay_hints(server, &params)
-                })
-            },
-        },
-        Route {
-            method: lsp::SelectionRangeRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::SelectionRangeRequest>(request, |server, params| {
-                    Self::selection_range(server, &params)
-                })
-            },
-        },
-        Route {
-            method: lsp::DocumentColorRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::DocumentColorRequest>(request, |server, params| {
-                    Self::document_colors(server, &params)
-                })
-            },
-        },
-        Route {
-            method: lsp::ColorPresentationRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::ColorPresentationRequest>(request, |_, params| {
-                    Ok(Self::color_presentations(&params))
-                })
-            },
-        },
-        Route {
-            method: lsp::DocumentFormattingRequest::METHOD,
-            handle: |server, request| {
-                server.reply::<lsp::DocumentFormattingRequest>(request, |server, params| {
-                    Self::format_document(server, &params)
-                })
-            },
-        },
+        route!(lsp::HoverRequest => hover),
+        route!(lsp::CompletionRequest => completion),
+        route!(lsp::CompletionResolveRequest => completion_resolve),
+        route!(lsp::SignatureHelpRequest => signature_help),
+        route!(lsp::DefinitionRequest => definition),
+        route!(lsp::TypeDefinitionRequest => type_definition),
+        route!(lsp::CallHierarchyPrepareRequest => prepare_call_hierarchy),
+        route!(lsp::CallHierarchyIncomingCallsRequest => incoming_calls),
+        route!(lsp::CallHierarchyOutgoingCallsRequest => outgoing_calls),
+        route!(lsp::ReferencesRequest => references),
+        route!(lsp::DocumentHighlightRequest => document_highlight),
+        route!(lsp::PrepareRenameRequest => prepare_rename),
+        route!(lsp::RenameRequest => rename),
+        route!(lsp::SemanticTokensRequest => semantic_tokens_full),
+        route!(lsp::DocumentSymbolRequest => document_symbol),
+        route!(lsp::WorkspaceSymbolRequest => workspace_symbol),
+        route!(lsp::CodeActionRequest => code_action),
+        route!(lsp::FoldingRangeRequest => folds),
+        route!(lsp::InlayHintRequest => inlay_hints),
+        route!(lsp::SelectionRangeRequest => selection_range),
+        route!(lsp::DocumentColorRequest => document_colors),
+        route!(lsp::ColorPresentationRequest => color_presentations),
+        route!(lsp::DocumentFormattingRequest => format_document),
     ];
 
     /// Returns `request`'s response, or `None` if the server will respond later.
@@ -208,7 +74,7 @@ impl Server {
             {
                 Some(route) => (route.handle)(self, request),
                 None => {
-                    let message = format!("{} is not supported", request.method);
+                    let message = format!("\"{}\" is not supported", request.method);
 
                     Response::error(
                         Some(request.id),

@@ -1,7 +1,7 @@
 use gen_lsp_types as lsp;
 use greybel_type_analyzer::{Documentation, Hover, HoverKind, SignatureHelp};
 
-use super::range;
+use super::ToLsp;
 
 pub struct Markup {
     pub markdown: bool,
@@ -26,7 +26,7 @@ impl Markup {
 
         lsp::Hover {
             contents: lsp::Contents::MarkupContent(self.content(self.join(&sections))),
-            range: Some(range(hover.range)),
+            range: Some(hover.range.to_lsp()),
         }
     }
 

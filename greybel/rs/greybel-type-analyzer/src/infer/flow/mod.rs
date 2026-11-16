@@ -9,7 +9,7 @@ use self::access_path::MemberFactList;
 pub(crate) use self::access_path::{AccessPath, AccessPathTable};
 pub(crate) use self::guard::{FactTable, Guard, KindSet};
 use self::guard::{IsaTest, LiteralTest};
-pub(crate) use self::side_effect::{SideEffect, SideEffectFrame};
+pub(crate) use self::side_effect::{SideEffect, SideEffectFrame, SideEffectTable};
 use crate::infer::Inference;
 use crate::model::{ScopeId, SlotId};
 use crate::types::TypeId;
@@ -159,7 +159,6 @@ impl FlowState {
         self.unassigned_by_default = false;
     }
 
-    /// A call the analyzer can't see into can assign members of any map, so member facts are cleared too.
     pub(crate) fn clear_all_except(&mut self, retain: impl Fn(SlotId) -> bool) {
         self.facts.0.retain(|&(slot, _)| retain(slot));
         self.members.clear();

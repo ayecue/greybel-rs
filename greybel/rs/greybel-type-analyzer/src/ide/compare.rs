@@ -2,7 +2,6 @@ use std::mem;
 
 const MAX_MATCHES: usize = 3;
 
-/// Compares names with a name that isn't found, to find the ones it was probably meant to be.
 pub(crate) struct NameComparison {
     name: String,
     lowercase: String,
@@ -10,8 +9,6 @@ pub(crate) struct NameComparison {
 }
 
 impl NameComparison {
-    /// A candidate matches when it differs only in case, or by at most a third of the name's length in edits (at
-    /// least 1).
     pub(crate) fn new(name: &str) -> Self {
         Self {
             name: name.to_owned(),
@@ -20,7 +17,6 @@ impl NameComparison {
         }
     }
 
-    /// The matching candidates, closest first.
     pub(crate) fn closest<'a>(
         &self,
         candidates: impl IntoIterator<Item = &'a str>,
@@ -54,7 +50,6 @@ impl NameComparison {
         (distance <= self.max_distance).then_some(distance)
     }
 
-    /// Edit distance with adjacent transpositions (optimal string alignment), over characters.
     fn edit_distance(a: &str, b: &str) -> usize {
         let a: Vec<char> = a.chars().collect();
         let b: Vec<char> = b.chars().collect();

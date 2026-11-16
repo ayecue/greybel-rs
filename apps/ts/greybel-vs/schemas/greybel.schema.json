@@ -126,7 +126,7 @@
       "type": "object"
     },
     "DiagnosticLevel": {
-      "description": "What a project makes of one kind of diagnostic: `off` drops it, a severity replaces its default.",
+      "description": "Diagnostic severity override: `off` disables the diagnostic; other values replace its default severity.",
       "enum": [
         "off",
         "error",

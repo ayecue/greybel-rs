@@ -45,7 +45,7 @@ pub struct TransformRequest {
 #[tool_router(router = transform_router, vis = "pub(super)")]
 impl Server {
     #[tool(
-        description = "Transforms GreyScript code on its own, without the files it imports: as written without comments, uglified (as short as it gets) or beautified (formatted), with the settings of the current folder's greybel.json."
+        description = "Transforms GreyScript code without imports and applies the current folder's `greybel.json` settings. Modes: `default` (remove comments), `uglify` (minify), or `beautify` (format)."
     )]
     async fn transform(
         &self,

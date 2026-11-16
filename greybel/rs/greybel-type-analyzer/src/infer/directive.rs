@@ -26,7 +26,7 @@ impl Inference<'_> {
             self.report(
                 DiagnosticKind::MisplacedImportCode,
                 node,
-                "The build moves this import_code to the entry file ahead of this file's code; place it at the head of the file.".to_owned(),
+                "Place this \"import_code\" at the start of the file; the build moves it to the entry file before this file's code.".to_owned(),
             );
         }
 
@@ -82,7 +82,6 @@ impl Inference<'_> {
         Some(self.lookup().member_type(module, KeyRef::String(EXPORTS)))
     }
 
-    /// Whether `node` is a statement of the document's body preceded only by `import_code` statements.
     fn is_at_head(&self, node: NodeId) -> bool {
         let ast = self.ast();
         let body = ast.body();

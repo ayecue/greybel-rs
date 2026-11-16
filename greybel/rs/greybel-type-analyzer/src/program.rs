@@ -210,7 +210,7 @@ impl Program {
                         DiagnosticKind::IgnoredImportCode,
                         ast.lines(),
                         Span::new(start, end),
-                        "Grey Hack imports this import_code even in a comment or a string; only one written directly after // is skipped.".to_owned(),
+                        "Grey Hack imports this \"import_code\" even in comments and strings; only \"import_code\" directly after // is skipped.".to_owned(),
                     )
                 })
             })

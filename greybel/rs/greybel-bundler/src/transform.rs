@@ -1,4 +1,4 @@
-use greybel_transpiler::{TranspileOptions, transpile};
+use greybel_transpiler::{TranspileOptions, Transpiler};
 
 use crate::build::Build;
 use crate::error::Result;
@@ -15,5 +15,5 @@ pub fn transform(source: &str, options: &TranspileOptions) -> Result<String> {
         ..options.clone()
     };
 
-    Ok(transpile(source, &options)?)
+    Ok(Transpiler::new(&options).transpile(source)?)
 }

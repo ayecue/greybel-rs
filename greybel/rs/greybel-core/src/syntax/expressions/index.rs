@@ -12,7 +12,6 @@ pub struct Index {
     #[child]
     pub index: NodeId,
     pub is_statement_start: bool,
-    /// `base?.[index]`.
     pub optional: bool,
 }
 
@@ -47,7 +46,6 @@ pub struct Slice {
     pub left: NodeId,
     #[child]
     pub right: NodeId,
-    /// `base?.[left:right]`.
     pub optional: bool,
 }
 
@@ -98,7 +96,6 @@ impl InfixRule for IndexRule {
 }
 
 impl Index {
-    /// `[index]` or `[left:right]` after a base, `optional` for `?.[`.
     pub(crate) fn parse_brackets(
         parser: &mut Parser<'_>,
         base: NodeId,

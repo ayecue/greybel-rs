@@ -58,7 +58,6 @@ fn check_target(parser: &mut Parser<'_>, target: NodeId) -> ParseResult<()> {
     parser.raise_at(StatementDiagnostic::InvalidAssignmentTarget, span)
 }
 
-/// Whether the chain `id` has a `?.` link (`a?.b.c = 1`).
 fn has_optional_link(nodes: &NodeStore, id: NodeId) -> bool {
     let (optional, base) = match &nodes.get(id).kind {
         NodeKind::Member(member) => (member.optional, member.base),

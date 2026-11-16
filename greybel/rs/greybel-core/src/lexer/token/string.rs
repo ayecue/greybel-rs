@@ -28,7 +28,6 @@ impl StringLiteral {
         self.span.bytes().map_or("", |bytes| &source[bytes])
     }
 
-    /// Whether the string is a `#"..."` template with `{expression}` placeholders.
     #[must_use]
     pub fn is_template(&self) -> bool {
         self.template
@@ -123,8 +122,6 @@ impl<'src> Lexer<'src> {
         )
     }
 
-    /// `#"..."` with `{expression}` placeholders; `{{`, `}}` and `""` are literal text. Strings, templates and braces
-    /// inside a placeholder nest.
     pub(crate) fn scan_template(
         &self,
         stream: &mut TokenStream,
@@ -154,14 +151,12 @@ impl<'src> Lexer<'src> {
     }
 }
 
-/// The placeholders of a template: the spans between each `{` and its `}`, and the offset after the closing quote.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TemplateShape {
     pub placeholders: Vec<Span>,
     pub end: usize,
 }
 
-/// Scans `#"..."` templates in source text.
 #[derive(Debug, Clone, Copy)]
 pub struct TemplateScan<'a> {
     source: &'a [u8],
@@ -177,7 +172,6 @@ impl<'a> TemplateScan<'a> {
         }
     }
 
-    /// The shape of the template that starts with `#"` at `start`, or `None` when it isn't closed.
     #[must_use]
     pub fn template(self, start: usize) -> Option<TemplateShape> {
         let mut index = start + TEMPLATE_START.len();
@@ -211,7 +205,6 @@ impl<'a> TemplateScan<'a> {
         None
     }
 
-    /// The offset of the `}` that closes a placeholder starting at `start`.
     fn placeholder_end(self, start: usize) -> Option<usize> {
         let mut index = start;
         let mut depth = 0_usize;
@@ -243,7 +236,6 @@ impl<'a> TemplateScan<'a> {
         None
     }
 
-    /// The offset after the closing quote of a plain string whose content starts at `start`.
     fn string_end(self, start: usize) -> Option<usize> {
         let mut index = start;
 
@@ -265,7 +257,6 @@ impl<'a> TemplateScan<'a> {
     }
 }
 
-/// The start of a string template.
 pub const TEMPLATE_START: &str = "#\"";
 pub const ESCAPED_OPEN_BRACE: &str = "{{";
 pub const ESCAPED_CLOSE_BRACE: &str = "}}";

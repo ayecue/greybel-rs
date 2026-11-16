@@ -8,7 +8,6 @@ use crate::diagnostic::{Diagnostic, DiagnosticKind};
 pub(crate) struct IgnoreTable {
     file: Option<DiagnosticSelection>,
     lines: FxHashMap<u32, DiagnosticSelection>,
-    /// The last `@ignore-file` and the last `@ignore` per line that name codes, which a quick fix extends.
     file_comment: Option<Span>,
     line_comments: FxHashMap<u32, Span>,
     pub invalid: Vec<Diagnostic>,

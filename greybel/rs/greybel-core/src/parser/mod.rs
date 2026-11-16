@@ -39,7 +39,6 @@ pub struct ParserOptions {
     pub preserve: bool,
     pub strict_mode: bool,
     pub mono_number_parsing: bool,
-    /// The syntax features to accept, of those the dialect has.
     pub syntax_features: SyntaxFeatures,
 }
 
@@ -62,7 +61,12 @@ impl ParserOptions {
 
     #[must_use]
     pub fn grammar(&self) -> &'static Grammar {
-        Grammar::with_features(self.dialect, self.version, self.strict_mode, self.syntax_features)
+        Grammar::with_features(
+            self.dialect,
+            self.version,
+            self.strict_mode,
+            self.syntax_features,
+        )
     }
 }
 
@@ -290,7 +294,6 @@ impl<'src> Parser<'src> {
         }
     }
 
-    /// Adds to the data of the completed scope `scope` (a function), until [`Self::exit_scope`].
     pub fn resume_scope(&mut self, scope: NodeId) {
         self.stream
             .scopes

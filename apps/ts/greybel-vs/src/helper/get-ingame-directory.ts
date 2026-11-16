@@ -9,7 +9,7 @@ import type { Configuration } from '../settings';
 export const getIngameDirectory = async (config: Configuration, directory: string): Promise<Uri> => {
   if (config.get('transpiler.ingameDirectoryPrompt')) {
     const customDirectory = await vscode.window.showInputBox({
-      title: 'Enter ingame directory',
+      title: 'Enter the in-game directory',
       value: directory,
       ignoreFocusOut: true
     });

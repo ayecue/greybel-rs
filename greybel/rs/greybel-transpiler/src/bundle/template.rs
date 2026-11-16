@@ -2,10 +2,10 @@ use greybel_core::{Ast, LiteralValue, NodeKind};
 use greybel_symbols::names::{GLOBALS, MODULE as MODULE_NAME};
 
 use super::output::Part;
-use crate::emit::{EmitFlags, EmitState, Emitter, LineBreakStyle, is_multiline};
+use crate::emit::{EmitFlags, EmitState, Emitter, LineBreakStyle, LiteralText};
 use crate::error::Result;
 use crate::options::TranspileOptions;
-use crate::transpile::parse_anonymous;
+use crate::transpiler::Transpiler;
 
 pub(crate) const REQUIRE: &str = "__REQUIRE";
 pub(crate) const MULTILINE_STRING: &str = "__MSTR";
@@ -63,7 +63,7 @@ pub(crate) fn emit_multiline_string_function<'a, E: Emitter>(
         && asts.any(|ast| {
             ast.literals.iter().any(|&id| {
                 matches!(ast.kind(id), NodeKind::Literal(literal) if matches!(literal.value, LiteralValue::String(_)))
-                    && is_multiline(ast.text(id).unwrap_or_default())
+                    && LiteralText::is_multiline(ast.text(id).unwrap_or_default())
             })
         });
 
@@ -83,7 +83,7 @@ pub(super) fn emit_boilerplate<E: Emitter>(
         strict_mode: false,
         ..options.clone()
     };
-    let ast = parse_anonymous(source, &parse_options)?;
+    let ast = Transpiler::new(&parse_options).parse_anonymous(source)?;
     let mut state = EmitState::new(&ast, options);
 
     emitter.emit(&mut state, ast.root(), EmitFlags::default())?;

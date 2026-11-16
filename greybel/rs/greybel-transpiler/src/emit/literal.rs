@@ -86,7 +86,7 @@ impl fmt::Display for LiteralText<'_> {
             (LiteralValue::Number(_), _) => write!(f, "{sign}{}", self.source),
             (LiteralValue::String(_), _) => match self.line_breaks {
                 LineBreakStyle::Join { function, compact } if self.joins() => {
-                    write_join(f, self.source, function, compact)
+                    self.write_join(f, function, compact)
                 }
                 _ if !self.source.starts_with(QUOTE) => {
                     write!(f, "{QUOTE}{}{QUOTE}", self.source.replace(QUOTE, "\"\""))
@@ -121,37 +121,33 @@ impl LiteralText<'_> {
     pub fn joins(&self) -> bool {
         self.line_breaks.joins()
             && matches!(self.literal.value, LiteralValue::String(_))
-            && is_multiline(self.source)
+            && Self::is_multiline(self.source)
     }
-}
 
-#[must_use]
-pub fn is_multiline(source: &str) -> bool {
-    source.contains(['\n', '\r'])
-}
+    #[must_use]
+    pub fn is_multiline(source: &str) -> bool {
+        source.contains(['\n', '\r'])
+    }
 
-fn write_join(
-    f: &mut fmt::Formatter<'_>,
-    source: &str,
-    function: &str,
-    compact: bool,
-) -> fmt::Result {
-    let inner = &source[QUOTE.len()..source.len() - QUOTE.len()];
-    let separator = if compact { "," } else { ", " };
+    fn write_join(&self, f: &mut fmt::Formatter<'_>, function: &str, compact: bool) -> fmt::Result {
+        let source = self.source;
+        let inner = &source[QUOTE.len()..source.len() - QUOTE.len()];
+        let separator = if compact { "," } else { ", " };
 
-    write!(f, "{function}([")?;
+        write!(f, "{function}([")?;
 
-    for (index, line) in inner
-        .split("\r\n")
-        .flat_map(|line| line.split(['\n', '\r']))
-        .enumerate()
-    {
-        if index > 0 {
-            f.write_str(separator)?;
+        for (index, line) in inner
+            .split("\r\n")
+            .flat_map(|line| line.split(['\n', '\r']))
+            .enumerate()
+        {
+            if index > 0 {
+                f.write_str(separator)?;
+            }
+
+            write!(f, "{QUOTE}{line}{QUOTE}")?;
         }
 
-        write!(f, "{QUOTE}{line}{QUOTE}")?;
+        f.write_str("])")
     }
-
-    f.write_str("])")
 }

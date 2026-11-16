@@ -70,14 +70,14 @@ fn should_refuse_a_profile_the_project_doesnt_have() {
 
     assert_eq!(
         error.to_string(),
-        "file:///work/greybel.json: the project has no profile `staging`"
+        "file:///work/greybel.json: the project has no profile \"staging\""
     );
     assert_eq!(
         Project::default()
             .with_profile(Some("release"))
             .expect_err("no profiles")
             .to_string(),
-        "the defaults (no greybel.json): the project has no profile `release`"
+        "the defaults (no greybel.json): the project has no profile \"release\""
     );
 }
 
@@ -88,12 +88,12 @@ fn should_refuse_profiles_extending_each_other_when_read() {
 
     assert_eq!(
         error,
-        "file:///work/greybel.json: the profiles extend each other in a cycle: a → b → a"
+        "file:///work/greybel.json: the profiles extend each other in a cycle: a -> b -> a"
     );
     assert_eq!(
         project(r#"{ "profiles": { "a": { "extends": "missing" } } }"#)
             .expect_err("an unknown profile"),
-        "file:///work/greybel.json: the project has no profile `missing`"
+        "file:///work/greybel.json: the project has no profile \"missing\""
     );
 }
 
@@ -103,7 +103,9 @@ fn should_refuse_a_profile_with_a_setting_build_doesnt_have_when_read() {
         .expect_err("an unknown setting");
 
     assert!(
-        error.starts_with("file:///work/greybel.json: the profile `fast`: unknown field `speed`"),
+        error.starts_with(
+            "file:///work/greybel.json: invalid profile \"fast\": unknown field `speed`"
+        ),
         "{error}"
     );
     assert!(

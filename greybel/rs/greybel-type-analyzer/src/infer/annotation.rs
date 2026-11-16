@@ -20,7 +20,6 @@ impl Inference<'_> {
             .doc_at(line)
     }
 
-    /// The type written in code at `span`, as a type expression; reports one that isn't one.
     pub(crate) fn written_type_expr(&mut self, span: Span) -> Option<TypeExpr> {
         let text = self.ast().slice(span);
         let expr = TypeExpr::parse(text);
@@ -30,16 +29,13 @@ impl Inference<'_> {
                 self.current_document,
                 DiagnosticKind::InvalidAnnotation,
                 span,
-                format!("Cannot read the type \"{text}\"."),
+                format!("Cannot parse the type \"{text}\"."),
             );
         }
 
         expr
     }
 
-    /// The documentation of `function` with the types written in its code (parameter types, the return type and
-    /// type parameters) added: a type in code counts like the same type in a doc comment, and replaces one written
-    /// both ways (see [`Self::validate_written_types`]).
     pub(crate) fn with_written_types(
         &mut self,
         function: NodeId,
@@ -106,8 +102,6 @@ impl Inference<'_> {
         Some(Arc::new(doc))
     }
 
-    /// Reports the types written in the code of `function` that aren't types, and parameter and return types that
-    /// are written both in code and in its doc comment.
     pub(crate) fn validate_written_types(&mut self, function: NodeId) {
         if self.context.current.is_some() {
             return;

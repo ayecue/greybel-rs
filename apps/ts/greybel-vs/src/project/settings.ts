@@ -93,7 +93,7 @@ export class ProjectSettings {
   /** Queue `sync` to run after all earlier synchronization operations complete. */
   #sync(sync: () => Promise<void>): void {
     this.#syncs = this.#syncs.then(sync).catch((error: unknown) => {
-      vscode.window.showWarningMessage(`The settings and ${FILE_NAME} couldn't be synced: ${String(error)}`);
+      vscode.window.showWarningMessage(`Could not sync settings with ${FILE_NAME}: ${String(error)}`);
     });
   }
 

@@ -4,7 +4,7 @@ use greybel_documents::{DocumentError, Uri};
 pub enum TranspileError {
     #[error(transparent)]
     Load(#[from] DocumentError),
-    #[error("Operators in binary expression are not supported")]
+    #[error("The operator \"{operator}\" is not supported.")]
     UnsupportedOperator {
         file: String,
         operator: &'static str,
@@ -19,7 +19,7 @@ pub enum TranspileError {
         line: u32,
         column: u32,
     },
-    #[error("Circular dependency from {} to {} detected.", from.label(), to.label())]
+    #[error("Circular dependency from {} to {}.", from.label(), to.label())]
     CircularDependency { from: Uri, to: Uri },
 }
 

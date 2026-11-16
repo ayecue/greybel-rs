@@ -27,7 +27,7 @@ pub(crate) use into_tool_contents;
 /// Reason a requested source cannot be used.
 #[derive(Debug, thiserror::Error)]
 pub enum SourceError {
-    #[error("Give either code or a path.")]
+    #[error("Provide exactly one of code or path.")]
     Selection,
     #[error("There is no file at {}.", path.display())]
     MissingFile { path: PathBuf },

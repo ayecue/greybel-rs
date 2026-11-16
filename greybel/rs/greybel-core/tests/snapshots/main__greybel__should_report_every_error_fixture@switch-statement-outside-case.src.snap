@@ -4,7 +4,7 @@ expression: rendered
 input_file: greybel-core/tests/fixtures/greybel/errors/switch-statement-outside-case.src
 ---
 --- strict
-3:2 - 3:6 UnexpectedToken(2001): statements of a switch belong in a case
+3:2 - 3:6 UnexpectedToken(2001): statements in a switch must be inside a 'case'
 --- tree
 Chunk[1:1-5:1][
 	SwitchStatement[1:1-4:11][
@@ -14,4 +14,4 @@ Chunk[1:1-5:1][
 	]
 ]
 --- errors
-3:2 - 3:6 UnexpectedToken(2001): statements of a switch belong in a case
+3:2 - 3:6 UnexpectedToken(2001): statements in a switch must be inside a 'case'

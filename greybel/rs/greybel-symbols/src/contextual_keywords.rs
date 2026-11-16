@@ -20,3 +20,10 @@ pub const TYPE: &str = "type";
 pub const NO_EVAL: &str = "no-eval";
 pub const NO_EMIT: &str = "no-emit";
 pub const OVERRIDE: &str = "override";
+
+/// Contextual keywords that act as statement keywords; excludes member names (`constructor`, `create`) and
+/// `import_code` flags (`no-eval`, `no-emit`, `override`).
+pub const STATEMENT_KEYWORDS: &[&str] = &[
+    FROM, LET, CONST, ENUM, ASSERT, AS, SWITCH, CASE, IS, EXPORT, CLASS, EXTENDS, IMPLEMENTS,
+    PRIVATE, STATIC, READONLY, TYPE,
+];

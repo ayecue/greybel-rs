@@ -12,7 +12,6 @@ type Result<T = ()> = super::CompileResult<T>;
 pub(crate) struct Access {
     pub reference: bool,
     pub discard: bool,
-    /// A `?.` link: `null` ends the chain.
     pub optional: bool,
 }
 
@@ -128,7 +127,6 @@ impl Compiler<'_> {
         self.push(value, id);
     }
 
-    /// Like the build's `"a" + (x) + "b"`: the first text piece, then each expression and later piece added on.
     fn template(&mut self, id: NodeId, node: &Template) -> Result {
         let source = self.ast().source();
         let pieces: Vec<String> = node
@@ -496,8 +494,6 @@ impl Compiler<'_> {
             .any(|&field| matches!(self.kind(field), NodeKind::Spread(_)))
     }
 
-    /// Like the build's `[] + a + [1]`: an empty collection, then each spread argument and each run of other
-    /// fields added on.
     fn spread_collection(
         &mut self,
         id: NodeId,
@@ -793,9 +789,6 @@ impl Compiler<'_> {
         }
     }
 
-    /// `base?.(arguments)`: the function value of `base` (not called), `null` ends the chain, then the call. A member
-    /// (`a.f?.(x)`, `self.f?.(x)`) is called on its receiver, which is evaluated once. An index (`a[k]?.(x)`) is
-    /// called as a function value without `self`, as GreyScript has no `a[k](x)` call a build could write.
     fn optional_callee(&mut self, base: NodeId, count: u32, discard: bool) -> Result<(Op, NodeId)> {
         let callee = self.unwrap(base);
         let call = Some(count);
@@ -889,8 +882,6 @@ impl Compiler<'_> {
         }
     }
 
-    /// With the function value of a method on top of the `values - 1` values its call reads (receiver and key): a
-    /// `null` function ends the chain with `null`, else the function value is dropped.
     fn optional_method_check(&mut self, at: NodeId, values: u8) {
         let end = self
             .chains
@@ -899,7 +890,7 @@ impl Compiler<'_> {
             .expect("a `?.` call is compiled in its chain");
         let present = self.label();
 
-        self.null_test(at);
+        self.null_check(at);
         self.jump(Self::jump_if_false(), present, at);
 
         for _ in 0..values {
@@ -912,7 +903,6 @@ impl Compiler<'_> {
         self.emit(Op::Pop, at);
     }
 
-    /// `condition ? if_true : if_false`.
     fn ternary(
         &mut self,
         id: NodeId,
@@ -934,12 +924,11 @@ impl Compiler<'_> {
         Ok(())
     }
 
-    /// `left ?? right`: `left` stays unless it is `null`.
     fn coalesce(&mut self, id: NodeId, left: NodeId, right: NodeId) -> Result {
         let end = self.label();
 
         self.expression(left)?;
-        self.null_test(id);
+        self.null_check(id);
         self.jump(Self::jump_if_false(), end, id);
         self.emit(Op::Pop, id);
         self.expression(right)?;
@@ -948,14 +937,12 @@ impl Compiler<'_> {
         Ok(())
     }
 
-    /// Pushes whether the value on top of the stack is `null`, without taking it.
-    fn null_test(&mut self, at: NodeId) {
+    fn null_check(&mut self, at: NodeId) {
         self.emit(Op::Duplicate(1), at);
         self.push(Value::Null, at);
         self.emit(Op::binary(Operator::from(BinaryOp::Equal)), at);
     }
 
-    /// After the base of a `?.` link: a `null` base ends the chain with `null` as its value.
     fn optional_check(&mut self, at: NodeId) {
         let end = self
             .chains
@@ -968,11 +955,10 @@ impl Compiler<'_> {
             push_condition: false,
         };
 
-        self.null_test(at);
+        self.null_check(at);
         self.jump(jump, end, at);
     }
 
-    /// The links of the chain `id` when it has a `?.` link and isn't a link of the chain being compiled.
     pub(crate) fn chain_links(&self, id: NodeId) -> Option<Vec<NodeId>> {
         if self
             .chains
@@ -1006,7 +992,6 @@ impl Compiler<'_> {
         optional.then_some(links)
     }
 
-    /// Compiles a chain with `?.` links: `compile` produces its value, a `null` link base jumps to the end.
     pub(crate) fn optional_chain(
         &mut self,
         links: Vec<NodeId>,

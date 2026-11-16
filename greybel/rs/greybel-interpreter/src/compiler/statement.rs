@@ -20,7 +20,6 @@ impl Compiler<'_> {
         if let Some(links) = self.chain_links(id) {
             let after = self.label();
 
-            // A statement has no value; the `null` of an ended chain is dropped.
             self.optional_chain(links, |this| {
                 this.statement_kind(id)?;
                 this.jump(Op::Jump(0), after, id);
@@ -159,7 +158,6 @@ impl Compiler<'_> {
         Ok(())
     }
 
-    /// Like the build's `if not (condition) then exit(message)`.
     fn assert_statement(&mut self, id: NodeId, node: &Assert) -> Result {
         if Assert::is_removed(&self.options.environment) {
             return Ok(());
@@ -286,7 +284,6 @@ impl Compiler<'_> {
         self.include(target)
     }
 
-    /// Sets each parameter whose default isn't a literal when the call omits it or passes `null`.
     pub(crate) fn expression_defaults(&mut self, parameters: &[NodeId]) -> Result {
         for &parameter in parameters {
             let (variable, init) = match self.kind(parameter) {
