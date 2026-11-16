@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS gpus (
 );
 
 -- a part installed in a computer: `hardware_id` is a row of the table `kind` names. Health is the installed part's;
--- order of installation names network interfaces (eth0, wlan0, …)
+-- order of installation names network interfaces (eth0, wlan0 and so on)
 CREATE TABLE IF NOT EXISTS computer_hardware (
     id          INTEGER PRIMARY KEY,
     computer_id INTEGER NOT NULL REFERENCES computers(id) ON DELETE CASCADE,

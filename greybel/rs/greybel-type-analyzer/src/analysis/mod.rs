@@ -1,8 +1,11 @@
+mod query;
 mod references;
 
 use greybel_core::{Dialect, NodeId};
 use greybel_documents::SourceFile;
+pub use query::Query;
 pub use references::ReferenceTable;
+use rustc_hash::FxHashMap;
 
 use crate::api::Api;
 use crate::diagnostic::Diagnostic;
@@ -18,6 +21,8 @@ pub struct Analysis {
     references: ReferenceTable,
     diagnostics: Vec<Vec<Diagnostic>>,
     documents: Vec<SourceFile>,
+    /// The types of `type` aliases, `@typedef`s and `enum`s by name.
+    named_types: FxHashMap<String, TypeId>,
 }
 
 impl Analysis {
@@ -28,6 +33,7 @@ impl Analysis {
         node_types: Vec<Vec<Option<TypeId>>>,
         references: ReferenceTable,
         diagnostics: Vec<Vec<Diagnostic>>,
+        named_types: FxHashMap<String, TypeId>,
     ) -> Self {
         Self {
             api,
@@ -37,7 +43,13 @@ impl Analysis {
             references,
             diagnostics,
             documents: Vec::new(),
+            named_types,
         }
+    }
+
+    /// The type an alias, `@typedef` or `enum` named `name` stands for.
+    pub(crate) fn named_type(&self, name: &str) -> Option<TypeId> {
+        self.named_types.get(name).copied()
     }
 
     pub(crate) fn set_documents(&mut self, documents: Vec<SourceFile>) {

@@ -1,0 +1,10 @@
+type Id = string|number
+type Pair<T> = [T, T]
+type Repository<T> extends map
+	name: string
+	timeout?: number
+	readonly id: Id
+	find(id: Id, fallback): T|null
+end type
+let repo: Repository<string> = {"name": "users"}
+print repo.name

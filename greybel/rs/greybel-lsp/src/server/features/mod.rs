@@ -2,6 +2,7 @@ mod assist;
 mod edits;
 mod highlight;
 mod navigation;
+mod ranges;
 mod symbols;
 
 use gen_lsp_types as lsp;

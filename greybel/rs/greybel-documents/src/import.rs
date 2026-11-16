@@ -6,6 +6,7 @@ use crate::options::NativeImportMode;
 pub enum ImportKind {
     Import,
     Include,
+    TypeInclude,
     NativeImport,
     Inject,
 }
@@ -14,6 +15,11 @@ impl ImportKind {
     #[must_use]
     pub fn is_dependency(self) -> bool {
         !matches!(self, Self::Inject)
+    }
+
+    #[must_use]
+    pub fn runs_code(self) -> bool {
+        matches!(self, Self::Import | Self::Include | Self::NativeImport)
     }
 }
 
@@ -59,9 +65,13 @@ impl ImportContainer {
             .includes
             .iter()
             .filter_map(|&node| match ast.kind(node) {
-                NodeKind::Include(include) if !include.type_only => Some(Import {
+                NodeKind::Include(include) => Some(Import {
                     node,
-                    kind: ImportKind::Include,
+                    kind: if include.type_only {
+                        ImportKind::TypeInclude
+                    } else {
+                        ImportKind::Include
+                    },
                     target: ast.read(include.path).into_owned(),
                 }),
                 _ => None,

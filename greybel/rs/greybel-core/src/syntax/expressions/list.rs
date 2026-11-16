@@ -1,3 +1,4 @@
+use super::Spread;
 use super::collection::CollectionLiteral;
 use crate::ast::{AstNode, DumpContext, NodeFieldContainer, NodeId, NodeList};
 use crate::error::ParseResult;
@@ -60,9 +61,14 @@ impl PrefixRule for ListRule {
     fn parse(&self, parser: &mut Parser<'_>, _context: ExprContext) -> ParseResult<NodeId> {
         let list = parser.alloc(List::default(), parser.token().span().open());
         let fields = LIST.parse(parser, list, |parser, item| {
+            if let Some(spread) = Spread::parse(parser, item)? {
+                return Ok(spread);
+            }
+
             Ok(ListItem {
                 value: parser.parse_expr(Some(item))?,
-            })
+            }
+            .into())
         })?;
 
         parser.stream.nodes.set_kind(list, List { fields });

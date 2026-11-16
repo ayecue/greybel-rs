@@ -1,0 +1,10 @@
+a = c ? 1 : 2
+b = x ?? "d"
+n = user?.name.first
+m = list?.[0]
+r = callback?.(1, 2)
+print(c ? (d ? 1 : 2) : 3)
+k = {"a": c ? 1 : 2}
+z = c ?.5:1
+w = f ? g ? 1 : 2 : 3
+q = a ?? b or c

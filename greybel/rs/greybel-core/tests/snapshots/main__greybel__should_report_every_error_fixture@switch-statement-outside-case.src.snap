@@ -1,0 +1,17 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/switch-statement-outside-case.src
+---
+--- strict
+3:2 - 3:6 UnexpectedToken(2001): statements of a switch belong in a case
+--- tree
+Chunk[1:1-5:1][
+	SwitchStatement[1:1-4:11][
+		IfStatement[1:1-1:1][
+			IfClause[3:2-3:8][BinaryExpression[3:2-3:8][UnaryExpression[3:2-3:8][@ Identifier[1:8-1:9][x]] == Literal[3:7-3:8][1]]]
+		]
+	]
+]
+--- errors
+3:2 - 3:6 UnexpectedToken(2001): statements of a switch belong in a case

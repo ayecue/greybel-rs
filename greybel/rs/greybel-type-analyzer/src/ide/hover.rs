@@ -1,13 +1,25 @@
-use greybel_core::{ColumnSettings, Range};
+use std::fmt::Write as _;
+
+use greybel_core::{ColumnSettings, NodeId, Range};
 
 use super::Context;
-use crate::model::Documentation;
+use crate::model::{Documentation, Site};
+use crate::types::TypeId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Hover {
     pub range: Range,
     pub text: String,
+    pub kind: HoverKind,
     pub documentation: Option<Documentation>,
+}
+
+/// How a hover's text reads: a signature (`name: type`), shown as code, or a sentence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum HoverKind {
+    #[default]
+    Signature,
+    Sentence,
 }
 
 impl Context<'_> {
@@ -24,6 +36,12 @@ impl Context<'_> {
             None => notation.display(ty).to_string(),
         };
 
+        if let Some(declared_type) = self.declared_type_at_definition(node)
+            && declared_type != ty
+        {
+            let _ = write!(text, " (declared: {})", notation.display(declared_type));
+        }
+
         if let Some(content) = notation.map_content(ty) {
             text.push(' ');
             text.push_str(&content);
@@ -35,7 +53,24 @@ impl Context<'_> {
                 .lines()
                 .range(self.ast.span(node), ColumnSettings::default()),
             text,
+            kind: HoverKind::Signature,
             documentation: self.analysis.documentation(ty),
         })
+    }
+
+    fn declared_type_at_definition(&self, node: NodeId) -> Option<TypeId> {
+        let site = Site {
+            document: self.document,
+            node,
+        };
+        let references = self.analysis.references();
+        let &[slot] = references.slots(site) else {
+            return None;
+        };
+
+        references
+            .definition_sites(slot)
+            .contains(&site)
+            .then(|| self.analysis.model().slot_type(slot))
     }
 }

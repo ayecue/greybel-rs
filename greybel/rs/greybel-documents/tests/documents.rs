@@ -9,8 +9,8 @@ use greybel_test_support::documents::graph_outline;
 use greybel_test_support::future::block_on;
 
 use crate::support::{
-    PROJECT, broken_main_in_unsafe_mode, content, graph, miniscript_main, options, recorded,
-    relative, resolver_answered_a_of_an_edited_main, resolver_answered_after_a_was_set,
+    PROJECT, TYPE_INCLUDE, broken_main_in_unsafe_mode, content, graph, miniscript_main, options,
+    recorded, relative, resolver_answered_a_of_an_edited_main, resolver_answered_after_a_was_set,
     resolver_answered_after_an_unrelated_change, resolver_answered_b, resolver_answered_c,
     resolver_reading_a_of_an_edited_main, resolver_reading_a_set_meanwhile,
     resolver_told_where_a_is, resolver_told_where_b_is, resolver_told_where_c_is, step, uri,
@@ -592,4 +592,28 @@ fn should_read_an_entry_not_in_the_workspace_first() {
     let main = workspace.file(&uri("/main.src")).expect("read");
 
     assert_eq!(main.uri(workspace.db()).to_string(), "memory:///main.src");
+}
+
+#[test]
+fn should_read_a_type_include_without_adding_it_to_the_graph() {
+    let provider = recorded(TYPE_INCLUDE);
+
+    let graph: ModuleGraph =
+        ModuleGraph::load(&uri("/main.src"), &options(Dialect::Greybel), &provider).expect("loads");
+
+    let mut reads: Vec<String> = provider
+        .take()
+        .into_iter()
+        .filter(|call| call.starts_with("read"))
+        .collect();
+
+    reads.sort();
+    assert_eq!(reads, ["read /a.src", "read /main.src", "read /types.src"]);
+    assert_eq!(
+        graph_outline(&graph),
+        [
+            "/main.src ModuleId(0) [ModuleId(1)]",
+            "/a.src ModuleId(1) []"
+        ]
+    );
 }

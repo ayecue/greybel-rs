@@ -2,7 +2,7 @@ use greybel_symbols::delimiters::{QUOTE, SLICE_SEPARATOR, STATEMENT_SEPARATOR};
 
 use super::chars::{CARRIAGE_RETURN, LINE_FEED, is_identifier_start};
 use super::{NumericLiteral, Punct};
-use crate::dialect::LexerRuleTable;
+use crate::dialect::{LexerRuleTable, SyntaxFeatures};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum TokenStart {
@@ -15,13 +15,19 @@ pub(crate) enum TokenStart {
     Colon,
     Slash,
     Punct,
+    /// `#`: a template when `"` follows, else a directive name when the grammar has them.
+    Hash,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct TokenStartTable(Box<[TokenStart; 256]>);
 
 impl TokenStartTable {
-    pub(crate) fn new(rules: LexerRuleTable, punctuators: impl IntoIterator<Item = Punct>) -> Self {
+    pub(crate) fn new(
+        rules: LexerRuleTable,
+        features: SyntaxFeatures,
+        punctuators: impl IntoIterator<Item = Punct>,
+    ) -> Self {
         let mut starts = Box::new([TokenStart::Invalid; 256]);
 
         for punct in punctuators {
@@ -36,6 +42,10 @@ impl TokenStartTable {
 
         if rules.hash_identifiers {
             starts[usize::from(b'#')] = TokenStart::Identifier;
+        }
+
+        if features.contains(SyntaxFeatures::TEMPLATES) {
+            starts[usize::from(b'#')] = TokenStart::Hash;
         }
 
         for digit in b'0'..=b'9' {

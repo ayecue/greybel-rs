@@ -27,6 +27,12 @@ impl Span {
         Span::new(self.start, end.end)
     }
 
+    /// Whether the span covers no text, as the spans of nodes a build adds do.
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
+        self.start == self.end
+    }
+
     #[must_use]
     pub const fn is_closed(&self) -> bool {
         self.end != OPEN

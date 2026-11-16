@@ -103,7 +103,7 @@ impl Program {
                     DiagnosticKind::CyclicImport,
                     ast.lines(),
                     ast.span(import.node),
-                    format!("Cyclic import: {}", cycle.join(" -> ")),
+                    format!("Cyclic import: {}.", cycle.join(" -> ")),
                 ))
             })
             .collect()
@@ -175,7 +175,7 @@ impl Program {
                         DiagnosticKind::MissingImport,
                         ast.lines(),
                         ast.span(import.node),
-                        format!("Missing import: {}", import.target),
+                        format!("Cannot find the imported file \"{}\".", import.target),
                     )
                 })
             })

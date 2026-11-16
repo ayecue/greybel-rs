@@ -2,7 +2,7 @@
 
 use greybel_type_analyzer::{Analyzer, DiagnosticKind, Dialect};
 
-use crate::support::{PATH, greyscript, miniscript, uri, with_document};
+use crate::support::{PATH, greyscript, marked, miniscript, uri, with_document};
 
 #[test]
 fn should_widen_a_list_on_push() {
@@ -151,4 +151,75 @@ fn should_report_a_mutates_tag_naming_no_parameter() {
         .collect();
 
     assert_eq!(messages, ["@mutates items names no @param"]);
+}
+
+#[test]
+fn should_widen_an_entry_reached_by_index_on_push() {
+    let source = "m = {\"k\": []}\nm[\"k\"].push(1)\nf = function\n  m[\"k\"].push(\"a\")\nend function\nf\nx = m[\"k\"]";
+
+    let types = miniscript(source, &["x"]);
+
+    assert_eq!(types, ["list<number or string>"]);
+}
+
+#[test]
+fn should_widen_an_argument_a_function_adds_to() {
+    let source = "fill = function(l)
+          l.push(1)
+        end function
+        passOn = function(l)
+          fill(l)
+        end function
+        replace = function(l)
+          l = []
+          l.push(\"x\")
+        end function
+        put = function(d, k)
+          d[k] = true
+        end function
+        filled = []
+        fill(filled)
+        passed = []
+        passOn(passed)
+        replaced = []
+        replace(replaced)
+        m = {}
+        put(m, \"a\")
+        keys = m.indexes";
+
+    let types = miniscript(source, &["filled", "passed", "replaced", "keys"]);
+
+    assert_eq!(
+        types,
+        [
+            "list<number>",
+            "list<number>",
+            "list<unknown>",
+            "list<string>"
+        ]
+    );
+}
+
+#[test]
+fn should_type_self_in_functions_stored_on_a_value_type() {
+    let (source, positions) = marked(
+        "list.append = function(v)\n  |self.push(v)\nend function\nstring.shout = function\n  return |self.upper\nend function\nitems = []\nitems.append(3)\n|items",
+    );
+    let workspace = with_document(Dialect::MiniScript, &source);
+    let hover = |position| {
+        Analyzer::new(&workspace)
+            .hover(&uri(PATH), position)
+            .map(|hover| hover.text)
+    };
+
+    let texts: Vec<Option<String>> = positions.into_iter().map(hover).collect();
+
+    assert_eq!(
+        texts,
+        [
+            Some("self: list<any>".to_owned()),
+            Some("self: string".to_owned()),
+            Some("items: list<number>".to_owned()),
+        ]
+    );
 }

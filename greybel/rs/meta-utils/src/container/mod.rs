@@ -70,6 +70,8 @@ impl Container {
             TypeLookup::Base(base)
         } else if name == TypeLookup::NULL {
             TypeLookup::Null
+        } else if name == TypeLookup::NEVER {
+            TypeLookup::Never
         } else {
             self.signature(name)
                 .map_or(TypeLookup::Unknown, TypeLookup::Class)

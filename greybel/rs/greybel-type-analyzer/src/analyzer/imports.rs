@@ -2,7 +2,7 @@ use greybel_core::{Ast, ColumnSettings, Dialect, Position, Range, Span};
 use greybel_documents::{SourceFile, Uri};
 
 use super::Analyzer;
-use crate::diagnostic::{Diagnostic, DiagnosticKind};
+use crate::diagnostic::Diagnostic;
 use crate::ide::{
     CodeAction, CompletionItem, CompletionItemKind, DocumentSymbol, ImportTarget, RelativePath,
     SymbolKind, TextEdit, WorkspaceEdit,
@@ -40,17 +40,14 @@ impl Insertion {
         } else {
             format!("{directive}\n")
         };
-        let mut edit = WorkspaceEdit::default();
 
-        edit.changes.insert(
-            uri.clone(),
+        WorkspaceEdit::of_file(
+            uri,
             vec![TextEdit {
                 range: self.range,
                 new_text,
             }],
-        );
-
-        edit
+        )
     }
 }
 
@@ -92,6 +89,8 @@ impl<'w> Analyzer<'w> {
                     kind: CompletionItemKind::File,
                     detail: other.label(),
                     documentation: None,
+                    snippet: None,
+                    deprecated: false,
                 })
             })
             .collect();
@@ -102,32 +101,18 @@ impl<'w> Analyzer<'w> {
         Some(items)
     }
 
-    #[must_use]
-    pub fn code_actions(&self, uri: &Uri, range: Range) -> Vec<CodeAction> {
+    /// `#include` (and `import_code` in GreyScript) of workspace files that define the unresolved names.
+    pub(super) fn include_actions(
+        self,
+        uri: &Uri,
+        file: SourceFile,
+        ast: &Ast,
+        unresolved_diagnostics: &[&Diagnostic],
+    ) -> Vec<CodeAction> {
         let dialect = self.dialect();
-        let Some(file) = self.workspace.file(uri) else {
-            return Vec::new();
-        };
         let db = self.workspace.db();
-        let Some(ast) = file.parse(db).ast() else {
-            return Vec::new();
-        };
 
-        if dialect == Dialect::MiniScript {
-            return Vec::new();
-        }
-
-        let unresolved_diagnostics: Vec<Diagnostic> = self
-            .diagnostics(uri)
-            .into_iter()
-            .filter(|diagnostic| {
-                diagnostic.kind == DiagnosticKind::UnresolvedReference
-                    && diagnostic.range.start <= range.end
-                    && range.start <= diagnostic.range.end
-            })
-            .collect();
-
-        if unresolved_diagnostics.is_empty() {
+        if dialect == Dialect::MiniScript || unresolved_diagnostics.is_empty() {
             return Vec::new();
         }
 
@@ -140,7 +125,7 @@ impl<'w> Analyzer<'w> {
         );
         let mut actions = Vec::new();
 
-        for diagnostic in unresolved_diagnostics {
+        for &diagnostic in unresolved_diagnostics {
             let Some(name) = Self::text_in(ast, diagnostic.range) else {
                 continue;
             };
@@ -201,7 +186,7 @@ impl<'w> Analyzer<'w> {
         candidates
     }
 
-    fn text_in(ast: &Ast, range: Range) -> Option<&str> {
+    pub(super) fn text_in(ast: &Ast, range: Range) -> Option<&str> {
         let lines = ast.lines();
         let start = lines.offset(range.start, ColumnSettings::default())? as usize;
         let end = lines.offset(range.end, ColumnSettings::default())? as usize;

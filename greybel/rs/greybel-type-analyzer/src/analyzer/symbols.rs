@@ -1,4 +1,5 @@
 use super::Analyzer;
+use crate::database::Annotate;
 use crate::ide::{DocumentSymbol, SymbolQuery, WorkspaceSymbol};
 
 impl<'w> Analyzer<'w> {
@@ -15,7 +16,7 @@ impl<'w> Analyzer<'w> {
 
             WorkspaceSymbol::collect(
                 file.uri(db),
-                DocumentSymbol::outline(ast),
+                DocumentSymbol::outline_with_types(ast, file.comments(db)),
                 None,
                 &query,
                 &mut symbols,

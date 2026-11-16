@@ -136,3 +136,35 @@ fn should_cap_the_alpha_at_the_component_alpha() {
 
     assert_eq!(shown, Color::new(255, 0, 0, 64));
 }
+
+#[test]
+fn should_read_tag_values() {
+    let values = [
+        "#f00",
+        "#F008",
+        "#ff8000",
+        "#ff800080",
+        "red",
+        "lightblue",
+        "Red",
+        "#ff80",
+        "#xyz",
+        "teal",
+    ];
+
+    assert_eq!(
+        values.map(Color::from_tag_value),
+        [
+            Some(Color::new(255, 0, 0, 255)),
+            Some(Color::new(255, 0, 0, 0x88)),
+            Some(Color::new(255, 128, 0, 255)),
+            Some(Color::new(255, 128, 0, 128)),
+            Some(Color::new(255, 0, 0, 255)),
+            Some(Color::new(173, 216, 230, 255)),
+            None,
+            Some(Color::new(255, 255, 136, 0)),
+            None,
+            None,
+        ]
+    );
+}

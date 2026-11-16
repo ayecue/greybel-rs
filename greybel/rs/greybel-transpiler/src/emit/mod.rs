@@ -1,4 +1,5 @@
 mod beautify;
+mod constant;
 mod default;
 mod emitter;
 mod import_code;
@@ -9,6 +10,7 @@ mod state;
 mod uglify;
 
 pub use beautify::BeautifyEmitter;
+pub use constant::ConstantTable;
 pub use default::DefaultEmitter;
 pub use emitter::Emitter;
 pub use literal::{LineBreakStyle, LiteralStyle, LiteralText, is_multiline};

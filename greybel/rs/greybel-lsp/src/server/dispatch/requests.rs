@@ -59,6 +59,35 @@ impl Server {
             },
         },
         Route {
+            method: lsp::TypeDefinitionRequest::METHOD,
+            handle: |server, request| {
+                server.reply::<lsp::TypeDefinitionRequest>(request, Self::type_definition)
+            },
+        },
+        Route {
+            method: lsp::CallHierarchyPrepareRequest::METHOD,
+            handle: |server, request| {
+                server.reply::<lsp::CallHierarchyPrepareRequest>(
+                    request,
+                    Self::prepare_call_hierarchy,
+                )
+            },
+        },
+        Route {
+            method: lsp::CallHierarchyIncomingCallsRequest::METHOD,
+            handle: |server, request| {
+                server
+                    .reply::<lsp::CallHierarchyIncomingCallsRequest>(request, Self::incoming_calls)
+            },
+        },
+        Route {
+            method: lsp::CallHierarchyOutgoingCallsRequest::METHOD,
+            handle: |server, request| {
+                server
+                    .reply::<lsp::CallHierarchyOutgoingCallsRequest>(request, Self::outgoing_calls)
+            },
+        },
+        Route {
             method: lsp::ReferencesRequest::METHOD,
             handle: |server, request| {
                 server.reply::<lsp::ReferencesRequest>(request, Self::references)
@@ -109,6 +138,46 @@ impl Server {
             handle: |server, request| {
                 server.reply::<lsp::CodeActionRequest>(request, |server, params| {
                     Self::code_action(server, &params)
+                })
+            },
+        },
+        Route {
+            method: lsp::FoldingRangeRequest::METHOD,
+            handle: |server, request| {
+                server.reply::<lsp::FoldingRangeRequest>(request, |server, params| {
+                    Self::folds(server, &params)
+                })
+            },
+        },
+        Route {
+            method: lsp::InlayHintRequest::METHOD,
+            handle: |server, request| {
+                server.reply::<lsp::InlayHintRequest>(request, |server, params| {
+                    Self::inlay_hints(server, &params)
+                })
+            },
+        },
+        Route {
+            method: lsp::SelectionRangeRequest::METHOD,
+            handle: |server, request| {
+                server.reply::<lsp::SelectionRangeRequest>(request, |server, params| {
+                    Self::selection_range(server, &params)
+                })
+            },
+        },
+        Route {
+            method: lsp::DocumentColorRequest::METHOD,
+            handle: |server, request| {
+                server.reply::<lsp::DocumentColorRequest>(request, |server, params| {
+                    Self::document_colors(server, &params)
+                })
+            },
+        },
+        Route {
+            method: lsp::ColorPresentationRequest::METHOD,
+            handle: |server, request| {
+                server.reply::<lsp::ColorPresentationRequest>(request, |_, params| {
+                    Ok(Self::color_presentations(&params))
                 })
             },
         },

@@ -1,0 +1,11 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/template-empty-placeholder.src
+---
+--- strict
+1:9 - 1:9 ExpectedExpression(3002): a template placeholder needs an expression
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:9 - 1:9 ExpectedExpression(3002): a template placeholder needs an expression

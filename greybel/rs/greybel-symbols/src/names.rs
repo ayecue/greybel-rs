@@ -19,3 +19,5 @@ pub const BIT_AND: &str = "bitAnd";
 pub const BIT_OR: &str = "bitOr";
 pub const BIT_XOR: &str = "bitXor";
 pub const CHAR: &str = "char";
+pub const EXIT: &str = "exit";
+pub const HAS_INDEX: &str = "hasIndex";

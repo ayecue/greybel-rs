@@ -1,9 +1,12 @@
+use greybel_symbols::contextual_keywords::AS;
+
 use super::rules::{Associativity, ExprContext};
 use super::{MAX_NODE_DEPTH, Parser, Precedence};
 use crate::ast::{IdentifierKind, NodeId};
 use crate::diagnostics::{DepthDiagnostic, ExpectationDiagnostic};
+use crate::dialect::SyntaxFeatures;
 use crate::error::ParseResult;
-use crate::lexer::Keyword;
+use crate::lexer::{Keyword, Punct};
 use crate::syntax::{Function, Identifier, Invalid, Literal};
 
 impl Parser<'_> {
@@ -18,6 +21,13 @@ impl Parser<'_> {
     ) -> ParseResult<NodeId> {
         if self.token().is_keyword(Keyword::Function) {
             return Function::parse(self, base);
+        }
+
+        if self.grammar().allows(SyntaxFeatures::SHORT_FUNCTIONS)
+            && self.token().is_punct(Punct::LParen)
+            && Function::is_arrow_at(self.source(), self.token().span().start)
+        {
+            return Function::parse_arrow(self, base);
         }
 
         self.parse_expr_precedence(0, context)
@@ -62,6 +72,16 @@ impl Parser<'_> {
                 break;
             }
 
+            if self.is_at_as_type() {
+                if self.rank(Precedence::Call) < min {
+                    break;
+                }
+
+                left = self.parse_as_type(left, start)?;
+
+                continue;
+            }
+
             let Some((rule, rank)) = self.infix_rule() else {
                 break;
             };
@@ -80,6 +100,15 @@ impl Parser<'_> {
         }
 
         Ok(left)
+    }
+
+    /// `as` after an expression, with types on: `expression as T`.
+    fn is_at_as_type(&self) -> bool {
+        self.grammar().allows(SyntaxFeatures::TYPES)
+            && self
+                .token()
+                .as_identifier()
+                .is_some_and(|identifier| identifier.name(self.source()) == AS)
     }
 
     pub fn parse_right_operand(&mut self, level: Precedence) -> ParseResult<NodeId> {

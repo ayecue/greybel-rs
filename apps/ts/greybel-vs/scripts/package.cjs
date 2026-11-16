@@ -23,6 +23,7 @@ const SHARED = [
   'dist/extension.js',
   'dist/extension.browser.js',
   'dist/greyscript.tmLanguage.json',
+  'dist/greyscript-signature.tmLanguage.json',
   'dist/greyscriptLanguageConfig.json',
   'dist/api-reference.js',
   'dist/api-reference.wasm',

@@ -1,0 +1,22 @@
+let port: number = 22
+const names: list<string> = ["a"]
+connect = function(ip: string, port: number = 22, cb: (x: number) => string = null): map|null
+	return {"ip": ip, "port": port}
+end function
+first = function<T>(items: list<T>): T
+	return items[0]
+end function
+double = (x: number) => x * 2
+isText = function(value): value is string
+	return value isa string
+end function
+class Box
+	size = 1
+	grow(by: number): Box
+		self.size = self.size + by
+		return self
+	end function
+end class
+value = [1]!
+size = value as list<number>
+print [size, connect("1.2.3.4").port, first([5, 6]), double(4), isText("x"), Box.create.grow(2).size, port, names]

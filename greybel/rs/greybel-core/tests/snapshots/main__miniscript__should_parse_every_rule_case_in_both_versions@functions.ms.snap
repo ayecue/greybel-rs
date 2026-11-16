@@ -1,6 +1,5 @@
 ---
 source: greybel-core/tests/miniscript.rs
-assertion_line: 73
 expression: rendered
 input_file: greybel-core/tests/fixtures/miniscript/rules/functions.ms
 ---
@@ -17,19 +16,19 @@ Chunk[1:1-2:13][
 === "f = function(a = 1 + 1)\nend function"
 1.6, latest: --- error
 1:14 - 1:24 InvalidDefaultValue(5003): parameter default value must be a literal value
-    hint: Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member
+    hint: Only numbers, strings, booleans and null are allowed as defaults in strict mode and MiniScript; GreyScript and Greybel accept any expression otherwise
 === "f = function(a = b)\nend function"
 1.6, latest: --- error
 1:14 - 1:20 InvalidDefaultValue(5003): parameter default value must be a literal value
-    hint: Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member
+    hint: Only numbers, strings, booleans and null are allowed as defaults in strict mode and MiniScript; GreyScript and Greybel accept any expression otherwise
 === "f = function(a = [1])\nend function"
 1.6, latest: --- error
 1:14 - 1:22 InvalidDefaultValue(5003): parameter default value must be a literal value
-    hint: Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member
+    hint: Only numbers, strings, booleans and null are allowed as defaults in strict mode and MiniScript; GreyScript and Greybel accept any expression otherwise
 === "f = function(a = {})\nend function"
 1.6, latest: --- error
 1:14 - 1:21 InvalidDefaultValue(5003): parameter default value must be a literal value
-    hint: Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member
+    hint: Only numbers, strings, booleans and null are allowed as defaults in strict mode and MiniScript; GreyScript and Greybel accept any expression otherwise
 === "f = function\nend function"
 1.6, latest: ok
 Chunk[1:1-2:13][

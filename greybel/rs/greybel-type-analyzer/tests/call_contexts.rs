@@ -345,10 +345,50 @@ fn should_pass_null_for_missing_arguments() {
 
     let types = greyscript(source, &["a", "b", "c"]);
 
-    assert_eq!(
-        types,
-        ["number or string", "null or string", "null or number"]
-    );
+    assert_eq!(types, ["number or string", "string", "number"]);
+}
+
+#[test]
+fn should_type_a_call_by_the_arguments_its_body_reads() {
+    let source = "second = function(first, value)
+              return [value]
+            end function
+            a = second(missing, 1)";
+
+    let types = miniscript(source, &["a"]);
+
+    assert_eq!(types, ["list<number>"]);
+}
+
+#[test]
+fn should_not_type_a_call_by_a_receiver_its_body_does_not_read() {
+    let source = "Base = {}
+            Base.make = function()
+              return {\"id\": 1}
+            end function
+            Other = {}
+            Other.make = @Base.make
+            made = Base.make
+            made.extra = \"s\"
+            other = Other.make
+            a = other.extra";
+
+    let types = miniscript(source, &["a"]);
+
+    assert_eq!(types, ["string"]);
+}
+
+#[test]
+fn should_not_type_a_call_by_its_arguments_when_they_cannot_change_its_result() {
+    let source = "empty = function(value)
+              print value
+              return []
+            end function
+            a = empty(missing)";
+
+    let types = miniscript(source, &["a"]);
+
+    assert_eq!(types, ["list<unknown>"]);
 }
 
 #[test]
@@ -365,5 +405,8 @@ fn should_report_the_diagnostics_of_a_body_once() {
 
     let messages = message_texts(&workspace, PATH);
 
-    assert_eq!(messages, ["Unused local: y", "Cannot find \"missing\"."]);
+    assert_eq!(
+        messages,
+        ["Unused local \"y\".", "Cannot find \"missing\"."]
+    );
 }

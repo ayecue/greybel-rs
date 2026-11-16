@@ -2,7 +2,7 @@ use super::assignment::shorthand_operator;
 use super::shortcut::is_at_clause_end;
 use super::{Assignment, CallStatement};
 use crate::ast::{NodeId, NodeKind, NodeStore, UnaryOp};
-use crate::diagnostics::{KeywordDiagnostic, StatementDiagnostic};
+use crate::diagnostics::{GreybelDiagnostic, KeywordDiagnostic, StatementDiagnostic};
 use crate::error::ParseResult;
 use crate::lexer::{Punct, TokenKind};
 use crate::parser::{ExprContext, Parser, groups};
@@ -45,13 +45,30 @@ pub fn parse_expression_statement(parser: &mut Parser<'_>) -> ParseResult<NodeId
 }
 
 fn check_target(parser: &mut Parser<'_>, target: NodeId) -> ParseResult<()> {
+    let span = parser.stream.nodes.get(target).span;
+
+    if has_optional_link(&parser.stream.nodes, target) {
+        return parser.raise_at(GreybelDiagnostic::OptionalChainAssignment, span);
+    }
+
     if is_assignable(&parser.stream.nodes, target) {
         return Ok(());
     }
 
-    let span = parser.stream.nodes.get(target).span;
-
     parser.raise_at(StatementDiagnostic::InvalidAssignmentTarget, span)
+}
+
+/// Whether the chain `id` has a `?.` link (`a?.b.c = 1`).
+fn has_optional_link(nodes: &NodeStore, id: NodeId) -> bool {
+    let (optional, base) = match &nodes.get(id).kind {
+        NodeKind::Member(member) => (member.optional, member.base),
+        NodeKind::Index(index) => (index.optional, index.base),
+        NodeKind::Slice(slice) => (slice.optional, slice.base),
+        NodeKind::Call(call) => (call.optional, call.base),
+        _ => return false,
+    };
+
+    optional || has_optional_link(nodes, base)
 }
 
 fn is_assignable(nodes: &NodeStore, id: NodeId) -> bool {

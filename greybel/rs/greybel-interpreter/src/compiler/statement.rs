@@ -1,5 +1,8 @@
-use greybel_core::{Dialect, Keyword, NodeId, NodeKind};
+use greybel_core::syntax::Function;
+use greybel_core::syntax::greybel::Assert;
+use greybel_core::{BinaryOp, Dialect, Keyword, NodeId, NodeKind};
 use greybel_documents::NativeImportMode;
+use greybel_symbols::names::EXIT;
 
 use super::expression::Access;
 use super::{Compiler, Label, Usage};
@@ -14,10 +17,45 @@ impl Compiler<'_> {
             self.breakpoint(id);
         }
 
+        if let Some(links) = self.chain_links(id) {
+            let after = self.label();
+
+            // A statement has no value; the `null` of an ended chain is dropped.
+            self.optional_chain(links, |this| {
+                this.statement_kind(id)?;
+                this.jump(Op::Jump(0), after, id);
+
+                Ok(())
+            })?;
+            self.emit(Op::Pop, id);
+            self.set_label(after);
+
+            return Ok(());
+        }
+
+        self.statement_kind(id)
+    }
+
+    fn statement_kind(&mut self, id: NodeId) -> Result {
         match self.kind(id) {
             NodeKind::Chunk(node) => self.body(self.ast().list(node.body)),
-            NodeKind::Member(node) => self.member(node.base, node.identifier, Access::STATEMENT),
-            NodeKind::Index(node) => self.index(node.base, node.index, true, Access::STATEMENT),
+            NodeKind::Member(node) => self.member(
+                node.base,
+                node.identifier,
+                Access {
+                    optional: node.optional,
+                    ..Access::STATEMENT
+                },
+            ),
+            NodeKind::Index(node) => self.index(
+                node.base,
+                node.index,
+                true,
+                Access {
+                    optional: node.optional,
+                    ..Access::STATEMENT
+                },
+            ),
             NodeKind::Identifier(_) => {
                 self.identifier(id, Access::STATEMENT);
 
@@ -31,7 +69,11 @@ impl Compiler<'_> {
             | NodeKind::Binary(_)
             | NodeKind::Logical(_)
             | NodeKind::ComparisonGroup(_)
-            | NodeKind::Bitwise(_) => self.expression_statement(id),
+            | NodeKind::Bitwise(_)
+            | NodeKind::Template(_)
+            | NodeKind::Ternary(_)
+            | NodeKind::Coalesce(_)
+            | NodeKind::TypeAssertion(_) => self.expression_statement(id),
             NodeKind::Return(node) => self.return_statement(id, node.argument),
             NodeKind::Break(_) => {
                 self.break_statement(id);
@@ -46,18 +88,38 @@ impl Compiler<'_> {
             NodeKind::Map(node) => self.map(id, self.ast().list(node.fields), true),
             NodeKind::List(node) => self.list(id, self.ast().list(node.fields), true),
             NodeKind::Parenthesis(node) => self.statement(node.expression),
+            NodeKind::Enum(node) => self.statement(node.assignment),
+            NodeKind::Assert(node) => self.assert_statement(id, node),
+            NodeKind::DestructuringAssignment(node) => self.body(self.ast().list(node.statements)),
+            NodeKind::Class(node) => self.body(self.ast().list(node.statements)),
+            NodeKind::Switch(node) => self.body(self.ast().list(node.statements)),
+            NodeKind::Export(node) => self.body(self.ast().list(node.statements)),
             NodeKind::Unary(node) => self.unary(id, node.operator, node.argument, Usage::Statement),
             NodeKind::CallStatement(node) => match self.kind(node.expression) {
-                NodeKind::Call(call) => self.call(call.base, self.ast().list(call.arguments), true),
+                NodeKind::Call(call) => self.call(
+                    call.base,
+                    self.ast().list(call.arguments),
+                    true,
+                    call.optional,
+                ),
                 _ => self.statement(node.expression),
             },
-            NodeKind::Call(node) => self.call(node.base, self.ast().list(node.arguments), true),
+            NodeKind::Call(node) => self.call(
+                node.base,
+                self.ast().list(node.arguments),
+                true,
+                node.optional,
+            ),
             NodeKind::While(node) => self.while_loop(node.condition, self.ast().list(node.body)),
             NodeKind::If(node) => self.if_statement(id, self.ast().list(node.clauses)),
             NodeKind::For(node) => {
                 self.for_loop(id, node.variable, node.sequence, self.ast().list(node.body))
             }
-            NodeKind::Import(node) => self.import_statement(id, node.name),
+            NodeKind::Import(node) => {
+                self.import_statement(id, node.name)?;
+
+                self.body(self.ast().list(node.bindings))
+            }
             NodeKind::Include(node) => self.include_statement(id, node.type_only),
             NodeKind::Debugger(_) => {
                 self.debugger(id);
@@ -70,6 +132,7 @@ impl Compiler<'_> {
             | NodeKind::Function(_)
             | NodeKind::Empty(_)
             | NodeKind::Noop(_)
+            | NodeKind::TypeStatement(_)
             | NodeKind::Unknown(_)
             | NodeKind::Invalid(_)
             | NodeKind::Inject(_)
@@ -92,6 +155,58 @@ impl Compiler<'_> {
     fn expression_statement(&mut self, id: NodeId) -> Result {
         self.expression(id)?;
         self.emit(Op::Pop, id);
+
+        Ok(())
+    }
+
+    /// Like the build's `if not (condition) then exit(message)`.
+    fn assert_statement(&mut self, id: NodeId, node: &Assert) -> Result {
+        if Assert::is_removed(&self.options.environment) {
+            return Ok(());
+        }
+
+        let end = self.label();
+        let jump = Op::JumpIf {
+            target: 0,
+            when: Truthy::True,
+            push_condition: false,
+        };
+
+        self.expression(node.condition)?;
+        self.jump(jump, end, id);
+
+        let exit = self.key(EXIT);
+
+        self.emit(
+            Op::GetVariable {
+                key: exit,
+                invoke: false,
+                discard: false,
+                cache: LookupCache::default(),
+            },
+            id,
+        );
+
+        match node.message {
+            Some(message) => self.expression(message)?,
+            None => {
+                let line = self.location(id).line;
+
+                self.push(
+                    Value::from_string(Assert::default_message(&node.filename, line)),
+                    id,
+                );
+            }
+        }
+
+        self.emit(
+            Op::Call {
+                arguments: 1,
+                discard: true,
+            },
+            id,
+        );
+        self.set_label(end);
 
         Ok(())
     }
@@ -169,6 +284,36 @@ impl Compiler<'_> {
         }
 
         self.include(target)
+    }
+
+    /// Sets each parameter whose default isn't a literal when the call omits it or passes `null`.
+    pub(crate) fn expression_defaults(&mut self, parameters: &[NodeId]) -> Result {
+        for &parameter in parameters {
+            let (variable, init) = match self.kind(parameter) {
+                NodeKind::Assignment(node) => (node.variable, node.init),
+                _ => continue,
+            };
+
+            if Function::is_literal_default(self.ast().nodes(), init) {
+                continue;
+            }
+
+            let skip = self.label();
+            let reference = Access {
+                reference: true,
+                discard: false,
+                optional: false,
+            };
+
+            self.identifier(variable, reference);
+            self.push(Value::Null, variable);
+            self.emit(Op::binary(Operator::from(BinaryOp::Equal)), parameter);
+            self.jump(Self::jump_if_false(), skip, parameter);
+            self.assignment(parameter, variable, init)?;
+            self.set_label(skip);
+        }
+
+        Ok(())
     }
 
     fn assignment(&mut self, id: NodeId, variable: NodeId, init: NodeId) -> Result {

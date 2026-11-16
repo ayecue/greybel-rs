@@ -1,0 +1,11 @@
+enum Color
+	Red
+	// comment
+	Green = 5
+	Blue
+	Name = "n"
+	Low = -3
+	Next
+end enum
+enum = 1
+print Color.Blue

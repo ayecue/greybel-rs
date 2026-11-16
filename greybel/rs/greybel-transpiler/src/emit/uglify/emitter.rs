@@ -7,6 +7,7 @@ use greybel_symbols::{Keyword, Punct};
 use super::shape::{has_index_key_argument, string_value};
 use super::{UglifyEmitter, member_flags};
 use crate::bundle::MULTILINE_STRING;
+use crate::emit::nodes::emitted_parameters;
 use crate::emit::{EmitFlags, EmitState, Emitter, LiteralStyle};
 use crate::error::Result;
 
@@ -30,33 +31,37 @@ impl Emitter for UglifyEmitter {
     }
 
     fn emit_parameters(&mut self, s: &mut EmitState<'_>, parameters: &[NodeId]) -> Result<()> {
+        let parameters = emitted_parameters(s, parameters);
+
         self.in_parameters(s, |this, s| {
-            this.emit_with_separators(s, parameters, Punct::Comma.as_str())
+            this.emit_with_separators(s, &parameters, Punct::Comma.as_str())
         })
     }
 
     fn emit_function(
         &mut self,
         s: &mut EmitState<'_>,
-        _id: NodeId,
+        id: NodeId,
         node: &Function,
         flags: EmitFlags,
     ) -> Result<()> {
-        if node.parameters.is_empty() {
-            s.keyword(Keyword::Function);
-        } else {
-            s.keyword(Keyword::Function);
+        s.keyword(Keyword::Function);
+        self.emit_templates(s, id);
+
+        if !node.parameters.is_empty() || s.written_returns(id).is_some() {
             s.punct(Punct::LParen);
             self.emit_parameters(s, s.ast().list(node.parameters))?;
             s.punct(Punct::RParen);
         }
+
+        self.emit_return_type(s, id);
 
         if flags.header_only {
             return Ok(());
         }
 
         s.eol();
-        self.emit_body(s, s.ast().list(node.body))?;
+        self.emit_function_body(s, node)?;
         s.keyword(Keyword::EndFunction);
 
         Ok(())

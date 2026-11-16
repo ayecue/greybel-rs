@@ -2,12 +2,22 @@
 
 #![allow(dead_code)]
 
+pub mod assignments;
+pub mod call_hierarchy;
+pub mod code_actions;
 pub mod custom_types;
 pub mod diagnostics;
 pub mod doc;
 pub mod documents;
 pub mod features;
+pub mod ignores;
+pub mod import_path;
+pub mod inlay;
+pub mod keywords;
+pub mod ranges;
+pub mod type_definition;
 pub mod infer;
+pub mod instances;
 pub mod narrowing;
 pub mod type_expr;
 pub mod workspace;

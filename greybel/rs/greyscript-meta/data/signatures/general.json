@@ -727,7 +727,7 @@
         }
       ],
       "returns": [
-        "null"
+        "never"
       ]
     },
     "user_mail_address": {

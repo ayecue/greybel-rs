@@ -31,6 +31,10 @@ impl Inference<'_> {
                         .map(|doc| (block.spans[doc.line], doc.clone()))
                 })
                 .collect();
+            let docs: Vec<(Span, TypeDoc)> = docs
+                .into_iter()
+                .chain(self.type_statement_docs(document))
+                .collect();
 
             for (span, doc) in docs {
                 if !doc.virtual_type && self.api.class_name(&doc.name).is_some() {
@@ -48,6 +52,7 @@ impl Inference<'_> {
                             map,
                             document: DocumentIndex::try_from(document)
                                 .expect("value fits the target integer type"),
+                            span,
                             type_parameters: doc.type_parameters.clone(),
                             description: doc.description.clone(),
                         });
@@ -121,6 +126,16 @@ impl Inference<'_> {
             });
 
             self.define_property(map, property, has_children);
+
+            if let [name] = &property.path[..] {
+                if property.readonly {
+                    self.readonly_members.insert((map, name.as_str().into()));
+                }
+
+                if property.optional {
+                    self.optional_members.insert((map, name.as_str().into()));
+                }
+            }
         }
 
         for (function, &id) in doc.functions.iter().zip(&declaration.functions) {

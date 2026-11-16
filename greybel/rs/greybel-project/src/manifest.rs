@@ -4,7 +4,9 @@ use greybel_bundler::{BuildOptions, Installer as Installers};
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
 
+use crate::diagnostics::DiagnosticSettings;
 use crate::profile::Profile;
+use crate::syntax::SyntaxSettings;
 
 /// A project's `greybel.json`; omitted settings use defaults. `x-vscode-setting` identifies the synced greybel-vs
 /// setting. `x-vscode-format` controls list serialization: `commaList` and `spaceList` join items, while `first`
@@ -27,9 +29,16 @@ pub struct Manifest {
     /// such as `#include`, `&`, and `+=`.
     #[schemars(extend("x-vscode-setting" = "greybel.strictMode"))]
     pub strict_mode: bool,
+    /// Greybel syntax features turned on or off by name, e.g. `{"ternary": false}`; a feature not listed is on.
+    /// Strict mode turns all of them off.
+    #[schemars(extend("x-vscode-setting" = "greybel.syntax"))]
+    pub syntax: SyntaxSettings,
     /// Project-relative glob for files excluded from type analysis.
     #[schemars(extend("x-vscode-setting" = "greybel.typeAnalyzer.exclude"))]
     pub exclude: String,
+    /// Diagnostic levels by diagnostic code: `off` drops a diagnostic, a severity replaces its default.
+    #[schemars(extend("x-vscode-setting" = "greybel.typeAnalyzer.diagnostics"))]
+    pub diagnostics: DiagnosticSettings,
     /// Formatting used by the editor and beautified builds.
     pub format: Format,
     pub build: BuildSettings,
@@ -64,7 +73,9 @@ impl Default for Manifest {
             entries: Vec::new(),
             extensions: Self::DEFAULT_EXTENSIONS.map(str::to_owned).to_vec(),
             strict_mode: false,
+            syntax: SyntaxSettings::default(),
             exclude: Self::DEFAULT_EXCLUDE.to_owned(),
+            diagnostics: DiagnosticSettings::default(),
             format: Format::default(),
             build: BuildSettings::default(),
             run: RunSettings::default(),

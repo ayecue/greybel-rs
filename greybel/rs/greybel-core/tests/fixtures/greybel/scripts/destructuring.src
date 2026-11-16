@@ -1,0 +1,6 @@
+[user, host] = address.split("@")
+[first, ...others] = items
+{name, port as p, timeout = 30} = config
+let [a, [b, c]] = [1, [2, 3]]
+[x = 5] = list
+[f] = g

@@ -27,7 +27,10 @@ pub use number::NumericLiteral;
 pub use pending_token::PendingToken;
 pub use punct::{PUNCTUATORS, Punct, Punctuator};
 pub use slice::SliceOperator;
-pub use string::StringLiteral;
+pub use string::{
+    ESCAPED_CLOSE_BRACE, ESCAPED_OPEN_BRACE, StringLiteral, TEMPLATE_START, TemplateScan,
+    TemplateShape,
+};
 
 use crate::position::{ColumnSettings, LineIndex, Span};
 
@@ -280,10 +283,19 @@ impl AnyToken {
         )
     }
 
+    /// A plain string literal; `#"..."` templates are [`Self::as_template`].
     #[must_use]
     pub fn as_string(&self) -> Option<&StringLiteral> {
         match self {
-            AnyToken::StringLiteral(token) => Some(token),
+            AnyToken::StringLiteral(token) if !token.template => Some(token),
+            _ => None,
+        }
+    }
+
+    #[must_use]
+    pub fn as_template(&self) -> Option<&StringLiteral> {
+        match self {
+            AnyToken::StringLiteral(token) if token.template => Some(token),
             _ => None,
         }
     }

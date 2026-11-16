@@ -1,16 +1,29 @@
-use greybel_core::{BinaryOp, Dialect, LiteralValue, NodeId, NodeKind, UnaryOp};
-use greybel_symbols::names::{GLOBALS, LOCALS, MODULE, OUTER, PARAMS, SCOPES, SELF, SUPER};
-use greybel_symbols::types::{FUNC_REF, LIST, MAP, NUMBER, STRING};
-use meta_utils::BaseType;
+use std::mem;
+
+use greybel_core::syntax::greybel::{AssertedType, TypeAssertion};
+use greybel_core::{BinaryOp, LiteralValue, LogicalOp, NodeId, NodeKind, UnaryOp};
 
 use super::Inference;
-use super::call::{CallSite, Receiver};
+use super::call::CallSite;
+use super::flow::KindSet;
+use super::validation::{Evaluation, Operand, binary_evaluation};
+use crate::annotation::TypeExpr;
 use crate::diagnostic::DiagnosticKind;
-use crate::model::{Key, KeyRef, MapId, MapOrigin, ScopeId};
+use crate::model::{Key, MapId, MapOrigin};
 use crate::types::{FunctionRef, Type, TypeId};
 
-impl Inference<'_> {
+impl<'a> Inference<'a> {
     pub(crate) fn infer_value(&mut self, node: NodeId) -> TypeId {
+        let ty = self.infer_value_type(node);
+
+        if ty == TypeId::NEVER {
+            self.flow.set_unreachable();
+        }
+
+        ty
+    }
+
+    fn infer_value_type(&mut self, node: NodeId) -> TypeId {
         match self.ast().kind(node) {
             NodeKind::Identifier(_) => {
                 let target = self.infer_reference(node);
@@ -34,7 +47,7 @@ impl Inference<'_> {
             NodeKind::Parenthesis(parenthesis) => {
                 let ty = self.infer_value(parenthesis.expression);
 
-                self.record_node_type(node, ty);
+                self.register_node_type(node, ty);
 
                 ty
             }
@@ -42,98 +55,91 @@ impl Inference<'_> {
         }
     }
 
-    pub(crate) fn infer_reference(&mut self, node: NodeId) -> TypeId {
-        self.infer_reference_with_receiver(node).0
-    }
-
-    fn infer_reference_with_receiver(&mut self, node: NodeId) -> (TypeId, Option<Receiver>) {
-        let ast = self.ast();
-        let mut receiver = None;
-        let ty = match ast.kind(node) {
-            NodeKind::Identifier(identifier) => {
-                self.infer_identifier(node, ast.resolve(identifier.name))
-            }
-            NodeKind::Member(member) => {
-                let name = self.identifier_name(member.identifier).unwrap_or_default();
-                let ty = match self.scope_for_name(member.base) {
-                    Some(scope) => {
-                        let scope_map = self.scope_map_type();
-
-                        self.record_node_type(member.base, scope_map);
-
-                        match self.model.variable(scope, name) {
-                            Some(slot) => {
-                                self.add_reference(member.identifier, &[slot]);
-
-                                self.model.slot_type(slot)
-                            }
-                            None => {
-                                receiver = Some(Receiver {
-                                    node: member.base,
-                                    ty: scope_map,
-                                });
-
-                                self.lookup().member_type(scope_map, KeyRef::String(name))
-                            }
-                        }
-                    }
-                    None => {
-                        let base = self.infer_value(member.base);
-
-                        receiver = Some(Receiver {
-                            node: member.base,
-                            ty: base,
-                        });
-
-                        let key = KeyRef::String(name);
-                        let slots = self.lookup().entry_slots(base, key);
-
-                        self.add_reference(member.identifier, &slots);
-
-                        self.lookup().member_type(base, key)
-                    }
-                };
-                let method = match receiver {
-                    Some(receiver) => self.method_type(ty, receiver.ty),
-                    None => ty,
-                };
-
-                self.record_node_type(member.identifier, method);
-                self.record_node_type(node, method);
-
-                return (ty, receiver);
-            }
-            NodeKind::Index(index) => {
-                let base = self.infer_value(index.base);
-
-                receiver = Some(Receiver {
-                    node: index.base,
-                    ty: base,
-                });
-                self.validate_index(node, base);
-
-                match self.literal_key(index.index) {
-                    Some(key) => {
-                        self.infer_value(index.index);
-
-                        self.index_type(base, Some(key.as_key_ref()), TypeId::UNKNOWN)
-                    }
-                    None => {
-                        let key = self.infer_value(index.index);
-
-                        self.index_type(base, None, key)
-                    }
-                }
-            }
-            NodeKind::Parenthesis(parenthesis) => {
-                return self.infer_reference_with_receiver(parenthesis.expression);
-            }
-            _ => return (self.infer_expression(node), None),
+    /// The union of both branches, each with the narrowing of the condition.
+    fn infer_ternary(&mut self, node: NodeId) -> TypeId {
+        let NodeKind::Ternary(ternary) = self.ast().kind(node) else {
+            unreachable!()
         };
 
-        self.record_node_type(node, ty);
+        self.infer_value(ternary.condition);
 
-        (ty, receiver)
+        let guard = self.condition_guard(ternary.condition);
+        let entry = self.flow.clone();
+
+        self.refine_flow(&guard.when_true);
+
+        let if_true = self.infer_value(ternary.if_true);
+        let true_state = mem::replace(&mut self.flow, entry);
+
+        self.refine_flow(&guard.when_false);
+
+        let if_false = self.infer_value(ternary.if_false);
+        let false_state = mem::take(&mut self.flow);
+
+        self.flow = self.join_flows(true_state, &false_state);
+
+        self.types.union(if_true, if_false)
+    }
+
+    /// The left side without `null`, or the right side when the left could be `null`.
+    fn infer_coalesce(&mut self, node: NodeId) -> TypeId {
+        let NodeKind::Coalesce(coalesce) = self.ast().kind(node) else {
+            unreachable!()
+        };
+        let left = self.infer_value(coalesce.left);
+
+        if !self.includes_null(left) {
+            return left;
+        }
+
+        let skip_state = self.flow.clone();
+        let right = self.infer_value(coalesce.right);
+        let right_state = mem::take(&mut self.flow);
+
+        self.flow = self.join_flows(skip_state, &right_state);
+
+        let present = self.without_null(left);
+
+        self.types.union(present, right)
+    }
+
+    /// Whether a value of `ty` can be `null`, the case `??` and `?.` handle.
+    pub(super) fn includes_null(&self, ty: TypeId) -> bool {
+        self.types.variants(ty).any(|variant| {
+            matches!(
+                self.types.get(variant),
+                Type::Null | Type::Any | Type::Unknown
+            )
+        })
+    }
+
+    pub(super) fn without_null(&mut self, ty: TypeId) -> TypeId {
+        self.restrict_to_kinds(ty, !KindSet::NULL)
+    }
+
+    /// Registers a call of a function whose return type is a type guard (`value is Dog`), so a condition with the
+    /// call narrows the argument.
+    fn register_guard_call(&mut self, node: NodeId, callee: TypeId, method: bool) {
+        let Type::Function(FunctionRef::Body(function)) = *self.types.get(callee) else {
+            return;
+        };
+        let data = self.model.function(function);
+        let Some(TypeExpr::Guard { parameter, ty }) =
+            data.doc.as_ref().and_then(|doc| doc.returns.clone())
+        else {
+            return;
+        };
+        let Some(index) = data
+            .parameters(method)
+            .iter()
+            .position(|candidate| candidate.name == parameter)
+        else {
+            return;
+        };
+        let ty = self.resolve_type(&ty);
+
+        self.guard_calls
+            .insert((self.current_document, node), (index, ty));
     }
 
     fn infer_call(&mut self, node: NodeId) -> TypeId {
@@ -142,6 +148,13 @@ impl Inference<'_> {
             unreachable!()
         };
         let (callee, receiver) = self.infer_reference_with_receiver(call.base);
+        let optional = call.optional || self.continues_optional_chain(call.base);
+        let optional_null = optional && self.includes_null(callee);
+        let callee = if optional {
+            self.without_null(callee)
+        } else {
+            callee
+        };
         let mut arguments = self.type_buffers.take();
 
         arguments.extend(
@@ -155,7 +168,8 @@ impl Inference<'_> {
             NodeKind::Member(_) | NodeKind::Index(_)
         );
 
-        self.validate_call(node, callee, &arguments, method);
+        self.register_guard_call(node, callee, method);
+        self.validate_call(node, callee, &arguments, call.arguments, method);
 
         let site = CallSite {
             method,
@@ -164,8 +178,30 @@ impl Inference<'_> {
             argument_nodes: ast.list(call.arguments),
         };
         let result = self.call_result_type(callee, &site);
+        let (mut opaque_callee, mut unknown_callee) = (false, false);
+
+        for variant in self.types.variants(callee) {
+            match self.types.get(variant) {
+                Type::Any => (opaque_callee, unknown_callee) = (true, true),
+                Type::Unknown => unknown_callee = true,
+                Type::Function(FunctionRef::Any) => opaque_callee = true,
+                _ => {}
+            }
+        }
+
+        if unknown_callee {
+            self.add_unknown_assignment();
+        }
+
+        if opaque_callee || unknown_callee {
+            self.add_opaque_call_maps(&site, opaque_callee);
+        }
 
         self.type_buffers.release(arguments);
+
+        if optional_null {
+            return self.types.union(result, TypeId::NULL);
+        }
 
         result
     }
@@ -177,11 +213,21 @@ impl Inference<'_> {
         };
         let mut items = self.type_buffers.take();
 
-        items.extend(
-            ast.list(list.fields)
-                .iter()
-                .map(|&item| self.infer_value(item)),
-        );
+        for &item in ast.list(list.fields) {
+            let ty = match ast.kind(item) {
+                NodeKind::Spread(spread) => {
+                    let argument = self.infer_value(spread.argument);
+                    let elements = self.spread_elements(argument);
+
+                    self.register_node_type(item, argument);
+
+                    elements
+                }
+                _ => self.infer_value(item),
+            };
+
+            items.push(ty);
+        }
 
         let item = self.types.union_all(items.iter().copied());
 
@@ -200,6 +246,15 @@ impl Inference<'_> {
         let mut literal_keys = Vec::new();
 
         for &entry in ast.list(map.fields) {
+            if let NodeKind::Spread(spread) = ast.kind(entry) {
+                let argument = self.infer_value(spread.argument);
+
+                self.spread_entries(object, argument);
+                self.register_node_type(entry, argument);
+
+                continue;
+            }
+
             let NodeKind::MapEntry(field) = ast.kind(entry) else {
                 continue;
             };
@@ -215,7 +270,7 @@ impl Inference<'_> {
                         self.report(
                             DiagnosticKind::DuplicateKey,
                             field.key,
-                            format!("Duplicate map literal key: {text}"),
+                            format!("Duplicate key {text} in the map literal."),
                         );
                     }
 
@@ -236,10 +291,54 @@ impl Inference<'_> {
                 }
             }
 
-            self.record_node_type(entry, value);
+            self.register_node_type(entry, value);
         }
 
         object
+    }
+
+    /// The item types a list spread adds: the item types of its lists, `any` for values of unknown type.
+    fn spread_elements(&mut self, argument: TypeId) -> TypeId {
+        let elements: Vec<TypeId> = self
+            .types
+            .variants(argument)
+            .filter_map(|variant| match *self.types.get(variant) {
+                Type::List(item) => Some(item),
+                Type::Any | Type::Unknown => Some(TypeId::ANY),
+                _ => None,
+            })
+            .collect();
+
+        self.types.union_all(elements)
+    }
+
+    /// Copies the entries a map spread adds into `object`; a spread of a value that isn't a script map adds
+    /// entries of unknown keys.
+    fn spread_entries(&mut self, object: TypeId, argument: TypeId) {
+        let maps: Vec<MapId> = self.types.object_maps(argument).collect();
+        let opaque = maps.is_empty()
+            || self
+                .types
+                .variants(argument)
+                .any(|variant| !matches!(self.types.get(variant), Type::Object(_)));
+
+        for map in maps {
+            let entries: Vec<(Key, TypeId)> = self
+                .model
+                .map(map)
+                .entries
+                .iter()
+                .map(|(key, &slot)| (key.clone(), self.model.slot_type(slot)))
+                .collect();
+
+            for (key, ty) in entries {
+                self.assign_entry(object, key.as_key_ref(), ty);
+            }
+        }
+
+        if opaque {
+            self.assign_dynamic_entry(object, TypeId::ANY, TypeId::ANY);
+        }
     }
 
     fn infer_slice(&mut self, node: NodeId) -> TypeId {
@@ -256,6 +355,7 @@ impl Inference<'_> {
         let variants: Vec<TypeId> = self
             .types
             .variants(base)
+            .map(|variant| self.types.without_literal(variant))
             .filter(|&variant| {
                 matches!(
                     self.types.get(variant),
@@ -283,18 +383,58 @@ impl Inference<'_> {
                 let slot = self.model.map(map).isa;
 
                 self.widen(slot, parent);
+                self.add_instance(map);
 
                 self.object_type(map)
             }
-            UnaryOp::Not | UnaryOp::Negate => {
+            UnaryOp::Not => {
                 let operand = self.infer_value(unary.argument);
 
                 Self::propagate_unknown(&[operand], TypeId::NUMBER)
             }
+            UnaryOp::Negate => {
+                let operand = self.infer_value(unary.argument);
+
+                self.validate_negation(node, (unary.argument, operand));
+
+                let results: Vec<TypeId> = self
+                    .types
+                    .variants(operand)
+                    .map(|variant| match Operand::of(self.types.get(variant)) {
+                        Some(operand) if !operand.is_number_or_null() => TypeId::NULL,
+                        _ => TypeId::NUMBER,
+                    })
+                    .collect();
+                let result = self.types.union_all(results);
+
+                Self::propagate_unknown(&[operand], result)
+            }
         }
     }
 
-    fn infer_expression(&mut self, node: NodeId) -> TypeId {
+    fn infer_function_value(&mut self, node: NodeId) -> TypeId {
+        self.validate_written_types(node);
+
+        let function = self.infer_function_body(node);
+
+        self.types.function(FunctionRef::Body(function))
+    }
+
+    /// `x!` without `null`, `x as T` as `T` (or the type of `x` when `T` is unknown).
+    fn infer_type_assertion(&mut self, assertion: &TypeAssertion) -> TypeId {
+        let ty = self.infer_value(assertion.expression);
+
+        match assertion.target {
+            AssertedType::NonNull => self.without_null(ty),
+            AssertedType::Type(span) => self
+                .written_type_expr(span)
+                .map(|expr| self.resolve_type(&expr))
+                .filter(|&ty| ty != TypeId::UNKNOWN)
+                .unwrap_or(ty),
+        }
+    }
+
+    pub(super) fn infer_expression(&mut self, node: NodeId) -> TypeId {
         let ast = self.ast();
         let ty = match ast.kind(node) {
             NodeKind::Literal(literal) => match literal.value {
@@ -302,11 +442,7 @@ impl Inference<'_> {
                 LiteralValue::Number(_) | LiteralValue::Boolean(_) => TypeId::NUMBER,
                 LiteralValue::Nil => TypeId::NULL,
             },
-            NodeKind::Function(_) => {
-                let function = self.infer_function_body(node);
-
-                self.types.function(FunctionRef::Body(function))
-            }
+            NodeKind::Function(_) => self.infer_function_value(node),
             NodeKind::Call(_) => self.infer_call(node),
             NodeKind::List(_) => self.infer_list(node),
             NodeKind::ListItem(item) => self.infer_value(item.value),
@@ -317,17 +453,45 @@ impl Inference<'_> {
                 let left = self.infer_value(binary.left);
                 let right = self.infer_value(binary.right);
 
+                self.validate_binary(
+                    node,
+                    binary.operator,
+                    (binary.left, left),
+                    (binary.right, right),
+                );
+
                 self.binary_type(binary.operator, left, right)
             }
             NodeKind::Bitwise(bitwise) => {
                 let left = self.infer_value(bitwise.left);
                 let right = self.infer_value(bitwise.right);
 
-                Self::propagate_unknown(&[left, right], TypeId::NUMBER)
+                self.validate_bitwise(
+                    node,
+                    bitwise.operator.punct().as_str(),
+                    (bitwise.left, left),
+                    (bitwise.right, right),
+                );
+
+                let result = self.numeric_result(left, right);
+
+                Self::propagate_unknown(&[left, right], result)
             }
             NodeKind::Logical(logical) => {
                 self.infer_value(logical.left);
+
+                let skip_state = self.flow.clone();
+                let guard = self.condition_guard(logical.left);
+
+                self.refine_flow(match logical.operator {
+                    LogicalOp::And => &guard.when_true,
+                    LogicalOp::Or => &guard.when_false,
+                });
                 self.infer_value(logical.right);
+
+                let right_state = mem::take(&mut self.flow);
+
+                self.flow = self.join_flows(skip_state, &right_state);
 
                 TypeId::NUMBER
             }
@@ -337,12 +501,22 @@ impl Inference<'_> {
 
                 TypeId::NUMBER
             }
+            NodeKind::Ternary(_) => self.infer_ternary(node),
+            NodeKind::Coalesce(_) => self.infer_coalesce(node),
+            NodeKind::TypeAssertion(assertion) => self.infer_type_assertion(assertion),
             NodeKind::ComparisonGroup(group) => {
                 for &operand in ast.list(group.expressions) {
                     self.infer_value(operand);
                 }
 
                 TypeId::NUMBER
+            }
+            NodeKind::Template(template) => {
+                for &expression in ast.list(template.expressions) {
+                    self.infer_value(expression);
+                }
+
+                TypeId::STRING
             }
             NodeKind::Identifier(_)
             | NodeKind::Member(_)
@@ -360,7 +534,7 @@ impl Inference<'_> {
             _ => TypeId::UNKNOWN,
         };
 
-        self.record_node_type(node, ty);
+        self.register_node_type(node, ty);
 
         ty
     }
@@ -368,143 +542,7 @@ impl Inference<'_> {
     fn resolve_map(&mut self, node: NodeId, origin: MapOrigin) -> MapId {
         match self.custom_map {
             Some((site, map_id)) if site == self.site(node) => map_id,
-            _ => self.model.insert_map_in(origin, self.call_context),
-        }
-    }
-
-    fn infer_identifier(&mut self, node: NodeId, name: &str) -> TypeId {
-        if let Some(slot) = self.resolve_variable(name) {
-            self.add_reference(node, &[slot]);
-            self.record_global_read(node, slot);
-
-            return self.narrowed_type(slot);
-        }
-
-        if let Some(ty) = self.builtin_type(name) {
-            return ty;
-        }
-
-        if let Some(ty) = self.lookup().general_function_type(name) {
-            return ty;
-        }
-
-        self.report(
-            DiagnosticKind::UnresolvedReference,
-            node,
-            format!("Cannot find \"{name}\"."),
-        );
-
-        TypeId::UNKNOWN
-    }
-
-    fn builtin_type(&mut self, name: &str) -> Option<TypeId> {
-        let base = match name {
-            STRING => Some(BaseType::String),
-            NUMBER => Some(BaseType::Number),
-            LIST => Some(BaseType::List),
-            MAP => Some(BaseType::Map),
-            FUNC_REF => Some(BaseType::Function),
-            _ => None,
-        };
-
-        if let Some(base) = base {
-            let map = self.model.insert_map(MapOrigin::Prototype(base));
-
-            return Some(self.object_type(map));
-        }
-
-        let dialect = self.api.dialect();
-
-        Some(match name {
-            SELF => self.receiver_type(),
-            SUPER => {
-                let receiver = self.receiver_type();
-
-                self.parents(receiver)
-            }
-            GLOBALS | LOCALS | OUTER => self.scope_map_type(),
-            PARAMS if dialect == Dialect::GreyScript => self.types.list(TypeId::STRING),
-            MODULE if dialect != Dialect::MiniScript => {
-                let map = self
-                    .model
-                    .insert_map(MapOrigin::Module(self.current_document));
-
-                self.object_type(map)
-            }
-            _ => return None,
-        })
-    }
-
-    fn receiver_type(&self) -> TypeId {
-        match self.current_scope {
-            ScopeId::Function(function) => self
-                .model
-                .slot_type(self.model.function(function).receiver_slot),
-            ScopeId::Global => TypeId::UNKNOWN,
-        }
-    }
-
-    fn scope_map_type(&mut self) -> TypeId {
-        self.types.map(TypeId::STRING, TypeId::ANY)
-    }
-
-    pub(super) fn scope_for_name(&self, node: NodeId) -> Option<ScopeId> {
-        let name = self.identifier_name(node)?;
-
-        if !SCOPES.contains(&name) || self.resolve_variable(name).is_some() {
-            return None;
-        }
-
-        Some(match name {
-            GLOBALS => ScopeId::Global,
-            LOCALS => self.current_scope,
-            _ => self.model.outer_scope(self.current_scope),
-        })
-    }
-
-    pub(crate) fn literal_key(&self, node: NodeId) -> Option<Key> {
-        match self.ast().kind(node) {
-            NodeKind::Literal(literal) => match &literal.value {
-                LiteralValue::String(text) => {
-                    Some(Key::String(self.ast().read(*text).as_ref().into()))
-                }
-                LiteralValue::Number(number) => {
-                    Some(Key::number(if literal.negated { -number } else { *number }))
-                }
-                _ => None,
-            },
-            _ => None,
-        }
-    }
-
-    fn index_type(&mut self, base: TypeId, key: Option<KeyRef<'_>>, key_type: TypeId) -> TypeId {
-        let base = self.types.erase_type_parameters(base);
-
-        self.map_variants(base, |this, variant| {
-            this.index_variant_type(variant, key, key_type)
-        })
-    }
-
-    fn index_variant_type(
-        &mut self,
-        variant: TypeId,
-        key: Option<KeyRef<'_>>,
-        key_type: TypeId,
-    ) -> TypeId {
-        match *self.types.get(variant) {
-            Type::List(item) => item,
-            Type::String => TypeId::STRING,
-            Type::Map { value, .. } => value,
-            Type::Any => TypeId::ANY,
-            Type::Object(map) => match key {
-                Some(key) => self.lookup().member_type(variant, key),
-                None => self.entry_values_for_key(map, key_type),
-            },
-            Type::Class(_) => match key {
-                Some(key) => self.lookup().member_type(variant, key),
-                None => TypeId::ANY,
-            },
-            _ => TypeId::UNKNOWN,
+            _ => self.model.insert_map_in(origin, self.context.current),
         }
     }
 
@@ -541,8 +579,43 @@ impl Inference<'_> {
         self.types.union_all(results)
     }
 
+    /// The result of an operator that only works on a number with a number or `null`, and otherwise gives `null`.
+    fn numeric_result(&mut self, left: TypeId, right: TypeId) -> TypeId {
+        let mut results = Vec::new();
+
+        for left in self.types.variants(left) {
+            for right in self.types.variants(right) {
+                let operands = (
+                    Operand::of(self.types.get(left)),
+                    Operand::of(self.types.get(right)),
+                );
+
+                results.push(match operands {
+                    (Some(left), Some(right))
+                        if left != Operand::Number || !right.is_number_or_null() =>
+                    {
+                        TypeId::NULL
+                    }
+                    _ => TypeId::NUMBER,
+                });
+            }
+        }
+
+        self.types.union_all(results)
+    }
+
     fn binary_variant_type(&mut self, operator: BinaryOp, left: TypeId, right: TypeId) -> TypeId {
+        let (left, right) = (
+            self.types.without_literal(left),
+            self.types.without_literal(right),
+        );
         let (left_type, right_type) = (self.types.get(left).clone(), self.types.get(right).clone());
+
+        if let (Some(left), Some(right)) = (Operand::of(&left_type), Operand::of(&right_type))
+            && binary_evaluation(operator, left, right) == Evaluation::Null
+        {
+            return TypeId::NULL;
+        }
 
         match operator {
             BinaryOp::Equal

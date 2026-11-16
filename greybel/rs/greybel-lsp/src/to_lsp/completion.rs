@@ -16,7 +16,15 @@ pub fn completion_item(
             .text_edit
             .as_ref()
             .map(|edit| lsp::CompletionItemTextEdit::TextEdit(text_edit(edit))),
+        insert_text: item.snippet.clone(),
+        insert_text_format: item
+            .snippet
+            .is_some()
+            .then_some(lsp::InsertTextFormat::Snippet),
         data,
+        tags: item
+            .deprecated
+            .then(|| vec![lsp::CompletionItemTag::Deprecated]),
         ..lsp::CompletionItem::default()
     }
 }
@@ -28,5 +36,8 @@ fn completion_kind(kind: CompletionItemKind) -> lsp::CompletionItemKind {
         CompletionItemKind::Property => lsp::CompletionItemKind::Property,
         CompletionItemKind::Method => lsp::CompletionItemKind::Method,
         CompletionItemKind::File => lsp::CompletionItemKind::File,
+        CompletionItemKind::Keyword => lsp::CompletionItemKind::Keyword,
+        CompletionItemKind::Snippet => lsp::CompletionItemKind::Snippet,
+        CompletionItemKind::Type => lsp::CompletionItemKind::Class,
     }
 }

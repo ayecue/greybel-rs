@@ -1,0 +1,262 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/optional-methods.src
+---
+=== default
+Counter={"n":1,"cb":null}
+Counter.add=function(x)
+self.n=self.n+x
+return self.n
+end function
+Counter.run=function
+if @self.add!=null then
+__t0=self.add(1)
+else
+__t0=null
+end if
+if @self.cb!=null then
+__t1=self.cb(1)
+else
+__t1=null
+end if
+return [@__t0,@__t1]
+end function
+c=new Counter
+double=function(x)
+return x*2
+end function
+handlers={"double":@double}
+k="double"
+__t0=c
+if @__t0.add!=null then
+__t0=__t0.add(1)
+else
+__t0=null
+end if
+__t1=c
+if @__t1.cb!=null then
+__t1=__t1.cb(1)
+else
+__t1=null
+end if
+__t2=c.n
+__t3=@handlers[k]
+if @__t3!=null then
+__t3=__t3(4)
+end if
+__t4=@handlers["double"]
+if @__t4!=null then
+__t4=__t4(5)
+end if
+print([@__t0,@__t1,@__t2,@__t3,@__t4])
+print(c.run)
+none=null
+__t0=none
+if @__t0!=null then
+__t0=__t0.add(1)
+end if
+__t1=none
+if @__t1!=null then
+__t1=__t1
+if @__t1.cb!=null then
+__t1=__t1.cb(1)
+else
+__t1=null
+end if
+end if
+print([@__t0,@__t1])
+__t1=c
+if @__t1.add!=null then
+__t1.add(10)
+end if
+print(c.n)
+=== uglify
+globals.I=globals
+I.Z="double"
+J={"n":1,"cb":null}
+J.add=function(Y)
+self.n=self.n+Y
+return self.n
+end function
+J.run=function
+if @self.add!=null then
+T=self.add(1)
+else
+T=null
+end if
+if @self.cb!=null then
+U=self.cb(1)
+else
+U=null
+end if
+return [@T,@U]
+end function
+M=new J
+N=function(Y)
+return Y*2
+end function
+O={Z:@N}
+P=Z
+T=M
+if @T.add!=null then
+T=T.add(1)
+else
+T=null
+end if
+U=M
+if @U.cb!=null then
+U=U.cb(1)
+else
+U=null
+end if
+V=M.n
+W=@O[P]
+if @W!=null then
+W=W(4)
+end if
+X=@O[Z]
+if @X!=null then
+X=X(5)
+end if
+print([@T,@U,@V,@W,@X])
+print(M.run)
+S=null
+T=S
+if @T!=null then
+T=T.add(1)
+end if
+U=S
+if @U!=null then
+U=U
+if @U.cb!=null then
+U=U.cb(1)
+else
+U=null
+end if
+end if
+print([@T,@U])
+U=M
+if @U.add!=null then
+U.add(10)
+end if
+print(M.n)
+=== beautify
+Counter = {
+	"n": 1,
+	"cb": null,
+}
+Counter.add = function(x)
+	self.n += x
+	return self.n
+end function
+Counter.run = function
+	if @self.add != null then
+		__t0 = self.add(1)
+	else
+		__t0 = null
+	end if
+	if @self.cb != null then
+		__t1 = self.cb(1)
+	else
+		__t1 = null
+	end if
+	return [
+		@__t0,
+		@__t1,
+	]
+end function
+c = new Counter
+double = function(x)
+	return x * 2
+end function
+handlers = { "double": @double }
+k = "double"
+__t0 = c
+if @__t0.add != null then
+	__t0 = __t0.add(1)
+else
+	__t0 = null
+end if
+__t1 = c
+if @__t1.cb != null then
+	__t1 = __t1.cb(1)
+else
+	__t1 = null
+end if
+__t2 = c.n
+__t3 = @handlers[k]
+if @__t3 != null then
+	__t3 = __t3(4)
+end if
+__t4 = @handlers["double"]
+if @__t4 != null then
+	__t4 = __t4(5)
+end if
+print [
+	@__t0,
+	@__t1,
+	@__t2,
+	@__t3,
+	@__t4,
+]
+print c.run
+none = null
+__t0 = none
+if @__t0 != null then
+	__t0 = __t0.add(1)
+end if
+__t1 = none
+if @__t1 != null then
+	__t1 = __t1
+	if @__t1.cb != null then
+		__t1 = __t1.cb(1)
+	else
+		__t1 = null
+	end if
+end if
+print [
+	@__t0,
+	@__t1,
+]
+__t1 = c
+if @__t1.add != null then
+	__t1.add 10
+end if
+print c.n
+=== beautify, dev mode, keep parentheses, 10 spaces
+Counter = {
+          "n": 1,
+          "cb": null,
+}
+Counter.add = function(x)
+          self.n += x
+          return self.n
+end function
+Counter.run = function
+          return [
+                    self.add?.(1),
+                    self.cb?.(1),
+          ]
+end function
+c = new Counter
+double = function(x)
+          return x * 2
+end function
+handlers = { "double": @double }
+k = "double"
+print([
+          c.add?.(1),
+          c.cb?.(1),
+          c.n,
+          handlers[k]?.(4),
+          handlers["double"]?.(5),
+])
+print(c.run)
+none = null
+print([
+          none?.add(1),
+          none?.cb?.(1),
+])
+c.add?.(10)
+print(c.n)

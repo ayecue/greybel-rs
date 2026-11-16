@@ -17,19 +17,21 @@ pub struct WorkspaceEdit {
 }
 
 impl WorkspaceEdit {
-    pub(crate) fn new(locations: Vec<Location>, text: &str) -> Self {
+    pub(crate) fn of_file(uri: &Uri, edits: Vec<TextEdit>) -> Self {
         let mut edit = Self::default();
 
-        for location in locations {
-            edit.changes
-                .entry(location.uri)
-                .or_default()
-                .push(TextEdit {
-                    range: location.range,
-                    new_text: text.to_owned(),
-                });
-        }
+        edit.changes.insert(uri.clone(), edits);
 
         edit
+    }
+
+    pub(crate) fn add(&mut self, location: Location, text: String) {
+        self.changes
+            .entry(location.uri)
+            .or_default()
+            .push(TextEdit {
+                range: location.range,
+                new_text: text,
+            });
     }
 }

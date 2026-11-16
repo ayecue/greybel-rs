@@ -1,0 +1,16 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/enum-value-required.src
+---
+--- strict
+3:2 - 3:3 ExpectedExpression(3002): an enum entry after a string value needs a value
+--- tree
+Chunk[1:1-5:1][
+	EnumStatement[1:1-4:9][AssignmentStatement[1:1-4:9][Identifier[1:6-1:11][Color] = MapConstructor[1:1-4:9][
+		MapKeyString[2:2-2:9][Literal[2:2-2:3][A]: Literal[2:6-2:9][a]]
+		MapKeyString[3:2-3:3][Literal[3:2-3:3][B]: Literal[3:2-3:3][0]]
+	]]]
+]
+--- errors
+3:2 - 3:3 ExpectedExpression(3002): an enum entry after a string value needs a value

@@ -1,0 +1,8 @@
+let count = 0
+const LIMIT = 10
+let = 5
+f = function()
+	let inner = count + LIMIT
+	return inner
+end function
+print(f + let)

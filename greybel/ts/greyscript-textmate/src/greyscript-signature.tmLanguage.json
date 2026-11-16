@@ -1,0 +1,313 @@
+{
+    "version": "1.0.0",
+    "name": "GreyScript Signature",
+    "scopeName": "source.greyscript-signature",
+    "patterns": [
+        {
+            "include": "#declaration"
+        },
+        {
+            "include": "#entry"
+        },
+        {
+            "include": "#more"
+        },
+        {
+            "include": "#type"
+        }
+    ],
+    "repository": {
+        "declaration": {
+            "patterns": [
+                {
+                    "match": "^([\\p{L}_][\\w]*)(:)(?=\\s+function\\b)",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.function.greyscript"
+                        },
+                        "2": {
+                            "name": "keyword.operator.type.annotation.greyscript"
+                        }
+                    }
+                },
+                {
+                    "match": "^([\\p{L}_][\\w]*)(:)(?=\\s)",
+                    "captures": {
+                        "1": {
+                            "name": "variable.other.readwrite.greyscript"
+                        },
+                        "2": {
+                            "name": "keyword.operator.type.annotation.greyscript"
+                        }
+                    }
+                }
+            ]
+        },
+        "entry": {
+            "patterns": [
+                {
+                    "match": "^\\s+(\"(?:[^\"]|\"\")*\")(:)",
+                    "captures": {
+                        "1": {
+                            "name": "string.quoted.double.greyscript"
+                        },
+                        "2": {
+                            "name": "punctuation.separator.key-value.greyscript"
+                        }
+                    }
+                },
+                {
+                    "match": "^\\s+(-?(?:\\d+(?:\\.\\d+)?|inf)|NaN)(:)",
+                    "captures": {
+                        "1": {
+                            "name": "constant.numeric.greyscript"
+                        },
+                        "2": {
+                            "name": "punctuation.separator.key-value.greyscript"
+                        }
+                    }
+                },
+                {
+                    "begin": "^\\s+(\\[)",
+                    "end": "(\\])(:)",
+                    "beginCaptures": {
+                        "1": {
+                            "name": "punctuation.definition.index.begin.greyscript"
+                        }
+                    },
+                    "endCaptures": {
+                        "1": {
+                            "name": "punctuation.definition.index.end.greyscript"
+                        },
+                        "2": {
+                            "name": "punctuation.separator.key-value.greyscript"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "include": "#type"
+                        }
+                    ]
+                }
+            ]
+        },
+        "more": {
+            "match": "^\\s+\\.\\.\\.\\s+\\d+\\s+more$",
+            "name": "comment.line.more.greyscript"
+        },
+        "declared": {
+            "begin": "(\\()(declared)(:)",
+            "end": "\\)",
+            "beginCaptures": {
+                "1": {
+                    "name": "punctuation.section.parens.begin.greyscript"
+                },
+                "2": {
+                    "name": "storage.modifier.declared.greyscript"
+                },
+                "3": {
+                    "name": "keyword.operator.type.annotation.greyscript"
+                }
+            },
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.section.parens.end.greyscript"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#type"
+                }
+            ]
+        },
+        "type": {
+            "patterns": [
+                {
+                    "include": "#declared"
+                },
+                {
+                    "include": "#function-type"
+                },
+                {
+                    "include": "#generic"
+                },
+                {
+                    "match": "\\b([A-Za-z_][A-Za-z0-9_]*)[ \\t]+(is)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "variable.parameter.greyscript"
+                        },
+                        "2": {
+                            "name": "keyword.operator.type.greyscript"
+                        }
+                    }
+                },
+                {
+                    "match": "\\bor\\b",
+                    "name": "keyword.operator.type.greyscript"
+                },
+                {
+                    "include": "#type-name"
+                },
+                {
+                    "match": ":",
+                    "name": "keyword.operator.type.annotation.greyscript"
+                },
+                {
+                    "match": ",",
+                    "name": "punctuation.separator.comma.greyscript"
+                },
+                {
+                    "match": "\\{",
+                    "name": "punctuation.definition.dictionary.begin.greyscript"
+                },
+                {
+                    "match": "\\}",
+                    "name": "punctuation.definition.dictionary.end.greyscript"
+                }
+            ]
+        },
+        "type-name": {
+            "patterns": [
+                {
+                    "match": "\\b(any|unknown|never|null|number|string|list|map|funcRef|function)\\b",
+                    "name": "support.type.primitive.greyscript"
+                },
+                {
+                    "match": "[\\p{L}_][\\w]*",
+                    "name": "entity.name.type.greyscript"
+                }
+            ]
+        },
+        "generic": {
+            "begin": "([\\p{L}_][\\w]*)(<)",
+            "end": ">",
+            "beginCaptures": {
+                "1": {
+                    "patterns": [
+                        {
+                            "include": "#type-name"
+                        }
+                    ]
+                },
+                "2": {
+                    "name": "punctuation.definition.typeparameters.begin.greyscript"
+                }
+            },
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.definition.typeparameters.end.greyscript"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#type"
+                }
+            ]
+        },
+        "function-type": {
+            "begin": "\\b(function)(\\()",
+            "end": "\\)",
+            "beginCaptures": {
+                "1": {
+                    "name": "support.type.primitive.greyscript"
+                },
+                "2": {
+                    "name": "punctuation.definition.parameters.begin.greyscript"
+                }
+            },
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.definition.parameters.end.greyscript"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#parameter"
+                }
+            ]
+        },
+        "parameter": {
+            "patterns": [
+                {
+                    "match": "([\\p{L}_][\\w]*)(:)",
+                    "captures": {
+                        "1": {
+                            "name": "variable.parameter.greyscript"
+                        },
+                        "2": {
+                            "name": "keyword.operator.type.annotation.greyscript"
+                        }
+                    }
+                },
+                {
+                    "match": "\\?",
+                    "name": "keyword.operator.optional.greyscript"
+                },
+                {
+                    "include": "#default"
+                },
+                {
+                    "include": "#type"
+                }
+            ]
+        },
+        "default": {
+            "begin": "=",
+            "end": "(?=[,)])",
+            "beginCaptures": {
+                "0": {
+                    "name": "keyword.operator.assignment.greyscript"
+                }
+            },
+            "patterns": [
+                {
+                    "include": "#default-group"
+                },
+                {
+                    "include": "source.src"
+                }
+            ]
+        },
+        "default-group": {
+            "patterns": [
+                {
+                    "begin": "\\(",
+                    "end": "\\)",
+                    "patterns": [
+                        {
+                            "include": "#default-group"
+                        },
+                        {
+                            "include": "source.src"
+                        }
+                    ]
+                },
+                {
+                    "begin": "\\[",
+                    "end": "\\]",
+                    "patterns": [
+                        {
+                            "include": "#default-group"
+                        },
+                        {
+                            "include": "source.src"
+                        }
+                    ]
+                },
+                {
+                    "begin": "\\{",
+                    "end": "\\}",
+                    "patterns": [
+                        {
+                            "include": "#default-group"
+                        },
+                        {
+                            "include": "source.src"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

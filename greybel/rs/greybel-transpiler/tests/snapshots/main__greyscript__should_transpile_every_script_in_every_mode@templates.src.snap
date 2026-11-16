@@ -1,0 +1,52 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/templates.src
+---
+=== default
+name="Ada"
+items=[1,2]
+print("Hello "+(name)+", "+(items.len)+" items")
+print(""+(name))
+print("{x} ""q"" "+(name+"!"))
+print("two"+char(10)+"lines "+(name))
+=== uglify
+globals.I=globals
+name="Ada"
+J=[1,2]
+print("Hello "+(name)+", "+(J.len)+" items")
+print(""+(name))
+print("{x} ""q"" "+(name+"!"))
+print("two"+char(10)+"lines "+(name))
+=== beautify
+name = "Ada"
+items = [
+	1,
+	2,
+]
+print "Hello " + (name) + ", " + (items.len) + " items"
+print "" + (name)
+print "{x} ""q"" " + (name + "!")
+print "two" + char(10) + "lines " + (name)
+=== beautify, dev mode
+name = "Ada"
+items = [
+	1,
+	2,
+]
+print #"Hello {name}, {items.len} items"
+print #"{name}"
+print #"{{x}} ""q"" {name + "!"}"
+print #"two
+lines {name}"
+=== beautify, dev mode, keep parentheses, 10 spaces
+name = "Ada"
+items = [
+          1,
+          2,
+]
+print(#"Hello {name}, {items.len} items")
+print(#"{name}")
+print(#"{{x}} ""q"" {name + "!"}")
+print(#"two
+lines {name}")

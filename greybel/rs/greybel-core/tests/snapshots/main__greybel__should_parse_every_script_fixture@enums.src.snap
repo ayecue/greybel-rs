@@ -1,0 +1,17 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/enums.src
+---
+Chunk[1:1-12:1][
+	EnumStatement[1:1-9:9][AssignmentStatement[1:1-9:9][Identifier[1:6-1:11][Color] = MapConstructor[1:1-9:9][
+		MapKeyString[2:2-2:5][Literal[2:2-2:5][Red]: Literal[2:2-2:5][0]]
+		MapKeyString[4:2-4:11][Literal[4:2-4:7][Green]: Literal[4:10-4:11][5]]
+		MapKeyString[5:2-5:6][Literal[5:2-5:6][Blue]: Literal[5:2-5:6][6]]
+		MapKeyString[6:2-6:12][Literal[6:2-6:6][Name]: Literal[6:9-6:12][n]]
+		MapKeyString[7:2-7:10][Literal[7:2-7:5][Low]: Literal[7:9-7:10][-3]]
+		MapKeyString[8:2-8:6][Literal[8:2-8:6][Next]: Literal[8:2-8:6][-2]]
+	]]]
+	AssignmentStatement[10:1-10:9][Identifier[10:1-10:5][enum] = Literal[10:8-10:9][1]]
+	CallStatment[11:1-11:17][CallExpression[11:1-11:17][Identifier[11:1-11:6][print](MemberExpression[11:7-11:17][Identifier[11:7-11:12][Color].Identifier[11:13-11:17][Blue]])]]
+]

@@ -1,0 +1,16 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/template-unclosed.src
+---
+--- strict
+1:5 - 2:1 UnexpectedStringEof(1002): missing closing quote (")
+    hint: Add a closing quote to terminate the string
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:5 - 2:1 ExpectedExpression(3002): got Unknown(#"a{1"
+) where number, string, or identifier is required
+--- lexer errors
+1:5 - 2:1 UnexpectedStringEof(1002): missing closing quote (")
+    hint: Add a closing quote to terminate the string

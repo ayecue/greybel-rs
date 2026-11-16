@@ -7,6 +7,7 @@ use crate::error::ParseResult;
 use crate::lexer::{NumericLiteral, TokenKind};
 use crate::parser::Parser;
 use crate::position::Span;
+use crate::syntax::greybel::Template;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum LiteralValue {
@@ -49,12 +50,19 @@ impl Literal {
     pub fn parse(parser: &mut Parser<'_>) -> ParseResult<NodeId> {
         let token = parser.token();
         let span = token.span();
+
+        if token.as_template().is_some() {
+            return Template::parse(parser);
+        }
+
         let value = if let Some(string) = token.as_string() {
             LiteralValue::String(string.text())
         } else if let Some(&number) = token.as_number() {
             let source = parser.source();
 
-            LiteralValue::Number(if parser.should_parse_numbers_as_mono() {
+            let extended = !NumericLiteral::is_plain(number.raw(source));
+
+            LiteralValue::Number(if parser.should_parse_numbers_as_mono() && !extended {
                 Self::parse_mono_number(parser, number, source, span)?
             } else {
                 number.number(source)
@@ -101,7 +109,7 @@ impl Literal {
         match mono_number::parse_f64(raw, STYLES) {
             Some(value) => Ok(value),
             None => {
-                parser.raise_at(LexerDiagnostic::InvalidNumericLiteral(raw.to_owned()), span)?;
+                parser.report_at(LexerDiagnostic::InvalidNumericLiteral(raw.to_owned()), span)?;
 
                 Ok(number.number(source))
             }

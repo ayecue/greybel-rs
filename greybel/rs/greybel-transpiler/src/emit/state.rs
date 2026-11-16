@@ -1,13 +1,15 @@
 use std::borrow::Cow;
 
-use greybel_core::syntax::Literal;
+use greybel_core::ast::NodeList;
+use greybel_core::syntax::greybel::{Class, ClassMember};
+use greybel_core::syntax::{Literal, Member};
 use greybel_core::{Ast, Atom, NodeId, NodeKind, Span, TextSpan};
 use greybel_symbols::delimiters::QUOTE;
 use greybel_symbols::names::UNNAMED_SOURCE;
 use greybel_symbols::{Keyword, Punct};
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 
-use super::{EmitOutput, LineBreakStyle, LiteralStyle, LiteralText, Origin};
+use super::{ConstantTable, EmitOutput, LineBreakStyle, LiteralStyle, LiteralText, Origin};
 use crate::documents::{Module, ModuleGraph, ModuleId};
 use crate::options::TranspileOptions;
 
@@ -31,6 +33,18 @@ pub struct EmitState<'a> {
     options: &'a TranspileOptions,
     output: EmitOutput,
     emitted_native_imports: FxHashSet<ModuleId>,
+    /// In dev mode, the member statements of the classes being written, which are written as members.
+    class_members: FxHashMap<NodeId, ClassMember>,
+    /// In dev mode, the `return` statements of constructors written without a value.
+    bare_returns: FxHashSet<NodeId>,
+    /// In dev mode, the written bodies of constructors.
+    constructors: FxHashMap<NodeId, NodeList>,
+    /// The `const enum` entries of the build's files.
+    constants: Option<&'a ConstantTable>,
+    /// The `const enum` names this file also uses as variables, whose reads are never replaced.
+    variable_constants: FxHashSet<String>,
+    /// The assignment targets of the module, which are never replaced by a `const enum` value.
+    assignment_targets: FxHashSet<NodeId>,
 }
 
 impl<'a> EmitState<'a> {
@@ -45,6 +59,12 @@ impl<'a> EmitState<'a> {
             options,
             output: EmitOutput::with_capacity(ast.source().len()),
             emitted_native_imports: FxHashSet::default(),
+            class_members: FxHashMap::default(),
+            bare_returns: FxHashSet::default(),
+            constructors: FxHashMap::default(),
+            constants: None,
+            variable_constants: FxHashSet::default(),
+            assignment_targets: FxHashSet::default(),
         }
     }
 
@@ -67,6 +87,125 @@ impl<'a> EmitState<'a> {
     #[must_use]
     pub fn ast(&self) -> &'a Ast {
         self.ast
+    }
+
+    /// Registers the members of `class` to be written as members, in dev mode.
+    pub fn enter_class(&mut self, class: &Class) {
+        for member in &class.members {
+            self.class_members.insert(member.assignment, *member);
+        }
+
+        if let Some(constructor) = &class.constructor {
+            self.bare_returns
+                .extend(constructor.bare_returns.iter().copied());
+            self.constructors
+                .insert(constructor.function, constructor.body);
+        }
+    }
+
+    #[must_use]
+    pub fn class_member(&self, id: NodeId) -> Option<ClassMember> {
+        self.class_members.get(&id).copied()
+    }
+
+    /// The written body of the constructor `function`, which builds start with copies of fields and end with
+    /// `return self`.
+    #[must_use]
+    pub fn written_body(&self, function: NodeId) -> Option<NodeList> {
+        self.constructors.get(&function).copied()
+    }
+
+    /// The type written after the parameter or `let` name `id`, in dev mode.
+    #[must_use]
+    pub fn written_type(&self, id: NodeId) -> Option<&'a str> {
+        if !self.options.dev_mode {
+            return None;
+        }
+
+        let types = &self.ast.type_syntax;
+        let span = types.parameter(id).or_else(|| types.variable(id))?;
+
+        Some(self.ast.slice(span))
+    }
+
+    /// The return type written for `function`, in dev mode.
+    #[must_use]
+    pub fn written_returns(&self, function: NodeId) -> Option<&'a str> {
+        if !self.options.dev_mode {
+            return None;
+        }
+
+        Some(self.ast.slice(self.ast.type_syntax.returns(function)?))
+    }
+
+    /// The type parameter names written for `function<T, U>`, in dev mode.
+    #[must_use]
+    pub fn written_templates(&self, function: NodeId) -> Option<String> {
+        let names = self.ast.type_syntax.templates(function);
+
+        if !self.options.dev_mode || names.is_empty() {
+            return None;
+        }
+
+        let names: Vec<&str> = names.iter().map(|&name| self.ast.slice(name)).collect();
+
+        Some(names.join(", "))
+    }
+
+    /// Replaces `Name.Entry` reads of the `const enum`s of `constants` by their values, outside dev mode.
+    #[must_use]
+    pub fn with_constants(mut self, constants: &'a ConstantTable) -> Self {
+        if constants.is_empty() || self.options.dev_mode {
+            return self;
+        }
+
+        self.variable_constants = constants.variable_names_in(self.ast);
+        self.assignment_targets = self
+            .ast
+            .nodes()
+            .iter()
+            .filter_map(|(_, node)| match &node.kind {
+                NodeKind::Assignment(assignment) => Some(assignment.variable),
+                _ => None,
+            })
+            .collect();
+        self.constants = Some(constants);
+
+        self
+    }
+
+    /// The literal text written for `member` when it reads a `const enum` entry (`Name.Entry`).
+    #[must_use]
+    pub fn constant(&self, member: NodeId, node: &Member) -> Option<&'a str> {
+        let constants = self.constants?;
+
+        if self.assignment_targets.contains(&member) {
+            return None;
+        }
+
+        let NodeKind::Identifier(name) = self.ast.kind(node.base) else {
+            return None;
+        };
+        let name = self.ast.resolve(name.name);
+
+        if self.variable_constants.contains(name) {
+            return None;
+        }
+
+        constants.get(name, self.ast.text(node.identifier)?)
+    }
+
+    /// Whether `id` is a `return` of a constructor written without a value.
+    #[must_use]
+    pub fn is_bare_return(&self, id: NodeId) -> bool {
+        self.bare_returns.contains(&id)
+    }
+
+    /// Whether the single-line `if` statement or clause `id` is written on one line: builds write it as a block
+    /// when one of its statements has value expansions.
+    #[must_use]
+    pub fn is_shortcut(&self, id: NodeId, shortcut: bool) -> bool {
+        shortcut && (self.options.dev_mode || !self.ast.expansions.is_block(id))
     }
 
     #[must_use]
@@ -92,6 +231,12 @@ impl<'a> EmitState<'a> {
     #[must_use]
     pub fn slice(&self, span: Span) -> &'a str {
         self.ast.slice(span)
+    }
+
+    /// Whether builds write nothing for the statement `id`: a `type` statement outside dev mode.
+    #[must_use]
+    pub fn is_omitted(&self, id: NodeId) -> bool {
+        !self.options.dev_mode && matches!(self.ast.kind(id), NodeKind::TypeStatement(_))
     }
 
     #[must_use]

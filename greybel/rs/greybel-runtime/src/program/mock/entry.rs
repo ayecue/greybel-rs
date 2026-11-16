@@ -52,7 +52,7 @@ impl Entry {
         format!("[\"{}\"]", key.replace('"', "\"\""))
     }
 
-    /// Renders values with quoted strings and doubled internal quotes; truncates after 512 characters with an ellipsis.
+    /// Renders values with quoted strings and doubled internal quotes; truncates after 512 characters with "...".
     pub(super) fn display(heap: &Heap, value: &Value) -> String {
         let text = match value {
             Value::String(text) => format!("\"{}\"", text.replace('"', "\"\"")),
@@ -60,7 +60,7 @@ impl Entry {
         };
 
         match text.char_indices().nth(VALUE_LENGTH) {
-            Some((end, _)) => format!("{}…", &text[..end]),
+            Some((end, _)) => format!("{}...", &text[..end]),
             None => text,
         }
     }

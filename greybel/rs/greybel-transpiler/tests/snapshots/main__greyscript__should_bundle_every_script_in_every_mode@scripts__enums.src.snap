@@ -1,0 +1,27 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/enums.src
+---
+=== default
+Color={"Red":0,"Green":15,"Blue":16,"Name":"n"}
+f=function
+Inner={"A":-1,"B":0}
+return Inner.B+Color.Blue
+end function
+print(f)
+=== uglify
+globals.I=globals
+J={"Red":0,"Green":15,"Blue":16,"Name":"n"}
+K=function
+L={"A":-1,"B":0}
+return L.B+J.Blue
+end function
+print(K)
+=== beautify
+Color = {"Red": 0, "Green": 15, "Blue": 16, "Name": "n"}
+f = function
+	Inner = {"A": -1, "B": 0}
+	return Inner.B + Color.Blue
+end function
+print f

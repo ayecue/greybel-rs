@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
-use greybel_core::{Dialect, PositionEncoding};
+use greybel_core::{Dialect, PositionEncoding, SyntaxFeatures};
 use greybel_documents::NativeImportMode;
 use greybel_io::{Stdin, Stdout};
 use greybel_symbols::names::UNNAMED_SOURCE;
@@ -22,6 +22,8 @@ pub struct InterpreterOptions {
     pub environment: HashMap<String, String>,
     /// Restricts parsing to syntax compiled by the dialect reference; see `ParserOptions::strict_mode`.
     pub strict_mode: bool,
+    /// The syntax features to accept, of those the dialect has.
+    pub syntax_features: SyntaxFeatures,
     /// File-reading mode for `import_code`.
     pub native_imports: NativeImportMode,
     /// Inserts a breakpoint before each statement to support stepping.
@@ -53,6 +55,7 @@ impl InterpreterOptions {
             params: Vec::new(),
             environment: HashMap::new(),
             strict_mode: false,
+            syntax_features: SyntaxFeatures::ALL,
             native_imports: NativeImportMode::Evaluation,
             debug: false,
             string_encoding: vm.string_encoding,
@@ -73,6 +76,7 @@ impl fmt::Debug for InterpreterOptions {
             .field("params", &self.params)
             .field("environment", &self.environment)
             .field("strict_mode", &self.strict_mode)
+            .field("syntax_features", &self.syntax_features)
             .field("native_imports", &self.native_imports)
             .field("debug", &self.debug)
             .field("string_encoding", &self.string_encoding)

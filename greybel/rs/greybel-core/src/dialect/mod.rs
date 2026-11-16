@@ -1,3 +1,4 @@
+mod features;
 mod grammar;
 mod greybel;
 mod greyscript;
@@ -5,11 +6,11 @@ mod miniscript;
 mod rules;
 mod version;
 
+pub use features::SyntaxFeatures;
 pub use grammar::Grammar;
 pub(crate) use rules::{LexerRuleTable, RuleTable};
 pub use version::Version;
 
-/// Source dialect. `GreyScript` uses Greybel behavior compatible with the Grey Hack runtime.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub enum Dialect {
     #[default]
@@ -30,7 +31,6 @@ impl Dialect {
         }
     }
 
-    /// Maps `GreyScript` to MiniScript 1.6 and every other dialect to `Latest`.
     #[must_use]
     pub const fn default_version(self) -> Version {
         match self {

@@ -1,5 +1,5 @@
 <Project>
-  <!-- The applications build from greybel's .NET projects, whose folders (GreybelDotnet, DuplexDotnet, …) and game
+  <!-- The applications build from greybel's .NET projects, whose folders (GreybelDotnet, DuplexDotnet and the others) and game
        paths greybel/dotnet's props give. -->
   <Import Project="../../greybel/dotnet/Directory.Build.props" />
 </Project>

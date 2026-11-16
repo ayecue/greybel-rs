@@ -1,0 +1,2 @@
+f = function(a = b + 1, items = [], first = items[0], size = @g.k)
+end function

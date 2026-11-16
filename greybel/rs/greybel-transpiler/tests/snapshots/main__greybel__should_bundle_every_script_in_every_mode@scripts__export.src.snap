@@ -1,0 +1,137 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/export.src
+---
+=== default
+MODULES={}
+EXPORTED={}
+__REQUIRE_EVAL=function(cb,ns)
+if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+result=cb(ns)
+if result==null then result={"exports":null}
+if not result.hasIndex("exports") then result.exports=null
+EXPORTED[ns]=result
+return result
+end function
+__REQUIRE=function(ns)
+if not MODULES.hasIndex(ns) then
+print("Module "+ns+" cannot be found...")
+return null
+end if
+return @__REQUIRE_EVAL(@MODULES[ns],ns).exports
+end function
+MODULES["B"]=function(r)
+module={}
+module.exports={}
+twice=function(n)
+return n*2
+end function
+module.exports.twice=@twice
+count=1
+module.exports.count=@count
+export=2
+return module
+end function
+__m = __REQUIRE("B")
+twice=@__m.twice
+count=@__m.count
+print(twice(count))
+=== uglify
+globals.I=globals
+C={}
+D={}
+F=function(cb,ns)
+if D.hasIndex(ns) then return D[ns]
+result=cb(ns)
+if result==null then result={"exports":null}
+if not result.hasIndex("exports") then result.exports=null
+D[ns]=result
+return result
+end function
+E=function(ns)
+if not C.hasIndex(ns) then
+print("Module "+ns+" cannot be found...")
+return null
+end if
+return @F(@C[ns],ns).exports
+end function
+C["B"]=function(r)
+H={}
+H.exports={}
+J=function(N)
+return N*2
+end function
+H.exports.twice=@J
+K=1
+H.exports.count=@K
+M=2
+return H
+end function
+L=E("B")
+J=@L.twice
+K=@L.count
+print(J(K))
+=== beautify
+MODULES = {}
+EXPORTED = {}
+__REQUIRE_EVAL = function(cb, ns)
+	if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+	result = cb(ns)
+	if result == null then result = { "exports": null }
+	if not result.hasIndex("exports") then result.exports = null
+	EXPORTED[ns] = result
+	return result
+end function
+__REQUIRE = function(ns)
+	if not MODULES.hasIndex(ns) then
+		print "Module " + ns + " cannot be found..."
+		return null
+	end if
+	return @__REQUIRE_EVAL(@MODULES[ns], ns).exports
+end function
+MODULES["B"] = function(r)
+	module = {}
+	module.exports = {}
+twice = function(n)
+	return n * 2
+end function
+module.exports.twice = @twice
+count = 1
+module.exports.count = @count
+export = 2
+	return module
+end function
+__m = __REQUIRE("B")
+twice = @__m.twice
+count = @__m.count
+print twice(count)
+=== beautify, dev mode, keep parentheses, 10 spaces
+MODULES = {}
+EXPORTED = {}
+__REQUIRE_EVAL = function(cb, ns)
+          if EXPORTED.hasIndex(ns) then return EXPORTED[ns]
+          result = cb(ns)
+          if result == null then result = { "exports": null }
+          if not result.hasIndex("exports") then result.exports = null
+          EXPORTED[ns] = result
+          return result
+end function
+__REQUIRE = function(ns)
+          if not MODULES.hasIndex(ns) then
+                    print("Module " + ns + " cannot be found...")
+                    return null
+          end if
+          return @__REQUIRE_EVAL(@MODULES[ns], ns).exports
+end function
+MODULES["B"] = function(r)
+          module = {}
+          export twice = function(n)
+          return n * 2
+end function
+export count = 1
+export = 2
+          return module
+end function
+#import {twice, count} from "../dependencies/exported.src";
+print(twice(count))

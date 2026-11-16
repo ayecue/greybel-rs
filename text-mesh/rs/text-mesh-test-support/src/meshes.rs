@@ -210,7 +210,7 @@ fn asset_fingerprints<'n>(
 }
 
 /// Name Unity gives the material: a font's own for its first atlas, else `TMP_MaterialManager`'s fallback material
-/// "<source material> + <atlas>" (the reference project names a font's atlases "<font> Atlas", "<font> Atlas 1", …).
+/// "<source material> + <atlas>" (the reference project names a font's atlases "<font> Atlas", "<font> Atlas 1" and so on).
 #[must_use]
 fn material_name(fonts: &FontSet, material: MeshMaterial) -> String {
     let atlas_name = |font: usize, atlas: u8| match atlas {

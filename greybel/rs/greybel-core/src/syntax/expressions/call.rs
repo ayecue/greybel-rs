@@ -10,6 +10,8 @@ pub struct Call {
     pub base: NodeId,
     #[child]
     pub arguments: NodeList,
+    /// `base?.(arguments)`: `null` without a call when `base` is `null`.
+    pub optional: bool,
 }
 
 impl AstNode for Call {
@@ -21,9 +23,10 @@ impl AstNode for Call {
         let type_name = self.type_name();
 
         format!(
-            "{type_name}[{}][{}({})]",
+            "{type_name}[{}][{}{}({})]",
             ctx.location(),
             ctx.child(self.base),
+            if self.optional { "?." } else { "" },
             ctx.list(self.arguments)
         )
     }
@@ -64,6 +67,7 @@ impl InfixRule for CallRule {
             Call {
                 base: left,
                 arguments,
+                optional: false,
             },
             parser.span_from(&start),
         ))

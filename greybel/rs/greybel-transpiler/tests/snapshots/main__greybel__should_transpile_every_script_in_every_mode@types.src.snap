@@ -1,0 +1,149 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/types.src
+---
+=== default
+port=22
+names=["a"]
+connect=function(ip,port=22,cb=null)
+return {"ip":ip,"port":port}
+end function
+first=function(items)
+return items[0]
+end function
+double=function(x)
+return x*2
+end function
+isText=function(value)
+return value isa string
+end function
+Box={}
+Box.grow=function(by)
+self.size=self.size+by
+return self
+end function
+Box.constructor=function
+self.size=1
+return self
+end function
+Box.create=function
+return (new self).constructor
+end function
+value=[1]
+size=value
+print([size,connect("1.2.3.4").port,first([5,6]),double(4),isText("x"),Box.create.grow(2).size,port,names])
+=== uglify
+globals.I=globals
+J=22
+K=["a"]
+L=function(U,J=22,V=null)
+return {"ip":U,"port":J}
+end function
+M=function(W)
+return W[0]
+end function
+N=function(X)
+return X*2
+end function
+O=function(Q)
+return Q isa string
+end function
+P={}
+P.grow=function(Y)
+self.size=self.size+Y
+return self
+end function
+P.constructor=function
+self.size=1
+return self
+end function
+P.create=function
+return (new self).constructor
+end function
+Q=[1]
+R=Q
+print([R,L("1.2.3.4").port,M([5,6]),N(4),O("x"),P.create.grow(2).size,J,K])
+=== beautify
+port = 22
+names = [ "a" ]
+connect = function(ip, port = 22, cb = null)
+	return {
+		"ip": ip,
+		"port": port,
+	}
+end function
+first = function(items)
+	return items[0]
+end function
+double = function(x)
+	return x * 2
+end function
+isText = function(value)
+	return value isa string
+end function
+Box = {}
+Box.grow = function(by)
+	self.size += by
+	return self
+end function
+Box.constructor = function
+	self.size = 1
+	return self
+end function
+Box.create = function
+	return (new self).constructor
+end function
+value = [ 1 ]
+size = value
+print [
+	size,
+	connect("1.2.3.4").port,
+	first([
+		5,
+		6,
+	]),
+	double(4),
+	isText("x"),
+	Box.create.grow(2).size,
+	port,
+	names,
+]
+=== beautify, dev mode, keep parentheses, 10 spaces
+let port: number = 22
+const names: list<string> = [ "a" ]
+connect = function(ip: string, port: number = 22, cb: (x: number) => string = null): map|null
+          return {
+                    "ip": ip,
+                    "port": port,
+          }
+end function
+first = function<T>(items: list<T>): T
+          return items[0]
+end function
+double = (x: number) => x * 2
+isText = function(value): value is string
+          return value isa string
+end function
+class Box
+          size = 1
+          grow(by: number): Box
+                    self.size += by
+                    return self
+          end function
+end class
+value = [ 1 ]!
+size = value as list<number>
+print([
+          size,
+          connect("1.2.3.4").port,
+          first([
+                    5,
+                    6,
+          ]),
+          double(4),
+          isText("x"),
+          Box.create.grow(2).size,
+          port,
+          names,
+])

@@ -1,0 +1,12 @@
+for i, item in items
+	print i
+end for
+for [x, y] in points
+	print x + y
+end for
+for {key, value} in settings
+	print key
+end for
+for i, {key} in m print key
+for item in items
+end for

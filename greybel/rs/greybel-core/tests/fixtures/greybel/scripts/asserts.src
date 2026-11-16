@@ -1,0 +1,5 @@
+assert x > 0, "x"
+assert ready
+assert = 1
+assert.x = 2
+assert(1)

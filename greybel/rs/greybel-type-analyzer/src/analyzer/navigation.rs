@@ -1,30 +1,82 @@
-use greybel_core::{ColumnSettings, Lexer, Position, Range};
+use greybel_core::{ColumnSettings, Position, Range};
 use greybel_documents::{SourceFile, Uri};
 
 use super::Analyzer;
 use crate::analysis::Analysis;
-use crate::ide::{Context, Location, WorkspaceEdit};
+use crate::ide::{Context, Location};
 use crate::model::{DocumentIndex, Site};
 
 impl<'w> Analyzer<'w> {
     #[must_use]
     pub fn definition(&self, uri: &Uri, position: Position) -> Vec<Location> {
+        if let Some(location) = self.import_definition(uri, position) {
+            return vec![location];
+        }
+
         let Some((file, ast, offset)) = self.locate(uri, position) else {
             return Vec::new();
         };
         let mut locations = Vec::new();
 
         for (analysis, document) in self.analyses_of(file) {
-            if let Some((_, slots)) =
-                Context::new(ast, analysis, document, offset).referenced_slots()
-            {
-                let references = analysis.references();
-                let sites = slots
-                    .iter()
-                    .flat_map(|&slot| references.definition_sites(slot).iter().copied())
-                    .collect();
+            let context = Context::new(ast, analysis, document, offset);
+            let slots = match context.referenced_slots() {
+                Some((_, slots)) => slots.to_vec(),
+                None => context.singleton_entry_slots(),
+            };
+            let references = analysis.references();
+            let sites = slots
+                .iter()
+                .flat_map(|&slot| references.definition_sites(slot).iter().copied())
+                .collect();
 
-                locations.extend(self.locations(analysis, sites));
+            locations.extend(self.locations(analysis, sites));
+        }
+
+        Self::sort_locations(locations)
+    }
+
+    /// The range a definition at `position` starts from: the import path or the name under the cursor.
+    #[must_use]
+    pub fn definition_origin(&self, uri: &Uri, position: Position) -> Option<Range> {
+        if let Some(range) = self.import_path_range(uri, position) {
+            return Some(range);
+        }
+
+        let (file, ast, offset) = self.locate(uri, position)?;
+
+        self.analyses_of(file)
+            .into_iter()
+            .find_map(|(analysis, document)| {
+                let (node, _) = Context::new(ast, analysis, document, offset).referenced_slots()?;
+
+                Some(ast.lines().range(ast.span(node), ColumnSettings::default()))
+            })
+    }
+
+    /// Where the types of the value at `position` are declared.
+    #[must_use]
+    pub fn type_definition(&self, uri: &Uri, position: Position) -> Vec<Location> {
+        let Some((file, ast, offset)) = self.locate(uri, position) else {
+            return Vec::new();
+        };
+        let db = self.workspace.db();
+        let mut locations = Vec::new();
+
+        for (analysis, document) in self.analyses_of(file) {
+            for definition in Context::new(ast, analysis, document, offset).type_definitions() {
+                let Some(&target) = analysis.documents().get(definition.document() as usize) else {
+                    continue;
+                };
+                let Some(target_ast) = target.parse(db).ast() else {
+                    continue;
+                };
+                let span = definition.span(target_ast);
+
+                locations.push(Location {
+                    uri: target.uri(db).clone(),
+                    range: target_ast.lines().range(span, ColumnSettings::default()),
+                });
             }
         }
 
@@ -86,30 +138,7 @@ impl<'w> Analyzer<'w> {
         Self::sort_locations(locations)
     }
 
-    #[must_use]
-    pub fn prepare_rename(&self, uri: &Uri, position: Position) -> Option<Range> {
-        let (file, ast, offset) = self.locate(uri, position)?;
-
-        self.analyses_of(file)
-            .into_iter()
-            .find_map(|(analysis, document)| {
-                let (node, _) = Context::new(ast, analysis, document, offset).referenced_slots()?;
-
-                Some(ast.lines().range(ast.span(node), ColumnSettings::default()))
-            })
-    }
-
-    #[must_use]
-    pub fn rename(&self, uri: &Uri, position: Position, name: &str) -> Option<WorkspaceEdit> {
-        self.prepare_rename(uri, position)?;
-        if !self.is_identifier(name) {
-            return None;
-        }
-
-        Some(WorkspaceEdit::new(self.references(uri, position), name))
-    }
-
-    fn sort_locations(mut locations: Vec<Location>) -> Vec<Location> {
+    pub(super) fn sort_locations(mut locations: Vec<Location>) -> Vec<Location> {
         locations.sort_by(|a, b| (&a.uri, a.range.start).cmp(&(&b.uri, b.range.start)));
         locations.dedup();
 
@@ -180,18 +209,5 @@ impl<'w> Analyzer<'w> {
                 })
             })
             .collect()
-    }
-
-    fn is_identifier(self, name: &str) -> bool {
-        let options = &self.workspace.options().parser;
-        let lexer = Lexer::with_grammar(name, options.grammar());
-        let mut tokens = lexer.tokens();
-        let first = tokens.next().and_then(|token| token.ok());
-        let identifier = first
-            .as_ref()
-            .and_then(|token| token.as_identifier())
-            .is_some_and(|identifier| identifier.name(name) == name);
-
-        identifier && tokens.next().is_none()
     }
 }

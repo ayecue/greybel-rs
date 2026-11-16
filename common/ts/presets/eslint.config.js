@@ -7,7 +7,7 @@ import earlyExit from './eslint/early-exit.js';
  * The layout Prettier does not reformat: blank lines around a block of declarations (none above it as a block's first
  * statement), after blocks, before a `return` and between class members; and early exits: over an `if` wrapping the
  * remainder of a function or loop body (`presets/early-exit`), over an `else` after a branch that returns
- * (`no-else-return`), and an `else { if … }` as `else if` (`no-lonely-if`). `pnpm format` fixes them, then runs
+ * (`no-else-return`), and an `else { if (...) }` as `else if` (`no-lonely-if`). `pnpm format` fixes them, then runs
  * Prettier. Blocks nest at most 3 levels (`max-depth`) and ternaries don't nest (`no-nested-ternary`); those have no fix. Only TypeScript is checked; modules a crate's
  * tests generate are left as their generator writes them.
  */

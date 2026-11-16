@@ -15,7 +15,7 @@ pub struct PnpmWorkspace {
     folder: PathBuf,
     inclusions: GlobMatcher,
     exclusions: GlobMatcher,
-    /// External packages linked with specifiers such as `link:../../common/ts/…`.
+    /// External packages linked with specifiers such as `link:../../common/ts/<package>`.
     overrides: BTreeMap<String, String>,
 }
 

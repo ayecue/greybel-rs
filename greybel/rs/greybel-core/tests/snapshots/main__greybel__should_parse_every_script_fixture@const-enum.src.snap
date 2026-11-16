@@ -1,0 +1,18 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/const-enum.src
+---
+Chunk[1:1-12:1][
+	EnumStatement[1:1-5:9][AssignmentStatement[1:7-5:9][Identifier[1:12-1:16][Port] = MapConstructor[1:7-5:9][
+		MapKeyString[2:2-2:10][Literal[2:2-2:5][Ssh]: Literal[2:8-2:10][22]]
+		MapKeyString[3:2-3:11][Literal[3:2-3:6][Http]: Literal[3:9-3:11][80]]
+		MapKeyString[4:2-4:14][Literal[4:2-4:6][Name]: Literal[4:9-4:14][web]]
+	]]]
+	AssignmentStatement[6:1-6:16][const Identifier[6:7-6:12][limit] = Literal[6:15-6:16][3]]
+	CallStatment[7:1-7:27][CallExpression[7:1-7:27][Identifier[7:1-7:6][print](BinaryExpression[7:7-7:27][MemberExpression[7:7-7:15][Identifier[7:7-7:11][Port].Identifier[7:12-7:15][Ssh]] + MemberExpression[7:18-7:27][Identifier[7:18-7:22][Port].Identifier[7:23-7:27][Http]]])]]
+	CallStatment[8:1-8:16][CallExpression[8:1-8:16][Identifier[8:1-8:6][print](MemberExpression[8:7-8:16][Identifier[8:7-8:11][Port].Identifier[8:12-8:16][Name]])]]
+	AssignmentStatement[9:1-9:17][MemberExpression[9:1-9:10][Identifier[9:1-9:5][Port].Identifier[9:6-9:10][Http]] = Literal[9:13-9:17][8080]]
+	CallStatment[10:1-10:16][CallExpression[10:1-10:16][Identifier[10:1-10:6][print](MemberExpression[10:7-10:16][Identifier[10:7-10:11][Port].Identifier[10:12-10:16][Http]])]]
+	CallStatment[11:1-11:18][CallExpression[11:1-11:18][Identifier[11:1-11:6][print](IndexExpression[11:7-11:18][Identifier[11:7-11:11][Port][Literal[11:12-11:17][Ssh]]])]]
+]

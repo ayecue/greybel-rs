@@ -52,6 +52,7 @@ impl ReplCommand {
         let launch = project.launch(&entry, Place::Simulation, variables, true);
         let parser = ParserOptions {
             strict_mode: project.manifest.strict_mode,
+            syntax_features: project.manifest.syntax.features(),
             ..ParserOptions::new(Dialect::GreyScript)
         };
 

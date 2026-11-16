@@ -3,7 +3,9 @@ use greybel_documents::{DocumentError, Uri};
 use greybel_symbols::names::UNNAMED_SOURCE;
 
 use crate::bundle::emit_multiline_string_function;
-use crate::emit::{BeautifyEmitter, DefaultEmitter, EmitFlags, EmitState, Emitter, UglifyEmitter};
+use crate::emit::{
+    BeautifyEmitter, ConstantTable, DefaultEmitter, EmitFlags, EmitState, Emitter, UglifyEmitter,
+};
 use crate::error::Result;
 use crate::minify::Minification;
 use crate::options::{BuildMode, TranspileOptions};
@@ -60,7 +62,8 @@ fn emit_standalone<E: Emitter>(
     options: &TranspileOptions,
 ) -> Result<String> {
     let multiline_string = emit_multiline_string_function(emitter, std::iter::once(ast), options)?;
-    let mut state = EmitState::new(ast, options);
+    let constants = ConstantTable::of([ast]);
+    let mut state = EmitState::new(ast, options).with_constants(&constants);
 
     emitter.emit(&mut state, ast.root(), EmitFlags::default())?;
 

@@ -3467,12 +3467,12 @@ definitions:
         - end while
       isProtected: false
       returns:
-        - "null"
+        - never
       type: function
     origin: general
     otherLanguageDescription: ~
     returnStrings:
-      - "null"
+      - never
     returnVariations:
       ok: []
     tags:

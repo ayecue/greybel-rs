@@ -1,9 +1,9 @@
 use std::fmt;
 
-use greybel_symbols::annotations::{ANY, UNKNOWN};
+use greybel_symbols::annotations::{ANY, NEVER, UNKNOWN};
 use greybel_symbols::types;
 
-use super::{FunctionRef, Type, TypeId, TypeTable};
+use super::{FunctionRef, LiteralType, Type, TypeId, TypeTable};
 use crate::model::{
     FunctionSignature, Key, MapId, MapOrigin, SemanticModel, SignatureParameter, SignatureType,
 };
@@ -46,10 +46,10 @@ impl<'a> TypeNotation<'a> {
             self.format_signature_type(parameter.ty)
         );
 
-        match &parameter.default {
+        match parameter.default {
             Some(default) => {
                 label.push_str(" = ");
-                label.push_str(default);
+                label.push_str(&default.to_string());
             }
             None if parameter.optional => label.push('?'),
             None => {}
@@ -61,6 +61,7 @@ impl<'a> TypeNotation<'a> {
     fn format_signature_type(self, ty: SignatureType<'_>) -> String {
         match ty {
             SignatureType::Value(ty) => self.display(ty).to_string(),
+            SignatureType::Guard(guard) => guard.to_string(),
             SignatureType::Api(types) => {
                 let types: Vec<String> = types.iter().map(ToString::to_string).collect();
 
@@ -69,8 +70,6 @@ impl<'a> TypeNotation<'a> {
         }
     }
 
-    /// Formats plain-map entries represented by `ty` or returned from its functions. Includes inherited key types
-    /// and `[key]` for computed entries; returns `None` if there are no entries.
     pub(crate) fn map_content(self, ty: TypeId) -> Option<String> {
         let mut entries: Vec<(String, Vec<TypeId>)> = Vec::new();
 
@@ -89,6 +88,21 @@ impl<'a> TypeNotation<'a> {
             }
         }
 
+        self.format_entries(&entries)
+    }
+
+    /// The entries of a custom type's map and of the types it extends, as hovers show them.
+    pub(crate) fn custom_type_content(self, map: MapId) -> Option<String> {
+        let mut entries: Vec<(String, Vec<TypeId>)> = Vec::new();
+
+        for map in self.model.isa_chain(self.types, map) {
+            self.push_entries(map, &mut entries);
+        }
+
+        self.format_entries(&entries)
+    }
+
+    fn format_entries(self, entries: &[(String, Vec<TypeId>)]) -> Option<String> {
         if entries.is_empty() {
             return None;
         }
@@ -110,7 +124,7 @@ impl<'a> TypeNotation<'a> {
             .collect();
 
         if entries.len() > MAX_ENTRIES {
-            lines.push(format!("  … {} more", entries.len() - MAX_ENTRIES));
+            lines.push(format!("  ... {} more", entries.len() - MAX_ENTRIES));
         }
 
         Some(format!("{{\n{}\n}}", lines.join(",\n")))
@@ -130,26 +144,31 @@ impl<'a> TypeNotation<'a> {
                 continue;
             }
 
-            let dynamic_value = self.model.slot_type(data.dynamic_value);
-            let dynamic = (dynamic_value != TypeId::UNKNOWN).then(|| {
-                let key = self.display(self.model.slot_type(data.dynamic_key));
+            self.push_entries(map, entries);
+        }
+    }
 
-                (format!("[{key}]"), dynamic_value)
-            });
-            let own_entries = data.entries.iter().map(|(key, &slot)| {
-                let key = match key {
-                    Key::String(name) => format!("\"{}\"", name.replace('"', "\"\"")),
-                    Key::Number(bits) => f64::from_bits(*bits).to_string(),
-                };
+    fn push_entries(self, map: MapId, entries: &mut Vec<(String, Vec<TypeId>)>) {
+        let data = self.model.map(map);
+        let dynamic_value = self.model.slot_type(data.dynamic_value);
+        let dynamic = (dynamic_value != TypeId::UNKNOWN).then(|| {
+            let key = self.display(self.model.slot_type(data.dynamic_key));
 
-                (key, self.model.slot_type(slot))
-            });
+            (format!("[{key}]"), dynamic_value)
+        });
+        let own_entries = data.entries.iter().map(|(key, &slot)| {
+            let key = match key {
+                Key::String(name) => format!("\"{}\"", name.replace('"', "\"\"")),
+                Key::Number(bits) => f64::from_bits(*bits).to_string(),
+            };
 
-            for (key, ty) in own_entries.chain(dynamic) {
-                match entries.iter_mut().find(|(entry_key, _)| *entry_key == key) {
-                    Some((_, types)) => types.push(ty),
-                    None => entries.push((key, vec![ty])),
-                }
+            (key, self.model.slot_type(slot))
+        });
+
+        for (key, ty) in own_entries.chain(dynamic) {
+            match entries.iter_mut().find(|(entry_key, _)| *entry_key == key) {
+                Some((_, types)) => types.push(ty),
+                None => entries.push((key, vec![ty])),
             }
         }
     }
@@ -161,7 +180,8 @@ impl<'a> TypeNotation<'a> {
             }
             FunctionRef::Signature(id) => Some(self.model.declared_function(id).return_type),
             FunctionRef::ApiMethod(id) => Some(self.model.api_method(id).returns),
-            FunctionRef::Any | FunctionRef::Api(_) => None,
+            FunctionRef::Api(function) => self.model.singleton_type(function),
+            FunctionRef::Any => None,
         }
     }
 
@@ -198,9 +218,14 @@ impl fmt::Display for TypeDisplay<'_> {
         match notation.types.get(self.ty) {
             Type::Unknown => f.write_str(UNKNOWN),
             Type::Any => f.write_str(ANY),
+            Type::Never => f.write_str(NEVER),
             Type::Null => f.write_str(types::NULL),
             Type::Number => f.write_str(types::NUMBER),
             Type::String => f.write_str(types::STRING),
+            Type::Literal(LiteralType::String(text)) => {
+                write!(f, "\"{}\"", text.replace('"', "\"\""))
+            }
+            Type::Literal(LiteralType::Number(bits)) => write!(f, "{}", f64::from_bits(*bits)),
             Type::List(item) => write!(f, "{}<{}>", types::LIST, notation.display(*item)),
             Type::Map { key, value } => {
                 write!(
@@ -229,6 +254,7 @@ impl fmt::Display for TypeDisplay<'_> {
                     .collect();
 
                 names.sort();
+                names.dedup();
 
                 f.write_str(&names.join(" or "))
             }

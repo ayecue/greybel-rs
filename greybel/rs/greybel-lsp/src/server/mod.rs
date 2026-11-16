@@ -33,6 +33,7 @@ enum State {
 struct ClientSupport {
     configuration: bool,
     markdown: bool,
+    definition_links: bool,
 }
 
 pub struct Server {

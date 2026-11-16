@@ -1,0 +1,13 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/number-binary-digit.src
+---
+--- strict
+1:5 - 1:10 InvalidNumericLiteral(1003): invalid numeric literal: 0b102
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:5 - 1:10 ExpectedExpression(3002): got Unknown(0b102) where number, string, or identifier is required
+--- lexer errors
+1:5 - 1:10 InvalidNumericLiteral(1003): invalid numeric literal: 0b102

@@ -1,7 +1,7 @@
 use greybel_core::Dialect;
 use greybel_documents::{ImportKind, Uri};
 use greybel_symbols::Keyword;
-use greybel_symbols::contextual_keywords::FROM;
+use greybel_symbols::contextual_keywords::{FROM, TYPE};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ImportTarget<'a> {
@@ -27,6 +27,8 @@ impl<'a> ImportTarget<'a> {
         let before = line[..quote].trim();
         let kind = if before == Keyword::Include.as_str() {
             ImportKind::Include
+        } else if Self::is_type_include(before) {
+            ImportKind::TypeInclude
         } else if Self::is_import(before) {
             ImportKind::Import
         } else if dialect == Dialect::GreyScript
@@ -44,6 +46,14 @@ impl<'a> ImportTarget<'a> {
             prefix: &line[quote + 1..],
             start: line_start + quote + 1,
         })
+    }
+
+    fn is_type_include(before: &str) -> bool {
+        const INCLUDE: &str = Keyword::Include.as_str();
+
+        let words: Vec<&str> = before.split_whitespace().collect();
+
+        matches!(words[..], [INCLUDE, TYPE])
     }
 
     fn is_import(before: &str) -> bool {

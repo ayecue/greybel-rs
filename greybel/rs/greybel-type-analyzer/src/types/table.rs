@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use rustc_hash::FxHashMap;
 
-use super::{FunctionRef, Type, TypeId};
+use super::{ApiFunction, FunctionRef, LiteralType, Type, TypeId};
 use crate::model::MapId;
 
 const MAX_DEPTH: u8 = 6;
@@ -13,16 +15,36 @@ pub struct TypeTable {
     unions_by_hash: FxHashMap<u64, TypeId>,
     unions_by_pair: UnionCache,
     api_members: ApiMemberCache,
+    api_signatures: ApiSignatureCache,
     union_builder: UnionBuilder,
 }
 
-/// One API member lookup in the cache.
+#[derive(Debug, Clone)]
+pub(crate) struct ResolvedApiSignature {
+    pub parameters: Arc<[TypeId]>,
+    pub returns: TypeId,
+}
+
+#[derive(Debug, Default)]
+struct ApiSignatureCache(FxHashMap<(usize, usize), ResolvedApiSignature>);
+
+impl Clone for ApiSignatureCache {
+    fn clone(&self) -> Self {
+        Self::default()
+    }
+}
+
+impl PartialEq for ApiSignatureCache {
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+
+impl Eq for ApiSignatureCache {}
+
 pub(crate) enum CachedApiMember {
-    /// The member has not been queried.
     Unknown,
-    /// The API has no such member.
     Missing,
-    /// The member has this type.
     Present(TypeId),
 }
 
@@ -56,6 +78,8 @@ impl Eq for UnionCache {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 struct UnionBuilder {
+    has_unknown: bool,
+    has_never: bool,
     variants: Vec<TypeId>,
     items: Vec<TypeId>,
     keys: Vec<TypeId>,
@@ -66,7 +90,8 @@ impl UnionBuilder {
     fn absorb(&mut self, shape: &Type, ty: TypeId) -> bool {
         match shape {
             Type::Any => return true,
-            Type::Unknown => {}
+            Type::Unknown => self.has_unknown = true,
+            Type::Never => self.has_never = true,
             Type::List(item) => self.items.push(*item),
             Type::Map { key, value } => {
                 self.keys.push(*key);
@@ -78,7 +103,27 @@ impl UnionBuilder {
         false
     }
 
+    /// Removes literal types whose base type is a variant too: `"tcp" or string` is `string`.
+    fn remove_covered_literals(&mut self, types: &TypeTable) {
+        let (strings, numbers) = (
+            self.variants.contains(&TypeId::STRING),
+            self.variants.contains(&TypeId::NUMBER),
+        );
+
+        if !strings && !numbers {
+            return;
+        }
+
+        self.variants.retain(|&variant| match types.get(variant) {
+            Type::Literal(LiteralType::String(_)) => !strings,
+            Type::Literal(LiteralType::Number(_)) => !numbers,
+            _ => true,
+        });
+    }
+
     fn clear(&mut self) {
+        self.has_unknown = false;
+        self.has_never = false;
         self.variants.clear();
         self.items.clear();
         self.keys.clear();
@@ -95,6 +140,7 @@ impl Default for TypeTable {
             unions_by_hash: FxHashMap::default(),
             unions_by_pair: UnionCache::default(),
             api_members: ApiMemberCache::default(),
+            api_signatures: ApiSignatureCache::default(),
             union_builder: UnionBuilder::default(),
         };
 
@@ -104,6 +150,7 @@ impl Default for TypeTable {
             (Type::Null, TypeId::NULL),
             (Type::Number, TypeId::NUMBER),
             (Type::String, TypeId::STRING),
+            (Type::Never, TypeId::NEVER),
         ] {
             assert_eq!(table.insert(ty), id);
         }
@@ -170,6 +217,14 @@ impl TypeTable {
     }
 
     pub fn union(&mut self, left: TypeId, right: TypeId) -> TypeId {
+        if right == TypeId::NEVER {
+            return left;
+        }
+
+        if left == TypeId::NEVER {
+            return right;
+        }
+
         if left == right || right == TypeId::UNKNOWN {
             return left;
         }
@@ -240,8 +295,10 @@ impl TypeTable {
 
         parts.variants.sort_unstable();
         parts.variants.dedup();
+        parts.remove_covered_literals(self);
 
         match parts.variants.as_slice() {
+            [] if parts.has_never && !parts.has_unknown => TypeId::NEVER,
             [] => TypeId::UNKNOWN,
             [single] => *single,
             variants => match self.unions_by_hash.get(&Self::variants_hash(variants)) {
@@ -264,6 +321,28 @@ impl TypeTable {
             [single] => *single,
             _ => self.union_all(types.iter().copied()),
         }
+    }
+
+    pub(crate) fn cached_api_signature(
+        &self,
+        function: ApiFunction,
+    ) -> Option<ResolvedApiSignature> {
+        self.api_signatures.0.get(&Self::api_key(function)).cloned()
+    }
+
+    pub(crate) fn cache_api_signature(
+        &mut self,
+        function: ApiFunction,
+        types: ResolvedApiSignature,
+    ) {
+        self.api_signatures.0.insert(Self::api_key(function), types);
+    }
+
+    pub(crate) fn api_key(function: ApiFunction) -> (usize, usize) {
+        (
+            std::ptr::from_ref(function.function).addr(),
+            function.origin.as_ptr().addr(),
+        )
     }
 
     pub(crate) fn cached_api_member(&self, type_name: &'static str, name: &str) -> CachedApiMember {
@@ -295,6 +374,15 @@ impl TypeTable {
     #[must_use]
     pub fn is_union(&self, ty: TypeId) -> bool {
         matches!(self.get(ty), Type::Union(_))
+    }
+
+    /// `ty` with a literal type as its base type (`"tcp"` as `string`); other types as they are.
+    #[must_use]
+    pub fn without_literal(&self, ty: TypeId) -> TypeId {
+        match self.get(ty) {
+            Type::Literal(literal) => literal.base(),
+            _ => ty,
+        }
     }
 
     pub fn variants(&self, ty: TypeId) -> impl Iterator<Item = TypeId> + '_ {

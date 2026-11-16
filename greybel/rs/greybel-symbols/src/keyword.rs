@@ -35,5 +35,9 @@ vocabulary!(Keyword {
     IfEnv => "#if",
     ElseEnv => "#else",
     EndIfEnv => "#endif",
+    EndEnum => "end enum",
+    EndSwitch => "end switch",
+    EndClass => "end class",
+    EndType => "end type",
     ImportCode => "import_code",
 });

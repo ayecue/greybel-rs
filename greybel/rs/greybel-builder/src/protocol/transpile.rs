@@ -1,4 +1,4 @@
-use greybel_core::Dialect;
+use greybel_core::{Dialect, SyntaxFeatures};
 use greybel_transpiler::{
     BeautifyOptions, BuildMode, Indentation, TranspileOptions, UglifyOptions,
 };
@@ -37,6 +37,9 @@ impl From<&TranspileSettings> for TranspileOptions {
                 .map(|(name, value)| (name.clone(), value.clone()))
                 .collect(),
             strict_mode: settings.strict_mode,
+            syntax_features: SyntaxFeatures::except(
+                settings.disabled_syntax.iter().flatten().map(AsRef::as_ref),
+            ),
             excluded_names: settings
                 .excluded_names
                 .iter()

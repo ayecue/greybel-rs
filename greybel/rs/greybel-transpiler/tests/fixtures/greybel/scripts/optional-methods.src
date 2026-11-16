@@ -1,0 +1,20 @@
+Counter = {"n": 1, "cb": null}
+Counter.add = function(x)
+  self.n = self.n + x
+  return self.n
+end function
+Counter.run = function
+  return [self.add?.(1), self.cb?.(1)]
+end function
+c = new Counter
+double = function(x)
+  return x * 2
+end function
+handlers = {"double": @double}
+k = "double"
+print [c.add?.(1), c.cb?.(1), c.n, handlers[k]?.(4), handlers["double"]?.(5)]
+print c.run
+none = null
+print [none?.add(1), none?.cb?.(1)]
+c.add?.(10)
+print c.n

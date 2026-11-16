@@ -30,7 +30,7 @@ impl<'w> Analyzer<'w> {
             }
 
             for &(kind, target) in origin.resolved_imports(db) {
-                if kind.is_dependency() && target != origin {
+                if kind.runs_code() && target != origin {
                     importers.entry(target).or_default().push(origin);
                 }
             }

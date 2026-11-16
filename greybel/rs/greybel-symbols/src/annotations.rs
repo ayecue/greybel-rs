@@ -11,6 +11,7 @@ vocabulary!(Tag {
     Define => "define",
     Type => "type",
     VirtualType => "vtype",
+    Typedef => "typedef",
     Template => "template",
     Extends => "extends",
     Property => "property",
@@ -18,10 +19,14 @@ vocabulary!(Tag {
     Function => "function",
     Description => "description",
     Example => "example",
+    Deprecated => "deprecated",
+    Ignore => "ignore",
+    IgnoreFile => "ignore-file",
 });
 
 pub const ANY: &str = "any";
 pub const UNKNOWN: &str = "unknown";
+pub const NEVER: &str = "never";
 pub const BOOL: &str = "bool";
 pub const BOOLEAN: &str = "boolean";
 pub const NIL: &str = "nil";

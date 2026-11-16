@@ -16,7 +16,7 @@ const earlyExit = {
     type: 'suggestion',
     docs: { description: 'Require an early exit over an `if` wrapping the remainder of a function or loop body' },
     messages: {
-      earlyExit: 'Exit early with `if (…) {{exit}};` rather than wrapping the remainder of the body in an `if`.'
+      earlyExit: 'Exit early with `if (...) {{exit}};` rather than wrapping the remainder of the body in an `if`.'
     },
     schema: []
   },

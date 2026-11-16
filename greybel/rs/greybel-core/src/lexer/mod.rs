@@ -21,11 +21,12 @@ pub use stream::{TokenSnapshot, TokenStream};
 pub use token::{
     AnyToken, BooleanLiteral, Comment, Eof, Eol, Identifier, Invalid, KEYWORDS, Keyword,
     KeywordToken, NilLiteral, NumericLiteral, PUNCTUATORS, PendingToken, Punct, Punctuator,
-    SliceOperator, StringLiteral, Token, TokenKind, keyword, punct,
+    SliceOperator, StringLiteral, TEMPLATE_START, TemplateScan, TemplateShape, Token, TokenKind,
+    keyword, punct,
 };
 pub use tokens::TokenIter;
 
-use crate::dialect::{Dialect, Grammar, LexerRuleTable, Version};
+use crate::dialect::{Dialect, Grammar, LexerRuleTable, SyntaxFeatures, Version};
 use crate::error::ParseResult;
 use crate::position::LineIndex;
 
@@ -53,6 +54,7 @@ pub(crate) struct Lexicon {
 impl Lexicon {
     pub(crate) fn new(
         rules: LexerRuleTable,
+        features: SyntaxFeatures,
         keywords: &[&[Keyword]],
         punctuators: &[&[Punct]],
     ) -> Self {
@@ -68,6 +70,7 @@ impl Lexicon {
             punctuators: LexemeTable::new(punctuators),
             starts: TokenStartTable::new(
                 rules,
+                features,
                 punctuators.iter().flat_map(|table| table.iter()).copied(),
             ),
         }

@@ -48,7 +48,7 @@ namespace TextMeshReference.Editor
                 : string.Join(
                     "\n",
                     styles.Select(style =>
-                        $"{style.name}: {style.styleOpeningDefinition} … {style.styleClosingDefinition}"
+                        $"{style.name}: {style.styleOpeningDefinition} ... {style.styleClosingDefinition}"
                     )
                 );
         }

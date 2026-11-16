@@ -4,7 +4,7 @@ namespace GreyHackTestSupport.Game;
 
 /// <summary>
 /// Connection details available after game startup: message hook port, test-only protocol port, and game log path.
-/// Serialized as one JSON line: <c>{"port":N,"testPort":N,"log":"…"}</c>.
+/// Serialized as one JSON line: <c>{"port":N,"testPort":N,"log":"&lt;path&gt;"}</c>.
 /// </summary>
 internal sealed record GameConnection(int Port, int TestPort, string Log)
 {

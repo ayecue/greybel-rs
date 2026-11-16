@@ -31,7 +31,7 @@ make setup-wizard
 dotnet run --project apps/dotnet/greyhack-setup-wizard/gui
 ```
 
-Check the detected game and its status, then choose **Set up…**. The wizard
+Check the detected game and its status, then choose **Set up...**. The wizard
 lets you install or remove BepInEx, select the matching message-hook build,
 and set the loopback TCP port (7777 by default). Review the summary and choose
 **Apply**; downloads and file changes do not start before that confirmation.

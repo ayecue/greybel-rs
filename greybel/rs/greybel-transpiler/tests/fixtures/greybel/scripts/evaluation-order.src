@@ -1,0 +1,17 @@
+log = []
+step = function(name, value)
+	log.push(name)
+	return value
+end function
+x = 1
+bump = function
+	globals.x = x + 1
+	return null
+end function
+print([step("a", 1), step("b", null) ?? step("c", 2), x, bump ?? x])
+m = {"k": [0, 0]}
+m[step("key", "k")][step("i", null) ?? 1] = step("value", 5)
+print(m)
+s = step("left", "L") + (step("mid", null) ?? "M") + step("right", "R")
+print(s)
+print(log)

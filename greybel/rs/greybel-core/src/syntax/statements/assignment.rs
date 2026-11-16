@@ -1,3 +1,5 @@
+use greybel_symbols::contextual_keywords::{CONST, LET};
+
 use crate::ast::{AstNode, DumpContext, NodeFieldContainer, NodeId};
 use crate::error::ParseResult;
 use crate::lexer::Punct;
@@ -12,6 +14,33 @@ pub struct Assignment {
     #[child]
     pub init: NodeId,
     pub shorthand: bool,
+    /// `let` or `const` before the assignment; builds write the assignment without it.
+    pub declaration: Option<Declaration>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Declaration {
+    Let,
+    Const,
+}
+
+impl Declaration {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Let => LET,
+            Self::Const => CONST,
+        }
+    }
+
+    #[must_use]
+    pub fn parse(word: &str) -> Option<Self> {
+        match word {
+            LET => Some(Self::Let),
+            CONST => Some(Self::Const),
+            _ => None,
+        }
+    }
 }
 
 impl AstNode for Assignment {
@@ -22,8 +51,12 @@ impl AstNode for Assignment {
     fn dump(&self, ctx: &DumpContext<'_>) -> String {
         let type_name = self.type_name();
 
+        let declaration = self
+            .declaration
+            .map_or(String::new(), |declaration| format!("{} ", declaration.as_str()));
+
         format!(
-            "{type_name}[{}][{} = {}]",
+            "{type_name}[{}][{declaration}{} = {}]",
             ctx.location(),
             ctx.child(self.variable),
             ctx.child(self.init)
@@ -111,10 +144,11 @@ impl Assignment {
                 variable,
                 init,
                 shorthand,
+                declaration: None,
             },
         );
         parser.stream.scopes.replace_assignment(previous);
-        if let Some(scope) = scope.and_then(|s| parser.stream.scopes.open_mut(s)) {
+        if let Some(scope) = scope.and_then(|s| parser.stream.scopes.pending_mut(s)) {
             scope.definitions.push(assignment);
         }
     }

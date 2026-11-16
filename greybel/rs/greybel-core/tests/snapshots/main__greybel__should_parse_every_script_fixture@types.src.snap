@@ -1,0 +1,57 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/types.src
+---
+Chunk[1:1-23:1][
+	AssignmentStatement[1:1-1:22][let Identifier[1:5-1:9][port] = Literal[1:20-1:22][22]]
+	AssignmentStatement[2:1-2:34][const Identifier[2:7-2:12][names] = ListConstructor[2:29-2:34][
+		ListValue[2:30-2:33][Literal[2:30-2:33][a]]
+	]]
+	AssignmentStatement[3:1-5:13][Identifier[3:1-3:8][connect] = Function[3:11-5:13][Identifier[3:20-3:22][ip], AssignmentStatement[3:32-3:49][Identifier[3:32-3:36][port] = Literal[3:47-3:49][22]], AssignmentStatement[3:51-3:83][Identifier[3:51-3:53][cb] = Literal[3:79-3:83][null]] =>
+		ReturnStatement[4:2-4:33][MapConstructor[4:9-4:33][
+			MapKeyString[4:10-4:18][Literal[4:10-4:14][ip]: Identifier[4:16-4:18][ip]]
+			MapKeyString[4:20-4:32][Literal[4:20-4:26][port]: Identifier[4:28-4:32][port]]
+		]]
+	]]
+	AssignmentStatement[6:1-8:13][Identifier[6:1-6:6][first] = Function[6:9-8:13][Identifier[6:21-6:26][items] =>
+		ReturnStatement[7:2-7:17][IndexExpression[7:9-7:17][Identifier[7:9-7:14][items][Literal[7:15-7:16][0]]]]
+	]]
+	AssignmentStatement[9:1-9:30][Identifier[9:1-9:7][double] = Function[9:10-9:30][Identifier[9:11-9:12][x] =>
+		ReturnStatement[9:25-9:30][BinaryExpression[9:25-9:30][Identifier[9:25-9:26][x] * Literal[9:29-9:30][2]]]
+	]]
+	AssignmentStatement[10:1-12:13][Identifier[10:1-10:7][isText] = Function[10:10-12:13][Identifier[10:19-10:24][value] =>
+		ReturnStatement[11:2-11:25][IsaExpression[11:9-11:25][Identifier[11:9-11:14][value] isa Identifier[11:19-11:25][string]]]
+	]]
+	ClassStatement[13:1-19:10][
+		AssignmentStatement[13:1-13:10][Identifier[13:7-13:10][Box] = MapConstructor[13:1-13:1][]]
+		AssignmentStatement[15:2-18:14][MemberExpression[15:2-15:6][Identifier[13:7-13:10][Box].Identifier[15:2-15:6][grow]] = Function[15:6-18:14][Identifier[15:7-15:9][by] =>
+			AssignmentStatement[16:3-16:29][MemberExpression[16:3-16:12][Identifier[16:3-16:7][self].Identifier[16:8-16:12][size]] = BinaryExpression[16:15-16:29][MemberExpression[16:15-16:24][Identifier[16:15-16:19][self].Identifier[16:20-16:24][size]] + Identifier[16:27-16:29][by]]]
+			ReturnStatement[17:3-17:14][Identifier[17:10-17:14][self]]
+		]]
+		AssignmentStatement[19:1-19:1][MemberExpression[19:1-19:1][Identifier[13:7-13:10][Box].Identifier[13:7-13:7][constructor]] = Function[19:1-19:1][ =>
+			AssignmentStatement[14:2-14:10][MemberExpression[14:2-14:6][Identifier[19:1-19:1][self].Identifier[14:2-14:6][size]] = Literal[14:9-14:10][1]]
+			ReturnStatement[19:1-19:1][Identifier[19:1-19:1][self]]
+		]]
+		AssignmentStatement[19:1-19:1][MemberExpression[19:1-19:1][Identifier[13:7-13:10][Box].Identifier[13:7-13:7][create]] = Function[19:1-19:1][ =>
+			ReturnStatement[19:1-19:1][CallExpression[19:1-19:1][MemberExpression[19:1-19:1][UnaryExpression[19:1-19:1][new Identifier[19:1-19:1][self]].Identifier[19:1-19:1][constructor]]()]]
+		]]
+	]
+	AssignmentStatement[20:1-20:13][Identifier[20:1-20:6][value] = TypeAssertionExpression[20:9-20:13][ListConstructor[20:9-20:12][
+		ListValue[20:10-20:11][Literal[20:10-20:11][1]]
+	]!]]
+	AssignmentStatement[21:1-21:29][Identifier[21:1-21:5][size] = TypeAssertionExpression[21:8-21:29][Identifier[21:8-21:13][value] as list<number>]]
+	CallStatment[22:1-22:115][CallExpression[22:1-22:115][Identifier[22:1-22:6][print](ListConstructor[22:7-22:115][
+		ListValue[22:8-22:12][Identifier[22:8-22:12][size]]
+		ListValue[22:14-22:37][MemberExpression[22:14-22:37][CallExpression[22:14-22:32][Identifier[22:14-22:21][connect](Literal[22:22-22:31][1.2.3.4])].Identifier[22:33-22:37][port]]]
+		ListValue[22:39-22:52][CallExpression[22:39-22:52][Identifier[22:39-22:44][first](ListConstructor[22:45-22:51][
+			ListValue[22:46-22:47][Literal[22:46-22:47][5]]
+			ListValue[22:49-22:50][Literal[22:49-22:50][6]]
+		])]]
+		ListValue[22:54-22:63][CallExpression[22:54-22:63][Identifier[22:54-22:60][double](Literal[22:61-22:62][4])]]
+		ListValue[22:65-22:76][CallExpression[22:65-22:76][Identifier[22:65-22:71][isText](Literal[22:72-22:75][x])]]
+		ListValue[22:78-22:101][MemberExpression[22:78-22:101][CallExpression[22:78-22:96][MemberExpression[22:78-22:93][MemberExpression[22:78-22:88][Identifier[22:78-22:81][Box].Identifier[22:82-22:88][create]].Identifier[22:89-22:93][grow]](Literal[22:94-22:95][2])].Identifier[22:97-22:101][size]]]
+		ListValue[22:103-22:107][Identifier[22:103-22:107][port]]
+		ListValue[22:109-22:114][Identifier[22:109-22:114][names]]
+	])]]
+]

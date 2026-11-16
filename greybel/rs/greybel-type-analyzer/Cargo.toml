@@ -21,6 +21,7 @@ greyscript-meta.workspace = true
 salsa.workspace = true
 indexmap.workspace = true
 rustc-hash.workspace = true
+text-mesh-core.workspace = true
 
 [dev-dependencies]
 greybel-documents-memory-provider.workspace = true

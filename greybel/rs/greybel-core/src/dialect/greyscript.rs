@@ -1,6 +1,6 @@
-use super::Version;
 use super::greybel::{LEXER, precedence_table};
 use super::rules::{LexerRuleTable, MultilineStringPolicy, ParameterDefaultPolicy, RuleTable};
+use super::{SyntaxFeatures, Version};
 use crate::lexer::{self, keyword, punct};
 use crate::syntax::Core;
 use crate::syntax::greybel::GreybelRuleTable;
@@ -27,12 +27,13 @@ pub(super) const RULES: RuleTable = RuleTable {
     precedence: precedence_table,
     lexer: LEXER,
     relaxed_separators: true,
-    parameter_defaults: ParameterDefaultPolicy::ParenthesizedLiterals,
+    parameter_defaults: ParameterDefaultPolicy::Expression,
     single_line_loops: true,
     checks_open_blocks_per_function: true,
     trailing_call_comma: true,
     functions_in_single_line_if: true,
     multiline_strings: MultilineStringPolicy::Always,
+    features: SyntaxFeatures::ALL,
 };
 
 pub(super) const STRICT_RULES: RuleTable = RuleTable {
@@ -54,4 +55,5 @@ pub(super) const STRICT_RULES: RuleTable = RuleTable {
     trailing_call_comma: false,
     functions_in_single_line_if: false,
     multiline_strings: MultilineStringPolicy::Forbidden,
+    features: SyntaxFeatures::NONE,
 };

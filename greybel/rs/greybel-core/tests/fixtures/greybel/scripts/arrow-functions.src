@@ -1,0 +1,8 @@
+double = (x) => x * 2
+names = items.map((x) => x.name)
+handler = (line, sep = " ") =>
+	parts = line.split(sep)
+	return parts[0]
+end function
+none = () => 1
+y = (a) + 1

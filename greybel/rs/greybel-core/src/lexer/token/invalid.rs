@@ -13,6 +13,11 @@ pub struct Invalid {
 
 impl Invalid {
     pub const DESCRIPTION: &'static str = "Unknown";
+
+    /// A token for source text the parser reads without tokens, such as a type, so the spans after it end there.
+    pub(crate) fn new(span: Span) -> Self {
+        Self { span }
+    }
 }
 
 impl Token for Invalid {

@@ -21,9 +21,9 @@
   <data name="ReadinessWrongPlugin" xml:space="preserve"><value>Not ready: {0} is the plugin file for another BepInEx version. BepInEx {1} needs {2}.</value><comment>{0}: the installed plugin file; {1}: BepInEx major; {2}: the file it needs</comment></data>
   <data name="ReadinessReady" xml:space="preserve"><value>Setup is already done. Message Hook connects on port {0}.</value><comment>{0}: port</comment></data>
   <data name="GameNotFound" xml:space="preserve"><value>Grey Hack wasn't found in your Steam libraries. Choose its folder.</value></data>
-  <data name="SetupStart" xml:space="preserve"><value>Set up…</value></data>
-  <data name="SetupChange" xml:space="preserve"><value>Change setup…</value></data>
-  <data name="ChooseFolder" xml:space="preserve"><value>Choose folder…</value></data>
+  <data name="SetupStart" xml:space="preserve"><value>Set up...</value></data>
+  <data name="SetupChange" xml:space="preserve"><value>Change setup...</value></data>
+  <data name="ChooseFolder" xml:space="preserve"><value>Choose folder...</value></data>
   <data name="SearchAgain" xml:space="preserve"><value>Search again</value></data>
   <data name="FolderPickerTitle" xml:space="preserve"><value>Choose the Grey Hack folder</value></data>
   <data name="WizardSteps" xml:space="preserve"><value>Steps</value></data>
@@ -37,7 +37,7 @@
   <data name="NothingToChange" xml:space="preserve"><value>Nothing to change</value></data>
   <data name="SourceLabel" xml:space="preserve"><value>Source</value></data>
   <data name="NoFileChosen" xml:space="preserve"><value>No file chosen</value></data>
-  <data name="ChooseFile" xml:space="preserve"><value>Choose file…</value></data>
+  <data name="ChooseFile" xml:space="preserve"><value>Choose file...</value></data>
   <data name="BepInExPageTitle" xml:space="preserve"><value>BepInEx</value></data>
   <data name="BepInExInstall" xml:space="preserve"><value>Install BepInEx</value></data>
   <data name="BepInExRemove" xml:space="preserve"><value>Remove BepInEx (does not affect plugins/settings)</value></data>
@@ -60,7 +60,7 @@
   <data name="PluginWithoutBepInEx" xml:space="preserve"><value>BepInEx won't be installed, so the plugin can't be either.</value></data>
   <data name="PluginSourceRelease" xml:space="preserve"><value>Download the latest release</value></data>
   <data name="PluginReleaseValue" xml:space="preserve"><value>{0} from {1}</value><comment>{0}: release tag; {1}: GitHub repository</comment></data>
-  <data name="PluginReleaseLookup" xml:space="preserve"><value>Checking for the latest release…</value></data>
+  <data name="PluginReleaseLookup" xml:space="preserve"><value>Checking for the latest release...</value></data>
   <data name="PluginReleaseMissing" xml:space="preserve"><value>No release available ({0}).</value><comment>{0}: why, from the library</comment></data>
   <data name="PluginSourceFile" xml:space="preserve"><value>Use a file</value></data>
   <data name="PluginNothingToRemove" xml:space="preserve"><value>The plugin isn't installed, so there's nothing to remove.</value></data>

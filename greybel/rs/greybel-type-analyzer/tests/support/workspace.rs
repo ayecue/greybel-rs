@@ -70,6 +70,7 @@ end function
 ";
 
 pub const INCLUDE_PREFIX: &str = "#include \"lib/";
+pub const TYPE_INCLUDE_PREFIX: &str = "#include type \"lib/";
 pub const IMPORT_PREFIX: &str = "#import Log from \"/project/sh";
 
 pub fn labels(uris: &[Uri]) -> Vec<String> {
@@ -481,7 +482,8 @@ pub fn include_fix_provider() -> MemoryProvider {
     ])
 }
 
-/// Returns `(diagnostic kind, title, preferred, first edit text, edit start)` for code actions on main's `line`.
+/// Returns `(diagnostic kind, title, preferred, first edit text, edit start)` for the `#include` and `import_code`
+/// code actions on main's `line`.
 pub fn include_actions(
     dialect: Dialect,
     line: u32,
@@ -492,6 +494,7 @@ pub fn include_actions(
     Analyzer::new(&workspace)
         .code_actions(&uri(MAIN), range)
         .into_iter()
+        .filter(|action| action.title.starts_with("Add "))
         .map(|action| {
             let edits = &action.edit.changes[&uri(MAIN)];
 

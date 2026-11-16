@@ -1,0 +1,12 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/asserts.src
+---
+Chunk[1:1-6:1][
+	AssertStatement[1:1-1:18][BinaryExpression[1:8-1:13][Identifier[1:8-1:9][x] > Literal[1:12-1:13][0]], Literal[1:15-1:18][x]]
+	AssertStatement[2:1-2:13][Identifier[2:8-2:13][ready]]
+	AssignmentStatement[3:1-3:11][Identifier[3:1-3:7][assert] = Literal[3:10-3:11][1]]
+	AssignmentStatement[4:1-4:13][MemberExpression[4:1-4:9][Identifier[4:1-4:7][assert].Identifier[4:8-4:9][x]] = Literal[4:12-4:13][2]]
+	CallExpression[5:1-5:10][Identifier[5:1-5:7][assert](Literal[5:8-5:9][1])]
+]

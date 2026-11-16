@@ -51,7 +51,7 @@ pub fn parse_loop_jump(parser: &mut Parser<'_>, keyword: Keyword) -> ParseResult
             KeywordDiagnostic::JumpOutsideLoop(keyword)
         };
 
-        parser.raise_at(diagnostic, span)?;
+        parser.report_at(diagnostic, span)?;
     }
 
     let span = parser.prev().span();

@@ -34,7 +34,7 @@ public class WizardWindowTests
             {
                 if (page == 0)
                 {
-                    await Click(Find<Button>(window, "Choose file…"));
+                    await Click(Find<Button>(window, "Choose file..."));
                 }
                 headings.Add(GetHeading(window));
                 SaveScreenshot(window, $"{page + 2}-{fixture.Main.Wizard.CurrentPage.Title}");

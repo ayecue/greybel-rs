@@ -1,0 +1,5 @@
+name = "Ada"
+msg = #"Hello {name}, {[1, 2].len} items"
+nested = #"a{#"b{name}c"}d {m["k"]} {{literal}} ""q"""
+empty = #""
+only = #"{name}"

@@ -3,7 +3,7 @@ use rustc_hash::FxHashSet;
 use super::output::{Output, Part, PendingOutput};
 use super::template::{HEADER, MODULE, Template, emit_boilerplate, emit_multiline_string_function};
 use crate::documents::{ImportKind, ModuleGraph, ModuleId};
-use crate::emit::{EmitFlags, EmitState, Emitter};
+use crate::emit::{ConstantTable, EmitFlags, EmitState, Emitter};
 use crate::error::Result;
 use crate::names::{NameTable, module_charset};
 use crate::options::TranspileOptions;
@@ -14,6 +14,8 @@ pub(super) struct Bundler<'a, E> {
     options: &'a TranspileOptions,
     template: Template,
     namespaces: Vec<String>,
+    /// The `const enum` entries of every module.
+    constants: ConstantTable,
     emitted_native_imports: FxHashSet<ModuleId>,
     wrapper_modules: FxHashSet<ModuleId>,
 }
@@ -32,6 +34,7 @@ impl<'a, E: Emitter> Bundler<'a, E> {
             options,
             template,
             namespaces: module_namespaces(graph, options.obfuscation),
+            constants: ConstantTable::of(graph.ids().map(|id| &*graph.module(id).ast)),
             emitted_native_imports: FxHashSet::default(),
             wrapper_modules: FxHashSet::default(),
         })
@@ -131,7 +134,8 @@ impl<'a, E: Emitter> Bundler<'a, E> {
     }
 
     fn emit_module(&mut self, id: ModuleId) -> Result<Part> {
-        let state = EmitState::for_module(self.graph, &self.namespaces, id, self.options);
+        let state = EmitState::for_module(self.graph, &self.namespaces, id, self.options)
+            .with_constants(&self.constants);
         let mut state =
             state.with_emitted_native_imports(std::mem::take(&mut self.emitted_native_imports));
         let root = state.ast().root();

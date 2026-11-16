@@ -118,7 +118,7 @@ impl ReferenceTable {
         read
     }
 
-    fn entries(&self) -> impl Iterator<Item = (Site, &[SlotId])> {
+    pub(crate) fn entries(&self) -> impl Iterator<Item = (Site, &[SlotId])> {
         self.site_slots
             .iter()
             .map(|(site, slots)| (*site, &**slots))

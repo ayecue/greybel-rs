@@ -48,7 +48,7 @@ pub enum Command {
         #[arg(long)]
         since: Option<String>,
     },
-    /// Creates a change file, for example: `reman change rs/greybel-core:minor greybel-vs:patch -m "…"`.
+    /// Creates a change file, for example: `reman change rs/greybel-core:minor greybel-vs:patch -m "<message>"`.
     Change {
         /// `project:level`, where level is major, minor, patch, or none.
         #[arg(required = true)]

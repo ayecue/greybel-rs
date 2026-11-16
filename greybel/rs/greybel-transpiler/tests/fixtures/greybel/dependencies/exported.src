@@ -1,0 +1,5 @@
+export twice = function(n)
+	return n * 2
+end function
+export count = 1
+export = 2

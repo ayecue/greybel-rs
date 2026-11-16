@@ -1,4 +1,4 @@
-<b>Grey Hack terminal</b> — TextMesh Pro demo
+<b>Grey Hack terminal</b>: TextMesh Pro demo
 Plain text in the theme's terminal colour.
 <color=red>red</color> <color=orange>orange</color> <color=yellow>yellow</color> <color=green>green</color> <color=lightblue>lightblue</color> <#4080FF>#4080FF</color> <color=#ff40ff80>translucent magenta</color>
 <b>bold</b> <i>italic</i> <u>underline</u> <s>strikethrough</s> <u color=#ff0000>red underline</u> <mark>marked</mark> <mark=#ff000080>red mark</mark>

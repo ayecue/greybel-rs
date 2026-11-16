@@ -52,7 +52,7 @@
     "build:binaries": "node scripts/build-binaries.cjs",
     "package": "node scripts/package.cjs",
     "move": "pnpm run move:grammar && pnpm run move:lsp-web && pnpm run move:runtime-web && pnpm run move:world-web && pnpm run move:builder-web && pnpm run move:webviews",
-    "move:grammar": "cp node_modules/greyscript-textmate/dist/greyscript.tmLanguage.json node_modules/greyscript-textmate/dist/greyscriptLanguageConfig.json ./dist/",
+    "move:grammar": "cp node_modules/greyscript-textmate/dist/greyscript.tmLanguage.json node_modules/greyscript-textmate/dist/greyscript-signature.tmLanguage.json node_modules/greyscript-textmate/dist/greyscriptLanguageConfig.json ./dist/",
     "move:lsp-web": "cp node_modules/greybel-lsp-web/dist/worker.js ./dist/lsp-web.js && cp node_modules/greybel-lsp-web/dist/greybel-lsp-web.wasm ./dist/lsp-web.wasm",
     "move:runtime-web": "cp node_modules/greybel-runtime-web/dist/index.js ./dist/runtime-web.js && cp node_modules/greybel-runtime-web/dist/greybel-runtime-web.wasm ./dist/runtime-web.wasm",
     "move:world-web": "cp node_modules/greyhack-world-operations-web/dist/index.js ./dist/world-web.js && cp node_modules/greyhack-world-operations-web/dist/greyhack-world-operations-web.wasm ./dist/world-web.wasm",
@@ -288,6 +288,10 @@
           "dark": "./icons/file-icon-darkmode.png"
         },
         "configuration": "./dist/greyscriptLanguageConfig.json"
+      },
+      {
+        "id": "greyscript-signature",
+        "aliases": []
       }
     ],
     "grammars": [
@@ -295,6 +299,11 @@
         "language": "greyscript",
         "scopeName": "source.src",
         "path": "./dist/greyscript.tmLanguage.json"
+      },
+      {
+        "language": "greyscript-signature",
+        "scopeName": "source.greyscript-signature",
+        "path": "./dist/greyscript-signature.tmLanguage.json"
       }
     ],
     "snippets": [
@@ -438,6 +447,36 @@
             "default": false,
             "description": "Accept only what Grey Hack's compiler accepts (MiniScript 1.6.2 for MiniScript files): none of Greybel's syntax or conveniences, such as #include, & or +=."
           },
+          "greybel.syntax": {
+            "scope": "resource",
+            "type": "object",
+            "default": {},
+            "description": "Greybel syntax features turned on or off by name, for example {\"ternary\": false, \"classes\": false}. A feature not listed is on; strict mode turns all of them off.",
+            "propertyNames": {
+              "enum": [
+                "number-literals",
+                "templates",
+                "declarations",
+                "enum",
+                "spread",
+                "map-shorthand",
+                "assert",
+                "short-functions",
+                "destructuring-assignments",
+                "for-index",
+                "switch",
+                "export",
+                "ternary",
+                "coalesce",
+                "optional-chains",
+                "classes",
+                "types"
+              ]
+            },
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
           "greybel.fileExtensions": {
             "scope": "resource",
             "type": "string",
@@ -470,6 +509,78 @@
             "type": "string",
             "default": "**/{node_modules,.*}/**",
             "description": "Glob pattern of the files and folders the type analyzer leaves out of the workspace. Replaces `files.exclude` for its search.",
+            "scope": "resource"
+          },
+          "greybel.typeAnalyzer.inlayHints.variableTypes": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show the type of a variable after its first assignment, unless the value is a literal or a function."
+          },
+          "greybel.typeAnalyzer.inlayHints.parameterNames": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show the parameter name before literal arguments of calls with more than one argument."
+          },
+          "greybel.typeAnalyzer.inlayHints.returnTypes": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show the return type after the parameter list of functions without a @return tag."
+          },
+          "greybel.typeAnalyzer.diagnostics": {
+            "type": "object",
+            "default": {},
+            "description": "Diagnostic levels by diagnostic code, for example {\"used-before-defined\": \"off\", \"shadowing\": \"error\"}: off drops a diagnostic; error, warning, information or hint replaces its default severity.",
+            "propertyNames": {
+              "enum": [
+                "syntax-error",
+                "unresolved-reference",
+                "invalid-annotation",
+                "call-arity-mismatch",
+                "missing-import",
+                "cyclic-import",
+                "dead-code-after-terminator",
+                "map-literal-duplicate-keys",
+                "call-of-non-callable",
+                "index-of-non-indexable",
+                "call-signature-mismatch",
+                "type-mismatch",
+                "annotation-signature-mismatch",
+                "unused-local",
+                "unused-parameter",
+                "shadowing",
+                "self-assignment",
+                "constant-condition",
+                "used-before-defined",
+                "cyclic-inheritance",
+                "cyclic-type-definition",
+                "ignored-import-code",
+                "misplaced-import-code",
+                "native-override",
+                "unknown-member",
+                "private-member",
+                "missing-implementation",
+                "missing-case",
+                "impossible-case",
+                "optional-member",
+                "readonly-member",
+                "invalid-operation",
+                "deprecated",
+                "const-assignment",
+                "duplicate-declaration",
+                "missing-let",
+                "implicit-any"
+              ]
+            },
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "off",
+                "error",
+                "warning",
+                "information",
+                "hint"
+              ]
+            },
             "scope": "resource"
           }
         }

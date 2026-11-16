@@ -18,14 +18,14 @@ pub use rules::{
     Trigger,
 };
 pub use state::{
-    BlockStack, ChunkData, ChunkDataSnapshot, ChunkDataStack, CommentAttachment, OpenScope,
-    ParseErrorStorage, PendingBlock, ScopeStack,
+    BlockStack, ChunkData, ChunkDataSnapshot, ChunkDataStack, CommentAttachment, ParseErrorStorage,
+    PendingBlock, PendingScope, ScopeStack,
 };
 pub use stream::{ParseSnapshot, ParseStream};
 
 use crate::ast::{Ast, NodeId, NodeKind};
 use crate::diagnostics::{BlockDiagnostic, DepthDiagnostic, Diagnostic, ReportedLine};
-use crate::dialect::{Dialect, Grammar, Version};
+use crate::dialect::{Dialect, Grammar, SyntaxFeatures, Version};
 use crate::error::{ParseError, ParseResult};
 use crate::lexer::{AnyToken, Lexer};
 use crate::position::{LineIndex, Span};
@@ -36,12 +36,11 @@ pub struct ParserOptions {
     pub version: Version,
     pub filename: String,
     pub environment: HashMap<String, String>,
-    /// Retains comments and empty lines in the AST for formatting.
     pub preserve: bool,
-    /// Accepts only syntax compiled by the dialect reference: the selected MiniScript version, Grey Hack's compiler
-    /// for GreyScript, or Greybel syntax without its extensions.
     pub strict_mode: bool,
     pub mono_number_parsing: bool,
+    /// The syntax features to accept, of those the dialect has.
+    pub syntax_features: SyntaxFeatures,
 }
 
 pub const MAX_NODE_DEPTH: usize = 256;
@@ -57,12 +56,13 @@ impl ParserOptions {
             preserve: false,
             strict_mode: false,
             mono_number_parsing: false,
+            syntax_features: SyntaxFeatures::ALL,
         }
     }
 
     #[must_use]
     pub fn grammar(&self) -> &'static Grammar {
-        Grammar::get(self.dialect, self.version, self.strict_mode)
+        Grammar::with_features(self.dialect, self.version, self.strict_mode, self.syntax_features)
     }
 }
 
@@ -216,6 +216,14 @@ impl<'src> Parser<'src> {
         self.raise(ParseError::from_parser(diagnostic, span))
     }
 
+    pub fn report_at(&mut self, diagnostic: impl Into<Diagnostic>, span: Span) -> ParseResult<()> {
+        let mut error = ParseError::from_parser(diagnostic, span);
+
+        error.reported_line = Some(self.reported_line(&error.diagnostic));
+
+        self.stream.diagnostics.report_global(error)
+    }
+
     pub fn alloc(&mut self, kind: impl Into<NodeKind>, span: Span) -> NodeId {
         let id = self
             .stream
@@ -269,17 +277,24 @@ impl<'src> Parser<'src> {
         self.stream.chunk_data.current_mut().line_items.push(id);
     }
 
-    pub fn scope_data_mut(&mut self) -> &mut OpenScope {
+    pub fn scope_data_mut(&mut self) -> &mut PendingScope {
         self.stream
             .scopes
             .current_mut()
-            .expect("a scope is open while parsing statements")
+            .expect("a scope is pending while parsing statements")
     }
 
     pub fn enter_scope(&mut self, scope: NodeId) {
         if self.stream.scopes.enter(scope, &mut self.stream.nodes) {
             self.stream.chunk_data.current_mut().scopes.push(scope);
         }
+    }
+
+    /// Adds to the data of the completed scope `scope` (a function), until [`Self::exit_scope`].
+    pub fn resume_scope(&mut self, scope: NodeId) {
+        self.stream
+            .scopes
+            .resume_scope(scope, &mut self.stream.nodes);
     }
 
     pub fn exit_scope(&mut self) {

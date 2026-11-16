@@ -66,7 +66,7 @@ pub fn format_apt_sources(repositories: &[AptSource], official: bool) -> String 
         .collect::<Vec<_>>()
         .join(",\n");
 
-    // `Service_repod.ClientConfigInfo` written with `JsonConvert.SerializeObject(…, Formatting.Indented)`: its fields
+    // `Service_repod.ClientConfigInfo` written with `JsonConvert.SerializeObject(config, Formatting.Indented)`: its fields
     // in declaration order, and an empty dictionary as `{}`. A new computer's file (`configGeneration["sources"]`) is
     // the same text as the default object written this way.
     let sources = if entries.is_empty() {

@@ -1,0 +1,13 @@
+command = "ls"
+switch command
+	case "ls", "dir"
+		print("list")
+	case "exit"
+		exit
+	else
+		print("unknown")
+end switch
+switch command.len
+	case 2
+		print(2)
+end switch

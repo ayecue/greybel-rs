@@ -3,12 +3,16 @@ use std::num::NonZeroU32;
 
 use super::{DumpContext, NodeList, NodeListStorage, Scope};
 use crate::position::Span;
-use crate::syntax::greybel::{Bitwise, Debugger, Envar, File, Import, Include, Inject, Line};
+use crate::syntax::greybel::{
+    Assert, Bitwise, Class, Coalesce, Debugger, DestructuringAssignment, Enum, Envar, Export, File,
+    Import, Include, Inject, Line, Switch, Template, Ternary, TypeAssertion, TypeStatement,
+};
 use crate::syntax::greyscript::ImportCode;
 use crate::syntax::{
     Assignment, Binary, Break, Call, CallStatement, Chunk, ComparisonGroup, Continue, ElseClause,
     Empty, For, Function, Identifier, If, IfClause, Index, Invalid, Isa, List, ListItem, Literal,
-    Logical, Map, MapEntry, Member, Noop, Parenthesis, Return, Slice, Unary, Unknown, While,
+    Logical, Map, MapEntry, Member, Noop, Parenthesis, Return, Slice, Spread, Unary, Unknown,
+    While,
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -232,6 +236,18 @@ node_kinds! {
         Chunk,
         Function,
         ComparisonGroup,
+        Template,
+        Enum,
+        Spread,
+        Assert,
+        DestructuringAssignment,
+        Switch,
+        Export,
+        Ternary,
+        Coalesce,
+        Class,
+        TypeAssertion,
+        TypeStatement,
     ],
 }
 

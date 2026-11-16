@@ -42,7 +42,7 @@ pub(crate) trait Evaluator {
     ) -> Result<Option<EvaluatedText>, EvaluationFailure>;
 
     /// Expands `{expression}` placeholders in `message`. Strings are unquoted, other values render normally, errors
-    /// become `{error: …}`, and doubled braces emit literal braces.
+    /// become `{error: <message>}`, and doubled braces emit literal braces.
     async fn interpolate(&mut self, message: &str) -> String {
         let mut text = String::new();
         let mut remainder = message;

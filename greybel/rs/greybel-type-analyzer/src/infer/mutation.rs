@@ -3,8 +3,9 @@ use greybel_symbols::names::SELF;
 
 use super::Inference;
 use super::call::{CallSite, Receiver};
+use super::context::Binding;
 use super::generic::{BindingTable, Evidence};
-use crate::model::{GenericInstance, MapId, MapOrigin, ScopeId, SlotId};
+use crate::model::{FunctionId, GenericInstance, MapId, MapOrigin, ScopeId, SlotId};
 use crate::types::{FunctionRef, Type, TypeId};
 
 pub(super) struct Mutation {
@@ -176,11 +177,115 @@ impl Inference<'_> {
             return None;
         }
 
-        for slot in self.target_slots(node) {
-            self.widen(slot, container_type);
-        }
+        self.widen_targets(node, container_type);
 
         Some(container_type)
+    }
+
+    fn widen_targets(&mut self, node: NodeId, container_type: TypeId) {
+        for slot in self.target_slots(node) {
+            self.widen(slot, container_type);
+            self.widen_fact(slot, container_type);
+            self.add_binding_change(slot, container_type);
+        }
+
+        self.widen_member_fact(node, container_type);
+    }
+
+    fn current_binding(&mut self, slot: SlotId) -> Option<(FunctionId, Binding)> {
+        let ScopeId::Function(function) = self.current_scope else {
+            return None;
+        };
+        let data = self.model.function(function);
+        let binding = if slot == data.receiver_slot {
+            Binding::Receiver
+        } else {
+            match data
+                .parameters
+                .iter()
+                .position(|parameter| parameter.slot == slot)?
+            {
+                0 if data.parameters[0].name == SELF => Binding::Receiver,
+                position => Binding::Parameter(position),
+            }
+        };
+
+        (!self.binding_use(function).assignments.contains(binding)).then_some((function, binding))
+    }
+
+    fn add_binding_change(&mut self, slot: SlotId, container_type: TypeId) {
+        let Some((function, binding)) = self.current_binding(slot) else {
+            return;
+        };
+        let changes = self.binding_changes.entry(function).or_default();
+        let change = match changes.iter().find(|&&(candidate, _)| candidate == binding) {
+            Some(&(_, slot)) => slot,
+            None => {
+                let slot = self.model.add_slot();
+
+                changes.push((binding, slot));
+
+                slot
+            }
+        };
+
+        self.widen(change, container_type);
+    }
+
+    pub(super) fn apply_binding_changes(
+        &mut self,
+        callee: FunctionId,
+        body: FunctionId,
+        site: &CallSite<'_>,
+    ) {
+        let uses = self.binding_use(callee);
+        let additions = self.additions(callee, uses);
+        let parameters = self.model.function(callee).parameters.len();
+        let arguments: Vec<NodeId> = (0..=parameters)
+            .map(|position| match position.checked_sub(1) {
+                None => Binding::Receiver,
+                Some(position) => Binding::Parameter(position),
+            })
+            .filter(|&binding| additions.contains(binding) && !uses.assignments.contains(binding))
+            .filter_map(|binding| Some(self.binding_argument(callee, binding, site)?.0))
+            .collect();
+
+        for node in arguments {
+            if !matches!(self.ast().kind(node), NodeKind::Identifier(_)) {
+                continue;
+            }
+
+            for slot in self.target_slots(node) {
+                if let Some((function, binding)) = self.current_binding(slot) {
+                    let site = self.model.function(function).site;
+
+                    self.add_indirect_addition(site, binding);
+                }
+            }
+        }
+
+        let Some(changes) = self.binding_changes.get(&body) else {
+            return;
+        };
+        let changes: Vec<(Binding, TypeId)> = changes
+            .iter()
+            .filter_map(|&(binding, slot)| Some((binding, self.model.known_slot_type(slot)?)))
+            .collect();
+
+        for (binding, container_type) in changes {
+            let Some((node, current)) = self.binding_argument(callee, binding, site) else {
+                continue;
+            };
+            // Without a call context, an `any` in a change stands for the call's arguments, which weren't bound.
+            let unbound = body == callee
+                && self
+                    .types
+                    .contains(container_type, &|shape| matches!(shape, Type::Any));
+
+            if !unbound && self.has_shape_of(current, container_type) {
+                self.widen_targets(node, container_type);
+            }
+        }
     }
 
     fn has_shape_of(&self, ty: TypeId, pattern: TypeId) -> bool {
@@ -228,7 +333,13 @@ impl Inference<'_> {
                 let Some(key) = self.literal_key(index.index) else {
                     return Vec::new();
                 };
-                let base = self.node_type(index.base).unwrap_or(TypeId::UNKNOWN);
+                let base_slots = self.target_slots(index.base);
+                let base = self.types.union_all(
+                    base_slots
+                        .iter()
+                        .map(|&slot| self.model.slot_type(slot))
+                        .collect::<Vec<_>>(),
+                );
 
                 self.lookup().entry_slots(base, key.as_key_ref()).to_vec()
             }
@@ -269,9 +380,7 @@ impl Inference<'_> {
 
         let container_type = self.types.union_all(container_types);
 
-        for slot in self.target_slots(target) {
-            self.widen(slot, container_type);
-        }
+        self.widen_targets(target, container_type);
     }
 
     pub(super) fn merge_generic_instances(&mut self, ty: TypeId) -> TypeId {

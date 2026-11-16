@@ -10,19 +10,40 @@ pub struct DocComment {
     pub params: Vec<ParamDoc>,
     pub returns: Option<TypeExpr>,
     pub returns_description: Option<String>,
+    /// The text of a `@deprecated` tag, empty when it has none.
+    pub deprecation: Option<String>,
     pub defined_type: Option<TypeExpr>,
     pub mutated_parameter: Option<String>,
     pub templates: Vec<TemplateDoc>,
     pub types: Vec<TypeDoc>,
+    /// `@typedef {T} Name<U>`: names for types, like `type Name<U> = T`.
+    pub aliases: Vec<AliasDoc>,
     pub invalid_tags: Vec<InvalidTag>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AliasDoc {
+    pub name: String,
+    pub type_parameters: Vec<String>,
+    pub ty: TypeExpr,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParamDoc {
     pub name: String,
+    pub name_position: TextPosition,
     pub ty: Option<TypeExpr>,
     pub description: Option<String>,
     pub optional: bool,
+}
+
+/// A byte range in one line of a comment block: `line` is the line's index in the block, `start` and `end` count
+/// from the start of the comment text after `//`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct TextPosition {
+    pub line: usize,
+    pub start: usize,
+    pub end: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,13 +66,21 @@ pub struct TypeDoc {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PropertyDoc {
+    /// The index of the tag's line in the comment block.
+    pub line: usize,
     pub path: Vec<String>,
     pub ty: TypeExpr,
     pub description: Option<String>,
+    /// `[name]`: the key may be missing from the map.
+    pub optional: bool,
+    /// `{readonly T}`: only assigned where the type's maps are made.
+    pub readonly: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FunctionDoc {
+    /// The index of the tag's line in the comment block.
+    pub line: usize,
     pub name: String,
     pub params: Vec<ParamDoc>,
     pub returns: Option<TypeExpr>,
@@ -60,7 +89,6 @@ pub struct FunctionDoc {
     pub examples: Vec<String>,
 }
 
-/// A type parsed from a documentation tag.
 enum TagType {
     Present(TypeExpr),
     Missing,
@@ -84,6 +112,7 @@ impl DocComment {
         let mut reader = Reader::default();
 
         for (index, line) in lines.iter().enumerate() {
+            reader.line_start = line.len() - line.trim_start().len();
             reader.read_line(index, line.trim());
         }
 
@@ -97,6 +126,7 @@ enum Section {
     Example,
     Param(usize),
     Returns,
+    Deprecation,
     Type(usize),
     Function(usize, usize),
     FunctionExample(usize, usize),
@@ -105,6 +135,7 @@ enum Section {
 
 struct Reader {
     doc: DocComment,
+    line_start: usize,
     description: Vec<String>,
     section: Section,
     mutations: Vec<(usize, Option<(usize, usize)>)>,
@@ -114,6 +145,7 @@ impl Default for Reader {
     fn default() -> Self {
         Self {
             doc: DocComment::default(),
+            line_start: 0,
             description: Vec::new(),
             section: Section::Description,
             mutations: Vec::new(),
@@ -133,7 +165,7 @@ impl Reader {
             .unwrap_or((tag_text, ""));
         let remainder = remainder.trim();
         let section = match Tag::parse(tag) {
-            Some(Tag::Param | Tag::Params) => self.read_param(index, remainder),
+            Some(Tag::Param | Tag::Params) => self.read_param(index, line, remainder),
             Some(Tag::Return | Tag::Returns) => self.read_returns(index, remainder),
             Some(Tag::Mutates) => self.read_mutates(index, remainder),
             Some(tag @ Tag::Define) => {
@@ -150,11 +182,18 @@ impl Reader {
                 self.read_type_declaration(index, tag, remainder)
             }
             Some(Tag::Template) => self.read_template(index, remainder),
+            Some(Tag::Typedef) => self.read_typedef(index, remainder),
             Some(Tag::Extends) => self.read_extends(index, remainder),
             Some(Tag::Property | Tag::Prop) => self.read_property(index, remainder),
             Some(Tag::Function) => self.read_function(index, remainder),
             Some(Tag::Description) => Some(self.read_description(remainder)),
             Some(Tag::Example) => Some(self.read_example(remainder)),
+            Some(Tag::Deprecated) => {
+                self.doc.deprecation = Some(remainder.to_owned());
+
+                Some(Section::Deprecation)
+            }
+            Some(Tag::Ignore | Tag::IgnoreFile) => Some(Section::Other),
             None => {
                 self.description.push(line.to_owned());
 
@@ -173,6 +212,15 @@ impl Reader {
                 Self::append_line(&mut self.doc.params[index].description, line)
             }
             Section::Returns => Self::append_line(&mut self.doc.returns_description, line),
+            Section::Deprecation => {
+                let text = self.doc.deprecation.get_or_insert_default();
+
+                if !text.is_empty() {
+                    text.push('\n');
+                }
+
+                text.push_str(line);
+            }
             Section::Type(index) => Self::append_line(&mut self.doc.types[index].description, line),
             Section::Function(ty, function) => {
                 Self::append_line(
@@ -189,7 +237,7 @@ impl Reader {
         }
     }
 
-    fn read_param(&mut self, index: usize, remainder: &str) -> Option<Section> {
+    fn read_param(&mut self, index: usize, line: &str, remainder: &str) -> Option<Section> {
         let (ty, remainder) = TypeExpr::parse_braced_prefix(remainder);
         let ty = match self.type_or_invalid(index, Tag::Param, ty) {
             TagType::Present(ty) => Some(ty),
@@ -206,8 +254,14 @@ impl Reader {
             return self.report_invalid(index, &Self::tag_message(Tag::Param, "requires a name"));
         }
 
+        let start = self.line_start + (name.as_ptr().addr() - line.as_ptr().addr());
         let param = ParamDoc {
             name: name.to_owned(),
+            name_position: TextPosition {
+                line: index,
+                start,
+                end: start + name.len(),
+            },
             ty,
             description: Self::trimmed_text(text),
             optional,
@@ -342,7 +396,7 @@ impl Reader {
         };
 
         if names.contains('=') {
-            return self.report_invalid(index, "generic defaults are not supported");
+            return self.report_invalid(index, "Generic defaults are not supported.");
         }
 
         for name in names.split(',') {
@@ -364,6 +418,46 @@ impl Reader {
                 bound: bound.clone(),
             });
         }
+
+        Some(Section::Other)
+    }
+
+    /// `@typedef {T} Name` or `@typedef {T} Name<U, V>`; without `<...>` the `@template` names of the block are the
+    /// type parameters.
+    fn read_typedef(&mut self, index: usize, remainder: &str) -> Option<Section> {
+        let (expr, remainder) = TypeExpr::parse_braced_prefix(remainder);
+        let Ok(Some(ty)) = expr else {
+            return self.report_invalid(index, &Self::tag_message(Tag::Typedef, "requires a type"));
+        };
+        let declaration = remainder.split_whitespace().next().unwrap_or_default();
+        let (name, parameters) = match declaration.split_once('<') {
+            Some((name, parameters)) => (name, Some(parameters.trim_end_matches('>'))),
+            None => (declaration, None),
+        };
+
+        if name.is_empty() {
+            return self.report_invalid(index, &Self::tag_message(Tag::Typedef, "requires a name"));
+        }
+
+        let type_parameters = match parameters {
+            Some(parameters) => parameters
+                .split(',')
+                .map(|parameter| parameter.trim().to_owned())
+                .filter(|parameter| !parameter.is_empty())
+                .collect(),
+            None => self
+                .doc
+                .templates
+                .iter()
+                .map(|template| template.name.clone())
+                .collect(),
+        };
+
+        self.doc.aliases.push(AliasDoc {
+            name: name.to_owned(),
+            type_parameters,
+            ty,
+        });
 
         Some(Section::Other)
     }
@@ -398,6 +492,7 @@ impl Reader {
         let (path, text) = remainder
             .split_once(char::is_whitespace)
             .unwrap_or((remainder, ""));
+        let optional = path.starts_with('[');
         let path: Vec<String> = path
             .trim_matches(['[', ']'])
             .split('.')
@@ -410,9 +505,12 @@ impl Reader {
         }
 
         self.doc.types[ty].properties.push(PropertyDoc {
+            line: index,
             path,
             ty: expr,
             description: Self::trimmed_text(text),
+            optional,
+            readonly: braced_remainder.is_some(),
         });
 
         Some(Section::Type(ty))
@@ -430,6 +528,7 @@ impl Reader {
         let functions = &mut self.doc.types[ty].functions;
 
         functions.push(FunctionDoc {
+            line: index,
             name: name.to_owned(),
             params: Vec::new(),
             returns: None,
@@ -535,7 +634,7 @@ impl Reader {
     }
 
     fn tag_message(tag: Tag, message: &str) -> String {
-        format!("{TAG_PREFIX}{tag} {message}")
+        format!("{TAG_PREFIX}{tag} {message}.")
     }
 
     fn report_invalid<T>(&mut self, line: usize, message: &str) -> Option<T> {

@@ -1,0 +1,36 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/asserts.src
+---
+=== default
+x=1
+if not (x>0) then exit("x must be positive")
+if not (x==1) then exit("Assertion failed at unknown:3")
+assert=2
+print(assert+15)
+=== uglify
+globals.I=globals
+J=1
+if not (J>0) then exit("x must be positive")
+if not (J==1) then exit("Assertion failed at unknown:3")
+K=2
+print(K+15)
+=== beautify
+x = 1
+if not (x > 0) then exit("x must be positive")
+if not (x == 1) then exit("Assertion failed at unknown:3")
+assert = 2
+print assert + 15
+=== beautify, dev mode
+x = 1
+assert x > 0, "x must be positive"
+assert x == 1
+assert = 2
+print assert + 0o17
+=== beautify, dev mode, keep parentheses, 10 spaces
+x = 1
+assert x > 0, "x must be positive"
+assert x == 1
+assert = 2
+print(assert + 0o17)

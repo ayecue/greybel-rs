@@ -1,0 +1,13 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/switch-unclosed.src
+---
+--- strict
+1:1 - 1:1 UnclosedBlock(4002): 'switch' without matching 'end switch'
+    hint: Add 'end switch' to close this block
+--- tree
+Chunk[1:1-3:1][]
+--- errors
+1:1 - 1:1 UnclosedBlock(4002): 'switch' without matching 'end switch'
+    hint: Add 'end switch' to close this block

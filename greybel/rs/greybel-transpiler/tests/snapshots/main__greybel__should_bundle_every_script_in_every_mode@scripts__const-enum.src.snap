@@ -1,0 +1,42 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/const-enum.src
+---
+=== default
+Port={"Ssh":22,"Http":80,"Name":"web"}
+limit=3
+print(22+80)
+print("web")
+Port.Http=8080
+print(80)
+print(Port["Ssh"])
+=== uglify
+globals.I=globals
+J={"Ssh":22,"Http":80,"Name":"web"}
+K=3
+print(22+80)
+print("web")
+J.Http=8080
+print(80)
+print(J["Ssh"])
+=== beautify
+Port = {"Ssh": 22, "Http": 80, "Name": "web"}
+limit = 3
+print 22 + 80
+print "web"
+Port.Http = 8080
+print 80
+print Port["Ssh"]
+=== beautify, dev mode, keep parentheses, 10 spaces
+const enum Port
+          Ssh = 22
+          Http = 80
+          Name = "web"
+end enum
+const limit = 3
+print(Port.Ssh + Port.Http)
+print(Port.Name)
+Port.Http = 8080
+print(Port.Http)
+print(Port["Ssh"])

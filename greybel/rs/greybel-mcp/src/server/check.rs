@@ -5,7 +5,7 @@ use std::sync::Arc;
 use greybel_documents::{DocumentError, PathResolution, Uri, Workspace};
 use greybel_documents_fs_provider::FsProvider;
 use greybel_project::ProjectError;
-use greybel_type_analyzer::{Analyzer, Database, Diagnostic, Dialect, Severity};
+use greybel_type_analyzer::{Analyzer, Database, Diagnostic, DiagnosticOptions, Dialect, Severity};
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::{tool, tool_router};
 use schemars::JsonSchema;
@@ -38,6 +38,7 @@ pub struct CheckRequest {
 struct Check {
     workspace: Workspace<Database>,
     files: Vec<Uri>,
+    options: DiagnosticOptions,
 }
 
 /// Diagnostic with its containing document.
@@ -79,6 +80,7 @@ impl Check {
         let mut options = Analyzer::document_options(Dialect::GreyScript);
 
         options.parser.strict_mode = project.manifest.strict_mode;
+        options.parser.syntax_features = project.manifest.syntax.features();
 
         let mut workspace = Workspace::with_database(Database::default(), options);
 
@@ -93,7 +95,11 @@ impl Check {
         files.sort();
         files.insert(0, entry);
 
-        Ok(Self { workspace, files })
+        Ok(Self {
+            workspace,
+            files,
+            options: project.manifest.diagnostic_options(),
+        })
     }
 
     /// Per-file diagnostics in file order, sorted by source position.
@@ -103,7 +109,7 @@ impl Check {
         self.files
             .iter()
             .flat_map(|uri| {
-                let mut diagnostics = analyzer.diagnostics(uri);
+                let mut diagnostics = self.options.apply(analyzer.all_diagnostics(uri));
 
                 diagnostics.sort_by_key(|diagnostic| {
                     (

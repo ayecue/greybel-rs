@@ -1,0 +1,61 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/expression-defaults.src
+---
+=== default
+test=function(a,count,callback,size=(3))
+if @a==null then a=[]
+if @count==null then count=a.len
+if @callback==null then callback=@print
+return a
+end function
+Thing={}
+Thing.make=function(scale)
+if @scale==null then scale=self.size*2
+if scale then return scale
+end function
+=== uglify
+globals.I=globals
+J=function(M,N,O,size=(3))
+if @M==null then M=[]
+if @N==null then N=M.len
+if @O==null then O=@print
+return M
+end function
+K={}
+K.make=function(P)
+if @P==null then P=self.size*2
+if P then return P
+end function
+=== beautify
+test = function(a, count, callback, size = (3))
+	if @a == null then a = []
+	if @count == null then count = a.len
+	if @callback == null then callback = @print
+	return a
+end function
+
+Thing = {}
+Thing.make = function(scale)
+	if @scale == null then scale = self.size * 2
+	if scale then return scale
+end function
+=== beautify, dev mode
+test = function(a = [], count = a.len, callback = @print, size = (3))
+	return a
+end function
+
+Thing = {}
+Thing.make = function(scale = self.size * 2)
+	if scale then return scale
+end function
+=== beautify, dev mode, keep parentheses, 10 spaces
+test = function(a = [], count = a.len, callback = @print, size = (3))
+          return a
+end function
+
+Thing = {}
+Thing.make = function(scale = self.size * 2)
+          if scale then return scale
+end function

@@ -3,7 +3,7 @@ use greybel_symbols::names::SELF;
 use super::Inference;
 use super::generic::{BindingTable, Evidence};
 use crate::model::{ApiMethod, Key, KeyRef, MapId};
-use crate::types::{ApiFunction, FunctionRef, Type, TypeId};
+use crate::types::{ApiFunction, FunctionRef, Type, TypeId, TypeTable};
 
 impl Inference<'_> {
     pub(crate) fn method_type(&mut self, ty: TypeId, receiver: TypeId) -> TypeId {
@@ -16,6 +16,24 @@ impl Inference<'_> {
     }
 
     fn api_method(&mut self, function: ApiFunction, receiver: TypeId) -> Option<TypeId> {
+        let key = (TypeTable::api_key(function), receiver);
+
+        if let Some(&method) = self.api_methods.get(&key) {
+            return method;
+        }
+
+        let method = self.specialize_api_function(function, receiver);
+
+        self.api_methods.insert(key, method);
+
+        method
+    }
+
+    fn specialize_api_function(
+        &mut self,
+        function: ApiFunction,
+        receiver: TypeId,
+    ) -> Option<TypeId> {
         let parameters = self.lookup().api_parameter_types(function);
         let returns = self.lookup().return_type(FunctionRef::Api(function));
         let mut names = Vec::new();
@@ -47,8 +65,8 @@ impl Inference<'_> {
             })
             .collect();
         let parameters = parameters
-            .into_iter()
-            .map(|ty| self.substitute(ty, &bindings))
+            .iter()
+            .map(|&ty| self.substitute(ty, &bindings))
             .collect();
         let returns = self.substitute(returns, &bindings);
         let method = self.model.insert_api_method(ApiMethod {
@@ -101,7 +119,7 @@ impl Inference<'_> {
         let mut accepts_numbers = false;
 
         for variant in self.types.variants(key) {
-            match self.types.get(variant) {
+            match self.types.get(self.types.without_literal(variant)) {
                 Type::String => accepts_strings = true,
                 Type::Number => accepts_numbers = true,
                 _ => {

@@ -1,7 +1,8 @@
 use greybel_core::Dialect;
 use greybel_documents::{DocumentOptions, PathResolution, Uri};
+use greybel_project::{DiagnosticSettings, SyntaxSettings};
 use greybel_transpiler::{BeautifyOptions, Indentation};
-use greybel_type_analyzer::{Analyzer, DiagnosticKind, DiagnosticOptions};
+use greybel_type_analyzer::{Analyzer, DiagnosticOptions, InlayHintOptions};
 use serde::{Deserialize, Deserializer};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -14,6 +15,7 @@ pub struct Settings {
     pub hoverdocs: bool,
     pub diagnostic: bool,
     pub strict_mode: bool,
+    pub syntax: SyntaxSettings,
     pub transpiler: TranspilerSettings,
     pub type_analyzer: TypeAnalyzerSettings,
 }
@@ -43,12 +45,36 @@ pub enum IndentationKind {
 #[serde(rename_all = "camelCase", default)]
 pub struct TypeAnalyzerSettings {
     pub exclude: String,
+    pub diagnostics: DiagnosticSettings,
+    pub inlay_hints: InlayHintSettings,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct InlayHintSettings {
+    pub variable_types: bool,
+    pub parameter_names: bool,
+    pub return_types: bool,
+}
+
+impl Default for InlayHintSettings {
+    fn default() -> Self {
+        let options = InlayHintOptions::default();
+
+        Self {
+            variable_types: options.variable_types,
+            parameter_names: options.parameter_names,
+            return_types: options.return_types,
+        }
+    }
 }
 
 impl Default for TypeAnalyzerSettings {
     fn default() -> Self {
         Self {
             exclude: "**/{node_modules,.*}/**".to_owned(),
+            diagnostics: DiagnosticSettings::default(),
+            inlay_hints: InlayHintSettings::default(),
         }
     }
 }
@@ -62,6 +88,7 @@ impl Default for Settings {
             hoverdocs: true,
             diagnostic: true,
             strict_mode: false,
+            syntax: SyntaxSettings::default(),
             transpiler: TranspilerSettings::default(),
             type_analyzer: TypeAnalyzerSettings::default(),
         }
@@ -122,21 +149,25 @@ impl Settings {
         let mut options = Analyzer::document_options(dialect);
 
         options.parser.strict_mode = self.strict_mode;
+        options.parser.syntax_features = self.syntax.features();
 
         options
     }
 
     #[must_use]
     pub fn diagnostic_options(&self) -> DiagnosticOptions {
-        let mut options = DiagnosticOptions::default();
+        self.type_analyzer.diagnostics.options(self.strict_mode)
+    }
 
-        if !self.strict_mode {
-            options
-                .disabled_kinds
-                .insert(DiagnosticKind::CallSignatureMismatch);
+    #[must_use]
+    pub fn inlay_hint_options(&self) -> InlayHintOptions {
+        let hints = self.type_analyzer.inlay_hints;
+
+        InlayHintOptions {
+            variable_types: hints.variable_types,
+            parameter_names: hints.parameter_names,
+            return_types: hints.return_types,
         }
-
-        options
     }
 
     #[must_use]

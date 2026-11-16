@@ -1,0 +1,14 @@
+switch command
+	case "ls", "dir"
+		list_files
+	case "exit"
+		exit
+	else
+		print "unknown"
+end switch
+switch a.kind
+	case is map
+		print 1
+end switch
+switch = 1
+case = 2

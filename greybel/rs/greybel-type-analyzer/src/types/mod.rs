@@ -6,8 +6,8 @@ use std::hash::{Hash, Hasher};
 pub use display::TypeDisplay;
 pub(crate) use display::TypeNotation;
 use meta_utils::{BaseType, Function};
-pub(crate) use table::CachedApiMember;
 pub use table::TypeTable;
+pub(crate) use table::{CachedApiMember, ResolvedApiSignature};
 
 use crate::index::index_type;
 use crate::model::{ApiMethodId, DeclaredId, FunctionId, MapId};
@@ -18,6 +18,7 @@ index_type! {
 
 impl TypeId {
     pub const ANY: Self = Self::from_u32(1);
+    pub const NEVER: Self = Self::from_u32(5);
     pub const NULL: Self = Self::from_u32(2);
     pub const NUMBER: Self = Self::from_u32(3);
     pub const STRING: Self = Self::from_u32(4);
@@ -28,29 +29,63 @@ impl TypeId {
 pub enum Type {
     Unknown,
     Any,
+    Never,
     Null,
     Number,
     String,
     List(TypeId),
-    Map { key: TypeId, value: TypeId },
+    Map {
+        key: TypeId,
+        value: TypeId,
+    },
     Object(MapId),
     Function(FunctionRef),
     Class(&'static str),
-    TypeParameter { name: Box<str>, bound: TypeId },
+    TypeParameter {
+        name: Box<str>,
+        bound: TypeId,
+    },
     Union(Box<[TypeId]>),
+    /// A string or number written as a type (`"tcp"`, `22`). Only annotations make them; inference gives literal
+    /// values the type `string` or `number`.
+    Literal(LiteralType),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum LiteralType {
+    String(Box<str>),
+    /// The bits of the number.
+    Number(u64),
+}
+
+impl LiteralType {
+    #[must_use]
+    pub fn number(value: f64) -> Self {
+        Self::Number(value.to_bits())
+    }
+
+    /// The type of the values: `string` or `number`.
+    #[must_use]
+    pub fn base(&self) -> TypeId {
+        match self {
+            Self::String(_) => TypeId::STRING,
+            Self::Number(_) => TypeId::NUMBER,
+        }
+    }
 }
 
 impl Type {
     #[must_use]
     pub fn base_type(&self) -> Option<BaseType> {
         Some(match self {
-            Self::Number => BaseType::Number,
-            Self::String => BaseType::String,
+            Self::Number | Self::Literal(LiteralType::Number(_)) => BaseType::Number,
+            Self::String | Self::Literal(LiteralType::String(_)) => BaseType::String,
             Self::List(_) => BaseType::List,
             Self::Map { .. } | Self::Object(_) | Self::Class(_) => BaseType::Map,
             Self::Function(_) => BaseType::Function,
             Self::Unknown
             | Self::Any
+            | Self::Never
             | Self::Null
             | Self::TypeParameter { .. }
             | Self::Union(_) => {

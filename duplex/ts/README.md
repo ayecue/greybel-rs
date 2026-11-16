@@ -35,7 +35,7 @@ A generated module contains:
 | Union | An abstract base class and one class per variant in its namespace, such as `new Output.Print({ ... })`; use `instanceof` to discriminate variants |
 | Enum | A numeric TypeScript `enum` |
 | Binary codecs | `value.write(writer)` and `Type.read(reader)` for structs, unions, and messages |
-| Message | A `Message<Sender, Fields, Exchange>` subclass with static `id`, `since`, and `sender`; its exchange is `ValueResponse<R, F>`, `StreamResponse<Start, End, Item, F>`, `StreamExchange<End, Item, …>`, or empty for a notification. Message classes also write and read their exchange segments |
+| Message | A `Message<Sender, Fields, Exchange>` subclass with static `id`, `since`, and `sender`; its exchange is `ValueResponse<R, F>`, `StreamResponse<Start, End, Item, F>`, `StreamExchange<End, Item, F>`, or empty for a notification. Message classes also write and read their exchange segments |
 | Peer enum | Protocol peers with their role numbers, such as `IoPeer.Program = 0` and `IoPeer.Page = 1` |
 | Protocol | Channel id, versions, fingerprints, deprecation status, peers, messages by receiver, capabilities, and optional handshake |
 | Router | A method named `on<Message>` for each handled message; unhandled calls continue through `next()` |

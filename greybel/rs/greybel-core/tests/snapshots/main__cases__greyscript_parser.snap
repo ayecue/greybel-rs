@@ -1,6 +1,5 @@
 ---
 source: greybel-core/tests/cases.rs
-assertion_line: 28
 expression: parsed
 ---
 - input:
@@ -13,25 +12,18 @@ expression: parsed
     tabWidth: 2
     unsafe: false
   output:
-    error:
-      code: 5003
-      hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-      message: parameter default value must be a literal value
-      range:
-        - - 1
-          - 14
-        - - 1
-          - 28
-    errors:
-      - code: 5003
-        hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-        message: parameter default value must be a literal value
-        range:
-          - - 1
-            - 14
-          - - 1
-            - 28
+    definitions: 1
+    dump: "Chunk[1:1-2:13][\n\tAssignmentStatement[1:1-2:13][Identifier[1:1-1:2][f] = FunctionDeclaration[1:5-2:13][AssignmentStatement[1:14-1:27][Identifier[1:14-1:15][x] = BinaryExpression[1:18-1:27][Identifier[1:18-1:21][foo] + Identifier[1:24-1:27][bar]]]]]\n]"
+    errors: []
+    extras:
+      imports: []
+      includes: []
+      injects: []
+      nativeImports: []
     lexerErrors: []
+    literals: 0
+    namespaces:
+      variable: 1
 - input:
     content: "f = function(x = getDefault())\nend function"
     env: ~
@@ -42,25 +34,18 @@ expression: parsed
     tabWidth: 2
     unsafe: false
   output:
-    error:
-      code: 5003
-      hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-      message: parameter default value must be a literal value
-      range:
-        - - 1
-          - 14
-        - - 1
-          - 31
-    errors:
-      - code: 5003
-        hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-        message: parameter default value must be a literal value
-        range:
-          - - 1
-            - 14
-          - - 1
-            - 31
+    definitions: 1
+    dump: "Chunk[1:1-2:13][\n\tAssignmentStatement[1:1-2:13][Identifier[1:1-1:2][f] = FunctionDeclaration[1:5-2:13][AssignmentStatement[1:14-1:30][Identifier[1:14-1:15][x] = CallExpression[1:18-1:30][Identifier[1:18-1:28][getDefault]()]]]]\n]"
+    errors: []
+    extras:
+      imports: []
+      includes: []
+      injects: []
+      nativeImports: []
     lexerErrors: []
+    literals: 0
+    namespaces:
+      variable: 1
 - input:
     content: "f = function(x = obj.prop)\nend function"
     env: ~
@@ -71,25 +56,18 @@ expression: parsed
     tabWidth: 2
     unsafe: false
   output:
-    error:
-      code: 5003
-      hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-      message: parameter default value must be a literal value
-      range:
-        - - 1
-          - 14
-        - - 1
-          - 27
-    errors:
-      - code: 5003
-        hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-        message: parameter default value must be a literal value
-        range:
-          - - 1
-            - 14
-          - - 1
-            - 27
+    definitions: 1
+    dump: "Chunk[1:1-2:13][\n\tAssignmentStatement[1:1-2:13][Identifier[1:1-1:2][f] = FunctionDeclaration[1:5-2:13][AssignmentStatement[1:14-1:26][Identifier[1:14-1:15][x] = MemberExpression[1:18-1:26][Identifier[1:18-1:21][obj].Identifier[1:22-1:26][prop]]]]]\n]"
+    errors: []
+    extras:
+      imports: []
+      includes: []
+      injects: []
+      nativeImports: []
     lexerErrors: []
+    literals: 0
+    namespaces:
+      variable: 1
 - input:
     content: "f = function(x = 42, y = \"hello\")\nend function"
     env: ~
@@ -122,25 +100,18 @@ expression: parsed
     tabWidth: 2
     unsafe: false
   output:
-    error:
-      code: 5003
-      hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-      message: parameter default value must be a literal value
-      range:
-        - - 1
-          - 24
-        - - 1
-          - 34
-    errors:
-      - code: 5003
-        hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-        message: parameter default value must be a literal value
-        range:
-          - - 1
-            - 24
-          - - 1
-            - 34
+    definitions: 1
+    dump: "Chunk[1:1-2:13][\n\tAssignmentStatement[1:1-2:13][Identifier[1:1-1:2][f] = FunctionDeclaration[1:5-2:13][Identifier[1:14-1:15][a], AssignmentStatement[1:17-1:22][Identifier[1:17-1:18][b] = Literal[1:21-1:22][1]], AssignmentStatement[1:24-1:33][Identifier[1:24-1:25][c] = CallExpression[1:28-1:33][Identifier[1:28-1:31][foo]()]]]]\n]"
+    errors: []
+    extras:
+      imports: []
+      includes: []
+      injects: []
+      nativeImports: []
     lexerErrors: []
+    literals: 1
+    namespaces:
+      variable: 1
 - input:
     content: "import_code(\"myfile\")"
     env: ~
@@ -659,25 +630,18 @@ expression: parsed
     tabWidth: 2
     unsafe: false
   output:
-    error:
-      code: 5003
-      hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-      message: parameter default value must be a literal value
-      range:
-        - - 14
-          - 16
-        - - 14
-          - 29
-    errors:
-      - code: 5003
-        hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-        message: parameter default value must be a literal value
-        range:
-          - - 14
-            - 16
-          - - 14
-            - 29
+    definitions: 3
+    dump: "Chunk[1:1-17:13][\n\tAssignmentStatement[1:1-4:13][Identifier[1:1-1:5][test] = Function[1:8-4:13][AssignmentStatement[1:17-1:25][Identifier[1:17-1:21][arg1] = Literal[1:24-1:25][0]], AssignmentStatement[1:27-1:40][Identifier[1:27-1:31][arg2] = Literal[1:34-1:40][test]] =>\n\t\tCallExpression[2:3-2:14][Identifier[2:3-2:8][print](Identifier[2:9-2:13][arg1])]\n\t\tCallExpression[3:3-3:14][Identifier[3:3-3:8][print](Identifier[3:9-3:13][arg2])]\n\t]]\n\tCallExpression[6:1-6:7][Identifier[6:1-6:5][test]()]\n\tCallExpression[7:1-7:19][Identifier[7:1-7:5][test](Literal[7:6-7:11][foo], Literal[7:13-7:18][false])]\n\tAssignmentStatement[9:1-12:13][Identifier[9:1-9:4][bar] = Function[9:7-12:13][AssignmentStatement[9:16-9:25][Identifier[9:16-9:20][arg1] = Literal[9:24-9:25][-1]], AssignmentStatement[9:27-9:38][Identifier[9:27-9:31][arg2] = Literal[9:34-9:38][null]] =>\n\t\tCallExpression[10:3-10:14][Identifier[10:3-10:8][print](Identifier[10:9-10:13][arg1])]\n\t\tCallExpression[11:3-11:14][Identifier[11:3-11:8][print](Identifier[11:9-11:13][arg2])]\n\t]]\n\tAssignmentStatement[14:1-17:13][Identifier[14:1-14:4][foo] = Function[14:7-17:13][AssignmentStatement[14:16-14:28][Identifier[14:16-14:20][arg1] = UnaryExpression[14:23-14:28][@ Identifier[14:24-14:28][test]]], AssignmentStatement[14:30-14:39][Identifier[14:30-14:34][arg2] = MapConstructor[14:37-14:39][]] =>\n\t\tCallExpression[15:3-15:14][Identifier[15:3-15:8][print](Identifier[15:9-15:13][arg1])]\n\t\tCallExpression[16:3-16:14][Identifier[16:3-16:8][print](Identifier[16:9-16:13][arg2])]\n\t]]\n]"
+    errors: []
+    extras:
+      imports: []
+      includes: []
+      injects: []
+      nativeImports: []
     lexerErrors: []
+    literals: 6
+    namespaces:
+      variable: 5
 - input:
     content: "if (true) then;\n\tprint(\"true\")\nelse;\n\tprint(\"false\")\nend if;\n\nwhile (false);\n\tprint(\"foo\")\nend while;\n\nfor foo in [];\n\tprint(\"foo\")\nend for;"
     env: ~
@@ -1254,25 +1218,9 @@ expression: parsed
     tabWidth: 2
     unsafe: true
   output:
-    definitions: 2
-    dump: "Chunk[1:1-17:13][\n\tAssignmentStatement[1:1-4:13][Identifier[1:1-1:5][test] = Function[1:8-4:13][AssignmentStatement[1:17-1:25][Identifier[1:17-1:21][arg1] = Literal[1:24-1:25][0]], AssignmentStatement[1:27-1:40][Identifier[1:27-1:31][arg2] = Literal[1:34-1:40][test]] =>\n\t\tCallExpression[2:3-2:14][Identifier[2:3-2:8][print](Identifier[2:9-2:13][arg1])]\n\t\tCallExpression[3:3-3:14][Identifier[3:3-3:8][print](Identifier[3:9-3:13][arg2])]\n\t]]\n\tCallExpression[6:1-6:7][Identifier[6:1-6:5][test]()]\n\tCallExpression[7:1-7:19][Identifier[7:1-7:5][test](Literal[7:6-7:11][foo], Literal[7:13-7:18][false])]\n\tAssignmentStatement[9:1-12:13][Identifier[9:1-9:4][bar] = Function[9:7-12:13][AssignmentStatement[9:16-9:25][Identifier[9:16-9:20][arg1] = Literal[9:24-9:25][-1]], AssignmentStatement[9:27-9:38][Identifier[9:27-9:31][arg2] = Literal[9:34-9:38][null]] =>\n\t\tCallExpression[10:3-10:14][Identifier[10:3-10:8][print](Identifier[10:9-10:13][arg1])]\n\t\tCallExpression[11:3-11:14][Identifier[11:3-11:8][print](Identifier[11:9-11:13][arg2])]\n\t]]\n\tCallExpression[15:3-15:14][Identifier[15:3-15:8][print](Identifier[15:9-15:13][arg1])]\n\tCallExpression[16:3-16:14][Identifier[16:3-16:8][print](Identifier[16:9-16:13][arg2])]\n]"
-    errors:
-      - code: 5003
-        hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
-        message: parameter default value must be a literal value
-        range:
-          - - 14
-            - 16
-          - - 14
-            - 29
-      - code: 4001
-        hint: ~
-        message: "'end function' without matching block starter"
-        range:
-          - - 17
-            - 13
-          - - 17
-            - 13
+    definitions: 3
+    dump: "Chunk[1:1-17:13][\n\tAssignmentStatement[1:1-4:13][Identifier[1:1-1:5][test] = Function[1:8-4:13][AssignmentStatement[1:17-1:25][Identifier[1:17-1:21][arg1] = Literal[1:24-1:25][0]], AssignmentStatement[1:27-1:40][Identifier[1:27-1:31][arg2] = Literal[1:34-1:40][test]] =>\n\t\tCallExpression[2:3-2:14][Identifier[2:3-2:8][print](Identifier[2:9-2:13][arg1])]\n\t\tCallExpression[3:3-3:14][Identifier[3:3-3:8][print](Identifier[3:9-3:13][arg2])]\n\t]]\n\tCallExpression[6:1-6:7][Identifier[6:1-6:5][test]()]\n\tCallExpression[7:1-7:19][Identifier[7:1-7:5][test](Literal[7:6-7:11][foo], Literal[7:13-7:18][false])]\n\tAssignmentStatement[9:1-12:13][Identifier[9:1-9:4][bar] = Function[9:7-12:13][AssignmentStatement[9:16-9:25][Identifier[9:16-9:20][arg1] = Literal[9:24-9:25][-1]], AssignmentStatement[9:27-9:38][Identifier[9:27-9:31][arg2] = Literal[9:34-9:38][null]] =>\n\t\tCallExpression[10:3-10:14][Identifier[10:3-10:8][print](Identifier[10:9-10:13][arg1])]\n\t\tCallExpression[11:3-11:14][Identifier[11:3-11:8][print](Identifier[11:9-11:13][arg2])]\n\t]]\n\tAssignmentStatement[14:1-17:13][Identifier[14:1-14:4][foo] = Function[14:7-17:13][AssignmentStatement[14:16-14:28][Identifier[14:16-14:20][arg1] = UnaryExpression[14:23-14:28][@ Identifier[14:24-14:28][test]]], AssignmentStatement[14:30-14:39][Identifier[14:30-14:34][arg2] = MapConstructor[14:37-14:39][]] =>\n\t\tCallExpression[15:3-15:14][Identifier[15:3-15:8][print](Identifier[15:9-15:13][arg1])]\n\t\tCallExpression[16:3-16:14][Identifier[16:3-16:8][print](Identifier[16:9-16:13][arg2])]\n\t]]\n]"
+    errors: []
     extras:
       imports: []
       includes: []
@@ -1281,7 +1229,7 @@ expression: parsed
     lexerErrors: []
     literals: 6
     namespaces:
-      variable: 8
+      variable: 5
 - input:
     content: "if (true) then;\n\tprint(\"true\")\nelse;\n\tprint(\"false\")\nend if;\n\nwhile (false);\n\tprint(\"foo\")\nend while;\n\nfor foo in [];\n\tprint(\"foo\")\nend for;"
     env: ~

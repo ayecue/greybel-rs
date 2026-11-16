@@ -1,0 +1,10 @@
+class Base
+end class
+class A extends Base
+	items = []
+	print 1
+	x = 1
+	x = 2
+end class
+class 1
+end class

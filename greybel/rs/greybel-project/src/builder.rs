@@ -31,6 +31,7 @@ impl Project {
             strict_mode: manifest.strict_mode,
             variables,
             excluded_names: build.excluded_namespaces.clone(),
+            disabled_syntax: manifest.syntax.off_names(),
         }
     }
 

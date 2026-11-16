@@ -1,0 +1,27 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/for-headers.src
+---
+Chunk[1:1-13:1][
+	For[1:1-3:8][Identifier[1:8-1:12][item] in Identifier[1:16-1:21][items]
+		AssignmentStatement[1:5-1:6][Identifier[1:5-1:6][i] = Identifier[1:5-1:5][__item_idx]]
+		CallStatment[2:2-2:9][CallExpression[2:2-2:9][Identifier[2:2-2:7][print](Identifier[2:8-2:9][i])]]
+	]
+	For[4:1-6:8][Identifier[4:5-4:5][__e] in Identifier[4:15-4:21][points]
+		AssignmentStatement[4:6-4:7][Identifier[4:6-4:7][x] = UnaryExpression[4:6-4:7][@ IndexExpression[4:6-4:7][Identifier[4:5-4:5][__e][Literal[4:5-4:5][0]]]]]
+		AssignmentStatement[4:9-4:10][Identifier[4:9-4:10][y] = UnaryExpression[4:9-4:10][@ IndexExpression[4:9-4:10][Identifier[4:5-4:5][__e][Literal[4:5-4:5][1]]]]]
+		CallStatment[5:2-5:13][CallExpression[5:2-5:13][Identifier[5:2-5:7][print](BinaryExpression[5:8-5:13][Identifier[5:8-5:9][x] + Identifier[5:12-5:13][y]])]]
+	]
+	For[7:1-9:8][Identifier[7:5-7:5][__e] in Identifier[7:21-7:29][settings]
+		AssignmentStatement[7:6-7:9][Identifier[7:6-7:9][key] = UnaryExpression[7:6-7:9][@ MemberExpression[7:6-7:9][Identifier[7:5-7:5][__e].Identifier[7:6-7:9][key]]]]
+		AssignmentStatement[7:11-7:16][Identifier[7:11-7:16][value] = UnaryExpression[7:11-7:16][@ MemberExpression[7:11-7:16][Identifier[7:5-7:5][__e].Identifier[7:11-7:16][value]]]]
+		CallStatment[8:2-8:11][CallExpression[8:2-8:11][Identifier[8:2-8:7][print](Identifier[8:8-8:11][key])]]
+	]
+	For[10:1-10:28][Identifier[10:5-10:5][__e] in Identifier[10:17-10:18][m]
+		AssignmentStatement[10:5-10:6][Identifier[10:5-10:6][i] = Identifier[10:5-10:5][____e_idx]]
+		AssignmentStatement[10:9-10:12][Identifier[10:9-10:12][key] = UnaryExpression[10:9-10:12][@ MemberExpression[10:9-10:12][Identifier[10:5-10:5][__e].Identifier[10:9-10:12][key]]]]
+		CallStatment[10:19-10:28][CallExpression[10:19-10:28][Identifier[10:19-10:24][print](Identifier[10:25-10:28][key])]]
+	]
+	ForGenericStatement[11:1-12:8][Identifier[11:5-11:9][item] in Identifier[11:13-11:18][items]]
+]

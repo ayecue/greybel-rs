@@ -22,7 +22,7 @@ pub enum KeyRef<'a> {
 impl Key {
     #[must_use]
     pub fn number(value: f64) -> Self {
-        Self::Number(if value == 0.0 { 0 } else { value.to_bits() })
+        KeyRef::number(value).to_key()
     }
 
     #[must_use]
@@ -41,6 +41,11 @@ impl Hash for Key {
 }
 
 impl<'a> KeyRef<'a> {
+    #[must_use]
+    pub fn number(value: f64) -> Self {
+        Self::Number(if value == 0.0 { 0 } else { value.to_bits() })
+    }
+
     #[must_use]
     pub fn to_key(self) -> Key {
         match self {
@@ -95,7 +100,12 @@ pub enum MapOrigin {
     New(Site),
     Iteration(Site),
     Module(DocumentIndex),
+    Singleton(&'static str),
     Custom(NameId),
-    NestedKey { owner: MapId, name: NameId },
+    NestedKey {
+        owner: MapId,
+        name: NameId,
+    },
     GenericInstance(GenericInstanceId),
+    Instance(MapId),
 }

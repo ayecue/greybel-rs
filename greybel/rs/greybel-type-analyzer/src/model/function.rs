@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use greybel_core::NodeId;
 use greybel_symbols::names::SELF;
 
@@ -13,7 +15,7 @@ pub struct FunctionData {
     pub parameters: Vec<Parameter>,
     pub return_slot: SlotId,
     pub receiver_slot: SlotId,
-    pub doc: Option<DocComment>,
+    pub doc: Option<Arc<DocComment>>,
 }
 
 impl FunctionData {
@@ -25,8 +27,6 @@ impl FunctionData {
     }
 }
 
-/// API function specialized for a receiver by substituting API generic parameters and `self` in parameter and
-/// return types.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ApiMethod {
     pub function: ApiFunction,

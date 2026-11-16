@@ -1,9 +1,13 @@
+use std::sync::Arc;
+
 use greybel_symbols::names::SELF;
 use meta_utils::{BaseType, LocalizedDefinition, TypeLookup, TypeMeta};
 
 use crate::api::Api;
 use crate::model::{Key, KeyRef, MapId, MapOrigin, SemanticModel, SlotId, SlotList};
-use crate::types::{ApiFunction, CachedApiMember, FunctionRef, Type, TypeId, TypeTable};
+use crate::types::{
+    ApiFunction, CachedApiMember, FunctionRef, ResolvedApiSignature, Type, TypeId, TypeTable,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Member {
@@ -54,6 +58,7 @@ impl<'a> Lookup<'a> {
             Type::Unknown | Type::Null | Type::Union(_) | Type::TypeParameter { .. } => {
                 TypeId::UNKNOWN
             }
+            Type::Never => TypeId::NEVER,
             Type::Any => name
                 .and_then(|name| self.api_member_type(BaseType::Any.as_str(), name))
                 .unwrap_or(TypeId::ANY),
@@ -78,6 +83,13 @@ impl<'a> Lookup<'a> {
         key.as_str()
             .and_then(|name| self.api_member_type(base.as_str(), name))
             .unwrap_or(TypeId::UNKNOWN)
+    }
+
+    pub(crate) fn has_map_member(&mut self, key: KeyRef<'_>) -> bool {
+        self.prototype_entry(BaseType::Map, key).is_some()
+            || key
+                .as_str()
+                .is_some_and(|name| self.api_member_type(BaseType::Map.as_str(), name).is_some())
     }
 
     fn prototype_entry(&self, base: BaseType, key: KeyRef<'_>) -> Option<TypeId> {
@@ -119,7 +131,15 @@ impl<'a> Lookup<'a> {
             return member_type;
         }
 
-        self.base_member_type(BaseType::Map, key)
+        let member_type = self.base_member_type(BaseType::Map, key);
+
+        if member_type == TypeId::UNKNOWN
+            && matches!(self.model.map(map).origin, MapOrigin::Singleton(_))
+        {
+            return TypeId::ANY;
+        }
+
+        member_type
     }
 
     pub(crate) fn entry_slots(&self, ty: TypeId, key: KeyRef<'_>) -> SlotList {
@@ -188,26 +208,59 @@ impl<'a> Lookup<'a> {
     pub(crate) fn return_type(&mut self, function: FunctionRef) -> TypeId {
         match function {
             FunctionRef::Any => TypeId::ANY,
-            FunctionRef::Api(function) => {
-                let returns = function.function().returns();
-
-                if returns.is_empty() {
-                    return TypeId::ANY;
-                }
-
-                let returns: Vec<TypeId> = returns
-                    .iter()
-                    .map(|meta| self.api_type_in(meta, function.origin))
-                    .collect();
-
-                self.types.union_all(returns)
-            }
+            FunctionRef::Api(function) => self.resolved_api_signature(function).returns,
             FunctionRef::Body(function) => self
                 .model
                 .slot_type(self.model.function(function).return_slot),
             FunctionRef::Signature(function) => self.model.declared_function(function).return_type,
             FunctionRef::ApiMethod(method) => self.model.api_method(method).returns,
         }
+    }
+
+    pub(crate) fn api_parameter_types(&mut self, function: ApiFunction) -> Arc<[TypeId]> {
+        self.resolved_api_signature(function).parameters
+    }
+
+    fn resolved_api_signature(&mut self, function: ApiFunction) -> ResolvedApiSignature {
+        if let Some(types) = self.types.cached_api_signature(function) {
+            return types;
+        }
+
+        let parameters = function
+            .function()
+            .arguments()
+            .iter()
+            .map(|argument| {
+                let types: Vec<TypeId> = argument
+                    .types()
+                    .iter()
+                    .map(|meta| self.api_type_in(meta, function.origin))
+                    .collect();
+
+                self.types.union_all(types)
+            })
+            .collect();
+        let returns = function.function().returns();
+        let returns = if let Some(ty) = self.model.singleton_type(function) {
+            ty
+        } else if returns.is_empty() {
+            TypeId::ANY
+        } else {
+            let returns: Vec<TypeId> = returns
+                .iter()
+                .map(|meta| self.api_type_in(meta, function.origin))
+                .collect();
+
+            self.types.union_all(returns)
+        };
+        let types = ResolvedApiSignature {
+            parameters,
+            returns,
+        };
+
+        self.types.cache_api_signature(function, types.clone());
+
+        types
     }
 
     pub(crate) fn api_type(&mut self, meta: &TypeMeta) -> TypeId {
@@ -249,28 +302,12 @@ impl<'a> Lookup<'a> {
                     TypeId::ANY
                 }
                 TypeLookup::Null => TypeId::NULL,
+                TypeLookup::Never => TypeId::NEVER,
                 TypeLookup::Class(signature) => {
                     self.types.insert(Type::Class(signature.type_name()))
                 }
             },
         }
-    }
-
-    pub(crate) fn api_parameter_types(&mut self, function: ApiFunction) -> Vec<TypeId> {
-        function
-            .function()
-            .arguments()
-            .iter()
-            .map(|argument| {
-                let types: Vec<TypeId> = argument
-                    .types()
-                    .iter()
-                    .map(|meta| self.api_type_in(meta, function.origin))
-                    .collect();
-
-                self.types.union_all(types)
-            })
-            .collect()
     }
 
     pub(crate) fn api_receiver_type(&mut self, function: ApiFunction) -> Option<TypeId> {

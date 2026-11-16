@@ -1,6 +1,5 @@
 ---
 source: greybel-core/tests/cases.rs
-assertion_line: 12
 expression: parsed
 ---
 - input:
@@ -522,7 +521,7 @@ expression: parsed
     unsafe: true
   output:
     definitions: 0
-    dump: "Chunk[1:1-1:6][]"
+    dump: "Chunk[1:1-1:6][\n\tBreakStatement[1:1-1:6]\n]"
     errors:
       - code: 5001
         hint: "'break' can only be used inside 'while' or 'for' loops"
@@ -547,7 +546,7 @@ expression: parsed
     unsafe: true
   output:
     definitions: 0
-    dump: "Chunk[1:1-1:9][]"
+    dump: "Chunk[1:1-1:9][\n\tContinueStatement[1:1-1:9]\n]"
     errors:
       - code: 5002
         hint: "'continue' can only be used inside 'while' or 'for' loops"
@@ -647,29 +646,22 @@ expression: parsed
     tabWidth: 2
     unsafe: true
   output:
-    definitions: 0
-    dump: "Chunk[1:1-2:13][]"
+    definitions: 1
+    dump: "Chunk[1:1-2:13][\n\tAssignmentStatement[1:1-2:13][Identifier[1:1-1:2][f] = FunctionDeclaration[1:5-2:13][AssignmentStatement[1:14-1:27][Identifier[1:14-1:15][x] = BinaryExpression[1:18-1:27][Identifier[1:18-1:21][foo] + Identifier[1:24-1:27][bar]]]]]\n]"
     errors:
       - code: 5003
-        hint: "Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member"
+        hint: "Only numbers, strings, booleans and null are allowed as defaults in strict mode and MiniScript; GreyScript and Greybel accept any expression otherwise"
         message: parameter default value must be a literal value
         range:
           - - 1
             - 14
           - - 1
             - 28
-      - code: 4001
-        hint: ~
-        message: "'end function' without matching block starter"
-        range:
-          - - 2
-            - 13
-          - - 2
-            - 13
     extras: {}
     lexerErrors: []
     literals: 0
-    namespaces: {}
+    namespaces:
+      variable: 1
 - input:
     content: "f = function(a, b, )\nend function"
     env: ~
@@ -2166,7 +2158,7 @@ expression: parsed
     unsafe: true
   output:
     definitions: 0
-    dump: "Chunk[1:1-31:7][\n\tCallExpression[8:9-8:21][Identifier[8:9-8:14][print](Literal[8:15-8:20][was])]\n\tIdentifier[10:9-10:12][wad]\n\tNegationExpression[12:9-12:15][not UnaryExpression[12:13-12:15][@ Identifier[12:14-12:15][a]]]\n\tNegationExpression[12:16-12:23][not BinaryNegatedExpression[12:20-12:23][- UnaryExpression[12:21-12:23][@ Identifier[12:22-12:23][b]]]]\n\tIfStatement[17:9-17:25][\n\t\tIfShortcutClause[17:9-17:25][NegationExpression[17:12-17:18][not UnaryExpression[17:16-17:18][@ Identifier[17:17-17:18][a]]]\n\t\t\tIdentifier[17:24-17:25][x]\n\t\t]\n\t]\n\tCallExpression[22:9-22:20][Identifier[22:9-22:14][print](Literal[22:15-22:19][wo])]\n\tIfStatement[24:9-28:15][\n\t\tIfClause[24:9-26:13][Literal[24:13-24:17][true]\n\t\t\tCallExpression[25:11-25:24][Identifier[25:11-25:16][print](Literal[25:17-25:23][true])]\n\t\t]\n\t\tElseClause[26:9-28:15][\n\t\t\tCallExpression[27:11-27:25][Identifier[27:11-27:16][print](Literal[27:18-27:23][false])]\n\t\t}]\n\t]\n]"
+    dump: "Chunk[1:1-31:7][\n\tBreakStatement[2:9-2:14]\n\tContinueStatement[3:9-3:17]\n\tCallExpression[8:9-8:21][Identifier[8:9-8:14][print](Literal[8:15-8:20][was])]\n\tIdentifier[10:9-10:12][wad]\n\tNegationExpression[12:9-12:15][not UnaryExpression[12:13-12:15][@ Identifier[12:14-12:15][a]]]\n\tNegationExpression[12:16-12:23][not BinaryNegatedExpression[12:20-12:23][- UnaryExpression[12:21-12:23][@ Identifier[12:22-12:23][b]]]]\n\tIfStatement[17:9-17:25][\n\t\tIfShortcutClause[17:9-17:25][NegationExpression[17:12-17:18][not UnaryExpression[17:16-17:18][@ Identifier[17:17-17:18][a]]]\n\t\t\tIdentifier[17:24-17:25][x]\n\t\t]\n\t]\n\tCallExpression[22:9-22:20][Identifier[22:9-22:14][print](Literal[22:15-22:19][wo])]\n\tIfStatement[24:9-28:15][\n\t\tIfClause[24:9-26:13][Literal[24:13-24:17][true]\n\t\t\tCallExpression[25:11-25:24][Identifier[25:11-25:16][print](Literal[25:17-25:23][true])]\n\t\t]\n\t\tElseClause[26:9-28:15][\n\t\t\tCallExpression[27:11-27:25][Identifier[27:11-27:16][print](Literal[27:18-27:23][false])]\n\t\t}]\n\t]\n]"
     errors:
       - code: 5001
         hint: "'break' can only be used inside 'while' or 'for' loops"

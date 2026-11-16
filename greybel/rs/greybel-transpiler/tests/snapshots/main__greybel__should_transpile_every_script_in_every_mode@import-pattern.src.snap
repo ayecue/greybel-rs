@@ -1,0 +1,22 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/import-pattern.src
+---
+=== default
+#import {value, label as name} from "../dependencies/shared-module.src";
+print(value)
+print(name)
+=== uglify
+globals.I=globals
+#import {value, label as name} from "../dependencies/shared-module.src";
+print(J)
+print(K)
+=== beautify
+#import {value, label as name} from "../dependencies/shared-module.src";
+print value
+print name
+=== beautify, dev mode, keep parentheses, 10 spaces
+#import {value, label as name} from "../dependencies/shared-module.src";
+print(value)
+print(name)

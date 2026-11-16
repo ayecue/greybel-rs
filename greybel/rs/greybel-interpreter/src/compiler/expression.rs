@@ -1,7 +1,8 @@
+use greybel_core::syntax::greybel::Template;
 use greybel_core::{BinaryOp, Dialect, LiteralValue, LogicalOp, NodeId, NodeKind, UnaryOp};
 use greybel_symbols::names::{GLOBALS, LOCALS, OUTER, SELF, SUPER};
 
-use super::{Compiler, Usage};
+use super::{Compiler, OptionalChain, Usage};
 use crate::bytecode::{LookupCache, Op, Operator, Scope, Truthy, UnaryOperator};
 use crate::value::{Param, Value};
 
@@ -11,13 +12,23 @@ type Result<T = ()> = super::CompileResult<T>;
 pub(crate) struct Access {
     pub reference: bool,
     pub discard: bool,
+    /// A `?.` link: `null` ends the chain.
+    pub optional: bool,
 }
 
 impl Access {
     pub const STATEMENT: Self = Self {
         reference: false,
         discard: true,
+        optional: false,
     };
+
+    fn optional(optional: bool) -> Self {
+        Self {
+            optional,
+            ..Self::default()
+        }
+    }
 }
 
 impl Compiler<'_> {
@@ -26,15 +37,30 @@ impl Compiler<'_> {
     }
 
     pub(crate) fn expression_with_capture(&mut self, id: NodeId, capture_outer: bool) -> Result {
+        if let Some(links) = self.chain_links(id) {
+            return self.optional_chain(links, |this| {
+                this.expression_with_capture(id, capture_outer)
+            });
+        }
+
         match self.kind(id) {
-            NodeKind::Member(node) => self.member(node.base, node.identifier, Access::default()),
+            NodeKind::Member(node) => {
+                self.member(node.base, node.identifier, Access::optional(node.optional))
+            }
             NodeKind::Index(node) => self.index(
                 node.base,
                 node.index,
                 node.is_statement_start,
-                Access::default(),
+                Access::optional(node.optional),
             ),
-            NodeKind::Slice(node) => self.slice(id, node.base, node.left, node.right),
+            NodeKind::Slice(node) => {
+                self.slice(id, node.base, node.left, node.right, node.optional)
+            }
+            NodeKind::Ternary(node) => {
+                self.ternary(id, node.condition, node.if_true, node.if_false)
+            }
+            NodeKind::Coalesce(node) => self.coalesce(id, node.left, node.right),
+            NodeKind::TypeAssertion(node) => self.expression(node.expression),
             NodeKind::Identifier(_) => {
                 self.identifier(id, Access::default());
 
@@ -59,11 +85,17 @@ impl Compiler<'_> {
                 None => self.expression_with_capture(node.expression, capture_outer),
             },
             NodeKind::Unary(node) => self.unary(id, node.operator, node.argument, Usage::Value),
-            NodeKind::Call(node) => self.call(node.base, self.ast().list(node.arguments), false),
+            NodeKind::Call(node) => self.call(
+                node.base,
+                self.ast().list(node.arguments),
+                false,
+                node.optional,
+            ),
             NodeKind::Bitwise(node) => {
                 self.operation(node.left, node.right, Operator::Bitwise(node.operator), id)
             }
             NodeKind::ImportCode(node) => self.import_code(id, node.eval, false),
+            NodeKind::Template(node) => self.template(id, node),
             NodeKind::Literal(_)
             | NodeKind::Empty(_)
             | NodeKind::Inject(_)
@@ -96,8 +128,47 @@ impl Compiler<'_> {
         self.push(value, id);
     }
 
-    fn slice(&mut self, id: NodeId, base: NodeId, left: NodeId, right: NodeId) -> Result {
+    /// Like the build's `"a" + (x) + "b"`: the first text piece, then each expression and later piece added on.
+    fn template(&mut self, id: NodeId, node: &Template) -> Result {
+        let source = self.ast().source();
+        let pieces: Vec<String> = node
+            .texts
+            .iter()
+            .map(|&span| Template::text(source, span).into_owned())
+            .collect();
+        let expressions = self.ast().list(node.expressions).to_vec();
+        let add = Op::binary(BinaryOp::Add.into());
+
+        self.push(Value::from_string(pieces[0].clone()), id);
+
+        for (index, &expression) in expressions.iter().enumerate() {
+            self.expression(expression)?;
+            self.emit(add.clone(), id);
+
+            let piece = &pieces[index + 1];
+
+            if !piece.is_empty() {
+                self.push(Value::from_string(piece.clone()), id);
+                self.emit(add.clone(), id);
+            }
+        }
+
+        Ok(())
+    }
+
+    fn slice(
+        &mut self,
+        id: NodeId,
+        base: NodeId,
+        left: NodeId,
+        right: NodeId,
+        optional: bool,
+    ) -> Result {
         self.expression(base)?;
+        if optional {
+            self.optional_check(base);
+        }
+
         self.expression(left)?;
         self.expression(right)?;
         self.emit(Op::Slice, id);
@@ -236,7 +307,7 @@ impl Compiler<'_> {
                 },
                 identifier,
             );
-        } else if self.is_null(base) {
+        } else if self.is_null(base) && !access.optional {
             self.push(Value::Null, base);
             self.push(name, identifier);
             self.emit(
@@ -248,6 +319,9 @@ impl Compiler<'_> {
             );
         } else {
             self.expression(self.unwrap(base))?;
+            if access.optional {
+                self.optional_check(base);
+            }
 
             let key = self.key(name);
 
@@ -302,6 +376,10 @@ impl Compiler<'_> {
             );
         } else {
             self.expression(self.unwrap(base))?;
+            if access.optional {
+                self.optional_check(base);
+            }
+
             self.expression(index)?;
             self.emit(
                 Op::GetProperty {
@@ -372,6 +450,10 @@ impl Compiler<'_> {
     }
 
     pub(crate) fn map(&mut self, id: NodeId, fields: &[NodeId], discard: bool) -> Result {
+        if self.has_spread(fields) {
+            return self.spread_collection(id, fields, discard, true);
+        }
+
         for &field in fields {
             let NodeKind::MapEntry(entry) = self.kind(field) else {
                 return Err(Box::new(self.unexpected_node_error(field)));
@@ -389,6 +471,10 @@ impl Compiler<'_> {
     }
 
     pub(crate) fn list(&mut self, id: NodeId, fields: &[NodeId], discard: bool) -> Result {
+        if self.has_spread(fields) {
+            return self.spread_collection(id, fields, discard, false);
+        }
+
         for &field in fields {
             let NodeKind::ListItem(item) = self.kind(field) else {
                 return Err(Box::new(self.unexpected_node_error(field)));
@@ -400,6 +486,65 @@ impl Compiler<'_> {
         let items = u32::try_from(fields.len()).expect("fewer than 2^32 items");
 
         self.emit(Op::MakeList { items, discard }, id);
+
+        Ok(())
+    }
+
+    fn has_spread(&self, fields: &[NodeId]) -> bool {
+        fields
+            .iter()
+            .any(|&field| matches!(self.kind(field), NodeKind::Spread(_)))
+    }
+
+    /// Like the build's `[] + a + [1]`: an empty collection, then each spread argument and each run of other
+    /// fields added on.
+    fn spread_collection(
+        &mut self,
+        id: NodeId,
+        fields: &[NodeId],
+        discard: bool,
+        map: bool,
+    ) -> Result {
+        let add = Op::binary(BinaryOp::Add.into());
+        let empty = |this: &mut Self, fields: &[NodeId]| {
+            if map {
+                this.map(id, fields, false)
+            } else {
+                this.list(id, fields, false)
+            }
+        };
+
+        empty(self, &[])?;
+
+        let spreads: Vec<Option<NodeId>> = fields
+            .iter()
+            .map(|&field| match self.kind(field) {
+                NodeKind::Spread(spread) => Some(spread.argument),
+                _ => None,
+            })
+            .collect();
+        let mut index = 0;
+
+        while index < fields.len() {
+            if let Some(argument) = spreads[index] {
+                self.expression(argument)?;
+                index += 1;
+            } else {
+                let end = spreads[index..]
+                    .iter()
+                    .position(Option::is_some)
+                    .map_or(fields.len(), |offset| index + offset);
+
+                empty(self, &fields[index..end])?;
+                index = end;
+            }
+
+            self.emit(add.clone(), id);
+        }
+
+        if discard {
+            self.emit(Op::Pop, id);
+        }
 
         Ok(())
     }
@@ -442,6 +587,7 @@ impl Compiler<'_> {
                 c.use_slots(layout, &params);
             }
 
+            c.expression_defaults(parameters)?;
             c.body(body)?;
             c.emit_internal(Op::Return(Some(Value::Null)));
 
@@ -474,12 +620,24 @@ impl Compiler<'_> {
                 let access = Access {
                     reference: true,
                     discard,
+                    optional: false,
                 };
 
                 return match self.kind(argument) {
-                    NodeKind::Member(node) => self.member(node.base, node.identifier, access),
+                    NodeKind::Member(node) => self.member(
+                        node.base,
+                        node.identifier,
+                        Access {
+                            optional: node.optional,
+                            ..access
+                        },
+                    ),
                     NodeKind::Index(node) => {
                         let access = if discard { access } else { Access::default() };
+                        let access = Access {
+                            optional: node.optional,
+                            ..access
+                        };
 
                         self.index(node.base, node.index, node.is_statement_start, access)
                     }
@@ -507,9 +665,19 @@ impl Compiler<'_> {
         Ok(())
     }
 
-    pub(crate) fn call(&mut self, base: NodeId, arguments: &[NodeId], discard: bool) -> Result {
+    pub(crate) fn call(
+        &mut self,
+        base: NodeId,
+        arguments: &[NodeId],
+        discard: bool,
+        optional: bool,
+    ) -> Result {
         let count = u32::try_from(arguments.len()).expect("fewer than 2^32 arguments");
-        let (op, at) = self.callee(base, count, discard)?;
+        let (op, at) = if optional {
+            self.optional_callee(base, count, discard)?
+        } else {
+            self.callee(base, count, discard)?
+        };
 
         for &argument in arguments {
             self.expression(argument)?;
@@ -525,6 +693,21 @@ impl Compiler<'_> {
         let call = Some(count);
 
         match self.kind(callee) {
+            NodeKind::Member(node) if node.optional => {
+                self.expression(self.unwrap(node.base))?;
+                self.optional_check(node.base);
+
+                let key = self.key(self.name(node.identifier).unwrap_or_default());
+
+                Ok((Op::GetMember { key, call, discard }, node.identifier))
+            }
+            NodeKind::Index(node) if node.optional => {
+                self.expression(self.unwrap(node.base))?;
+                self.optional_check(node.base);
+                self.expression(node.index)?;
+
+                Ok((Op::GetProperty { call, discard }, node.index))
+            }
             NodeKind::Member(node) if self.is_super(node.base) => {
                 let key = Some(self.key(self.name(node.identifier).unwrap_or_default()));
                 let op = Op::GetSuperProperty { key, call, discard };
@@ -585,6 +768,7 @@ impl Compiler<'_> {
                 let access = Access {
                     reference: true,
                     discard: false,
+                    optional: false,
                 };
 
                 self.identifier(callee, access);
@@ -607,5 +791,236 @@ impl Compiler<'_> {
                 Ok((op, callee))
             }
         }
+    }
+
+    /// `base?.(arguments)`: the function value of `base` (not called), `null` ends the chain, then the call. A member
+    /// (`a.f?.(x)`, `self.f?.(x)`) is called on its receiver, which is evaluated once. An index (`a[k]?.(x)`) is
+    /// called as a function value without `self`, as GreyScript has no `a[k](x)` call a build could write.
+    fn optional_callee(&mut self, base: NodeId, count: u32, discard: bool) -> Result<(Op, NodeId)> {
+        let callee = self.unwrap(base);
+        let call = Some(count);
+
+        match self.kind(callee) {
+            NodeKind::Member(node) if self.is_self(node.base) || self.is_super(node.base) => {
+                let key = Some(self.key(self.name(node.identifier).unwrap_or_default()));
+                let receiver_property = |key, call, discard| {
+                    if self.is_super(node.base) {
+                        Op::GetSuperProperty { key, call, discard }
+                    } else {
+                        Op::GetSelfProperty { key, call, discard }
+                    }
+                };
+                let read = receiver_property(key.clone(), None, false);
+                let op = receiver_property(key, call, discard);
+
+                self.emit(read, node.identifier);
+                self.optional_method_check(callee, 1);
+
+                Ok((op, node.identifier))
+            }
+            NodeKind::Member(node) => {
+                self.expression(self.unwrap(node.base))?;
+                if node.optional {
+                    self.optional_check(node.base);
+                }
+
+                let key = self.key(self.name(node.identifier).unwrap_or_default());
+
+                self.emit(Op::Duplicate(1), node.identifier);
+                self.emit(
+                    Op::GetMember {
+                        key: key.clone(),
+                        call: None,
+                        discard: false,
+                    },
+                    node.identifier,
+                );
+                self.optional_method_check(callee, 2);
+
+                Ok((Op::GetMember { key, call, discard }, node.identifier))
+            }
+            NodeKind::Index(node) => {
+                let reference = Access {
+                    reference: true,
+                    discard: false,
+                    optional: node.optional,
+                };
+
+                self.index(node.base, node.index, false, reference)?;
+                self.optional_check(callee);
+
+                Ok((
+                    Op::Call {
+                        arguments: count,
+                        discard,
+                    },
+                    callee,
+                ))
+            }
+            NodeKind::Identifier(_) => {
+                let reference = Access {
+                    reference: true,
+                    ..Access::default()
+                };
+
+                self.identifier(callee, reference);
+                self.optional_check(callee);
+
+                Ok((
+                    Op::Call {
+                        arguments: count,
+                        discard,
+                    },
+                    callee,
+                ))
+            }
+            _ => {
+                self.expression(callee)?;
+                self.optional_check(callee);
+
+                Ok((
+                    Op::Call {
+                        arguments: count,
+                        discard,
+                    },
+                    callee,
+                ))
+            }
+        }
+    }
+
+    /// With the function value of a method on top of the `values - 1` values its call reads (receiver and key): a
+    /// `null` function ends the chain with `null`, else the function value is dropped.
+    fn optional_method_check(&mut self, at: NodeId, values: u8) {
+        let end = self
+            .chains
+            .last()
+            .map(|chain| chain.end)
+            .expect("a `?.` call is compiled in its chain");
+        let present = self.label();
+
+        self.null_test(at);
+        self.jump(Self::jump_if_false(), present, at);
+
+        for _ in 0..values {
+            self.emit(Op::Pop, at);
+        }
+
+        self.push(Value::Null, at);
+        self.jump(Op::Jump(0), end, at);
+        self.set_label(present);
+        self.emit(Op::Pop, at);
+    }
+
+    /// `condition ? if_true : if_false`.
+    fn ternary(
+        &mut self,
+        id: NodeId,
+        condition: NodeId,
+        if_true: NodeId,
+        if_false: NodeId,
+    ) -> Result {
+        let otherwise = self.label();
+        let end = self.label();
+
+        self.expression(condition)?;
+        self.jump(Self::jump_if_false(), otherwise, id);
+        self.expression(if_true)?;
+        self.jump(Op::Jump(0), end, id);
+        self.set_label(otherwise);
+        self.expression(if_false)?;
+        self.set_label(end);
+
+        Ok(())
+    }
+
+    /// `left ?? right`: `left` stays unless it is `null`.
+    fn coalesce(&mut self, id: NodeId, left: NodeId, right: NodeId) -> Result {
+        let end = self.label();
+
+        self.expression(left)?;
+        self.null_test(id);
+        self.jump(Self::jump_if_false(), end, id);
+        self.emit(Op::Pop, id);
+        self.expression(right)?;
+        self.set_label(end);
+
+        Ok(())
+    }
+
+    /// Pushes whether the value on top of the stack is `null`, without taking it.
+    fn null_test(&mut self, at: NodeId) {
+        self.emit(Op::Duplicate(1), at);
+        self.push(Value::Null, at);
+        self.emit(Op::binary(Operator::from(BinaryOp::Equal)), at);
+    }
+
+    /// After the base of a `?.` link: a `null` base ends the chain with `null` as its value.
+    fn optional_check(&mut self, at: NodeId) {
+        let end = self
+            .chains
+            .last()
+            .map(|chain| chain.end)
+            .expect("a `?.` link is compiled in its chain");
+        let jump = Op::JumpIf {
+            target: 0,
+            when: Truthy::True,
+            push_condition: false,
+        };
+
+        self.null_test(at);
+        self.jump(jump, end, at);
+    }
+
+    /// The links of the chain `id` when it has a `?.` link and isn't a link of the chain being compiled.
+    pub(crate) fn chain_links(&self, id: NodeId) -> Option<Vec<NodeId>> {
+        if self
+            .chains
+            .last()
+            .is_some_and(|chain| chain.links.contains(&id))
+        {
+            return None;
+        }
+
+        let mut links = vec![id];
+        let mut current = match self.kind(id) {
+            NodeKind::Unary(node) if node.operator == UnaryOp::AddressOf => node.argument,
+            _ => id,
+        };
+        let mut optional = false;
+
+        loop {
+            let (base, link_optional) = match self.kind(current) {
+                NodeKind::Member(node) => (node.base, node.optional),
+                NodeKind::Index(node) => (node.base, node.optional),
+                NodeKind::Slice(node) => (node.base, node.optional),
+                NodeKind::Call(node) => (node.base, node.optional),
+                _ => break,
+            };
+
+            links.push(current);
+            optional |= link_optional;
+            current = base;
+        }
+
+        optional.then_some(links)
+    }
+
+    /// Compiles a chain with `?.` links: `compile` produces its value, a `null` link base jumps to the end.
+    pub(crate) fn optional_chain(
+        &mut self,
+        links: Vec<NodeId>,
+        compile: impl FnOnce(&mut Self) -> Result,
+    ) -> Result {
+        let end = self.label();
+
+        self.chains.push(OptionalChain { end, links });
+
+        let result = compile(self);
+
+        self.chains.pop();
+        self.set_label(end);
+
+        result
     }
 }

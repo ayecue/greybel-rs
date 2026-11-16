@@ -1,5 +1,5 @@
-use super::Version;
 use super::rules::{LexerRuleTable, MultilineStringPolicy, ParameterDefaultPolicy, RuleTable};
+use super::{SyntaxFeatures, Version};
 use crate::lexer::{keyword, punct};
 use crate::syntax::Core;
 
@@ -22,6 +22,7 @@ pub(super) const RULES: RuleTable = RuleTable {
     trailing_call_comma: false,
     functions_in_single_line_if: false,
     multiline_strings: MultilineStringPolicy::ByVersion,
+    features: SyntaxFeatures::NONE,
 };
 
 pub(super) const STRICT_RULES: RuleTable = RuleTable {

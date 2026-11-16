@@ -1,7 +1,7 @@
 {
   "name": "greyhack-world-operations-web",
   "version": "0.1.0",
-  "description": "greyhack-world-operations' game server as a browser worker script: new Worker('greyhack-world-operations-web/dist/index.js?seed=…'), hand it its WebAssembly (greyhack-world-operations-web.wasm) with wasm-host's serveWasm, then open a port of it for each runtime with duplex-driver-worker's WorkerHost.open",
+  "description": "greyhack-world-operations' game server as a browser worker script: new Worker('greyhack-world-operations-web/dist/index.js?seed=<seed>'), hand it its WebAssembly (greyhack-world-operations-web.wasm) with wasm-host's serveWasm, then open a port of it for each runtime with duplex-driver-worker's WorkerHost.open",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

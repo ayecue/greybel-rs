@@ -23,7 +23,7 @@ MONO_REGEX_DIST = { value = "mono/dotnet/mono-regex/dist", relative = true, forc
 TEXT_MESH_REFERENCE = { value = "text-mesh/unity/text-mesh-reference", relative = true, force = true }
 TEXT_MESH_SHADERS = { value = "text-mesh/shaders", relative = true, force = true }
 
-# `cargo reman …` from the root: the release manager (tools/reman).
+# `cargo reman <command>` from the root: the release manager (tools/reman).
 [alias]
 reman = "run --quiet --manifest-path tools/reman/Cargo.toml --"
 

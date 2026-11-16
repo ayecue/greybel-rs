@@ -221,6 +221,34 @@ fn should_rename_a_property_across_files() {
 }
 
 #[test]
+fn should_rename_a_parameter_in_param_tags() {
+    let (source, at) = marked(
+        "// Adds.\n// @param {number} [c|ount] How many.\n// @param {string} label\nadd = function(count, label)\n  return |count + label\nend function\n// @param {number} count\nother = function(count)\n  return count\nend function\nadd(1, \"a\")\nother(2)",
+    );
+    let workspace = with_document(Dialect::Greybel, &source);
+    let analyzer = Analyzer::new(&workspace);
+
+    let from_usage = analyzer
+        .rename(&uri(PATH), at[1], "total")
+        .expect("a parameter");
+    let from_tag = analyzer
+        .rename(&uri(PATH), at[0], "total")
+        .expect("a tag name");
+    let prepared = analyzer
+        .prepare_rename(&uri(PATH), at[0])
+        .expect("a tag name");
+
+    let expected = [(PATH, 2, 21), (PATH, 4, 16), (PATH, 5, 10)];
+
+    assert_eq!(edited_places(&from_usage), expected);
+    assert_eq!(edited_places(&from_tag), expected);
+    assert_eq!(
+        (prepared.start, prepared.end),
+        (Position::new(2, 21), Position::new(2, 26))
+    );
+}
+
+#[test]
 fn should_refuse_to_rename_to_a_keyword_or_no_name() {
     let project = rename_project();
     let at = project.main[0];
@@ -275,11 +303,10 @@ fn should_outline_assignments_as_document_symbols() {
     assert_eq!(
         outline,
         [
-            ("Foo".to_owned(), SymbolKind::Variable, vec![]),
             (
-                "Foo.New".to_owned(),
-                SymbolKind::Function,
-                vec!["inner".to_owned(), "deep".to_owned()]
+                "Foo".to_owned(),
+                SymbolKind::Variable,
+                vec!["New".to_owned()]
             ),
             ("total".to_owned(), SymbolKind::Variable, vec![]),
             ("list".to_owned(), SymbolKind::Variable, vec![]),
@@ -287,8 +314,18 @@ fn should_outline_assignments_as_document_symbols() {
         ]
     );
 
-    let new = &symbols[1];
+    let new = &symbols[0].children[0];
+    let inner: Vec<&str> = new
+        .children
+        .iter()
+        .map(|child| child.name.as_str())
+        .collect();
 
+    assert_eq!(inner, ["inner", "deep"]);
+    assert_eq!(
+        (symbols[0].range.start.line, symbols[0].range.end.line),
+        (1, 7)
+    );
     assert_eq!((new.range.start.line, new.range.end.line), (2, 7));
     assert_eq!(
         (
@@ -378,4 +415,316 @@ fn should_complete_map_functions_not_custom_methods_on_an_unknown_value() {
 
     assert!(members.iter().any(|name| name == "hasIndex"));
     assert!(!members.iter().any(|name| name == "test"));
+}
+
+#[test]
+fn should_hover_the_keys_of_the_custom_object_with_its_signature() {
+    let source = "get_custom_object.count = 1\nset = function\n  get_custom_object.name = \"n\"\nend function\nx = get_custom_object";
+    let workspace = with_document(Dialect::GreyScript, source);
+
+    let hover = Analyzer::new(&workspace)
+        .hover(&uri(PATH), Position::new(5, 6))
+        .map(|hover| hover.text);
+
+    assert_eq!(
+        hover.as_deref(),
+        Some(
+            "get_custom_object: function(): map {\n  \"count\": number,\n  \"name\": string,\n  [any]: any\n}"
+        )
+    );
+}
+
+#[test]
+fn should_hover_the_keys_of_a_returned_map_but_not_of_a_custom_type() {
+    let source = "makeUser = function(n)\n  return {\"name\": n}\nend function\n// @type Point\n// @property {number} x\nPoint = {\"x\": 1}\n// @return {Point}\nmakePoint = function\n  return new Point\nend function";
+    let workspace = with_document(Dialect::GreyScript, source);
+    let hover = |line| {
+        Analyzer::new(&workspace)
+            .hover(&uri(PATH), Position::new(line, 2))
+            .map(|hover| hover.text)
+    };
+
+    let user = hover(1);
+    let point = hover(8);
+
+    assert_eq!(
+        user.as_deref(),
+        Some("makeUser: function(n: any): map {\n  \"name\": any\n}")
+    );
+    assert_eq!(point.as_deref(), Some("makePoint: function(): Point"));
+}
+
+#[test]
+fn should_find_every_key_assignment_as_the_definition_of_the_custom_object() {
+    let source = "get_custom_object.count = 1\nset = function\n  get_custom_object[\"name\"] = \"n\"\nend function\nget_custom_object.count = 2\nx = get_custom_object";
+    let workspace = with_document(Dialect::GreyScript, source);
+
+    let lines = definition_lines(&workspace, Position::new(6, 6));
+
+    assert_eq!(lines, [1, 3, 5]);
+}
+
+#[test]
+fn should_mark_deprecated_functions_in_hovers_and_completions() {
+    let source = "// Adds two numbers.\n// @deprecated Use add instead.\nsum = function(a, b)\n  return a + b\nend function\nx = sum(1, 2)\nsu";
+    let workspace = with_document(Dialect::Greybel, source);
+    let analyzer = Analyzer::new(&workspace);
+
+    let hover = analyzer
+        .hover(&uri(PATH), Position::new(6, 6))
+        .expect("a hover");
+    let item = analyzer
+        .completions(&uri(PATH), Position::new(7, 3))
+        .into_iter()
+        .find(|item| item.label == "sum")
+        .expect("a completion for sum");
+
+    assert_eq!(
+        hover
+            .documentation
+            .and_then(|documentation| documentation.description),
+        Some("Deprecated: Use add instead.\n\nAdds two numbers.".to_owned())
+    );
+    assert!(item.deprecated);
+}
+
+#[test]
+fn should_complete_the_string_keys_of_a_map_inside_brackets() {
+    let (source, at) =
+        marked("m = {\"name\": \"x\", \"port\": 22}\nprint m[\"p|\"]\nprint m[\"name\"] + |");
+    let workspace = with_document(Dialect::Greybel, &source);
+    let analyzer = Analyzer::new(&workspace);
+
+    let keys = analyzer.completions(&uri(PATH), at[0]);
+    let after = completion_labels(&workspace, PATH, at[1]);
+    let edits: Vec<_> = keys
+        .iter()
+        .map(|item| {
+            (
+                item.label.as_str(),
+                item.text_edit.as_ref().map(|edit| edit.range.start),
+            )
+        })
+        .collect();
+
+    assert_eq!(
+        edits,
+        [
+            ("name", Some(Position::new(2, 10))),
+            ("port", Some(Position::new(2, 10)))
+        ]
+    );
+    assert!(after.contains(&"print".to_owned()), "{after:?}");
+}
+
+#[test]
+fn should_list_declared_types_as_symbols() {
+    let source = "x = 1\n// @type Point\n// @property {number} n\n// @function length\n// @return {number}\ny = 2";
+    let workspace = with_document(Dialect::Greybel, source);
+    let analyzer = Analyzer::new(&workspace);
+
+    let symbols = analyzer.document_symbols(&uri(PATH));
+    let outline: Vec<_> = symbols
+        .iter()
+        .map(|symbol| {
+            let children: Vec<_> = symbol
+                .children
+                .iter()
+                .map(|child| (child.name.as_str(), child.kind, child.selection_range.start))
+                .collect();
+
+            (
+                symbol.name.as_str(),
+                symbol.kind,
+                symbol.selection_range.start,
+                children,
+            )
+        })
+        .collect();
+    let found = analyzer.workspace_symbols("Poin");
+
+    assert_eq!(
+        outline,
+        [
+            ("x", SymbolKind::Variable, Position::new(1, 1), vec![]),
+            (
+                "Point",
+                SymbolKind::Type,
+                Position::new(2, 10),
+                vec![
+                    ("n", SymbolKind::Property, Position::new(3, 23)),
+                    ("length", SymbolKind::Function, Position::new(4, 14)),
+                ]
+            ),
+            ("y", SymbolKind::Variable, Position::new(6, 1), vec![]),
+        ]
+    );
+    assert_eq!(found[0].name, "Point");
+}
+
+#[test]
+fn should_nest_member_assignments_under_the_symbol_of_their_owner() {
+    let source = "App.utils = {}\nApp.utils.format = function(x)\nend function\nApp.utils.trim = 1\nOther.x = 2\nm[\"k\"].y = 3";
+    let workspace = with_document(Dialect::GreyScript, source);
+
+    let symbols = Analyzer::new(&workspace).document_symbols(&uri(PATH));
+    let outline: Vec<(&str, Vec<&str>)> = symbols
+        .iter()
+        .map(|symbol| {
+            let children = symbol
+                .children
+                .iter()
+                .map(|child| child.name.as_str())
+                .collect();
+
+            (symbol.name.as_str(), children)
+        })
+        .collect();
+
+    assert_eq!(
+        outline,
+        [
+            ("App.utils", vec!["format", "trim"]),
+            ("Other.x", vec![]),
+            ("m[\"k\"].y", vec![]),
+        ]
+    );
+}
+
+#[test]
+fn should_outline_classes_with_their_members() {
+    let source = "class Animal\n  tags = []\n  constructor(name)\n    self.name = name\n  end function\nend class\nclass Dog extends Animal\n  sound = \"woof\"\n  bark()\n    return self.sound\n  end function\nend class";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let symbols = Analyzer::new(&workspace).document_symbols(&uri(PATH));
+
+    let outline: Vec<(String, SymbolKind, Vec<String>)> = symbols
+        .iter()
+        .map(|symbol| {
+            let children = symbol
+                .children
+                .iter()
+                .map(|child| child.name.clone())
+                .collect();
+
+            (symbol.name.clone(), symbol.kind, children)
+        })
+        .collect();
+
+    assert_eq!(
+        outline,
+        [
+            (
+                "Animal".to_owned(),
+                SymbolKind::Class,
+                vec!["tags".to_owned(), "constructor".to_owned()]
+            ),
+            (
+                "Dog".to_owned(),
+                SymbolKind::Class,
+                vec!["sound".to_owned(), "bark".to_owned()]
+            ),
+        ]
+    );
+}
+
+#[test]
+fn should_rename_a_class_at_its_name_and_uses_only() {
+    let source = "class Dog\n  sound = \"woof\"\n  bark()\n    return 1\n  end function\nend class\nd = Dog.create\nx = Dog.sound";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let edits = Analyzer::new(&workspace)
+        .rename(&uri(PATH), Position::new(1, 8), "Hound")
+        .expect("renameable");
+
+    assert_eq!(
+        edited_places(&edits),
+        [
+            ("/main.src", 1, 7),
+            ("/main.src", 7, 5),
+            ("/main.src", 8, 5)
+        ]
+    );
+}
+
+#[test]
+fn should_keep_the_key_of_a_shorthand_when_renaming() {
+    let (source, at) =
+        marked("name = \"a\"\nm = {name}\n{name} = {\"name\": 1}\nprint |name\nprint m.na|me");
+    let workspace = with_document(Dialect::Greybel, &source);
+    let analyzer = Analyzer::new(&workspace);
+    let texts = |position, name: &str| {
+        let edits = analyzer
+            .rename(&uri(PATH), position, name)
+            .expect("renameable");
+        let mut texts: Vec<String> = edits
+            .changes
+            .values()
+            .flatten()
+            .map(|edit| edit.new_text.clone())
+            .collect();
+
+        texts.sort();
+
+        texts
+    };
+
+    let variable = texts(at[0], "label");
+    let key = texts(at[1], "title");
+
+    assert_eq!(
+        variable,
+        ["\"name\": label", "label", "label", "name as label"]
+    );
+    assert_eq!(key, ["\"title\": name", "title"]);
+}
+
+#[test]
+fn should_go_to_the_class_name_from_generated_members() {
+    let (source, at) = marked(
+        "class |Dog\n  tags = []\n  bark()\n    return 1\n  end function\nend class\nd = Dog.cr|eate\nc = @Dog.con|structor",
+    );
+    let workspace = with_document(Dialect::Greybel, &source);
+    let analyzer = Analyzer::new(&workspace);
+
+    let create = starts(analyzer.definition(&uri(PATH), at[1]));
+    let constructor = starts(analyzer.definition(&uri(PATH), at[2]));
+
+    assert_eq!(create, [(at[0].line, at[0].character)]);
+    assert_eq!(constructor, [(at[0].line, at[0].character)]);
+}
+
+#[test]
+fn should_hover_class_fields_in_the_class_body() {
+    let (source, at) = marked(
+        "class Dog\n  t|ags = []\n  static so|und = \"woof\"\n  private a|ge = 1\n  constructor(name)\n    self.name = name\n  end function\nend class",
+    );
+    let workspace = with_document(Dialect::Greybel, &source);
+    let analyzer = Analyzer::new(&workspace);
+    let text = |position| analyzer.hover(&uri(PATH), position).map(|hover| hover.text);
+
+    assert_eq!(text(at[0]).as_deref(), Some("tags: list<unknown>"));
+    assert_eq!(text(at[1]).as_deref(), Some("sound: string"));
+    assert_eq!(text(at[2]).as_deref(), Some("age: number"));
+}
+
+#[test]
+fn should_hover_type_names_in_code_and_comments() {
+    let (source, at) = marked(
+        "// @type Po|int\n// @property {num|ber} x\n\n// @typedef {list<number>} Id\n\ntype Re|po extends map\n  name: string\nend type\nf = function(r: Rep|o, i: I|d): Point\nend function\n// @param {Re|po} r\ng = function(r)\nend function",
+    );
+    let workspace = with_document(Dialect::Greybel, &source);
+    let analyzer = Analyzer::new(&workspace);
+    let text = |position| analyzer.hover(&uri(PATH), position).map(|hover| hover.text);
+    let repo = "type Repo {\n  \"name\": string\n}";
+
+    assert_eq!(
+        text(at[0]).as_deref(),
+        Some("type Point {\n  \"x\": number\n}")
+    );
+    assert_eq!(text(at[1]).as_deref(), Some("type number"));
+    assert_eq!(text(at[2]).as_deref(), Some(repo));
+    assert_eq!(text(at[3]).as_deref(), Some(repo));
+    assert_eq!(text(at[4]).as_deref(), Some("type Id = list<number>"));
+    assert_eq!(text(at[5]).as_deref(), Some(repo));
 }

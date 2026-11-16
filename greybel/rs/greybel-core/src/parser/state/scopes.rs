@@ -1,14 +1,14 @@
 use crate::ast::{NodeFieldContainer, NodeId, NodeStore, ScopeData};
 
 #[derive(Debug)]
-pub struct OpenScope {
+pub struct PendingScope {
     node: NodeId,
     pub namespaces: Vec<NodeId>,
     pub definitions: Vec<NodeId>,
     pub returns: Vec<NodeId>,
 }
 
-impl OpenScope {
+impl PendingScope {
     fn new(node: NodeId, nodes: &mut NodeStore) -> Self {
         Self {
             node,
@@ -18,7 +18,7 @@ impl OpenScope {
         }
     }
 
-    fn reopen(node: NodeId, nodes: &mut NodeStore) -> Self {
+    fn resume(node: NodeId, nodes: &mut NodeStore) -> Self {
         let mut scope = Self::new(node, nodes);
         let data = nodes
             .get_mut(node)
@@ -38,7 +38,7 @@ impl OpenScope {
         scope
     }
 
-    fn close(self, nodes: &mut NodeStore) {
+    fn finish(self, nodes: &mut NodeStore) {
         let data = ScopeData {
             namespaces: nodes.finish_list(self.namespaces),
             definitions: nodes.finish_list(self.definitions),
@@ -73,7 +73,7 @@ impl OpenScope {
 
 #[derive(Debug, Default)]
 pub struct ScopeStack {
-    open: Vec<OpenScope>,
+    scopes: Vec<PendingScope>,
     assignment: Option<NodeId>,
     loops: Vec<NodeId>,
 }
@@ -81,7 +81,7 @@ pub struct ScopeStack {
 #[derive(Debug, Clone, Copy)]
 pub struct ScopeStackSnapshot {
     current: Option<NodeId>,
-    open: usize,
+    depth: usize,
     lengths: [usize; 3],
     assignment: Option<NodeId>,
     loops: usize,
@@ -90,35 +90,43 @@ pub struct ScopeStackSnapshot {
 impl ScopeStack {
     #[must_use]
     pub fn current(&self) -> Option<NodeId> {
-        self.open.last().map(|scope| scope.node)
+        self.scopes.last().map(|scope| scope.node)
     }
 
     pub fn enter(&mut self, scope: NodeId, nodes: &mut NodeStore) -> bool {
-        let nested = !self.open.is_empty();
+        let nested = !self.scopes.is_empty();
 
-        self.open.push(OpenScope::new(scope, nodes));
+        self.scopes.push(PendingScope::new(scope, nodes));
 
         nested
     }
 
+    /// Continues collecting the data of the completed scope `scope`, until [`Self::exit`].
+    pub fn resume_scope(&mut self, scope: NodeId, nodes: &mut NodeStore) {
+        self.scopes.push(PendingScope::resume(scope, nodes));
+    }
+
     pub fn exit(&mut self, nodes: &mut NodeStore) {
-        if let Some(scope) = self.open.pop() {
-            scope.close(nodes);
+        if let Some(scope) = self.scopes.pop() {
+            scope.finish(nodes);
         }
     }
 
-    pub fn close_all(&mut self, nodes: &mut NodeStore) {
-        while let Some(scope) = self.open.pop() {
-            scope.close(nodes);
+    pub fn finish_all(&mut self, nodes: &mut NodeStore) {
+        while let Some(scope) = self.scopes.pop() {
+            scope.finish(nodes);
         }
     }
 
-    pub fn current_mut(&mut self) -> Option<&mut OpenScope> {
-        self.open.last_mut()
+    pub fn current_mut(&mut self) -> Option<&mut PendingScope> {
+        self.scopes.last_mut()
     }
 
-    pub fn open_mut(&mut self, scope: NodeId) -> Option<&mut OpenScope> {
-        self.open.iter_mut().rev().find(|open| open.node == scope)
+    pub fn pending_mut(&mut self, scope: NodeId) -> Option<&mut PendingScope> {
+        self.scopes
+            .iter_mut()
+            .rev()
+            .find(|pending_scope| pending_scope.node == scope)
     }
 
     #[must_use]
@@ -146,27 +154,27 @@ impl ScopeStack {
     pub(crate) fn snapshot(&self) -> ScopeStackSnapshot {
         ScopeStackSnapshot {
             current: self.current(),
-            open: self.open.len(),
-            lengths: self.open.last().map_or([0; 3], OpenScope::lengths),
+            depth: self.scopes.len(),
+            lengths: self.scopes.last().map_or([0; 3], PendingScope::lengths),
             assignment: self.assignment,
             loops: self.loops.len(),
         }
     }
 
     pub(crate) fn restore(&mut self, snapshot: ScopeStackSnapshot, nodes: &mut NodeStore) {
-        while self.open.len() > snapshot.open {
-            if let Some(scope) = self.open.pop() {
+        while self.scopes.len() > snapshot.depth {
+            if let Some(scope) = self.scopes.pop() {
                 scope.discard(nodes);
             }
         }
 
-        if self.open.len() < snapshot.open
+        if self.scopes.len() < snapshot.depth
             && let Some(current) = snapshot.current
         {
-            self.reopen(current, nodes);
+            self.resume(current, nodes);
         }
 
-        if let Some(scope) = self.open.last_mut() {
+        if let Some(scope) = self.scopes.last_mut() {
             scope.truncate(snapshot.lengths);
         }
 
@@ -174,7 +182,7 @@ impl ScopeStack {
         self.loops.truncate(snapshot.loops);
     }
 
-    fn reopen(&mut self, current: NodeId, nodes: &mut NodeStore) {
+    fn resume(&mut self, current: NodeId, nodes: &mut NodeStore) {
         let outer = self.current();
         let mut chain = vec![current];
 
@@ -185,7 +193,7 @@ impl ScopeStack {
         }
 
         for scope in chain.into_iter().rev() {
-            self.open.push(OpenScope::reopen(scope, nodes));
+            self.scopes.push(PendingScope::resume(scope, nodes));
         }
     }
 }

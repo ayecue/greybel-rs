@@ -44,6 +44,7 @@ impl Project {
             variables,
             strict_mode: self.manifest.strict_mode,
             program_name: run.program_name.clone().into(),
+            disabled_syntax: self.manifest.syntax.off_names().map(Into::into),
         }
     }
 }

@@ -64,6 +64,7 @@ impl CallStatement {
                 Call {
                     base: callee,
                     arguments,
+                    optional: false,
                 },
                 span,
                 scope,

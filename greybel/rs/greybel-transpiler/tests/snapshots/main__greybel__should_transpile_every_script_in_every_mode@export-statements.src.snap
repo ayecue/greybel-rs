@@ -1,0 +1,39 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/export-statements.src
+---
+=== default
+module.exports={}
+twice=function(n)
+return n*2
+end function
+module.exports.twice=@twice
+count=1
+module.exports.count=@count
+export=2
+=== uglify
+globals.I=globals
+H.exports={}
+J=function(M)
+return M*2
+end function
+H.exports.twice=@J
+K=1
+H.exports.count=@K
+L=2
+=== beautify
+module.exports = {}
+twice = function(n)
+	return n * 2
+end function
+module.exports.twice = @twice
+count = 1
+module.exports.count = @count
+export = 2
+=== beautify, dev mode, keep parentheses, 10 spaces
+export twice = function(n)
+          return n * 2
+end function
+export count = 1
+export = 2

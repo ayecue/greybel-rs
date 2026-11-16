@@ -6,4 +6,10 @@ pub const PUNCTUATORS: &[Punct] = &[
     Punct::ShiftLeft,
     Punct::ShiftRight,
     Punct::UnsignedShiftRight,
+    Punct::Ellipsis,
+    Punct::Arrow,
+    Punct::Question,
+    Punct::Coalesce,
+    Punct::OptionalDot,
+    Punct::Bang,
 ];

@@ -1,0 +1,22 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/spread.src
+---
+Chunk[1:1-4:1][
+	AssignmentStatement[1:1-1:23][Identifier[1:1-1:2][x] = ListConstructor[1:5-1:23][
+		SpreadExpression[1:6-1:10][Identifier[1:9-1:10][a]]
+		ListValue[1:12-1:13][Literal[1:12-1:13][1]]
+		ListValue[1:15-1:16][Literal[1:15-1:16][2]]
+		SpreadExpression[1:18-1:22][Identifier[1:21-1:22][b]]
+	]]
+	AssignmentStatement[2:1-2:31][Identifier[2:1-2:2][y] = MapConstructor[2:5-2:31][
+		SpreadExpression[2:6-2:10][Identifier[2:9-2:10][d]]
+		MapKeyString[2:12-2:18][Literal[2:12-2:15][k]: Literal[2:17-2:18][1]]
+		MapKeyString[2:20-2:24][Literal[2:20-2:24][name]: Identifier[2:20-2:24][name]]
+		MapKeyString[2:26-2:30][Literal[2:26-2:30][port]: Identifier[2:26-2:30][port]]
+	]]
+	AssignmentStatement[3:1-3:11][Identifier[3:1-3:2][z] = ListConstructor[3:5-3:11][
+		SpreadExpression[3:6-3:10][Identifier[3:9-3:10][a]]
+	]]
+]

@@ -1,0 +1,82 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/destructuring.src
+---
+=== default
+address="ada@host"
+__d0=address.split("@")
+user=@__d0[0]
+host=@__d0[1]
+items=[1,2,3]
+first=@items[0]
+others=items[1:]
+config={"name":"n","port":22}
+name=@config.name
+p=@config.port
+if config.hasIndex("timeout") and @config.timeout!=null then timeout=@config.timeout else timeout=30
+__d0=[1,[2,3]]
+a=@__d0[0]
+__d1=@__d0[1]
+b=@__d1[0]
+c=@__d1[1]
+print([user,host,first,others,name,p,timeout,a+b+c])
+=== uglify
+globals.I=globals
+J="ada@host"
+M=J.split("@")
+K=@M[0]
+L=@M[1]
+N=[1,2,3]
+O=@N[0]
+P=N[1:]
+Q={"name":"n","port":22}
+name=@Q.name
+R=@Q.port
+if Q.hasIndex("timeout") and @Q.timeout!=null then S=@Q.timeout else S=30
+M=[1,[2,3]]
+T=@M[0]
+W=@M[1]
+U=@W[0]
+V=@W[1]
+print([K,L,O,P,name,R,S,T+U+V])
+=== beautify
+address = "ada@host"
+__d0 = address.split("@")
+user = @__d0[0]
+host = @__d0[1]
+items = [
+	1,
+	2,
+	3,
+]
+first = @items[0]
+others = items[1 : ]
+config = {
+	"name": "n",
+	"port": 22,
+}
+name = @config.name
+p = @config.port
+if config.hasIndex("timeout") and @config.timeout != null then timeout = @config.timeout else timeout = 30
+__d0 = [
+	1,
+	[
+		2,
+		3,
+	],
+]
+a = @__d0[0]
+__d1 = @__d0[1]
+b = @__d1[0]
+c = @__d1[1]
+print [
+	user,
+	host,
+	first,
+	others,
+	name,
+	p,
+	timeout,
+	a + b + c,
+]

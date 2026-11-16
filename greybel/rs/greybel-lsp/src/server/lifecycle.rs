@@ -29,6 +29,12 @@ impl Server {
             .and_then(|text_document| text_document.hover.as_ref())
             .and_then(|hover| hover.content_format.as_ref())
             .is_some_and(|formats| formats.contains(&lsp::MarkupKind::Markdown));
+        self.client.definition_links = capabilities
+            .text_document
+            .as_ref()
+            .and_then(|text_document| text_document.definition.as_ref())
+            .and_then(|definition| definition.link_support)
+            .unwrap_or(false);
 
         let folders = match &params.workspace_folders_initialize_params.workspace_folders {
             Some(lsp::WorkspaceFolders::WorkspaceFolderList(folders)) => {
@@ -82,7 +88,7 @@ impl Server {
                 },
             )),
             completion_provider: Some(lsp::CompletionOptions {
-                trigger_characters: triggers(&[".", "\"", "/"]),
+                trigger_characters: triggers(&[".", "\"", "/", "@"]),
                 resolve_provider: Some(true),
                 ..lsp::CompletionOptions::default()
             }),
@@ -92,12 +98,18 @@ impl Server {
                 ..lsp::SignatureHelpOptions::default()
             }),
             definition_provider: Some(lsp::DefinitionProvider::Bool(true)),
+            type_definition_provider: Some(lsp::TypeDefinitionProvider::Bool(true)),
             references_provider: Some(lsp::ReferencesProvider::Bool(true)),
+            call_hierarchy_provider: Some(lsp::CallHierarchyProvider::Bool(true)),
             document_highlight_provider: Some(lsp::DocumentHighlightProvider::Bool(true)),
             document_symbol_provider: Some(lsp::DocumentSymbolProvider::Bool(true)),
             workspace_symbol_provider: Some(lsp::WorkspaceSymbolProvider::Bool(true)),
             code_action_provider: Some(lsp::CodeActionProvider::Bool(true)),
             document_formatting_provider: Some(lsp::DocumentFormattingProvider::Bool(true)),
+            folding_range_provider: Some(lsp::FoldingRangeProvider::Bool(true)),
+            selection_range_provider: Some(lsp::SelectionRangeProvider::Bool(true)),
+            inlay_hint_provider: Some(lsp::InlayHintProvider::Bool(true)),
+            color_provider: Some(lsp::ColorProvider::Bool(true)),
             rename_provider: Some(lsp::RenameProvider::RenameOptions(lsp::RenameOptions {
                 prepare_provider: Some(true),
                 ..lsp::RenameOptions::default()

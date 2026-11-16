@@ -1,18 +1,31 @@
+mod call_hierarchy;
 mod code_action;
+mod color;
+mod compare;
 mod completion;
+mod fold;
 mod hover;
 mod imports;
+mod inlay;
+mod keywords;
 mod navigation;
 mod rename;
 mod signature;
 mod symbols;
 mod text;
+mod type_definition;
 
+pub use call_hierarchy::{CallHierarchyCall, CallHierarchyItem};
 pub use code_action::CodeAction;
+pub use color::ColorInformation;
+pub(crate) use compare::NameComparison;
 pub use completion::{CompletionItem, CompletionItemKind};
+pub use fold::{Fold, FoldKind};
 use greybel_core::{Ast, NodeId, NodeKind, Span};
-pub use hover::Hover;
+pub use hover::{Hover, HoverKind};
 pub(crate) use imports::{ImportTarget, RelativePath};
+pub(crate) use inlay::InlayHintCollector;
+pub use inlay::{InlayHint, InlayHintKind, InlayHintOptions};
 pub use navigation::Location;
 pub use rename::{TextEdit, WorkspaceEdit};
 pub use signature::{ParameterInformation, SignatureHelp};
@@ -20,10 +33,9 @@ pub(crate) use symbols::SymbolQuery;
 pub use symbols::{DocumentSymbol, SymbolKind, WorkspaceSymbol};
 use text::SourceText;
 
-use crate::analysis::Analysis;
+use crate::analysis::{Analysis, Query};
 use crate::model::{DocumentIndex, ScopeId, Site, SlotId};
-use crate::query::Query;
-use crate::types::TypeId;
+use crate::types::{FunctionRef, Type, TypeId};
 
 pub(crate) struct Context<'a> {
     ast: &'a Ast,
@@ -146,5 +158,26 @@ impl<'a> Context<'a> {
 
                 (!slots.is_empty()).then_some((node, slots))
             })
+    }
+
+    pub(crate) fn singleton_entry_slots(&self) -> Vec<SlotId> {
+        let types = self.analysis.types();
+        let model = self.analysis.model();
+        let function = self
+            .ast
+            .path_at(self.offset)
+            .into_iter()
+            .rev()
+            .find_map(|node| self.analysis.node_type(self.document, node));
+        let Some(&Type::Function(FunctionRef::Api(function))) = function.map(|ty| types.get(ty))
+        else {
+            return Vec::new();
+        };
+
+        model
+            .singleton_type(function)
+            .and_then(|ty| types.object_map(ty))
+            .map(|map| model.map(map).entries.values().copied().collect())
+            .unwrap_or_default()
     }
 }

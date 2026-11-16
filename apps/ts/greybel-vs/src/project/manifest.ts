@@ -6,6 +6,8 @@ export interface Manifest {
   readonly entries: readonly string[];
   readonly extensions: readonly string[];
   readonly strictMode: boolean;
+  /** Greybel syntax features turned on or off by name; a feature not listed is on. */
+  readonly syntax: Readonly<Record<string, boolean>>;
   readonly exclude: string;
   readonly format: Format;
   readonly build: BuildSettings;

@@ -6,6 +6,11 @@ use crate::position::Span;
 
 pub trait PendingBlock: Any {
     fn body_mut(&mut self) -> &mut Vec<NodeId>;
+
+    fn body(&self) -> &[NodeId] {
+        &[]
+    }
+
     fn name(&self) -> &'static str;
     fn start(&self, nodes: &NodeStore) -> u32;
     fn complete(self: Box<Self>, parser: &mut Parser<'_>, end: &Span);
@@ -43,7 +48,6 @@ impl BlockStack {
         (block as &mut dyn Any).downcast_mut::<P>()
     }
 
-    /// Reports whether a block of type `P` is open.
     #[must_use]
     pub fn contains<P: PendingBlock>(&self) -> bool {
         self.blocks
@@ -96,6 +100,12 @@ impl BlockStack {
     #[must_use]
     pub fn depth(&self) -> usize {
         self.blocks.len().saturating_sub(1)
+    }
+
+    /// The statements of the file so far, outside any block.
+    #[must_use]
+    pub fn root_statements(&self) -> &[NodeId] {
+        self.blocks.first().map_or(&[], |block| block.body())
     }
 
     pub fn push_statement(&mut self, id: NodeId) {

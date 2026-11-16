@@ -1,0 +1,8 @@
+address = "ada@host"
+[user, host] = address.split("@")
+items = [1, 2, 3]
+[first, ...others] = items
+config = {"name": "n", "port": 22}
+{name, port as p, timeout = 30} = config
+let [a, [b, c]] = [1, [2, 3]]
+print([user, host, first, others, name, p, timeout, a + b + c])

@@ -30,6 +30,13 @@ impl Parser<'_> {
                 .has_line_break(self.prev().span().start, self.token().span().start)
     }
 
+    /// Records the comment token in the chunk without attaching it to a statement.
+    pub(crate) fn register_comment(&mut self) {
+        let comment = self.comment();
+
+        self.stream.chunk_data.current_mut().comments.push(comment);
+    }
+
     fn on_comment(&mut self) {
         let is_statement = !self.is_on_the_same_line_as_previous();
         let comment = self.comment();

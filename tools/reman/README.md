@@ -182,8 +182,8 @@ Both modes print a JSON array of publications with `id`, `name`, `version`,
 | `cargo reman install` | Runs the `install` suite. |
 | `cargo reman lint` | Runs lint `run` commands. |
 | `cargo reman format` | Runs lint `fix` commands. |
-| `cargo reman test [SUITE…]` | Runs `unit` and `integration` by default, including `game` when explicitly requested. |
-| `cargo reman run <SUITE>…` | Runs any named suites. |
+| `cargo reman test [SUITE...]` | Runs `unit` and `integration` by default, including `game` when explicitly requested. |
+| `cargo reman run <SUITE>...` | Runs any named suites. |
 
 All task commands accept repeatable `--task KEY` and `--language LANGUAGE`
 filters, `--dry-run` to print commands, and `--no-fail-fast` to run every
@@ -220,7 +220,7 @@ skipped. `after` puts every step of the named tasks before this task.
 | `cargo reman show <project>` | Resolved settings, origins, and dependencies. |
 | `cargo reman graph [--all] [--dot]` | Project dependency graph; `--all` includes development packages and test edges, `--dot` emits Graphviz. |
 | `cargo reman impact [--since REV]` | IDs of packages changed since the release or `REV`, plus dependents. |
-| `cargo reman init [--kind KIND=PATTERN]… [--dev PATTERN]… [--dry-run]` | Writes missing configuration, initial version files and changelogs, and the first release record for review. |
+| `cargo reman init [--kind KIND=PATTERN]... [--dev PATTERN]... [--dry-run]` | Writes missing configuration, initial version files and changelogs, and the first release record for review. |
 
 `init` infers the GitHub repository from `origin`, discovers workspaces, and
 uses `app` for packages building programs and `library` otherwise. Patterns

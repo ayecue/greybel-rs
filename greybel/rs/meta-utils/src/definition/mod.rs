@@ -22,6 +22,8 @@ pub struct Definition {
 }
 
 impl Definition {
+    pub const DETACHED_TAG: &'static str = "detached";
+
     #[must_use]
     pub fn type_meta(&self) -> &TypeMeta {
         &self.type_meta
@@ -53,6 +55,13 @@ impl Definition {
     #[must_use]
     pub fn has_tag(&self, tag: &str) -> bool {
         self.tags.iter().any(|candidate| candidate == tag)
+    }
+
+    /// Whether the definition is a method that is also callable as a general function with the object first, e.g.
+    /// `name(file)`.
+    #[must_use]
+    pub fn is_detached(&self) -> bool {
+        self.has_tag(Self::DETACHED_TAG)
     }
 
     #[must_use]

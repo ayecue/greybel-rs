@@ -1,5 +1,5 @@
 //! Parses `.csproj` and `Directory.Build.props` XML elements, attributes, and values containing
-//! `$(Name)…` property expressions. Rewrites values in place without changing the remaining file text.
+//! `$(Name)` property expressions. Rewrites values in place without changing the remaining file text.
 
 use std::path::{Path, PathBuf};
 

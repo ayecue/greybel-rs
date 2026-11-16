@@ -11,6 +11,7 @@ pub fn settings(mode: TranspileMode) -> TranspileSettings {
         strict_mode: false,
         variables: BTreeMap::new(),
         excluded_names: Vec::new(),
+        disabled_syntax: None,
     }
 }
 

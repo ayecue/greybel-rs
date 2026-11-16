@@ -1,0 +1,21 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/arrow-functions.src
+---
+Chunk[1:1-9:1][
+	AssignmentStatement[1:1-1:22][Identifier[1:1-1:7][double] = Function[1:10-1:22][Identifier[1:11-1:12][x] =>
+		ReturnStatement[1:17-1:22][BinaryExpression[1:17-1:22][Identifier[1:17-1:18][x] * Literal[1:21-1:22][2]]]
+	]]
+	AssignmentStatement[2:1-2:33][Identifier[2:1-2:6][names] = CallExpression[2:9-2:33][MemberExpression[2:9-2:18][Identifier[2:9-2:14][items].Identifier[2:15-2:18][map]](Function[2:19-2:32][Identifier[2:20-2:21][x] =>
+		ReturnStatement[2:26-2:32][MemberExpression[2:26-2:32][Identifier[2:26-2:27][x].Identifier[2:28-2:32][name]]]
+	])]]
+	AssignmentStatement[3:1-6:13][Identifier[3:1-3:8][handler] = Function[3:11-6:13][Identifier[3:12-3:16][line], AssignmentStatement[3:18-3:27][Identifier[3:18-3:21][sep] = Literal[3:24-3:27][ ]] =>
+		AssignmentStatement[4:2-4:25][Identifier[4:2-4:7][parts] = CallExpression[4:10-4:25][MemberExpression[4:10-4:20][Identifier[4:10-4:14][line].Identifier[4:15-4:20][split]](Identifier[4:21-4:24][sep])]]
+		ReturnStatement[5:2-5:17][IndexExpression[5:9-5:17][Identifier[5:9-5:14][parts][Literal[5:15-5:16][0]]]]
+	]]
+	AssignmentStatement[7:1-7:15][Identifier[7:1-7:5][none] = Function[7:8-7:15][ =>
+		ReturnStatement[7:14-7:15][Literal[7:14-7:15][1]]
+	]]
+	AssignmentStatement[8:1-8:12][Identifier[8:1-8:2][y] = BinaryExpression[8:5-8:12][Identifier[8:6-8:7][a] + Literal[8:11-8:12][1]]]
+]

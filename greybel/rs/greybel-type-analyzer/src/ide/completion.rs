@@ -1,14 +1,14 @@
 use std::sync::OnceLock;
 
-use greybel_core::Dialect;
+use greybel_core::{ColumnSettings, Dialect, Span};
 use meta_utils::BaseType;
 use rustc_hash::FxHashSet;
 
 use super::{Context, TextEdit};
+use crate::analysis::Query;
 use crate::api::Api;
 use crate::lookup::Lookup;
 use crate::model::{Documentation, ScopeId, SemanticModel};
-use crate::query::Query;
 use crate::types::{TypeId, TypeNotation, TypeTable};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -18,6 +18,10 @@ pub struct CompletionItem {
     pub detail: String,
     pub documentation: Option<Documentation>,
     pub text_edit: Option<TextEdit>,
+    /// Text to insert with `$1`-style tab stops, for snippets.
+    pub snippet: Option<String>,
+    /// Whether the value is a function with a `@deprecated` tag.
+    pub deprecated: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -27,6 +31,9 @@ pub enum CompletionItemKind {
     Property,
     Method,
     File,
+    Keyword,
+    Snippet,
+    Type,
 }
 
 impl CompletionItem {
@@ -37,6 +44,8 @@ impl CompletionItem {
             detail: query.display(ty).to_string(),
             documentation: query.documentation(ty),
             text_edit: None,
+            snippet: None,
+            deprecated: query.is_deprecated(ty),
         }
     }
 
@@ -79,6 +88,8 @@ impl CompletionItem {
                     _ => None,
                 },
                 text_edit: None,
+                snippet: None,
+                deprecated: false,
             })
             .collect()
     }
@@ -96,6 +107,10 @@ impl Context<'_> {
     pub(crate) fn completions(&self) -> Vec<CompletionItem> {
         let start = self.source_text().name_start(self.offset as usize);
         let mut query = Query::new(self.analysis);
+
+        if let Some(keys) = self.key_completions(&mut query) {
+            return keys;
+        }
 
         if self.ast.source()[..start].ends_with('.') {
             let dot = u32::try_from(start - 1).expect("value fits the target integer type");
@@ -144,8 +159,53 @@ impl Context<'_> {
                 .filter(|item| !labels.contains(item.label.as_str()))
                 .cloned(),
         );
+        items.extend(self.keyword_completions());
 
         items
+    }
+
+    /// The string keys of the map before `["`, when the offset is inside that string.
+    fn key_completions(&self, query: &mut Query<'_>) -> Option<Vec<CompletionItem>> {
+        let source = self.ast.source();
+        let offset = self.offset as usize;
+        let line_start = source[..offset]
+            .rfind('\n')
+            .map_or(0, |newline| newline + 1);
+        let quote = line_start + source[line_start..offset].rfind('"')?;
+        let before_quote = source[..quote].trim_end();
+        let bracket = before_quote.strip_suffix('[')?.len();
+
+        if source[line_start..quote].matches('"').count() % 2 == 1 {
+            return None;
+        }
+
+        let receiver = self.receiver_type(query, u32::try_from(bracket).ok()?)?;
+        let range = self.ast.lines().range(
+            Span::new(u32::try_from(quote + 1).ok()?, self.offset),
+            ColumnSettings::default(),
+        );
+        let items = query
+            .members(receiver)
+            .into_iter()
+            .filter(|member| !member.from_api)
+            .map(|member| {
+                let mut item = CompletionItem::new(
+                    query,
+                    member.name,
+                    member.ty,
+                    CompletionItemKind::Property,
+                );
+
+                item.text_edit = Some(TextEdit {
+                    range,
+                    new_text: item.label.clone(),
+                });
+
+                item
+            })
+            .collect();
+
+        Some(items)
     }
 
     fn receiver_type(&self, query: &mut Query<'_>, dot: u32) -> Option<TypeId> {

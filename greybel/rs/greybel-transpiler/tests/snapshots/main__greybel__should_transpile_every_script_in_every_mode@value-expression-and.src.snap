@@ -1,0 +1,14 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/value-expression-and.src
+---
+=== default
+error: unknown:2:13: a ternary expression, `??` or optional chain can't be built here; builds compute it before its statement, which this position (the right side of and/or, a parameter default or an assert message) only runs sometimes
+=== uglify
+error: unknown:2:13: a ternary expression, `??` or optional chain can't be built here; builds compute it before its statement, which this position (the right side of and/or, a parameter default or an assert message) only runs sometimes
+=== beautify
+error: unknown:2:13: a ternary expression, `??` or optional chain can't be built here; builds compute it before its statement, which this position (the right side of and/or, a parameter default or an assert message) only runs sometimes
+=== beautify, dev mode, keep parentheses, 10 spaces
+a = 1
+b = a and (null ?? 2)

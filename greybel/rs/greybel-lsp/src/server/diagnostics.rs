@@ -18,7 +18,7 @@ impl Server {
             };
             let diagnostics: Vec<lsp::Diagnostic> = if self.settings.diagnostic {
                 options
-                    .apply(self.analyzer().diagnostics(&uri))
+                    .apply(self.analyzer().all_diagnostics(&uri))
                     .iter()
                     .map(to_lsp::diagnostic)
                     .collect()

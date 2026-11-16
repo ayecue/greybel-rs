@@ -1,0 +1,34 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/classes.src
+---
+--- strict
+5:2 - 5:7 UnexpectedToken(2001): a class body has fields (name = value) and methods (name(parameters)) only
+--- tree
+Chunk[1:1-11:1][
+	ClassStatement[1:1-2:10][
+		AssignmentStatement[1:1-1:11][Identifier[1:7-1:11][Base] = MapConstructor[1:1-1:1][]]
+		AssignmentStatement[2:1-2:1][MemberExpression[2:1-2:1][Identifier[1:7-1:11][Base].Identifier[1:7-1:7][create]] = Function[2:1-2:1][ =>
+			ReturnStatement[2:1-2:1][UnaryExpression[2:1-2:1][new Identifier[2:1-2:1][self]]]
+		]]
+	]
+	ClassStatement[3:1-8:10][
+		AssignmentStatement[3:1-3:21][Identifier[3:7-3:8][A] = UnaryExpression[3:17-3:21][new Identifier[3:17-3:21][Base]]]
+		AssignmentStatement[8:1-8:1][MemberExpression[8:1-8:1][Identifier[3:7-3:8][A].Identifier[3:7-3:7][constructor]] = Function[8:1-8:1][ =>
+			AssignmentStatement[4:2-4:12][MemberExpression[4:2-4:7][Identifier[8:1-8:1][self].Identifier[4:2-4:7][items]] = ListConstructor[4:10-4:12][]]
+			AssignmentStatement[6:2-6:7][MemberExpression[6:2-6:3][Identifier[8:1-8:1][self].Identifier[6:2-6:3][x]] = Literal[6:6-6:7][1]]
+			AssignmentStatement[7:2-7:7][MemberExpression[7:2-7:3][Identifier[8:1-8:1][self].Identifier[7:2-7:3][x]] = Literal[7:6-7:7][2]]
+			ReturnStatement[8:1-8:1][Identifier[8:1-8:1][self]]
+		]]
+		AssignmentStatement[8:1-8:1][MemberExpression[8:1-8:1][Identifier[3:7-3:8][A].Identifier[3:7-3:7][create]] = Function[8:1-8:1][ =>
+			ReturnStatement[8:1-8:1][CallExpression[8:1-8:1][MemberExpression[8:1-8:1][UnaryExpression[8:1-8:1][new Identifier[8:1-8:1][self]].Identifier[8:1-8:1][constructor]]()]]
+		]]
+	]
+	CallStatment[9:1-9:8][CallExpression[9:1-9:8][Identifier[9:1-9:6][class](Literal[9:7-9:8][1])]]
+]
+--- errors
+5:2 - 5:7 UnexpectedToken(2001): a class body has fields (name = value) and methods (name(parameters)) only
+7:2 - 7:3 UnexpectedToken(2001): the class already has a member x
+3:1 - 8:10 UnexpectedToken(2001): a class that extends another needs a constructor when it has instance fields; write static before a field all instances share
+10:10 - 10:10 UnmatchedEnd(4001): 'end class' without matching block starter

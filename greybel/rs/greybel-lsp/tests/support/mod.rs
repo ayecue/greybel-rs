@@ -26,6 +26,8 @@ pub struct Client {
     pub files: BTreeMap<String, String>,
     pub settings: Value,
     pub options: InitializationOptions,
+    /// Whether `initialize` reports `textDocument.definition.linkSupport`.
+    pub definition_links: bool,
     pub responds_to_reads: bool,
     /// Read-file requests queued while [`Client::responds_to_reads`] is false.
     pub pending_requests: Vec<Request>,
@@ -46,6 +48,7 @@ impl Client {
                 .collect(),
             settings: json!({}),
             options: InitializationOptions::default(),
+            definition_links: false,
             responds_to_reads: true,
             pending_requests: Vec::new(),
             requests: Vec::new(),
@@ -96,7 +99,10 @@ impl Client {
             ROOT,
             &json!({
                 "workspace": { "configuration": true },
-                "textDocument": { "hover": { "contentFormat": ["markdown", "plaintext"] } }
+                "textDocument": {
+                    "hover": { "contentFormat": ["markdown", "plaintext"] },
+                    "definition": { "linkSupport": self.definition_links }
+                }
             }),
         );
 
@@ -480,6 +486,17 @@ pub fn rename_greet(new_name: &str) -> Value {
 }
 
 /// Opens `main.src` in [`project`].
+/// The [`project`] with `main.src` open, from a client that supports definition links.
+pub fn project_with_definition_links() -> Client {
+    let mut client = Client::new(&[("lib/greet.src", LIBRARY), ("main.src", MAIN)]);
+
+    client.definition_links = true;
+    client.initialize();
+    client.open("main.src", MAIN);
+
+    client
+}
+
 pub fn project_with_main_open() -> Client {
     let mut client = project();
 
@@ -494,4 +511,25 @@ pub fn client_with_features_off() -> Client {
         &[],
         json!({ "hoverdocs": false, "diagnostic": false, "fileExtensions": "src" }),
     )
+}
+
+/// The position and label of each inlay hint in `main.src`.
+pub fn inlay_hints(client: &mut Client) -> Vec<(lsp::Position, String)> {
+    let hints = client
+        .request::<lsp::InlayHintRequest>(json!({
+            "textDocument": { "uri": uri("main.src") },
+            "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 99, "character": 0 } }
+        }))
+        .expect("inlay hints");
+
+    hints
+        .into_iter()
+        .map(|hint| {
+            let lsp::Label::String(label) = hint.label else {
+                panic!("a text label");
+            };
+
+            (hint.position, label)
+        })
+        .collect()
 }

@@ -1,0 +1,54 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/destructuring.src
+---
+Chunk[1:1-7:1][
+	DestructuringAssignmentStatement[1:1-1:34][
+		AssignmentStatement[1:16-1:34][Identifier[1:1-1:1][__d0] = CallExpression[1:16-1:34][MemberExpression[1:16-1:29][Identifier[1:16-1:23][address].Identifier[1:24-1:29][split]](Literal[1:30-1:33][@])]]
+		AssignmentStatement[1:2-1:6][Identifier[1:2-1:6][user] = UnaryExpression[1:2-1:6][@ IndexExpression[1:2-1:6][Identifier[1:1-1:1][__d0][Literal[1:1-1:1][0]]]]]
+		AssignmentStatement[1:8-1:12][Identifier[1:8-1:12][host] = UnaryExpression[1:8-1:12][@ IndexExpression[1:8-1:12][Identifier[1:1-1:1][__d0][Literal[1:1-1:1][1]]]]]
+	]
+	DestructuringAssignmentStatement[2:1-2:27][
+		AssignmentStatement[2:2-2:7][Identifier[2:2-2:7][first] = UnaryExpression[2:2-2:7][@ IndexExpression[2:2-2:7][Identifier[2:22-2:27][items][Literal[2:1-2:1][0]]]]]
+		AssignmentStatement[2:9-2:18][Identifier[2:12-2:18][others] = SliceExpression[2:9-2:18][Identifier[2:22-2:27][items][Literal[2:1-2:1][1]:EmptyExpression[2:1-2:1][]]]]
+	]
+	DestructuringAssignmentStatement[3:1-3:41][
+		AssignmentStatement[3:2-3:6][Identifier[3:2-3:6][name] = UnaryExpression[3:2-3:6][@ MemberExpression[3:2-3:6][Identifier[3:35-3:41][config].Identifier[3:2-3:6][name]]]]
+		AssignmentStatement[3:8-3:17][Identifier[3:16-3:17][p] = UnaryExpression[3:8-3:17][@ MemberExpression[3:8-3:17][Identifier[3:35-3:41][config].Identifier[3:8-3:12][port]]]]
+		IfStatement[3:19-3:31][
+			IfShortcutClause[3:19-3:31][LogicalExpression[3:19-3:31][CallExpression[3:19-3:31][MemberExpression[3:1-3:1][Identifier[3:35-3:41][config].Identifier[3:1-3:1][hasIndex]](Literal[3:19-3:26][timeout])] and BinaryExpression[3:19-3:31][UnaryExpression[3:19-3:31][@ MemberExpression[3:19-3:31][Identifier[3:35-3:41][config].Identifier[3:19-3:26][timeout]]] != Literal[3:1-3:1][null]]]
+				AssignmentStatement[3:19-3:31][Identifier[3:19-3:26][timeout] = UnaryExpression[3:19-3:31][@ MemberExpression[3:19-3:31][Identifier[3:35-3:41][config].Identifier[3:19-3:26][timeout]]]]
+			]
+			ElseShortcutClause[3:19-3:31][
+				AssignmentStatement[3:19-3:31][Identifier[3:19-3:26][timeout] = Literal[3:29-3:31][30]]
+			}]
+		]
+	]
+	DestructuringAssignmentStatement[4:1-4:30][
+		AssignmentStatement[4:19-4:30][Identifier[4:5-4:5][__d0] = ListConstructor[4:19-4:30][
+			ListValue[4:20-4:21][Literal[4:20-4:21][1]]
+			ListValue[4:23-4:29][ListConstructor[4:23-4:29][
+				ListValue[4:24-4:25][Literal[4:24-4:25][2]]
+				ListValue[4:27-4:28][Literal[4:27-4:28][3]]
+			]]
+		]]
+		AssignmentStatement[4:6-4:7][let Identifier[4:6-4:7][a] = UnaryExpression[4:6-4:7][@ IndexExpression[4:6-4:7][Identifier[4:5-4:5][__d0][Literal[4:5-4:5][0]]]]]
+		AssignmentStatement[4:9-4:15][Identifier[4:5-4:5][__d1] = UnaryExpression[4:9-4:15][@ IndexExpression[4:9-4:15][Identifier[4:5-4:5][__d0][Literal[4:5-4:5][1]]]]]
+		AssignmentStatement[4:10-4:11][let Identifier[4:10-4:11][b] = UnaryExpression[4:10-4:11][@ IndexExpression[4:10-4:11][Identifier[4:5-4:5][__d1][Literal[4:5-4:5][0]]]]]
+		AssignmentStatement[4:13-4:14][let Identifier[4:13-4:14][c] = UnaryExpression[4:13-4:14][@ IndexExpression[4:13-4:14][Identifier[4:5-4:5][__d1][Literal[4:5-4:5][1]]]]]
+	]
+	DestructuringAssignmentStatement[5:1-5:15][
+		IfStatement[5:2-5:7][
+			IfShortcutClause[5:2-5:7][LogicalExpression[5:2-5:7][BinaryExpression[5:2-5:7][MemberExpression[5:1-5:1][Identifier[5:11-5:15][list].Identifier[5:1-5:1][len]] > Literal[5:1-5:1][0]] and BinaryExpression[5:2-5:7][UnaryExpression[5:2-5:7][@ IndexExpression[5:2-5:7][Identifier[5:11-5:15][list][Literal[5:1-5:1][0]]]] != Literal[5:1-5:1][null]]]
+				AssignmentStatement[5:2-5:7][Identifier[5:2-5:3][x] = UnaryExpression[5:2-5:7][@ IndexExpression[5:2-5:7][Identifier[5:11-5:15][list][Literal[5:1-5:1][0]]]]]
+			]
+			ElseShortcutClause[5:2-5:7][
+				AssignmentStatement[5:2-5:7][Identifier[5:2-5:3][x] = Literal[5:6-5:7][5]]
+			}]
+		]
+	]
+	DestructuringAssignmentStatement[6:1-6:8][
+		AssignmentStatement[6:2-6:3][Identifier[6:2-6:3][f] = UnaryExpression[6:2-6:3][@ IndexExpression[6:2-6:3][Identifier[6:7-6:8][g][Literal[6:1-6:1][0]]]]]
+	]
+]

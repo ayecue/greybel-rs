@@ -1,16 +1,19 @@
 # greyscript-textmate
 
-GreyScript TextMate resources: the `source.src` grammar, language configuration
-for comments, brackets and indentation, and a dark theme. Editors such as VS
-Code can consume them directly.
+GreyScript TextMate resources: the `source.src` grammar, the
+`source.greyscript-signature` grammar for the type signatures the language
+server shows in hovers (code blocks of language `greyscript-signature`),
+language configuration for comments, brackets and indentation, and a dark theme.
+Editors such as VS Code can consume them directly.
 
 ```ts
-import { languageConfig, theme, tmLanguage } from 'greyscript-textmate';
+import { languageConfig, signatureTmLanguage, theme, tmLanguage } from 'greyscript-textmate';
 ```
 
 The JSON resources are also exported separately:
 
 - `greyscript-textmate/greyscript.tmLanguage.json`
+- `greyscript-textmate/greyscript-signature.tmLanguage.json`
 - `greyscript-textmate/greyscriptLanguageConfig.json`
 - `greyscript-textmate/greyscript.theme.json`
 

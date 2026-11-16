@@ -70,6 +70,16 @@ pub const PROJECT: &[(&str, &str)] = &[
     ("/b.src", "#include \"a.src\""),
 ];
 
+/// `/main.src` includes `/types.src` for its types only and runs `/a.src`.
+pub const TYPE_INCLUDE: &[(&str, &str)] = &[
+    (
+        "/main.src",
+        "#include type \"types.src\"\n#include \"a.src\"",
+    ),
+    ("/types.src", "// @vtype Point\n// @property {number} x"),
+    ("/a.src", "print 1"),
+];
+
 pub fn step(resolver: &mut DependencyResolver, workspace: &Workspace) -> Vec<ResourceRequest> {
     match resolver.next(workspace) {
         Resolution::Requests(requests) => requests,

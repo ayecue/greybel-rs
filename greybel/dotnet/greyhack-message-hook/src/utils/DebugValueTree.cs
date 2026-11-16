@@ -159,7 +159,7 @@ namespace GreyHackMessageHook
         private static string GetText(Value value)
         {
             string text = value == null ? "null" : value.CodeForm(null, TextDepth);
-            return text.Length > TextLength ? text.Substring(0, TextLength) + "…" : text;
+            return text.Length > TextLength ? text.Substring(0, TextLength) + "..." : text;
         }
 
         private sealed class IdentityComparer : IEqualityComparer<object>

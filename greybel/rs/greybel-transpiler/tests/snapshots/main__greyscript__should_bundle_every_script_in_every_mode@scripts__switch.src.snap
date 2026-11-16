@@ -1,0 +1,45 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/switch.src
+---
+=== default
+command="ls"
+if @command=="ls" or @command=="dir" then
+print("list")
+else if @command=="exit" then
+exit
+else
+print("unknown")
+end if
+__s=command.len
+if @__s==2 then
+print(2)
+end if
+=== uglify
+globals.I=globals
+J="ls"
+if @J=="ls" or @J=="dir" then
+print("list")
+else if @J=="exit" then
+exit
+else
+print("unknown")
+end if
+K=J.len
+if @K==2 then
+print(2)
+end if
+=== beautify
+command = "ls"
+if @command == "ls" or @command == "dir" then
+	print "list"
+else if @command == "exit" then
+	exit
+else
+	print "unknown"
+end if
+__s = command.len
+if @__s == 2 then
+	print 2
+end if

@@ -1,0 +1,7 @@
+name = "Ada"
+items = [1, 2]
+print(#"Hello {name}, {items.len} items")
+print(#"{name}")
+print(#"{{x}} ""q"" {name + "!"}")
+print(#"two
+lines {name}")

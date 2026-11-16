@@ -29,6 +29,20 @@ Add a [`greybel.json`](#project-configuration) when several files share an entry
 ## Features
 
 - Syntax highlighting, completion, signature help, hover documentation, diagnostics, formatting, symbols, definitions, and references.
+- Rename, which also renames a parameter in its function's `@param` tags and also works from the name in a `@param` tag.
+- Hover on the path of `#include`, `#include type`, `#import` or `import_code`: "Import statement for" the file's path, and what it contains at its top level, for example "Contains 3 imports, 1 namespace, 12 functions". A namespace is a map literal assigned to a name or member path (`Proxima.utils = {}`). To describe a file yourself, start it with a comment; its text is shown below the counts. Ctrl+click (Cmd+click on macOS) or Go to Definition on the path opens the file.
+- Hover on a type name, in code (`port: number`, `type Id = ...`, `as T`, `implements T`) or in a doc comment (`{T}`, `@type T`, `@vtype T`, `@typedef {...} T`, `@extends T`): the type's members, or what an alias, `@typedef` or `enum` stands for.
+- Hover on class fields in the class body, including instance fields and `private` or `static` ones.
+- `@deprecated [text]` in a function's doc comment: hovers start with "Deprecated", completions and uses show struck through, and each use gets a `deprecated` hint. Unused locals and parameters and unreachable code show faded.
+- Call hierarchy (Show Call Hierarchy): the callers of a function, including the top level of files, and the script functions it calls. A read of a function variable counts as a call, as in MiniScript; `@name` does not.
+- Document and workspace symbols include `@type`/`@vtype` declarations, with their `@property` and `@function` tags as children. Member assignments such as `App.utils.format = ...` are listed under the symbol of `App.utils` (or `App`) when the file assigns it.
+- Go to Type Definition: from a value to the `@type`/`@vtype` tag of its custom type, the map literal that created a map, or the class an instance was made from with `new`.
+- Keyword completion: block snippets (`if`, `if else`, `for`, `while`, `function`) and statement keywords at the start of a line, including `break`/`continue` inside loops and the `end` of the innermost open block; `true`, `false`, `null`, `new`, `not` and a `function` snippet in expressions; `and`, `or`, `isa` after an operand.
+- Completion of the string keys of a map inside `m["..."]`, and inside `//` comments: tag names after `@`, type names inside `{...}`, and the parameter names of the documented function after `@param`.
+- Color swatches and a color picker for the values of `<color=...>`, `<mark=...>` and `<#...>` tags in strings (hex forms and the TextMesh color names); a picked color is written as `#RRGGBB` or `#RRGGBBAA`.
+- Folding of function bodies, `if`/`else` clauses, loops, multi-line lists and maps, comment lines and import lines, and Expand/Shrink Selection by syntax node.
+- Inlay hints: the type of a variable at its first assignment, parameter names before literal arguments, and return types of functions without a `@return` tag. `greybel.typeAnalyzer.inlayHints.variableTypes`, `.parameterNames` and `.returnTypes` turn each off; the editor's `editor.inlayHints.enabled` turns all of them off.
+- Quick fixes: add an `#include` or `import_code` for a name another workspace file defines; change a name that isn't found to a close name in scope, a close member, `self.name` inside a method, or `return`/`break`/`continue`; remove or rename (`_name`) an unused local; rename an unused parameter; remove unreachable statements; change a misspelled code in an `@ignore` comment to a close one; ignore a diagnostic on its line or in the file.
 - Default, minified, and formatted transformations.
 - Project builds with dependency bundling, installer generation, and optional deployment to Grey Hack.
 - A generated mock Grey Hack world or an in-game run environment.
@@ -108,11 +122,57 @@ Every field is optional. VS Code provides validation and completion for this fil
 | `entries` | Entry files for builds and runs. VS Code's root-file commands use the first entry. |
 | `extensions` | Extensions an import may omit, tried in order. Default: `src`, `gs`, `ms`. |
 | `strictMode` | Reject Greybel conveniences that Grey Hack's compiler does not accept. Default: `false`. |
+| `syntax` | Greybel syntax features turned on or off by name, for example `{ "ternary": false }`; a feature not listed is on. Synced with `greybel.syntax`. The names are listed in the [CLI guide](cli.md). |
 | `exclude` | Glob excluded from workspace type analysis. Default: `**/{node_modules,.*}/**`. |
+| `diagnostics` | Diagnostic levels by code, for example `{ "used-before-defined": "off", "shadowing": "error" }`: `off` drops a diagnostic, and `error`, `warning`, `information`, or `hint` replaces its default severity. Synced with `greybel.typeAnalyzer.diagnostics`. The codes are listed under [Diagnostics](#diagnostics). |
 | `format` | Formatting for the editor and beautified builds: `indentation`, `indentationSpaces`, and `retainParentheses`. |
 | `build` | Transformation, output, deployment, installer, and build-variable settings. |
 | `run` | Mock-world, argument, program-name, memory-limit, and run-variable settings. |
 | `profiles` | Named overrides of `build` and `run`. |
+
+### Diagnostics
+
+Each diagnostic has a code, shown in the Problems panel, and a default severity. Outside `strictMode`, `call-signature-mismatch` is off unless `diagnostics` sets it.
+
+| Code | Default | Reports |
+|---|---|---|
+| `syntax-error` | error | Code that doesn't parse. |
+| `unresolved-reference` | error | A name that is neither a variable nor a native. |
+| `invalid-annotation` | warning | A comment tag the analyzer can't read. |
+| `call-arity-mismatch` | warning | A call with more arguments than parameters. |
+| `missing-import` | error | An import of a file that doesn't exist. |
+| `cyclic-import` | error | Imports leading back to the importing file. |
+| `dead-code-after-terminator` | warning | Code after `return`, `break`, `continue`, a call of `exit`, or branches that all end. |
+| `map-literal-duplicate-keys` | error | A map literal giving a key twice. |
+| `call-of-non-callable` | error | Calling a value that is never a function. |
+| `index-of-non-indexable` | error | Indexing a value that can't be indexed. |
+| `call-signature-mismatch` | warning | An argument its annotated parameter doesn't accept. |
+| `type-mismatch` | error | A value its template bound doesn't accept. |
+| `annotation-signature-mismatch` | error | A parameter or return value its tag doesn't accept. |
+| `unused-local` | warning | A local variable that is never read. |
+| `unused-parameter` | warning | A parameter that is never read. |
+| `shadowing` | warning | A local hiding an outer variable. |
+| `self-assignment` | warning | Assigning a variable to itself. |
+| `constant-condition` | warning | A condition that is always true or always false. |
+| `used-before-defined` | warning | Reading a variable before any assignment to it can have run. |
+| `cyclic-inheritance` | error | An `isa` chain leading back to itself. |
+| `cyclic-type-definition` | error | Type tags extending themselves. |
+| `ignored-import-code` | warning | `import_code` in a comment or string, which Grey Hack still imports. |
+| `misplaced-import-code` | warning | `import_code` after code in a file the build moves it out of. |
+| `native-override` | warning | Assigning a name of a native function, such as `print`. |
+| `unknown-member` | warning | Reading a member that a map never has: the map is made in the script by a map literal or `new`, its keys are only set by name, and it is never passed to a function the analyzer can't see into. |
+| `private-member` | warning | Reading or assigning a `private` class member outside the methods of its class and of the classes extending it. |
+| `missing-implementation` | warning | A class's `implements` type has a member the class (or a class it extends) doesn't define, defines with another type, or isn't a known type. |
+| `missing-case` | warning | A `switch` without `else` whose subject is a union of literal types (such as an `enum` type) has no case for some of them. |
+| `impossible-case` | warning | A `case` value the `switch` subject never equals: a literal missing from a subject whose type is a union of literal types, or a value of another kind than the subject. |
+| `optional-member` | warning | Reading an optional member of a type (`timeout?: number` in a `type`, `@property {number} [timeout]`) where neither `value.hasIndex("timeout")` is true nor the member was assigned on every path before. |
+| `readonly-member` | warning | Assigning a `readonly` member (`readonly id: T` in a `type`, `@property {readonly T} id`) through a value of its type. |
+| `invalid-operation` | warning | An operator whose operand types never work together: it always gives `null` (such as `number - string`, `null + 1` or `-"x"`) or raises a type mismatch (such as `list + number` or `string * string`). Reported only when no combination of the operand types works. |
+| `deprecated` | hint | A use of a function whose doc comment has a `@deprecated` tag; the tag's text follows the message. Editors show the use struck through. |
+| `const-assignment` | error | An assignment to a variable declared with `const`, including `+=` and `globals.NAME =`. |
+| `duplicate-declaration` | error | A second `let` or `const` for the same variable. |
+| `missing-let` | warning, off by default | The first assignment to a variable in a file without `let` or `const`. Parameters, `for` variables and `#import` names count as declared. Turn it on with a level in `diagnostics`, for example `{"missing-let": "warning"}`. |
+| `implicit-any` | off | A parameter without a type (in code or `@param`) or default, a function whose return type isn't written and is inferred as `any`, or a variable assigned an `any` value without a type. |
 
 ### Profiles
 
@@ -248,6 +308,19 @@ greet = function(name, id)
 end function
 ```
 
+A function type is written `(name: number, string) => string` or `function(name: number, string): string`; parameter names are optional, and without a return type the function returns `any`:
+
+```js
+// @param {(item: map) => string} format
+printAll = function(items, format)
+  for item in items
+    print format(item)
+  end for
+end function
+```
+
+Strings and numbers can be types (`"tcp"|"udp"`, `22|80`); a literal argument is checked against them, and other strings and numbers fit them. An `enum` name is the union of its values. `[string, number]` is a list of those types. A return type `value is Dog` makes a function a type guard: `if isDog(a) then` narrows `a` to `Dog`, and its `else` removes `Dog`.
+
 Use `@type` and `@property` to document a runtime object type. Use `@define` to give a value a documented type.
 
 ```js
@@ -273,7 +346,24 @@ Virtual types describe tooling-only interfaces without requiring a runtime imple
 users = {}
 ```
 
-Supported documentation annotations include `@description`, `@example`, `@param`/`@params`, `@returns`, `@type`, `@vtype`, `@extends`, `@property`, `@function`, and `@define`.
+Supported documentation annotations include `@description`, `@example`, `@param`/`@params`, `@returns`, `@deprecated`, `@type`, `@vtype`, `@typedef`, `@extends`, `@property`, `@function`, and `@define`. `@typedef {string|number} Id` names a type, like `type Id = string|number`; `@typedef {[T, T]} Pair<T>` takes type parameters.
+
+### Ignoring diagnostics
+
+`// @ignore` on its own line ignores the diagnostics of the next line with code; after code, `x = 1 // @ignore` ignores its own line. `// @ignore-file` anywhere in a file ignores the entire file. Each takes optional [diagnostic codes](#diagnostics), separated by commas or spaces, and then ignores only those:
+
+```greyscript
+// @ignore native-override
+print = function(text)
+  globals.log.push(text)
+end function
+
+result = undocumented_call // @ignore unresolved-reference
+```
+
+A code that names no diagnostic is reported as `invalid-annotation`.
+
+The quick fixes "Ignore ... on this line" and "Ignore ... in this file" write these comments, adding the code to an existing comment that already names codes.
 
 ## Other tools
 

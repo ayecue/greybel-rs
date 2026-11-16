@@ -1,4 +1,4 @@
-use super::Version;
+use super::{SyntaxFeatures, Version};
 use crate::lexer::{Keyword, Punct};
 use crate::parser::{InfixRule, KeywordStatement, PrecedenceTable, PrefixRule, RuleTableSet};
 
@@ -26,6 +26,8 @@ pub(crate) struct RuleTable {
     pub functions_in_single_line_if: bool,
     /// Selects whether string literals may contain line breaks.
     pub multiline_strings: MultilineStringPolicy,
+    /// The syntax features the grammar accepts.
+    pub features: SyntaxFeatures,
 }
 
 /// Selects the expressions accepted as function parameter defaults.
@@ -35,11 +37,11 @@ pub(crate) enum ParameterDefaultPolicy {
     Literals,
     /// Accepts literals and parenthesized literals. Grey Hack's `Parser.ParseFunction` rejects defaults evaluated
     /// to temporaries (`ValTemp`). Although Grey Hack accepts `@` references, it stores the unevaluated reference
-    /// as `ValVar`; GreyScript therefore rejects them.
+    /// as `ValVar`; strict mode therefore rejects them.
     ParenthesizedLiterals,
-    /// Accepts Greybel literals, parenthesized literals, and `@` references to names or members. Bare names are
-    /// called. Lists, maps, indexing, and member expressions are evaluated and therefore rejected.
-    LiteralOrReference,
+    /// Accepts any expression. A default that isn't a literal is evaluated at the start of each call that omits the
+    /// argument (or passes `null`); the transpiler writes it as `if @name == null then name = default`.
+    Expression,
 }
 
 /// Selects whether string literals may contain line breaks.

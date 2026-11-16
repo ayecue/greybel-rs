@@ -1,5 +1,5 @@
 use gen_lsp_types as lsp;
-use greybel_type_analyzer::{Documentation, Hover, SignatureHelp};
+use greybel_type_analyzer::{Documentation, Hover, HoverKind, SignatureHelp};
 
 use super::range;
 
@@ -9,9 +9,16 @@ pub struct Markup {
 }
 
 impl Markup {
+    /// The code block language of hover signatures, highlighted by greyscript-textmate's signature grammar.
+    pub const SIGNATURE_LANGUAGE: &'static str = "greyscript-signature";
+
     #[must_use]
     pub fn hover(&self, hover: &Hover) -> lsp::Hover {
-        let mut sections = vec![self.code(&hover.text)];
+        let heading = match hover.kind {
+            HoverKind::Signature => self.code(Self::SIGNATURE_LANGUAGE, &hover.text),
+            HoverKind::Sentence => hover.text.clone(),
+        };
+        let mut sections = vec![heading];
 
         if let Some(documentation) = &hover.documentation {
             sections.extend(self.documentation_sections(documentation));
@@ -71,9 +78,9 @@ impl Markup {
         }
     }
 
-    fn code(&self, code: &str) -> String {
+    fn code(&self, language: &str, code: &str) -> String {
         if self.markdown {
-            format!("```{}\n{code}\n```", self.language)
+            format!("```{language}\n{code}\n```")
         } else {
             code.to_owned()
         }
@@ -95,7 +102,7 @@ impl Markup {
 
             sections.push(format!(
                 "{heading}\n{}",
-                self.code(&documentation.examples.join("\n"))
+                self.code(self.language, &documentation.examples.join("\n"))
             ));
         }
 

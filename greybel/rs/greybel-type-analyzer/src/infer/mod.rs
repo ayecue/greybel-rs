@@ -1,30 +1,31 @@
 mod annotation;
+mod assignment;
 mod buffers;
 mod call;
 mod context;
 mod custom;
+mod declare;
 mod directive;
 mod expression;
 mod flow;
+mod function;
 mod generic;
-mod inheritance;
+mod instance;
 mod member;
 mod mutation;
-mod narrow;
+mod reference;
 mod statement;
+mod type_statement;
 mod validation;
 
 use buffers::TypeBufferPool;
+use context::{Binding, BindingSet, BindingUse};
 use custom::TypeDeclaration;
-use flow::GlobalRead;
-use greybel_core::ast::{NodeFieldContainer, Scope};
-use greybel_core::{Ast, NodeId, NodeKind, Span};
+use flow::{AccessPathTable, FlowState, KindSet, LoopFrame, SideEffect, SideEffectFrame};
+use greybel_core::{Ast, Atom, NodeId, NodeKind, Span};
 use greybel_documents::ImportKind;
-use greybel_symbols::Keyword;
-use greybel_symbols::names::{EXPORTS, MODULE};
-use narrow::NarrowStack;
 use rustc_hash::{FxHashMap, FxHashSet};
-use validation::DeferredDiagnostic;
+use validation::{ClassTable, DeferredDiagnostic};
 
 use crate::analysis::{Analysis, ReferenceTable};
 use crate::annotation::CommentTable;
@@ -32,8 +33,8 @@ use crate::api::Api;
 use crate::diagnostic::{Diagnostic, DiagnosticKind};
 use crate::lookup::Lookup;
 use crate::model::{
-    CallContextId, DocumentIndex, FunctionId, GenericInstanceId, KeyRef, MapId, MapOrigin,
-    Parameter, ScopeId, SemanticModel, Site, SlotId,
+    CallContextId, DocumentIndex, FunctionId, GenericInstanceId, MapId, MapOrigin, NameId, ScopeId,
+    SemanticModel, Site, SlotId,
 };
 use crate::types::{Type, TypeId, TypeNotation, TypeTable};
 
@@ -54,40 +55,92 @@ pub(crate) struct Inference<'a> {
     top_level_scopes: Vec<ScopeId>,
     type_declarations: Vec<TypeDeclaration>,
     node_types: Vec<Vec<Option<TypeId>>>,
+    node_type_log: Vec<(DocumentIndex, NodeId, Option<TypeId>)>,
+    repeatable_loops: usize,
     pass: Pass,
     current_document: DocumentIndex,
     current_scope: ScopeId,
     type_parameters_in_scope: Vec<(String, TypeId)>,
+    type_aliases: FxHashMap<String, type_statement::TypeAlias>,
+    /// The aliases being resolved, to stop at a cyclic alias.
+    resolving_aliases: Vec<String>,
+    /// The `readonly` members of custom types: the type's map and the member name.
+    readonly_members: FxHashSet<(MapId, Box<str>)>,
+    /// The optional members of custom types (`name?: T`, `@property {T} [name]`).
+    optional_members: FxHashSet<(MapId, Box<str>)>,
     implicit_generics: bool,
     custom_map: Option<(Site, MapId)>,
-    narrow_stack: NarrowStack,
-    loop_stack: Vec<Site>,
-    call_context: Option<CallContextId>,
-    context_depth: usize,
-    context_height: usize,
-    context_types: FxHashMap<Site, TypeId>,
+    flow: FlowState,
+    access_paths: AccessPathTable,
+    loop_stack: Vec<LoopFrame>,
+    builds_own_file: bool,
+    side_effect_stack: Vec<SideEffectFrame>,
+    previous: PreviousPass,
+    context: ContextState,
+    atom_names: Vec<Box<[NameId]>>,
+    api_methods: FxHashMap<((usize, usize), TypeId), Option<TypeId>>,
+    binding_use: FxHashMap<Site, BindingUse>,
+    binding_changes: FxHashMap<FunctionId, Vec<(Binding, SlotId)>>,
+    own_slots: FxHashMap<FunctionId, Vec<SlotId>>,
+    /// Each type has one id, so a type restricted to some kinds is the same in every pass.
+    restricted_types: FxHashMap<(TypeId, KindSet), TypeId>,
+    /// The calls of type guards (`value is Dog` return types): the argument index and the type it is tested for.
+    guard_calls: FxHashMap<(DocumentIndex, NodeId), (usize, TypeId)>,
+    /// The literal type of each string and number literal node read by `literal_type_of`.
+    literal_types: FxHashMap<(DocumentIndex, NodeId), Option<TypeId>>,
+    /// The types of `enum` names in annotations: the union of their values' literal types.
+    enum_types: FxHashMap<String, TypeId>,
+    /// The names of `const enum`s, whose entries builds write as values.
+    constant_enums: FxHashSet<String>,
+    opaque_call_maps: FxHashSet<MapId>,
+    /// The classes of `class` statements: their names, private members and methods.
+    class_statements: ClassTable,
+    classes: FxHashSet<MapId>,
+    indirect_additions: FxHashMap<Site, BindingSet>,
     type_buffers: TypeBufferPool,
-    context_references: Vec<ReferenceTable>,
+}
+
+#[derive(Default)]
+struct PreviousPass {
+    loop_back_states: FxHashMap<(Site, Option<CallContextId>), FlowState>,
+    function_side_effects: FxHashMap<Site, SideEffect>,
+}
+
+#[derive(Default)]
+struct ContextState {
+    current: Option<CallContextId>,
+    depth: usize,
+    height: usize,
+    spare_references: Vec<ReferenceTable>,
 }
 
 #[derive(Default)]
 struct Pass {
+    number: usize,
     has_changes: bool,
     visited_documents: FxHashSet<DocumentIndex>,
     inferred_contexts: FxHashSet<CallContextId>,
     generic_instance_set: FxHashSet<GenericInstanceId>,
     diagnostics: Vec<(DocumentIndex, Diagnostic)>,
     deferred_diagnostics: Vec<DeferredDiagnostic>,
-    global_reads: Vec<GlobalRead>,
+    function_side_effects: FxHashMap<Site, SideEffect>,
+    document_side_effects: FxHashMap<DocumentIndex, SideEffect>,
+    invalid_operations: FxHashSet<Site>,
 }
 
 impl<'a> Inference<'a> {
     pub(crate) fn run(documents: Vec<Document<'a>>, api: Api) -> Analysis {
         let mut inference = Self::new(documents, api);
 
+        inference.insert_singleton_maps();
+
         inference.declare();
-        for _ in 0..MAX_PASSES {
-            inference.pass = Pass::default();
+        for number in 0..MAX_PASSES {
+            inference.pass = Pass {
+                number,
+                ..Pass::default()
+            };
+            inference.flow = FlowState::program_start();
             inference.pass.visited_documents.insert(0);
             for node_types in &mut inference.node_types {
                 node_types.fill(None);
@@ -98,6 +151,7 @@ impl<'a> Inference<'a> {
             let body = inference.documents[0].ast.body();
 
             inference.infer_block(body);
+            inference.finish_pass_side_effects();
             if !inference.pass.has_changes {
                 break;
             }
@@ -107,10 +161,24 @@ impl<'a> Inference<'a> {
     }
 
     fn new(documents: Vec<Document<'a>>, api: Api) -> Self {
+        let mut model = SemanticModel::default();
+        let atom_names = documents
+            .iter()
+            .map(|document| {
+                document
+                    .ast
+                    .nodes()
+                    .atoms()
+                    .texts()
+                    .map(|text| model.insert_name(text))
+                    .collect()
+            })
+            .collect();
+
         Self {
             api,
             types: TypeTable::default(),
-            model: SemanticModel::default(),
+            model,
             references: ReferenceTable::new(
                 documents.iter().map(|document| document.ast.nodes().len()),
             ),
@@ -120,28 +188,51 @@ impl<'a> Inference<'a> {
                 .iter()
                 .map(|document| vec![None; document.ast.nodes().len()])
                 .collect(),
+            node_type_log: Vec::new(),
+            repeatable_loops: 0,
             documents,
             pass: Pass::default(),
             current_document: 0,
             current_scope: ScopeId::Global,
             type_parameters_in_scope: Vec::new(),
+            type_aliases: FxHashMap::default(),
+            resolving_aliases: Vec::new(),
+            readonly_members: FxHashSet::default(),
+            optional_members: FxHashSet::default(),
             implicit_generics: false,
             custom_map: None,
-            narrow_stack: NarrowStack::default(),
+            flow: FlowState::default(),
+            access_paths: AccessPathTable::default(),
             loop_stack: Vec::new(),
-            call_context: None,
-            context_depth: 0,
-            context_height: 0,
-            context_types: FxHashMap::default(),
+            builds_own_file: false,
+            side_effect_stack: Vec::new(),
+            previous: PreviousPass::default(),
+            context: ContextState::default(),
+            atom_names,
+            api_methods: FxHashMap::default(),
+            binding_use: FxHashMap::default(),
+            binding_changes: FxHashMap::default(),
+            own_slots: FxHashMap::default(),
+            restricted_types: FxHashMap::default(),
+            guard_calls: FxHashMap::default(),
+            literal_types: FxHashMap::default(),
+            enum_types: FxHashMap::default(),
+            constant_enums: FxHashSet::default(),
+            opaque_call_maps: FxHashSet::default(),
+            class_statements: ClassTable::default(),
+            classes: FxHashSet::default(),
+            indirect_additions: FxHashMap::default(),
             type_buffers: TypeBufferPool::default(),
-            context_references: Vec::new(),
         }
     }
 
     fn finish(mut self) -> Analysis {
         self.validate_variables();
-        self.validate_definition_order();
+        self.validate_deprecated_uses();
+        self.validate_declarations();
         self.validate_inheritance();
+        self.validate_implementations();
+        self.validate_implicit_any();
         for (document, source) in self.documents.iter().enumerate() {
             let (comments, lines) = (source.comments, source.ast.lines());
 
@@ -158,6 +249,15 @@ impl<'a> Inference<'a> {
                         ),
                     ));
                 }
+            }
+        }
+
+        let mut named_types = std::mem::take(&mut self.enum_types);
+        let aliases: Vec<String> = self.type_aliases.keys().cloned().collect();
+
+        for name in aliases {
+            if let Some(ty) = self.alias_type(&name, &[]) {
+                named_types.insert(name, ty);
             }
         }
 
@@ -190,6 +290,7 @@ impl<'a> Inference<'a> {
             self.node_types,
             self.references,
             diagnostics,
+            named_types,
         )
     }
 
@@ -206,178 +307,6 @@ impl<'a> Inference<'a> {
 
     pub(crate) fn lookup(&mut self) -> Lookup<'_> {
         Lookup::new(&mut self.types, &self.model, self.api)
-    }
-
-    pub(crate) fn dependency(&self, node: NodeId) -> Option<(ImportKind, DocumentIndex)> {
-        self.documents[self.current_document as usize]
-            .dependencies
-            .get(&node)
-            .copied()
-    }
-
-    fn declare(&mut self) {
-        let mut document_stack = vec![0];
-        let mut reachable = FxHashSet::from_iter([0]);
-
-        while let Some(document) = document_stack.pop() {
-            let mut dependencies: Vec<_> = self.documents[document as usize]
-                .dependencies
-                .values()
-                .copied()
-                .collect();
-
-            dependencies.sort_unstable_by_key(|&(_, target)| target);
-            for (kind, target) in dependencies {
-                if !reachable.insert(target) {
-                    continue;
-                }
-
-                self.top_level_scopes[target as usize] = match kind {
-                    ImportKind::Import => self.module_scope(target),
-                    ImportKind::Include | ImportKind::NativeImport | ImportKind::Inject => {
-                        self.top_level_scopes[document as usize]
-                    }
-                };
-                document_stack.push(target);
-            }
-        }
-
-        self.declare_types();
-        for document in 0..self.documents.len() {
-            self.current_document =
-                DocumentIndex::try_from(document).expect("value fits the target integer type");
-            self.declare_document();
-        }
-
-        self.current_document = 0;
-    }
-
-    fn declare_document(&mut self) {
-        let ast = self.ast();
-
-        for &function in &ast.scopes {
-            self.function_id(function);
-        }
-
-        let top_level = self.top_level_scopes[self.current_document as usize];
-
-        self.declare_variables(top_level, ast.root());
-    }
-
-    fn declare_variables(&mut self, scope: ScopeId, node: NodeId) {
-        let ast = self.ast();
-        let Some(data) = ast.kind(node).as_scope().map(Scope::scope) else {
-            return;
-        };
-
-        for &definition in ast.list(data.definitions) {
-            let variable = match ast.kind(definition) {
-                NodeKind::Assignment(assignment) => assignment.variable,
-                NodeKind::For(for_loop) => for_loop.variable,
-                _ => continue,
-            };
-
-            if let Some(name) = self.identifier_name(variable) {
-                self.model.insert_variable(scope, name);
-            }
-        }
-    }
-
-    fn module_scope(&mut self, document: DocumentIndex) -> ScopeId {
-        let site = Site {
-            document,
-            node: self.documents[document as usize].ast.root(),
-        };
-        let scope = ScopeId::Function(self.model.add_function(site, ScopeId::Global, None));
-
-        self.model.insert_variable(scope, MODULE);
-
-        scope
-    }
-
-    pub(crate) fn function_id(&mut self, node: NodeId) -> FunctionId {
-        let site = self.site(node);
-
-        if let Some(id) = self.model.function_in_context(site, self.call_context) {
-            return id;
-        }
-
-        let ast = self.ast();
-        let NodeKind::Function(function) = ast.kind(node) else {
-            unreachable!("functions are function nodes")
-        };
-        let outer = match ast.node(node).scope {
-            Some(scope) if scope != ast.root() => ScopeId::Function(self.function_id(scope)),
-            _ => self.top_level_scopes[self.current_document as usize],
-        };
-        let id = self.model.add_function(site, outer, self.call_context);
-        let scope = ScopeId::Function(id);
-        let parameters = ast
-            .list(function.parameters)
-            .iter()
-            .filter_map(|&parameter| {
-                let (variable, default) = match ast.kind(parameter) {
-                    NodeKind::Assignment(assignment) => (
-                        assignment.variable,
-                        ast.text(assignment.init).map(str::to_owned),
-                    ),
-                    _ => (parameter, None),
-                };
-                let name = self.identifier_name(variable)?.to_owned();
-
-                Some(Parameter {
-                    slot: self.model.insert_variable(scope, &name),
-                    name,
-                    node: parameter,
-                    default,
-                })
-            })
-            .collect();
-        let doc = function
-            .assignment
-            .and_then(|assignment| self.doc_at(assignment))
-            .cloned();
-        let data = self.model.function_mut(id);
-
-        data.parameters = parameters;
-        data.doc = doc;
-        self.declare_variables(scope, node);
-
-        id
-    }
-
-    pub(crate) fn infer_dependency(&mut self, node: NodeId) -> Option<TypeId> {
-        let (kind, target) = self.dependency(node)?;
-        let top_level = self.top_level_scopes[target as usize];
-        let module = (kind == ImportKind::Import).then(|| {
-            let map = self.model.insert_map(MapOrigin::Module(target));
-
-            self.object_type(map)
-        });
-
-        if self.pass.visited_documents.insert(target) {
-            let previous = (self.current_document, self.current_scope);
-
-            self.current_document = target;
-            if kind == ImportKind::Import {
-                self.current_scope = top_level;
-            }
-
-            if let Some(module) = module {
-                let slot = self.model.insert_variable(top_level, MODULE);
-
-                self.widen(slot, module);
-            }
-
-            let body = self.ast().body();
-
-            self.infer_block(body);
-            (self.current_document, self.current_scope) = previous;
-        }
-
-        let module = module?;
-
-        Some(self.lookup().member_type(module, KeyRef::String(EXPORTS)))
     }
 
     pub(crate) fn identifier_name(&self, node: NodeId) -> Option<&'a str> {
@@ -401,28 +330,51 @@ impl<'a> Inference<'a> {
         self.pass.has_changes |= self.model.replace_slot_type(slot, specialized_type);
     }
 
-    pub(crate) fn resolve_variable(&self, name: &str) -> Option<SlotId> {
-        self.model.resolve_variable(self.current_scope, name)
+    pub(crate) fn identifier_name_id(&self, node: NodeId) -> Option<NameId> {
+        match self.ast().kind(node) {
+            NodeKind::Identifier(identifier) => Some(self.atom_name(identifier.name)),
+            _ => None,
+        }
+    }
+
+    pub(crate) fn atom_name(&self, atom: Atom) -> NameId {
+        self.atom_names[self.current_document as usize][atom.index()]
+    }
+
+    pub(crate) fn resolve_variable(&self, name: NameId) -> Option<SlotId> {
+        self.model
+            .visible_variables(self.current_scope, name)
+            .find(|&slot| !self.flow.is_unassigned(slot))
+    }
+
+    fn insert_singleton_maps(&mut self) {
+        for &function in self.api.singleton_map_functions() {
+            let map = self.model.insert_map(MapOrigin::Singleton(function));
+            let data = self.model.map(map);
+            let (key, value) = (data.dynamic_key, data.dynamic_value);
+            let ty = self.object_type(map);
+
+            self.widen(key, TypeId::ANY);
+            self.widen(value, TypeId::ANY);
+            self.model.insert_singleton_type(function, ty);
+        }
     }
 
     pub(crate) fn object_type(&mut self, map: MapId) -> TypeId {
         self.types.insert(Type::Object(map))
     }
 
-    pub(crate) fn record_node_type(&mut self, node: NodeId, ty: TypeId) {
-        if self.call_context.is_some() {
-            let site = self.site(node);
-            let union_type = match self.context_types.get(&site) {
-                Some(&previous) => self.types.union(previous, ty),
-                None => ty,
-            };
-
-            self.context_types.insert(site, union_type);
-
+    pub(crate) fn register_node_type(&mut self, node: NodeId, ty: TypeId) {
+        if self.context.current.is_some() {
             return;
         }
 
         let node_type = &mut self.node_types[self.current_document as usize][node.index()];
+
+        if self.repeatable_loops > 0 {
+            self.node_type_log
+                .push((self.current_document, node, *node_type));
+        }
 
         *node_type = Some(match *node_type {
             Some(previous) => self.types.union(previous, ty),
@@ -438,16 +390,8 @@ impl<'a> Inference<'a> {
         self.references.add_definition(self.site(node), slots);
     }
 
-    pub(crate) fn node_type(&self, node: NodeId) -> Option<TypeId> {
-        if self.call_context.is_some() {
-            return self.context_types.get(&self.site(node)).copied();
-        }
-
-        self.node_types[self.current_document as usize][node.index()]
-    }
-
     pub(crate) fn report(&mut self, kind: DiagnosticKind, node: NodeId, message: String) {
-        if self.call_context.is_some() {
+        if self.context.current.is_some() {
             return;
         }
 
@@ -478,31 +422,5 @@ impl<'a> Inference<'a> {
         self.pass
             .diagnostics
             .push((document, Diagnostic::new(kind, lines, span, message)));
-    }
-
-    pub(crate) fn infer_block(&mut self, body: &[NodeId]) {
-        let mut terminator = None;
-
-        for &statement in body {
-            if matches!(self.ast().kind(statement), NodeKind::Noop(_)) {
-                continue;
-            }
-
-            if let Some(terminator) = terminator.take() {
-                self.report(
-                    DiagnosticKind::DeadCodeAfterTerminator,
-                    statement,
-                    format!("Dead code after {terminator}."),
-                );
-            }
-
-            self.infer_statement(statement);
-            terminator = match self.ast().kind(statement) {
-                NodeKind::Return(_) => Some(Keyword::Return.as_str()),
-                NodeKind::Break(_) => Some(Keyword::Break.as_str()),
-                NodeKind::Continue(_) => Some(Keyword::Continue.as_str()),
-                _ => terminator,
-            };
-        }
     }
 }

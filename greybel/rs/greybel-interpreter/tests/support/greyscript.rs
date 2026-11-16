@@ -8,9 +8,21 @@ use greybel_test_support::io::PrintLog;
 pub const MAIN: &str = "main";
 
 pub fn interpreter(files: &[(&str, &str)]) -> (Interpreter<MemoryProvider>, PrintLog) {
+    interpreter_with_environment(files, &[])
+}
+
+/// An interpreter whose build variables are `environment`.
+pub fn interpreter_with_environment(
+    files: &[(&str, &str)],
+    environment: &[(&str, &str)],
+) -> (Interpreter<MemoryProvider>, PrintLog) {
     let (printed, options) = with_captured_stdout(InterpreterOptions {
         dialect: Dialect::GreyScript,
         target: MAIN.to_owned(),
+        environment: environment
+            .iter()
+            .map(|&(name, value)| (name.to_owned(), value.to_owned()))
+            .collect(),
         ..InterpreterOptions::new(std::rc::Rc::new(scheduler::ManualClock::constant()))
     });
     let interpreter = Interpreter::new(options, files.iter().copied().collect::<MemoryProvider>())

@@ -1,6 +1,6 @@
 //! Builds a launched program into binary source, matching `greybel build` with `import_code` dependencies in place.
 
-use greybel_core::Dialect;
+use greybel_core::{Dialect, SyntaxFeatures};
 use greybel_documents::{AsyncResourceProvider, Uri};
 use greybel_source_map::SourceMap;
 use greybel_transpiler::{TranspileOptions, transpile_project_async};
@@ -29,6 +29,13 @@ pub(crate) async fn build(
             .map(|(name, value)| (name.clone(), value.clone()))
             .collect(),
         strict_mode: launch.strict_mode,
+        syntax_features: SyntaxFeatures::except(
+            launch
+                .disabled_syntax
+                .iter()
+                .flat_map(|names| names.iter())
+                .map(String::as_str),
+        ),
         obfuscation: false,
         retain_debugger,
         ..TranspileOptions::default()

@@ -6,8 +6,6 @@ mod map;
 mod signature;
 mod slots;
 
-use std::hash::BuildHasher;
-
 pub use call_context::CallContext;
 pub use custom::{CustomType, GenericInstance};
 pub use function::{ApiMethod, DeclaredFunction, DeclaredParameter, FunctionData, Parameter};
@@ -16,7 +14,6 @@ pub use ids::{
     NameId, ScopeId, Site, SlotId,
 };
 use indexmap::IndexMap;
-use indexmap::map::RawEntryApiV1;
 pub use map::{Key, KeyRef, MapData, MapOrigin};
 use meta_utils::BaseType;
 use rustc_hash::{FxBuildHasher, FxHashMap, FxHashSet};
@@ -24,7 +21,7 @@ pub use signature::Documentation;
 pub(crate) use signature::{FunctionSignature, SignatureParameter, SignatureType};
 pub(crate) use slots::SlotList;
 
-use crate::types::{TypeId, TypeTable};
+use crate::types::{ApiFunction, TypeId, TypeTable};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SemanticModel {
@@ -33,12 +30,14 @@ pub struct SemanticModel {
     map_ids: FxHashMap<(MapOrigin, Option<CallContextId>), MapId>,
     functions: Vec<FunctionData>,
     function_ids: FxHashMap<(Site, Option<CallContextId>), FunctionId>,
-    variables: Vec<IndexMap<String, SlotId, FxBuildHasher>>,
+    variables: Vec<IndexMap<NameId, SlotId, FxBuildHasher>>,
     names: Vec<String>,
     name_ids: FxHashMap<String, NameId>,
     custom_types: IndexMap<String, CustomType, FxBuildHasher>,
     declared_functions: Vec<DeclaredFunction>,
     declared_instance_ids: FxHashMap<(DeclaredId, Vec<TypeId>), DeclaredId>,
+    /// The signatures of function types written in annotations, by parameter names and types and return type.
+    signature_ids: FxHashMap<(Vec<String>, Vec<TypeId>, TypeId), DeclaredId>,
     api_methods: Vec<ApiMethod>,
     api_method_ids: FxHashMap<ApiMethod, ApiMethodId>,
     generic_instances: Vec<GenericInstance>,
@@ -46,6 +45,7 @@ pub struct SemanticModel {
     call_contexts: Vec<CallContext>,
     call_context_ids: FxHashMap<CallContext, CallContextId>,
     call_context_counts: FxHashMap<FunctionId, usize>,
+    singleton_types: FxHashMap<&'static str, TypeId>,
 }
 
 impl Default for SemanticModel {
@@ -62,6 +62,7 @@ impl Default for SemanticModel {
             custom_types: IndexMap::default(),
             declared_functions: Vec::new(),
             declared_instance_ids: FxHashMap::default(),
+            signature_ids: FxHashMap::default(),
             api_methods: Vec::new(),
             api_method_ids: FxHashMap::default(),
             generic_instances: Vec::new(),
@@ -69,6 +70,7 @@ impl Default for SemanticModel {
             call_contexts: Vec::new(),
             call_context_ids: FxHashMap::default(),
             call_context_counts: FxHashMap::default(),
+            singleton_types: FxHashMap::default(),
         }
     }
 }
@@ -128,6 +130,11 @@ impl SemanticModel {
             .filter(|&id| self.map(id).context.is_none())
     }
 
+    /// The map of `origin` outside call contexts, if one was inserted.
+    pub(crate) fn map_of(&self, origin: MapOrigin) -> Option<MapId> {
+        self.map_ids.get(&(origin, None)).copied()
+    }
+
     pub(crate) fn insert_map(&mut self, origin: MapOrigin) -> MapId {
         self.insert_map_in(origin, None)
     }
@@ -164,6 +171,18 @@ impl SemanticModel {
         self.map_ids
             .get(&(MapOrigin::Prototype(base), None))
             .copied()
+    }
+
+    pub(crate) fn singleton_type(&self, function: ApiFunction) -> Option<TypeId> {
+        if function.origin != BaseType::General.as_str() {
+            return None;
+        }
+
+        self.singleton_types.get(function.name).copied()
+    }
+
+    pub(crate) fn insert_singleton_type(&mut self, function: &'static str, ty: TypeId) {
+        self.singleton_types.insert(function, ty);
     }
 
     pub(crate) fn insert_entry(&mut self, map: MapId, key: KeyRef<'_>) -> SlotId {
@@ -302,17 +321,27 @@ impl SemanticModel {
 
     #[must_use]
     pub fn variable(&self, scope: ScopeId, name: &str) -> Option<SlotId> {
-        self.variables[scope.index()].get(name).copied()
+        self.variable_by_id(scope, self.name_id(name)?)
+    }
+
+    pub(crate) fn variable_by_id(&self, scope: ScopeId, name: NameId) -> Option<SlotId> {
+        self.variables[scope.index()].get(&name).copied()
     }
 
     pub(crate) fn insert_variable(&mut self, scope: ScopeId, name: &str) -> SlotId {
-        if let Some(slot) = self.variable(scope, name) {
+        let name = self.insert_name(name);
+
+        self.insert_variable_by_id(scope, name)
+    }
+
+    pub(crate) fn insert_variable_by_id(&mut self, scope: ScopeId, name: NameId) -> SlotId {
+        if let Some(slot) = self.variable_by_id(scope, name) {
             return slot;
         }
 
         let slot = self.add_slot();
 
-        self.variables[scope.index()].insert(name.to_owned(), slot);
+        self.variables[scope.index()].insert(name, slot);
 
         slot
     }
@@ -320,7 +349,11 @@ impl SemanticModel {
     pub fn variables(&self, scope: ScopeId) -> impl Iterator<Item = (&str, SlotId)> {
         self.variables[scope.index()]
             .iter()
-            .map(|(name, &slot)| (name.as_str(), slot))
+            .map(|(&name, &slot)| (self.name(name), slot))
+    }
+
+    pub(crate) fn variable_count(&self, scope: ScopeId) -> usize {
+        self.variables[scope.index()].len()
     }
 
     #[must_use]
@@ -342,19 +375,26 @@ impl SemanticModel {
 
     #[must_use]
     pub fn resolve_variable(&self, scope: ScopeId, name: &str) -> Option<SlotId> {
-        let hash = FxBuildHasher.hash_one(name);
+        self.visible_variables(scope, self.name_id(name)?).next()
+    }
 
-        self.visible_scopes(scope).find_map(|scope| {
-            self.variables[scope.index()]
-                .raw_entry_v1()
-                .from_key_hashed_nocheck(hash, name)
-                .map(|(_, &slot)| slot)
-        })
+    pub(crate) fn visible_variables(
+        &self,
+        scope: ScopeId,
+        name: NameId,
+    ) -> impl Iterator<Item = SlotId> + '_ {
+        self.visible_scopes(scope)
+            .filter_map(move |scope| self.variable_by_id(scope, name))
     }
 
     #[must_use]
     pub fn name(&self, id: NameId) -> &str {
         &self.names[id.index()]
+    }
+
+    #[must_use]
+    pub fn name_id(&self, name: &str) -> Option<NameId> {
+        self.name_ids.get(name).copied()
     }
 
     pub(crate) fn insert_name(&mut self, name: &str) -> NameId {
@@ -401,6 +441,45 @@ impl SemanticModel {
         let id = DeclaredId::new(self.declared_functions.len());
 
         self.declared_functions.push(function);
+
+        id
+    }
+
+    /// The signature of a function type with these parameters (name and type) and return type, one per distinct
+    /// signature.
+    pub(crate) fn insert_signature(
+        &mut self,
+        parameters: Vec<(String, TypeId)>,
+        return_type: TypeId,
+    ) -> DeclaredId {
+        let key = (
+            parameters.iter().map(|(name, _)| name.clone()).collect(),
+            parameters.iter().map(|&(_, ty)| ty).collect(),
+            return_type,
+        );
+
+        if let Some(&id) = self.signature_ids.get(&key) {
+            return id;
+        }
+
+        let id = self.add_declared_function(DeclaredFunction {
+            name: String::new(),
+            parameters: parameters
+                .into_iter()
+                .map(|(name, ty)| DeclaredParameter {
+                    name,
+                    ty,
+                    description: None,
+                })
+                .collect(),
+            return_type,
+            mutated_parameter: None,
+            generic_source: None,
+            description: None,
+            examples: Vec::new(),
+        });
+
+        self.signature_ids.insert(key, id);
 
         id
     }

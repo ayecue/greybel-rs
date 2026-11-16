@@ -21,7 +21,7 @@ impl Options {
 
             Ok(())
         } else {
-            Err(meta.error("expected `label = \"…\"` or `method`"))
+            Err(meta.error("expected `label = \"<text>\"` or `method`"))
         }
     }
 }

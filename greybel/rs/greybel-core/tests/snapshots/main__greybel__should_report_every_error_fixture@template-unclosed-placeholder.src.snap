@@ -1,0 +1,11 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/template-unclosed-placeholder.src
+---
+--- strict
+1:11 - 1:12 ExpectedToken(3001): expected } after the expression of a template placeholder
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:11 - 1:12 ExpectedToken(3001): expected } after the expression of a template placeholder

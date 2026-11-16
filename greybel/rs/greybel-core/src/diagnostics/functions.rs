@@ -18,7 +18,7 @@ impl FunctionDiagnostic {
     pub fn hint(&self) -> Option<String> {
         match self {
             Self::DefaultNotLiteral => {
-                Some("Only numbers, strings, booleans and null are allowed as defaults, and in Greybel's own dialect @ references to a name or member".into())
+                Some("Only numbers, strings, booleans and null are allowed as defaults in strict mode and MiniScript; GreyScript and Greybel accept any expression otherwise".into())
             }
         }
     }

@@ -8,8 +8,8 @@ use greybel_type_analyzer::{Analyzer, DiagnosticKind, Dialect};
 use crate::support::features::completion_labels;
 use crate::support::workspace::{
     Executions, IMPORT_PREFIX, INCLUDE_PREFIX, LOG, LOG_SOURCE, MAIN, MAIN_SOURCE, MATH, TOOL,
-    TOOL_SOURCE, UTIL, UTIL_SOURCE, analyze_all, analyzed_once, at, barrels, created_later,
-    describe_places, edited, exports_across_folders, extra_included, extra_removed,
+    TOOL_SOURCE, TYPE_INCLUDE_PREFIX, UTIL, UTIL_SOURCE, analyze_all, analyzed_once, at, barrels,
+    created_later, describe_places, edited, exports_across_folders, extra_included, extra_removed,
     file_completions, import_code_above_the_project, include_actions, included_by_a_root,
     included_in_a_loop, kinds, kinds_and_messages, labels, load, loaded, log_restored,
     message_texts, missing_later, opened_later, project, reference_places, renamed_files,
@@ -63,7 +63,7 @@ fn should_load_asynchronously_like_synchronously() {
         block_on(asynchronous.load_async(&uri(entry), &provider)).expect("loads");
     }
 
-    let outcomes: Vec<_> = cases
+    let results: Vec<_> = cases
         .iter()
         .map(|(path, names)| {
             (
@@ -73,7 +73,7 @@ fn should_load_asynchronously_like_synchronously() {
         })
         .collect();
 
-    for (asynchronous, synchronous) in outcomes {
+    for (asynchronous, synchronous) in results {
         assert_eq!(asynchronous, synchronous);
     }
 }
@@ -269,7 +269,7 @@ fn should_report_what_a_removed_library_provided() {
         [
             (
                 DiagnosticKind::MissingImport,
-                "Missing import: ../shared/log.src".to_owned()
+                "Cannot find the imported file \"../shared/log.src\".".to_owned()
             ),
             (
                 DiagnosticKind::UnresolvedReference,
@@ -553,6 +553,20 @@ fn should_name_the_function_of_a_nested_workspace_symbol() {
 }
 
 #[test]
+fn should_complete_type_include_paths_like_include_paths() {
+    let mut workspace = workspace();
+
+    workspace.set_file(&uri(TOOL), TYPE_INCLUDE_PREFIX);
+
+    let labels: Vec<String> = file_completions(&workspace, TYPE_INCLUDE_PREFIX)
+        .into_iter()
+        .map(|(label, ..)| label)
+        .collect();
+
+    assert_eq!(labels, ["lib/math.src", "lib/util.src"]);
+}
+
+#[test]
 fn should_complete_include_paths_relative_to_the_document() {
     let mut workspace = workspace();
 
@@ -791,7 +805,7 @@ fn should_report_what_any_entry_running_a_file_finds() {
         messages,
         [
             "Cannot find \"helper\". (when run from /app/other.src)",
-            "Unused parameter: unused",
+            "Unused parameter \"unused\".",
         ],
         "an error of one entry names it; one found by every entry appears once, as is"
     );

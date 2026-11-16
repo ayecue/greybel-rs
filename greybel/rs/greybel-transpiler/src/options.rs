@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use greybel_core::{Dialect, ParserOptions};
+use greybel_core::{Dialect, ParserOptions, SyntaxFeatures};
 use greybel_documents::{DocumentOptions, NativeImportMode, PathResolution, Uri};
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -38,6 +38,8 @@ pub struct TranspileOptions {
     pub obfuscation: bool,
     pub environment: HashMap<String, String>,
     pub strict_mode: bool,
+    /// The syntax features to accept, of those the dialect has.
+    pub syntax_features: SyntaxFeatures,
     pub excluded_names: Vec<String>,
     pub path_mapping: Option<PathMapping>,
     pub retain_debugger: bool,
@@ -74,6 +76,7 @@ impl TranspileOptions {
             parser: ParserOptions {
                 environment: self.environment.clone(),
                 strict_mode: self.strict_mode,
+                syntax_features: self.syntax_features,
                 preserve: true,
                 mono_number_parsing: false,
                 ..ParserOptions::new(self.dialect)
@@ -101,6 +104,7 @@ impl Default for TranspileOptions {
             obfuscation: true,
             environment: HashMap::new(),
             strict_mode: false,
+            syntax_features: SyntaxFeatures::ALL,
             excluded_names: Vec::new(),
             path_mapping: None,
             retain_debugger: false,

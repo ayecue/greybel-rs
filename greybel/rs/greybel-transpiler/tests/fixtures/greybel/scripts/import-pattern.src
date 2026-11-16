@@ -1,0 +1,3 @@
+#import {value, label as name} from "../dependencies/shared-module.src"
+print value
+print name

@@ -48,6 +48,23 @@ impl Color {
         )
     }
 
+    /// The color a `<color=...>`, `<mark=...>` or `<#...>` tag value names: `#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`
+    /// or a color name such as `red`. Hex digits are case-insensitive; names are lowercase.
+    #[must_use]
+    pub fn from_tag_value(value: &str) -> Option<Self> {
+        let Some(digits) = value.strip_prefix('#') else {
+            return Self::from_name_hash(ValueHash::of(value));
+        };
+
+        if !digits.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            return None;
+        }
+
+        let units: Vec<u16> = value.encode_utf16().collect();
+
+        matches!(units.len(), 4 | 5 | 7 | 9).then(|| Self::from_tag(&units, units.len()))
+    }
+
     pub(crate) fn from_name_hash(value: i32) -> Option<Self> {
         Self::NAMED_COLORS
             .iter()

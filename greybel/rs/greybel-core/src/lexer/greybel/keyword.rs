@@ -13,4 +13,8 @@ pub const KEYWORDS: &[Keyword] = &[
     Keyword::IfEnv,
     Keyword::ElseEnv,
     Keyword::EndIfEnv,
+    Keyword::EndEnum,
+    Keyword::EndSwitch,
+    Keyword::EndClass,
+    Keyword::EndType,
 ];

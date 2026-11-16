@@ -1,7 +1,9 @@
 use super::collection::CollectionLiteral;
-use crate::ast::{AstNode, DumpContext, NodeFieldContainer, NodeId, NodeList};
+use super::{Literal, LiteralValue, Spread};
+use crate::ast::{AstNode, DumpContext, NodeFieldContainer, NodeId, NodeKind, NodeList, TextSpan};
+use crate::dialect::SyntaxFeatures;
 use crate::error::ParseResult;
-use crate::lexer::Punct;
+use crate::lexer::{Punct, TokenKind};
 use crate::parser::{Expect, ExprContext, Parser, PrefixRule, Trigger, groups};
 
 #[derive(Debug, Clone, Default, PartialEq, NodeFieldContainer)]
@@ -32,6 +34,8 @@ pub struct MapEntry {
     pub key: NodeId,
     #[child]
     pub value: NodeId,
+    /// `{name}` for `{"name": name}`: `key` is a string literal over the name, `value` the identifier.
+    pub shorthand: bool,
 }
 
 impl AstNode for MapEntry {
@@ -67,14 +71,44 @@ impl PrefixRule for MapRule {
     fn parse(&self, parser: &mut Parser<'_>, _context: ExprContext) -> ParseResult<NodeId> {
         let map = parser.alloc(Map::default(), parser.token().span().open());
         let fields = MAP.parse(parser, map, |parser, entry| {
+            if let Some(spread) = Spread::parse(parser, entry)? {
+                return Ok(spread);
+            }
+
             let key = parser.parse_expr(None)?;
+
+            if parser.grammar().allows(SyntaxFeatures::MAP_SHORTHAND)
+                && parser.token().kind() != TokenKind::SliceOperator
+                && let NodeKind::Identifier(_) = parser.stream.nodes.get(key).kind
+            {
+                let span = parser.stream.nodes.get(key).span;
+                let name = parser.alloc(
+                    Literal {
+                        value: LiteralValue::String(TextSpan::new(span)),
+                        negated: false,
+                    },
+                    span,
+                );
+
+                return Ok(MapEntry {
+                    key: name,
+                    value: key,
+                    shorthand: true,
+                }
+                .into());
+            }
 
             parser.require(Expect::SliceOperator, None)?;
             parser.consume_noop()?;
 
             let value = parser.parse_expr(Some(entry))?;
 
-            Ok(MapEntry { key, value })
+            Ok(MapEntry {
+                key,
+                value,
+                shorthand: false,
+            }
+            .into())
         })?;
 
         parser.stream.nodes.set_kind(map, Map { fields });

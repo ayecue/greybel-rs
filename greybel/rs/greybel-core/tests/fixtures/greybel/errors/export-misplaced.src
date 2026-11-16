@@ -1,0 +1,4 @@
+f = function
+	export x = 1
+end function
+export x.y = 2

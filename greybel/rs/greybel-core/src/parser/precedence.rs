@@ -32,6 +32,15 @@ impl PrecedenceTable {
     }
 
     #[must_use]
+    pub fn insert_before(mut self, anchor: Precedence, levels: &[Precedence]) -> Self {
+        let at = self.position(anchor);
+
+        self.levels.splice(at..at, levels.iter().copied());
+
+        Self::from_levels(self.levels)
+    }
+
+    #[must_use]
     pub fn swap(mut self, a: Precedence, b: Precedence) -> Self {
         let (a, b) = (self.position(a), self.position(b));
 

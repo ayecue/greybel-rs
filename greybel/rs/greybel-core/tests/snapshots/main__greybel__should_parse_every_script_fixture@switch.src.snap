@@ -1,0 +1,30 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/switch.src
+---
+Chunk[1:1-15:1][
+	SwitchStatement[1:1-8:11][
+		IfStatement[1:1-1:1][
+			IfClause[2:2-2:18][LogicalExpression[2:2-2:18][BinaryExpression[2:2-2:18][UnaryExpression[2:2-2:18][@ Identifier[1:8-1:15][command]] == Literal[2:7-2:11][ls]] or BinaryExpression[2:2-2:18][UnaryExpression[2:2-2:18][@ Identifier[1:8-1:15][command]] == Literal[2:13-2:18][dir]]]
+				Identifier[3:3-3:13][list_files]
+			]
+			ElseifClause[4:2-4:13][BinaryExpression[4:2-4:13][UnaryExpression[4:2-4:13][@ Identifier[1:8-1:15][command]] == Literal[4:7-4:13][exit]]
+				Identifier[5:3-5:7][exit]
+			]
+			ElseClause[1:1-1:1][
+				CallStatment[7:3-7:18][CallExpression[7:3-7:18][Identifier[7:3-7:8][print](Literal[7:9-7:18][unknown])]]
+			}]
+		]
+	]
+	SwitchStatement[9:1-12:11][
+		AssignmentStatement[9:8-9:14][Identifier[9:1-9:1][__s] = MemberExpression[9:8-9:14][Identifier[9:8-9:9][a].Identifier[9:10-9:14][kind]]]
+		IfStatement[9:1-9:1][
+			IfClause[10:2-10:13][IsaExpression[10:2-10:13][Identifier[9:1-9:1][__s] isa Identifier[10:10-10:13][map]]
+				CallStatment[11:3-11:10][CallExpression[11:3-11:10][Identifier[11:3-11:8][print](Literal[11:9-11:10][1])]]
+			]
+		]
+	]
+	AssignmentStatement[13:1-13:11][Identifier[13:1-13:7][switch] = Literal[13:10-13:11][1]]
+	AssignmentStatement[14:1-14:9][Identifier[14:1-14:5][case] = Literal[14:8-14:9][2]]
+]

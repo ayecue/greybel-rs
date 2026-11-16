@@ -125,6 +125,64 @@
       },
       "type": "object"
     },
+    "DiagnosticLevel": {
+      "description": "What a project makes of one kind of diagnostic: `off` drops it, a severity replaces its default.",
+      "enum": [
+        "off",
+        "error",
+        "warning",
+        "information",
+        "hint"
+      ],
+      "type": "string"
+    },
+    "DiagnosticSettings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/DiagnosticLevel"
+      },
+      "propertyNames": {
+        "enum": [
+          "syntax-error",
+          "unresolved-reference",
+          "invalid-annotation",
+          "call-arity-mismatch",
+          "missing-import",
+          "cyclic-import",
+          "dead-code-after-terminator",
+          "map-literal-duplicate-keys",
+          "call-of-non-callable",
+          "index-of-non-indexable",
+          "call-signature-mismatch",
+          "type-mismatch",
+          "annotation-signature-mismatch",
+          "unused-local",
+          "unused-parameter",
+          "shadowing",
+          "self-assignment",
+          "constant-condition",
+          "used-before-defined",
+          "cyclic-inheritance",
+          "cyclic-type-definition",
+          "ignored-import-code",
+          "misplaced-import-code",
+          "native-override",
+          "unknown-member",
+          "private-member",
+          "missing-implementation",
+          "missing-case",
+          "impossible-case",
+          "optional-member",
+          "readonly-member",
+          "invalid-operation",
+          "deprecated",
+          "const-assignment",
+          "duplicate-declaration",
+          "missing-let",
+          "implicit-any"
+        ]
+      },
+      "type": "object"
+    },
     "Format": {
       "additionalProperties": false,
       "properties": {
@@ -256,6 +314,33 @@
       },
       "type": "object"
     },
+    "SyntaxSettings": {
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "propertyNames": {
+        "enum": [
+          "number-literals",
+          "templates",
+          "declarations",
+          "enum",
+          "spread",
+          "map-shorthand",
+          "assert",
+          "short-functions",
+          "destructuring-assignments",
+          "for-index",
+          "switch",
+          "export",
+          "ternary",
+          "coalesce",
+          "optional-chains",
+          "classes",
+          "types"
+        ]
+      },
+      "type": "object"
+    },
     "VariableSettings": {
       "additionalProperties": false,
       "description": "Values for `#envar`, loaded from `NAME=value` lines in `files` and then `values`; later entries override\nearlier entries with the same name.",
@@ -320,6 +405,12 @@
           "values": {}
         }
       }
+    },
+    "diagnostics": {
+      "$ref": "#/$defs/DiagnosticSettings",
+      "default": {},
+      "description": "Diagnostic levels by diagnostic code: `off` drops a diagnostic, a severity replaces its default.",
+      "x-vscode-setting": "greybel.typeAnalyzer.diagnostics"
     },
     "entries": {
       "default": [],
@@ -387,6 +478,12 @@
       "description": "Restricts syntax to Grey Hack's compiler (MiniScript 1.6.2 for MiniScript files), excluding Greybel extensions\nsuch as `#include`, `&`, and `+=`.",
       "type": "boolean",
       "x-vscode-setting": "greybel.strictMode"
+    },
+    "syntax": {
+      "$ref": "#/$defs/SyntaxSettings",
+      "default": {},
+      "description": "Greybel syntax features turned on or off by name, e.g. `{\"ternary\": false}`; a feature not listed is on.\nStrict mode turns all of them off.",
+      "x-vscode-setting": "greybel.syntax"
     }
   },
   "title": "greybel.json",

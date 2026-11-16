@@ -1,0 +1,33 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/spread.src
+---
+=== default
+a=[1]
+d={"x":1}
+name="n"
+print(([]+a+[2]+a))
+print(({}+d+{"y":2,"name":name}))
+print(([]+a).len)
+print(([]+(a or [])+[3]))
+print({"name":name})
+=== uglify
+globals.I=globals
+J=[1]
+K={"x":1}
+name="n"
+print(([]+J+[2]+J))
+print(({}+K+{"y":2,"name":name}))
+print(([]+J).len)
+print(([]+(J or [])+[3]))
+print({"name":name})
+=== beautify
+a = [ 1 ]
+d = { "x": 1 }
+name = "n"
+print ([] + a + [2] + a)
+print ({} + d + {"y": 2, "name": name})
+print ([] + a).len
+print ([] + (a or []) + [3])
+print { "name": name }

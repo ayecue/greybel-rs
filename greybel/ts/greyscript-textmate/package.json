@@ -14,6 +14,7 @@
       "default": "./dist/index.js"
     },
     "./greyscript.tmLanguage.json": "./src/greyscript.tmLanguage.json",
+    "./greyscript-signature.tmLanguage.json": "./src/greyscript-signature.tmLanguage.json",
     "./greyscript.theme.json": "./src/greyscript.theme.json",
     "./greyscriptLanguageConfig.json": "./src/greyscriptLanguageConfig.json"
   },
@@ -23,6 +24,11 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.3.2"
   }
 }

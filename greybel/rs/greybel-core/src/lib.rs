@@ -16,7 +16,7 @@ pub use ast::{
     IfClauseKind, LiteralValue, LogicalOp, Node, NodeCommentContainer, NodeFieldContainer, NodeId,
     NodeKind, NodeStore, ScopeData, TextSpan, UnaryOp, Visitor, span_location,
 };
-pub use dialect::{Dialect, Grammar, Version};
+pub use dialect::{Dialect, Grammar, SyntaxFeatures, Version};
 pub use error::{ErrorCode, ErrorKind, ParseError, ParseResult};
 pub use lexer::{Keyword, Lexer, Punct, Token, TokenIter, TokenKind, TokenStream};
 pub use parser::{

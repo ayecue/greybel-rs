@@ -42,9 +42,11 @@ impl Server {
         let (Some(ast), []) = (parse.ast(), parse.errors()) else {
             return Ok(None);
         };
+        // Dev mode retains Greybel syntax (`+=`, bitwise operators, `debugger`, `#line`, expression defaults) as written.
         let options = TranspileOptions {
             dialect: self.dialect,
             mode: BuildMode::Beautify(self.settings.beautify_options()),
+            dev_mode: true,
             strict_mode: self.settings.strict_mode,
             retain_multiline_strings: true,
             ..TranspileOptions::default()

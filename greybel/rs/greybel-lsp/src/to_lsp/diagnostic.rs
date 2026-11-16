@@ -1,5 +1,5 @@
 use gen_lsp_types as lsp;
-use greybel_type_analyzer::{Diagnostic, Severity};
+use greybel_type_analyzer::{Diagnostic, DiagnosticKind, Severity};
 
 use super::range;
 
@@ -13,7 +13,19 @@ pub fn diagnostic(diagnostic: &Diagnostic) -> lsp::Diagnostic {
         code: Some(lsp::Code::String(diagnostic.kind.code().to_owned())),
         source: Some(SOURCE.to_owned()),
         message: lsp::Message::String(diagnostic.message.clone()),
+        tags: tag(diagnostic.kind).map(|tag| vec![tag]),
         ..lsp::Diagnostic::default()
+    }
+}
+
+/// Deprecated uses show struck through; unused and unreachable code shows faded.
+fn tag(kind: DiagnosticKind) -> Option<lsp::DiagnosticTag> {
+    match kind {
+        DiagnosticKind::Deprecated => Some(lsp::DiagnosticTag::Deprecated),
+        DiagnosticKind::UnusedLocal
+        | DiagnosticKind::UnusedParameter
+        | DiagnosticKind::DeadCodeAfterTerminator => Some(lsp::DiagnosticTag::Unnecessary),
+        _ => None,
     }
 }
 

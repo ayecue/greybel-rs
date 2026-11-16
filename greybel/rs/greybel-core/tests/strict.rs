@@ -1,6 +1,6 @@
 //! Tests that strict mode parses only what each dialect's reference implementation compiles.
 
-use greybel_core::{Dialect, Version};
+use greybel_core::{Dialect, ParserOptions, SyntaxFeatures, Version, parse};
 
 use crate::support::strict::{GREYBEL_SYNTAX, parses};
 
@@ -63,18 +63,19 @@ fn should_reject_what_grey_hack_no_longer_compiles_in_strict_greyscript() {
 /// (`ValVar`), which prints as `@g` and is no function: GreyScript and every strict mode reject it, and only Greybel's
 /// own dialect takes it.
 #[test]
-fn should_reject_reference_defaults_but_in_greybel() {
-    let source = "f = function(e = @g, h = @g.k)\nend function";
+fn should_accept_expression_defaults_only_outside_strict_mode() {
+    let source = "f = function(a = @g, b = @g.k, c = [], d = x[0], e = x)\nend function";
 
     let accepted = [
         (Dialect::GreyScript, false),
         (Dialect::GreyScript, true),
         (Dialect::Greybel, false),
         (Dialect::Greybel, true),
+        (Dialect::MiniScript, false),
     ]
     .map(|(dialect, strict)| parses(source, dialect, Version::V1_6, strict));
 
-    assert_eq!(accepted, [false, false, true, false]);
+    assert_eq!(accepted, [true, false, true, false, false]);
 }
 
 #[test]
@@ -107,4 +108,17 @@ fn should_keep_greybel_syntax_but_not_its_conveniences_in_strict_greybel() {
 
     assert_eq!(syntax, [true; 4]);
     assert_eq!(conveniences, [false; 3]);
+}
+
+#[test]
+fn should_reject_only_the_syntax_features_turned_off() {
+    let options = ParserOptions {
+        syntax_features: SyntaxFeatures::except(["ternary"]),
+        ..ParserOptions::new(Dialect::GreyScript)
+    };
+    let accepts = |source: &str| parse(source, options.clone()).is_ok();
+
+    assert!(!accepts("x = a ? b : c"));
+    assert!(accepts("x = a ?? b"));
+    assert!(accepts("x = a?.b"));
 }

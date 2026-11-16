@@ -5,6 +5,7 @@ use super::state::{
 use crate::ast::{Ast, NodeId, NodeStore};
 use crate::lexer::{Lexer, TokenSnapshot, TokenStream};
 use crate::position::Span;
+use crate::syntax::greybel::{TypeSyntax, ValueExpansions};
 
 pub struct ParseStream {
     pub(crate) tokens: TokenStream,
@@ -18,10 +19,11 @@ pub struct ParseStream {
     pub(crate) refused_operator: Option<u32>,
     pub(crate) line_continues: bool,
     pub(crate) expression_depth: usize,
-    /// Span at which the current statement first exceeds the node-depth limit.
     pub(crate) over_depth_span: Option<Span>,
-    /// Offset of the current statement's first token.
     pub(crate) statement: Option<u32>,
+    /// Set by ternary expressions, `??` and optional chains, which have [`ValueExpansions`].
+    pub(crate) expands_values: bool,
+    pub(crate) type_syntax: TypeSyntax,
 }
 
 pub struct ParseSnapshot {
@@ -61,6 +63,8 @@ impl ParseStream {
             root: None,
             refused_operator: None,
             line_continues: false,
+            expands_values: false,
+            type_syntax: TypeSyntax::default(),
             expression_depth: 0,
             over_depth_span: None,
             statement: None,
@@ -123,13 +127,23 @@ impl ParseStream {
     pub(crate) fn into_ast(self, lexer: &Lexer<'_>) -> Ast {
         let root = self.root.expect("chunk was parsed");
         let chunk_data = self.chunk_data.into_base();
-
-        Ast::new(
-            self.nodes,
+        let mut nodes = self.nodes;
+        let expansions = if self.expands_values {
+            ValueExpansions::of(&mut nodes, root)
+        } else {
+            ValueExpansions::default()
+        };
+        let mut ast = Ast::new(
+            nodes,
             root,
             chunk_data,
             lexer.source().into(),
             lexer.shared_lines(),
-        )
+        );
+
+        ast.expansions = expansions;
+        ast.type_syntax = self.type_syntax;
+
+        ast
     }
 }

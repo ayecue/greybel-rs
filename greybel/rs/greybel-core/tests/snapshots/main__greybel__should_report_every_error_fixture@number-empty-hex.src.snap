@@ -1,0 +1,13 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/number-empty-hex.src
+---
+--- strict
+1:5 - 1:7 InvalidNumericLiteral(1003): invalid numeric literal: 0x
+--- tree
+Chunk[1:1-2:1][]
+--- errors
+1:5 - 1:7 ExpectedExpression(3002): got Unknown(0x) where number, string, or identifier is required
+--- lexer errors
+1:5 - 1:7 InvalidNumericLiteral(1003): invalid numeric literal: 0x

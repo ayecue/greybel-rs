@@ -9,6 +9,7 @@ use std::pin::pin;
 use std::rc::Rc;
 
 use futures_util::future::{Either, select};
+use greybel_core::SyntaxFeatures;
 use greybel_documents::{AsyncResourceProvider, Uri};
 use greybel_interpreter::{InterpreterError, InterpreterOptions, Param, Pin, RunResult, Value, Vm};
 use greyhack_behaviour::path;
@@ -112,6 +113,13 @@ impl<'r, H: Host> MockProgram<'r, H> {
                 .collect(),
             debug: launch.debug,
             strict_mode: launch.strict_mode,
+            syntax_features: SyntaxFeatures::except(
+                launch
+                    .disabled_syntax
+                    .iter()
+                    .flat_map(|names| names.iter())
+                    .map(String::as_str),
+            ),
             memory_limit: self.memory_limit,
             stdout,
             stdin,

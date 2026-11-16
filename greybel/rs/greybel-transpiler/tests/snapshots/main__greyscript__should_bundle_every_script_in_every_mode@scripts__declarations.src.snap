@@ -1,0 +1,33 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/declarations.src
+---
+=== default
+count=0
+LIMIT=10
+let=5
+f=function
+inner=count+LIMIT
+return inner
+end function
+print(f+let)
+=== uglify
+globals.I=globals
+J=0
+K=10
+L=5
+M=function
+N=J+K
+return N
+end function
+print(M+L)
+=== beautify
+count = 0
+LIMIT = 10
+let = 5
+f = function
+	inner = count + LIMIT
+	return inner
+end function
+print f + let

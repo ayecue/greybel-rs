@@ -1,0 +1,89 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/arrow-functions.src
+---
+=== default
+double=function(x)
+return x*2
+end function
+items=[{"name":"a"}]
+names=items.map(function(x))
+return x.name
+end function
+handler=function(line,sep=" ")
+parts=line.split(sep)
+return parts[0]
+end function
+print(double(2)+handler("a b").len)
+f=function(g,n)
+return g(n)
+end function
+print(f(function(v),2)
+return v+1
+end function)
+=== uglify
+globals.I=globals
+J=function(O)
+return O*2
+end function
+K=[{"name":"a"}]
+L=K.map(function(O))
+return O.name
+end function
+M=function(P,Q=" ")
+R=P.split(Q)
+return R[0]
+end function
+print(J(2)+M("a b").len)
+N=function(S,T)
+return S(T)
+end function
+print(N(function(U),2)
+return U+1
+end function)
+=== beautify
+double = function(x)
+	return x * 2
+end function
+items = [ { "name": "a" } ]
+names = items.map(function(x))
+	return x.name
+end function
+handler = function(line, sep = " ")
+	parts = line.split(sep)
+	return parts[0]
+end function
+print double(2) + handler("a b").len
+f = function(g, n)
+	return g(n)
+end function
+print f(function(v), 2)
+	return v + 1
+end function
+=== beautify, dev mode
+double = (x) => x * 2
+items = [ { "name": "a" } ]
+names = items.map((x) => x.name)
+handler = (line, sep = " ") =>
+	parts = line.split(sep)
+	return parts[0]
+end function
+print double(2) + handler("a b").len
+f = function(g, n)
+	return g(n)
+end function
+print f((v) => v + 1, 2)
+=== beautify, dev mode, keep parentheses, 10 spaces
+double = (x) => x * 2
+items = [ { "name": "a" } ]
+names = items.map((x) => x.name)
+handler = (line, sep = " ") =>
+          parts = line.split(sep)
+          return parts[0]
+end function
+print(double(2) + handler("a b").len)
+f = function(g, n)
+          return g(n)
+end function
+print(f((v) => v + 1, 2))

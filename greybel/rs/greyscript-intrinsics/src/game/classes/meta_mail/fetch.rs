@@ -9,7 +9,7 @@ use crate::game::client::object;
 use crate::game::client::server::{program, respond, server};
 use crate::protocol::{InboxContent, MetaMailFetch};
 
-/// Returns Grey Hack's `MailID: … From: … Subject: …` inbox summaries.
+/// Returns Grey Hack's `MailID: <id> From: <sender> Subject: <subject>` inbox summaries.
 /// Truncates each body to its first [`PREVIEW`] string positions.
 #[native(method)]
 pub fn fetch(vm: &mut Vm, this: &Value) -> Result<NativeFuture, IntrinsicError> {

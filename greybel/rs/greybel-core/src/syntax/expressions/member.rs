@@ -11,6 +11,8 @@ pub struct Member {
     pub base: NodeId,
     #[child]
     pub identifier: NodeId,
+    /// `base?.identifier`: the chain this member starts is `null` when `base` is `null`.
+    pub optional: bool,
 }
 
 impl AstNode for Member {
@@ -22,9 +24,10 @@ impl AstNode for Member {
         let type_name = self.type_name();
 
         format!(
-            "{type_name}[{}][{}.{}]",
+            "{type_name}[{}][{}{}{}]",
             ctx.location(),
             ctx.child(self.base),
+            if self.optional { "?." } else { "." },
             ctx.child(self.identifier)
         )
     }
@@ -52,11 +55,24 @@ impl InfixRule for MemberRule {
         parser.advance()?;
         parser.consume_noop()?;
 
+        Member::parse_name(parser, left, start, false)
+    }
+}
+
+impl Member {
+    /// The name after `.` or `?.`.
+    pub(crate) fn parse_name(
+        parser: &mut Parser<'_>,
+        base: NodeId,
+        start: Span,
+        optional: bool,
+    ) -> ParseResult<NodeId> {
         let identifier = Identifier::parse(parser, IdentifierKind::Property)?;
         let member = parser.alloc(
             Member {
-                base: left,
+                base,
                 identifier,
+                optional,
             },
             parser.span_from(&start),
         );

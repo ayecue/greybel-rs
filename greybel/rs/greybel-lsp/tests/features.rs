@@ -4,8 +4,9 @@ use greybel_lsp::types::{self as lsp, Request as _};
 use serde_json::json;
 
 use crate::support::{
-    Client, MAIN, lsp_position, project, project_completing_greet, project_renaming_greet,
-    project_with_main_open, rename_greet, uri,
+    Client, LIBRARY, MAIN, inlay_hints, lsp_position, project, project_completing_greet,
+    project_renaming_greet, project_with_definition_links, project_with_main_open, rename_greet,
+    uri,
 };
 
 #[test]
@@ -22,7 +23,13 @@ fn should_hover_with_the_documentation_of_an_include() {
     };
 
     assert_eq!(content.kind, lsp::MarkupKind::Markdown);
-    assert!(content.value.contains("```greyscript"), "{}", content.value);
+    assert!(
+        content
+            .value
+            .starts_with("```greyscript-signature\ngreet: function("),
+        "{}",
+        content.value
+    );
     assert!(content.value.contains("Says hello."), "{}", content.value);
 }
 
@@ -108,6 +115,128 @@ fn should_go_to_the_definition_in_an_include() {
 }
 
 #[test]
+fn should_link_the_complete_import_path_to_its_file() {
+    let mut client = project_with_definition_links();
+
+    let definition = client.request::<lsp::DefinitionRequest>(Client::position("main.src", 0, 14));
+
+    let Some(lsp::DefinitionResponse::DefinitionLinkList(links)) = definition else {
+        panic!("definition links");
+    };
+    let origin = links[0].origin_selection_range.expect("an origin");
+
+    assert_eq!(links[0].target_uri.0, uri("lib/greet.src"));
+    assert_eq!(
+        (origin.start, origin.end),
+        (lsp_position(0, 10), lsp_position(0, 23))
+    );
+}
+
+#[test]
+fn should_fold_comments_and_function_bodies() {
+    let mut client = project_with_main_open();
+
+    let folds = client
+        .request::<lsp::FoldingRangeRequest>(
+            json!({ "textDocument": { "uri": uri("lib/greet.src") } }),
+        )
+        .expect("folding ranges");
+    let folds: Vec<_> = folds
+        .iter()
+        .map(|fold| (fold.start_line, fold.end_line, fold.kind.clone()))
+        .collect();
+
+    assert_eq!(
+        folds,
+        [(0, 2, Some(lsp::FoldingRangeKind::Comment)), (3, 4, None)]
+    );
+}
+
+#[test]
+fn should_select_from_a_name_out_to_its_statement() {
+    let mut client = project_with_main_open();
+
+    let selections = client
+        .request::<lsp::SelectionRangeRequest>(json!({
+            "textDocument": { "uri": uri("main.src") },
+            "positions": [{ "line": 1, "character": 12 }]
+        }))
+        .expect("selection ranges");
+    let mut ranges = Vec::new();
+    let mut selection = Some(&selections[0]);
+
+    while let Some(current) = selection {
+        ranges.push((current.range.start, current.range.end));
+        selection = current.parent.as_deref();
+    }
+
+    assert_eq!(ranges[0], (lsp_position(1, 10), lsp_position(1, 15)));
+    assert_eq!(
+        ranges[ranges.len() - 2],
+        (lsp_position(1, 0), lsp_position(1, 22))
+    );
+}
+
+#[test]
+fn should_hint_the_type_of_a_variable() {
+    let mut client = project_with_main_open();
+
+    let hints = inlay_hints(&mut client);
+
+    assert_eq!(hints, [(lsp_position(1, 7), ": string".to_owned())]);
+}
+
+#[test]
+fn should_leave_out_inlay_hints_the_settings_turn_off() {
+    let settings = json!({ "typeAnalyzer": { "inlayHints": { "variableTypes": false } } });
+    let mut client =
+        Client::with_settings(&[("lib/greet.src", LIBRARY), ("main.src", MAIN)], settings);
+
+    client.open("main.src", MAIN);
+
+    assert_eq!(inlay_hints(&mut client), []);
+}
+
+#[test]
+fn should_go_to_the_type_definition_of_a_map() {
+    let source = "m = {\"a\": 1}\nprint m\n";
+    let mut client = Client::started(&[("main.src", source)]);
+
+    client.open("main.src", source);
+
+    let definition =
+        client.request::<lsp::TypeDefinitionRequest>(Client::position("main.src", 1, 6));
+    let Some(lsp::TypeDefinitionResponse::Definition(lsp::Definition::LocationList(locations))) =
+        definition
+    else {
+        panic!("a type definition");
+    };
+
+    assert_eq!(locations[0].range.start, lsp_position(0, 4));
+}
+
+#[test]
+fn should_show_and_present_tag_colors() {
+    let source = "print \"<color=#FF8000>a</color>\"\n";
+    let mut client = Client::started(&[("main.src", source)]);
+
+    client.open("main.src", source);
+
+    let colors = client.request::<lsp::DocumentColorRequest>(
+        json!({ "textDocument": { "uri": uri("main.src") } }),
+    );
+    let presentations = client.request::<lsp::ColorPresentationRequest>(json!({
+        "textDocument": { "uri": uri("main.src") },
+        "color": { "red": 0.0, "green": 1.0, "blue": 0.0, "alpha": 0.5 },
+        "range": colors[0].range
+    }));
+
+    assert_eq!(colors.len(), 1);
+    assert_eq!(colors[0].range.start, lsp_position(0, 14));
+    assert_eq!(presentations[0].label, "#00FF0080");
+}
+
+#[test]
 fn should_highlight_every_use_of_a_variable() {
     let mut client = project_with_main_open();
     let highlights = client
@@ -184,7 +313,9 @@ fn should_offer_quick_fixes_including_the_defining_file() {
         titles,
         [
             "Add #include \"lib/greet.src\";",
-            "Add import_code(\"lib/greet.src\")"
+            "Add import_code(\"lib/greet.src\")",
+            "Ignore \"unresolved-reference\" on this line",
+            "Ignore \"unresolved-reference\" in this file"
         ]
     );
 }
@@ -212,6 +343,23 @@ fn should_format_with_the_beautify_settings() {
         edits[0].new_text
     );
     assert_eq!(edits[0].range.end, lsp_position(2, 6));
+}
+
+#[test]
+fn should_format_without_rewriting_greybel_syntax() {
+    let mut client = Client::started(&[]);
+    let source = "x = 1\nx += 2\ny = 6 | 3\nf = function(a = [])\n\treturn a\nend function\ndebugger\nprint #line\ns = \"a\nb\"\nn = 0xFF + 1_000";
+
+    client.open("main.src", source);
+
+    let edits = client
+        .request::<lsp::DocumentFormattingRequest>(json!({
+            "textDocument": { "uri": uri("main.src") },
+            "options": { "tabSize": 2, "insertSpaces": true }
+        }))
+        .expect("edits");
+
+    assert_eq!(edits, Vec::new(), "formatted text equals the source");
 }
 
 #[test]

@@ -2,6 +2,7 @@ mod completion;
 mod diagnostic;
 mod edit;
 mod markup;
+mod ranges;
 mod symbol;
 
 pub use completion::completion_item;
@@ -12,7 +13,8 @@ use greybel_core::{Position, Range};
 use greybel_documents::Uri;
 use greybel_type_analyzer::Location;
 pub use markup::Markup;
-pub use symbol::{document_symbol, workspace_symbol};
+pub use ranges::{color_information, color_presentation, fold, inlay_hint, selection_range};
+pub use symbol::{call_hierarchy_item, document_symbol, workspace_symbol};
 
 #[must_use]
 pub fn uri(uri: &Uri) -> lsp::Uri {

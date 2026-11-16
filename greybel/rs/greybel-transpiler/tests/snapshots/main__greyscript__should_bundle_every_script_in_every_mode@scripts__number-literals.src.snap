@@ -1,0 +1,25 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/number-literals.src
+---
+=== default
+a=255
+b=10+1000000
+c=[16,-16,15.25]
+print(a+b)
+=== uglify
+globals.I=globals
+J=255
+K=10+1000000
+L=[16,-16,15.25]
+print(J+K)
+=== beautify
+a = 255
+b = 10 + 1000000
+c = [
+	16,
+	-16,
+	15.25,
+]
+print a + b

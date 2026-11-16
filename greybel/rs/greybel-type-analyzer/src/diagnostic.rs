@@ -34,30 +34,86 @@ impl Diagnostic {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum DiagnosticKind {
-    Syntax,
-    UnresolvedReference,
-    InvalidAnnotation,
-    CallArityMismatch,
-    MissingImport,
-    CyclicImport,
-    DeadCodeAfterTerminator,
-    DuplicateKey,
-    CallOfNonCallable,
-    IndexOfNonIndexable,
-    CallSignatureMismatch,
-    TypeMismatch,
-    AnnotationSignatureMismatch,
-    UnusedLocal,
-    UnusedParameter,
-    Shadow,
-    SelfAssignment,
-    ConstantCondition,
-    UseBeforeDefinition,
-    CyclicInheritance,
-    CyclicTypeDefinition,
-    IgnoredImportCode,
+macro_rules! diagnostic_kinds {
+    (@enabled off) => {
+        false
+    };
+    (@enabled) => {
+        true
+    };
+    ($($kind:ident => $code:literal, $severity:ident $(, $off:ident)?;)*) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        pub enum DiagnosticKind {
+            $($kind,)*
+        }
+
+        impl DiagnosticKind {
+            pub const ALL: &'static [Self] = &[$(Self::$kind,)*];
+
+            #[must_use]
+            pub fn code(self) -> &'static str {
+                match self {
+                    $(Self::$kind => $code,)*
+                }
+            }
+
+            #[must_use]
+            pub fn default_severity(self) -> Severity {
+                match self {
+                    $(Self::$kind => Severity::$severity,)*
+                }
+            }
+
+            /// Whether the diagnostic is reported without the options naming it; `off` kinds need a severity in
+            /// [`DiagnosticOptions::severity_overrides`].
+            #[must_use]
+            pub fn is_enabled_by_default(self) -> bool {
+                match self {
+                    $(Self::$kind => diagnostic_kinds!(@enabled $($off)?),)*
+                }
+            }
+        }
+    };
+}
+
+diagnostic_kinds! {
+    Syntax => "syntax-error", Error;
+    UnresolvedReference => "unresolved-reference", Error;
+    InvalidAnnotation => "invalid-annotation", Warning;
+    CallArityMismatch => "call-arity-mismatch", Warning;
+    MissingImport => "missing-import", Error;
+    CyclicImport => "cyclic-import", Error;
+    DeadCodeAfterTerminator => "dead-code-after-terminator", Warning;
+    DuplicateKey => "map-literal-duplicate-keys", Error;
+    CallOfNonCallable => "call-of-non-callable", Error;
+    IndexOfNonIndexable => "index-of-non-indexable", Error;
+    CallSignatureMismatch => "call-signature-mismatch", Warning;
+    TypeMismatch => "type-mismatch", Error;
+    AnnotationSignatureMismatch => "annotation-signature-mismatch", Error;
+    UnusedLocal => "unused-local", Warning;
+    UnusedParameter => "unused-parameter", Warning;
+    Shadow => "shadowing", Warning;
+    SelfAssignment => "self-assignment", Warning;
+    ConstantCondition => "constant-condition", Warning;
+    UseBeforeDefinition => "used-before-defined", Warning;
+    CyclicInheritance => "cyclic-inheritance", Error;
+    CyclicTypeDefinition => "cyclic-type-definition", Error;
+    IgnoredImportCode => "ignored-import-code", Warning;
+    MisplacedImportCode => "misplaced-import-code", Warning;
+    NativeOverride => "native-override", Warning;
+    UnknownMember => "unknown-member", Warning;
+    PrivateMember => "private-member", Warning;
+    MissingImplementation => "missing-implementation", Warning;
+    MissingCase => "missing-case", Warning;
+    ImpossibleCase => "impossible-case", Warning;
+    OptionalMember => "optional-member", Warning;
+    ReadonlyMember => "readonly-member", Warning;
+    InvalidOperation => "invalid-operation", Warning;
+    Deprecated => "deprecated", Hint;
+    ConstAssignment => "const-assignment", Error;
+    DuplicateDeclaration => "duplicate-declaration", Error;
+    MissingLet => "missing-let", Warning, off;
+    ImplicitAny => "implicit-any", Warning, off;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -70,59 +126,8 @@ pub enum Severity {
 
 impl DiagnosticKind {
     #[must_use]
-    pub fn default_severity(self) -> Severity {
-        match self {
-            Self::Syntax
-            | Self::UnresolvedReference
-            | Self::MissingImport
-            | Self::CyclicImport
-            | Self::DuplicateKey
-            | Self::CallOfNonCallable
-            | Self::IndexOfNonIndexable
-            | Self::TypeMismatch
-            | Self::AnnotationSignatureMismatch
-            | Self::CyclicInheritance
-            | Self::CyclicTypeDefinition => Severity::Error,
-            Self::InvalidAnnotation
-            | Self::CallArityMismatch
-            | Self::DeadCodeAfterTerminator
-            | Self::CallSignatureMismatch
-            | Self::UnusedLocal
-            | Self::UnusedParameter
-            | Self::Shadow
-            | Self::SelfAssignment
-            | Self::ConstantCondition
-            | Self::UseBeforeDefinition
-            | Self::IgnoredImportCode => Severity::Warning,
-        }
-    }
-
-    #[must_use]
-    pub fn code(self) -> &'static str {
-        match self {
-            Self::Syntax => "syntax-error",
-            Self::UnresolvedReference => "unresolved-reference",
-            Self::InvalidAnnotation => "invalid-annotation",
-            Self::CallArityMismatch => "call-arity-mismatch",
-            Self::MissingImport => "missing-import",
-            Self::CyclicImport => "cyclic-import",
-            Self::DeadCodeAfterTerminator => "dead-code-after-terminator",
-            Self::DuplicateKey => "map-literal-duplicate-keys",
-            Self::CallOfNonCallable => "call-of-non-callable",
-            Self::IndexOfNonIndexable => "index-of-non-indexable",
-            Self::CallSignatureMismatch => "call-signature-mismatch",
-            Self::TypeMismatch => "type-mismatch",
-            Self::AnnotationSignatureMismatch => "annotation-signature-mismatch",
-            Self::UnusedLocal => "unused-local",
-            Self::UnusedParameter => "unused-parameter",
-            Self::Shadow => "shadowing",
-            Self::SelfAssignment => "self-assignment",
-            Self::ConstantCondition => "constant-condition",
-            Self::UseBeforeDefinition => "used-before-defined",
-            Self::CyclicInheritance => "cyclic-inheritance",
-            Self::CyclicTypeDefinition => "cyclic-type-definition",
-            Self::IgnoredImportCode => "ignored-import-code",
-        }
+    pub fn from_code(code: &str) -> Option<Self> {
+        Self::ALL.iter().copied().find(|kind| kind.code() == code)
     }
 }
 
@@ -137,7 +142,12 @@ impl DiagnosticOptions {
     pub fn apply(&self, diagnostics: impl IntoIterator<Item = Diagnostic>) -> Vec<Diagnostic> {
         diagnostics
             .into_iter()
-            .filter(|diagnostic| !self.disabled_kinds.contains(&diagnostic.kind))
+            .filter(|diagnostic| {
+                let kind = diagnostic.kind;
+
+                !self.disabled_kinds.contains(&kind)
+                    && (kind.is_enabled_by_default() || self.severity_overrides.contains_key(&kind))
+            })
             .map(|mut diagnostic| {
                 if let Some(&severity) = self.severity_overrides.get(&diagnostic.kind) {
                     diagnostic.severity = severity;

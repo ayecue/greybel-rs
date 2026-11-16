@@ -1,0 +1,14 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/type-statements.src
+---
+Chunk[1:1-11:1][
+	TypeStatement[1:1-1:24][Id = string|number]
+	TypeStatement[2:1-2:22][Pair = [T, T]]
+	TypeStatement[3:1-8:9][Repository with 4 members]
+	AssignmentStatement[9:1-9:49][let Identifier[9:5-9:9][repo] = MapConstructor[9:32-9:49][
+		MapKeyString[9:33-9:48][Literal[9:33-9:39][name]: Literal[9:41-9:48][users]]
+	]]
+	CallStatment[10:1-10:16][CallExpression[10:1-10:16][Identifier[10:1-10:6][print](MemberExpression[10:7-10:16][Identifier[10:7-10:11][repo].Identifier[10:12-10:16][name]])]]
+]

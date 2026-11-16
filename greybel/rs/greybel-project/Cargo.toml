@@ -14,8 +14,10 @@ doctest = false
 [dependencies]
 greybel-builder = { workspace = true, optional = true }
 greybel-bundler.workspace = true
+greybel-core.workspace = true
 greybel-documents.workspace = true
 greybel-runtime = { workspace = true, optional = true }
+greybel-type-analyzer.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true

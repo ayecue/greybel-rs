@@ -1,13 +1,20 @@
+mod call_hierarchy;
+mod code_actions;
+mod doc_completions;
 mod entries;
+mod import_path;
 mod imports;
 mod navigation;
+mod ranges;
+mod rename;
 mod symbols;
+mod type_hover;
 
 use greybel_core::{Ast, ColumnSettings, Dialect, ParserOptions, Position};
 use greybel_documents::{DocumentOptions, SourceFile, Uri, Workspace};
 
 use crate::analysis::Analysis;
-use crate::database::{Analyze, Database};
+use crate::database::{Analyze, Annotate, Database};
 use crate::diagnostic::Diagnostic;
 use crate::ide::{CompletionItem, Context, DocumentSymbol, Hover, SignatureHelp};
 
@@ -41,8 +48,18 @@ impl<'w> Analyzer<'w> {
         self.file_analysis(self.workspace.file(uri)?)
     }
 
+    /// The diagnostics that are reported by default; [`Self::all_diagnostics`] also has those that are off by
+    /// default, for [`DiagnosticOptions::apply`](crate::DiagnosticOptions::apply).
     #[must_use]
     pub fn diagnostics(&self, uri: &Uri) -> Vec<Diagnostic> {
+        self.all_diagnostics(uri)
+            .into_iter()
+            .filter(|diagnostic| diagnostic.kind.is_enabled_by_default())
+            .collect()
+    }
+
+    #[must_use]
+    pub fn all_diagnostics(&self, uri: &Uri) -> Vec<Diagnostic> {
         let Some(file) = self.workspace.file(uri) else {
             return Vec::new();
         };
@@ -51,16 +68,28 @@ impl<'w> Analyzer<'w> {
             return Vec::new();
         };
 
+        let ignores = &file.comments(self.workspace.db()).ignores;
+
         parse
             .errors()
             .iter()
             .map(|error| Diagnostic::syntax(error, ast.lines()))
             .chain(self.entry_diagnostics(file))
+            .filter(|diagnostic| !ignores.ignores(diagnostic))
+            .chain(ignores.invalid.iter().cloned())
             .collect()
     }
 
     #[must_use]
     pub fn hover(&self, uri: &Uri, position: Position) -> Option<Hover> {
+        if let Some(hover) = self.import_hover(uri, position) {
+            return Some(hover);
+        }
+
+        if let Some(hover) = self.type_hover(uri, position) {
+            return Some(hover);
+        }
+
         self.ide_context(uri, position)?.hover()
     }
 
@@ -68,6 +97,10 @@ impl<'w> Analyzer<'w> {
     pub fn completions(&self, uri: &Uri, position: Position) -> Vec<CompletionItem> {
         if let Some(paths) = self.path_completions(uri, position) {
             return paths;
+        }
+
+        if let Some(items) = self.comment_completions(uri, position) {
+            return items;
         }
 
         self.ide_context(uri, position)
@@ -86,9 +119,11 @@ impl<'w> Analyzer<'w> {
             return Vec::new();
         };
 
-        file.parse(self.workspace.db())
+        let db = self.workspace.db();
+
+        file.parse(db)
             .ast()
-            .map(|ast| DocumentSymbol::outline(ast))
+            .map(|ast| DocumentSymbol::outline_with_types(ast, file.comments(db)))
             .unwrap_or_default()
     }
 

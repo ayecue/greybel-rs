@@ -1,10 +1,11 @@
-use greybel_core::syntax::greybel::{Include, Inject};
+use greybel_core::lexer::NumericLiteral;
+use greybel_core::syntax::greybel::{Include, Inject, Switch};
 use greybel_core::syntax::{
     Assignment, Binary, Call, CallStatement, ComparisonGroup, ElseClause, For, Function, If,
     IfClause, Isa, List, ListItem, Literal, Logical, Map, MapEntry, Parenthesis, Slice, While,
 };
-use greybel_core::{IfClauseKind, NodeId};
-use greybel_symbols::contextual_keywords::TYPE;
+use greybel_core::{IfClauseKind, LiteralValue, NodeId};
+use greybel_symbols::contextual_keywords::{SWITCH, TYPE};
 use greybel_symbols::delimiters::{
     ESCAPED_QUOTE, MAP_KEY_SEPARATOR, QUOTE, SLICE_SEPARATOR, STATEMENT_SEPARATOR,
 };
@@ -14,7 +15,7 @@ use greybel_symbols::{Keyword, Punct};
 use super::shape::{count_operations, is_block_statement, shorthand};
 use super::{BeautifyEmitter, MAX_INLINE_ARGUMENTS, MAX_INLINE_OPERATIONS};
 use crate::bundle::MULTILINE_STRING;
-use crate::emit::nodes::{deferred_function, dependency_module, unwrap_value};
+use crate::emit::nodes::{deferred_function, dependency_module, emitted_parameters, unwrap_value};
 use crate::emit::{EmitFlags, EmitOutput, EmitState, Emitter, LiteralStyle};
 use crate::error::Result;
 
@@ -22,6 +23,91 @@ impl Emitter for BeautifyEmitter {
     const ARGUMENT_SEPARATOR: &'static str = ", ";
     const INFIX_PADDING: &'static str = " ";
     const RETAINS_COMMENTS: bool = true;
+
+    fn separate_statements(&mut self, s: &mut EmitState<'_>) {
+        s.eol();
+        self.push_indent(s);
+    }
+
+    fn emit_switch(&mut self, s: &mut EmitState<'_>, node: &Switch) -> Result<()> {
+        s.push(SWITCH);
+        s.push(" ");
+        self.emit_without_parens(s, node.subject)?;
+        s.eol();
+        self.with_indent(s, |this, s| {
+            for case in &node.cases {
+                this.push_indent(s);
+                this.emit_switch_case(s, case)?;
+                s.eol();
+                this.with_indent(s, |this, s| this.emit_body(s, s.ast().list(case.body)))?;
+            }
+
+            if let Some(fallback) = node.fallback {
+                this.push_indent(s);
+                s.keyword(Keyword::Else);
+                s.eol();
+                this.with_indent(s, |this, s| this.emit_body(s, s.ast().list(fallback)))?;
+            }
+
+            Ok(())
+        })?;
+        s.push_fmt(format_args!("{}{}", self.indentation(), Keyword::EndSwitch));
+
+        Ok(())
+    }
+
+    fn emit_block_body(
+        &mut self,
+        s: &mut EmitState<'_>,
+        body: &[NodeId],
+        end: Keyword,
+    ) -> Result<()> {
+        s.eol();
+        self.with_indent(s, |this, s| this.emit_body(s, body))?;
+        s.push_fmt(format_args!("{}{}", self.indentation(), end));
+
+        Ok(())
+    }
+
+    fn emit_arrow_body(&mut self, s: &mut EmitState<'_>, node: &Function) -> Result<()> {
+        s.eol();
+        self.with_indent(s, |this, s| this.emit_function_body(s, node))?;
+        s.push_fmt(format_args!(
+            "{}{}",
+            self.indentation(),
+            Keyword::EndFunction
+        ));
+
+        Ok(())
+    }
+
+    /// Re-indents the lines after the first: the closing `end` line at the statement's depth, the others one deeper.
+    fn emit_block_source(&mut self, s: &mut EmitState<'_>, id: NodeId) {
+        let text = s.text(id).to_owned();
+        let mut lines = text.lines();
+
+        s.push(lines.next().unwrap_or_default().trim_end());
+
+        for line in lines {
+            let line = line.trim();
+
+            s.eol();
+
+            if line.is_empty() {
+                continue;
+            }
+
+            if line.starts_with(Keyword::End.as_str()) {
+                self.push_indent(s);
+            } else {
+                self.indent += 1;
+                self.push_indent(s);
+                self.indent -= 1;
+            }
+
+            s.push(line);
+        }
+    }
 
     fn finish(&self, output: EmitOutput) -> String {
         let mut text = String::with_capacity(output.text_len());
@@ -51,6 +137,10 @@ impl Emitter for BeautifyEmitter {
 
     fn emit_body(&mut self, s: &mut EmitState<'_>, body: &[NodeId]) -> Result<()> {
         for &item in body {
+            if s.is_omitted(item) {
+                continue;
+            }
+
             if s.is_noop(item) {
                 self.emit_blank_line(s, item);
                 continue;
@@ -105,6 +195,13 @@ impl Emitter for BeautifyEmitter {
         node: &Assignment,
         _flags: EmitFlags,
     ) -> Result<()> {
+        if s.options().dev_mode
+            && let Some(declaration) = node.declaration
+        {
+            s.push(declaration.as_str());
+            s.push(" ");
+        }
+
         self.emit(s, node.variable, EmitFlags::default())?;
         if let Some(binary) = shorthand(s, node) {
             s.push_fmt(format_args!(
@@ -126,18 +223,23 @@ impl Emitter for BeautifyEmitter {
     fn emit_function(
         &mut self,
         s: &mut EmitState<'_>,
-        _id: NodeId,
+        id: NodeId,
         node: &Function,
         flags: EmitFlags,
     ) -> Result<()> {
-        if node.parameters.is_empty() {
+        if node.parameters.is_empty() && s.written_returns(id).is_none() {
             s.keyword(Keyword::Function);
+            self.emit_templates(s, id);
         } else {
             self.single_line(s, |this, s| {
+                let parameters = emitted_parameters(s, s.ast().list(node.parameters));
+
                 s.keyword(Keyword::Function);
+                this.emit_templates(s, id);
                 s.punct(Punct::LParen);
-                this.emit_with_separators(s, s.ast().list(node.parameters), ", ")?;
+                this.emit_with_separators(s, &parameters, ", ")?;
                 s.punct(Punct::RParen);
+                this.emit_return_type(s, id);
 
                 Ok(())
             })?;
@@ -147,7 +249,19 @@ impl Emitter for BeautifyEmitter {
             return Ok(());
         }
 
-        self.emit_block(s, s.ast().list(node.body), Keyword::EndFunction)
+        s.eol();
+        self.with_indent(s, |this, s| this.emit_function_body(s, node))?;
+        s.push_fmt(format_args!(
+            "{}{}",
+            self.indentation(),
+            Keyword::EndFunction
+        ));
+
+        Ok(())
+    }
+
+    fn begin_line(&mut self, s: &mut EmitState<'_>) {
+        self.push_indent(s);
     }
 
     fn emit_map(&mut self, s: &mut EmitState<'_>, id: NodeId, node: &Map) -> Result<()> {
@@ -166,7 +280,11 @@ impl Emitter for BeautifyEmitter {
         node: &MapEntry,
         flags: EmitFlags,
     ) -> Result<()> {
-        self.emit(s, node.key, EmitFlags::default())?;
+        if node.shorthand && s.options().dev_mode {
+            return self.emit(s, node.value, flags);
+        }
+
+        self.emit_map_key(s, node)?;
         s.push(MAP_KEY_SEPARATOR);
         s.push(" ");
 
@@ -193,6 +311,18 @@ impl Emitter for BeautifyEmitter {
     }
 
     fn emit_literal(&mut self, s: &mut EmitState<'_>, id: NodeId, node: &Literal) -> Result<()> {
+        if s.options().dev_mode
+            && matches!(node.value, LiteralValue::Number(_))
+            && !NumericLiteral::is_plain(s.text(id))
+        {
+            let sign = if node.negated { "-" } else { "" };
+            let text = format!("{sign}{}", s.text(id));
+
+            s.push(&text);
+
+            return Ok(());
+        }
+
         s.literal(
             node,
             s.text(id),
@@ -319,16 +449,18 @@ impl Emitter for BeautifyEmitter {
         Ok(())
     }
 
-    fn emit_if(&mut self, s: &mut EmitState<'_>, _id: NodeId, node: &If) -> Result<()> {
+    fn emit_if(&mut self, s: &mut EmitState<'_>, id: NodeId, node: &If) -> Result<()> {
+        let shortcut = s.is_shortcut(id, node.shortcut);
+
         for (index, &clause) in s.ast().list(node.clauses).iter().enumerate() {
-            if node.shortcut && index > 0 {
+            if shortcut && index > 0 {
                 s.push(" ");
             }
 
             self.emit(s, clause, EmitFlags::default())?;
         }
 
-        if !node.shortcut {
+        if !shortcut {
             s.push_fmt(format_args!("{}{}", self.indentation(), Keyword::EndIf));
         }
 
@@ -341,7 +473,7 @@ impl Emitter for BeautifyEmitter {
             IfClauseKind::ElseIf => Keyword::ElseIf,
         };
 
-        if node.shortcut {
+        if s.is_shortcut(id, node.shortcut) {
             s.keyword(keyword);
             s.push(" ");
             self.emit_without_parens(s, node.condition)?;
@@ -373,7 +505,7 @@ impl Emitter for BeautifyEmitter {
         id: NodeId,
         node: &ElseClause,
     ) -> Result<()> {
-        if node.shortcut {
+        if s.is_shortcut(id, node.shortcut) {
             s.keyword(Keyword::Else);
             s.push(" ");
 
@@ -390,6 +522,25 @@ impl Emitter for BeautifyEmitter {
     fn emit_for(&mut self, s: &mut EmitState<'_>, node: &For) -> Result<()> {
         s.keyword(Keyword::For);
         s.push(" ");
+
+        if s.options().dev_mode
+            && let Some(header) = node.header
+        {
+            let names = s.ast().slice(header.span).to_owned();
+
+            s.push(&names);
+            s.push(" ");
+            s.keyword(Keyword::In);
+            s.push(" ");
+            self.emit_without_parens(s, node.sequence)?;
+
+            return self.emit_block(
+                s,
+                &s.ast().list(node.body)[header.prelude..],
+                Keyword::EndFor,
+            );
+        }
+
         self.emit_without_parens(s, node.variable)?;
         s.push(" ");
         s.keyword(Keyword::In);

@@ -192,7 +192,7 @@ Core layouts, behavior, and executable scenarios live in [`duplex/`](../duplex/)
 | Byte stream | `duplex-driver-stdio` | `duplex-driver-stdio` |
 | HTTP | `duplex-driver-http` provider | `duplex-driver-http` client |
 | WebSocket | `duplex-driver-websocket` provider | `duplex-driver-websocket` client |
-| Memory, for peers on one thread | `duplex-driver-memory` | — |
+| Memory, for peers on one thread | `duplex-driver-memory` | none |
 | Tests | `duplex-test-support::Memory` | Package test drivers |
 
 Drivers advertise `CLIENT`, `PROVIDER`, and `PERSISTENT` capabilities. Channels require a compatible driver. Protocols whose clients receive unsolicited messages require `PERSISTENT`. Driver packages document transport-specific setup and limits; TypeScript packages are indexed in the [TypeScript guide](../duplex/ts/README.md#packages).

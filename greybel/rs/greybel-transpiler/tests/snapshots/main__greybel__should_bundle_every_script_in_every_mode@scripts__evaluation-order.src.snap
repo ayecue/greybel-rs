@@ -1,0 +1,155 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/evaluation-order.src
+---
+=== default
+log=[]
+step=function(name,value)
+log.push(name)
+return value
+end function
+x=1
+bump=function
+globals.x=x+1
+return null
+end function
+__t0=step("a",1)
+__t1=step("b",null)
+if @__t1==null then
+__t1=step("c",2)
+end if
+__t2=x
+__t3=bump
+if @__t3==null then
+__t3=x
+end if
+print([@__t0,@__t1,@__t2,@__t3])
+m={"k":[0,0]}
+__t0=m[step("key","k")]
+__t1=step("i",null)
+if @__t1==null then
+__t1=1
+end if
+__t0[@__t1]=step("value",5)
+print(m)
+__t0=step("left","L")
+__t1=step("mid",null)
+if @__t1==null then
+__t1="M"
+end if
+s=@__t0+(@__t1)+step("right","R")
+print(s)
+print(log)
+=== uglify
+globals.I=globals
+I.U=null
+log=[]
+J=function(S,T)
+log.push(S)
+return T
+end function
+K=1
+L=function
+I.K=K+1
+return U
+end function
+O=J("a",1)
+P=J("b",U)
+if @P==U then
+P=J("c",2)
+end if
+Q=K
+R=L
+if @R==U then
+R=K
+end if
+print([@O,@P,@Q,@R])
+M={"k":[0,0]}
+O=M[J("key","k")]
+P=J("i",U)
+if @P==U then
+P=1
+end if
+O[@P]=J("value",5)
+print(M)
+O=J("left","L")
+P=J("mid",U)
+if @P==U then
+P="M"
+end if
+N=@O+(@P)+J("right","R")
+print(N)
+print(log)
+=== beautify
+log = []
+step = function(name, value)
+	log.push name
+	return value
+end function
+x = 1
+bump = function
+	globals.x = x + 1
+	return null
+end function
+__t0 = step("a", 1)
+__t1 = step("b", null)
+if @__t1 == null then
+	__t1 = step("c", 2)
+end if
+__t2 = x
+__t3 = bump
+if @__t3 == null then
+	__t3 = x
+end if
+print [
+	@__t0,
+	@__t1,
+	@__t2,
+	@__t3,
+]
+m = { "k": [
+	0,
+	0,
+] }
+__t0 = m[step("key", "k")]
+__t1 = step("i", null)
+if @__t1 == null then
+	__t1 = 1
+end if
+__t0[@__t1] = step("value", 5)
+print m
+__t0 = step("left", "L")
+__t1 = step("mid", null)
+if @__t1 == null then
+	__t1 = "M"
+end if
+s = @__t0 + (@__t1) + step("right", "R")
+print s
+print log
+=== beautify, dev mode, keep parentheses, 10 spaces
+log = []
+step = function(name, value)
+          log.push(name)
+          return value
+end function
+x = 1
+bump = function
+          globals.x = x + 1
+          return null
+end function
+print([
+          step("a", 1),
+          step("b", null) ?? step("c", 2),
+          x,
+          bump ?? x,
+])
+m = { "k": [
+          0,
+          0,
+] }
+m[step("key", "k")][step("i", null) ?? 1] = step("value", 5)
+print(m)
+s = step("left", "L") + (step("mid", null) ?? "M") + step("right", "R")
+print(s)
+print(log)

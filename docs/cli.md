@@ -123,7 +123,7 @@ Greybel supports three different dependency mechanisms:
 import_code("lib/runtime.src")
 ```
 
-- **`#include "path"`** inserts the file at that location. Included code shares the including file's scope and is included each time the directive appears. `#include type "path"` is a type-only include and emits no runtime code.
+- **`#include "path"`** inserts the file at that location. Included code shares the including file's scope and is included each time the directive appears. `#include type "path"` is a type-only include: it emits no runtime code, and the language server only reads the file's type declarations (`@vtype`, `@type`, `@property`, `@function`), not its variables.
 - **`#import name from "path"`** evaluates a module once, caches it, and binds `name` to its `module.exports` map. Later imports reuse the cached module.
 - **`import_code("path")`** keeps code in separate built files for Grey Hack's compiler. It does not return a `module.exports` object. Greybel supports relative and nested imports, rewrites paths for their in-game locations, and moves nested imports into the entry file where the game requires it. Keep `import_code` at the head of a file; nested import locations cannot otherwise be guaranteed.
 
@@ -157,7 +157,23 @@ Outside strict mode, the parser and transpiler additionally support:
 - single-line `for` and `while` bodies;
 - trailing commas in call argument lists;
 - multiline string literals, which builds convert to Grey Hack-compatible code;
+- parameter defaults that aren't literals, such as `function(items = [], count = items.len)`. The default is evaluated in the function on each call that omits the argument or passes `null`; builds write it as `if @items == null then items = []` at the start of the function;
 - the `debugger` statement.
+- string templates: `#"Hello {name}, {items.len} items"`. Each `{...}` holds an expression; `{{` and `}}` write braces and `""` a quote. Builds write `"Hello " + (name) + ", " + (items.len) + " items"`, starting with `""` when the template starts with an expression, so the result is always a string;
+- `enum Name` with one `Entry` or `Entry = value` per line and `end enum`: builds write `Name = {"Entry": 0, ...}`. An entry without a value gets the previous number plus 1 (0 first); values are number or string literals, and an entry after a string value needs its own value. With `const enum`, builds also write the value in place of `Name.Entry` reads in every file of the build, except in a file that also uses `Name` as a variable or parameter;
+- spread in list and map literals and map shorthand: `[...a, 1]`, `{...defaults, "verbose": 1}`, `{name, port}`. Builds write `([] + a + [1])`, `({} + defaults + {"verbose": 1})` and `{"name": name, "port": port}`; later map entries win;
+- `assert condition` and `assert condition, message`: builds write `if not (condition) then exit(message)`; without a message the program exits with "Assertion failed at file:line". Setting the build variable `NO_ASSERTS` (for example `--env-vars NO_ASSERTS=1`) removes asserts from builds and from `greybel execute`;
+- short functions: `(x) => x * 2`, or `(line) =>` at the end of a line with the body up to `end function`. Builds write `function(x)`, `return x * 2`, `end function`; in call arguments and literals they use the form GreyScript accepts there (`items.map(function(x))` with the body on the following lines);
+- destructuring statements: `[user, host] = address.split("@")`, `[first, ...others] = items`, `{name, port as p, timeout = 30} = config`, nested patterns and `let`/`const` before them. Builds write one assignment per name (`user = @__d0[0]`, `name = @config.name`), through a `__d` temporary when the right side isn't a variable; a default is used when the element or key is missing or `null`;
+- `for` headers with an index or a pattern: `for i, item in items` (`i` is the item's index, `__item_idx`), `for [x, y] in points` and `for {key, value} in map` (each item destructured, like a pattern assignment), or both (`for i, [x, y] in points`);
+- `switch subject` with `case value, ...`, `case is Type` and `else` clauses, closed by `end switch`. Builds write an `if`/`else if` chain comparing `@subject` (a `__s` temporary when the subject isn't a variable); there is no fall-through, and `break` keeps its meaning for an enclosing loop;
+- `#import {parse, format as fmt} from "path"`: builds write `__m = __REQUIRE(...)` followed by `parse = @__m.parse` and `fmt = @__m.format`. The module still runs once; the names are copies of the exports when the import runs;
+- `export name = value` at the top of a file loaded with `#import`: builds write the assignment and `module.exports.name = @name`, with `module.exports = {}` before the file's first export;
+- types in code: `function(ip: string, port: number = 22): map|null`, `function<T>(items: list<T>): T`, `(x: number) => x * 2`, `let port: number = 22`, `value as list<string>` and `value!` (not `null`). They use the doc comment type language, count like `@param`/`@returns`/`@template`/`@define` in the type analyzer, and builds remove them. `type Id = string|number` declares an alias and `type Repository extends map` with `name: string`, `timeout?: number`, `readonly id: Id` and `find(id: Id): map|null` lines up to `end type` declares a type like `@vtype`;
+- classes: `class Dog extends Animal` with instance fields (`name = value`), `static` fields shared by all instances (`static sound = "woof"`) and methods (`bark(times)` up to `end function`) up to `end class`; `Dog.create(arguments)` makes an instance with the `constructor` method, which assigns every instance field (`self.name = value`). Builds write `Dog = new Animal` and `Dog.member = value` for methods and `static` fields;
+- ternary expressions `enabled ? "on" : "off"`, `a ?? b` (`a` unless it is `null`) and optional chains `a?.b`, `a?.[i]`, `f?.(x)` (`null` for the whole chain when the base is `null`). Builds compute them into `__tN` temporaries before their statement; on the right side of `and`/`or`, in a parameter default or an `assert` message they are a build error;
+- `let` and `const` before an assignment to a name: `let count = 0`, `const LIMIT = 10`. Builds write the plain assignment; the type analyzer reports assignments to constants and, when the `missing-let` diagnostic is on, assignments that create a variable without them. `let` and `const` are still valid names, as in `let = 1`;
+- hex, octal and binary number literals and `_` between digits: `0xFF`, `0o17`, `0b1010`, `1_000_000`. Builds write them as decimal numbers.
 
 ```greyscript
 /* Greybel extensions are transformed by a build. */
@@ -168,6 +184,8 @@ items = [1, 2,]
 ```
 
 Enable `strictMode` or `--strict-mode` when source must be accepted directly by Grey Hack without a Greybel build.
+
+To turn off single syntax features instead, list them under `syntax` in `greybel.json`, for example `"syntax": { "ternary": false, "classes": false }`. A feature not listed is on. The names are `number-literals`, `templates`, `declarations`, `enum`, `spread`, `map-shorthand`, `assert`, `short-functions`, `destructuring-assignments`, `for-index`, `switch`, `export`, `ternary`, `coalesce`, `optional-chains`, `classes` and `types`. Builds, runs, the language server and the MCP check tool use the setting.
 
 ### Environment values
 

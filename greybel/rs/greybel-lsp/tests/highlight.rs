@@ -77,3 +77,85 @@ fn should_split_a_token_spanning_lines() {
         (6, 1, 6)
     );
 }
+
+#[test]
+fn should_classify_the_code_inside_a_string_template() {
+    let mut client = Client::new(&[]);
+    let initialized = client.initialize();
+    let Some(lsp::SemanticTokensProvider::SemanticTokensOptions(options)) =
+        initialized.capabilities.semantic_tokens_provider
+    else {
+        panic!("semantic tokens");
+    };
+
+    client.open("main.src", "n = 1\nx = #\"a{n + 2}b\"\n");
+
+    let tokens = client
+        .request::<lsp::SemanticTokensRequest>(
+            json!({ "textDocument": { "uri": uri("main.src") } }),
+        )
+        .expect("tokens");
+    let tokens = absolute(&tokens.data, &options.legend.token_types);
+    let line: Vec<(u32, u32, &str)> = tokens
+        .iter()
+        .filter(|token| token.0 == 1 && token.1 >= 4)
+        .map(|token| (token.1, token.2, token.3.as_str()))
+        .collect();
+
+    assert_eq!(
+        line,
+        [
+            (4, 4, "string"),
+            (8, 1, "variable"),
+            (10, 1, "operator"),
+            (12, 1, "number"),
+            (13, 3, "string"),
+        ]
+    );
+}
+
+#[test]
+fn should_classify_contextual_keywords_and_types() {
+    let mut client = Client::new(&[]);
+    let initialized = client.initialize();
+    let Some(lsp::SemanticTokensProvider::SemanticTokensOptions(options)) =
+        initialized.capabilities.semantic_tokens_provider
+    else {
+        panic!("semantic tokens");
+    };
+
+    client.open(
+        "main.src",
+        "let p: Port = 1\n{name, port as q} = {}\nx = p as number\ntype Port = number\ntype Repo extends map\n  readonly id: Port\n  find(key: string): map\nend type\nas = 2\n",
+    );
+
+    let tokens = client
+        .request::<lsp::SemanticTokensRequest>(
+            json!({ "textDocument": { "uri": uri("main.src") } }),
+        )
+        .expect("tokens");
+    let tokens = absolute(&tokens.data, &options.legend.token_types);
+    let at = |line: u32, character: u32| {
+        tokens
+            .iter()
+            .find(|token| token.0 == line && token.1 == character)
+            .map(|token| token.3.as_str())
+    };
+
+    assert_eq!(at(0, 0), Some("keyword"));
+    assert_eq!(at(0, 7), Some("type"));
+    assert_eq!(at(1, 12), Some("keyword"));
+    assert_eq!(at(2, 6), Some("keyword"));
+    assert_eq!(at(2, 9), Some("type"));
+    assert_eq!(at(3, 0), Some("keyword"));
+    assert_eq!(at(3, 5), Some("type"));
+    assert_eq!(at(4, 10), Some("keyword"));
+    assert_eq!(at(4, 18), Some("type"));
+    assert_eq!(at(5, 2), Some("keyword"));
+    assert_eq!(at(5, 11), Some("property"));
+    assert_eq!(at(5, 15), Some("type"));
+    assert_eq!(at(6, 2), Some("function"));
+    assert_eq!(at(6, 7), Some("parameter"));
+    assert_eq!(at(6, 12), Some("type"));
+    assert_eq!(at(8, 0), Some("variable"));
+}

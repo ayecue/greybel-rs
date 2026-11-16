@@ -44,7 +44,7 @@ impl Return {
         parser.stream.nodes.close(node, &end);
         parser.stream.nodes.set_kind(node, Return { argument });
 
-        if let Some(scope) = scope.and_then(|s| parser.stream.scopes.open_mut(s)) {
+        if let Some(scope) = scope.and_then(|s| parser.stream.scopes.pending_mut(s)) {
             scope.returns.push(node);
         }
 

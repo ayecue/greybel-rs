@@ -1,0 +1,31 @@
+class Animal
+	tags = [0]
+	static sound = "..."
+	static private count = 0
+	constructor(name, age = 3)
+		self.name = name
+		self.age = age
+		Animal.count = Animal.count + 1
+	end function
+	speak()
+		return self.name + ":" + self.sound
+	end function
+end class
+class Dog extends Animal
+	static sound = "woof"
+end class
+class Puppy extends Dog
+	static sound = "yip"
+end class
+class Point
+	x = 1
+end class
+class Bag
+	items = []
+end class
+a = Animal.create("cat")
+d = Dog.create("rex", 5)
+p = Puppy.create("bit")
+d.tags[0] = 9
+print [a.speak, d.speak, p.speak, a.age, d.age, p isa Puppy, p isa Dog, a.tags, d.tags]
+print [Point.create.x, Point.hasIndex("x"), Bag.create.items, Bag.create isa Bag, Animal.count]

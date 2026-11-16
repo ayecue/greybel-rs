@@ -113,6 +113,10 @@ impl AtomTable {
         self.ends.len()
     }
 
+    pub fn texts(&self) -> impl Iterator<Item = &str> {
+        (0..self.ends.len()).map(|index| self.text_at(index))
+    }
+
     fn text_at(&self, index: usize) -> &str {
         let start = index
             .checked_sub(1)

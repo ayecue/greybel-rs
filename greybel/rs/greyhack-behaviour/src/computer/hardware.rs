@@ -34,7 +34,7 @@ pub fn check_gpu(rng: &mut Rng, health: f32) -> Option<GpuFault> {
     None
 }
 
-/// Names network interfaces in input order, using `eth0`, `eth1`, … for wired cards and `wlan0`, …
+/// Names network interfaces in input order, using `eth0`, `eth1` and so on for wired cards and `wlan0`, `wlan1` and so on
 /// for Wi-Fi cards.
 #[must_use]
 pub fn interface_names(wifi: impl IntoIterator<Item = bool>) -> Vec<String> {

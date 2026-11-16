@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use greybel_core::NodeId;
 use greybel_symbols::names::SELF;
 
@@ -69,14 +71,30 @@ impl Inference<'_> {
             _ => function,
         };
         let in_context = match function {
-            FunctionRef::Body(id) => self.context_return_type(id, site),
+            FunctionRef::Body(id) => self.context_call(id, site),
             _ => None,
         };
         let returns = match in_context {
-            Some(returns) => returns,
+            Some((returns, _)) => returns,
             None => self.lookup().return_type(function),
         };
+
+        self.apply_call_side_effect(function);
+
         let mutation = self.call_mutation(function, site);
+
+        if let FunctionRef::Body(id) = function
+            && self
+                .model
+                .function(id)
+                .doc
+                .as_ref()
+                .is_none_or(|doc| doc.mutated_parameter.is_none())
+        {
+            let body = in_context.and_then(|(_, context)| context).unwrap_or(id);
+
+            self.apply_binding_changes(id, body, site);
+        }
 
         if mutation.is_none() && !self.has_type_parameters(returns) {
             return returns;
@@ -127,11 +145,17 @@ impl Inference<'_> {
         self.substitute(returns, &bindings)
     }
 
-    pub(super) fn parameter_types(&mut self, function: FunctionRef, method: bool) -> Vec<TypeId> {
+    pub(super) fn parameter_types(&mut self, function: FunctionRef, method: bool) -> Arc<[TypeId]> {
         match function {
-            FunctionRef::Any => Vec::new(),
+            FunctionRef::Any => Arc::new([]),
             FunctionRef::Api(api) => self.lookup().api_parameter_types(api),
-            FunctionRef::ApiMethod(id) => self.model.api_method(id).parameters.to_vec(),
+            FunctionRef::ApiMethod(id) => self
+                .model
+                .api_method(id)
+                .parameters
+                .iter()
+                .copied()
+                .collect(),
             FunctionRef::Signature(id) => {
                 let original = self
                     .model
@@ -156,6 +180,7 @@ impl Inference<'_> {
                         .map(|parameter| match parameter.ty {
                             SignatureType::Value(ty) => ty,
                             SignatureType::Api(_) => TypeId::ANY,
+                            SignatureType::Guard(_) => TypeId::NUMBER,
                         })
                         .collect()
                 })

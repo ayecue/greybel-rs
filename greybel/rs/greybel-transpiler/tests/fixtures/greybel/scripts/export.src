@@ -1,0 +1,2 @@
+#import {twice, count} from "../dependencies/exported.src"
+print twice(count)

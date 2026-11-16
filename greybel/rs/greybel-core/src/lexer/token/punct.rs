@@ -48,7 +48,6 @@ pub struct Punctuator {
 }
 
 impl Punctuator {
-    /// Returns MiniScript's `Token.Type` name for `punct`; Greybel-specific operators use their own names.
     #[must_use]
     pub fn describe_punct(punct: Punct) -> String {
         let name = match punct {

@@ -70,7 +70,8 @@ export function transpileSettingsOf(
     obfuscation: build.obfuscation,
     strictMode,
     variables: { ...project.buildVariables },
-    excludedNames: [...build.excludedNamespaces]
+    excludedNames: [...build.excludedNamespaces],
+    disabledSyntax: disabledSyntaxOf(project)
   });
 
   function transpileModeOf({ manifest }: Project, mode: BuildMode): TranspileMode {
@@ -143,8 +144,18 @@ export function launchOf(
     params: [...params],
     variables: { ...project.runVariables },
     strictMode,
-    programName: run.programName
+    programName: run.programName,
+    disabledSyntax: disabledSyntaxOf(project)
   });
+}
+
+/** The names of the syntax features `project` turns off, or `undefined` when every feature is on. */
+function disabledSyntaxOf({ manifest }: Project): string[] | undefined {
+  const names = Object.entries(manifest.syntax)
+    .filter(([, enabled]) => !enabled)
+    .map(([name]) => name);
+
+  return names.length === 0 ? undefined : names;
 }
 
 export function environmentOf(project: Project, port?: number): Environment {

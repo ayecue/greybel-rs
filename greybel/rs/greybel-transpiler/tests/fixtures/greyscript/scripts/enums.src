@@ -1,0 +1,15 @@
+enum Color
+	Red
+	// note
+	Green = 0xF
+	Blue
+	Name = "n"
+end enum
+f = function
+	enum Inner
+		A = -1
+		B
+	end enum
+	return Inner.B + Color.Blue
+end function
+print(f)

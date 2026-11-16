@@ -1,0 +1,16 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/errors/enum-duplicate.src
+---
+--- strict
+3:2 - 3:5 UnexpectedToken(2001): the enum already has an entry Red
+--- tree
+Chunk[1:1-5:1][
+	EnumStatement[1:1-4:9][AssignmentStatement[1:1-4:9][Identifier[1:6-1:11][Color] = MapConstructor[1:1-4:9][
+		MapKeyString[2:2-2:5][Literal[2:2-2:5][Red]: Literal[2:2-2:5][0]]
+		MapKeyString[3:2-3:5][Literal[3:2-3:5][Red]: Literal[3:2-3:5][1]]
+	]]]
+]
+--- errors
+3:2 - 3:5 UnexpectedToken(2001): the enum already has an entry Red

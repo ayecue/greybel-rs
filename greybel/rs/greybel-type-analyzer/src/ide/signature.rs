@@ -1,6 +1,6 @@
 use super::Context;
+use crate::analysis::Query;
 use crate::model::Documentation;
-use crate::query::Query;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SignatureHelp {

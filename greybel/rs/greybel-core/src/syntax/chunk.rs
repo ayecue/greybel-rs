@@ -40,6 +40,10 @@ impl PendingBlock for PendingChunk {
         &mut self.body
     }
 
+    fn body(&self) -> &[NodeId] {
+        &self.body
+    }
+
     fn name(&self) -> &'static str {
         "chunk"
     }

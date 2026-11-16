@@ -3,11 +3,12 @@
 use std::fmt::Write as _;
 
 use greybel_core::Position;
-use greybel_type_analyzer::{Analyzer, Dialect};
+use greybel_type_analyzer::{Analyzer, DiagnosticKind, Dialect};
 
+use crate::support::diagnostics::{messages_of_kind, owned};
 use crate::support::infer::FUNCTION_LOCALS;
 use crate::support::{
-    PATH, global, globals, greyscript, locals, main_global, miniscript, uri, with_document,
+    PATH, global, globals, greyscript, locals, main_global, marked, miniscript, uri, with_document,
 };
 
 #[test]
@@ -26,14 +27,17 @@ fn should_type_a_variable_as_everything_assigned_to_it() {
 fn should_widen_properties_like_variables() {
     let once = "test = {}\ntest.foo = 123\nbar = test.foo";
     let twice = "test = {}\ntest.foo = 123\ntest.foo = []\nbar = test.foo";
+    let branch = "test = {}\ntest.foo = 123\nif rnd then test.foo = []\nbar = test.foo";
     let member = "test = {}\ntest.foo = []\nbar = test.foo.hasIndex";
 
     let once = miniscript(once, &["bar"]);
     let twice = miniscript(twice, &["bar"]);
+    let branch = miniscript(branch, &["bar"]);
     let member = miniscript(member, &["bar"]);
 
     assert_eq!(once, ["number"]);
-    assert_eq!(twice, ["list<unknown> or number"]);
+    assert_eq!(twice, ["list<unknown>"]);
+    assert_eq!(branch, ["list<unknown> or number"]);
     assert_eq!(member, ["number"]);
 }
 
@@ -183,7 +187,7 @@ fn should_scope_variables_to_their_function() {
 
     let locals = locals(analysis, 0, &["foo", "bar"]);
 
-    assert_eq!(locals, ["number or string", "number or string"]);
+    assert_eq!(locals, ["number or string", "string"]);
 }
 
 #[test]
@@ -192,7 +196,7 @@ fn should_type_a_global_by_what_a_function_returns() {
 
     let result = miniscript(source, &["result"]);
 
-    assert_eq!(result, ["number or string"]);
+    assert_eq!(result, ["string"]);
 }
 
 #[test]
@@ -280,14 +284,7 @@ fn should_converge_on_recursion() {
 
     let types = miniscript(source, &["result", "nested", "cycle"]);
 
-    assert_eq!(
-        types,
-        [
-            "number",
-            "list<list<list<list<list<list<any>>>>>>",
-            "unknown"
-        ]
-    );
+    assert_eq!(types, ["number", "list<list<unknown>>", "unknown"]);
 }
 
 #[test]
@@ -334,6 +331,129 @@ fn should_type_greybel_directives() {
     let types = globals(Dialect::Greybel, source, &["lib", "line", "file", "bits"]);
 
     assert_eq!(types, ["any", "number", "string", "number"]);
+}
+
+#[test]
+fn should_type_string_templates_and_resolve_their_expressions() {
+    let source = "n = 1\nmsg = #\"a{n}b{#\"{m}\"}\"";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let types = globals(Dialect::Greybel, source, &["msg"]);
+    let diagnostics: Vec<(String, u32)> = Analyzer::new(&workspace)
+        .diagnostics(&uri(PATH))
+        .into_iter()
+        .map(|diagnostic| (diagnostic.message, diagnostic.range.start.line))
+        .collect();
+
+    assert_eq!(types, ["string"]);
+    assert_eq!(diagnostics, [("Cannot find \"m\".".to_owned(), 2)]);
+}
+
+#[test]
+fn should_type_enums_as_maps_of_their_values() {
+    let source = "enum Color\n  Red\n  Name = \"n\"\nend enum\nred = Color.Red\nname = Color.Name\nx = Color.Redd";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let types = globals(Dialect::Greybel, source, &["red", "name"]);
+    let unknown: Vec<(String, u32)> = Analyzer::new(&workspace)
+        .diagnostics(&uri(PATH))
+        .into_iter()
+        .filter(|diagnostic| diagnostic.kind == DiagnosticKind::UnknownMember)
+        .map(|diagnostic| (diagnostic.message, diagnostic.range.start.line))
+        .collect();
+
+    assert_eq!(types, ["number", "string"]);
+    assert_eq!(unknown.len(), 1);
+    assert_eq!(unknown[0].1, 7);
+}
+
+#[test]
+fn should_type_spreads_and_map_shorthands() {
+    let source = "a = [1]\nd = {\"x\": \"s\"}\nname = 2\nl = [...a, \"t\"]\nm = {...d, name}\nx = m.x\nn = m.name\nu = m.zz\no = {...rnd, \"k\": 1}\nv = o.zz";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let types = globals(Dialect::Greybel, source, &["l", "x", "n"]);
+    let unknown: Vec<u32> = Analyzer::new(&workspace)
+        .diagnostics(&uri(PATH))
+        .into_iter()
+        .filter(|diagnostic| diagnostic.kind == DiagnosticKind::UnknownMember)
+        .map(|diagnostic| diagnostic.range.start.line)
+        .collect();
+
+    assert_eq!(types, ["list<number or string>", "string", "number"]);
+    assert_eq!(unknown, [8]);
+}
+
+#[test]
+fn should_narrow_by_the_condition_of_an_assert() {
+    let source = "x = null\nif rnd then x = \"s\"\nassert x != null, \"x\"\ny = x";
+
+    let types = globals(Dialect::Greybel, source, &["y"]);
+
+    assert_eq!(types, ["string"]);
+}
+
+#[test]
+fn should_type_arrow_functions_like_functions() {
+    let source = "double = (x) => x * 2\nn = double(2)\nh = (s) =>\n  return s.len\nend function\nm = h(\"ab\")";
+
+    let types = globals(Dialect::Greybel, source, &["n", "m"]);
+
+    assert_eq!(types, ["number", "number"]);
+}
+
+#[test]
+fn should_type_conditional_expressions_coalescing_and_optional_chains() {
+    let source = "x = 1\nif rnd then x = null\na = rnd ? 1 : \"s\"\nb = x ?? \"d\"\nm = {\"n\": {\"k\": 1}}\nif rnd then m = null\nc = m?.n.k\nd = x != null ? x : 0\nf = function(v)\n  return v * 2\nend function\nif rnd then f = null\ne = f?.(2)";
+
+    let types = globals(Dialect::Greybel, source, &["a", "b", "c", "d", "e"]);
+
+    assert_eq!(
+        types,
+        [
+            "number or string",
+            "number or string",
+            "null or number",
+            "number",
+            "null or number"
+        ]
+    );
+}
+
+#[test]
+fn should_type_the_targets_of_destructuring() {
+    let source = "[a, b] = [1, \"s\"]\n{n, p as q, t = 3} = {\"n\": \"x\", \"p\": 2}\n[first, ...others] = [1, 2]";
+
+    let types = globals(Dialect::Greybel, source, &["a", "n", "q", "t", "others"]);
+
+    assert_eq!(
+        types,
+        [
+            "number or string",
+            "string",
+            "number",
+            "number",
+            "list<number>"
+        ]
+    );
+}
+
+#[test]
+fn should_type_the_names_of_for_headers() {
+    let source = "for i, item in [\"a\"]\n  a = i\n  b = item\nend for\nfor [x, y] in [[1, 2]]\n  c = x\nend for\nfor {key, value} in {\"k\": 1}\n  d = key\n  e = value\nend for";
+
+    let types = globals(Dialect::Greybel, source, &["a", "b", "c", "d", "e"]);
+
+    assert_eq!(types, ["number", "string", "number", "string", "number"]);
+}
+
+#[test]
+fn should_narrow_the_subject_of_switch_cases() {
+    let source = "x = 1\nif rnd then x = \"s\"\nswitch x\n  case is string\n    a = x\n  else\n    b = x\nend switch";
+
+    let types = globals(Dialect::Greybel, source, &["a", "b"]);
+
+    assert_eq!(types, ["string", "number"]);
 }
 
 #[test]
@@ -425,7 +545,7 @@ fn should_reach_the_api_through_members_of_entries() {
             container = {}
             container[0] = {\"value\": 123}
             key = 0
-            key = \"zero\"
+            if rnd then key = \"zero\"
             probe = container[key]
             value = probe.value";
 
@@ -655,14 +775,7 @@ fn should_yield_elements_characters_and_pairs_in_for_loops() {
 
     assert_eq!(
         types,
-        [
-            "string",
-            "number",
-            "number",
-            "string",
-            "string",
-            "map or number or string"
-        ]
+        ["string", "number", "number", "string", "string", "map"]
     );
 }
 
@@ -753,4 +866,267 @@ named = find"#;
     );
     assert_eq!(empty.as_deref(), Some("empty: map"));
     assert_eq!(declared.as_deref(), Some("named: Named"));
+}
+
+#[test]
+fn should_read_only_members_every_value_has_on_any() {
+    let (source, positions) =
+        marked("f = function(c)\n  |v = c.code\n  |w = c.indexes\nend function");
+    let workspace = with_document(Dialect::GreyScript, &source);
+    let hover = |position| {
+        Analyzer::new(&workspace)
+            .hover(&uri(PATH), position)
+            .map(|hover| hover.text)
+    };
+
+    let texts: Vec<Option<String>> = positions.into_iter().map(hover).collect();
+
+    assert_eq!(
+        texts,
+        [Some("v: any".to_owned()), Some("w: list<any>".to_owned())]
+    );
+}
+
+#[test]
+fn should_return_one_shared_map_from_get_custom_object() {
+    let source = "get_custom_object.count = 1
+        setName = function
+          get_custom_object.name = \"n\"
+        end function
+        setName
+        a = get_custom_object.count
+        b = get_custom_object.name
+        object = get_custom_object
+        c = object.count
+        d = get_custom_object.other
+        key = \"k\"
+        e = get_custom_object[key]";
+
+    let types = greyscript(source, &["a", "b", "c", "d", "e"]);
+
+    assert_eq!(types, ["number", "string", "number", "any", "any"]);
+}
+
+#[test]
+fn should_type_operations_that_give_null_at_runtime_as_null() {
+    let source = "a = 1 - \"x\"
+        b = -\"x\"
+        c = -null
+        d = null + [1]
+        e = 1 + null
+        f = 1 < \"x\"
+        g = 1 | \"x\"
+        h = 6 | 3";
+
+    let types = globals(
+        Dialect::Greybel,
+        source,
+        &["a", "b", "c", "d", "e", "f", "g", "h"],
+    );
+
+    assert_eq!(
+        types,
+        [
+            "null", "null", "number", "null", "number", "null", "null", "number"
+        ]
+    );
+}
+
+#[test]
+fn should_type_the_members_of_classes() {
+    let source = "class Animal\n  tags = []\n  constructor(name)\n    self.name = name\n  end function\n  speak()\n    return \"...\"\n  end function\nend class\nclass Dog extends Animal\n  static sound = \"woof\"\nend class\ndog = Dog.create(\"rex\")\np = Point.create\nclass Point\n  x = 1\nend class\ns = Dog.sound\nt = dog.tags\nc = @Dog.constructor\nv = dog.speak";
+
+    let types = globals(Dialect::Greybel, source, &["s", "t", "c", "v", "dog"]);
+
+    assert_eq!(
+        types,
+        [
+            "string",
+            "list<unknown>",
+            "function(name: any): map",
+            "string",
+            "map"
+        ]
+    );
+}
+
+#[test]
+fn should_type_calls_of_values_with_function_types() {
+    let source = "// @param {(value: number) => string} format\n// @return {(number) => list<string>}\napply = function(format)\n  first = format(1)\n  return function(n)\n    return [first]\n  end function\nend function\nmaker = apply(@str)\nr = maker(2)";
+
+    let types = globals(Dialect::Greybel, source, &["apply", "maker", "r"]);
+
+    assert_eq!(
+        types,
+        [
+            "function(format: function(value: number): string): function(arg1: number): list<string>",
+            "function(arg1: number): list<string>",
+            "list<string>"
+        ]
+    );
+}
+
+#[test]
+fn should_read_the_types_written_in_code() {
+    let source = "let port: number = 22\nconnect = function(ip: string, retries: number = 3): map|null\n  return null\nend function\nfirst = function<T>(items: list<T>): T\n  return items[0]\nend function\na = first([\"x\"])\nb = get_shell!\nc = [] as list<string>\nf = (x: number) => x";
+
+    let types = globals(
+        Dialect::Greybel,
+        source,
+        &["port", "connect", "first", "a", "b", "c", "f"],
+    );
+
+    assert_eq!(
+        types,
+        [
+            "number",
+            "function(ip: string, retries: number = 3): map<any,any> or null",
+            "function(items: list<T>): T",
+            "string",
+            "shell or string",
+            "list<string>",
+            "function(x: number): number"
+        ]
+    );
+}
+
+#[test]
+fn should_report_types_written_in_code_and_comments_and_assignments_that_do_not_fit() {
+    let source = "let bad: string = 1\n// @param {string} ip\n// @return {number}\nboth = function(ip: number): string\n  return ip\nend function\nodd = function(x: list<)\n  return x\nend function";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let messages = crate::support::workspace::message_texts(&workspace, PATH);
+
+    assert!(
+        messages.contains(&"\"bad\" is declared as string but is assigned number.".to_owned()),
+        "{messages:?}"
+    );
+    assert!(
+        messages.contains(&"\"ip\" has a type in code and in @param.".to_owned()),
+        "{messages:?}"
+    );
+    assert!(
+        messages.contains(&"The return type is in code and in @returns.".to_owned()),
+        "{messages:?}"
+    );
+}
+
+#[test]
+fn should_check_literal_types_and_read_them_as_their_base_types() {
+    let source = "open = function(protocol: \"tcp\"|\"udp\", port: 22|80): string\n  return protocol + \"!\"\nend function\na = open(\"tcp\", 22)\nb = open(\"tpc\", 23)\nname = \"udp\"\nc = open(name, 80)\npair = function(): [string, number]\nend function\np = pair";
+    let types = globals(Dialect::Greybel, source, &["open", "a", "p"]);
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::CallSignatureMismatch);
+
+    assert_eq!(
+        types,
+        [
+            "function(protocol: \"tcp\" or \"udp\", port: 22 or 80): string",
+            "string",
+            "list<number or string>"
+        ]
+    );
+    assert_eq!(
+        reported,
+        owned(&[
+            (5, "Argument 1 expects \"tcp\" or \"udp\" but got \"tpc\"."),
+            (5, "Argument 2 expects 22 or 80 but got 23."),
+        ])
+    );
+}
+
+#[test]
+fn should_narrow_the_argument_of_a_type_guard() {
+    let source = "isText = function(value): value is string\n  return value isa string\nend function\nw = rnd ? 1 : \"t\"\nif isText(w) then\n  t = w\nelse\n  n = w\nend if";
+
+    let types = globals(Dialect::Greybel, source, &["isText", "t", "n"]);
+
+    assert_eq!(
+        types,
+        ["function(value: any): value is string", "string", "number"]
+    );
+}
+
+#[test]
+fn should_report_switch_cases_missing_for_an_enum_type() {
+    let source = "enum Protocol\n  Tcp = \"tcp\"\n  Udp = \"udp\"\n  Icmp = \"icmp\"\nend enum\nshow = function(protocol: Protocol)\n  switch protocol\n    case \"tcp\"\n      print 1\n    case Protocol.Udp, \"udp\"\n      print 2\n  end switch\nend function";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::MissingCase);
+
+    assert_eq!(
+        reported,
+        owned(&[(7, "The switch has no case for \"icmp\".")])
+    );
+}
+
+#[test]
+fn should_declare_types_and_aliases_with_type_statements() {
+    let source = "type Id = string|number\ntype Pair<T> = [T, T]\ntype Repository extends map\n  name: string\n  timeout?: number\n  readonly id: Id\n  find(id: Id): map|null\nend type\nget = function(repo: Repository, key: Id): Pair<string>\n  return [repo.name]\nend function\nlet r: Repository = {}\nq = r.find(1)\nn = r.name\nx = get(r, 1)";
+
+    let types = globals(Dialect::Greybel, source, &["get", "r", "q", "n", "x"]);
+
+    assert_eq!(
+        types,
+        [
+            "function(repo: Repository, key: number or string): list<string>",
+            "Repository",
+            "map<any,any> or null",
+            "string",
+            "list<string>"
+        ]
+    );
+}
+
+#[test]
+fn should_report_readonly_assignments_and_skip_optional_members_of_implemented_types() {
+    let source = "type Options\n  readonly id: number\n  timeout?: number\nend type\nupdate = function(options: Options)\n  options.id = 2\nend function\nclass Config implements Options\n  id = 1\nend class";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let readonly = messages_of_kind(&workspace, DiagnosticKind::ReadonlyMember);
+    let implementations = messages_of_kind(&workspace, DiagnosticKind::MissingImplementation);
+
+    assert_eq!(readonly, owned(&[(6, "\"id\" is readonly in Options.")]));
+    assert_eq!(implementations, owned(&[]));
+}
+
+#[test]
+fn should_narrow_unions_of_literal_types_by_equality() {
+    let source = "f = function(p: \"tcp\"|\"udp\"|\"icmp\")\n  if p == \"tcp\" then\n    globals.a = p\n  else if p != \"udp\" then\n    globals.b = p\n  else\n    globals.c = p\n  end if\n  if p == \"tcp\" or p == \"udp\" then\n    globals.d = p\n  end if\n  switch p\n    case \"icmp\"\n      globals.e = p\n    else\n      globals.g = p\n  end switch\nend function";
+
+    let types = globals(Dialect::Greybel, source, &["a", "b", "c", "d", "e", "g"]);
+
+    assert_eq!(
+        types,
+        [
+            "\"tcp\"",
+            "\"icmp\"",
+            "\"udp\"",
+            "\"tcp\" or \"udp\"",
+            "\"icmp\"",
+            "\"tcp\" or \"udp\""
+        ]
+    );
+}
+
+#[test]
+fn should_declare_aliases_with_typedef_comments() {
+    let source = "// @typedef {string|number} Id\n\n// @typedef {[T, T]} Pair<T>\n\n// @template T\n// @typedef {list<T>|null} Maybe\n\n// @param {Id} key\n// @param {Maybe<number>} values\n// @return {Pair<string>}\nget = function(key, values)\nend function";
+
+    let types = globals(Dialect::Greybel, source, &["get"]);
+
+    assert_eq!(
+        types,
+        ["function(key: number or string, values: list<number> or null): list<string>"]
+    );
+}
+
+#[test]
+fn should_narrow_literal_members_by_equality() {
+    let source = "type Socket extends map\n  protocol: \"tcp\"|\"udp\"\nend type\nf = function(s: Socket)\n  if s.protocol == \"tcp\" then\n    globals.a = s.protocol\n  else\n    globals.b = s.protocol\n  end if\nend function";
+
+    let types = globals(Dialect::Greybel, source, &["a", "b"]);
+
+    assert_eq!(types, ["\"tcp\"", "\"udp\""]);
 }

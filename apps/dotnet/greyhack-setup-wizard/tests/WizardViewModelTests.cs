@@ -24,7 +24,7 @@ public class WizardViewModelTests
             (main.Game.BepInExText, main.Game.PluginText)
         );
         Assert.Equal("Not ready: BepInEx isn't installed.", main.Game.ReadinessText);
-        Assert.Equal("Set up…", main.SetupText);
+        Assert.Equal("Set up...", main.SetupText);
         Assert.True(main.StartSetupCommand.CanExecute(null));
     }
 
@@ -98,7 +98,7 @@ public class WizardViewModelTests
             "Setup is already done. Message Hook connects on port 8888.",
             fixture.Main.Game.ReadinessText
         );
-        Assert.Equal("Change setup…", fixture.Main.SetupText);
+        Assert.Equal("Change setup...", fixture.Main.SetupText);
     }
 
     [Fact]

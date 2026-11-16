@@ -12,7 +12,7 @@ use crate::support::{PATH, main_global, uri, with_document};
 fn should_analyze_code_at_the_depth_limit() {
     let cases = programs_at_max_depth();
 
-    let outcomes: Vec<_> = cases
+    let results: Vec<_> = cases
         .into_iter()
         .map(|(shape, source)| {
             let workspace = with_document(Dialect::Greybel, &source);
@@ -36,7 +36,7 @@ fn should_analyze_code_at_the_depth_limit() {
         })
         .collect();
 
-    for (shape, analyzed, syntax) in outcomes {
+    for (shape, analyzed, syntax) in results {
         assert!(analyzed, "{shape}");
         assert_eq!(syntax, 0, "{shape}");
     }

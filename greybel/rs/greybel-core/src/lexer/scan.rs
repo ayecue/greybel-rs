@@ -3,6 +3,7 @@ use super::{
     is_identifier_start, is_whitespace,
 };
 use crate::error::ParseResult;
+use crate::lexer::Punct;
 
 impl<'src> Lexer<'src> {
     pub fn advance(&self, stream: &mut TokenStream) -> ParseResult<()> {
@@ -37,9 +38,17 @@ impl<'src> Lexer<'src> {
             TokenStart::Slash if self.is_at_comment(stream) => {
                 self.scan_comment(stream, pending_token)
             }
-            TokenStart::Dot | TokenStart::Slash | TokenStart::Punct | TokenStart::Invalid => {
-                Ok(self.scan_punct_or_invalid(stream, pending_token))
+            TokenStart::Hash if self.code_at(stream, 1) == b'"' => {
+                self.scan_template(stream, pending_token)
             }
+            TokenStart::Hash if self.grammar().lexer.hash_identifiers => {
+                self.scan_identifier_or_keyword(stream, pending_token)
+            }
+            TokenStart::Dot
+            | TokenStart::Slash
+            | TokenStart::Punct
+            | TokenStart::Invalid
+            | TokenStart::Hash => Ok(self.scan_punct_or_invalid(stream, pending_token)),
         }
     }
 
@@ -102,6 +111,13 @@ impl<'src> Lexer<'src> {
         token_start: PendingToken,
     ) -> AnyToken {
         if let Some(punct) = self.punct_at(&self.source.as_bytes()[stream.cursor.index()..]) {
+            // `c?.5:1` is `c ? .5 : 1`, as in JavaScript.
+            let punct = if punct == Punct::OptionalDot && self.code_at(stream, 2).is_ascii_digit() {
+                Punct::Question
+            } else {
+                punct
+            };
+
             return self.scan_punct(stream, punct, token_start);
         }
 

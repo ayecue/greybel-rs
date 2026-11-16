@@ -7,7 +7,7 @@ use flate2::write::GzEncoder;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-/// Encodes and decodes game `zip…` fields that carry text or JSON in protocol `bytes`.
+/// Encodes and decodes game fields named `zip*` that carry text or JSON in protocol `bytes`.
 pub trait Payload: Sized {
     /// Compresses `data` and prefixes the game's raw/gzip mode byte.
     fn compress(data: &[u8]) -> Self;

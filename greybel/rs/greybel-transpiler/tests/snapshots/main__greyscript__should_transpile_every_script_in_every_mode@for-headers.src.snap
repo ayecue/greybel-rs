@@ -1,0 +1,117 @@
+---
+source: greybel-transpiler/tests/greyscript.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/for-headers.src
+---
+=== default
+items=["a","b"]
+for item in items
+i=__item_idx
+print(i+":"+item)
+end for
+points=[[1,2],[3,4]]
+for __e in points
+x=@__e[0]
+y=@__e[1]
+print(x+y)
+end for
+for __e in {"k":1}
+key=@__e.key
+value=@__e.value
+print(key+value)
+end for
+=== uglify
+globals.I=globals
+J=["a","b"]
+for L in J
+K=__L_idx
+print(K+":"+L)
+end for
+M=[[1,2],[3,4]]
+for P in M
+N=@P[0]
+O=@P[1]
+print(N+O)
+end for
+for P in {"k":1}
+Q=@P.key
+R=@P.value
+print(Q+R)
+end for
+=== beautify
+items = [
+	"a",
+	"b",
+]
+for item in items
+	i = __item_idx
+	print i + ":" + item
+end for
+points = [
+	[
+		1,
+		2,
+	],
+	[
+		3,
+		4,
+	],
+]
+for __e in points
+	x = @__e[0]
+	y = @__e[1]
+	print x + y
+end for
+for __e in { "k": 1 }
+	key = @__e.key
+	value = @__e.value
+	print key + value
+end for
+=== beautify, dev mode
+items = [
+	"a",
+	"b",
+]
+for i, item in items
+	print i + ":" + item
+end for
+points = [
+	[
+		1,
+		2,
+	],
+	[
+		3,
+		4,
+	],
+]
+for [x, y] in points
+	print x + y
+end for
+for {key, value} in { "k": 1 }
+	print key + value
+end for
+=== beautify, dev mode, keep parentheses, 10 spaces
+items = [
+          "a",
+          "b",
+]
+for i, item in items
+          print(i + ":" + item)
+end for
+points = [
+          [
+                    1,
+                    2,
+          ],
+          [
+                    3,
+                    4,
+          ],
+]
+for [x, y] in points
+          print(x + y)
+end for
+for {key, value} in { "k": 1 }
+          print(key + value)
+end for

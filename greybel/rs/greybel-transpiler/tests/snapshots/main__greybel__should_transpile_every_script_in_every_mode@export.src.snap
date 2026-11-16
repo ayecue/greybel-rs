@@ -1,0 +1,18 @@
+---
+source: greybel-transpiler/tests/greybel.rs
+expression: out
+input_file: greybel-transpiler/tests/fixtures/greybel/scripts/export.src
+---
+=== default
+#import {twice, count} from "../dependencies/exported.src";
+print(twice(count))
+=== uglify
+globals.I=globals
+#import {twice, count} from "../dependencies/exported.src";
+print(J(K))
+=== beautify
+#import {twice, count} from "../dependencies/exported.src";
+print twice(count)
+=== beautify, dev mode, keep parentheses, 10 spaces
+#import {twice, count} from "../dependencies/exported.src";
+print(twice(count))

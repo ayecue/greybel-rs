@@ -48,7 +48,10 @@ impl<'a> GraphBuilder<'a> {
         let imports = file.imports(db);
 
         self.stack.push(id);
-        for import in imports.dependencies() {
+        for import in imports
+            .dependencies()
+            .filter(|import| import.kind.runs_code())
+        {
             let Some(&target) = links.get(&import.target) else {
                 continue;
             };

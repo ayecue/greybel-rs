@@ -44,3 +44,23 @@ fn should_name_settings_with_the_defaults_of_greybel_json() {
 
     assert!(named > 20, "{named} settings");
 }
+
+#[test]
+fn should_declare_the_diagnostic_codes_and_levels_of_greybel_json() {
+    let schema = Manifest::schema();
+    let definitions = &schema["$defs"];
+    let declared = declared_settings();
+    let (_, setting) = declared
+        .iter()
+        .find(|(key, _)| key == "greybel.typeAnalyzer.diagnostics")
+        .expect("greybel-vs has the diagnostics setting");
+
+    assert_eq!(
+        setting["propertyNames"],
+        definitions["DiagnosticSettings"]["propertyNames"]
+    );
+    assert_eq!(
+        setting["additionalProperties"]["enum"],
+        definitions["DiagnosticLevel"]["enum"]
+    );
+}

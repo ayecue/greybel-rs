@@ -62,8 +62,8 @@ fn should_report_missing_files_where_greyscript_names_them() {
     assert_eq!(
         reported,
         owned(&[
-            (1, "Missing import: lib.src"),
-            (2, "Missing import: /other.src"),
+            (1, "Cannot find the imported file \"lib.src\"."),
+            (2, "Cannot find the imported file \"/other.src\"."),
         ])
     );
 }
@@ -74,7 +74,10 @@ fn should_report_missing_files_where_greybel_names_them() {
 
     let reported = messages_of_kind(&workspace, DiagnosticKind::MissingImport);
 
-    assert_eq!(reported, owned(&[(1, "Missing import: lib.src")]));
+    assert_eq!(
+        reported,
+        owned(&[(1, "Cannot find the imported file \"lib.src\".")])
+    );
 }
 
 #[test]
@@ -94,6 +97,29 @@ fn should_report_statements_after_a_terminator_as_dead() {
 }
 
 #[test]
+fn should_report_statements_after_every_path_ended_as_dead() {
+    let source = "f = function(x)\n  if x then\n    return 1\n  else\n    return 2\n  end if\n  print 3\n  print 4\nend function\nwhile true\nend while\nprint 5";
+    let workspace = with_document(Dialect::MiniScript, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::DeadCodeAfterTerminator);
+
+    assert_eq!(
+        reported,
+        owned(&[(7, "Dead code after if."), (12, "Dead code after while.")])
+    );
+}
+
+#[test]
+fn should_report_statements_after_a_call_that_does_not_return_as_dead() {
+    let source = "ready = 1 or exit(\"never\")\nprint ready\nexit(\"done\")\nprint 1";
+    let workspace = with_document(Dialect::GreyScript, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::DeadCodeAfterTerminator);
+
+    assert_eq!(reported, owned(&[(4, "Dead code after exit.")]));
+}
+
+#[test]
 fn should_report_map_literals_spelling_a_key_twice() {
     let source = "m = {\"a\": 1, \"b\": 2, \"a\": 3, 1: 0, 1.0: 1}";
     let workspace = with_document(Dialect::MiniScript, source);
@@ -103,8 +129,8 @@ fn should_report_map_literals_spelling_a_key_twice() {
     assert_eq!(
         reported,
         owned(&[
-            (1, "Duplicate map literal key: \"a\""),
-            (1, "Duplicate map literal key: 1.0"),
+            (1, "Duplicate key \"a\" in the map literal."),
+            (1, "Duplicate key 1.0 in the map literal."),
         ])
     );
 }
@@ -175,7 +201,7 @@ fn should_report_values_annotations_do_not_accept() {
         greet(1, 2)
         greet(null, [])
         either = "a"
-        either = 1
+        if rnd then either = 1
         greet(either)
         // @vtype Box
         // @function put
@@ -200,27 +226,27 @@ fn should_report_values_annotations_do_not_accept() {
             (
                 DiagnosticKind::AnnotationSignatureMismatch,
                 4,
-                "@param count expects number but inferred string.".to_owned()
+                "@param \"count\" expects number but is inferred as string.".to_owned()
             ),
             (
                 DiagnosticKind::AnnotationSignatureMismatch,
                 5,
-                "@returns greet expects string but inferred number.".to_owned()
+                "@returns \"greet\" expects string but is inferred as number.".to_owned()
             ),
             (
                 DiagnosticKind::CallSignatureMismatch,
                 9,
-                "Argument 1 expected string but got number".to_owned()
+                "Argument 1 expects string but got number.".to_owned()
             ),
             (
                 DiagnosticKind::CallSignatureMismatch,
                 10,
-                "Argument 2 expected number but got list<unknown>".to_owned()
+                "Argument 2 expects number but got list<unknown>.".to_owned()
             ),
             (
                 DiagnosticKind::CallSignatureMismatch,
                 19,
-                "Argument 1 expected list<any> but got map".to_owned()
+                "Argument 1 expects list<any> but got map.".to_owned()
             ),
         ]
     );
@@ -267,22 +293,22 @@ fn should_report_unused_and_shadowing_locals() {
             (
                 DiagnosticKind::UnusedParameter,
                 2,
-                "Unused parameter: unused".to_owned()
+                "Unused parameter \"unused\".".to_owned()
             ),
             (
                 DiagnosticKind::UnusedLocal,
                 4,
-                "Unused local: dropped".to_owned()
+                "Unused local \"dropped\".".to_owned()
             ),
             (
                 DiagnosticKind::UnusedLocal,
                 6,
-                "Unused local: total".to_owned()
+                "Unused local \"total\".".to_owned()
             ),
             (
                 DiagnosticKind::Shadow,
                 6,
-                "Shadowing outer binding: total".to_owned()
+                "\"total\" shadows an outer variable.".to_owned()
             ),
         ]
     );
@@ -353,7 +379,10 @@ fn should_report_assigning_a_variable_to_itself() {
 
     assert_eq!(
         reported,
-        owned(&[(2, "Self-assignment: x"), (6, "Self-assignment: z")])
+        owned(&[
+            (2, "\"x\" is assigned to itself."),
+            (6, "\"z\" is assigned to itself.")
+        ])
     );
 }
 
@@ -365,7 +394,7 @@ fn should_report_globals_read_before_assignment() {
         end function
         a = 1
         b = 2
-        while true
+        while rnd
           if c then print c
           c = 1
         end while
@@ -385,10 +414,69 @@ fn should_report_globals_read_before_assignment() {
     assert_eq!(
         reported,
         owned(&[
-            (1, "Used before defined: a"),
-            (18, "Used before defined: e")
+            (1, "\"a\" is used before it is assigned."),
+            (11, "\"d\" is used before it is assigned."),
+            (18, "\"e\" is used before it is assigned.")
         ])
     );
+}
+
+#[test]
+fn should_count_globals_assigned_by_a_call_or_on_some_path_as_defined() {
+    let source =
+        "set = function\n  globals.d = 1\nend function\nset\nprint d\nif rnd then e = 1\nprint e";
+    let workspace = with_document(Dialect::MiniScript, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::UseBeforeDefinition);
+
+    assert_eq!(reported, owned(&[]));
+}
+
+#[test]
+fn should_warn_about_assignments_replacing_native_functions() {
+    let source = "print = function(x)\nend function\nname = \"x\"\nrun = function\n  globals.typeof = 1\nend function\nmine = 1";
+    let workspace = with_document(Dialect::GreyScript, source);
+
+    let reported = diagnostics(&workspace, &[DiagnosticKind::NativeOverride]);
+
+    assert_eq!(
+        reported,
+        [
+            (
+                DiagnosticKind::NativeOverride,
+                1,
+                "Assigning \"print\" replaces the native function of that name.".to_owned()
+            ),
+            (
+                DiagnosticKind::NativeOverride,
+                5,
+                "Assigning \"typeof\" replaces the native function of that name.".to_owned()
+            ),
+        ]
+    );
+    assert_eq!(
+        severities(&workspace)
+            .into_iter()
+            .find(|&(kind, _)| kind == DiagnosticKind::NativeOverride)
+            .map(|(_, severity)| severity),
+        Some(Severity::Warning)
+    );
+}
+
+#[test]
+fn should_read_the_native_of_a_name_assigned_later() {
+    let source = "print 1\nprint = 2";
+    let workspace = with_document(Dialect::MiniScript, source);
+
+    let reported = diagnostics(
+        &workspace,
+        &[
+            DiagnosticKind::UseBeforeDefinition,
+            DiagnosticKind::CallOfNonCallable,
+        ],
+    );
+
+    assert_eq!(reported, []);
 }
 
 #[test]
@@ -416,13 +504,13 @@ fn should_report_isa_chains_leading_back_to_themselves() {
     assert_eq!(
         inheritance,
         owned(&[
-            (2, "Cyclic inheritance: Foo -> Foo"),
-            (5, "Cyclic inheritance: A -> B -> A"),
+            (2, "Cyclic inheritance: Foo -> Foo."),
+            (5, "Cyclic inheritance: A -> B -> A."),
         ])
     );
     assert_eq!(
         definitions,
-        owned(&[(11, "Cyclic type definition: First -> Second -> First")])
+        owned(&[(11, "Cyclic type definition: First -> Second -> First.")])
     );
 }
 
@@ -442,7 +530,7 @@ fn should_report_imports_leading_back_to_the_document() {
         reported,
         owned(&[(
             1,
-            "Cyclic import: /main.src -> /lib.src -> /util.src -> /main.src"
+            "Cyclic import: /main.src -> /lib.src -> /util.src -> /main.src."
         )])
     );
 }
@@ -467,11 +555,11 @@ fn should_check_template_bounds_at_calls() {
         owned(&[
             (
                 8,
-                "Type argument number does not satisfy constraint string for T."
+                "Type argument number does not satisfy constraint string for \"T\"."
             ),
             (
                 15,
-                "Type argument map does not satisfy constraint list<any> for T."
+                "Type argument map does not satisfy constraint list<any> for \"T\"."
             ),
         ])
     );
@@ -544,4 +632,411 @@ fn should_not_look_for_import_code_in_miniscript() {
     let reported = messages_of_kind(&workspace, DiagnosticKind::IgnoredImportCode);
 
     assert!(reported.is_empty());
+}
+
+#[test]
+fn should_give_every_diagnostic_kind_its_own_code() {
+    let kinds = DiagnosticKind::ALL;
+
+    let read: Vec<Option<DiagnosticKind>> = kinds
+        .iter()
+        .map(|kind| DiagnosticKind::from_code(kind.code()))
+        .collect();
+
+    let expected: Vec<_> = kinds.iter().copied().map(Some).collect();
+
+    assert_eq!(read, expected);
+}
+
+#[test]
+fn should_report_members_a_map_of_the_script_never_has() {
+    let source = "M = {\"a\": 1}
+        M.f = function
+          return self.b
+        end function
+        x = M.c
+        y = M.a + M.len
+        T = new {\"e\": 1}
+        z = T.d + T.e";
+    let workspace = with_document(Dialect::MiniScript, source);
+
+    let messages = messages_of_kind(&workspace, DiagnosticKind::UnknownMember);
+
+    assert_eq!(
+        messages,
+        owned(&[
+            (3, "Cannot find \"b\" in this map."),
+            (5, "Cannot find \"c\" in this map."),
+            (8, "Cannot find \"d\" in this map.")
+        ])
+    );
+}
+
+#[test]
+fn should_not_report_members_of_maps_with_unknown_keys() {
+    let source = "computed = {}
+        computed[str(rnd)] = 1
+        a = computed.x
+        map.extra = 1
+        b = {}.extra
+        opaque = {}
+        callback = globals[\"handler\"]
+        callback(opaque)
+        c = opaque.x
+        parent = globals[\"Parent\"]
+        child = new parent
+        d = child.x
+        Token = {}
+        Token.show = function
+          return self.text
+        end function
+        token = new Token
+        token.text = \"t\"";
+    let workspace = with_document(Dialect::MiniScript, source);
+
+    let messages = messages_of_kind(&workspace, DiagnosticKind::UnknownMember);
+
+    assert_eq!(messages, owned(&[]));
+}
+
+#[test]
+fn should_not_report_members_of_the_custom_object() {
+    let source = "get_custom_object.a = 1\nx = get_custom_object.setElsewhere";
+    let workspace = with_document(Dialect::GreyScript, source);
+
+    let messages = messages_of_kind(&workspace, DiagnosticKind::UnknownMember);
+
+    assert_eq!(messages, owned(&[]));
+}
+
+#[test]
+fn should_report_operators_whose_operand_types_never_work() {
+    let source = "n = 1
+        s = \"a\"
+        l = [1]
+        a = n - s
+        b = l + n
+        c = s * s
+        d = -s
+        e = null + n
+        f = n < s
+        g = n | s
+        h = l * null
+        i = (null * 2) + 1
+        o = null
+        if rnd then o = \"x\"
+        fine = [n + null, s + n, n + s, l + l, l * 2, s - s, s - null, s < s, n == s, o + n, l + s]";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let messages = messages_of_kind(&workspace, DiagnosticKind::InvalidOperation);
+
+    assert_eq!(
+        messages,
+        owned(&[
+            (4, "\"-\" on number and string always gives null."),
+            (
+                5,
+                "\"+\" on list<number> and number raises a type mismatch."
+            ),
+            (6, "\"*\" on string and string raises a type mismatch."),
+            (7, "\"-\" on string always gives null."),
+            (8, "\"+\" on null and number always gives null."),
+            (9, "\"<\" on number and string always gives null."),
+            (10, "\"|\" on number and string always gives null."),
+            (11, "\"*\" on list<number> and null raises a type mismatch."),
+            (12, "\"*\" on null and number always gives null.")
+        ])
+    );
+}
+
+#[test]
+fn should_not_report_operators_on_values_of_unknown_type() {
+    let source = "f = function(x)\n  return x - 1\nend function\nu = nope - \"a\"\nm = {}\nv = m.missing * \"a\"";
+    let workspace = with_document(Dialect::MiniScript, source);
+
+    let messages = messages_of_kind(&workspace, DiagnosticKind::InvalidOperation);
+
+    assert_eq!(messages, owned(&[]));
+}
+
+#[test]
+fn should_report_uses_of_deprecated_functions() {
+    let source = r#"// Adds two numbers.
+        // @deprecated Use add instead.
+        //   It is removed in 2.0.
+        sum = function(a, b)
+          return a + b
+        end function
+        x = sum(1, 2)
+        y = @sum
+        M = {}
+        // @deprecated
+        M.old = function
+        end function
+        M.old
+        M.old = 1"#;
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::Deprecated);
+
+    assert_eq!(
+        reported,
+        owned(&[
+            (
+                7,
+                "\"sum\" is deprecated. Use add instead.\nIt is removed in 2.0."
+            ),
+            (
+                8,
+                "\"sum\" is deprecated. Use add instead.\nIt is removed in 2.0."
+            ),
+            (13, "\"old\" is deprecated."),
+        ])
+    );
+}
+
+#[test]
+fn should_report_assignments_to_constants_and_second_declarations() {
+    let source = r#"let count = 0
+        const LIMIT = 10
+        LIMIT = 11
+        LIMIT += 1
+        let count = 2
+        globals.LIMIT = 3
+        f = function(a)
+          let LIMIT = a
+          return LIMIT
+        end function"#;
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = diagnostics(
+        &workspace,
+        &[
+            DiagnosticKind::ConstAssignment,
+            DiagnosticKind::DuplicateDeclaration,
+        ],
+    );
+
+    assert_eq!(
+        reported,
+        [
+            (
+                DiagnosticKind::ConstAssignment,
+                3,
+                "\"LIMIT\" is a constant; it can't be assigned again.".to_owned()
+            ),
+            (
+                DiagnosticKind::ConstAssignment,
+                4,
+                "\"LIMIT\" is a constant; it can't be assigned again.".to_owned()
+            ),
+            (
+                DiagnosticKind::DuplicateDeclaration,
+                5,
+                "\"count\" is already declared; remove \"let\" here.".to_owned()
+            ),
+            (
+                DiagnosticKind::ConstAssignment,
+                6,
+                "\"LIMIT\" is a constant; it can't be assigned again.".to_owned()
+            ),
+        ]
+    );
+}
+
+#[test]
+fn should_report_assignments_that_create_variables_without_let_when_enabled() {
+    let source = r#"x = 1
+        x = 2
+        let y = 1
+        y = 2
+        f = function(a)
+          b = a
+          a = 2
+          for i in [1]
+            i = 3
+          end for
+        end function"#;
+    let workspace = with_document(Dialect::Greybel, source);
+    let all = Analyzer::new(&workspace).all_diagnostics(&uri(PATH));
+    let enabled = DiagnosticOptions {
+        severity_overrides: [(DiagnosticKind::MissingLet, Severity::Warning)]
+            .into_iter()
+            .collect(),
+        ..DiagnosticOptions::default()
+    };
+
+    let reported: Vec<(u32, String)> = all
+        .iter()
+        .filter(|diagnostic| diagnostic.kind == DiagnosticKind::MissingLet)
+        .map(|diagnostic| (diagnostic.range.start.line, diagnostic.message.clone()))
+        .collect();
+    let by_default = DiagnosticOptions::default()
+        .apply(all.clone())
+        .into_iter()
+        .filter(|diagnostic| diagnostic.kind == DiagnosticKind::MissingLet)
+        .count();
+    let when_enabled = enabled
+        .apply(all)
+        .into_iter()
+        .filter(|diagnostic| diagnostic.kind == DiagnosticKind::MissingLet)
+        .count();
+
+    assert_eq!(
+        reported,
+        owned(&[
+            (1, "\"x\" is assigned without \"let\" or \"const\"."),
+            (5, "\"f\" is assigned without \"let\" or \"const\"."),
+            (6, "\"b\" is assigned without \"let\" or \"const\"."),
+        ])
+    );
+    assert_eq!((by_default, when_enabled), (0, 3));
+}
+
+#[test]
+fn should_take_let_before_destructuring_and_skip_its_temporaries() {
+    let source = "let [a, [b]] = [1, [2]]\nprint a + b";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let missing: Vec<String> = Analyzer::new(&workspace)
+        .all_diagnostics(&uri(PATH))
+        .into_iter()
+        .filter(|diagnostic| diagnostic.kind == DiagnosticKind::MissingLet)
+        .map(|diagnostic| diagnostic.message)
+        .collect();
+
+    assert_eq!(missing, Vec::<String>::new());
+}
+
+#[test]
+fn should_report_nothing_for_links_after_a_null_optional_base() {
+    let source = "none = null\na = none?.x.y\nb = none?.[0].z\nc = none?.run(1).w\nprint [a, b, c]";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let messages = crate::support::workspace::message_texts(&workspace, PATH);
+
+    assert_eq!(messages, Vec::<String>::new());
+}
+
+#[test]
+fn should_report_private_members_outside_the_methods_of_their_class() {
+    let source = "class Dog\n  private tricks = []\n  learn(trick)\n    self.tricks.push(trick)\n    inner = function\n      return self.tricks\n    end function\n  end function\nend class\nclass Puppy extends Dog\n  show()\n    return self.tricks\n  end function\nend class\nrex = Dog.create\nprint rex.tricks\nrex.tricks = []\nprint Dog.tricks";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::PrivateMember);
+
+    assert_eq!(
+        reported,
+        owned(&[
+            (16, "\"tricks\" is private to Dog."),
+            (17, "\"tricks\" is private to Dog."),
+            (18, "\"tricks\" is private to Dog."),
+        ])
+    );
+}
+
+#[test]
+fn should_report_members_an_implemented_type_has_but_the_class_has_not() {
+    let source = "// @type Pet\n// @property {string} name\n// @property {number} age\n// @property {string} sound\nPet = {}\nclass Dog implements Pet\n  name = \"rex\"\n  age = \"old\"\nend class\nclass Cat implements Pet, Missing\n  name = \"tom\"\n  age = 2\n  sound = \"meow\"\nend class";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::MissingImplementation);
+
+    assert_eq!(
+        reported,
+        owned(&[
+            (6, "\"age\" is string in Dog but number in Pet."),
+            (6, "Dog implements Pet but has no \"sound\"."),
+            (10, "Cannot find the type \"Missing\"."),
+        ])
+    );
+}
+
+#[test]
+fn should_report_implicit_any_only_when_enabled() {
+    let source = "// @param {number} count\nf = function(count, name, size = 1, typed: string)\n  return unknownValue\nend function\nx = unknownValue\nlet y: number = unknownValue\ng = function(): any\n  return 1\nend function";
+    let workspace = with_document(Dialect::Greybel, source);
+    let all = Analyzer::new(&workspace).all_diagnostics(&uri(PATH));
+
+    let reported: Vec<(u32, String)> = all
+        .iter()
+        .filter(|diagnostic| diagnostic.kind == DiagnosticKind::ImplicitAny)
+        .map(|diagnostic| (diagnostic.range.start.line, diagnostic.message.clone()))
+        .collect();
+    let by_default = DiagnosticOptions::default()
+        .apply(all)
+        .into_iter()
+        .filter(|diagnostic| diagnostic.kind == DiagnosticKind::ImplicitAny)
+        .count();
+
+    assert_eq!(
+        reported,
+        [
+            (2, "The return type is not written and is any.".to_owned()),
+            (2, "\"name\" has no type and is any.".to_owned()),
+            (5, "\"x\" has no type and is any.".to_owned()),
+        ]
+    );
+    assert_eq!(by_default, 0);
+}
+
+#[test]
+fn should_report_assignments_of_const_enum_entries() {
+    let source = "const enum Port\n  Ssh = 22\nend enum\nenum Mode\n  Read\nend enum\nPort.Ssh = 2\nMode.Read = 1\nx = Port.Ssh";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::ConstAssignment);
+
+    assert_eq!(
+        reported,
+        owned(&[(7, "\"Port.Ssh\" is an entry of a const enum.")])
+    );
+}
+
+#[test]
+fn should_report_optional_members_read_without_has_index() {
+    let source = "type Options extends map\n  name: string\n  timeout?: number\nend type\nf = function(o: Options)\n  a = o.name\n  b = o.timeout\n  if o.hasIndex(\"timeout\") then c = o.timeout\n  d = o.hasIndex(\"timeout\") and o.timeout > 1\n  o.timeout = 3\n  e = o.timeout\nend function";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::OptionalMember);
+
+    assert_eq!(
+        reported,
+        owned(&[(
+            7,
+            "\"timeout\" is optional; check hasIndex(\"timeout\") before reading it."
+        )])
+    );
+}
+
+#[test]
+fn should_not_report_the_return_of_a_constructor_that_ends_with_exit() {
+    let source = "class Dog\n  constructor(name)\n    if name == \"\" then return\n    exit(\"no\")\n  end function\nend class\nd = Dog.create(\"a\")";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::DeadCodeAfterTerminator);
+
+    assert_eq!(reported, owned(&[]));
+}
+
+#[test]
+fn should_report_case_values_the_subject_never_equals() {
+    let source = "f = function(p: \"tcp\"|\"udp\", n: number)\n  switch p\n    case \"tcp\", \"tpc\"\n      print 1\n    else\n      print 2\n  end switch\n  switch n\n    case 1, \"one\"\n      print 3\n  end switch\nend function";
+    let workspace = with_document(Dialect::Greybel, source);
+
+    let reported = messages_of_kind(&workspace, DiagnosticKind::ImpossibleCase);
+
+    assert_eq!(
+        reported,
+        owned(&[
+            (
+                3,
+                "The switch subject is \"tcp\" or \"udp\", so this case never matches."
+            ),
+            (
+                9,
+                "The switch subject is number, so this case never matches."
+            ),
+        ])
+    );
 }

@@ -81,7 +81,7 @@ impl BeautifyEmitter {
         };
 
         s.eol();
-        self.with_indent(s, |this, s| this.emit_body(s, s.ast().list(node.body)))?;
+        self.with_indent(s, |this, s| this.emit_function_body(s, node))?;
         s.push_fmt(format_args!(
             "{}{}",
             self.indentation(),

@@ -11,7 +11,6 @@ pub struct Eof {
 }
 
 impl Eof {
-    /// MiniScript's lexer appends an end-of-line token, which end-of-input errors identify.
     pub const DESCRIPTION: &'static str = "EOL";
     pub const VALUE: &'static str = "<eof>";
 

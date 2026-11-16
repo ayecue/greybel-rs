@@ -271,6 +271,15 @@ pub struct Compiler<'g> {
     included_native_imports: FxHashSet<ModuleId>,
     strings: FxHashSet<Rc<str>>,
     texts: FxHashMap<Rc<str>, Text>,
+    /// Optional chains being compiled, innermost last.
+    chains: Vec<OptionalChain>,
+}
+
+/// A chain with `?.` links (`a?.b.c`): a link whose base is `null` jumps to `end` with that `null` as the chain's
+/// value.
+struct OptionalChain {
+    end: Label,
+    links: Vec<NodeId>,
 }
 
 impl Program {
@@ -295,6 +304,7 @@ impl<'g> Compiler<'g> {
             included_native_imports: FxHashSet::default(),
             strings: FxHashSet::default(),
             texts: FxHashMap::default(),
+            chains: Vec::new(),
         };
         let code = compiler.allocate_code();
 

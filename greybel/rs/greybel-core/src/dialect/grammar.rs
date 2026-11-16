@@ -1,11 +1,12 @@
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock, PoisonError};
+
+use rustc_hash::FxHashMap;
 
 use super::rules::{LexerRuleTable, MultilineStringPolicy, ParameterDefaultPolicy};
-use super::{Dialect, Version};
+use super::{Dialect, SyntaxFeatures, Version};
 use crate::ast::{NodeId, NodeKind, NodeStore};
 use crate::lexer::{Lexicon, Punct, punct};
 use crate::parser::RuleIndex;
-use crate::syntax::UnaryOp;
 
 #[derive(Debug)]
 pub struct Grammar {
@@ -26,11 +27,10 @@ pub struct Grammar {
     pub(crate) return_before_else: bool,
     pub(crate) break_outside_loop_is_unmatched_block: bool,
     pub(crate) explains_single_line_if_errors: bool,
+    features: SyntaxFeatures,
 }
 
 impl Grammar {
-    /// Returns the grammar for `dialect` at `version`. Strict mode accepts only syntax compiled by the dialect's
-    /// reference implementation.
     #[must_use]
     pub fn get(dialect: Dialect, version: Version, strict: bool) -> &'static Self {
         const VERSIONS: usize = Version::ALL.len();
@@ -38,11 +38,42 @@ impl Grammar {
             [const { [const { [const { OnceLock::new() }; 2] }; VERSIONS] }; Dialect::ALL.len()];
 
         GRAMMARS[dialect as usize][version as usize][usize::from(strict)]
-            .get_or_init(|| Self::new(dialect, version, strict))
+            .get_or_init(|| Self::new(dialect, version, strict, SyntaxFeatures::ALL))
     }
 
-    fn new(dialect: Dialect, version: Version, strict: bool) -> Self {
+    /// The grammar with only the syntax features of `features` the dialect has. A grammar is built once per
+    /// distinct set and lives as long as the program.
+    #[must_use]
+    pub fn with_features(
+        dialect: Dialect,
+        version: Version,
+        strict: bool,
+        features: SyntaxFeatures,
+    ) -> &'static Self {
+        type Key = (Dialect, Version, bool, SyntaxFeatures);
+
+        static GRAMMARS: OnceLock<Mutex<FxHashMap<Key, &'static Grammar>>> = OnceLock::new();
+
+        let grammar = Self::get(dialect, version, strict);
+        let features = grammar.features.intersection(features);
+
+        if features == grammar.features {
+            return grammar;
+        }
+
+        let mut grammars = GRAMMARS
+            .get_or_init(Mutex::default)
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+
+        grammars
+            .entry((dialect, version, strict, features))
+            .or_insert_with(|| Box::leak(Box::new(Self::new(dialect, version, strict, features))))
+    }
+
+    fn new(dialect: Dialect, version: Version, strict: bool, features: SyntaxFeatures) -> Self {
         let rules = dialect.rules(strict);
+        let features = rules.features.intersection(features);
         let mut punctuators: Vec<&[Punct]> = rules.punctuators.to_vec();
 
         if strict && version.compound_assignments() {
@@ -53,7 +84,7 @@ impl Grammar {
             dialect,
             version,
             strict,
-            lexicon: Lexicon::new(rules.lexer, rules.keywords, &punctuators),
+            lexicon: Lexicon::new(rules.lexer, features, rules.keywords, &punctuators),
             rules: RuleIndex::new(rules, (rules.precedence)(version)),
             lexer: rules.lexer,
             relaxed_separators: rules.relaxed_separators,
@@ -71,6 +102,7 @@ impl Grammar {
             return_before_else: version.return_before_else(),
             break_outside_loop_is_unmatched_block: version.break_outside_loop_is_unmatched_block(),
             explains_single_line_if_errors: version.explains_single_line_if_errors(),
+            features,
         }
     }
 
@@ -78,18 +110,9 @@ impl Grammar {
         let node = nodes.get(default);
 
         match (&node.kind, self.parameter_defaults) {
-            (NodeKind::Literal(_), _) => true,
-            (
-                NodeKind::Parenthesis(parenthesis),
-                ParameterDefaultPolicy::ParenthesizedLiterals
-                | ParameterDefaultPolicy::LiteralOrReference,
-            ) => self.accepts_default(nodes, parenthesis.expression),
-            (NodeKind::Unary(unary), ParameterDefaultPolicy::LiteralOrReference) => {
-                unary.operator == UnaryOp::AddressOf
-                    && matches!(
-                        nodes.get(unary.argument).kind,
-                        NodeKind::Identifier(_) | NodeKind::Member(_)
-                    )
+            (_, ParameterDefaultPolicy::Expression) | (NodeKind::Literal(_), _) => true,
+            (NodeKind::Parenthesis(parenthesis), ParameterDefaultPolicy::ParenthesizedLiterals) => {
+                self.accepts_default(nodes, parenthesis.expression)
             }
             _ => false,
         }
@@ -108,6 +131,12 @@ impl Grammar {
     #[must_use]
     pub fn is_strict(&self) -> bool {
         self.strict
+    }
+
+    /// Whether the grammar accepts every syntax feature of `features`.
+    #[must_use]
+    pub fn allows(&self, features: SyntaxFeatures) -> bool {
+        self.features.contains(features)
     }
 }
 

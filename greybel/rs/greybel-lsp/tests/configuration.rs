@@ -3,7 +3,7 @@
 use greybel_lsp::types::{self as lsp};
 use serde_json::json;
 
-use crate::support::{Client, client_with_features_off};
+use crate::support::{Client, client_with_features_off, uri};
 
 #[test]
 fn should_switch_diagnostics_off_by_a_setting() {
@@ -44,4 +44,26 @@ fn should_switch_diagnostics_on_by_a_configuration_change() {
         json!({ "settings": { "greybel": { "diagnostic": true } } }),
     );
     assert_eq!(client.codes("main.src"), ["unresolved-reference"]);
+}
+
+#[test]
+fn should_set_each_diagnostics_level_by_its_code() {
+    let mut client = Client::with_settings(
+        &[],
+        json!({
+            "typeAnalyzer": {
+                "diagnostics": { "unresolved-reference": "off", "native-override": "error" }
+            }
+        }),
+    );
+
+    client.open("main.src", "print missing\nprint = 1\n");
+
+    let severities: Vec<Option<lsp::DiagnosticSeverity>> = client.diagnostics[&uri("main.src")]
+        .iter()
+        .map(|diagnostic| diagnostic.severity)
+        .collect();
+
+    assert_eq!(client.codes("main.src"), ["native-override"]);
+    assert_eq!(severities, [Some(lsp::DiagnosticSeverity::Error)]);
 }

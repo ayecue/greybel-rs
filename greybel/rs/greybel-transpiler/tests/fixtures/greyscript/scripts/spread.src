@@ -1,0 +1,8 @@
+a = [1]
+d = {"x": 1}
+name = "n"
+print([...a, 2, ...a])
+print({...d, "y": 2, name})
+print([...a].len)
+print([...a or [], 3])
+print({name})

@@ -1,6 +1,10 @@
 //! Tests what `greybel.json` reads as.
 
+use std::collections::{HashMap, HashSet};
+
+use greybel_core::SyntaxFeatures;
 use greybel_project::{BuildMode, Indentation, Manifest};
+use greybel_type_analyzer::{DiagnosticKind, Severity};
 
 #[test]
 fn should_read_an_empty_greybel_json_as_the_defaults() {
@@ -60,4 +64,55 @@ fn should_read_an_empty_output_name_as_none() {
         serde_json::from_str(r#"{ "build": { "outputName": "" } }"#).expect("a manifest");
 
     assert_eq!(manifest.build.output_name, None);
+}
+
+#[test]
+fn should_turn_diagnostic_levels_into_the_analyzers_options() {
+    let manifest: Manifest = serde_json::from_str(
+        r#"{
+            "diagnostics": {
+                "used-before-defined": "off",
+                "shadowing": "error",
+                "call-signature-mismatch": "warning",
+                "no-such-diagnostic": "off"
+            }
+        }"#,
+    )
+    .expect("a manifest");
+
+    let options = manifest.diagnostic_options();
+    let defaults = Manifest::default().diagnostic_options();
+
+    assert_eq!(
+        options.disabled_kinds,
+        HashSet::from([DiagnosticKind::UseBeforeDefinition])
+    );
+    assert_eq!(
+        options.severity_overrides,
+        HashMap::from([
+            (DiagnosticKind::Shadow, Severity::Error),
+            (DiagnosticKind::CallSignatureMismatch, Severity::Warning),
+        ])
+    );
+    assert_eq!(
+        defaults.disabled_kinds,
+        HashSet::from([DiagnosticKind::CallSignatureMismatch])
+    );
+}
+
+#[test]
+fn should_read_syntax_features_turned_off() {
+    let manifest: Manifest =
+        serde_json::from_str(r#"{ "syntax": { "ternary": false, "classes": true } }"#)
+            .expect("a manifest");
+
+    let features = manifest.syntax.features();
+
+    assert!(!features.contains(SyntaxFeatures::TERNARY));
+    assert!(features.contains(SyntaxFeatures::CLASSES));
+    assert_eq!(
+        manifest.syntax.off_names(),
+        Some(vec!["ternary".to_owned()])
+    );
+    assert_eq!(Manifest::default().syntax.off_names(), None);
 }

@@ -17,7 +17,7 @@ use files::{copy_folder, run_tool};
 const TMP_VERSION: &str = "3.0.9";
 const TMP_PACKAGE: &str = "Packages/com.unity.textmeshpro";
 const TMP_ESSENTIALS: &str = "Package Resources/TMP Essential Resources.unitypackage";
-/// Limits `<size=…>` to 60 like Grey Hack's `TMP_Text.ValidateHtmlTag`; text-mesh-core applies the same cap.
+/// Limits `<size>` values to 60 like Grey Hack's `TMP_Text.ValidateHtmlTag`; text-mesh-core applies the same cap.
 const SIZE_CAP: u32 = 60;
 /// `m_currentFontSize` assignments in the `<size>` case of `TMP_Text.ValidateHtmlTag`, with occurrence counts.
 const SIZE_ASSIGNMENTS: [(&str, usize); 4] = [

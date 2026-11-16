@@ -1,0 +1,19 @@
+---
+source: greybel-core/tests/greybel.rs
+expression: rendered
+input_file: greybel-core/tests/fixtures/greybel/scripts/value-expressions.src
+---
+Chunk[1:1-11:1][
+	AssignmentStatement[1:1-1:14][Identifier[1:1-1:2][a] = TernaryExpression[1:5-1:14][Identifier[1:5-1:6][c] ? Literal[1:9-1:10][1] : Literal[1:13-1:14][2]]]
+	AssignmentStatement[2:1-2:13][Identifier[2:1-2:2][b] = CoalesceExpression[2:5-2:13][Identifier[2:5-2:6][x] ?? Literal[2:10-2:13][d]]]
+	AssignmentStatement[3:1-3:21][Identifier[3:1-3:2][n] = MemberExpression[3:5-3:21][MemberExpression[3:5-3:15][Identifier[3:5-3:9][user]?.Identifier[3:11-3:15][name]].Identifier[3:16-3:21][first]]]
+	AssignmentStatement[4:1-4:14][Identifier[4:1-4:2][m] = IndexExpression[4:5-4:14][Identifier[4:5-4:9][list]?.[Literal[4:12-4:13][0]]]]
+	AssignmentStatement[5:1-5:21][Identifier[5:1-5:2][r] = CallExpression[5:5-5:21][Identifier[5:5-5:13][callback]?.(Literal[5:16-5:17][1], Literal[5:19-5:20][2])]]
+	CallExpression[6:1-6:27][Identifier[6:1-6:6][print](TernaryExpression[6:7-6:26][Identifier[6:7-6:8][c] ? TernaryExpression[6:12-6:21][Identifier[6:12-6:13][d] ? Literal[6:16-6:17][1] : Literal[6:20-6:21][2]] : Literal[6:25-6:26][3]])]
+	AssignmentStatement[7:1-7:21][Identifier[7:1-7:2][k] = MapConstructor[7:5-7:21][
+		MapKeyString[7:6-7:20][Literal[7:6-7:9][a]: TernaryExpression[7:11-7:20][Identifier[7:11-7:12][c] ? Literal[7:15-7:16][1] : Literal[7:19-7:20][2]]]
+	]]
+	AssignmentStatement[8:1-8:12][Identifier[8:1-8:2][z] = TernaryExpression[8:5-8:12][Identifier[8:5-8:6][c] ? Literal[8:8-8:10][0.5] : Literal[8:11-8:12][1]]]
+	AssignmentStatement[9:1-9:22][Identifier[9:1-9:2][w] = TernaryExpression[9:5-9:22][Identifier[9:5-9:6][f] ? TernaryExpression[9:9-9:18][Identifier[9:9-9:10][g] ? Literal[9:13-9:14][1] : Literal[9:17-9:18][2]] : Literal[9:21-9:22][3]]]
+	AssignmentStatement[10:1-10:16][Identifier[10:1-10:2][q] = CoalesceExpression[10:5-10:16][Identifier[10:5-10:6][a] ?? LogicalExpression[10:10-10:16][Identifier[10:10-10:11][b] or Identifier[10:15-10:16][c]]]]
+]

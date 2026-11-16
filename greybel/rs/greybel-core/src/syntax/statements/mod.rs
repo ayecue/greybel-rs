@@ -10,7 +10,7 @@ mod return_statement;
 mod shortcut;
 mod while_loop;
 
-pub use assignment::Assignment;
+pub use assignment::{Assignment, Declaration};
 pub use call_statement::CallStatement;
 pub use expression_statement::parse_expression_statement;
 pub use for_loop::{For, ForRule};

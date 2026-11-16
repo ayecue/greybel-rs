@@ -1,6 +1,8 @@
 use crate::vocabulary::vocabulary;
 
 vocabulary!(Precedence {
+    Ternary => "ternary",
+    Coalesce => "coalesce",
     Or => "or",
     And => "and",
     Not => "not",

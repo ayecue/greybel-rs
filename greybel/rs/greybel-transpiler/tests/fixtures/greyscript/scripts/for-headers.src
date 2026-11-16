@@ -1,0 +1,11 @@
+items = ["a", "b"]
+for i, item in items
+	print(i + ":" + item)
+end for
+points = [[1, 2], [3, 4]]
+for [x, y] in points
+	print(x + y)
+end for
+for {key, value} in {"k": 1}
+	print(key + value)
+end for

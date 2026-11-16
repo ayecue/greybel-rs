@@ -221,6 +221,7 @@ impl<P: AsyncResourceProvider, S: Scheduler> Interpreter<P, S> {
             parser: ParserOptions {
                 environment: self.options.environment.clone(),
                 strict_mode: self.options.strict_mode,
+                syntax_features: self.options.syntax_features,
                 mono_number_parsing: true,
                 ..ParserOptions::new(self.options.dialect)
             },

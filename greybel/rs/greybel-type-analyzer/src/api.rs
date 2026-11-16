@@ -1,5 +1,8 @@
+use std::sync::OnceLock;
+
 use greybel_core::Dialect;
-use meta_utils::{Container, DEFAULT_LANGUAGE, LocalizedDefinition, TypeLookup};
+use meta_utils::{BaseType, Container, DEFAULT_LANGUAGE, LocalizedDefinition, TypeLookup};
+use rustc_hash::FxHashSet;
 
 use crate::types::ApiFunction;
 
@@ -33,6 +36,13 @@ impl Api {
         self.dialect
     }
 
+    pub(crate) fn singleton_map_functions(self) -> &'static [&'static str] {
+        match self.dialect {
+            Dialect::MiniScript => &[],
+            Dialect::Greybel | Dialect::GreyScript => &["get_custom_object"],
+        }
+    }
+
     #[must_use]
     pub fn container(self) -> &'static Container {
         self.container
@@ -43,8 +53,85 @@ impl Api {
         type_name: &str,
         name: &str,
     ) -> Option<LocalizedDefinition<'static>> {
+        if type_name == BaseType::Any.as_str() {
+            return self
+                .container
+                .signature(type_name)?
+                .definition(name, DEFAULT_LANGUAGE);
+        }
+
         self.container
             .definition(&[type_name], name, DEFAULT_LANGUAGE)
+    }
+
+    pub(crate) fn is_general_function(self, name: &str) -> bool {
+        static MINISCRIPT: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
+        static GREYSCRIPT: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
+
+        let names = match self.dialect {
+            Dialect::MiniScript => &MINISCRIPT,
+            Dialect::Greybel | Dialect::GreyScript => &GREYSCRIPT,
+        };
+
+        names
+            .get_or_init(|| {
+                self.members(BaseType::General.as_str())
+                    .filter(|member| {
+                        member.definition().as_function().is_some()
+                            && !member.definition().is_detached()
+                    })
+                    .map(|member| member.name())
+                    .collect()
+            })
+            .contains(name)
+    }
+
+    pub(crate) fn adds_to_container(self, name: &str) -> bool {
+        static MINISCRIPT: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
+        static GREYSCRIPT: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
+
+        self.has_mutation(
+            &MINISCRIPT,
+            &GREYSCRIPT,
+            &[BaseType::List, BaseType::Map],
+            name,
+        )
+    }
+
+    pub(crate) fn adds_to_argument(self, name: &str) -> bool {
+        static MINISCRIPT: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
+        static GREYSCRIPT: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
+
+        self.has_mutation(&MINISCRIPT, &GREYSCRIPT, &[BaseType::General], name)
+    }
+
+    fn has_mutation(
+        self,
+        miniscript: &'static OnceLock<FxHashSet<&'static str>>,
+        greyscript: &'static OnceLock<FxHashSet<&'static str>>,
+        bases: &[BaseType],
+        name: &str,
+    ) -> bool {
+        let names = match self.dialect {
+            Dialect::MiniScript => miniscript,
+            Dialect::Greybel | Dialect::GreyScript => greyscript,
+        };
+
+        names
+            .get_or_init(|| {
+                bases
+                    .iter()
+                    .flat_map(|base| self.members(base.as_str()))
+                    .filter(|member| {
+                        member
+                            .definition()
+                            .as_function()
+                            .is_some_and(|function| function.mutation().is_some())
+                    })
+                    .map(|member| member.name())
+                    .collect()
+            })
+            .contains(name)
     }
 
     pub(crate) fn members(

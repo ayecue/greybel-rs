@@ -1,0 +1,8 @@
+test = function(a = [], count = a.len, callback = @print, size = (3))
+	return a
+end function
+
+Thing = {}
+Thing.make = function(scale = self.size * 2)
+	if scale then return scale
+end function

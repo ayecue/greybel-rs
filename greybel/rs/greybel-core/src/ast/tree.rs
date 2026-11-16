@@ -10,6 +10,7 @@ use super::{
 use crate::parser::ChunkData;
 use crate::position::{ColumnSettings, LineIndex, Span};
 use crate::syntax::Chunk;
+use crate::syntax::greybel::{TypeSyntax, ValueExpansions};
 
 pub struct Ast {
     nodes: NodeStore,
@@ -19,6 +20,9 @@ pub struct Ast {
     pub scopes: Vec<NodeId>,
     line_items: Vec<NodeId>,
     nodes_by_line: OnceLock<NodesByLine>,
+    /// Per node, the source its subtree covers: its span joined with its children's. Differs from the span for nodes
+    /// that build statements contain written elsewhere, such as the field assignments of a class constructor.
+    extents: OnceLock<Vec<Span>>,
     source: Arc<str>,
     lines: Arc<OnceLock<LineIndex>>,
     pub imports: Vec<NodeId>,
@@ -26,6 +30,10 @@ pub struct Ast {
     pub injects: Vec<NodeId>,
     pub native_imports: Vec<NodeId>,
     pub debuggers: Vec<NodeId>,
+    /// The statements builds write for expressions GreyScript has no syntax for.
+    pub expansions: ValueExpansions,
+    /// The types written in code.
+    pub type_syntax: TypeSyntax,
 }
 
 impl Ast {
@@ -44,6 +52,7 @@ impl Ast {
             scopes: chunk_data.scopes,
             line_items: chunk_data.line_items,
             nodes_by_line: OnceLock::new(),
+            extents: OnceLock::new(),
             source,
             lines,
             imports: chunk_data.imports,
@@ -51,6 +60,8 @@ impl Ast {
             injects: chunk_data.injects,
             native_imports: chunk_data.native_imports,
             debuggers: chunk_data.debuggers,
+            expansions: ValueExpansions::default(),
+            type_syntax: TypeSyntax::default(),
         }
     }
 
@@ -193,14 +204,88 @@ impl Ast {
                 child_with_end_at_offset.get_or_insert(child);
             }
 
-            match inside.or(child_with_end_at_offset) {
-                Some(child) => {
-                    path.push(child);
-                    current = child;
-                }
-                None => return path,
+            if let Some(child) = inside.or(child_with_end_at_offset) {
+                path.push(child);
+                current = child;
+
+                continue;
+            }
+
+            // A node written here can sit below a node written elsewhere, such as a class field in the constructor.
+            if !self.push_descendant_at(current, offset, &mut path) {
+                return path;
+            }
+
+            current = *path.last().expect("a pushed descendant");
+        }
+    }
+
+    /// Pushes the path from `id` down to a descendant whose span contains `offset`, through children whose extent
+    /// contains it.
+    fn push_descendant_at(&self, id: NodeId, offset: u32, path: &mut Vec<NodeId>) -> bool {
+        for child in self.nodes.children(id) {
+            let extent = self.extent(child);
+
+            if offset < extent.start || extent.end < offset || extent.is_empty() {
+                continue;
+            }
+
+            path.push(child);
+
+            let span = self.span(child);
+
+            if (span.start <= offset && offset <= span.end && !span.is_empty())
+                || self.push_descendant_at(child, offset, path)
+            {
+                return true;
+            }
+
+            path.pop();
+        }
+
+        false
+    }
+
+    /// The source the subtree of `id` covers.
+    fn extent(&self, id: NodeId) -> Span {
+        let extents = self.extents.get_or_init(|| {
+            let mut extents = vec![Span::default(); self.nodes.len()];
+
+            self.collect_extent(self.root, &mut extents);
+
+            extents
+        });
+
+        extents.get(id.index()).copied().unwrap_or_default()
+    }
+
+    fn collect_extent(&self, id: NodeId, extents: &mut [Span]) -> Span {
+        let span = self.span(id);
+        let mut extent = if span.is_closed() {
+            span
+        } else {
+            Span::empty(span.start)
+        };
+
+        for child in self.nodes.children(id) {
+            let child = self.collect_extent(child, extents);
+
+            if child.is_empty() {
+                continue;
+            }
+
+            if extent.is_empty() {
+                extent = child;
+            } else {
+                extent = Span::new(extent.start.min(child.start), extent.end.max(child.end));
             }
         }
+
+        if let Some(slot) = extents.get_mut(id.index()) {
+            *slot = extent;
+        }
+
+        extent
     }
 
     pub fn walk(&self, id: NodeId, visitor: &mut impl Visitor) {

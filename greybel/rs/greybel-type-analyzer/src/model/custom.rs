@@ -1,3 +1,5 @@
+use greybel_core::Span;
+
 use super::{DocumentIndex, MapId};
 use crate::types::TypeId;
 
@@ -6,6 +8,8 @@ pub struct CustomType {
     pub name: String,
     pub map: MapId,
     pub document: DocumentIndex,
+    /// The comment line of the `@type` or `@vtype` tag.
+    pub span: Span,
     pub type_parameters: Vec<String>,
     pub description: Option<String>,
 }

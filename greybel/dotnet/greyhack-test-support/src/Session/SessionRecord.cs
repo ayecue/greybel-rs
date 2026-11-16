@@ -5,7 +5,7 @@ namespace GreyHackTestSupport.Session;
 
 /// <summary>
 /// Shared-session file data for the game host process and its <see cref="GameConnection"/>, serialized as
-/// <c>{"pid":N,"port":N,"testPort":N,"log":"…"}</c>.
+/// <c>{"pid":N,"port":N,"testPort":N,"log":"&lt;path&gt;"}</c>.
 /// </summary>
 internal sealed record SessionRecord(int Pid, int Port, int TestPort, string Log)
 {

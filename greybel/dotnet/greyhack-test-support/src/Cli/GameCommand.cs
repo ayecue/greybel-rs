@@ -59,7 +59,7 @@ internal static class GameCommand
             CreateCommand(
                 "run",
                 "Run the installed game (GREY_HACK_PATH, else Steam's) headless with the message hook, until standard "
-                    + "input ends: prints {\"port\":N,\"testPort\":N,\"log\":\"…\"} once the player's desktop has "
+                    + "input ends: prints {\"port\":N,\"testPort\":N,\"log\":\"<path>\"} once the player's desktop has "
                     + "booted and both listeners are ready",
                 GameOptionTable,
                 result =>

@@ -1,6 +1,7 @@
 use std::fmt;
 
 use greybel_core::LiteralValue;
+use greybel_core::lexer::NumericLiteral;
 use greybel_core::syntax::Literal;
 use greybel_symbols::delimiters::QUOTE;
 use greybel_symbols::literals::NULL;
@@ -52,9 +53,13 @@ impl<'a> LiteralText<'a> {
     pub fn raw_text(&self) -> Option<&'a str> {
         match (&self.literal.value, self.style, self.literal.negated) {
             (LiteralValue::Nil, ..) => Some(NULL),
-            (LiteralValue::String(_), ..) if self.joins() => None,
+            (LiteralValue::String(_), ..) if self.joins() || !self.source.starts_with(QUOTE) => {
+                None
+            }
             (LiteralValue::String(_), ..) => Some(self.source),
-            (LiteralValue::Number(_), LiteralStyle::Source | LiteralStyle::Short, false) => {
+            (LiteralValue::Number(_), LiteralStyle::Source | LiteralStyle::Short, false)
+                if NumericLiteral::is_plain(self.source) =>
+            {
                 Some(self.source)
             }
             _ => None,
@@ -75,10 +80,16 @@ impl fmt::Display for LiteralText<'_> {
             (LiteralValue::Number(value), LiteralStyle::Value | LiteralStyle::Output) => {
                 write!(f, "{sign}{value}")
             }
+            (LiteralValue::Number(value), _) if !NumericLiteral::is_plain(self.source) => {
+                write!(f, "{sign}{value}")
+            }
             (LiteralValue::Number(_), _) => write!(f, "{sign}{}", self.source),
             (LiteralValue::String(_), _) => match self.line_breaks {
                 LineBreakStyle::Join { function, compact } if self.joins() => {
                     write_join(f, self.source, function, compact)
+                }
+                _ if !self.source.starts_with(QUOTE) => {
+                    write!(f, "{QUOTE}{}{QUOTE}", self.source.replace(QUOTE, "\"\""))
                 }
                 _ => f.write_str(self.source),
             },

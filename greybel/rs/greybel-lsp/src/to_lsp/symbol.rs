@@ -1,7 +1,7 @@
 use gen_lsp_types as lsp;
-use greybel_type_analyzer::{DocumentSymbol, SymbolKind, WorkspaceSymbol};
+use greybel_type_analyzer::{CallHierarchyItem, DocumentSymbol, SymbolKind, WorkspaceSymbol};
 
-use super::{location, range};
+use super::{location, range, uri};
 
 #[must_use]
 pub fn document_symbol(symbol: &DocumentSymbol) -> lsp::DocumentSymbol {
@@ -36,5 +36,21 @@ fn symbol_kind(kind: SymbolKind) -> lsp::SymbolKind {
         SymbolKind::Variable => lsp::SymbolKind::Variable,
         SymbolKind::Function => lsp::SymbolKind::Function,
         SymbolKind::Property => lsp::SymbolKind::Property,
+        SymbolKind::File => lsp::SymbolKind::File,
+        SymbolKind::Type | SymbolKind::Class => lsp::SymbolKind::Class,
+    }
+}
+
+#[must_use]
+pub fn call_hierarchy_item(item: &CallHierarchyItem) -> lsp::CallHierarchyItem {
+    lsp::CallHierarchyItem {
+        name: item.name.clone(),
+        kind: symbol_kind(item.kind),
+        tags: None,
+        detail: None,
+        uri: uri(&item.uri),
+        range: range(item.range),
+        selection_range: range(item.selection_range),
+        data: None,
     }
 }

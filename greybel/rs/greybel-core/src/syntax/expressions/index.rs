@@ -12,6 +12,8 @@ pub struct Index {
     #[child]
     pub index: NodeId,
     pub is_statement_start: bool,
+    /// `base?.[index]`.
+    pub optional: bool,
 }
 
 impl AstNode for Index {
@@ -23,7 +25,7 @@ impl AstNode for Index {
         let type_name = self.type_name();
 
         format!(
-            "{type_name}[{}]{}[{}[{}]]",
+            "{type_name}[{}]{}[{}{}[{}]]",
             ctx.location(),
             if self.is_statement_start {
                 "[isStatementStart]"
@@ -31,6 +33,7 @@ impl AstNode for Index {
                 ""
             },
             ctx.child(self.base),
+            if self.optional { "?." } else { "" },
             ctx.child(self.index)
         )
     }
@@ -44,6 +47,8 @@ pub struct Slice {
     pub left: NodeId,
     #[child]
     pub right: NodeId,
+    /// `base?.[left:right]`.
+    pub optional: bool,
 }
 
 impl AstNode for Slice {
@@ -55,9 +60,10 @@ impl AstNode for Slice {
         let type_name = self.type_name();
 
         format!(
-            "{type_name}[{}][{}[{}:{}]]",
+            "{type_name}[{}][{}{}[{}:{}]]",
             ctx.location(),
             ctx.child(self.base),
+            if self.optional { "?." } else { "" },
             ctx.child(self.left),
             ctx.child(self.right)
         )
@@ -87,6 +93,19 @@ impl InfixRule for IndexRule {
         start: Span,
         context: ExprContext,
     ) -> ParseResult<NodeId> {
+        Index::parse_brackets(parser, base, start, context, false)
+    }
+}
+
+impl Index {
+    /// `[index]` or `[left:right]` after a base, `optional` for `?.[`.
+    pub(crate) fn parse_brackets(
+        parser: &mut Parser<'_>,
+        base: NodeId,
+        start: Span,
+        context: ExprContext,
+        optional: bool,
+    ) -> ParseResult<NodeId> {
         parser.advance()?;
         parser.consume_noop()?;
 
@@ -102,6 +121,7 @@ impl InfixRule for IndexRule {
                         base,
                         index,
                         is_statement_start: context.statement_start,
+                        optional,
                     },
                     span,
                 );
@@ -123,7 +143,15 @@ impl InfixRule for IndexRule {
             parser.parse_expr(None)?
         };
         let span = start.to(&parser.token().span());
-        let node = parser.alloc(Slice { base, left, right }, span);
+        let node = parser.alloc(
+            Slice {
+                base,
+                left,
+                right,
+                optional,
+            },
+            span,
+        );
 
         parser.require(Expect::Punct(Punct::RBracket), Some(start.start))?;
 
