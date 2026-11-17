@@ -81,8 +81,6 @@ impl Vm {
         }
     }
 
-    /// Fallback for [`Self::slot_binary_jump_if`] when operands are not two numeric slots or a numeric slot and
-    /// literal.
     #[inline(never)]
     fn slot_branch(
         &mut self,

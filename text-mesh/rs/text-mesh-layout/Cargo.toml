@@ -19,7 +19,6 @@ unicode-general-category.workspace = true
 [dev-dependencies]
 text-mesh-test-support.workspace = true
 serde.workspace = true
-serde_json.workspace = true
 
 [lints]
 workspace = true

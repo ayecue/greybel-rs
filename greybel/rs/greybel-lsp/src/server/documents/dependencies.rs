@@ -32,6 +32,8 @@ impl Server {
                 self.fetch_handle.active.push(fetch);
             }
         }
+
+        self.respond_imported_files();
     }
 
     fn finish_fetch(&mut self, fetch: &mut PendingFetch) -> bool {

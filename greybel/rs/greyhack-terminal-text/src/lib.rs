@@ -7,3 +7,4 @@ mod text;
 
 pub use renderer::Renderer;
 pub use text::{ansi_text, plain_text};
+pub use text_mesh_core::{LineLimits, LineSplitRule};

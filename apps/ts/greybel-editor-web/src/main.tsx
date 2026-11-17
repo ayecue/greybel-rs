@@ -10,6 +10,7 @@ import type { JsonObject } from './project/json.js';
 import { LanguageServerSettings } from './project/language-server-settings.js';
 import { PathResolver } from './project/paths.js';
 import { ProjectStorage } from './project/storage.js';
+import { WatchList } from './runtime/watch-list.js';
 import { WasmLoader } from './wasm.js';
 import './editor.css';
 
@@ -26,7 +27,8 @@ const services: ServiceContainer = {
   layout: new Layout(document.documentElement, localStorage),
   highlighter: new TooltipHighlighter(),
   manifestHelp: new ManifestHelp(schema),
-  languageServerSettings: new LanguageServerSettings(schema)
+  languageServerSettings: new LanguageServerSettings(schema),
+  watches: new WatchList(localStorage)
 };
 
 services.layout.restore();

@@ -9,7 +9,7 @@ use std::path::Path;
 use clap::Args;
 use greybel_documents::Uri;
 use greybel_documents_fs_provider::FsProvider;
-use greybel_project::{Manifest, Project};
+use greybel_project::{LineLimits, Manifest, Project};
 use greyhack_message_hook_client::protocol::DEFAULT_PORT;
 pub use transpilation::Transpilation;
 pub use variables::VariableOptions;
@@ -51,12 +51,26 @@ pub struct Simulation {
     /// Text the simulated world is generated from: the same seed makes the same world [default: test].
     #[arg(short = 's', long)]
     pub seed: Option<String>,
+    /// Cuts printed lines whose visible text is longer than this many characters into pieces of this length, as
+    /// the greyhack-customizable-output mod does, instead of the game's rule.
+    #[arg(long, value_name = "CHARACTERS", value_parser = clap::value_parser!(u32).range(1..))]
+    pub text_per_line: Option<u32>,
+    /// With `--text-per-line`: also cuts lines whose tags take more than this many characters.
+    #[arg(long, value_name = "CHARACTERS", requires = "text_per_line")]
+    pub tags_per_line: Option<u32>,
 }
 
 impl Simulation {
     pub fn apply(&self, manifest: &mut Manifest) {
         if let Some(seed) = &self.seed {
             manifest.run.seed.clone_from(seed);
+        }
+
+        if let Some(text_per_line) = self.text_per_line {
+            manifest.run.line_limits = Some(LineLimits {
+                text_per_line,
+                tags_per_line: self.tags_per_line,
+            });
         }
     }
 }

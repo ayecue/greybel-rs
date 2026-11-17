@@ -4,6 +4,7 @@ export {
   Color,
   DistanceField,
   Frame,
+  LineLimits,
   Material,
   Mesh,
   Scene,

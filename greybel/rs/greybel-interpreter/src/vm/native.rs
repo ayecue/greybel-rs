@@ -40,7 +40,6 @@ pub struct NativeOutput(Box<FinishFn>);
 
 type FinishFn = dyn FnOnce(&mut Vm) -> Result<Completion, RuntimeError>;
 
-/// Async native result: a direct value or a child context whose `on_end` callback produces the value.
 pub(crate) enum Completion {
     Value(Value),
     Context(ContextEntry),

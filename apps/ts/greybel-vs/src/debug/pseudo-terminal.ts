@@ -25,7 +25,7 @@ export default class PseudoTerminal {
   readonly #input = new vscode.EventEmitter<string>();
 
   #active = true;
-  private printedLineCount: number;
+  #lineCount: number;
 
   static getActiveTerminal(): PseudoTerminal {
     return this.activeTerminal;
@@ -36,7 +36,7 @@ export default class PseudoTerminal {
     this.dimensions = null;
     this.terminal = null;
     this.name = name;
-    this.printedLineCount = 0;
+    this.#lineCount = 0;
 
     this.createTerminal();
     PseudoTerminal.activeTerminal = this;
@@ -72,12 +72,12 @@ export default class PseudoTerminal {
     return new Promise((resolve) => {
       const buffer: string[] = [];
       let cursorIndex = 0;
-      const shownIndex = () => (echo === Echo.Hidden ? 0 : cursorIndex);
+      const visibleIndex = () => (echo === Echo.Hidden ? 0 : cursorIndex);
 
       const cursorColumn = () => {
         const labelColumn = prompt.length % this.dimensions.columns;
         const firstLineWidth = this.dimensions.columns - labelColumn;
-        const index = shownIndex();
+        const index = visibleIndex();
 
         return index < firstLineWidth ? index : (index - this.dimensions.columns) % this.dimensions.columns;
       };
@@ -85,7 +85,7 @@ export default class PseudoTerminal {
       const cursorRow = () => {
         const labelColumn = prompt.length % this.dimensions.columns;
         const firstLineWidth = this.dimensions.columns - labelColumn;
-        const index = shownIndex();
+        const index = visibleIndex();
 
         return index < firstLineWidth ? 0 : 1 + Math.floor((index - firstLineWidth) / this.dimensions.columns);
       };
@@ -208,8 +208,8 @@ export default class PseudoTerminal {
   print(message: string, appendNewLine: boolean = true) {
     const normalizedMessage = toCrlf(message);
 
-    this.printedLineCount += normalizedMessage.split('\n').length;
-    if (appendNewLine) this.printedLineCount++;
+    this.#lineCount += normalizedMessage.split('\n').length;
+    if (appendNewLine) this.#lineCount++;
 
     this.outputEmitter.fire(`${normalizedMessage}${appendNewLine ? '\r\n' : ''}`);
     this.terminal.show();
@@ -217,13 +217,13 @@ export default class PseudoTerminal {
 
   replaceLastLine(message: string) {
     this.outputEmitter.fire(ansiEscapes.eraseLines(2));
-    this.printedLineCount -= 2;
+    this.#lineCount -= 2;
     this.print(message);
   }
 
   replacePrintedText(message: string) {
-    this.outputEmitter.fire(ansiEscapes.eraseLines(this.printedLineCount));
-    this.printedLineCount = 0;
+    this.outputEmitter.fire(ansiEscapes.eraseLines(this.#lineCount));
+    this.#lineCount = 0;
     this.print(message);
   }
 

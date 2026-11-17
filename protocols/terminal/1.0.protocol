@@ -15,6 +15,10 @@ protocol Terminal = "greyhack-terminal" {
         message Scroll {
             delta: f32,
         }
+        /// Splits long output lines by `limits`; absent splits them as the game does. Relayouts the output.
+        message SetLineLimits {
+            limits?: LineLimits,
+        }
     }
 
     /// Host page that renders scenes on a canvas.
@@ -132,4 +136,13 @@ struct Color {
     g: u8,
     b: u8,
     a: u8,
+}
+
+/// Line limits as greyhack-customizable-output sets them: a line whose visible text is longer than `text_per_line`
+/// UTF-16 units, or whose tags take more than `tags_per_line` units, is cut into pieces of `text_per_line` units.
+struct LineLimits {
+    /// At least 1.
+    text_per_line: u32,
+    /// Absent for no limit.
+    tags_per_line?: u32,
 }

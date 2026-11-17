@@ -36,11 +36,11 @@ import {
 } from 'greybel-runtime';
 import vscode, { Uri } from 'vscode';
 
-import { getPreview } from '../preview';
-import { environmentOf, launchOf, type Project, type ProjectReader } from '../project';
-import { RuntimeConnection } from '../runtime/connection';
 import type { Peer } from '../launcher';
-import { describeLocation, showError } from '../runtime/error-message';
+import type { Preview } from '../preview';
+import type { ProjectReader, Project } from '../project';
+import { RuntimeConnection } from '../runtime/connection';
+import { ErrorReporter } from '../runtime/error-message';
 import { Configuration } from '../settings';
 
 const THREAD = 1;
@@ -64,28 +64,24 @@ export function toUri(path: string): Uri {
   return /^[a-z][\w+.-]+:/i.test(path) && !/^[a-z]:[\\/]/i.test(path) ? Uri.parse(path) : Uri.file(path);
 }
 
-function toSource(uri: string): Source {
-  const location = Uri.parse(uri);
-  const name = location.path.split('/').pop() ?? uri;
-
-  return new Source(name, location.scheme === 'file' ? location.fsPath : location.toString());
-}
-
 export class RuntimeDebugSession extends LoggingDebugSession {
   readonly #connection: RuntimeConnection;
   readonly #projects: ProjectReader;
+  readonly #preview: Preview;
+  readonly #errors = new ErrorReporter();
   readonly #configurationDeferrable: Promise<void>;
 
   #resolveConfigurationDeferrable!: () => void;
   #ended = false;
 
-  constructor(runtime: Peer, projects: ProjectReader) {
+  constructor(runtime: Peer, projects: ProjectReader, preview: Preview) {
     super();
     this.#projects = projects;
+    this.#preview = preview;
     this.setDebuggerLinesStartAt1(true);
     this.setDebuggerColumnsStartAt1(true);
 
-    this.#connection = new RuntimeConnection(runtime, new StopReporter(this));
+    this.#connection = new RuntimeConnection(runtime, new StopReporter(this), preview);
     this.#configurationDeferrable = new Promise((resolve) => {
       this.#resolveConfigurationDeferrable = resolve;
     });
@@ -132,33 +128,34 @@ export class RuntimeDebugSession extends LoggingDebugSession {
     let project: Project;
 
     try {
-      project = await this.#projects.of(entry);
+      project = await this.#projects.read(entry);
     } catch (error) {
       this.sendErrorResponse(response, 1, error instanceof Error ? error.message : String(error));
 
       return;
     }
 
-    const params = await this.params(config, project);
-    const environment = environmentOf(
-      project,
+    const params = await this.#getParams(config, project);
+    const environment = project.getEnvironment(
       config.get('interpreter.environmentType') === 'In-Game' ? config.get('interpreter.port') : undefined
     );
 
-    getPreview().clear();
+    this.#preview.clear();
+    this.#preview.setLineLimits(project.getLineLimits());
+    this.#connection.page.setLineLimits(project.getLineLimits());
     this.sendResponse(response);
 
     try {
       const exit = await this.#connection.runtime.send(
-        launchOf(project, entry, environment, params, {
+        project.createLaunch(entry, environment, params, {
           debug: !args.noDebug,
           stopOnEntry: args.stopOnEntry ?? false
         })
       );
 
-      this.report(exit, config);
+      this.#report(exit, config);
     } catch (error) {
-      this.reportLaunchFailure(error, config);
+      this.#reportLaunchFailure(error, config);
     }
 
     this.#ended = true;
@@ -232,7 +229,7 @@ export class RuntimeDebugSession extends LoggingDebugSession {
     response: DebugProtocol.StackTraceResponse,
     _args: DebugProtocol.StackTraceArguments
   ): Promise<void> {
-    const frames = await this.inspectOrDefault(() => this.#connection.runtime.send(new StackTrace()), []);
+    const frames = await this.#inspectOrDefault(() => this.#connection.runtime.send(new StackTrace()), []);
 
     response.body = {
       stackFrames: frames.map((frame) => {
@@ -242,7 +239,7 @@ export class RuntimeDebugSession extends LoggingDebugSession {
           ? new StackFrame(
               frame.id,
               frame.name,
-              toSource(location.uri),
+              this.#toSource(location.uri),
               this.convertDebuggerLineToClient(location.line),
               this.convertDebuggerColumnToClient(location.character)
             )
@@ -257,7 +254,7 @@ export class RuntimeDebugSession extends LoggingDebugSession {
     response: DebugProtocol.ScopesResponse,
     args: DebugProtocol.ScopesArguments
   ): Promise<void> {
-    const scopes = await this.inspectOrDefault(
+    const scopes = await this.#inspectOrDefault(
       () => this.#connection.runtime.send(new Scopes({ frame: args.frameId })),
       []
     );
@@ -272,7 +269,7 @@ export class RuntimeDebugSession extends LoggingDebugSession {
     response: DebugProtocol.VariablesResponse,
     args: DebugProtocol.VariablesArguments
   ): Promise<void> {
-    const variables = await this.inspectOrDefault(
+    const variables = await this.#inspectOrDefault(
       () => this.#connection.runtime.send(new Variables({ reference: args.variablesReference })),
       []
     );
@@ -299,12 +296,12 @@ export class RuntimeDebugSession extends LoggingDebugSession {
   }
 
   protected override nextRequest(response: DebugProtocol.NextResponse, _args: DebugProtocol.NextArguments): void {
-    this.step(StepMode.Over);
+    this.#step(StepMode.Over);
     this.sendResponse(response);
   }
 
   protected override stepInRequest(response: DebugProtocol.StepInResponse, _args: DebugProtocol.StepInArguments): void {
-    this.step(StepMode.Into);
+    this.#step(StepMode.Into);
     this.sendResponse(response);
   }
 
@@ -312,7 +309,7 @@ export class RuntimeDebugSession extends LoggingDebugSession {
     response: DebugProtocol.StepOutResponse,
     _args: DebugProtocol.StepOutArguments
   ): void {
-    this.step(StepMode.Out);
+    this.#step(StepMode.Out);
     this.sendResponse(response);
   }
 
@@ -335,7 +332,7 @@ export class RuntimeDebugSession extends LoggingDebugSession {
       };
       this.sendResponse(response);
     } catch (error) {
-      this.sendErrorResponse(response, { id: 1, format: evaluationMessage(error), showUser: false });
+      this.sendErrorResponse(response, { id: 1, format: this.#getEvaluationMessage(error), showUser: false });
     }
   }
 
@@ -355,7 +352,7 @@ export class RuntimeDebugSession extends LoggingDebugSession {
       };
       this.sendResponse(response);
     } catch (error) {
-      this.sendErrorResponse(response, { id: 2, format: evaluationMessage(error), showUser: true });
+      this.sendErrorResponse(response, { id: 2, format: this.#getEvaluationMessage(error), showUser: true });
     }
   }
 
@@ -381,7 +378,7 @@ export class RuntimeDebugSession extends LoggingDebugSession {
     const event = new OutputEvent(`${message.text}\n`, 'console') as DebugProtocol.OutputEvent;
 
     if (message.location) {
-      event.body.source = toSource(message.location.uri);
+      event.body.source = this.#toSource(message.location.uri);
       event.body.line = this.convertDebuggerLineToClient(message.location.line);
     }
 
@@ -395,11 +392,11 @@ export class RuntimeDebugSession extends LoggingDebugSession {
     this.sendEvent(event);
   }
 
-  private step(mode: StepMode): void {
+  #step(mode: StepMode): void {
     this.#connection.runtime.send(new Step({ mode }));
   }
 
-  private async inspectOrDefault<T>(request: () => Promise<T>, fallback: T): Promise<T> {
+  async #inspectOrDefault<T>(request: () => Promise<T>, fallback: T): Promise<T> {
     try {
       return await request();
     } catch {
@@ -407,8 +404,8 @@ export class RuntimeDebugSession extends LoggingDebugSession {
     }
   }
 
-  /** Returns project run parameters when defaults are enabled; otherwise, returns space-separated user input. */
-  private async params(config: Configuration, project: Project): Promise<readonly string[]> {
+  /** Returns project run parameters when defaults are active; otherwise, returns space-separated user input. */
+  async #getParams(config: Configuration, project: Project): Promise<readonly string[]> {
     if (config.get('interpreter.useDefaultArgs')) return project.manifest.run.params;
 
     const text = await vscode.window.showInputBox({ title: 'Enter program arguments', ignoreFocusOut: true });
@@ -416,17 +413,17 @@ export class RuntimeDebugSession extends LoggingDebugSession {
     return text && text.length > 0 ? text.split(' ') : [];
   }
 
-  private report(exit: Exit, config: Configuration): void {
+  #report(exit: Exit, config: Configuration): void {
     if (!(exit instanceof Exit.Crash)) return;
 
-    const stack = exit.stack.map((location) => `  at ${describeLocation(location)}`).join('\n');
+    const stack = exit.stack.map((location) => `  at ${this.#errors.describeLocation(location)}`).join('\n');
 
     this.#connection.page.printError(`Runtime error: ${exit.message}${stack ? `\n${stack}` : ''}`);
     if (config.get('interpreter.silenceErrorPopups')) return;
-    showError(exit.message, exit.stack[0]);
+    this.#errors.show(exit.message, exit.stack[0]);
   }
 
-  private reportLaunchFailure(error: unknown, config: Configuration): void {
+  #reportLaunchFailure(error: unknown, config: Configuration): void {
     const failure = error instanceof ChannelError ? error.failure : undefined;
     let message: string;
     let location: SourceLocation | undefined;
@@ -446,29 +443,39 @@ export class RuntimeDebugSession extends LoggingDebugSession {
 
     this.#connection.page.printError(`Could not start the program: ${message}`);
     if (config.get('interpreter.silenceErrorPopups')) return;
-    showError(message, location);
+    this.#errors.show(message, location);
+  }
+
+  #toSource(uri: string): Source {
+    const location = Uri.parse(uri);
+    const name = location.path.split('/').pop() ?? uri;
+
+    return new Source(name, location.scheme === 'file' ? location.fsPath : location.toString());
+  }
+
+  #getEvaluationMessage(error: unknown): string {
+    const failure = error instanceof ChannelError ? error.failure : undefined;
+
+    if (failure instanceof EvaluationFailure.CodeError) return failure.message;
+    if (failure instanceof EvaluationFailure.ActiveProgram) return 'Pause the program before evaluation.';
+
+    return String(error);
   }
 }
 
 class StopReporter extends EditorRouter {
-  constructor(private readonly session: RuntimeDebugSession) {
+  readonly #session: RuntimeDebugSession;
+
+  constructor(session: RuntimeDebugSession) {
     super();
+    this.#session = session;
   }
 
   override onStopNotice(message: StopNotice): void {
-    this.session.reportStop(message);
+    this.#session.reportStop(message);
   }
 
   override onLogMessage(message: LogMessage): void {
-    this.session.reportLog(message);
+    this.#session.reportLog(message);
   }
-}
-
-function evaluationMessage(error: unknown): string {
-  const failure = error instanceof ChannelError ? error.failure : undefined;
-
-  if (failure instanceof EvaluationFailure.CodeError) return failure.message;
-  if (failure instanceof EvaluationFailure.ActiveProgram) return 'Pause the program before evaluation.';
-
-  return String(error);
 }

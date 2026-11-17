@@ -1,10 +1,10 @@
 import { WorkerHost } from 'duplex-driver-worker';
 import { ClientChannel, LanguageServerConnection } from 'greybel-lsp-web';
 import { workspace, ExtensionContext, Uri } from 'vscode';
-
 import { BaseLanguageClient, LanguageClientOptions, MessageTransports } from 'vscode-languageclient/lib/browser/main';
+
 import { globalFileSystem } from './helper/fs';
-import { startWorker } from './launcher/worker';
+import { WorkerLauncher } from './launcher/worker';
 import { SECTION } from './settings';
 
 class WorkerLanguageClient extends BaseLanguageClient {
@@ -26,61 +26,62 @@ class WorkerLanguageClient extends BaseLanguageClient {
   }
 }
 
-let client: BaseLanguageClient;
+export class LanguageServer {
+  readonly #context: ExtensionContext;
+  #client: BaseLanguageClient | undefined;
 
-function createClient(context: ExtensionContext) {
-  const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ language: 'greyscript' }],
-    synchronize: {
-      configurationSection: SECTION,
-      fileEvents: workspace.createFileSystemWatcher('**/*')
-    },
-    diagnosticCollectionName: 'greyscript',
-    // The server validates all documents in this dialect (greybel-lsp's InitializationOptions).
-    initializationOptions: { dialect: 'greyscript' },
-    middleware: {
-      provideDocumentSemanticTokens: () => {
-        return undefined;
-      },
-      provideFoldingRanges: () => {
-        return undefined;
-      }
-    }
-  };
-  const client = new WorkerLanguageClient(
-    'greyscript-language-server',
-    'GreyScript Language Server',
-    clientOptions,
-    () => startWorker(context, 'lsp-web')
-  );
-
-  client.onRequest('custom/read-file', async ({ uri }: { uri: string }) => {
-    return await globalFileSystem.readText(Uri.parse(uri), true);
-  });
-
-  client.onRequest('custom/find-files', async ({ include, exclude }: { include: string; exclude?: string }) => {
-    const fileUris = await workspace.findFiles(include, exclude);
-
-    return fileUris.map((uri) => uri.toString());
-  });
-
-  return client;
-}
-
-/** Starts the language server and resolves with its client when ready. */
-export async function activate(context: ExtensionContext): Promise<BaseLanguageClient> {
-  client = createClient(context);
-
-  client.registerProposedFeatures();
-  await client.start();
-
-  return client;
-}
-
-export async function deactivate(): Promise<void> {
-  if (!client) {
-    return;
+  /** The client stops when the extension deactivates. */
+  constructor(context: ExtensionContext) {
+    this.#context = context;
+    context.subscriptions.push({ dispose: () => void this.#client?.stop() });
   }
 
-  return await client.stop();
+  /** Starts the language server and resolves with its client when ready. */
+  async start(): Promise<BaseLanguageClient> {
+    this.#client = this.#createClient();
+
+    this.#client.registerProposedFeatures();
+    await this.#client.start();
+
+    return this.#client;
+  }
+
+  #createClient(): BaseLanguageClient {
+    const clientOptions: LanguageClientOptions = {
+      documentSelector: [{ language: 'greyscript' }],
+      synchronize: {
+        configurationSection: SECTION,
+        fileEvents: workspace.createFileSystemWatcher('**/*')
+      },
+      diagnosticCollectionName: 'greyscript',
+      // The server validates all documents in this dialect (greybel-lsp's InitializationOptions).
+      initializationOptions: { dialect: 'greyscript' },
+      middleware: {
+        provideDocumentSemanticTokens: () => {
+          return undefined;
+        },
+        provideFoldingRanges: () => {
+          return undefined;
+        }
+      }
+    };
+    const client = new WorkerLanguageClient(
+      'greyscript-language-server',
+      'GreyScript Language Server',
+      clientOptions,
+      () => new WorkerLauncher(this.#context, 'lsp-web').start()
+    );
+
+    client.onRequest('custom/read-file', async ({ uri }: { uri: string }) => {
+      return await globalFileSystem.readText(Uri.parse(uri), true);
+    });
+
+    client.onRequest('custom/find-files', async ({ include, exclude }: { include: string; exclude?: string }) => {
+      const fileUris = await workspace.findFiles(include, exclude);
+
+      return fileUris.map((uri) => uri.toString());
+    });
+
+    return client;
+  }
 }

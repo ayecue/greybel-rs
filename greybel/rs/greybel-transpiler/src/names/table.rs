@@ -53,7 +53,6 @@ impl NameTable {
         self.get(original)
     }
 
-    /// The length of the name `create` would assign next.
     #[must_use]
     pub fn next_length(&self) -> usize {
         let mut candidates = self.candidates.clone();

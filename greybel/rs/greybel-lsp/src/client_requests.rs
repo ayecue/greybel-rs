@@ -38,6 +38,24 @@ impl Request for FileSearch {
     const METHOD: LspRequestMethod<'static> = LspRequestMethod::new("custom/find-files");
 }
 
+/// Client request for the files a document imports through `#include`, `#include type`, `#import` and `import_code`,
+/// directly or through other imported files, in the order they are imported. The document is not listed; missing
+/// files are skipped.
+pub enum ImportedFiles {}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ImportedFilesRequest {
+    pub uri: String,
+}
+
+impl Request for ImportedFiles {
+    type Params = ImportedFilesRequest;
+    type Result = Vec<String>;
+
+    const MESSAGE_DIRECTION: MessageDirection = MessageDirection::ClientToServer;
+    const METHOD: LspRequestMethod<'static> = LspRequestMethod::new("custom/imported-files");
+}
+
 /// Client request for a document's project. Uses the nearest `greybel.json` at or above the document folder, or
 /// `fallback`, then applies `profile` and loads values from variable files.
 pub enum Project {}

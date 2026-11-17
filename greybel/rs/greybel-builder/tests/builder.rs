@@ -35,6 +35,21 @@ fn should_transform_code_as_a_build_would() {
 }
 
 #[test]
+fn should_transform_code_larger_than_the_default_message_limit() {
+    let mut harness = Harness::new(&[]);
+    let code: String = (0..10_000).map(|index| format!("x{index}=1\n")).collect();
+
+    assert!(code.len() > 64 << 10);
+
+    let transformed = harness.request(&Transform {
+        code: code.as_str().into(),
+        transpile: settings(TranspileMode::Default),
+    });
+
+    assert_eq!(transformed, Ok(code.trim_end().to_owned()));
+}
+
+#[test]
 fn should_build_a_project_with_the_files_it_imports_and_its_installer() {
     let main = "import_code(\"/lib.src\")\nprint(double(4))";
     let library = "double = function(n)\n  return n * 2\nend function";

@@ -7,33 +7,24 @@ use super::Vm;
 use crate::bytecode::Location;
 use crate::value::Value;
 
-/// Debugger state shared with the host for breakpoint, step, and pause stops in debug-compiled programs. The host
-/// can update it during VM execution.
 #[derive(Debug, Default)]
 pub struct DebugControl {
     breakpoints: RefCell<FxHashMap<Rc<str>, FxHashSet<u32>>>,
-    /// Maximum call depth ([`Vm::depth`]) for the next step or pause stop. `None` disables these stops without
-    /// disabling breakpoints.
     stop_depth: Cell<Option<usize>>,
     stop_reason: Cell<StopReason>,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum StopReason {
-    /// A step or pause stop reached its target.
     #[default]
     Step,
-    /// A breakpoint stopped execution. An unfinished step remains active and can stop again until `resume` clears it.
     Breakpoint,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StepMode {
-    /// Stops at the next statement regardless of function.
     Into,
-    /// Stops at the next statement in the current function, or its caller after return.
     Over,
-    /// Stops at the next statement after control returns to the caller.
     Out,
 }
 
@@ -54,12 +45,10 @@ impl DebugControl {
         }
     }
 
-    /// Requests a next-statement stop at any call depth.
     pub fn pause(&self) {
         self.stop_depth.set(Some(usize::MAX));
     }
 
-    /// Computes the next step's stop depth from current `depth` ([`Vm::depth`]) and `mode`.
     pub fn step(&self, mode: StepMode, depth: usize) {
         self.stop_depth.set(Some(match mode {
             StepMode::Into => usize::MAX,
@@ -68,12 +57,10 @@ impl DebugControl {
         }));
     }
 
-    /// Cancels pending step or pause stops and resumes until the next breakpoint.
     pub fn resume(&self) {
         self.stop_depth.set(None);
     }
 
-    /// Returns the latest debugger stop reason.
     #[must_use]
     pub fn stop_reason(&self) -> StopReason {
         self.stop_reason.get()
@@ -109,9 +96,7 @@ impl DebugControl {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FrameView {
-    /// Statement at which the frame stopped, or the call it awaits.
     pub location: Option<Location>,
-    /// Location of the frame's function definition or file entry point.
     pub start: Option<Location>,
 }
 
@@ -142,8 +127,6 @@ impl Vm {
             .collect()
     }
 
-    /// Returns frame locals in assignment order, placing `self` and `super` first when present. `index` uses
-    /// [`Vm::frames`] ordering.
     #[must_use]
     pub fn frame_locals(&self, index: usize) -> Vec<(Value, Value)> {
         let Some((frame, calls)) = self.all_frames().nth(index) else {

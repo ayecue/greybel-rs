@@ -20,7 +20,7 @@ impl Analyzer<'_> {
 
         file.parse(db)
             .ast()
-            .map(|ast| DocumentSymbol::outline_with_types(ast, file.comments(db)))
+            .map(|ast| DocumentSymbol::from_ast_with_types(ast, file.comments(db)))
             .unwrap_or_default()
     }
 
@@ -37,7 +37,7 @@ impl Analyzer<'_> {
 
             WorkspaceSymbol::collect(
                 file.uri(db),
-                DocumentSymbol::outline_with_types(ast, file.comments(db)),
+                DocumentSymbol::from_ast_with_types(ast, file.comments(db)),
                 None,
                 &query,
                 &mut symbols,

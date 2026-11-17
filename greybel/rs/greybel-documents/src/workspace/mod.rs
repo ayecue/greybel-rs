@@ -43,10 +43,6 @@ impl<DB: Db> Workspace<DB> {
         &self.db
     }
 
-    pub fn db_mut(&mut self) -> &mut DB {
-        &mut self.db
-    }
-
     #[must_use]
     pub fn project(&self) -> Project {
         self.project

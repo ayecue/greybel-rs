@@ -3,15 +3,23 @@ import { BinaryReader, BinaryWriter, type Tag, BODY, type FieldTagContainer, Mes
 /** Rich text wrapped to `columns` game-font cells; `columns` 0 disables wrapping. */
 export class RichText {
   static readonly tags: ReadonlyArray<Tag> = [];
-  static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-    name: "text",
-    property: "text",
-    tags: []
-  }, {
-    name: "columns",
-    property: "columns",
-    tags: []
-  }];
+  static readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "text",
+      property: "text",
+      tags: []
+    },
+    {
+      name: "columns",
+      property: "columns",
+      tags: []
+    },
+    {
+      name: "line_limits",
+      property: "lineLimits",
+      tags: []
+    }
+  ];
   protected readonly [BODY]: RichText.Fields;
   constructor(body: RichText.Fields) {
     this[BODY] = body;
@@ -22,17 +30,28 @@ export class RichText {
   get columns(): number {
     return this[BODY].columns;
   }
+  /** Absent splits long lines as the game does. */
+  get lineLimits(): LineLimits | undefined {
+    return this[BODY].lineLimits;
+  }
   write(writer: BinaryWriter): void {
     const body = this[BODY];
+    writer.byte(body.lineLimits !== undefined ? 1 : 0);
     writer.string(body.text);
     writer.u16(body.columns);
+    if (body.lineLimits !== undefined) {
+      body.lineLimits.write(writer);
+    }
   }
   static read(reader: BinaryReader): RichText {
+    const flags0 = reader.flags(1);
     const fieldText = reader.string();
     const fieldColumns = reader.u16();
+    const fieldLineLimits = (flags0 & 1) !== 0 ? LineLimits.read(reader) : undefined;
     return new RichText({
       text: fieldText,
-      columns: fieldColumns
+      columns: fieldColumns,
+      lineLimits: fieldLineLimits
     });
   }
 }
@@ -40,6 +59,7 @@ export namespace RichText {
   export interface Fields {
     text: string;
     columns: number;
+    lineLimits?: LineLimits;
   }
 }
 /** ANSI strings ordered as in `Render`, with `\n` between lines. */
@@ -76,6 +96,57 @@ export class AnsiOutput {
 export namespace AnsiOutput {
   export interface Fields {
     texts: string[];
+  }
+}
+/**
+* Line limits as greyhack-customizable-output sets them: a line whose visible text is longer than `text_per_line`
+* UTF-16 units, or whose tags take more than `tags_per_line` units, is cut into pieces of `text_per_line` units.
+*/
+export class LineLimits {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "text_per_line",
+    property: "textPerLine",
+    tags: []
+  }, {
+    name: "tags_per_line",
+    property: "tagsPerLine",
+    tags: []
+  }];
+  protected readonly [BODY]: LineLimits.Fields;
+  constructor(body: LineLimits.Fields) {
+    this[BODY] = body;
+  }
+  /** At least 1. */
+  get textPerLine(): number {
+    return this[BODY].textPerLine;
+  }
+  /** Absent for no limit. */
+  get tagsPerLine(): number | undefined {
+    return this[BODY].tagsPerLine;
+  }
+  write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    writer.byte(body.tagsPerLine !== undefined ? 1 : 0);
+    writer.u32(body.textPerLine);
+    if (body.tagsPerLine !== undefined) {
+      writer.u32(body.tagsPerLine);
+    }
+  }
+  static read(reader: BinaryReader): LineLimits {
+    const flags0 = reader.flags(1);
+    const fieldTextPerLine = reader.u32();
+    const fieldTagsPerLine = (flags0 & 1) !== 0 ? reader.u32() : undefined;
+    return new LineLimits({
+      textPerLine: fieldTextPerLine,
+      tagsPerLine: fieldTagsPerLine
+    });
+  }
+}
+export namespace LineLimits {
+  export interface Fields {
+    textPerLine: number;
+    tagsPerLine?: number;
   }
 }
 /** Peer role IDs for `TerminalText`. */
@@ -145,7 +216,7 @@ export const TerminalText = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 2962310996 }],
+  versions: [{ fingerprint: 1665456945 }],
   peers: [TerminalTextPeer.Terminal, TerminalTextPeer.Renderer],
   messages: [[], [Render]],
   tags: []

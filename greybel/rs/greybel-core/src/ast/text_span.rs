@@ -33,11 +33,6 @@ impl TextSpan {
     }
 
     #[must_use]
-    pub const fn is_escaped(&self) -> bool {
-        self.escaped
-    }
-
-    #[must_use]
     pub fn read<'s>(&self, source: &'s str) -> Cow<'s, str> {
         let text = self.span.bytes().map_or("", |bytes| &source[bytes]);
 

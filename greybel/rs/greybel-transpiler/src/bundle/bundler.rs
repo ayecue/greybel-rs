@@ -2,11 +2,11 @@ use rustc_hash::FxHashSet;
 
 use super::output::{Output, Part, PendingOutput};
 use super::template::{HEADER, MODULE, Template, emit_boilerplate, emit_multiline_string_function};
-use crate::documents::{ImportKind, ModuleGraph, ModuleId};
 use crate::emit::{ConstantTable, EmitFlags, EmitState, Emitter};
 use crate::error::Result;
 use crate::names::{Charset, NameTable};
 use crate::options::TranspileOptions;
+use greybel_documents::{ImportKind, ModuleGraph, ModuleId};
 
 pub(super) struct Bundler<'a, E> {
     emitter: E,
@@ -14,7 +14,6 @@ pub(super) struct Bundler<'a, E> {
     options: &'a TranspileOptions,
     template: Template,
     namespaces: Vec<String>,
-    /// The `const enum` entries of every module.
     constants: ConstantTable,
     emitted_native_imports: FxHashSet<ModuleId>,
     wrapper_modules: FxHashSet<ModuleId>,

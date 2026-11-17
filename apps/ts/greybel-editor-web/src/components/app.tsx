@@ -17,6 +17,8 @@ import { TransformPanel } from './transform-panel.js';
 
 const NOTICE_TIME = 10_000;
 
+const REPOSITORY_URL = 'https://github.com/ayecue/greybel-rs';
+
 const HINT =
   'This environment is a simulation and may not fully replicate every detail of the real in-game environment. ' +
   'To access the root account, use the username root with the password test.';
@@ -119,6 +121,15 @@ export function App({ content }: AppConfiguration) {
         </button>
         <WasmStatus />
         <span class="hint">{HINT}</span>
+        <a
+          class="star-link"
+          href={REPOSITORY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Star greybel-rs on GitHub"
+        >
+          <span aria-hidden="true">★</span> Star on GitHub
+        </a>
       </header>
       {link !== undefined && (
         <div class="link-popup" role="dialog">

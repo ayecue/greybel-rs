@@ -2,7 +2,7 @@ import { WorkerHost } from 'duplex-driver-worker';
 import type { ExtensionContext } from 'vscode';
 
 import type { WorldHost } from '../launcher';
-import { startWorker } from './worker';
+import { WorkerLauncher } from './worker';
 
 /**
  * Window greyhack-world-operations-web worker started on demand. Debug-session runtime workers connect world
@@ -20,7 +20,10 @@ export class WorldWorker implements WorldHost<MessagePort> {
   connect(seed: string): Promise<MessagePort> {
     if (this.#current?.seed !== seed) {
       this.reset();
-      this.#current = { host: new WorkerHost(startWorker(this.#context, 'world-web', { seed }), {}), seed };
+
+      const launcher = new WorkerLauncher(this.#context, 'world-web');
+
+      this.#current = { host: new WorkerHost(launcher.start({ seed }), {}), seed };
     }
 
     return Promise.resolve(this.#current.host.open());

@@ -1,4 +1,6 @@
-use text_mesh_core::{LayoutChange, Length, Run, TerminalOutput, Text, TextComponent};
+use text_mesh_core::{
+    LayoutChange, Length, LineSplitRule, Run, TerminalOutput, Text, TextComponent,
+};
 
 use crate::css::Declarations;
 use crate::escape::HtmlEscape;
@@ -7,12 +9,21 @@ use crate::line::LineState;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HtmlRenderer<'a> {
     component: TextComponent<'a>,
+    split_rule: LineSplitRule,
 }
 
 impl<'a> HtmlRenderer<'a> {
     #[must_use]
     pub const fn new(component: TextComponent<'a>) -> Self {
-        Self { component }
+        Self {
+            component,
+            split_rule: LineSplitRule::Game,
+        }
+    }
+
+    #[must_use]
+    pub const fn with_split_rule(self, split_rule: LineSplitRule) -> Self {
+        Self { split_rule, ..self }
     }
 
     #[must_use]
@@ -196,6 +207,7 @@ impl<'a> HtmlRenderer<'a> {
     #[must_use]
     pub fn render_terminal(&self, output: &str) -> String {
         TerminalOutput::new(output)
+            .with_split_rule(self.split_rule)
             .lines()
             .iter()
             .map(|line| {

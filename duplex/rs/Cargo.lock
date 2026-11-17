@@ -429,7 +429,6 @@ dependencies = [
  "serde_json",
  "sha2",
  "slotmap",
- "smallvec",
  "snow",
  "thiserror",
  "x25519-dalek",
@@ -496,7 +495,6 @@ dependencies = [
  "js-sys",
  "scheduler",
  "wasm-bindgen",
- "wasm-bindgen-futures",
  "web-sys",
 ]
 

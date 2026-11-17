@@ -18,10 +18,7 @@ text-mesh-layout.workspace = true
 unicode-general-category.workspace = true
 
 [dev-dependencies]
-serde.workspace = true
-serde_json.workspace = true
 text-mesh-test-support = { workspace = true, features = ["meshes"] }
-text-mesh-unity.workspace = true
 
 [lints]
 workspace = true

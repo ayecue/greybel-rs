@@ -64,11 +64,8 @@ pub(crate) struct Inference<'a> {
     current_scope: ScopeId,
     type_parameters_in_scope: Vec<(String, TypeId)>,
     type_aliases: FxHashMap<String, type_statement::TypeAlias>,
-    /// The aliases being resolved, to stop at a cyclic alias.
     resolving_aliases: Vec<String>,
-    /// The `readonly` members of custom types: the type's map and the member name.
     readonly_members: FxHashSet<(MapId, Box<str>)>,
-    /// The optional members of custom types (`name?: T`, `@property {T} [name]`).
     optional_members: FxHashSet<(MapId, Box<str>)>,
     implicit_generics: bool,
     custom_map: Option<(Site, MapId)>,
@@ -84,18 +81,12 @@ pub(crate) struct Inference<'a> {
     binding_use: FxHashMap<Site, BindingUse>,
     binding_changes: FxHashMap<FunctionId, Vec<(Binding, SlotId)>>,
     own_slots: FxHashMap<FunctionId, Vec<SlotId>>,
-    /// Each type has one id, so a type restricted to some kinds is the same in every pass.
     restricted_types: FxHashMap<(TypeId, KindSet), TypeId>,
-    /// The calls of type guards (`value is Dog` return types): the argument index and the type it is tested for.
     guard_calls: FxHashMap<(DocumentIndex, NodeId), (usize, TypeId)>,
-    /// The literal type of each string and number literal node read by `literal_type_of`.
     literal_types: FxHashMap<(DocumentIndex, NodeId), Option<TypeId>>,
-    /// The types of `enum` names in annotations: the union of their values' literal types.
     enum_types: FxHashMap<String, TypeId>,
-    /// The names of `const enum`s, whose entries builds write as values.
     constant_enums: FxHashSet<String>,
     opaque_call_maps: FxHashSet<MapId>,
-    /// The classes of `class` statements: their names, private members and methods.
     class_statements: ClassTable,
     classes: FxHashSet<MapId>,
     indirect_additions: FxHashMap<Site, BindingSet>,

@@ -13,7 +13,6 @@ doctest = false
 
 [dependencies]
 greybel-core.workspace = true
-greybel-symbols.workspace = true
 greybel-documents.workspace = true
 greybel-project.workspace = true
 greybel-type-analyzer.workspace = true

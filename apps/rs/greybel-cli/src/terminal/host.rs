@@ -13,6 +13,8 @@ use greyscript_intrinsics::ServerConnection;
 use scheduler::{Clock, TokioScheduler};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
+use greyhack_terminal_text::LineSplitRule;
+
 use super::screen::RichTextScreen;
 use crate::report;
 
@@ -24,14 +26,17 @@ pub struct TerminalHost {
     scheduler: TokioScheduler,
     /// Shared game-server world; programs use individual generated worlds when absent.
     world: Option<ServerConnection>,
+    split_rule: LineSplitRule,
 }
 
 impl TerminalHost {
     /// Starts a terminal runtime on the current `LocalSet`. Programs read `memory` before the filesystem
-    /// and use `world` when provided. Returns the runtime controller and debugger stop receiver.
+    /// and use `world` when provided; their output splits long lines by `split_rule`. Returns the runtime controller
+    /// and debugger stop receiver.
     pub fn start(
         memory: Arc<BTreeMap<Uri, String>>,
         world: Option<ServerConnection>,
+        split_rule: LineSplitRule,
     ) -> (Controller<Self>, UnboundedReceiver<StopNotice>) {
         let (stops, receiver) = mpsc::unbounded_channel();
         let (runtime, controller) = Runtime::with_host(Self {
@@ -39,6 +44,7 @@ impl TerminalHost {
             stops,
             scheduler: TokioScheduler::new(),
             world,
+            split_rule,
         });
 
         tokio::task::spawn_local(runtime.serve());
@@ -55,8 +61,10 @@ impl Host for TerminalHost {
     }
 
     fn io(&self) -> Io {
-        let stdout: Rc<dyn Stdout> =
-            Rc::new(BufferedStdout::new(RichTextScreen::default(), self.clock()));
+        let stdout: Rc<dyn Stdout> = Rc::new(BufferedStdout::new(
+            RichTextScreen::new(self.split_rule),
+            self.clock(),
+        ));
         let stdin = Rc::new(TerminalStdin::new(Rc::clone(&stdout)));
 
         Io { stdout, stdin }

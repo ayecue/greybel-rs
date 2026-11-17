@@ -39,18 +39,6 @@ impl BinaryOp {
         }
     }
 
-    #[must_use]
-    pub fn is_comparison(self) -> bool {
-        matches!(
-            self,
-            BinaryOp::Equal
-                | BinaryOp::NotEqual
-                | BinaryOp::Less
-                | BinaryOp::Greater
-                | BinaryOp::LessEqual
-                | BinaryOp::GreaterEqual
-        )
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]

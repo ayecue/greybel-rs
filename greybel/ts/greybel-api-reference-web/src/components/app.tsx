@@ -6,13 +6,13 @@ import { useGuide } from '../state/use-guide.js';
 import { useReference, type ReferenceProgress } from '../state/use-reference.js';
 import { useSearch } from '../state/use-search.js';
 import { useFitToView, useViewHeight } from '../state/use-view-height.js';
-import { guideVisibilityOf } from '../state/guide-visibility.js';
-import { ALL_VISIBLE, visibilityOf } from '../state/visibility.js';
-import { ChapterView, outlineOf } from './chapter.js';
+import { GuideSearch } from '../state/guide-search.js';
+import { ALL_VISIBLE, ApiSearch } from '../state/api-search.js';
+import { ChapterStructure, ChapterView } from './chapter.js';
 import { ApiContents, GuideContents } from './contents.js';
 import { Description } from './description.js';
 import { Filter } from './filter.js';
-import { ReferenceContext, linkedId, type ReferenceContextValue } from './reference-context.js';
+import { ReferenceContext, getLinkedId, type ReferenceContextValue } from './reference-context.js';
 import { SearchBox } from './search-box.js';
 import { SectionView } from './section.js';
 import { ReferenceTab, TabChoices, Tabs } from './tabs.js';
@@ -34,13 +34,18 @@ export interface AppConfiguration extends Pick<ReferenceContextValue, 'copyLink'
   readonly onExcludedTagsChange?: (tags: readonly string[]) => void;
 
   readonly onTabChange?: (tab: ReferenceTab) => void;
+
+  readonly repositoryUrl?: string;
 }
 
 export function App(props: AppConfiguration) {
   const { reader, copyLink, openExample, onExcludedTagsChange, onTabChange } = props;
   const { overview, sections } = useReference(reader, props);
-  const guideBlocks = useGuide(reader, GUIDE, props.onFailure);
-  const outlines = useMemo(() => guideBlocks.chapters.map(outlineOf), [guideBlocks]);
+  const guideContent = useGuide(reader, GUIDE, props.onFailure);
+  const structures = useMemo(
+    () => guideContent.chapters.map((chapter) => new ChapterStructure(chapter)),
+    [guideContent]
+  );
   const [tab, setTab] = useState(props.tab);
   const [query, setQuery] = useState(props.query);
   const [guideQuery, setGuideQuery] = useState('');
@@ -57,14 +62,16 @@ export function App(props: AppConfiguration) {
   /** Where the page was scrolled to in each tab, restored when the tab is selected again. */
   const scrollPositions = useRef(new Map<ReferenceTab, number>());
   const sectionNames = useMemo(() => new Set(overview?.contents.map((entry) => entry.name)), [overview]);
+  const apiSearch = useMemo(() => (overview === undefined ? undefined : new ApiSearch(overview)), [overview]);
   const visibility = useMemo(
-    () => (overview === undefined || result === undefined ? ALL_VISIBLE : visibilityOf(overview, result)),
-    [overview, result]
+    () => (apiSearch === undefined || result === undefined ? ALL_VISIBLE : apiSearch.getVisibility(result)),
+    [apiSearch, result]
   );
 
-  const guideVisibility = useMemo(() => guideVisibilityOf(outlines, guideQuery), [outlines, guideQuery]);
+  const guideSearch = useMemo(() => new GuideSearch(structures), [structures]);
+  const guideVisibility = useMemo(() => guideSearch.getVisibility(guideQuery), [guideSearch, guideQuery]);
   const isApiEmpty = overview !== undefined && visibility.hiddenTypes.size === overview.contents.length;
-  const isGuideEmpty = outlines.length > 0 && guideVisibility.hiddenChapters.size === outlines.length;
+  const isGuideEmpty = structures.length > 0 && guideVisibility.hiddenChapters.size === structures.length;
 
   currentTab.current = tab;
 
@@ -90,7 +97,7 @@ export function App(props: AppConfiguration) {
       openExample,
       hasSection: (name) => sectionNames.has(name),
       reveal: (link) => {
-        const id = linkedId(link);
+        const id = getLinkedId(link);
 
         if (id === undefined) return;
         revealId(id);
@@ -105,7 +112,7 @@ export function App(props: AppConfiguration) {
 
     if (element === null || element === undefined) return;
 
-    const elementTab = tabOf(element);
+    const elementTab = getTab(element);
     const isFiltered = isFilteredOut(element);
 
     if (elementTab === currentTab.current && !isFiltered) {
@@ -145,7 +152,7 @@ export function App(props: AppConfiguration) {
     const element = root.current?.ownerDocument.getElementById(pendingId);
 
     if (element === null || element === undefined) return;
-    if (tabOf(element) !== currentTab.current || isFilteredOut(element)) {
+    if (getTab(element) !== currentTab.current || isFilteredOut(element)) {
       revealId(pendingId);
 
       return;
@@ -153,7 +160,7 @@ export function App(props: AppConfiguration) {
 
     setPendingId(undefined);
     element.scrollIntoView({ block: 'start' });
-  }, [pendingId, visibility, guideVisibility, tab, outlines, sections]);
+  }, [pendingId, visibility, guideVisibility, tab, structures, sections]);
 
   useLayoutEffect(() => {
     const bar = toolbar.current;
@@ -205,6 +212,17 @@ export function App(props: AppConfiguration) {
       <div class="reference" ref={root}>
         <header class="overview">
           <h1>{GUIDE.title}</h1>
+          {props.repositoryUrl !== undefined && (
+            <a
+              class="star-link"
+              href={props.repositoryUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Star greybel-rs on GitHub"
+            >
+              <span aria-hidden="true">★</span> Star on GitHub
+            </a>
+          )}
         </header>
         <div class="toolbar" ref={toolbar}>
           <button
@@ -251,7 +269,7 @@ export function App(props: AppConfiguration) {
               {tab === ReferenceTab.Api ? (
                 <ApiContents entries={overview.contents} visibility={visibility} />
               ) : (
-                <GuideContents outlines={outlines} visibility={guideVisibility} />
+                <GuideContents structures={structures} visibility={guideVisibility} />
               )}
             </div>
           )}
@@ -283,19 +301,19 @@ export function App(props: AppConfiguration) {
           aria-labelledby={`tab-${ReferenceTab.Guide}`}
           hidden={tab !== ReferenceTab.Guide}
         >
-          <GuideContents outlines={outlines} visibility={guideVisibility} />
+          <GuideContents structures={structures} visibility={guideVisibility} />
           <div class="sections guide">
             {isGuideEmpty && <p class="no-results">Nothing in the guide matches the search.</p>}
-            {guideBlocks.introduction.length > 0 && (
+            {guideContent.introduction.length > 0 && (
               <section class="introduction" hidden={guideQuery.trim() !== ''}>
-                <Description blocks={guideBlocks.introduction} />
+                <Description blocks={guideContent.introduction} />
               </section>
             )}
-            {outlines.map((outline) => (
+            {structures.map((structure) => (
               <ChapterView
-                key={outline.anchor}
-                outline={outline}
-                isHidden={guideVisibility.hiddenChapters.has(outline.anchor)}
+                key={structure.anchor}
+                structure={structure}
+                isHidden={guideVisibility.hiddenChapters.has(structure.anchor)}
                 hiddenParts={guideVisibility.hiddenParts}
               />
             ))}
@@ -307,7 +325,7 @@ export function App(props: AppConfiguration) {
 }
 
 /** The tab `element` is in. */
-function tabOf(element: HTMLElement): ReferenceTab {
+function getTab(element: HTMLElement): ReferenceTab {
   return element.closest(`#panel-${ReferenceTab.Guide}`) === null ? ReferenceTab.Api : ReferenceTab.Guide;
 }
 

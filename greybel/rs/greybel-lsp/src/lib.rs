@@ -9,7 +9,8 @@ mod settings;
 mod to_lsp;
 
 pub use client_requests::{
-    FileSearch, FindFilesRequest, Project, ProjectRequest, ProjectResult, ReadFile, ReadFileRequest,
+    FileSearch, FindFilesRequest, ImportedFiles, ImportedFilesRequest, Project, ProjectRequest,
+    ProjectResult, ReadFile, ReadFileRequest,
 };
 pub use error::{ResponseError, Result};
 pub use gen_lsp_types as types;

@@ -98,8 +98,6 @@ impl Map {
         heap.maps.is_sealed(self.0)
     }
 
-    /// Checks whether this map is a host object ([`Heap::add_host_object`]). Like Grey Hack game objects
-    /// (`GreyObject`), host objects hash and compare by identity, so only the same object compares equal.
     #[must_use]
     pub fn is_host_object(self, heap: &Heap) -> bool {
         heap.hosts
@@ -107,13 +105,11 @@ impl Map {
             .is_some_and(|hosts| hosts.contains_key(&self.0))
     }
 
-    /// Checks whether the map remains on the heap; a freed map's index may belong to a new map.
     #[must_use]
     pub fn is_live(self, heap: &Heap) -> bool {
         heap.maps.contains(self.0)
     }
 
-    /// Heap index identifying this map for its lifetime.
     #[must_use]
     pub(crate) fn identity(self) -> u32 {
         self.0

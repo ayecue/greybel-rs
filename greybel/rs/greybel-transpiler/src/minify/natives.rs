@@ -9,16 +9,10 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::names::NameTable;
 
-/// Type maps, which are values, not functions; `import_code` is skipped as well, since the build resolves it.
 const SKIPPED_NAMES: &[&str] = &[LIST, MAP, STRING, NUMBER, FUNC_REF];
 const ADDRESS_OF: &str = "=@";
 const NEW_LINE: usize = 1;
 
-/// General API functions that uglify calls through short global aliases, assigned in the header as
-/// `globals.<alias>=@<name>`. A name gets an alias when the characters its uses save exceed the length of that line.
-/// A name the build assigns (sugar such as classes and destructuring lowers to assignments), binds with `#import`,
-/// takes as a parameter or loop variable, or writes through `globals`, `locals` or `outer` gets none; a write through
-/// those with a computed key turns off every alias.
 #[derive(Debug, Clone, Default)]
 pub(super) struct NativeAliasTable {
     aliases: FxHashMap<Box<str>, Box<str>>,
@@ -99,7 +93,6 @@ impl NativeAliasTable {
         self.aliases.get(name).map(AsRef::as_ref)
     }
 
-    /// `(name, alias)` in the order the aliases were assigned.
     pub(super) fn entries(&self) -> impl Iterator<Item = (&str, &str)> {
         self.order
             .iter()
@@ -134,8 +127,6 @@ impl<'a> NativeUsage<'a> {
         }
     }
 
-    /// Blocks `name` in `name = ...`, `globals.name = ...` and `globals["name"] = ...`; a computed key in a write
-    /// through `globals`, `locals` or `outer` turns off every alias.
     fn add_write(&mut self, ast: &Ast, target: NodeId) {
         let (base, key) = match ast.kind(target) {
             NodeKind::Identifier(identifier) => {

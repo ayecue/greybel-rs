@@ -248,6 +248,29 @@
       },
       "type": "object"
     },
+    "LineLimits": {
+      "additionalProperties": false,
+      "description": "A line whose visible text is longer than `textPerLine` characters, or whose tags take more than `tagsPerLine`\ncharacters, is cut into pieces of `textPerLine` characters. Characters count as UTF-16 code units.",
+      "properties": {
+        "tagsPerLine": {
+          "default": null,
+          "description": "Absent or `null` for no limit.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "textPerLine": {
+          "default": 256,
+          "format": "uint32",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
     "MultilineStringStyle": {
       "description": "How builds write a string with line breaks.",
       "oneOf": [
@@ -288,6 +311,22 @@
     "RunSettings": {
       "additionalProperties": false,
       "properties": {
+        "lineLimits": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LineLimits"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Splits long terminal lines as the greyhack-customizable-output mod does, the way the game did before\n0.9.5683; absent splits them as the game does now.",
+          "x-vscode-setting": {
+            "tagsPerLine": "greybel.interpreter.lineLimits.tagsPerLine",
+            "textPerLine": "greybel.interpreter.lineLimits.textPerLine"
+          }
+        },
         "memoryLimit": {
           "default": 1024,
           "description": "Simulated-program memory limit in MiB before interruption, matching Grey Hack's out-of-memory behavior.\nCall nesting is unlimited.",
@@ -483,6 +522,7 @@
     "run": {
       "$ref": "#/$defs/RunSettings",
       "default": {
+        "lineLimits": null,
         "memoryLimit": 1024,
         "params": [],
         "programName": "myprogram",

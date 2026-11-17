@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { EditorChannel } from 'greybel-api-reference-web/editor';
 
-import { apiReferencePage } from '../../../src/api-reference/page';
+import { createApiReferencePage } from '../../../src/api-reference/page';
 import { PageConnection } from '../../../src/webview/page-connection';
 import { extensionUnderTest } from './webview';
 
@@ -27,7 +27,7 @@ export class ApiReferencePage {
 
       return channel;
     });
-    this.panel.webview.html = apiReferencePage(this.panel.webview, extension.extensionUri);
+    this.panel.webview.html = createApiReferencePage(this.panel.webview, extension.extensionUri);
   }
 
   static async open(): Promise<ApiReferencePage> {

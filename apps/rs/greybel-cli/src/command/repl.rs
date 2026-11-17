@@ -13,7 +13,7 @@ use greybel_runtime::protocol::Exit;
 use super::block_on;
 use super::options::{ProjectOptions, Simulation, SourceOptions, current_folder};
 use crate::report::{self, Failure};
-use crate::terminal::TerminalHost;
+use crate::terminal::{RichTextScreen, TerminalHost};
 
 /// Virtual REPL filename; relative imports use the current directory.
 const REPL_FILE: &str = "repl.src";
@@ -50,6 +50,7 @@ impl ReplCommand {
             FsProvider::text,
         );
         let launch = project.launch(&entry, Place::Simulation, variables, true);
+        let split_rule = RichTextScreen::split_rule_of(project.manifest.run.line_limits.as_ref());
         let parser = ParserOptions {
             strict_mode: project.manifest.strict_mode,
             syntax_features: project.manifest.syntax.features(),
@@ -57,7 +58,7 @@ impl ReplCommand {
         };
 
         report::exit(block_on(async move {
-            let (controller, mut stops) = TerminalHost::start(memory, None);
+            let (controller, mut stops) = TerminalHost::start(memory, None, split_rule);
             let mut exit = pin!(controller.launch(launch));
 
             tokio::select! {

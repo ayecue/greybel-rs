@@ -39,11 +39,6 @@ impl Dialect {
         }
     }
 
-    #[must_use]
-    pub const fn has_directives(self) -> bool {
-        !matches!(self, Self::MiniScript)
-    }
-
     pub(crate) const fn rules(self, strict: bool) -> &'static RuleTable {
         match (self, strict) {
             (Self::MiniScript, false) => &miniscript::RULES,

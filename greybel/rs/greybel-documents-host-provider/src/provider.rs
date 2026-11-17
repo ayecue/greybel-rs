@@ -62,15 +62,6 @@ impl<D: Driver> HostProvider<D> {
         Ok(count)
     }
 
-    pub fn record_creation(&self, uri: &Uri) {
-        self.client_uris.borrow_mut().insert(uri.clone());
-        self.prefetch_cache.borrow_mut().remove(uri);
-    }
-
-    pub fn invalidate_content(&self, uri: &Uri) {
-        self.prefetch_cache.borrow_mut().remove(uri);
-    }
-
     pub fn record_deletion(&self, uri: &Uri) {
         self.client_uris.borrow_mut().remove(uri);
         self.prefetch_cache.borrow_mut().remove(uri);

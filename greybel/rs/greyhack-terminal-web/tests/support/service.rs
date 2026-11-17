@@ -11,7 +11,7 @@ use greybel_io::{Output, PrintOptions};
 use greybel_io_web::protocol::{OutputBatch, Program};
 use greyhack_terminal_web::TerminalService;
 use greyhack_terminal_web::protocol::{io, terminal};
-use page::{Draw, Page, PageRouter, Redraw, Scene, Viewport};
+use page::{Draw, LineLimits, Page, PageRouter, Redraw, Scene, SetLineLimits, Viewport};
 
 /// Client-side terminal protocol bindings used by tests acting as the page.
 pub mod page {
@@ -74,6 +74,11 @@ impl TerminalHarness {
                 entries: Cow::Borrowed(&entries),
             })
             .expect("sent");
+        self.queue.deliver();
+    }
+
+    pub fn set_line_limits(&self, limits: Option<LineLimits>) {
+        self.page.send(&SetLineLimits { limits }).expect("sent");
         self.queue.deliver();
     }
 

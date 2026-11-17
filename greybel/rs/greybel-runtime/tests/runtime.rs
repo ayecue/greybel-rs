@@ -1,6 +1,7 @@
 //! Tests running and debugging through the editor-facing runtime protocol.
 
 use std::cell::Cell;
+use std::fmt::Write;
 use std::rc::Rc;
 use std::task::Poll;
 
@@ -28,6 +29,26 @@ fn should_run_a_program_to_its_end() {
     assert_eq!(exit, Ok(Exit::Completion));
     // The program's prints reach the terminal in one batch, as the game sends them.
     assert_eq!(*harness.terminal.print_log.borrow(), ["2\n3"]);
+}
+
+#[test]
+fn should_run_a_program_larger_than_the_default_message_limit() {
+    let filler = (0..8_000).fold(String::new(), |mut filler, index| {
+        let _ = writeln!(filler, "x{index} = {index}");
+
+        filler
+    });
+    let program = format!("{filler}print \"done\"");
+
+    assert!(program.len() > 64 << 10);
+
+    let mut harness = Harness::new(&[(MAIN, program.as_str())]);
+
+    let launch = harness.launch(false, false);
+    let exit = harness.wait(launch);
+
+    assert_eq!(exit, Ok(Exit::Completion));
+    assert_eq!(*harness.terminal.print_log.borrow(), ["done"]);
 }
 
 #[test]

@@ -31,7 +31,6 @@ impl ToLsp for FoldKind {
     }
 }
 
-/// Nested selection ranges from innermost to outermost, or an empty range at `fallback`.
 pub(crate) struct SelectionRange<'a> {
     pub ranges: &'a [Range],
     pub fallback: lsp::Position,

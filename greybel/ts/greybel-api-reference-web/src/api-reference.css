@@ -71,7 +71,30 @@
 /* The title, the tabs and the API's filter. */
 
 .api-reference .overview {
+  display: flex;
+  gap: 1em;
+  align-items: center;
   padding: 0.75em 1.25em 0;
+}
+
+.api-reference .star-link {
+  margin-left: auto;
+  padding: 0.15em 0.7em;
+  border: 1px solid var(--reference-border);
+  border-radius: 1em;
+  color: var(--reference-muted);
+  font-size: 0.85em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.api-reference .star-link:hover {
+  border-color: var(--reference-accent);
+  color: var(--reference-foreground);
+}
+
+.api-reference .star-link span {
+  color: #e3b341;
 }
 
 .api-reference .overview h1 {

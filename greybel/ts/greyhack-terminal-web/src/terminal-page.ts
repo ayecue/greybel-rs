@@ -2,7 +2,17 @@ import { WorkerHost, type WorkerLike } from 'duplex-driver-worker';
 import type { Transport } from 'duplex-core';
 import { Io, IoPeer } from 'greybel-io-web';
 
-import { Draw, PageChannel, PageRouter, Scroll, Textures, type Redraw, type Scene } from './page.generated.js';
+import {
+  Draw,
+  LineLimits,
+  PageChannel,
+  PageRouter,
+  Scroll,
+  SetLineLimits,
+  Textures,
+  type Redraw,
+  type Scene
+} from './page.generated.js';
 import { RenderError } from './webgl/render-error.js';
 import { WebGlRenderer } from './webgl/renderer.js';
 
@@ -43,6 +53,13 @@ export class TerminalPage {
     this.#resizeObserver.observe(canvas);
     canvas.addEventListener('wheel', this.#onWheel, { passive: false });
     this.#requestDraw();
+  }
+
+  /** Splits long output lines by `limits`, as greyhack-customizable-output does; `undefined` splits them as the game does. */
+  setLineLimits(limits: LineLimits.Fields | undefined): void {
+    void this.#host.channels.view.send(
+      new SetLineLimits({ limits: limits === undefined ? undefined : new LineLimits(limits) })
+    );
   }
 
   nextDraw(): Promise<Scene> {

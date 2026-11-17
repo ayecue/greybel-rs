@@ -1,45 +1,46 @@
 import { ExtensionContext } from 'vscode';
 
-import { activate as activateApiReference } from './api-reference';
-import { activate as activateBuild } from './build';
-import { activate as activateDebug } from './debug';
-import { activate as activateNextError } from './next-error';
-import { activate as activateShare } from './share';
-import { activate as activateSnippets } from './snippets';
-import { activate as activateTransform } from './transform';
-import { activate as activateImport } from './import';
-import { activate as activatePreview } from './preview';
-import { activate as activateLanguageClient } from './language-client';
-import { binaryPath, createProcessLauncher } from './launcher/process';
-import { createRuntimeLauncher } from './launcher/runtime';
+import { ApiReference } from './api-reference';
+import { BuildCommand } from './build';
+import { DebugController } from './debug';
+import { ImportCommand } from './import';
+import { LanguageServer } from './language-client';
+import { ProcessLauncher } from './launcher/process';
+import { RuntimePeerLauncher } from './launcher/runtime';
 import { WorldProcess } from './launcher/world-process';
+import { NextErrorCommand } from './next-error';
+import { Preview } from './preview';
 import { ProjectReader } from './project';
-import { activate as activateProfilePicker } from './project/profile-picker';
+import { ProfilePicker } from './project/profile-picker';
 import { ProjectSettings } from './project/settings';
+import { ShareCommand } from './share';
+import { SnippetCommand } from './snippets';
+import { TransformCommand } from './transform';
 
 export async function activate(context: ExtensionContext) {
   const settings = await ProjectSettings.load(context);
-  const projects = new ProjectReader(activateLanguageClient(context), settings);
+  const languageServer = new LanguageServer(context);
+  const projects = new ProjectReader(languageServer.start(), settings);
 
   settings.start(context);
-  activateProfilePicker(context, projects);
+  new ProfilePicker(context, projects);
 
-  const world = new WorldProcess(binaryPath(context, 'greyhack-world-server'));
-  const runtimeLauncher = createRuntimeLauncher(world, (address) =>
-    createProcessLauncher(context, 'greybel-runtime', address === undefined ? [] : ['--world', address])()
+  const preview = new Preview(context);
+  const world = new WorldProcess(new ProcessLauncher(context, 'greyhack-world-server').getBinaryPath());
+  const runtimeLauncher = new RuntimePeerLauncher(world, (address) =>
+    new ProcessLauncher(context, 'greybel-runtime', address === undefined ? [] : ['--world', address]).launch()
   );
-  const builderLauncher = createProcessLauncher(context, 'greybel-builder');
+  const builderLauncher = new ProcessLauncher(context, 'greybel-builder');
 
-  activateDebug(context, runtimeLauncher, world, projects);
-  activateBuild(context, builderLauncher, projects);
-  activateTransform(context, builderLauncher, projects);
-  activateNextError(context);
+  new DebugController(context, runtimeLauncher, world, projects, preview);
+  new BuildCommand(context, builderLauncher, projects);
+  new TransformCommand(context, builderLauncher, projects);
+  new NextErrorCommand(context);
 
-  activateApiReference(context);
-  activateSnippets(context);
-  activateShare(context);
-  activateImport(context, builderLauncher, projects);
-  activatePreview(context);
+  new ApiReference(context);
+  new SnippetCommand(context);
+  new ShareCommand(context, projects);
+  new ImportCommand(context, builderLauncher, projects);
 }
 
 export function deactivate() {}

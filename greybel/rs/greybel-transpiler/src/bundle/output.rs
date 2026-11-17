@@ -1,7 +1,7 @@
 use greybel_source_map::{Location, SourceMap};
 
-use crate::documents::{ModuleGraph, Uri};
 use crate::emit::Origin;
+use greybel_documents::{ModuleGraph, Uri};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Output {

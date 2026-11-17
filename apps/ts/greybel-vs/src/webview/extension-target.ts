@@ -8,16 +8,28 @@ export interface VsCodeApi {
 
 declare function acquireVsCodeApi(): VsCodeApi;
 
-let sharedApi: VsCodeApi | undefined;
+export class ExtensionApi implements VsCodeApi {
+  readonly #api = acquireVsCodeApi();
 
-export function vscodeApi(): VsCodeApi {
-  sharedApi ??= acquireVsCodeApi();
+  postMessage(message: unknown): void {
+    this.#api.postMessage(message);
+  }
 
-  return sharedApi;
+  getState(): unknown {
+    return this.#api.getState();
+  }
+
+  setState(state: unknown): void {
+    this.#api.setState(state);
+  }
 }
 
 export class ExtensionTarget implements MessageTarget {
-  readonly #vscode = vscodeApi();
+  readonly #vscode: VsCodeApi;
+
+  constructor(vscode: VsCodeApi) {
+    this.#vscode = vscode;
+  }
 
   postMessage(message: unknown): void {
     this.#vscode.postMessage(message);

@@ -35,6 +35,11 @@ impl<'w> Analyzer<'w> {
         };
         let references = analysis.references();
         let slots = references.slots(variable).to_vec();
+
+        if slots.is_empty() {
+            return self.member_incoming_calls(analysis, uri, position);
+        }
+
         let mut calls: Vec<(Caller, Vec<Range>)> = Vec::new();
 
         for site in references.find_referring_sites(&slots) {
@@ -106,6 +111,59 @@ impl<'w> Analyzer<'w> {
                     Self::range(ast, ast.span(node)),
                 );
             }
+        }
+
+        self.calls(analysis, calls)
+    }
+
+    /// Callers of a function stored in a map member, such as `App.utils.format = function`: its references other
+    /// than its definitions, grouped by the function they are in.
+    fn member_incoming_calls(
+        self,
+        analysis: &Analysis,
+        uri: &Uri,
+        position: Position,
+    ) -> Vec<CallHierarchyCall> {
+        let db = self.workspace().db();
+        let definitions = self.definition(uri, position);
+        let mut calls: Vec<(Caller, Vec<Range>)> = Vec::new();
+
+        for location in self.references(uri, position) {
+            if definitions.contains(&location) {
+                continue;
+            }
+
+            let Some(document) = analysis
+                .documents()
+                .iter()
+                .position(|file| *file.uri(db) == location.uri)
+                .and_then(|index| DocumentIndex::try_from(index).ok())
+            else {
+                continue;
+            };
+            let Some(ast) = self.document_ast(analysis, document) else {
+                continue;
+            };
+            let Some(offset) = ast
+                .lines()
+                .offset(location.range.start, ColumnSettings::default())
+            else {
+                continue;
+            };
+            let Some(&node) = ast.path_at(offset).last() else {
+                continue;
+            };
+
+            if Self::is_address(ast, node) {
+                continue;
+            }
+
+            let caller = Caller {
+                document,
+                function: Self::outer_function(ast, node),
+            };
+
+            Self::add_call(&mut calls, caller, location.range);
         }
 
         self.calls(analysis, calls)

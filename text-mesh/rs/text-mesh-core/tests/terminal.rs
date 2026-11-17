@@ -1,6 +1,6 @@
-//! The game's terminal splitting its output into lines.
+//! The game's terminal split_rule its output into lines.
 
-use text_mesh_core::TerminalOutput;
+use text_mesh_core::{LineLimits, LineSplitRule, TerminalOutput};
 
 #[test]
 fn should_split_at_every_line_break() {
@@ -56,4 +56,38 @@ fn should_count_line_lengths_in_utf16_units() {
     let lines = TerminalOutput::new(&text).lines();
 
     assert_eq!(lines, [text]);
+}
+
+#[test]
+fn should_keep_a_line_of_many_tags_within_the_limits_in_one_line() {
+    let text = "<color=#ff0000>x</color>".repeat(250);
+    let output = TerminalOutput::new(&text);
+
+    assert_eq!(output.lines().len(), 34);
+    assert_eq!(
+        output
+            .with_split_rule(LineSplitRule::Limits(LineLimits::BEFORE_TAG_LIMIT))
+            .lines(),
+        [text]
+    );
+}
+
+#[test]
+fn should_cut_a_line_over_the_limits_into_pieces_of_the_text_limit() {
+    let limits = LineLimits {
+        text_per_line: 100,
+        tags_per_line: Some(50),
+    };
+    let lengths = |text: &str| -> Vec<usize> {
+        TerminalOutput::new(text)
+            .with_split_rule(LineSplitRule::Limits(limits))
+            .lines()
+            .iter()
+            .map(String::len)
+            .collect()
+    };
+
+    assert_eq!(lengths(&"x".repeat(250)), [100, 100, 50]);
+    assert_eq!(lengths(&"<b>x</b>".repeat(10)), [80]);
+    assert_eq!(lengths(&"<b>x</b>".repeat(20)), [100, 60]);
 }

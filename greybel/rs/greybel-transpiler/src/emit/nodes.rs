@@ -3,7 +3,7 @@ use greybel_core::syntax::{ArrowBody, Assignment, Function};
 use greybel_core::{NodeId, NodeKind};
 
 use super::EmitState;
-use crate::documents::ModuleId;
+use greybel_documents::ModuleId;
 
 impl<'a> EmitState<'a> {
     pub(crate) fn unwrap_from_parens(&self, mut id: NodeId) -> NodeId {

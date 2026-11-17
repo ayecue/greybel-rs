@@ -4,6 +4,8 @@
 [workspace]
 resolver = "3"
 members = ["greybel-*", "greyhack-*"]
+# Deployed on its own with its own lock file, so its build needs only its folder.
+exclude = ["greybel-editor-service"]
 
 [workspace.package]
 version = "0.1.0"

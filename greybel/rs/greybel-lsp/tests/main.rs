@@ -2,6 +2,7 @@ mod configuration;
 mod documents;
 mod features;
 mod highlight;
+mod imported_files;
 mod lifecycle;
 mod project;
 mod support;

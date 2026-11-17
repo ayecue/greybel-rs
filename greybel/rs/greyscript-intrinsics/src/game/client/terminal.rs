@@ -10,7 +10,8 @@ use super::game::Game;
 
 /// Running-program output batch interval (`GreyInterpreter.ShouldSendPrint`).
 const SEND_INTERVAL: Duration = Duration::from_millis(200);
-/// Maximum batch length; excess oldest characters are discarded (`GreyInterpreter.AddPendingOutput`).
+/// Maximum batch length in UTF-16 units, C#'s `string.Length`; excess oldest characters are discarded
+/// (`GreyInterpreter.AddPendingOutput`).
 const MAX_CHARACTERS: usize = 160_000;
 
 /// Grey Hack-compatible buffered terminal output.
@@ -95,21 +96,34 @@ impl Stdout for TerminalOutput {
 
         batch.lines.push(text.to_owned());
 
-        let mut characters: usize = batch.lines.iter().map(String::len).sum();
+        let mut characters: usize = batch
+            .lines
+            .iter()
+            .map(|line| line.encode_utf16().count())
+            .sum();
 
         while characters > MAX_CHARACTERS && !batch.lines.is_empty() {
             let excess = characters - MAX_CHARACTERS;
             let first = &mut batch.lines[0];
+            let length = first.encode_utf16().count();
 
-            if first.len() > excess {
-                let cut = (excess..=first.len())
-                    .find(|&index| first.is_char_boundary(index))
-                    .unwrap_or(first.len());
+            if length > excess {
+                let mut units = 0;
+                let cut = first
+                    .char_indices()
+                    .find_map(|(index, character)| {
+                        let start = units;
 
-                first.drain(..cut);
-                characters -= cut;
+                        units += character.len_utf16();
+
+                        (start >= excess).then_some((index, start))
+                    })
+                    .unwrap_or((first.len(), length));
+
+                first.drain(..cut.0);
+                characters -= cut.1;
             } else {
-                characters -= first.len();
+                characters -= length;
                 batch.lines.remove(0);
             }
         }

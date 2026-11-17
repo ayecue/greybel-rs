@@ -1,5 +1,5 @@
 use super::AnyToken;
-use super::state::{Cursor, LexerErrorSnapshot, LexerErrorStorage, Lookahead, LookaheadSnapshot};
+use super::state::{Cursor, LexerErrorSnapshot, LexerErrorStorage, Lookahead};
 use crate::error::ParseError;
 
 #[derive(Debug, Clone, Default)]
@@ -13,7 +13,7 @@ pub struct TokenStream {
 pub struct TokenSnapshot {
     cursor: Cursor,
     diagnostics: LexerErrorSnapshot,
-    lookahead: LookaheadSnapshot,
+    lookahead: Lookahead,
 }
 
 impl TokenStream {

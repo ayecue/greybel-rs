@@ -182,13 +182,6 @@ impl<'d> ProtocolPlan<'d> {
         RolePlan { plan: self, role }
     }
 
-    #[must_use]
-    pub fn has_responses(&self, responses: bool) -> bool {
-        self.messages
-            .iter()
-            .any(|message| message.response.is_some() == responses)
-    }
-
     pub fn inbound_messages(&self, role: Role) -> impl Iterator<Item = &MessagePlan<'d>> {
         self.messages
             .iter()

@@ -37,6 +37,13 @@ pub fn incoming(position: Position) -> Vec<(String, Vec<(u32, u32)>)> {
     summary(Analyzer::new(&workspace).incoming_calls(&uri(PATH), position))
 }
 
+/// Callers of the function at `position` in `source`.
+pub fn list_callers_in(source: &str, position: Position) -> Vec<(String, Vec<(u32, u32)>)> {
+    let workspace = with_document(Dialect::Greybel, source);
+
+    summary(Analyzer::new(&workspace).incoming_calls(&uri(PATH), position))
+}
+
 pub fn outgoing(position: Position) -> Vec<(String, Vec<(u32, u32)>)> {
     let workspace = with_document(Dialect::Greybel, SOURCE);
 

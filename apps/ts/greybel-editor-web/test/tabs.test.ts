@@ -59,7 +59,7 @@ describe('the tabs of the files opened', () => {
     expect(await page.locator('.cm-breakpoint:visible').count()).toBe(1);
     await editor.getTab('util.src').locator('.close-tab').click();
     await page.locator('button.debug').click();
-    await page.locator('.debug-panel').waitFor();
+    await editor.waitForStop();
 
     expect(await editor.getTabPaths()).toEqual(['main.src', 'util.src']);
     expect(await editor.getShownFile()).toBe('util.src');

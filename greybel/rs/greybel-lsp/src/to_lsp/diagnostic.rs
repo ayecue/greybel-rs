@@ -21,7 +21,6 @@ impl ToLsp for Diagnostic {
     }
 }
 
-/// Deprecated uses show struck through; unused and unreachable code shows faded.
 impl ToLsp for DiagnosticKind {
     type Output = Option<lsp::DiagnosticTag>;
 

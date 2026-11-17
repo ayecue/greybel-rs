@@ -321,8 +321,6 @@ impl<'a> Inference<'a> {
         }
     }
 
-    /// Whether `base` is a chain with a `?.` link, so a `null` base ends the chain and the links after it don't
-    /// run: `m?.n.k` is `null` when `m` is.
     pub(super) fn continues_optional_chain(&self, base: NodeId) -> bool {
         let ast = self.ast();
         let mut current = base;
@@ -344,7 +342,6 @@ impl<'a> Inference<'a> {
         }
     }
 
-    /// The base of a `?.` link without `null`, which ends the chain instead.
     fn optional_base(&mut self, optional: bool, base: TypeId) -> TypeId {
         if optional {
             self.without_null(base)
@@ -353,7 +350,6 @@ impl<'a> Inference<'a> {
         }
     }
 
-    /// The value of a `?.` link: `null` too when its base could be `null`.
     fn optional_result(&mut self, optional_null: bool, ty: TypeId) -> TypeId {
         if optional_null {
             return self.types.union(ty, TypeId::NULL);

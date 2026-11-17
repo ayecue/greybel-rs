@@ -64,7 +64,7 @@ Open the Command Palette with `Ctrl+Shift+P` (`Cmd+Shift+P` on macOS). Most comm
 | **Greybel: Preview output** | Open the TextMesh Pro output preview. |
 | **Greybel: API documentation** | Open the searchable GreyScript API reference. |
 | **Greybel: Snippets** | Open a game script snippet in a new document. |
-| **Greybel: Share** | Save the active file through the editor service and copy its link. |
+| **Greybel: Share** | Save the active file with every file it imports and the project's `greybel.json` through the editor service, and copy the web editor link. |
 | **Greybel: Select profile** | Select the active project's build/run profile. |
 | **Greybel: Reset the mock world** | Discard the current mock world and generate a new one. |
 
@@ -254,7 +254,7 @@ Both features use `build.ingameDirectory`. Enable `greybel.transpiler.ingameDire
 
 The default `Mock` environment generates computers, networks, file systems, services, and other world state from `run.seed`. The same seed generates the same initial world. `get_shell("root", "test")` returns the local root shell.
 
-All runtimes in the VS Code window share that world, and changes persist between runs. Use **Greybel: Reset the mock world** or change the seed to start again. `run.memoryLimit` limits a program's memory in MiB; `run.programName` sets the binary name used inside the world.
+All runtimes in the VS Code window share that world, and changes persist between runs. Use **Greybel: Reset the mock world** or change the seed to start again. `run.memoryLimit` limits a program's memory in MiB; `run.programName` sets the binary name used inside the world. `run.lineLimits` (settings `greybel.interpreter.lineLimits.textPerLine` and `.tagsPerLine`) replaces the game's rule for cutting long printed lines with the one of the greyhack-customizable-output mod, in the terminal and the output preview.
 
 The mock environment is local and does not require Grey Hack. Some game-specific behavior can differ from the real game.
 
@@ -376,7 +376,7 @@ The quick fixes "Ignore ... on this line" and "Ignore ... in this file" write th
 ### Snippets, sharing, and errors
 
 - **Greybel: Snippets** opens a selected game script in a new GreyScript document.
-- **Greybel: Share** uploads the active file to the configured editor service and copies the resulting editor link.
+- **Greybel: Share** uploads the active file, the files it imports (`#include`, `#include type`, `#import`, `import_code`, also through other imported files) and the project's `greybel.json` to the editor service as one workspace, and copies the link that opens it in the web editor. Paths are relative to the project folder; unsaved changes are included.
 - **Greybel: Go to error** moves to the next diagnostic error, wrapping to the first error when necessary.
 
 ## Troubleshooting

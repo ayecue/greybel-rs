@@ -1,7 +1,13 @@
 import vscode, { DiagnosticSeverity, ExtensionContext, TextEditor } from 'vscode';
 
-export function activate(context: ExtensionContext) {
-  function goToNextError(editor: TextEditor) {
+export class NextErrorCommand {
+  constructor(context: ExtensionContext) {
+    context.subscriptions.push(
+      vscode.commands.registerTextEditorCommand('greybel.gotoError', (editor) => this.#goToNextError(editor))
+    );
+  }
+
+  #goToNextError(editor: TextEditor): void {
     const errors = vscode.languages
       .getDiagnostics(editor.document.uri)
       .filter((diagnostic) => diagnostic.severity === DiagnosticSeverity.Error)
@@ -20,6 +26,4 @@ export function activate(context: ExtensionContext) {
     editor.revealRange(next.range);
     vscode.window.showErrorMessage(next.message);
   }
-
-  context.subscriptions.push(vscode.commands.registerTextEditorCommand('greybel.gotoError', goToNextError));
 }

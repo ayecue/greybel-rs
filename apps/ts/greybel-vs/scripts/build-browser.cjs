@@ -27,7 +27,7 @@ const build = async () => {
         'process.env.NODE_ENV': '"production"',
         'process.platform': '"browser"',
         ...Object.entries(envObj).reduce((result, [key, value]) => {
-          result[`process.env.${key}`] = `"${value}"`;
+          result[`process.env.${key}`] = JSON.stringify(process.env[key] ?? value);
           return result;
         }, {})
       }

@@ -1,22 +1,33 @@
 import vscode, { ExtensionContext, Uri } from 'vscode';
 
-import { getIngameDirectory } from './helper/get-ingame-directory';
+import { BuildFailureReporter } from './builder/error-message';
+import { BuilderTaskRunner } from './builder/task-runner';
+import { IngameDirectoryPicker } from './helper/get-ingame-directory';
 import { Watcher } from './helper/watcher';
 import type { Launcher } from './launcher';
-import { showBuildFailure } from './builder/error-message';
-import { BuilderTaskRunner } from './builder/task-runner';
-import { buildOf, entriesOf, folderOf, type Project, type ProjectReader } from './project';
+import type { ProjectReader, Project } from './project';
 import { Configuration } from './settings';
 
-/** Output folder for `project` builds. */
-function outputOf(project: Project, document: Uri): Uri {
-  return Uri.joinPath(folderOf(project, document), project.manifest.build.output);
-}
+export class BuildCommand {
+  readonly #projects: ProjectReader;
+  readonly #tasks: BuilderTaskRunner;
+  readonly #errors = new BuildFailureReporter();
 
-export function activate(context: ExtensionContext, launcher: Launcher, projects: ProjectReader) {
-  const tasks = new BuilderTaskRunner(launcher);
+  constructor(context: ExtensionContext, launcher: Launcher, projects: ProjectReader) {
+    this.#projects = projects;
+    this.#tasks = new BuilderTaskRunner(launcher);
 
-  async function build(target: Uri) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand('greybel.buildFileFromContext', (uri?: Uri) => this.#buildFileFromContext(uri)),
+      vscode.commands.registerCommand('greybel.buildRootFile', (uri?: Uri) => this.#buildRootFile(uri)),
+      new Watcher(
+        () => this.#buildRootFile(),
+        (uri) => this.#isSource(uri)
+      ).start()
+    );
+  }
+
+  async #build(target: Uri): Promise<void> {
     const document = vscode.workspace.textDocuments.find((doc) => doc.uri.toString() === target.toString());
 
     if (document?.isDirty) await document.save();
@@ -26,12 +37,13 @@ export function activate(context: ExtensionContext, launcher: Launcher, projects
     const deploy = config.get('createIngame.active');
 
     try {
-      const project = await projects.of(target);
-      const ingameDirectory = (await getIngameDirectory(config, project.manifest.build.ingameDirectory)).path;
-      const result = await tasks.build(
-        buildOf(project, [target], ingameDirectory, deploy ? config.get('createIngame.port') : undefined)
+      const project = await this.#projects.read(target);
+      const picker = new IngameDirectoryPicker(config);
+      const ingameDirectory = (await picker.get(project.manifest.build.ingameDirectory)).path;
+      const result = await this.#tasks.build(
+        project.createBuild([target], ingameDirectory, deploy ? config.get('createIngame.port') : undefined)
       );
-      const output = outputOf(project, target);
+      const output = project.getOutput(target);
 
       try {
         await vscode.workspace.fs.delete(output, { recursive: true });
@@ -50,46 +62,46 @@ export function activate(context: ExtensionContext, launcher: Launcher, projects
 
       vscode.window.showInformationMessage(`Build complete${importNote}. [Open output](${output.toString()}).`);
     } catch (error) {
-      showBuildFailure(error);
+      this.#errors.show(error);
     }
   }
 
-  async function buildRootFile(sourceUri: Uri | undefined = vscode.window.activeTextEditor?.document?.uri) {
+  async #buildRootFile(sourceUri: Uri | undefined = vscode.window.activeTextEditor?.document?.uri): Promise<void> {
     if (!sourceUri) {
       vscode.window.showErrorMessage("Open a file, or set greybel.json's entries, to build.");
 
       return;
     }
 
-    const [entry] = entriesOf(await projects.of(sourceUri), sourceUri);
+    const [entry] = (await this.#projects.read(sourceUri)).getEntries(sourceUri);
 
-    await build(entry ?? sourceUri);
+    await this.#build(entry ?? sourceUri);
   }
 
-  /** Return whether changing `uri` should rebuild the project entry: it must be a source file outside the build output. */
-  async function isSource(uri: Uri): Promise<boolean> {
-    const project = await projects.of(uri);
+  /** Returns whether changing `uri` should rebuild the project entry: it must be a source file outside the build output. */
+  async #isSource(uri: Uri): Promise<boolean> {
+    const project = await this.#projects.read(uri);
 
+    return this.#isProjectSource(project, uri);
+  }
+
+  #isProjectSource(project: Project, uri: Uri): boolean {
     return (
       project.manifest.entries.length > 0 &&
       project.manifest.extensions.some((extension) => uri.path.endsWith(`.${extension}`)) &&
-      !uri.path.startsWith(`${outputOf(project, uri).path}/`)
+      !uri.path.startsWith(`${project.getOutput(uri).path}/`)
     );
   }
 
-  async function buildFileFromContext(sourceUri: Uri | undefined = vscode.window.activeTextEditor?.document?.uri) {
+  async #buildFileFromContext(
+    sourceUri: Uri | undefined = vscode.window.activeTextEditor?.document?.uri
+  ): Promise<void> {
     if (!sourceUri) {
       vscode.window.showErrorMessage('Open a file to build.');
 
       return;
     }
 
-    await build(sourceUri);
+    await this.#build(sourceUri);
   }
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('greybel.buildFileFromContext', buildFileFromContext),
-    vscode.commands.registerCommand('greybel.buildRootFile', buildRootFile),
-    new Watcher(buildRootFile, isSource).start()
-  );
 }

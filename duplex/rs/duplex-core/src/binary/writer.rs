@@ -140,26 +140,6 @@ impl BinaryWriter {
         Ok(())
     }
 
-    pub fn finish_length(&mut self, offset: usize) -> Result<(), Error> {
-        let length = self.bytes.len() - offset - 1;
-        let length = Self::valid_length(length)?;
-
-        if length < u32::from(CONTINUATION) {
-            self.bytes[offset] = length.to_le_bytes()[0];
-
-            return Ok(());
-        }
-
-        let prefix = Varuint::new(u64::from(length));
-        let (first, tail) = prefix.as_bytes().split_at(1);
-        let start = offset + 1;
-
-        self.bytes.splice(start..start, tail.iter().copied());
-        self.bytes[offset] = first[0];
-
-        Ok(())
-    }
-
     pub fn byte(&mut self, value: u8) {
         self.bytes.push(value);
     }

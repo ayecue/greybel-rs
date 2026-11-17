@@ -46,15 +46,12 @@ pub enum Type {
         bound: TypeId,
     },
     Union(Box<[TypeId]>),
-    /// A string or number written as a type (`"tcp"`, `22`). Only annotations make them; inference gives literal
-    /// values the type `string` or `number`.
     Literal(LiteralType),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LiteralType {
     String(Box<str>),
-    /// The bits of the number.
     Number(u64),
 }
 
@@ -64,7 +61,6 @@ impl LiteralType {
         Self::Number(value.to_bits())
     }
 
-    /// The type of the values: `string` or `number`.
     #[must_use]
     pub fn base(&self) -> TypeId {
         match self {

@@ -2,20 +2,26 @@ import vscode, { Uri } from 'vscode';
 
 import type { Configuration } from '../settings';
 
-/**
- * Game destination folder for a build or import; prompts when configured to prompt, otherwise uses
- * `directory`.
- */
-export const getIngameDirectory = async (config: Configuration, directory: string): Promise<Uri> => {
-  if (config.get('transpiler.ingameDirectoryPrompt')) {
-    const customDirectory = await vscode.window.showInputBox({
-      title: 'Enter the in-game directory',
-      value: directory,
-      ignoreFocusOut: true
-    });
+/** Resolves game destination folders for builds and imports. */
+export class IngameDirectoryPicker {
+  readonly #config: Configuration;
 
-    if (customDirectory != null && customDirectory !== '') return Uri.file(customDirectory);
+  constructor(config: Configuration) {
+    this.#config = config;
   }
 
-  return Uri.file(directory);
-};
+  /** Prompts when configured to prompt, otherwise uses `directory`. */
+  async get(directory: string): Promise<Uri> {
+    if (this.#config.get('transpiler.ingameDirectoryPrompt')) {
+      const customDirectory = await vscode.window.showInputBox({
+        title: 'Enter the in-game directory',
+        value: directory,
+        ignoreFocusOut: true
+      });
+
+      if (customDirectory != null && customDirectory !== '') return Uri.file(customDirectory);
+    }
+
+    return Uri.file(directory);
+  }
+}

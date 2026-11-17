@@ -3,7 +3,7 @@ import { Uri, type Webview } from 'vscode';
 const SCRIPT = 'dist/preview.js';
 const WASM = 'dist/preview.wasm';
 
-export function previewPage(webview: Webview, extensionUri: Uri): string {
+export function createPreviewPage(webview: Webview, extensionUri: Uri): string {
   const script = webview.asWebviewUri(Uri.joinPath(extensionUri, SCRIPT));
   const wasm = webview.asWebviewUri(Uri.joinPath(extensionUri, WASM));
   const policy = [

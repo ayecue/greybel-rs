@@ -4,17 +4,18 @@ import { EditorChannel, type EditorRouter } from 'greybel-runtime';
 import { TerminalChannel } from 'greyhack-terminal-text';
 
 import type { Peer } from '../launcher';
-import { TerminalPage } from './terminal-page';
+import type { PreviewOutput } from '../preview';
 import { WorkspaceDocumentProvider } from '../workspace-document-provider';
+import { TerminalPage } from './terminal-page';
 
 export class RuntimeConnection {
   readonly runtime: EditorChannel;
   readonly page: TerminalPage;
   readonly #peer: Peer;
 
-  constructor(peer: Peer, editor: EditorRouter) {
+  constructor(peer: Peer, editor: EditorRouter, preview: PreviewOutput) {
     this.#peer = peer;
-    this.page = new TerminalPage(new TerminalChannel(peer.transport));
+    this.page = new TerminalPage(new TerminalChannel(peer.transport), preview);
     this.runtime = new EditorChannel(peer.transport).use(editor);
     new PageChannel(peer.transport).use(this.page);
     new DocumentsChannel(peer.transport).use(new WorkspaceDocumentProvider());

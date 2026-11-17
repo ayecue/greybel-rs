@@ -45,6 +45,20 @@ export interface RunSettings {
   readonly programName: string;
   readonly memoryLimit: number;
   readonly variables: VariableSettings;
+  /** `null` splits long terminal lines as the game does. */
+  readonly lineLimits: LineLimitsSettings | null;
+}
+
+/** greyhack-terminal-web's and greyhack-terminal-text's form of `run.lineLimits`. */
+export interface TerminalLineLimits {
+  readonly textPerLine: number;
+  readonly tagsPerLine?: number;
+}
+
+export interface LineLimitsSettings {
+  readonly textPerLine: number;
+  /** `null` for no limit. */
+  readonly tagsPerLine: number | null;
 }
 
 export interface VariableSettings {
@@ -52,7 +66,7 @@ export interface VariableSettings {
   readonly values: Readonly<Record<string, string>>;
 }
 
-export interface Project {
+export interface ProjectJson {
   readonly root: string | null;
   readonly manifest: Manifest;
   readonly buildVariables: Readonly<Record<string, string>>;

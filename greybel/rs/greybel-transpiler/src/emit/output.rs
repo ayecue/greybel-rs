@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::documents::ModuleId;
+use greybel_documents::ModuleId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Origin {

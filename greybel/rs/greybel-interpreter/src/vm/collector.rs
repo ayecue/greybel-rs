@@ -87,7 +87,6 @@ impl Vm {
         freed
     }
 
-    // Out of line: inlining exposes it to `run_batch` through `collect_garbage` and alters dispatch-loop code.
     #[inline(never)]
     pub(crate) fn roots(&self) -> Vec<HeapRef> {
         let frames = self.calls.frames.iter().flat_map(frame_roots);
@@ -121,7 +120,6 @@ impl Vm {
     }
 }
 
-/// Collects `frame`'s GC roots: local and outer scopes, receivers, and heap-backed iterators.
 pub(super) fn frame_roots(frame: &Frame) -> impl Iterator<Item = HeapRef> + '_ {
     let scopes = [frame.locals, frame.outer]
         .into_iter()

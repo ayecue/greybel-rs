@@ -4,7 +4,6 @@ use rustc_hash::FxHashSet;
 use crate::client_requests::{ReadFile, ReadFileRequest};
 use crate::server::state::{Expectation, Outbound};
 
-/// Tracks URIs found by client searches and URIs already requested for reading.
 #[derive(Debug, Default)]
 pub(in crate::server) struct ClientFileTable {
     uris: FxHashSet<Uri>,

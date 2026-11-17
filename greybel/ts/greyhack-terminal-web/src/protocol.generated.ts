@@ -948,6 +948,57 @@ export namespace Color {
     a: number;
   }
 }
+/**
+* Line limits as greyhack-customizable-output sets them: a line whose visible text is longer than `text_per_line`
+* UTF-16 units, or whose tags take more than `tags_per_line` units, is cut into pieces of `text_per_line` units.
+*/
+export class LineLimits {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "text_per_line",
+    property: "textPerLine",
+    tags: []
+  }, {
+    name: "tags_per_line",
+    property: "tagsPerLine",
+    tags: []
+  }];
+  protected readonly [BODY]: LineLimits.Fields;
+  constructor(body: LineLimits.Fields) {
+    this[BODY] = body;
+  }
+  /** At least 1. */
+  get textPerLine(): number {
+    return this[BODY].textPerLine;
+  }
+  /** Absent for no limit. */
+  get tagsPerLine(): number | undefined {
+    return this[BODY].tagsPerLine;
+  }
+  write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    writer.byte(body.tagsPerLine !== undefined ? 1 : 0);
+    writer.u32(body.textPerLine);
+    if (body.tagsPerLine !== undefined) {
+      writer.u32(body.tagsPerLine);
+    }
+  }
+  static read(reader: BinaryReader): LineLimits {
+    const flags0 = reader.flags(1);
+    const fieldTextPerLine = reader.u32();
+    const fieldTagsPerLine = (flags0 & 1) !== 0 ? reader.u32() : undefined;
+    return new LineLimits({
+      textPerLine: fieldTextPerLine,
+      tagsPerLine: fieldTagsPerLine
+    });
+  }
+}
+export namespace LineLimits {
+  export interface Fields {
+    textPerLine: number;
+    tagsPerLine?: number;
+  }
+}
 /** Peer role IDs for `Terminal`. */
 export enum TerminalPeer {
   Page = 0,
@@ -1081,6 +1132,41 @@ export namespace Scroll {
     delta: number;
   }
 }
+/** Splits long output lines by `limits`; absent splits them as the game does. Relayouts the output. */
+export class SetLineLimits extends Message<TerminalPeer.Page, SetLineLimits.Fields> {
+  static readonly id = 3;
+  static readonly since = 0;
+  static readonly sender = TerminalPeer.Page;
+  constructor(body: SetLineLimits.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "limits",
+    property: "limits",
+    tags: []
+  }];
+  get limits(): LineLimits | undefined {
+    return this[BODY].limits;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    writer.byte(body.limits !== undefined ? 1 : 0);
+    if (body.limits !== undefined) {
+      body.limits.write(writer);
+    }
+  }
+  static read(reader: BinaryReader): SetLineLimits {
+    const flags0 = reader.flags(1);
+    const fieldLimits = (flags0 & 1) !== 0 ? LineLimits.read(reader) : undefined;
+    return new SetLineLimits({ limits: fieldLimits });
+  }
+}
+export namespace SetLineLimits {
+  export interface Fields {
+    limits?: LineLimits;
+  }
+}
 /** Signals that the scene changed and must be redrawn. */
 export class Redraw extends Message<TerminalPeer.View, object> {
   static readonly id = 0;
@@ -1111,12 +1197,13 @@ export const Terminal = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 1918798766 }],
+  versions: [{ fingerprint: 1777722814 }],
   peers: [TerminalPeer.Page, TerminalPeer.View],
   messages: [[Redraw], [
     Textures,
     Draw,
-    Scroll
+    Scroll,
+    SetLineLimits
   ]],
   tags: [],
   requiredCapabilities: Capabilities.PERSISTENT

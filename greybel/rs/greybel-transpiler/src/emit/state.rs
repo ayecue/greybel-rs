@@ -12,8 +12,8 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use super::operands::OperandTable;
 use super::{ConstantTable, EmitOutput, LineBreakStyle, LiteralStyle, LiteralText, Origin};
-use crate::documents::{Module, ModuleGraph, ModuleId};
 use crate::options::TranspileOptions;
+use greybel_documents::{Module, ModuleGraph, ModuleId};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 #[allow(clippy::struct_excessive_bools)]
@@ -286,11 +286,6 @@ impl<'a> EmitState<'a> {
     }
 
     #[must_use]
-    pub fn module_id(&self) -> Option<ModuleId> {
-        self.module
-    }
-
-    #[must_use]
     pub fn output_module(&self) -> Option<ModuleId> {
         self.output_module
     }
@@ -321,7 +316,6 @@ impl<'a> EmitState<'a> {
         self.output.push_fmt(args);
     }
 
-    /// `helper` is the name of the function or variable strings with line breaks are written with.
     pub fn literal(
         &mut self,
         id: NodeId,
@@ -342,7 +336,6 @@ impl<'a> EmitState<'a> {
         }
     }
 
-    /// Whether a concatenation written for `id` needs parentheses.
     #[must_use]
     pub(crate) fn is_concatenation_operand(&self, id: NodeId) -> bool {
         self.operands

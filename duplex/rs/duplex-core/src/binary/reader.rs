@@ -208,12 +208,6 @@ impl<'a> BinaryReader<'a> {
         self.str().map(str::to_owned)
     }
 
-    pub fn take_all_as_string(&mut self) -> Result<String, Error> {
-        str::from_utf8(self.take_all())
-            .map(str::to_owned)
-            .map_err(|_| Self::error(ERR_INVALID_UTF8))
-    }
-
     pub fn char(&mut self) -> Result<char, Error> {
         let code = u32::try_from(self.varuint()?).map_err(|_| Self::error(ERR_INVALID_CHAR))?;
 

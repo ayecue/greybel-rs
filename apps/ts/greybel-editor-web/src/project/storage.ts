@@ -9,12 +9,14 @@ const CODE_PARAMETER = 'c';
 const ID_PARAMETER = 'id';
 const DEFAULT_CODE = 'print("Hello world")';
 
-interface CodeRecord {
+/** A workspace of greybel-editor-service: `GET /workspaces/{id}` and `POST /workspaces`. */
+interface WorkspaceRecord {
   readonly id: string;
-  readonly content: string;
+  readonly entry: string;
+  readonly files: Readonly<Record<string, string>>;
 }
 
-/** Stores projects in local storage, in share links, and in the editor service when `serviceUrl` is set. */
+/** Stores projects in local storage, in share links, and in greybel-editor-service when `serviceUrl` is set. */
 export class ProjectStorage {
   readonly #location: Location;
   readonly #storage: Storage;
@@ -39,10 +41,9 @@ export class ProjectStorage {
 
     if (id !== null && this.#serviceUrl !== undefined) {
       try {
-        const response = await fetch(`${this.#serviceUrl}/code/${encodeURIComponent(id)}`);
-        const record = (await response.json()) as CodeRecord;
+        const content = await this.#loadWorkspace(id);
 
-        if (typeof record.content === 'string') return ProjectContent.decode(record.content, this.#paths);
+        if (content !== undefined) return content;
       } catch (error) {
         console.error('greybel-editor-web: the saved project', error);
       }
@@ -75,15 +76,17 @@ export class ProjectStorage {
   async save(content: ProjectContent): Promise<string> {
     if (this.#serviceUrl === undefined) throw new Error('The page has no editor service to save code to.');
 
-    const response = await fetch(`${this.#serviceUrl}/code`, {
+    const response = await fetch(`${this.#serviceUrl}/workspaces`, {
       method: 'POST',
-      body: JSON.stringify({ content: content.encode() }),
+      body: JSON.stringify({ entry: content.entry, files: Object.fromEntries(content.files) }),
       headers: { 'Content-Type': 'application/json' }
     });
 
-    if (!response.ok) throw new Error(`The editor service didn't save the code (${response.status}).`);
+    if (!response.ok) {
+      throw new Error(`The editor service didn't save the project: ${await this.#getServiceMessage(response)}`);
+    }
 
-    const record = (await response.json()) as CodeRecord;
+    const record = (await response.json()) as WorkspaceRecord;
     const url = new URL(this.#location.href);
 
     url.search = '';
@@ -91,6 +94,29 @@ export class ProjectStorage {
     history.replaceState(null, '', url);
 
     return url.toString();
+  }
+
+  async #loadWorkspace(id: string): Promise<ProjectContent | undefined> {
+    const response = await fetch(`${this.#serviceUrl}/workspaces/${encodeURIComponent(id)}`);
+
+    if (!response.ok) throw new Error(await this.#getServiceMessage(response));
+
+    const record = (await response.json()) as WorkspaceRecord;
+    const files = Object.entries(record.files);
+    const isValid = files.every(
+      ([path, code]) => typeof code === 'string' && this.#paths.findProblem(path) === undefined
+    );
+
+    if (!isValid || !files.some(([path]) => path === record.entry)) return undefined;
+
+    return new ProjectContent(record.entry, new Map(files));
+  }
+
+  /** The service's `{"message"}`, or the status when the body has none. */
+  async #getServiceMessage(response: Response): Promise<string> {
+    const body = (await response.json().catch(() => undefined)) as { message?: unknown } | undefined;
+
+    return typeof body?.message === 'string' ? body.message : `status ${response.status}`;
   }
 
   #readSharedText(parameters: URLSearchParams): string | undefined {

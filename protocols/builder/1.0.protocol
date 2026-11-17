@@ -3,6 +3,9 @@ use core 1.0;
 /// Builds and transforms editor projects, imports files into Grey Hack, and accesses sources through the documents
 /// protocol on the same transport.
 protocol Builds = "greybel-builder" {
+    // Transformed code travels in a single message.
+    limit 16MiB;
+
     /// Editor-facing build service.
     provider Builder {
         /// Builds every entry and its imports for execution from `ingame_directory`. Reads sources through the

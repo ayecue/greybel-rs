@@ -135,7 +135,7 @@ impl AddInclude {
             .filter_map(|other| {
                 let ast = other.parse(db).ast()?;
 
-                Some((other, DocumentSymbol::outline(ast)))
+                Some((other, DocumentSymbol::from_ast(ast)))
             })
             .collect();
 

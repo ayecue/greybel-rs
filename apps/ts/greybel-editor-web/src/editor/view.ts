@@ -41,6 +41,7 @@ export class ProjectEditor {
   #tabs: string[];
   #path: string | undefined;
   #stop: StopPlace | undefined;
+  #frame: StopPlace | undefined;
   #problem: ManifestProblem | undefined;
 
   constructor(parent: HTMLElement, options: ProjectEditorOptions) {
@@ -118,6 +119,7 @@ export class ProjectEditor {
     }
 
     if (this.#stop?.path === from) this.#stop = { ...this.#stop, path: to };
+    if (this.#frame?.path === from) this.#frame = { ...this.#frame, path: to };
     this.#showStop();
     this.#options.onTabsChange();
 
@@ -163,9 +165,14 @@ export class ProjectEditor {
     this.#showProblem();
   }
 
-  showStop(stop: StopPlace | undefined): void {
+  /** Marks where the program stopped and the selected caller frame, and opens the file of the frame or the stop. */
+  showStop(stop: StopPlace | undefined, frame?: StopPlace): void {
     this.#stop = stop;
-    if (stop !== undefined && stop.path !== this.#path) this.open(stop.path);
+    this.#frame = frame;
+
+    const target = frame ?? stop;
+
+    if (target !== undefined && target.path !== this.#path) this.open(target.path);
     this.#showStop();
   }
 
@@ -205,7 +212,11 @@ export class ProjectEditor {
 
   #showStop(): void {
     if (this.#path === undefined || this.#paths.isManifest(this.#path)) return;
-    this.#breakpoints.showStopLine(this.view, this.#stop?.path === this.#path ? this.#stop.line : undefined);
+    this.#breakpoints.showStopLines(
+      this.view,
+      this.#stop?.path === this.#path ? this.#stop.line : undefined,
+      this.#frame?.path === this.#path ? this.#frame.line : undefined
+    );
   }
 
   #showProblem(): void {

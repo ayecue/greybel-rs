@@ -6,3 +6,4 @@ mod screen;
 
 pub use debugger::Debugger;
 pub use host::TerminalHost;
+pub use screen::RichTextScreen;

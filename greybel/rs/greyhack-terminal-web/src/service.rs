@@ -3,10 +3,12 @@ use std::rc::Rc;
 
 use duplex_core::{Channel, Driver, NextMessage, NextNotification, Responder};
 use greybel_io::OutputRef;
+use text_mesh_core::LineSplitRule;
 
 use crate::protocol::io::{self, OutputBatch, OutputBatchRef, PageRouter};
 use crate::protocol::terminal::{
-    Draw, Redraw, Scene, Scroll, TextureFailure, TextureSet, Textures, View, ViewRouter,
+    Draw, Redraw, Scene, Scroll, SetLineLimits, TextureFailure, TextureSet, Textures, View,
+    ViewRouter,
 };
 use crate::terminal::Terminal;
 
@@ -51,6 +53,16 @@ impl<D: Driver> ViewRouter for ViewHandler<D> {
 
     fn on_scroll(&self, message: Scroll, _next: NextNotification<Scroll>) {
         self.0.terminal.borrow_mut().scroll_by(message.delta);
+    }
+
+    fn on_set_line_limits(&self, message: SetLineLimits, _next: NextNotification<SetLineLimits>) {
+        let split_rule = message
+            .limits
+            .map_or(LineSplitRule::Game, |limits| limits.split_rule());
+
+        self.0.terminal.borrow_mut().set_split_rule(split_rule);
+
+        let _ = self.0.view.send(&Redraw {});
     }
 }
 

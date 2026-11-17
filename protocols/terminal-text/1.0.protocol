@@ -19,9 +19,20 @@ protocol TerminalText = "greybel-terminal-text" {
 struct RichText {
     text: string,
     columns: u16,
+    /// Absent splits long lines as the game does.
+    line_limits?: LineLimits,
 }
 
 /// ANSI strings ordered as in `Render`, with `\n` between lines.
 struct AnsiOutput {
     texts: list<string>,
+}
+
+/// Line limits as greyhack-customizable-output sets them: a line whose visible text is longer than `text_per_line`
+/// UTF-16 units, or whose tags take more than `tags_per_line` units, is cut into pieces of `text_per_line` units.
+struct LineLimits {
+    /// At least 1.
+    text_per_line: u32,
+    /// Absent for no limit.
+    tags_per_line?: u32,
 }

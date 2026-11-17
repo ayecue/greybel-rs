@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { MessageTargetDriver } from 'duplex-driver-worker';
 import { ProgramChannel } from 'greybel-io-web/program';
 
-import { previewPage } from '../../../src/preview/page';
+import { createPreviewPage } from '../../../src/preview/page';
 import { WebviewTarget } from '../../../src/webview/target';
 import { extensionUnderTest } from './webview';
 
@@ -18,7 +18,7 @@ export function openPreviewPage(): PreviewPage {
     localResourceRoots: [extension.extensionUri]
   });
 
-  panel.webview.html = previewPage(panel.webview, extension.extensionUri);
+  panel.webview.html = createPreviewPage(panel.webview, extension.extensionUri);
 
   const channel = new ProgramChannel(new MessageTargetDriver(new WebviewTarget(panel.webview)));
 

@@ -281,13 +281,13 @@ fn should_not_rename_a_keyword() {
 }
 
 #[test]
-fn should_outline_assignments_as_document_symbols() {
+fn should_list_assignments_as_document_symbols() {
     let source = "Foo = {}\nFoo.New = function(a)\n  inner = a\n  if a then\n    deep = 1\n  end if\nend function\nfor i in range(3)\n  total = i\nend for\nlist = [1]\nlist[0] = 2";
     let workspace = with_document(Dialect::MiniScript, source);
 
     let symbols = Analyzer::new(&workspace).document_symbols(&uri(PATH));
 
-    let outline: Vec<(String, SymbolKind, Vec<String>)> = symbols
+    let symbol_tree: Vec<(String, SymbolKind, Vec<String>)> = symbols
         .iter()
         .map(|symbol| {
             let children = symbol
@@ -301,7 +301,7 @@ fn should_outline_assignments_as_document_symbols() {
         .collect();
 
     assert_eq!(
-        outline,
+        symbol_tree,
         [
             (
                 "Foo".to_owned(),
@@ -524,7 +524,7 @@ fn should_list_declared_types_as_symbols() {
     let analyzer = Analyzer::new(&workspace);
 
     let symbols = analyzer.document_symbols(&uri(PATH));
-    let outline: Vec<_> = symbols
+    let symbol_tree: Vec<_> = symbols
         .iter()
         .map(|symbol| {
             let children: Vec<_> = symbol
@@ -544,7 +544,7 @@ fn should_list_declared_types_as_symbols() {
     let found = analyzer.workspace_symbols("Poin");
 
     assert_eq!(
-        outline,
+        symbol_tree,
         [
             ("x", SymbolKind::Variable, Position::new(1, 1), vec![]),
             (
@@ -568,7 +568,7 @@ fn should_nest_member_assignments_under_the_symbol_of_their_owner() {
     let workspace = with_document(Dialect::GreyScript, source);
 
     let symbols = Analyzer::new(&workspace).document_symbols(&uri(PATH));
-    let outline: Vec<(&str, Vec<&str>)> = symbols
+    let symbol_tree: Vec<(&str, Vec<&str>)> = symbols
         .iter()
         .map(|symbol| {
             let children = symbol
@@ -582,7 +582,7 @@ fn should_nest_member_assignments_under_the_symbol_of_their_owner() {
         .collect();
 
     assert_eq!(
-        outline,
+        symbol_tree,
         [
             ("App.utils", vec!["format", "trim"]),
             ("Other.x", vec![]),
@@ -592,13 +592,13 @@ fn should_nest_member_assignments_under_the_symbol_of_their_owner() {
 }
 
 #[test]
-fn should_outline_classes_with_their_members() {
+fn should_list_classes_with_their_members_as_document_symbols() {
     let source = "class Animal\n  tags = []\n  constructor(name)\n    self.name = name\n  end function\nend class\nclass Dog extends Animal\n  sound = \"woof\"\n  bark()\n    return self.sound\n  end function\nend class";
     let workspace = with_document(Dialect::Greybel, source);
 
     let symbols = Analyzer::new(&workspace).document_symbols(&uri(PATH));
 
-    let outline: Vec<(String, SymbolKind, Vec<String>)> = symbols
+    let symbol_tree: Vec<(String, SymbolKind, Vec<String>)> = symbols
         .iter()
         .map(|symbol| {
             let children = symbol
@@ -612,7 +612,7 @@ fn should_outline_classes_with_their_members() {
         .collect();
 
     assert_eq!(
-        outline,
+        symbol_tree,
         [
             (
                 "Animal".to_owned(),

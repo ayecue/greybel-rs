@@ -33,6 +33,9 @@ export interface ApiReferenceOptions {
   readonly tab?: ReferenceTab;
 
   readonly onTabChange?: (tab: ReferenceTab) => void;
+
+  /** Shows a "Star on GitHub" link to this address in the header. */
+  readonly repositoryUrl?: string;
 }
 
 export interface ApiReference {
@@ -42,73 +45,94 @@ export interface ApiReference {
 }
 
 export function openApiReference(root: HTMLElement, options: ApiReferenceOptions): ApiReference {
-  const { editor, documentationUrl } = options;
-  const worker = new ApiReferenceWorker();
-
-  serveWasm(worker, options.wasm);
-
-  const host = new WorkerHost(worker, { reader: { channelClass: ReaderChannel } });
-  const editorChannel = editor === undefined ? undefined : new PageChannel(new MessageTargetDriver(editor));
-
-  adoptStyles(root.ownerDocument);
-  root.classList.add('api-reference');
-
-  const ready = new Promise<void>((resolve, reject) =>
-    render(
-      <App
-        reader={host.channels.reader}
-        query={options.query ?? ''}
-        excludedTags={new Set(options.excludedTags ?? ['detached'])}
-        onExcludedTagsChange={options.onExcludedTagsChange}
-        tab={options.tab ?? ReferenceTab.Api}
-        onTabChange={options.onTabChange}
-        onComplete={resolve}
-        onFailure={reject}
-        openExample={
-          editorChannel === undefined ? undefined : (content) => void editorChannel.send(new OpenDocument({ content }))
-        }
-        anchor={options.anchor}
-        copyLink={documentationUrl === undefined ? undefined : (link) => copyLink(documentationUrl, link)}
-      />,
-      root
-    )
-  );
-
-  return {
-    ready,
-    close: () => {
-      render(null, root);
-      editorChannel?.close();
-      host.close();
-    }
-  };
+  return new ApiReferenceView(root, options);
 }
 
-/**
- * Copies the address of `link` in the documentation at `documentationUrl`: a member as `?filter=owner.name`, a part of
- * the guide as `?tab=guide#anchor`.
- */
-function copyLink(documentationUrl: string, link: Link): void {
-  const url = new URL(documentationUrl);
+class ApiReferenceView implements ApiReference {
+  readonly ready: Promise<void>;
 
-  if (link instanceof Link.Member) {
-    url.searchParams.set('filter', `${link.owner}.${link.name}`);
-  } else if (link instanceof Link.Page) {
-    url.searchParams.set('tab', ReferenceTab.Guide);
-    url.hash = link.anchor;
-  } else {
-    return;
+  readonly #root: HTMLElement;
+  readonly #host: WorkerHost<{ reader: ReaderChannel }>;
+  readonly #editorChannel?: PageChannel;
+  readonly #documentationUrl?: string;
+
+  constructor(root: HTMLElement, options: ApiReferenceOptions) {
+    const { editor, documentationUrl } = options;
+    const worker = new ApiReferenceWorker();
+
+    this.#root = root;
+    this.#documentationUrl = documentationUrl;
+
+    serveWasm(worker, options.wasm);
+
+    this.#host = new WorkerHost(worker, { reader: { channelClass: ReaderChannel } });
+
+    const editorChannel = editor === undefined ? undefined : new PageChannel(new MessageTargetDriver(editor));
+
+    this.#editorChannel = editorChannel;
+
+    this.#adoptStyles(root.ownerDocument);
+    root.classList.add('api-reference');
+
+    this.ready = new Promise<void>((resolve, reject) =>
+      render(
+        <App
+          reader={this.#host.channels.reader}
+          query={options.query ?? ''}
+          excludedTags={new Set(options.excludedTags ?? ['detached'])}
+          onExcludedTagsChange={options.onExcludedTagsChange}
+          tab={options.tab ?? ReferenceTab.Api}
+          onTabChange={options.onTabChange}
+          repositoryUrl={options.repositoryUrl}
+          onComplete={resolve}
+          onFailure={reject}
+          openExample={
+            editorChannel === undefined
+              ? undefined
+              : (content) => void editorChannel.send(new OpenDocument({ content }))
+          }
+          anchor={options.anchor}
+          copyLink={documentationUrl === undefined ? undefined : (link) => this.#copyLink(link)}
+        />,
+        root
+      )
+    );
   }
 
-  void navigator.clipboard.writeText(url.toString());
-}
+  close(): void {
+    render(null, this.#root);
+    this.#editorChannel?.close();
+    this.#host.close();
+  }
 
-function adoptStyles(doc: Document): void {
-  if (doc.getElementById(STYLE_ID) !== null) return;
+  /**
+   * Copies the address of `link` in the documentation: a member as `?filter=owner.name`, a part of the guide as
+   * `?tab=guide#anchor`.
+   */
+  #copyLink(link: Link): void {
+    if (this.#documentationUrl === undefined) return;
 
-  const style = doc.createElement('style');
+    const url = new URL(this.#documentationUrl);
 
-  style.id = STYLE_ID;
-  style.textContent = styles;
-  doc.head.append(style);
+    if (link instanceof Link.Member) {
+      url.searchParams.set('filter', `${link.owner}.${link.name}`);
+    } else if (link instanceof Link.Page) {
+      url.searchParams.set('tab', ReferenceTab.Guide);
+      url.hash = link.anchor;
+    } else {
+      return;
+    }
+
+    void navigator.clipboard.writeText(url.toString());
+  }
+
+  #adoptStyles(doc: Document): void {
+    if (doc.getElementById(STYLE_ID) !== null) return;
+
+    const style = doc.createElement('style');
+
+    style.id = STYLE_ID;
+    style.textContent = styles;
+    doc.head.append(style);
+  }
 }

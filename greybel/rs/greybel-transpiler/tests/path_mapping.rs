@@ -1,4 +1,4 @@
-use greybel_transpiler::documents::Uri;
+use greybel_documents::Uri;
 
 use crate::support::path_mapping::mapping;
 

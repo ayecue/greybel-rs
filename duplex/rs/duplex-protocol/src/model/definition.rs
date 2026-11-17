@@ -1,6 +1,5 @@
 use super::{
-    Constant, Protocol, Span, Status, Tag, TagDeclaration, TypeDeclaration, TypeKind, Value,
-    Version,
+    Constant, Protocol, Span, Status, Tag, TagDeclaration, TypeDeclaration, Value, Version,
 };
 use crate::constraints::ConstraintTable;
 use crate::error::DefinitionError;
@@ -87,12 +86,6 @@ impl Definition {
         let ty = self.tag_declaration(&tag.name)?.ty.as_ref()?;
 
         self.value_of(tag.value.as_ref()?, ty).ok()
-    }
-
-    #[must_use]
-    pub fn is_struct(&self, name: &str) -> bool {
-        self.declaration(name)
-            .is_some_and(|declaration| matches!(declaration.kind, TypeKind::Struct(_)))
     }
 
     #[must_use]

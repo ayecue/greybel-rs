@@ -15,6 +15,7 @@ doctest = false
 scheduler = { workspace = true, features = ["tokio"] }
 greybel-api-reference.workspace = true
 greybel-builder = { workspace = true, features = ["game"] }
+greybel-core.workspace = true
 greybel-documents.workspace = true
 greybel-documents-fs-provider.workspace = true
 greybel-io.workspace = true

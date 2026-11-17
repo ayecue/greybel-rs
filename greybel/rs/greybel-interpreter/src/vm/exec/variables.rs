@@ -230,7 +230,6 @@ impl Vm {
         self.push_or_call(value, call, receiver, discard)
     }
 
-    /// Current `self`, or null when the function was called without a receiver.
     fn local_self(&self) -> Value {
         let frame = self.frame();
         let Some(base) = frame.slot_base else {
@@ -247,9 +246,6 @@ impl Vm {
             .unwrap_or(Value::Null)
     }
 
-    /// Reads `self.key`, or the stack-named member when `key` is absent. Without a receiver, Grey Hack reads null
-    /// because `ValSeqElem.Val` finds no `self`, then discards call arguments. Upstream MiniScript instead reports an
-    /// unknown variable.
     #[inline(never)]
     pub(super) fn load_self_property<I: Implementation>(
         &mut self,

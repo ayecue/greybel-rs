@@ -15,5 +15,5 @@ pub use color::Color;
 pub use style::{
     Alignment, CellMetricContainer, FontWeight, LayoutChange, Length, LineHeight, Style,
 };
-pub use terminal::TerminalOutput;
+pub use terminal::{LineLimits, LineSplitRule, TerminalOutput};
 pub use text::{Run, Text, TextComponent};

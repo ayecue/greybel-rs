@@ -16,6 +16,7 @@ import {
   Pause,
   Scopes,
   SetBreakpoints,
+  SetVariable,
   SourceBreakpoint,
   StackTrace,
   Step,
@@ -32,10 +33,10 @@ import {
 } from 'greybel-runtime';
 import runtimeScript from 'greybel-runtime-web/dist/index.js?url';
 import runtimeWasm from 'greybel-runtime-web/dist/greybel-runtime-web.wasm?url';
-import { Render, RichText, TerminalChannel } from 'greyhack-terminal-text';
+import { LineLimits, Render, RichText, TerminalChannel } from 'greyhack-terminal-text';
 import { World } from 'greyhack-world-operations';
 
-import type { ResolvedSettings } from '../project/manifest.js';
+import type { ResolvedSettings, TerminalLineLimits } from '../project/manifest.js';
 import type { PathResolver } from '../project/paths.js';
 import type { WasmLoader } from '../wasm.js';
 import type { Terminal } from './terminal.js';
@@ -80,6 +81,8 @@ export class RuntimeSession {
   readonly #documents = new MemoryEditor();
   readonly #paths: PathResolver;
 
+  #lineLimits: TerminalLineLimits | undefined;
+
   constructor(
     terminal: Terminal,
     listener: SessionListener,
@@ -106,6 +109,8 @@ export class RuntimeSession {
 
   async run(options: RunOptions): Promise<Exit> {
     const { runtime } = await this.#channels;
+
+    this.#lineLimits = options.settings.lineLimits;
 
     this.#documents.files.clear();
     for (const [uri, code] of options.documents) this.#documents.files.set(uri, code);
@@ -134,7 +139,8 @@ export class RuntimeSession {
   /** Removes tags with the runtime's terminal-text renderer, without wrapping, then the ANSI color codes. */
   async renderPlainText(text: string): Promise<string> {
     const { text: renderer } = await this.#channels;
-    const { texts } = await renderer.send(new Render({ texts: [new RichText({ text, columns: 0 })] }));
+    const lineLimits = this.#lineLimits === undefined ? undefined : new LineLimits(this.#lineLimits);
+    const { texts } = await renderer.send(new Render({ texts: [new RichText({ text, columns: 0, lineLimits })] }));
 
     return (texts[0] ?? '').replace(ANSI_COLOR, '');
   }
@@ -179,6 +185,11 @@ export class RuntimeSession {
     return this.#channels.then(({ runtime }) => runtime.send(new Variables({ reference })));
   }
 
+  /** Evaluates `value` and assigns it to `name` in the scope, list or map `reference`. */
+  setVariable(reference: number, name: string, value: string): Promise<Variable> {
+    return this.#channels.then(({ runtime }) => runtime.send(new SetVariable({ reference, name, value })));
+  }
+
   /** Returns undefined for statements. */
   evaluate(code: string): Promise<Evaluation | null> {
     return this.#channels.then(({ runtime }) => runtime.send(new Evaluate({ code })));
@@ -189,9 +200,14 @@ export class RuntimeSession {
   }
 
   describeLocation(location: SourceLocation): string {
+    return `${this.describeLine(location)}:${location.character}`;
+  }
+
+  /** `file:line`, without the column. */
+  describeLine(location: SourceLocation): string {
     const file = this.#paths.toPath(location.uri) ?? location.uri;
 
-    return `${file}:${location.line}:${location.character}`;
+    return `${file}:${location.line}`;
   }
 
   /** Undefined when the program completed. */

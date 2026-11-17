@@ -1,33 +1,55 @@
 import { Transform } from 'greybel-builder';
 import vscode, { ExtensionContext, Range, TextEditor } from 'vscode';
 
-import type { Launcher } from './launcher';
-import { showBuildFailure } from './builder/error-message';
+import { BuildFailureReporter } from './builder/error-message';
 import { BuilderTaskRunner } from './builder/task-runner';
-import { transpileSettingsOf, type BuildMode, type ProjectReader } from './project';
+import type { Launcher } from './launcher';
+import type { BuildMode, ProjectReader } from './project';
 
 enum TransformOutput {
   Editor,
   Clipboard
 }
 
-export function activate(context: ExtensionContext, launcher: Launcher, projects: ProjectReader) {
-  const tasks = new BuilderTaskRunner(launcher);
+export class TransformCommand {
+  readonly #projects: ProjectReader;
+  readonly #tasks: BuilderTaskRunner;
+  readonly #errors = new BuildFailureReporter();
 
-  async function transform(editor: TextEditor, mode: BuildMode | undefined, output: TransformOutput) {
+  constructor(context: ExtensionContext, launcher: Launcher, projects: ProjectReader) {
+    this.#projects = projects;
+    this.#tasks = new BuilderTaskRunner(launcher);
+
+    context.subscriptions.push(
+      vscode.commands.registerTextEditorCommand('greybel.transform.clipboard', (editor) =>
+        this.#transform(editor, undefined, TransformOutput.Clipboard)
+      ),
+      vscode.commands.registerTextEditorCommand('greybel.transform.write', (editor) =>
+        this.#transform(editor, undefined, TransformOutput.Editor)
+      ),
+      vscode.commands.registerTextEditorCommand('greybel.uglify.write', (editor) =>
+        this.#transform(editor, 'Uglify', TransformOutput.Editor)
+      ),
+      vscode.commands.registerTextEditorCommand('greybel.beautify.write', (editor) =>
+        this.#transform(editor, 'Beautify', TransformOutput.Editor)
+      )
+    );
+  }
+
+  async #transform(editor: TextEditor, mode: BuildMode | undefined, output: TransformOutput): Promise<void> {
     let code: string;
 
     try {
-      const project = await projects.of(editor.document.uri);
+      const project = await this.#projects.read(editor.document.uri);
 
-      code = await tasks.transform(
+      code = await this.#tasks.transform(
         new Transform({
           code: editor.document.getText(),
-          transpile: transpileSettingsOf(project, mode)
+          transpile: project.getTranspileSettings(mode)
         })
       );
     } catch (error) {
-      showBuildFailure(error);
+      this.#errors.show(error);
 
       return;
     }
@@ -45,19 +67,4 @@ export function activate(context: ExtensionContext, launcher: Launcher, projects
     await editor.edit((edit) => edit.replace(entireRange, code));
     vscode.window.showInformationMessage('Transform complete.');
   }
-
-  context.subscriptions.push(
-    vscode.commands.registerTextEditorCommand('greybel.transform.clipboard', (editor) =>
-      transform(editor, undefined, TransformOutput.Clipboard)
-    ),
-    vscode.commands.registerTextEditorCommand('greybel.transform.write', (editor) =>
-      transform(editor, undefined, TransformOutput.Editor)
-    ),
-    vscode.commands.registerTextEditorCommand('greybel.uglify.write', (editor) =>
-      transform(editor, 'Uglify', TransformOutput.Editor)
-    ),
-    vscode.commands.registerTextEditorCommand('greybel.beautify.write', (editor) =>
-      transform(editor, 'Beautify', TransformOutput.Editor)
-    )
-  );
 }

@@ -13,7 +13,6 @@ pub struct File {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-/// Position in a program source file. Diagnostics use `path`; `uri` identifies the document.
 pub struct Location {
     pub path: Rc<str>,
     pub uri: Rc<str>,

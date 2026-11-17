@@ -1,6 +1,7 @@
 //! Tests rich-text tags rendered as ANSI with terminal-column layout.
 
 use crate::support::Harness;
+use crate::support::terminal::LineLimits;
 
 #[test]
 fn should_retain_text_in_the_terminal_colour_without_escape_sequences() {
@@ -48,4 +49,22 @@ fn should_respond_with_every_text_in_order() {
     let texts = harness.render(&[("first", 0), ("<i>second</i>", 0), ("third", 40)]);
 
     assert_eq!(texts, ["first", "\x1b[3msecond\x1b[0m", "third"]);
+}
+
+#[test]
+fn should_split_long_lines_by_the_line_limits_given() {
+    let mut harness = Harness::new();
+    let text = "<b>x</b>".repeat(300);
+
+    let game = harness.render(&[(&text, 0)]);
+    let limited = harness.render_with_limits(
+        &[(&text, 0)],
+        Some(LineLimits {
+            text_per_line: 500,
+            tags_per_line: None,
+        }),
+    );
+
+    assert_eq!(game[0].lines().count(), 14);
+    assert_eq!(limited[0].lines().count(), 1);
 }

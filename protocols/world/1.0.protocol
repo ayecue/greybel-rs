@@ -19,6 +19,9 @@ use core 1.0;
 /// restarts, NPC sessions, and mining rounds. Ticks and operations never interleave. [`ProgramEnd`] notifications
 /// caused by an operation follow that operation response.
 protocol World = "greyhack-world" {
+    // Programs, built sources and their source maps travel in single messages; the game allows code up to 4 MB.
+    limit 16MiB;
+
     /// Game server that owns the shared world and executes program operations.
     provider GameServer {
         /// Launches `user`'s program as a process on the player computer and returns its session. Programs launched by

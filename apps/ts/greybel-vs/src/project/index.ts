@@ -2,10 +2,10 @@ import { AutoCompile, Build, MultilineStringStyle, TranspileMode, TranspileSetti
 import { Environment, Launch, MultilineStringStyle as LaunchedStyle } from 'greybel-runtime';
 import vscode, { Uri } from 'vscode';
 
-import type { BuildMode, Project } from './manifest';
+import type { BuildMode, Manifest, ProjectJson, TerminalLineLimits } from './manifest';
 import type { ProjectSettings } from './settings';
 
-export type { BuildMode, Manifest, Project } from './manifest';
+export type { BuildMode, Manifest, TerminalLineLimits } from './manifest';
 
 export interface ProjectServer {
   sendRequest<R>(method: string, params: unknown): Promise<R>;
@@ -20,67 +20,164 @@ export class ProjectReader {
     this.#settings = settings;
   }
 
-  of(uri: Uri): Promise<Project> {
-    return this.#request(uri, profileOf(uri));
+  async read(uri: Uri): Promise<Project> {
+    return new Project(await this.#request(uri, this.getProfile(uri)));
   }
 
-  async profilesOf(uri: Uri): Promise<string[]> {
+  getProfile(uri: Uri): string | undefined {
+    const profile = vscode.workspace.getConfiguration('greybel', uri).get<string>('profile') ?? '';
+
+    return profile === '' ? undefined : profile;
+  }
+
+  /** The files `uri` imports, directly or through other imported files, in import order. */
+  async getImportedFiles(uri: Uri): Promise<Uri[]> {
+    const server = await this.#server;
+    const uris = await server.sendRequest<string[]>('custom/imported-files', { uri: uri.toString() });
+
+    return uris.map((value) => Uri.parse(value));
+  }
+
+  async getProfiles(uri: Uri): Promise<string[]> {
     const project = await this.#request(uri, undefined);
 
     return Object.keys(project.manifest.profiles ?? {});
   }
 
-  async #request(uri: Uri, profile: string | undefined): Promise<Project> {
+  async #request(uri: Uri, profile: string | undefined): Promise<ProjectJson> {
     const server = await this.#server;
 
-    return server.sendRequest<Project>('custom/project', {
+    return server.sendRequest<ProjectJson>('custom/project', {
       uri: uri.toString(),
-      fallback: this.#settings.manifestOf(uri),
+      fallback: this.#settings.createManifest(uri),
       profile
     });
   }
 }
 
-export function profileOf(uri: Uri): string | undefined {
-  const profile = vscode.workspace.getConfiguration('greybel', uri).get<string>('profile') ?? '';
+/** A resolved project: its settings, files, and the builder and runtime requests made from them. */
+export class Project {
+  readonly #project: ProjectJson;
 
-  return profile === '' ? undefined : profile;
-}
+  constructor(project: ProjectJson) {
+    this.#project = project;
+  }
 
-export function folderOf(project: Project, document: Uri): Uri {
-  if (project.root !== null) return Uri.parse(project.root);
+  get manifest(): Manifest {
+    return this.#project.manifest;
+  }
 
-  return vscode.workspace.getWorkspaceFolder(document)?.uri ?? Uri.joinPath(document, '..');
-}
+  /** The folder of the project's `greybel.json`; undefined without one. */
+  get root(): Uri | undefined {
+    return this.#project.root === null ? undefined : Uri.parse(this.#project.root);
+  }
 
-export function entriesOf(project: Project, document: Uri): Uri[] {
-  const folder = folderOf(project, document);
+  getFolder(document: Uri): Uri {
+    if (this.#project.root !== null) return Uri.parse(this.#project.root);
 
-  return project.manifest.entries.map((entry) => Uri.joinPath(folder, entry));
-}
+    return vscode.workspace.getWorkspaceFolder(document)?.uri ?? Uri.joinPath(document, '..');
+  }
 
-export function transpileSettingsOf(
-  project: Project,
-  mode: BuildMode = project.manifest.build.mode
-): TranspileSettings {
-  const { build, format, strictMode } = project.manifest;
+  getEntries(document: Uri): Uri[] {
+    const folder = this.getFolder(document);
 
-  return new TranspileSettings({
-    mode: transpileModeOf(project, mode),
-    obfuscation: build.obfuscation,
-    strictMode,
-    variables: { ...project.buildVariables },
-    excludedNames: [...build.excludedNamespaces],
-    disabledSyntax: disabledSyntaxOf(project),
-    multilineStrings: build.multilineStrings === 'Join' ? MultilineStringStyle.Join : MultilineStringStyle.Concatenation
-  });
+    return this.manifest.entries.map((entry) => Uri.joinPath(folder, entry));
+  }
 
-  function transpileModeOf({ manifest }: Project, mode: BuildMode): TranspileMode {
+  getOutput(document: Uri): Uri {
+    return Uri.joinPath(this.getFolder(document), this.manifest.build.output);
+  }
+
+  getTranspileSettings(mode: BuildMode = this.manifest.build.mode): TranspileSettings {
+    const { build, format, strictMode } = this.manifest;
+
+    return new TranspileSettings({
+      mode: this.#getTranspileMode(mode, format),
+      obfuscation: build.obfuscation,
+      strictMode,
+      variables: { ...this.#project.buildVariables },
+      excludedNames: [...build.excludedNamespaces],
+      disabledSyntax: this.#getDisabledSyntax(),
+      multilineStrings:
+        build.multilineStrings === 'Join' ? MultilineStringStyle.Join : MultilineStringStyle.Concatenation
+    });
+  }
+
+  /**
+   * Builds `entries` from `ingameDirectory` and deploys through message-hook port `deployPort`. Resolves absolute
+   * imports from the project folder, or the workspace folder without `greybel.json`.
+   */
+  createBuild(entries: readonly Uri[], ingameDirectory: string, deployPort?: number): Build {
+    const { build, extensions } = this.manifest;
+
+    return new Build({
+      entries: entries.map((entry) => entry.toString()),
+      root: entries[0] === undefined ? undefined : this.getFolder(entries[0]).toString(),
+      extensions: [...extensions],
+      transpile: this.getTranspileSettings(),
+      ingameDirectory,
+      outputName: build.outputName ?? undefined,
+      autoCompile: build.autoCompile
+        ? new AutoCompile({
+            allowImport: deployPort === undefined ? build.installer.allowImport : build.deploy.allowImport
+          })
+        : undefined,
+      installerLength: build.installer.active ? build.installer.maxChars : undefined,
+      deployPort
+    });
+  }
+
+  /**
+   * Runs `entry` using `environment` and `params`. Resolves absolute imports from the project folder, or the
+   * workspace folder without `greybel.json`.
+   */
+  createLaunch(
+    entry: Uri,
+    environment: Environment,
+    params: readonly string[],
+    options: { readonly debug: boolean; readonly stopOnEntry: boolean }
+  ): Launch {
+    const { build, extensions, strictMode, run } = this.manifest;
+
+    return new Launch({
+      entry: entry.toString(),
+      root: this.getFolder(entry).toString(),
+      extensions: [...extensions],
+      environment,
+      debug: options.debug,
+      stopOnEntry: options.stopOnEntry,
+      params: [...params],
+      variables: { ...this.#project.runVariables },
+      strictMode,
+      programName: run.programName,
+      disabledSyntax: this.#getDisabledSyntax(),
+      multilineStrings: build.multilineStrings === 'Join' ? LaunchedStyle.Join : LaunchedStyle.Concatenation
+    });
+  }
+
+  /** The terminal form of `run.lineLimits`; `undefined` splits long lines as the game does. */
+  getLineLimits(): TerminalLineLimits | undefined {
+    const limits = this.manifest.run.lineLimits;
+
+    if (limits === null) return undefined;
+
+    return { textPerLine: limits.textPerLine, tagsPerLine: limits.tagsPerLine ?? undefined };
+  }
+
+  getEnvironment(port?: number): Environment {
+    const { run } = this.manifest;
+
+    return port === undefined
+      ? new Environment.Mock({ seed: run.seed, memoryLimit: run.memoryLimit })
+      : new Environment.Game({ port });
+  }
+
+  #getTranspileMode(mode: BuildMode, format: Manifest['format']): TranspileMode {
     switch (mode) {
       case 'Uglify':
         return new TranspileMode.Uglify({
-          disableLiteralsOptimization: manifest.build.disableLiteralsOptimization,
-          disableNamespacesOptimization: manifest.build.disableNamespacesOptimization
+          disableLiteralsOptimization: this.manifest.build.disableLiteralsOptimization,
+          disableNamespacesOptimization: this.manifest.build.disableNamespacesOptimization
         });
       case 'Beautify':
         return new TranspileMode.Beautify({
@@ -91,79 +188,13 @@ export function transpileSettingsOf(
         return new TranspileMode.Default();
     }
   }
-}
 
-/**
- * Builds `entries` in `project` from `ingameDirectory` and deploys through message-hook port `deployPort`.
- * Resolves absolute imports from the project folder, or the workspace folder without `greybel.json`.
- */
-export function buildOf(
-  project: Project,
-  entries: readonly Uri[],
-  ingameDirectory: string,
-  deployPort?: number
-): Build {
-  const { build, extensions } = project.manifest;
+  /** The names of the syntax features this project turns off, or `undefined` when every feature is on. */
+  #getDisabledSyntax(): string[] | undefined {
+    const names = Object.entries(this.manifest.syntax)
+      .filter(([, active]) => !active)
+      .map(([name]) => name);
 
-  return new Build({
-    entries: entries.map((entry) => entry.toString()),
-    root: entries[0] === undefined ? undefined : folderOf(project, entries[0]).toString(),
-    extensions: [...extensions],
-    transpile: transpileSettingsOf(project),
-    ingameDirectory,
-    outputName: build.outputName ?? undefined,
-    autoCompile: build.autoCompile
-      ? new AutoCompile({
-          allowImport: deployPort === undefined ? build.installer.allowImport : build.deploy.allowImport
-        })
-      : undefined,
-    installerLength: build.installer.active ? build.installer.maxChars : undefined,
-    deployPort
-  });
-}
-
-/**
- * Runs `entry` in `project` using `environment` and `params`. Resolves absolute imports from the project
- * folder, or the workspace folder without `greybel.json`.
- */
-export function launchOf(
-  project: Project,
-  entry: Uri,
-  environment: Environment,
-  params: readonly string[],
-  options: { readonly debug: boolean; readonly stopOnEntry: boolean }
-): Launch {
-  const { build, extensions, strictMode, run } = project.manifest;
-
-  return new Launch({
-    entry: entry.toString(),
-    root: folderOf(project, entry).toString(),
-    extensions: [...extensions],
-    environment,
-    debug: options.debug,
-    stopOnEntry: options.stopOnEntry,
-    params: [...params],
-    variables: { ...project.runVariables },
-    strictMode,
-    programName: run.programName,
-    disabledSyntax: disabledSyntaxOf(project),
-    multilineStrings: build.multilineStrings === 'Join' ? LaunchedStyle.Join : LaunchedStyle.Concatenation
-  });
-}
-
-/** The names of the syntax features `project` turns off, or `undefined` when every feature is on. */
-function disabledSyntaxOf({ manifest }: Project): string[] | undefined {
-  const names = Object.entries(manifest.syntax)
-    .filter(([, enabled]) => !enabled)
-    .map(([name]) => name);
-
-  return names.length === 0 ? undefined : names;
-}
-
-export function environmentOf(project: Project, port?: number): Environment {
-  const { run } = project.manifest;
-
-  return port === undefined
-    ? new Environment.Mock({ seed: run.seed, memoryLimit: run.memoryLimit })
-    : new Environment.Game({ port });
+    return names.length === 0 ? undefined : names;
+  }
 }

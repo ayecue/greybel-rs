@@ -29,11 +29,6 @@ impl StringLiteral {
     }
 
     #[must_use]
-    pub fn is_template(&self) -> bool {
-        self.template
-    }
-
-    #[must_use]
     pub fn text(&self) -> TextSpan {
         let quote = offset(QUOTE.len());
         let start = self.span.start + quote + u32::from(self.template);

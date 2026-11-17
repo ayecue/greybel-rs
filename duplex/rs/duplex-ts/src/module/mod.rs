@@ -154,14 +154,6 @@ impl<'a> Module<'a> {
         self
     }
 
-    /// Imports declared types from `types` rather than generating them.
-    #[must_use]
-    pub fn with_types(mut self, types: &'a str) -> Self {
-        self.types = Some(types);
-
-        self
-    }
-
     /// Imports and re-exports the protocol from `protocol` rather than declaring it.
     #[must_use]
     pub fn with_protocol(mut self, protocol: &'a str) -> Self {

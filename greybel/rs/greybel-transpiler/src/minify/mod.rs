@@ -85,13 +85,11 @@ impl Minification {
         self.variables.get(name).unwrap_or(name)
     }
 
-    /// The global alias uglify calls the general API function `name` through.
     #[must_use]
     pub fn native_alias(&self, name: &str) -> Option<&str> {
         self.natives.alias(name)
     }
 
-    /// `(name, alias)` of every aliased general API function, in the order the header assigns them.
     pub fn native_aliases(&self) -> impl Iterator<Item = (&str, &str)> {
         self.natives.entries()
     }

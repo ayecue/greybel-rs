@@ -20,7 +20,13 @@ fn should_list_the_game_tools_only_when_allowed() {
             "api_reference",
             "api_search",
             "build",
+            "call_hierarchy",
             "check",
+            "describe",
+            "document_symbols",
+            "find_references",
+            "find_symbol",
+            "rename",
             "run",
             "transform",
         ] {

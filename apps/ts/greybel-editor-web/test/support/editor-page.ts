@@ -17,7 +17,12 @@ export class EditorPage {
   }
 
   /** Opens the project `text` encodes. `prepare` runs before navigation, e.g. to route requests. */
-  static async open(text: string, prepare?: (page: Page) => Promise<void>): Promise<EditorPage> {
+  static open(text: string, prepare?: (page: Page) => Promise<void>): Promise<EditorPage> {
+    return EditorPage.openWithQuery(new URLSearchParams({ c: btoa(encodeURIComponent(text)) }), prepare);
+  }
+
+  /** Opens the page with `query`, such as `?id=` of a saved project. */
+  static async openWithQuery(query: URLSearchParams, prepare?: (page: Page) => Promise<void>): Promise<EditorPage> {
     EditorPage.#server ??= preview({ root: ROOT, mode: 'test', logLevel: 'warn', preview: { port: 0, open: false } });
 
     const url = (await EditorPage.#server).resolvedUrls?.local[0];
@@ -32,7 +37,6 @@ export class EditorPage {
       viewport: { width: 1400, height: 900 },
       permissions: ['clipboard-read', 'clipboard-write']
     });
-    const query = new URLSearchParams({ c: btoa(encodeURIComponent(text)) });
 
     page.on('dialog', (dialog) => void dialog.accept());
     page.on('pageerror', (error) => console.error('page error:', error));
@@ -46,6 +50,11 @@ export class EditorPage {
   /** The text of a project document, as a share link carries it. */
   static encodeProject(entry: string, files: Readonly<Record<string, string>>): string {
     return JSON.stringify({ greybel: 'project', version: 1, entry, files });
+  }
+
+  /** Waits until the debugger shows a stop. */
+  async waitForStop(): Promise<void> {
+    await this.page.locator('.debug-panel.stopped').waitFor();
   }
 
   async getTerminalText(): Promise<string> {

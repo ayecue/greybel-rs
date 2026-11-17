@@ -30,7 +30,6 @@ futures-util.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 greyhack-message-hook-client = { workspace = true, optional = true }
-serde_json = { workspace = true, optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 duplex-driver-stdio.workspace = true
@@ -38,7 +37,7 @@ tokio = { workspace = true, features = ["net", "time"] }
 
 [features]
 # Runs programs in Grey Hack, through its message hook plugin: native only.
-game = ["dep:greyhack-message-hook-client", "dep:serde_json", "tokio/time"]
+game = ["dep:greyhack-message-hook-client", "tokio/time"]
 # Tests against Grey Hack itself, run headless by greybel/dotnet/greyhack-test-support: they need the game installed
 # (GREY_HACK_PATH), the .NET SDK and Steam logged in. A feature of its own, as other crates of the workspace turn on `game`.
 game-tests = ["game"]

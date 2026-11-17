@@ -2,9 +2,6 @@ use greybel_core::syntax::BinaryOp;
 use greybel_core::{Ast, Node, NodeId, NodeKind, Visitor};
 use rustc_hash::FxHashSet;
 
-/// Nodes where a concatenation written in their place needs parentheses: operands of arithmetic and unary operators,
-/// except the left operand of `+` and `-`, and bases of member reads, indexes, slices and calls. Comparisons bind
-/// looser than `+`, so their operands need none. Parentheses in the source are seen through.
 #[derive(Debug, Default)]
 pub(crate) struct OperandTable {
     operands: FxHashSet<NodeId>,

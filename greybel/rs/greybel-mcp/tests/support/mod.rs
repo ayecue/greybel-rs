@@ -1,5 +1,7 @@
 //! In-memory MCP client for server tests.
 
+pub mod code;
+
 use greybel_mcp::{Server, ServerOptions};
 use rmcp::ServiceExt as _;
 use serde_json::{Value, json};

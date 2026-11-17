@@ -109,6 +109,7 @@ impl Server {
             memory,
             input: params.input,
             timeout,
+            split_rule: Program::split_rule_of(project.manifest.run.line_limits.as_ref()),
         }
         .run()
         .await;

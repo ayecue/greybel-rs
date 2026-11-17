@@ -50,7 +50,7 @@ describe('a project of several files', () => {
     await editor.clickBreakpointGutter(2);
     await editor.getFileEntry('main.src').locator('.file-path').click();
     await page.locator('button.debug').click();
-    await page.locator('.debug-panel').waitFor();
+    await editor.waitForStop();
 
     expect(await editor.getShownFile()).toBe('util.src');
     expect(await page.locator('.cm-stop-line').textContent()).toBe('  return "hi " + name');

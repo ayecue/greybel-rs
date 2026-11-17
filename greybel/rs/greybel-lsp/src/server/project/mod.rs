@@ -12,8 +12,6 @@ use crate::server::Server;
 use crate::server::state::{Expectation, FileAccess};
 
 impl Server {
-    /// Starts a project request and responds after reading required files: immediately for local files or as client
-    /// file responses arrive.
     pub(in crate::server) fn project(&mut self, request: Request) -> Option<Response> {
         let params = match request.params::<Project>() {
             Ok(params) => params,
@@ -47,7 +45,6 @@ impl Server {
         self.advance(query)
     }
 
-    /// Accepts client-provided text for a requested file and completes any project queries unblocked by it.
     pub(in crate::server) fn handle_project_file(&mut self, uri: &Uri, text: Option<&String>) {
         let queries = std::mem::take(&mut self.projects.queries);
 
@@ -62,7 +59,6 @@ impl Server {
         }
     }
 
-    /// Advances `query` and returns its response when complete, or `None` while client files are pending.
     fn advance(&mut self, mut query: ProjectQuery) -> Option<Response> {
         loop {
             match query.progress() {
@@ -108,7 +104,6 @@ impl Server {
         }
     }
 
-    /// Returns `document`'s workspace folder, falling back to its containing folder.
     fn folder_of(&self, document: &Uri) -> Uri {
         let path = document.path();
 

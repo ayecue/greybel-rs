@@ -1,30 +1,34 @@
 import { ChannelError } from 'duplex-core';
 import { Key, Output, PageRouter, ReadFailure, type OutputBatch, type ReadKey, type ReadLine } from 'greybel-io-web';
-import { Render, RichText, type TerminalChannel } from 'greyhack-terminal-text';
+import { LineLimits, Render, RichText, type TerminalChannel } from 'greyhack-terminal-text';
+import { EventEmitter } from 'vscode';
 
 import PseudoTerminal from '../debug/pseudo-terminal';
-import { getPreview } from '../preview';
+import type { PreviewOutput } from '../preview';
+import type { TerminalLineLimits } from '../project';
 import { toKey } from './terminal-keys';
-import { EventEmitter } from 'vscode';
 
 export class TerminalPage extends PageRouter {
   readonly terminal: PseudoTerminal;
   readonly #channel: TerminalChannel;
+  readonly #preview: PreviewOutput;
   readonly #endEvent = new EventEmitter<void>();
 
   #printQueue: Promise<void> = Promise.resolve();
   #isOver = false;
+  #lineLimits: LineLimits | undefined;
 
-  constructor(channel: TerminalChannel) {
+  constructor(channel: TerminalChannel, preview: PreviewOutput) {
     super();
     PseudoTerminal.activeTerminal?.dispose();
     this.terminal = new PseudoTerminal('greybel');
     this.#channel = channel;
+    this.#preview = preview;
     this.terminal.focus();
   }
 
   override onOutputBatch(message: OutputBatch): void {
-    getPreview().show(message.entries);
+    this.#preview.show(message.entries);
     this.#show(message.entries);
   }
 
@@ -48,6 +52,11 @@ export class TerminalPage extends PageRouter {
     return toKey(input);
   }
 
+  /** `undefined` splits long lines as the game does. */
+  setLineLimits(limits: TerminalLineLimits | undefined): void {
+    this.#lineLimits = limits === undefined ? undefined : new LineLimits(limits);
+  }
+
   printError(text: string): void {
     this.#printQueue = this.#printQueue.then(() => this.terminal.print(`\x1b[31m${text}\x1b[0m`));
   }
@@ -60,7 +69,7 @@ export class TerminalPage extends PageRouter {
   #showPrompt(prompt: string): Promise<void> {
     const entry = new Output.Print({ text: prompt, newLine: false, replace: false });
 
-    getPreview().show([entry]);
+    this.#preview.show([entry]);
 
     return this.#show([entry]);
   }
@@ -70,7 +79,10 @@ export class TerminalPage extends PageRouter {
 
     const columns = this.terminal.dimensions?.columns ?? 0;
     const ansiTexts = this.#render(
-      prints.map((print) => new RichText({ text: print.text, columns: print.newLine ? columns : 0 }))
+      prints.map(
+        (print) =>
+          new RichText({ text: print.text, columns: print.newLine ? columns : 0, lineLimits: this.#lineLimits })
+      )
     );
 
     this.#printQueue = this.#printQueue.then(async () => {

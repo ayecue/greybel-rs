@@ -621,6 +621,26 @@
             "minimum": 1,
             "description": "Mock-program memory limit in MiB before interruption, matching Grey Hack's out-of-memory behavior. Call nesting is unlimited."
           },
+          "greybel.interpreter.lineLimits.textPerLine": {
+            "scope": "resource",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "default": null,
+            "minimum": 1,
+            "description": "Cuts printed lines whose visible text is longer than this many characters into pieces of this length, as the greyhack-customizable-output mod does. Empty uses the game's rule."
+          },
+          "greybel.interpreter.lineLimits.tagsPerLine": {
+            "scope": "resource",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "default": null,
+            "minimum": 0,
+            "description": "With greybel.interpreter.lineLimits.textPerLine: also cuts lines whose tags take more than this many characters. Empty for no limit."
+          },
           "greybel.interpreter.seed": {
             "scope": "resource",
             "type": "string",

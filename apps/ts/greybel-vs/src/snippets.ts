@@ -2,24 +2,26 @@ import vscode, { ExtensionContext } from 'vscode';
 
 import { SNIPPETS } from './snippets.generated';
 
-export function activate(context: ExtensionContext) {
-  context.subscriptions.push(
-    vscode.commands.registerCommand('greybel.snippets', async (): Promise<void> => {
-      const names = Object.keys(SNIPPETS);
-      const snippetName = await vscode.window.showQuickPick(names);
+export class SnippetCommand {
+  constructor(context: ExtensionContext) {
+    context.subscriptions.push(vscode.commands.registerCommand('greybel.snippets', () => this.#open()));
+  }
 
-      if (snippetName && snippetName in SNIPPETS) {
-        const document = await vscode.workspace.openTextDocument({
-          language: 'greyscript',
-          content: SNIPPETS[snippetName]
-        });
+  async #open(): Promise<void> {
+    const names = Object.keys(SNIPPETS);
+    const snippetName = await vscode.window.showQuickPick(names);
 
-        vscode.window.showTextDocument(document);
+    if (snippetName && snippetName in SNIPPETS) {
+      const document = await vscode.workspace.openTextDocument({
+        language: 'greyscript',
+        content: SNIPPETS[snippetName]
+      });
 
-        return;
-      }
+      vscode.window.showTextDocument(document);
 
-      vscode.window.showErrorMessage(`Cannot find snippet. Available snippets: ${names.join(', ')}`);
-    })
-  );
+      return;
+    }
+
+    vscode.window.showErrorMessage(`Cannot find snippet. Available snippets: ${names.join(', ')}`);
+  }
 }

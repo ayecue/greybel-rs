@@ -2,7 +2,7 @@ import type { ComponentChildren } from 'preact';
 import { useContext } from 'preact/hooks';
 
 import { Link } from '../protocol.generated.js';
-import { ReferenceContext, linkedId } from './reference-context.js';
+import { ReferenceContext, getLinkedId } from './reference-context.js';
 
 export function LinkTo({
   link,
@@ -32,7 +32,7 @@ export function LinkTo({
     <a
       class={className}
       title={title}
-      href={`#${linkedId(link) ?? ''}`}
+      href={`#${getLinkedId(link) ?? ''}`}
       onClick={(event) => {
         event.preventDefault();
         reveal(link);

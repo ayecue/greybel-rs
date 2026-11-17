@@ -19,6 +19,7 @@ Promise.all([
       './test/e2e/debug.test.ts',
       './test/e2e/build.test.ts',
       './test/e2e/project.test.ts',
+      './test/e2e/share.test.ts',
       './test/e2e/terminal.test.ts',
       './test/e2e/world.test.ts'
     ],

@@ -1,4 +1,5 @@
 use greyhack_terminal_web::TerminalView;
+use text_mesh_core::{LineLimits, LineSplitRule};
 
 use crate::support::{HEIGHT, WIDTH, output, view_of};
 
@@ -126,4 +127,19 @@ fn should_draw_only_the_lines_in_and_near_sight() {
         quads(&far),
         quads(&near)
     );
+}
+
+#[test]
+fn should_split_long_lines_by_its_split_rule() {
+    let text = "<color=#ff0000>x</color>".repeat(250);
+    let mut view = TerminalView::new(WIDTH, HEIGHT);
+
+    view.set_text(&text);
+
+    let game_lines = view.line_count();
+
+    view.set_split_rule(LineSplitRule::Limits(LineLimits::BEFORE_TAG_LIMIT));
+    view.set_text(&text);
+
+    assert_eq!((game_lines, view.line_count()), (34, 1));
 }

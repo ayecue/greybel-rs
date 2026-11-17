@@ -50,7 +50,6 @@ pub enum RuntimeErrorKind {
     NewOfNonMap,
     #[error("{0} too large")]
     TooLarge(&'static str),
-    /// A game failure, not a program failure, reported by Grey Hack using this text.
     #[error(
         "Oops, a game error has occurred that has caused a crash in the script you just ran.\n\nPlease report the error along with the steps you have taken for review.\nThank you!"
     )]

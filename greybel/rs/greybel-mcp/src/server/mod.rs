@@ -3,6 +3,7 @@
 mod api;
 mod build;
 mod check;
+mod code;
 mod import;
 mod mode;
 mod run;
@@ -14,9 +15,10 @@ use rmcp::model::{Implementation, ServerCapabilities, ServerConfig};
 use rmcp::{ServerHandler, tool_handler};
 
 const INSTRUCTIONS: &str = "Tools for GreyScript, the language of the game Grey Hack, and MiniScript, which it extends: \
-look up the API (api_search, api_reference), check code for errors (check), transform it (transform), build \
-projects with what they import (build) and run programs in a simulated Grey Hack world (run). In the simulated \
-world, `get_shell(\"root\", \"test\")` is the local root shell.";
+look up the API (api_search, api_reference), check code for errors (check), navigate a project's code by symbol name \
+(document_symbols, find_symbol, find_references, describe, call_hierarchy), rename symbols (rename), transform code \
+(transform), build projects with what they import (build) and run programs in a simulated Grey Hack world (run). In \
+the simulated world, `get_shell(\"root\", \"test\")` is the local root shell.";
 
 /// Configuration for Grey Hack message-hook access.
 #[derive(Debug, Clone, Copy)]
@@ -40,6 +42,7 @@ impl Server {
     pub fn new(options: ServerOptions) -> Self {
         let mut tool_router = Self::api_router()
             + Self::check_router()
+            + Self::code_router()
             + Self::transform_router()
             + Self::build_router()
             + Self::run_router();

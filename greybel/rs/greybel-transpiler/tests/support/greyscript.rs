@@ -2,7 +2,7 @@
 //! injected, and loaded files.
 
 use greybel_core::Dialect;
-use greybel_transpiler::documents::Uri;
+use greybel_documents::Uri;
 use greybel_transpiler::{
     BeautifyOptions, BuildMode, PathMapping, TranspileOptions, UglifyOptions,
 };

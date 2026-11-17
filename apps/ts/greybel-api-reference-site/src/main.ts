@@ -15,7 +15,8 @@ openApiReference(document.getElementById('reference')!, {
   onExcludedTagsChange: (tags) => window.localStorage.setItem(EXCLUDED_TAGS, JSON.stringify(tags)),
   tab: address.searchParams.get('tab') === ReferenceTab.Guide ? ReferenceTab.Guide : ReferenceTab.Api,
   anchor: address.hash === '' ? undefined : decodeURIComponent(address.hash.slice(1)),
-  onTabChange: showTab
+  onTabChange: showTab,
+  repositoryUrl: 'https://github.com/ayecue/greybel-rs'
 });
 
 /** Stores the selected tab in the URL: `?tab=guide` for the guide; no parameter for the default API tab. */

@@ -32,6 +32,20 @@ export interface RunSettings {
   readonly params: readonly string[];
   readonly programName: string;
   readonly memoryLimit: number;
+  /** `null` splits long terminal lines as the game does. */
+  readonly lineLimits: LineLimitsJson | null;
+}
+
+export interface LineLimitsJson {
+  readonly textPerLine: number;
+  /** `null` for no limit. */
+  readonly tagsPerLine: number | null;
+}
+
+/** greyhack-terminal-web's and greyhack-terminal-text's form of `run.lineLimits`. */
+export interface TerminalLineLimits {
+  readonly textPerLine: number;
+  readonly tagsPerLine?: number;
 }
 
 /** greybel-lsp's `custom/project` result. */
@@ -53,6 +67,15 @@ export class ResolvedSettings {
     this.runVariables = runVariables;
   }
 
+  /** Undefined splits long terminal lines as the game does. */
+  get lineLimits(): TerminalLineLimits | undefined {
+    const limits = this.manifest.run.lineLimits;
+
+    if (limits === null) return undefined;
+
+    return { textPerLine: limits.textPerLine, tagsPerLine: limits.tagsPerLine ?? undefined };
+  }
+
   /** Undefined when every feature is on. */
   get disabledSyntax(): string[] | undefined {
     const names = Object.entries(this.manifest.syntax)
@@ -63,10 +86,13 @@ export class ResolvedSettings {
   }
 }
 
+/** `run.seed` of `MANIFEST_TEMPLATE`. */
+export const DEFAULT_SEED = 'test';
+
 /** Also applies while the project has no `greybel.json`. */
 export const MANIFEST_TEMPLATE = `{
   "run": {
-    "seed": "test",
+    "seed": "${DEFAULT_SEED}",
     "params": []
   },
   "build": {

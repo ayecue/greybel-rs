@@ -3,7 +3,7 @@ const PIXEL_LIMIT = 8;
 import { MessageTargetDriver } from 'duplex-driver-worker';
 import { Output, OutputBatch, ProgramChannel } from 'greybel-io-web/program';
 
-import type { TerminalPage } from '../../src/index.js';
+import type { LineLimits, Scene, TerminalPage } from '../../src/index.js';
 
 export interface Difference {
   readonly mean: number;
@@ -25,8 +25,19 @@ function connection(): NonNullable<typeof openedConnection> {
   return openedConnection;
 }
 
-async function nextDrawWithMeshes(): Promise<void> {
-  while ((await connection().terminal.nextDraw()).meshes.length === 0);
+let lastScene: Scene | undefined;
+
+async function nextDrawWithMeshes(): Promise<Scene> {
+  for (;;) {
+    const scene = await connection().terminal.nextDraw();
+
+    if (scene.meshes.length > 0) return scene;
+  }
+}
+
+/** Size of the vertices of the last scene drawn. */
+export function getVertexBytes(): number {
+  return lastScene?.meshes.reduce((sum, mesh) => sum + mesh.vertices.length, 0) ?? 0;
 }
 
 export function expectDraw(): void {
@@ -44,6 +55,14 @@ export async function open(wasm: string): Promise<void> {
   const bytes = Uint8Array.from(atob(wasm), (character) => character.charCodeAt(0));
 
   const page = greyhackTerminalWeb.openTerminal(document.getElementById('terminal') as HTMLCanvasElement, port1, bytes);
+  const recordDraws = (): void => {
+    void page.nextDraw().then((scene) => {
+      lastScene = scene;
+      recordDraws();
+    });
+  };
+
+  recordDraws();
   const channel = new ProgramChannel(new MessageTargetDriver(port2));
 
   await new Promise<void>((resolve) => channel.onAck(() => resolve()));
@@ -71,6 +90,10 @@ async function pixels(image: string): Promise<Uint8ClampedArray> {
   context.drawImage(decoded, 0, 0);
 
   return context.getImageData(0, 0, decoded.width, decoded.height).data;
+}
+
+export function setLineLimits(limits: LineLimits.Fields | undefined): void {
+  connection().terminal.setLineLimits(limits);
 }
 
 export async function compare(shot: string, capture: string): Promise<Difference> {

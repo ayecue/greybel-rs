@@ -3,7 +3,7 @@ import { Uri, type Webview } from 'vscode';
 const SCRIPT = 'dist/api-reference.js';
 const WASM = 'dist/api-reference.wasm';
 
-export function apiReferencePage(webview: Webview, extensionUri: Uri): string {
+export function createApiReferencePage(webview: Webview, extensionUri: Uri): string {
   const script = webview.asWebviewUri(Uri.joinPath(extensionUri, SCRIPT));
   const wasm = webview.asWebviewUri(Uri.joinPath(extensionUri, WASM));
   const policy = [

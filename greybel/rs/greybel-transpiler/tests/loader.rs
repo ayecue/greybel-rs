@@ -1,10 +1,10 @@
 //! Tests that synchronous and asynchronous fixture loading produce the same graph without duplicate reads.
 
+use greybel_documents::ModuleGraph;
 use greybel_documents_fs_provider::FsProvider;
 use greybel_test_support::documents::{CallRecorder, graph_outline};
 use greybel_test_support::future::block_on;
 use greybel_transpiler::TranspileOptions;
-use greybel_transpiler::documents::ModuleGraph;
 
 use crate::support::greybel::fixtures;
 

@@ -17,7 +17,6 @@ duplex-core.workspace = true
 greybel-io.workspace = true
 greyhack-text-mesh-assets.workspace = true
 text-mesh-core.workspace = true
-text-mesh-font.workspace = true
 text-mesh-layout.workspace = true
 text-mesh-webgl.workspace = true
 
@@ -27,6 +26,7 @@ wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 
 [dev-dependencies]
+text-mesh-font.workspace = true
 duplex-test-support.workspace = true
 duplex-ts.workspace = true
 greybel-io-web.workspace = true

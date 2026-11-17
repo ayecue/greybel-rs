@@ -550,7 +550,6 @@ name = "text-mesh-layout"
 version = "0.1.0"
 dependencies = [
  "serde",
- "serde_json",
  "text-mesh-core",
  "text-mesh-font",
  "text-mesh-test-support",
@@ -598,13 +597,10 @@ dependencies = [
 name = "text-mesh-webgl"
 version = "0.1.0"
 dependencies = [
- "serde",
- "serde_json",
  "text-mesh-core",
  "text-mesh-font",
  "text-mesh-layout",
  "text-mesh-test-support",
- "text-mesh-unity",
  "unicode-general-category",
 ]
 

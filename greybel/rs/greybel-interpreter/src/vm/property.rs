@@ -1,7 +1,5 @@
-use greybel_core::Dialect;
-
 use super::frame::Iteration;
-use super::implementation::{GreyHack, Implementation, MiniScript};
+use super::implementation::Implementation;
 use super::index::IndexResolver;
 use super::{ValueType, Vm};
 use crate::error::{IsaDepthLimit, RuntimeError, RuntimeErrorKind};
@@ -33,18 +31,6 @@ impl Vm {
         key: &Value,
     ) -> Result<Option<(&Value, Map)>, IsaDepthLimit> {
         self.lookup_value(map, key, None)
-    }
-
-    #[inline(never)]
-    pub fn map_lookup_by_key(
-        &self,
-        map: Map,
-        key: &Key,
-    ) -> Result<Option<(&Value, Map)>, IsaDepthLimit> {
-        match self.program.dialect {
-            Dialect::MiniScript => self.lookup_by_name::<MiniScript>(map, key),
-            Dialect::GreyScript | Dialect::Greybel => self.lookup_by_name::<GreyHack>(map, key),
-        }
     }
 
     #[inline(never)]
@@ -196,7 +182,6 @@ impl Vm {
         ))
     }
 
-    /// Reads `base.key` like [`Vm::property`] with a string key, except null has no members.
     #[inline(never)]
     pub(super) fn own_property<I: Implementation>(
         &self,

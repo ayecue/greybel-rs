@@ -15,6 +15,7 @@ export const editorTheme = EditorView.theme(
     '.cm-activeLine': { backgroundColor: '#ffffff0a' },
     '.cm-activeLineGutter': { backgroundColor: '#ffffff0a', color: '#c6c6c6' },
     '.cm-stop-line': { backgroundColor: '#ffcc0033' },
+    '.cm-frame-line': { backgroundColor: '#7fff0024' },
     '.cm-breakpoint-gutter .cm-gutterElement': { width: '14px', cursor: 'pointer' },
     '.cm-breakpoint': {
       display: 'inline-block',

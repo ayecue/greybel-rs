@@ -16,7 +16,6 @@ greybel-interpreter.workspace = true
 mono-number.workspace = true
 mono-random.workspace = true
 mono-string.workspace = true
-greybel-core.workspace = true
 greybel-symbols.workspace = true
 thiserror.workspace = true
 

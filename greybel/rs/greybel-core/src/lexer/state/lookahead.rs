@@ -8,8 +8,6 @@ pub struct Lookahead {
     slot_count: u8,
 }
 
-pub type LookaheadSnapshot = Lookahead;
-
 const PREVIOUS_SLOT_COUNT: u8 = 2;
 
 fn before_input() -> AnyToken {
@@ -48,11 +46,11 @@ impl Lookahead {
     }
 
     #[must_use]
-    pub fn snapshot(&self) -> LookaheadSnapshot {
+    pub fn snapshot(&self) -> Self {
         self.clone()
     }
 
-    pub fn restore(&mut self, snapshot: LookaheadSnapshot) {
+    pub fn restore(&mut self, snapshot: Self) {
         *self = snapshot;
     }
 }

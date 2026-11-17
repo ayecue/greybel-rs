@@ -19,7 +19,6 @@ futures-channel = { workspace = true, features = ["std"] }
 futures-core.workspace = true
 rustc-hash.workspace = true
 slotmap.workspace = true
-smallvec.workspace = true
 x25519-dalek = { workspace = true, optional = true }
 ed25519-dalek = { workspace = true, optional = true }
 chacha20poly1305 = { workspace = true, optional = true }

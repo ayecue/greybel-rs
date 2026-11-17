@@ -1,5 +1,5 @@
+use greybel_documents::Uri;
 use greybel_transpiler::PathMapping;
-use greybel_transpiler::documents::Uri;
 
 pub fn mapping() -> PathMapping {
     PathMapping {

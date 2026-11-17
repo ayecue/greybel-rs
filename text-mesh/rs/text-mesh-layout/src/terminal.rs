@@ -1,4 +1,4 @@
-use text_mesh_core::{TerminalOutput, TextComponent};
+use text_mesh_core::{LineSplitRule, TerminalOutput, TextComponent};
 
 use crate::layout::{Layout, LayoutGeometry};
 use crate::text_layout::TextLayout;
@@ -21,6 +21,7 @@ pub struct TerminalLayout<'a> {
     text: TextLayout<'a>,
     component: TextComponent<'a>,
     frame: TerminalFrame,
+    split_rule: LineSplitRule,
 }
 
 impl<'a> TerminalLayout<'a> {
@@ -34,7 +35,21 @@ impl<'a> TerminalLayout<'a> {
             text,
             component,
             frame,
+            split_rule: LineSplitRule::Game,
         }
+    }
+
+    #[must_use]
+    pub const fn with_split_rule(self, split_rule: LineSplitRule) -> Self {
+        Self { split_rule, ..self }
+    }
+
+    /// The lines `output` shows as, split by this layout's [`LineSplitRule`].
+    #[must_use]
+    pub fn lines(&self, output: &str) -> Vec<String> {
+        TerminalOutput::new(output)
+            .with_split_rule(self.split_rule)
+            .lines()
     }
 
     #[must_use]
@@ -55,7 +70,7 @@ impl<'a> TerminalLayout<'a> {
         let mut top = self.frame.padding;
         let mut items = Vec::new();
 
-        for line in TerminalOutput::new(output).lines() {
+        for line in self.lines(output) {
             let (layout, geometry) = self.layout_line(&line, width);
             let height = layout.height;
 

@@ -16,7 +16,6 @@ impl Vm {
         }
     }
 
-    /// Reads a variable for in-place operand evaluation; missing variables and function values return `None`.
     #[inline(always)]
     pub(super) fn variable_value(&self, variable: &Variable) -> Option<&Value> {
         match self.variable(&variable.key, &variable.cache) {

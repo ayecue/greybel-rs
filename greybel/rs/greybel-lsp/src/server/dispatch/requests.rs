@@ -1,6 +1,6 @@
 use gen_lsp_types::{self as lsp, ErrorCodes, LspRequestMethod, Request as LspRequest};
 
-use crate::client_requests::Project;
+use crate::client_requests::{ImportedFiles, Project};
 use crate::error::{ResponseError, Result};
 use crate::message::{Request, Response};
 use crate::server::{Server, State};
@@ -57,7 +57,6 @@ impl Server {
         route!(lsp::DocumentFormattingRequest => format_document),
     ];
 
-    /// Returns `request`'s response, or `None` if the server will respond later.
     pub(in crate::server) fn request(&mut self, request: Request) -> Option<Response> {
         if let Some(refusal) = self.refusal(&request) {
             return Some(Response::error(Some(request.id), refusal));
@@ -65,6 +64,10 @@ impl Server {
 
         if request.method == Project::METHOD.as_str() {
             return self.project(request);
+        }
+
+        if request.method == ImportedFiles::METHOD.as_str() {
+            return self.imported_files(request);
         }
 
         Some(

@@ -3,18 +3,16 @@ import { useEffect, useReducer, useRef, useState } from 'preact/hooks';
 import type { ProjectEditor } from '../editor/view.js';
 import type { Project } from '../project.js';
 import { MANIFEST_PATH } from '../project/content.js';
+import { DEFAULT_SEED } from '../project/manifest.js';
 import type { ProjectSettings } from '../project/settings.js';
 import { ProgramTerminal } from '../runtime/program-terminal.js';
 import { WorldWorker } from '../runtime/world.js';
-import { DebugPanel } from './debug-panel.js';
+import { DebugPanel } from './debug/panel.js';
 import { useServices } from './services.js';
 import { usePartChanges } from './wasm-status.js';
 import { Splitter } from './splitter.js';
 
 const WAIT_TITLE = 'Loading the runtime...';
-
-/** Same as `run.seed` in `MANIFEST_TEMPLATE`. */
-const DEFAULT_SEED = 'test';
 
 export interface ExecutePanelConfiguration {
   readonly editor: ProjectEditor;
@@ -41,7 +39,8 @@ export function ExecutePanel({ editor, project, settings, breakpointChanges, onF
 
   usePartChanges();
 
-  const showStop = (terminal: ProgramTerminal | undefined) => editor.showStop(terminal?.stopPlace);
+  const showStop = (terminal: ProgramTerminal | undefined) =>
+    editor.showStop(terminal?.stopPlace, terminal?.framePlace);
 
   const selectTerminal = (terminal: ProgramTerminal | undefined) => {
     currentRef.current = terminal;
@@ -64,7 +63,7 @@ export function ExecutePanel({ editor, project, settings, breakpointChanges, onF
         terminals.world,
         {
           onChange: (target) => {
-            if (target === currentRef.current && target.state !== 'stopped') showStop(target);
+            if (target === currentRef.current) showStop(target);
             refresh(undefined);
           },
           onStop: (target) => selectTerminal(target)
@@ -149,10 +148,12 @@ export function ExecutePanel({ editor, project, settings, breakpointChanges, onF
 
     const session = terminal.session;
 
-    terminal.setState('running');
+    terminal.setState('running', debug ? 'debug' : 'run');
     try {
       const script = terminal.script ?? project.entry;
       const runSettings = await settings.read(script, terminal.profile);
+
+      terminal.terminal.setLineLimits(runSettings.lineLimits);
 
       for (const [uri, lines] of editor.getBreakpoints()) await session.setBreakpoints(uri, lines);
 
@@ -215,7 +216,13 @@ export function ExecutePanel({ editor, project, settings, breakpointChanges, onF
     current?.setState('running');
   };
 
+  const stop = () => {
+    current?.terminal.cancelRead();
+    current?.session.terminate();
+  };
+
   const state = current?.state ?? 'idle';
+  const isDebugging = current !== undefined && current.debug.isActive && state !== 'idle';
   const list = terminalsRef.current?.list ?? [];
   const profiles = Object.keys(settings.current?.manifest.profiles ?? {});
   const isMissingProfile = current?.profile !== undefined && !profiles.includes(current.profile);
@@ -251,17 +258,11 @@ export function ExecutePanel({ editor, project, settings, breakpointChanges, onF
         >
           Pause
         </button>
-        <button
-          type="button"
-          class="stop"
-          disabled={state === 'idle'}
-          onClick={() => {
-            current?.terminal.cancelRead();
-            current?.session.terminate();
-          }}
-        >
-          Stop
-        </button>
+        {!isDebugging && (
+          <button type="button" class="stop" disabled={state === 'idle'} onClick={stop}>
+            Stop
+          </button>
+        )}
         <button type="button" class="clear" onClick={() => current?.terminal.clear()}>
           Clear
         </button>
@@ -373,16 +374,8 @@ export function ExecutePanel({ editor, project, settings, breakpointChanges, onF
         {current?.output ?? ''}
       </pre>
       <div class="terminals" ref={containerRef} />
-      {current && current.state === 'stopped' && <Splitter name="debug" axis="y" side="after" min={80} />}
-      {current && current.state === 'stopped' && (
-        <DebugPanel
-          key={current.name}
-          session={current.session}
-          stop={current.stopCount}
-          onResume={resume}
-          onOpenFile={(path) => editor.open(path)}
-        />
-      )}
+      {isDebugging && <Splitter name="debug" axis="y" side="after" min={120} />}
+      {isDebugging && <DebugPanel key={current.name} terminal={current} onResume={resume} onStop={stop} />}
     </section>
   );
 }

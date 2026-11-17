@@ -1,21 +1,21 @@
 import { Link, type Entry } from '../protocol.generated.js';
-import type { GuideVisibility } from '../state/guide-visibility.js';
-import type { Visibility } from '../state/visibility.js';
-import type { ChapterOutline } from './chapter.js';
+import type { GuideVisibility } from '../state/guide-search.js';
+import type { Visibility } from '../state/api-search.js';
+import type { ChapterStructure } from './chapter.js';
 import { LinkTo } from './link.js';
 
 /** The guide's sidebar: each chapter with its parts, as far as the search shows them. */
 export function GuideContents({
-  outlines,
+  structures,
   visibility
 }: {
-  outlines: readonly ChapterOutline[];
+  structures: readonly ChapterStructure[];
   visibility: GuideVisibility;
 }) {
   return (
     <nav class="contents" aria-label="Chapters">
       <ul>
-        {outlines.map(({ anchor, title, parts }) => (
+        {structures.map(({ anchor, title, parts }) => (
           <li hidden={visibility.hiddenChapters.has(anchor)}>
             <LinkTo link={new Link.Page({ anchor })} className="entry">
               {title}

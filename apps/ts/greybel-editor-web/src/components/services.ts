@@ -7,6 +7,7 @@ import type { Layout } from '../layout.js';
 import type { LanguageServerSettings } from '../project/language-server-settings.js';
 import type { PathResolver } from '../project/paths.js';
 import type { ProjectStorage } from '../project/storage.js';
+import type { WatchList } from '../runtime/watch-list.js';
 import type { WasmLoader } from '../wasm.js';
 
 /** The page's shared objects, created once in `main.tsx`. */
@@ -18,6 +19,7 @@ export interface ServiceContainer {
   readonly highlighter: TooltipHighlighter;
   readonly manifestHelp: ManifestHelp;
   readonly languageServerSettings: LanguageServerSettings;
+  readonly watches: WatchList;
 }
 
 export const ServiceContext = createContext<ServiceContainer | undefined>(undefined);

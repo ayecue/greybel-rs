@@ -99,7 +99,7 @@ describe('the editor', () => {
 
     await editor.clickBreakpointGutter(2);
     await page.locator('button.debug').click();
-    await page.locator('.debug-panel').waitFor();
+    await editor.waitForStop();
 
     expect(await page.locator('.cm-stop-line').textContent()).toBe('y = x * 2');
     await page.locator('.debug-evaluate').fill('x + 1');

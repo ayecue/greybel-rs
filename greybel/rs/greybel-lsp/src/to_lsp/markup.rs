@@ -9,7 +9,6 @@ pub struct Markup {
 }
 
 impl Markup {
-    /// The code block language of hover signatures, highlighted by greyscript-textmate's signature grammar.
     pub const SIGNATURE_LANGUAGE: &'static str = "greyscript-signature";
 
     #[must_use]

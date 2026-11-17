@@ -1,6 +1,6 @@
 use super::{
     AnyToken, LexResult, Lexer, PendingToken, TokenStart, TokenStream, is_identifier_part,
-    is_identifier_start, is_whitespace,
+    is_whitespace,
 };
 use crate::error::ParseResult;
 use crate::lexer::Punct;
@@ -50,13 +50,6 @@ impl<'src> Lexer<'src> {
             | TokenStart::Invalid
             | TokenStart::Hash => Ok(self.scan_punct_or_invalid(stream, pending_token)),
         }
-    }
-
-    #[must_use]
-    pub fn is_at_identifier(&self, stream: &TokenStream) -> bool {
-        let c = self.code_at(stream, 0);
-
-        is_identifier_start(c) || (self.grammar().lexer.hash_identifiers && c == b'#')
     }
 
     #[must_use]

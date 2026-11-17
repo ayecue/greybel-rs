@@ -12,7 +12,7 @@ use duplex_core::{Channel, ChannelOptions};
 use duplex_test_support::future::poll;
 use duplex_test_support::{Memory, MemoryQueue};
 use greyhack_terminal_text::Renderer;
-use terminal::{Render, RichText, Terminal};
+use terminal::{LineLimits, Render, RichText, Terminal};
 
 /// Memory-connected terminal and renderer with a driven serving future.
 pub struct Harness {
@@ -36,6 +36,15 @@ impl Harness {
 
     /// Sends all `(text, columns)` pairs in one render request and returns the renderer's ANSI strings.
     pub fn render(&mut self, texts: &[(&str, u16)]) -> Vec<String> {
+        self.render_with_limits(texts, None)
+    }
+
+    /// [`Self::render`] with `line_limits` on every text.
+    pub fn render_with_limits(
+        &mut self,
+        texts: &[(&str, u16)],
+        line_limits: Option<LineLimits>,
+    ) -> Vec<String> {
         let pending = self
             .terminal
             .send(&Render {
@@ -44,6 +53,7 @@ impl Harness {
                     .map(|&(text, columns)| RichText {
                         text: text.into(),
                         columns,
+                        line_limits,
                     })
                     .collect(),
             })

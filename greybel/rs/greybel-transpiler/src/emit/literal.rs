@@ -19,12 +19,10 @@ pub enum LiteralStyle {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LineBreakStyle<'a> {
     Retain,
-    /// `function(["a","b"])`.
     Join {
         function: &'a str,
         compact: bool,
     },
-    /// `"a"+variable+"b"`, omitting empty lines.
     Concatenate {
         variable: &'a str,
         compact: bool,
@@ -110,7 +108,6 @@ impl fmt::Display for LiteralText<'_> {
 }
 
 impl<'a> LineBreakStyle<'a> {
-    /// `helper` is the name of the function or variable `options.multiline_strings` writes.
     #[must_use]
     pub fn of(options: &TranspileOptions, helper: &'a str) -> Self {
         let compact = !matches!(options.mode, BuildMode::Beautify(_));
@@ -131,7 +128,6 @@ impl<'a> LineBreakStyle<'a> {
         }
     }
 
-    /// Whether strings with line breaks are rewritten.
     #[must_use]
     pub fn rewrites(self) -> bool {
         !matches!(self, Self::Retain)
@@ -156,7 +152,6 @@ impl LiteralText<'_> {
         source.contains(['\n', '\r'])
     }
 
-    /// Whether the text is a concatenation, which needs parentheses as an operand.
     #[must_use]
     pub fn concatenates(&self) -> bool {
         self.line_breaks.concatenates() && self.rewrites()

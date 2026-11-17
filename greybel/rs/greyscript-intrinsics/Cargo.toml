@@ -47,7 +47,6 @@ greyhack-world-intrusion.workspace = true
 greyhack-world-libraries.workspace = true
 greyhack-world-player.workspace = true
 greyhack-world-smart-devices.workspace = true
-greyhack-world-traces.workspace = true
 greybel-documents-memory-provider.workspace = true
 greyscript-meta.workspace = true
 meta-utils.workspace = true

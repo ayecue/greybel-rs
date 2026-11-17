@@ -7,12 +7,9 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use crate::client_requests::ProjectResult;
 use crate::message::RequestId;
 
-/// A project request awaiting file reads: candidate `greybel.json` files in nearest-first order, followed by the
-/// selected project's variable files.
 pub(in crate::server) struct ProjectQuery {
     pub id: RequestId,
     document: Uri,
-    /// Base folder for file paths when no `greybel.json` exists.
     folder: Uri,
     fallback: Manifest,
     profile: Option<String>,
@@ -47,17 +44,14 @@ impl ProjectQuery {
         }
     }
 
-    /// Checks whether the query has requested `uri` from the client and awaits its text.
     pub(in crate::server) fn waits_for(&self, uri: &Uri) -> bool {
         self.pending_reads.contains(uri) && !self.texts.contains_key(uri)
     }
 
-    /// Supplies text for `uri`; `None` indicates a missing file.
     pub(in crate::server) fn receive(&mut self, uri: &Uri, text: Option<String>) {
         self.texts.insert(uri.clone(), text);
     }
 
-    /// Advances using available file text to locate the project and then resolve its variable values.
     pub(in crate::server) fn progress(&mut self) -> Progress {
         if self.project.is_none() {
             match self.locate() {
@@ -89,8 +83,6 @@ impl ProjectQuery {
         })))
     }
 
-    /// Returns the project from the nearest available `greybel.json`, the fallback project if none exists, or `None`
-    /// while a nearer candidate remains unread.
     fn locate(&self) -> Result<Option<Project>, ProjectError> {
         for location in Project::locations(&self.document) {
             match self.texts.get(&location) {
@@ -132,7 +124,6 @@ impl ProjectQuery {
     }
 }
 
-/// Project requests awaiting file contents.
 #[derive(Default)]
 pub(in crate::server) struct ProjectTable {
     pub queries: Vec<ProjectQuery>,

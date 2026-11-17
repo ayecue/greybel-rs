@@ -46,3 +46,18 @@ fn should_keep_the_last_160000_characters_of_a_batch() {
     assert_eq!(text.len(), 160_000 + 1);
     assert!(text.starts_with(&"a".repeat(60_000)));
 }
+
+#[test]
+fn should_count_the_batch_in_utf16_units() {
+    let (output, sent, _) = output();
+
+    output.print(&"é".repeat(100_000), PrintOptions::default());
+    output.print(&"b".repeat(100_000), PrintOptions::default());
+    output.send();
+
+    let texts = sent.0.borrow();
+    let text = &texts[0];
+
+    assert_eq!(text.encode_utf16().count(), 160_000 + 1);
+    assert!(text.starts_with(&"é".repeat(60_000)));
+}

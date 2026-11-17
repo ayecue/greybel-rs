@@ -1,6 +1,7 @@
-import type { StopNotice } from 'greybel-runtime';
+import type { SourceLocation, StopNotice } from 'greybel-runtime';
 
 import type { PathResolver } from '../project/paths.js';
+import { DebugState } from './debug-state.js';
 import type { WasmLoader } from '../wasm.js';
 import { RuntimeSession } from './session.js';
 import { Terminal } from './terminal.js';
@@ -12,6 +13,8 @@ export interface StopPlace {
   readonly path: string;
   readonly line: number;
 }
+
+export type ProgramMode = 'run' | 'debug';
 
 export interface ProgramTerminalListener {
   onChange(terminal: ProgramTerminal): void;
@@ -30,8 +33,9 @@ export class ProgramTerminal {
 
   state: ProgramState = 'idle';
   stopPlace: StopPlace | undefined;
-  /** Incremented on each stop. */
-  stopCount = 0;
+  /** The caller frame selected in the debugger; undefined for the innermost frame. */
+  framePlace: StopPlace | undefined;
+  readonly debug = new DebugState();
   /** Plain text for screen readers. */
   output = '';
 
@@ -78,9 +82,24 @@ export class ProgramTerminal {
   }
 
   /** Clears the stop location unless `state` is `stopped`. */
-  setState(state: ProgramState): void {
+  setState(state: ProgramState, mode?: ProgramMode): void {
     this.state = state;
-    if (state !== 'stopped') this.stopPlace = undefined;
+    if (state !== 'stopped') {
+      this.stopPlace = undefined;
+      this.framePlace = undefined;
+      this.debug.clearStop();
+    }
+
+    if (mode === 'debug') this.debug.start();
+    if (state === 'idle') this.debug.finish();
+    this.#listener.onChange(this);
+  }
+
+  /** Marks the frame at `location` in the editor; undefined marks none. */
+  selectFrame(location: SourceLocation | undefined): void {
+    const path = location === undefined ? undefined : this.#paths.toPath(location.uri);
+
+    this.framePlace = path === undefined || location === undefined ? undefined : { path, line: location.line };
     this.#listener.onChange(this);
   }
 
@@ -99,6 +118,7 @@ export class ProgramTerminal {
           const at = message.location ? `${session.describeLocation(message.location)}: ` : '';
 
           this.terminal.printLine(`${at}${message.text}`);
+          this.debug.addEntry('log', `${at}${message.text}`);
         }
       },
       world.open(),
@@ -114,7 +134,8 @@ export class ProgramTerminal {
 
     this.state = 'stopped';
     this.stopPlace = path === undefined || !notice.location ? undefined : { path, line: notice.location.line };
-    this.stopCount += 1;
+    this.framePlace = undefined;
+    this.debug.recordStop(notice.reason, notice.location ?? undefined);
     this.#listener.onStop(this);
     this.#listener.onChange(this);
   }

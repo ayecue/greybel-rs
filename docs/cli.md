@@ -65,7 +65,7 @@ A typical project is:
 
 `entries` supplies the files for `greybel build` and the first entry for `greybel execute` when no file is named. Entry and environment-file paths are relative to the project folder. `extensions` lists suffixes an import may omit, in lookup order; its default is `src`, `gs`, `ms`. `strictMode` rejects Greybel syntax that Grey Hack's compiler does not accept. `exclude` is a separate type-analyzer exclusion glob, defaulting to `**/{node_modules,.*}/**`; it does not exclude build dependencies.
 
-Build settings also include `outputName` for a single entry, `disableLiteralsOptimization`, `disableNamespacesOptimization`, `excludedNamespaces`, and `multilineStrings`. `multilineStrings` sets how builds and runs write strings with line breaks: `Concatenation` (default) writes `"a"+__NL+"b"` with `__NL=char(10)`; `Join` writes `__MSTR(["a","b"])`, which joins the lines in one pass and is faster for strings with many lines. `memoryLimit` is in MiB and applies to mock execution. Unknown configuration fields are rejected. The complete editor schema is [greybel.schema.json](../apps/ts/greybel-vs/schemas/greybel.schema.json).
+Build settings also include `outputName` for a single entry, `disableLiteralsOptimization`, `disableNamespacesOptimization`, `excludedNamespaces`, and `multilineStrings`. `multilineStrings` sets how builds and runs write strings with line breaks: `Concatenation` (default) writes `"a"+__NL+"b"` with `__NL=char(10)`; `Join` writes `__MSTR(["a","b"])`, which joins the lines in one pass and is faster for strings with many lines. `memoryLimit` is in MiB and applies to mock execution. `run.lineLimits` (`{ "textPerLine": 256, "tagsPerLine": null }`) replaces the game's rule for cutting long printed lines with the one of the greyhack-customizable-output mod: a line whose visible text is longer than `textPerLine` characters, or whose tags take more than `tagsPerLine` characters, is cut into pieces of `textPerLine` characters; `null` for `tagsPerLine` means no tag limit. `greybel execute` and `greybel repl` take `--text-per-line N` and `--tags-per-line N` for the same. Unknown configuration fields are rejected. The complete editor schema is [greybel.schema.json](../apps/ts/greybel-vs/schemas/greybel.schema.json).
 
 Profiles override `build` and `run`:
 
@@ -278,7 +278,9 @@ Configure an MCP client to launch this as a **stdio** server:
 greybel mcp
 ```
 
-The server exposes `api_search`, `api_reference`, `check`, `transform`, `build`, and `run`. These tools use `greybel.json` where applicable, and build, transform, and run requests can select a project profile. The server uses its process working directory for standalone code and relative paths.
+The server exposes `api_search`, `api_reference`, `check`, `transform`, `build`, and `run`. These tools use `greybel.json` where applicable, and build, transform, and run requests can select a project profile.
+
+For navigating a project's code it also exposes `document_symbols`, `find_symbol`, `find_references`, `describe`, `call_hierarchy`, and `rename`. They analyse every script of the project (the folder of the nearest `greybel.json`, else the given folder) as the language server does. Symbols are addressed by name path, such as `App.utils.format` or `main.count` for a local of `main`, or by `path`, `line`, and `column`; an ambiguous name returns the matching name paths. `rename` writes the changed files unless `dry_run` is set. The server uses its process working directory for standalone code and relative paths.
 
 Game access is disabled by default. To permit in-game `run` requests and add the `import_into_game` tool, start it with:
 

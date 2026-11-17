@@ -103,7 +103,6 @@ impl UnionBuilder {
         false
     }
 
-    /// Removes literal types whose base type is a variant too: `"tcp" or string` is `string`.
     fn remove_covered_literals(&mut self, types: &TypeTable) {
         let (strings, numbers) = (
             self.variants.contains(&TypeId::STRING),
@@ -376,7 +375,6 @@ impl TypeTable {
         matches!(self.get(ty), Type::Union(_))
     }
 
-    /// `ty` with a literal type as its base type (`"tcp"` as `string`); other types as they are.
     #[must_use]
     pub fn without_literal(&self, ty: TypeId) -> TypeId {
         match self.get(ty) {

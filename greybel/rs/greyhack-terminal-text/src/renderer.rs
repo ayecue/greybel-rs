@@ -1,6 +1,9 @@
 use duplex_core::{Channel, ChannelOptions, Driver, NextMessage, Responder, Transport};
+use text_mesh_core::LineSplitRule;
 
-use crate::protocol::{AnsiOutput, Render, Renderer as RendererRole, RendererRouter, RichText};
+use crate::protocol::{
+    AnsiOutput, LineLimits, Render, Renderer as RendererRole, RendererRouter, RichText,
+};
 
 /// Duplex terminal-text provider that renders requests for one terminal.
 pub struct Renderer<D: Driver> {
@@ -38,7 +41,16 @@ impl RendererRouter for RenderHandler {
             texts: message
                 .texts
                 .iter()
-                .map(|rich_text: &RichText| crate::ansi_text(&rich_text.text, rich_text.columns))
+                .map(|rich_text: &RichText| {
+                    crate::ansi_text(
+                        &rich_text.text,
+                        rich_text.columns,
+                        rich_text
+                            .line_limits
+                            .as_ref()
+                            .map_or(LineSplitRule::Game, LineLimits::split_rule),
+                    )
+                })
                 .collect(),
         });
     }

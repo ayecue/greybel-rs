@@ -283,25 +283,6 @@ pub fn work_ends(world: &World) -> Vec<WorkEnvelope> {
     ends.borrow_mut().drain(..).collect()
 }
 
-/// Delivers queued events, including asynchronous domain subscribers, and returns strikes.
-pub async fn strikes_async(world: &World) -> Vec<StrikeEvent> {
-    let strikes = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
-
-    world.assembly.events.on({
-        let strikes = strikes.clone();
-
-        move |event: &StrikeEvent| strikes.borrow_mut().push(*event)
-    });
-    world
-        .assembly
-        .events
-        .dispatch_async()
-        .await
-        .expect("domain events deliver");
-
-    strikes.borrow_mut().drain(..).collect()
-}
-
 /// Delivers queued events and returns strikes in publish order.
 pub fn strikes(world: &World) -> Vec<StrikeEvent> {
     let strikes = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));

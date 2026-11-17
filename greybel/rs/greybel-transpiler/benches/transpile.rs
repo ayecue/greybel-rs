@@ -4,7 +4,7 @@ use std::hint::black_box;
 use std::path::Path;
 
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
-use greybel_transpiler::documents::Uri;
+use greybel_documents::Uri;
 use greybel_transpiler::{BeautifyOptions, BuildMode, TranspileOptions, Transpiler, UglifyOptions};
 
 const CORPUS: &[&str] = &[

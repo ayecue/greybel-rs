@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { openPage } from './support/browser.js';
-import { member } from './support/locators.js';
+import { ReferencePage } from './support/reference-page.js';
 
 describe('a narrow API reference', () => {
   it('should list the tabs and the contents in a menu instead of a tab row and a sidebar', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
 
     await page.setViewportSize({ width: 600, height: 800 });
 
@@ -25,7 +25,8 @@ describe('a narrow API reference', () => {
     await expect.poll(() => menu.count()).toBe(0);
     await expect
       .poll(() =>
-        member(page, 'general', 'get_shell')
+        reference
+          .getMember('general', 'get_shell')
           .boundingBox()
           .then((box) => box?.y)
       )
@@ -44,7 +45,8 @@ describe('a narrow API reference', () => {
   });
 
   it('should fit the menu into the visible height', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
 
     await page.setViewportSize({ width: 600, height: 400 });
     await page.locator('button.menu-toggle').click();
@@ -56,7 +58,8 @@ describe('a narrow API reference', () => {
   });
 
   it('should show the tab row and the sidebar again once it is wide', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
 
     expect(await page.locator('.toolbar > .tabs').isVisible()).toBe(true);
     expect(await page.locator('#panel-api > nav.contents').isVisible()).toBe(true);

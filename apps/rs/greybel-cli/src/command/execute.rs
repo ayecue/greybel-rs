@@ -10,13 +10,14 @@ use greybel_documents_fs_provider::FsProvider;
 use greybel_project::{Place, Project};
 use greybel_runtime::connect_over_tcp;
 use greybel_runtime::protocol::{Exit, Launch, LaunchFailure, SourceBreakpoint};
+use greyhack_terminal_text::LineSplitRule;
 
 use super::block_on;
 use super::options::{
     MessageHook, ProjectOptions, Simulation, SourceOptions, VariableOptions, current_folder,
 };
 use crate::report::{self, Failure, Report};
-use crate::terminal::{Debugger, TerminalHost};
+use crate::terminal::{Debugger, RichTextScreen, TerminalHost};
 
 #[derive(Debug, Args)]
 pub struct ExecuteCommand {
@@ -79,13 +80,14 @@ enum EnvironmentType {
 
 impl ExecuteCommand {
     pub fn run(self) -> Result<(), Failure> {
-        let launch = self.launch()?;
+        let (launch, split_rule) = self.launch()?;
         let breakpoints = self.breakpoints().map_err(Failure::input)?;
 
-        report::exit(run(launch, &breakpoints, self.world))
+        report::exit(run(launch, &breakpoints, self.world, split_rule))
     }
 
-    fn launch(&self) -> Result<Launch<'static>, Failure> {
+    /// The launch and how its output splits long lines.
+    fn launch(&self) -> Result<(Launch<'static>, LineSplitRule), Failure> {
         let (mut project, entry) = self.entry()?;
         let manifest = &mut project.manifest;
 
@@ -112,11 +114,16 @@ impl ExecuteCommand {
             .variables
             .read(&project, &project.manifest.run.variables)?;
 
-        Ok(project.launch(
+        let launch = project.launch(
             &entry,
             place,
             variables,
             self.debug || !self.breakpoints.is_empty(),
+        );
+
+        Ok((
+            launch,
+            RichTextScreen::split_rule_of(project.manifest.run.line_limits.as_ref()),
         ))
     }
 
@@ -176,6 +183,7 @@ fn run(
     launch: Launch<'static>,
     breakpoints: &BTreeMap<String, Vec<SourceBreakpoint>>,
     world: Option<String>,
+    split_rule: LineSplitRule,
 ) -> Result<Exit, LaunchFailure> {
     block_on(async move {
         let world =
@@ -188,7 +196,7 @@ fn run(
                 })?),
                 None => None,
             };
-        let (controller, mut stops) = TerminalHost::start(Arc::default(), world);
+        let (controller, mut stops) = TerminalHost::start(Arc::default(), world, split_rule);
 
         for (uri, breakpoints) in breakpoints {
             controller.set_breakpoints(uri, breakpoints);

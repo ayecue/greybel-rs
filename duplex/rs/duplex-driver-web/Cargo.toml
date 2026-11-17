@@ -22,7 +22,6 @@ futures-channel.workspace = true
 futures-core.workspace = true
 js-sys.workspace = true
 scheduler = { workspace = true, features = ["web"] }
-wasm-bindgen-futures.workspace = true
 web-sys = { workspace = true, features = ["EventTarget", "MessageChannel", "MessageEvent", "MessagePort", "console"] }
 
 [lints]

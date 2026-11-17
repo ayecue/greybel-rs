@@ -28,17 +28,6 @@ impl BitwiseOp {
         self.punct().as_str()
     }
 
-    #[must_use]
-    pub fn from_punct(punct: Punct) -> Option<Self> {
-        Some(match punct {
-            Punct::BitwiseAnd => BitwiseOp::And,
-            Punct::BitwiseOr => BitwiseOp::Or,
-            Punct::ShiftLeft => BitwiseOp::ShiftLeft,
-            Punct::ShiftRight => BitwiseOp::ShiftRight,
-            Punct::UnsignedShiftRight => BitwiseOp::UnsignedShiftRight,
-            _ => return None,
-        })
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]

@@ -16,6 +16,7 @@ import { OutputBatch, ProgramChannel } from 'greybel-io-web/program';
 import { openTerminal, type TerminalPage } from 'greyhack-terminal-web';
 import terminalWasm from 'greyhack-terminal-web/greyhack-terminal-web.wasm?url';
 
+import type { TerminalLineLimits } from '../project/manifest.js';
 import type { WasmLoader } from '../wasm.js';
 
 interface PendingRead {
@@ -108,6 +109,11 @@ export class Terminal extends PageRouter {
 
   cancelRead(): void {
     this.#read?.cancel();
+  }
+
+  /** `undefined` splits long lines as the game does. */
+  setLineLimits(limits: TerminalLineLimits | undefined): void {
+    void this.#screen.then(({ page }) => page.setLineLimits(limits));
   }
 
   close(): void {

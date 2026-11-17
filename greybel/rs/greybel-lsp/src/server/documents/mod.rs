@@ -2,6 +2,7 @@ mod client_files;
 mod dependencies;
 mod diagnostics;
 mod document_table;
+mod imported_files;
 mod sync;
 mod workspace;
 

@@ -1,6 +1,7 @@
 use duplex_core::Bytes;
 use greybel_io::{Output, TextScreen};
 use greyhack_text_mesh_assets::{AtlasFile, TERMINAL_TEXT, TERMINAL_THEME};
+use text_mesh_core::LineSplitRule;
 use text_mesh_webgl::{MeshMaterial, Projection, SamplePattern, SdfUniforms};
 
 use crate::protocol::terminal::{
@@ -44,6 +45,12 @@ impl Terminal {
     /// Applies program `output` to the screen and refreshes the view text.
     pub fn show(&mut self, output: &[Output]) {
         self.screen.apply(output);
+        self.view.set_text(&self.screen.text());
+    }
+
+    /// Splits long lines by `split_rule` and relayouts the output.
+    pub fn set_split_rule(&mut self, split_rule: LineSplitRule) {
+        self.view.set_split_rule(split_rule);
         self.view.set_text(&self.screen.text());
     }
 

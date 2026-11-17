@@ -11,7 +11,6 @@ const EXACT_INTEGER: f64 = 9_007_199_254_740_992.0;
 #[repr(transparent)]
 pub struct Number(f64);
 
-/// Uses direct `f64` comparisons on hot VM paths rather than implementations derived through `partial_cmp`.
 impl PartialOrd for Number {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.0.partial_cmp(&other.0)
@@ -48,9 +47,6 @@ impl Number {
         self.0
     }
 
-    /// Reproduces the game's C# `(int)` cast: convert to 64 bits and retain the low 32. Values outside `i32` wrap;
-    /// values outside `i64` saturate first; NaN becomes 0. Measured in Grey Hack on macOS arm64; x64 returns 0 for
-    /// values outside `i64`.
     #[must_use]
     pub fn to_int(self) -> i32 {
         #[allow(clippy::cast_possible_truncation)]
@@ -59,7 +55,6 @@ impl Number {
         int
     }
 
-    /// Truncates a non-negative finite value to a `usize` index; negative and non-finite values return `None`.
     #[must_use]
     pub fn to_index(self) -> Option<usize> {
         if !self.0.is_finite() || self.0 < 0.0 {
@@ -70,8 +65,6 @@ impl Number {
         Some(self.0 as usize)
     }
 
-    /// Computes `floor(len * self)` for finite `self`, otherwise `None`. Returns 0 for zero length or non-positive
-    /// counts.
     #[must_use]
     pub fn repeat_count(self, len: usize) -> Option<usize> {
         if !self.0.is_finite() {
@@ -95,13 +88,11 @@ impl Number {
         self.0 != 0.0
     }
 
-    /// Compares raw `f64` bits, so NaN equals only its identical bit pattern and `0` differs from `-0`.
     #[must_use]
     pub fn is_identical(self, other: Self) -> bool {
         self.0.to_bits() == other.0.to_bits()
     }
 
-    /// Produces canonical map-key hash bits by normalizing `0` and `-0` to zero and every NaN to `f64::NAN` bits.
     pub(crate) fn key_bits(self) -> u64 {
         if self.0 == 0.0 {
             0
@@ -117,7 +108,6 @@ impl Number {
         Self(self.0.powf(exponent.0))
     }
 
-    /// Returns the absolute magnitude limited to 1 for fuzzy conditions.
     #[must_use]
     pub fn clamp_truth(self) -> Self {
         let magnitude = self.0.abs();
@@ -205,8 +195,6 @@ impl Div for Number {
     }
 }
 
-/// Computes exact `i64` remainder for integral operands in the exact-integer range with a nonzero divisor,
-/// retaining the dividend's sign on zero. Uses floating-point remainder otherwise.
 impl Rem for Number {
     type Output = Self;
 

@@ -30,10 +30,8 @@ pnpm --filter greybel-editor-web preview       # serve the production build
 pnpm --filter greybel-editor-web test          # build in test mode and run Vitest/Playwright in Chromium
 ```
 
-Set `EDITOR_SERVICE_URL` at build time to enable saving projects to an editor service:
+`EDITOR_SERVICE_URL` enables **Save**, which stores the project in [greybel-editor-service](../../rs/greybel-editor-service/README.md) and opens it again from `?id=`. `.env.production` sets it to the deployed service for `build`; `.env.test` sets an address the tests answer themselves. Override it at build time:
 
 ```sh
-EDITOR_SERVICE_URL=https://example.com pnpm --filter greybel-editor-web build
+EDITOR_SERVICE_URL=http://localhost:8080 pnpm --filter greybel-editor-web build
 ```
-
-The service must accept `POST /code` with `{ "content": "..." }` and return `{ "id": "..." }`, and serve `GET /code/<id>` as `{ "content": "..." }`.

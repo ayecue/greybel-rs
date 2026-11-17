@@ -106,6 +106,38 @@ describe('the terminals', () => {
     expect(await page.locator('.terminal-tab.active .terminal-script').textContent()).toBe('b.src');
   });
 
+  it('should split long lines by run.lineLimits', async () => {
+    const script = [
+      'line = ""',
+      'for i in range(1, 250)',
+      '  line = line + "<color=#ff0000>x</color>"',
+      'end for',
+      'print(line)',
+      'print("done")'
+    ].join('\n');
+    const lineCount = async (manifest: object) => {
+      const editor = await EditorPage.open(
+        EditorPage.encodeProject('main.src', { 'main.src': script, 'greybel.json': JSON.stringify(manifest) })
+      );
+      const { page } = editor;
+
+      await page.locator('button.run').click();
+      await expect.poll(() => editor.getTerminalText()).toContain('done');
+      await page.locator('button.copy-terminal').click();
+
+      const readClipboard = () => page.evaluate(() => navigator.clipboard.readText());
+
+      await expect.poll(readClipboard).toContain('done');
+
+      const text = await readClipboard();
+
+      return text.split('\n').filter((line) => line !== '' && line !== 'done').length;
+    };
+
+    expect(await lineCount({})).toBe(34);
+    expect(await lineCount({ run: { lineLimits: { textPerLine: 256 } } })).toBe(1);
+  });
+
   it('should follow the renaming of their script', async () => {
     const editor = await EditorPage.open(
       EditorPage.encodeProject('a.src', { 'a.src': 'print("ran a")', 'b.src': 'print(1)' })

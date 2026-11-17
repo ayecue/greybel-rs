@@ -1,0 +1,30 @@
+# DigitalOcean App Platform spec: doctl apps update <app-id> --spec apps/rs/greybel-editor-service/deploy/app.yaml
+# Replace the existing app's spec to keep its address. Set DATABASE_URL in the console as an encrypted variable,
+# or bind the managed database: DATABASE_URL: ${<database-component>.DATABASE_URL}.
+name: editor
+services:
+  - name: greybel-editor-service
+    github:
+      repo: ayecue/greybel-rs
+      branch: main
+      deploy_on_push: true
+    source_dir: apps/rs/greybel-editor-service
+    dockerfile_path: apps/rs/greybel-editor-service/Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    health_check:
+      http_path: /health
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: ALLOWED_ORIGINS
+        scope: RUN_TIME
+        value: https://editor.greyscript.org,https://*.vscode-cdn.net
+      - key: SAVES_PER_MINUTE
+        scope: RUN_TIME
+        value: "30"
+      - key: LOG_FORMAT
+        scope: RUN_TIME
+        value: text

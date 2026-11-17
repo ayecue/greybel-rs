@@ -1,34 +1,49 @@
 import { describe, expect, it } from 'vitest';
 
-import { openPage } from './support/browser.js';
-import { chapter, member, openGuide, section } from './support/locators.js';
+import { ReferencePage } from './support/reference-page.js';
 
 describe('the API reference', () => {
   it('should show every type of the table of contents with its members', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
 
     const sections = await page.locator('section.section h2').count();
     const entries = await page.locator('#panel-api nav.contents > ul > li').count();
 
     expect(sections).toBeGreaterThan(25);
     expect(sections).toBe(entries);
-    expect(await member(page, 'shell', 'host_computer').locator('h3').textContent()).toBe('host_computer(): computer');
-    expect(await section(page, 'shell').locator('h2').textContent()).toBe('shell extends map');
+    expect(await reference.getMember('shell', 'host_computer').locator('h3').textContent()).toBe(
+      'host_computer(): computer'
+    );
+    expect(await reference.getSection('shell').locator('h2').textContent()).toBe('shell extends map');
+  });
+
+  it('should show a link to star the repository only when one is given', async () => {
+    const plain = await ReferencePage.open();
+    const reference = await ReferencePage.open('https://github.com/ayecue/greybel-rs');
+    const link = reference.page.locator('.overview a.star-link');
+
+    expect(await plain.page.locator('.star-link').count()).toBe(0);
+    expect(await link.textContent()).toBe('★ Star on GitHub');
+    expect(await link.getAttribute('href')).toBe('https://github.com/ayecue/greybel-rs');
+    expect(await link.getAttribute('target')).toBe('_blank');
   });
 
   it('should show only what the search matches', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
 
     await page.locator('input[aria-label="Search the API"]').fill('shell.host');
 
     await expect.poll(() => page.locator('article.member:visible').count()).toBe(2);
-    expect(await member(page, 'ftpShell', 'host_computer').isVisible()).toBe(true);
-    expect(await section(page, 'general').isVisible()).toBe(false);
+    expect(await reference.getMember('ftpShell', 'host_computer').isVisible()).toBe(true);
+    expect(await reference.getSection('general').isVisible()).toBe(false);
   });
 
   it('should hide the members of an excluded tag', async () => {
-    const page = await openPage();
-    const hostComputer = member(page, 'shell', 'host_computer');
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const hostComputer = reference.getMember('shell', 'host_computer');
 
     expect(await hostComputer.isVisible()).toBe(true);
     await page.locator('.tag-filter button', { hasText: /^method$/ }).click();
@@ -37,24 +52,27 @@ describe('the API reference', () => {
   });
 
   it('should hide a type whose members all have an excluded tag', async () => {
-    const page = await openPage();
-    const admin = section(page, 'admin');
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const admin = reference.getSection('admin');
     const contentsEntry = page.locator('#panel-api nav.contents > ul > li', { hasText: /^adminComputer/ });
 
     expect(await admin.isVisible()).toBe(true);
     await page.locator('.tag-filter button', { hasText: /^greybel$/ }).click();
 
     await expect.poll(() => admin.isVisible()).toBe(false);
-    expect(await section(page, 'adminNetwork').isVisible()).toBe(false);
+    expect(await reference.getSection('adminNetwork').isVisible()).toBe(false);
     expect(await contentsEntry.isVisible()).toBe(false);
-    expect(await section(page, 'shell').isVisible()).toBe(true);
+    expect(await reference.getSection('shell').isVisible()).toBe(true);
   });
 
   it('should scroll to the member a description links to', async () => {
-    const page = await openPage();
-    const getShell = member(page, 'general', 'get_shell');
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const getShell = reference.getMember('general', 'get_shell');
 
-    await section(page, 'shell')
+    await reference
+      .getSection('shell')
       .locator('.description a', { hasText: /^get_shell$/ })
       .first()
       .click();
@@ -64,12 +82,14 @@ describe('the API reference', () => {
   });
 
   it('should clear the search for a link to what it hides', async () => {
-    const page = await openPage();
-    const computer = section(page, 'computer');
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const computer = reference.getSection('computer');
 
     await page.locator('input[aria-label="Search the API"]').fill('shell.host');
     await expect.poll(() => computer.isVisible()).toBe(false);
-    await member(page, 'shell', 'host_computer')
+    await reference
+      .getMember('shell', 'host_computer')
       .locator('h3 a', { hasText: /^computer$/ })
       .click();
 
@@ -79,8 +99,9 @@ describe('the API reference', () => {
   });
 
   it('should highlight examples and link their general functions', async () => {
-    const page = await openPage();
-    const example = member(page, 'shell', 'host_computer').locator('pre.example');
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const example = reference.getMember('shell', 'host_computer').locator('pre.example');
 
     expect(await example.textContent()).toBe(
       'shell = get_shell\ncomputer = shell.host_computer\nprint("Computer public IP is: " + computer.public_ip)'
@@ -90,28 +111,30 @@ describe('the API reference', () => {
   });
 
   it('should request the editor to open an example', async () => {
-    const page = await openPage();
-    const hostComputer = member(page, 'shell', 'host_computer');
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const hostComputer = reference.getMember('shell', 'host_computer');
 
     await hostComputer.locator('button', { hasText: 'Open in editor' }).click();
 
-    expect(await page.evaluate(() => referencePage.openedDocument())).toEqual({
+    expect(await reference.getOpenedDocument()).toEqual({
       content: await hostComputer.locator('pre.example').textContent()
     });
   });
 
   it('should show the API first, with its search, and the guide in its own tab without it', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
 
     expect(await page.locator('.overview h1').textContent()).toBe('GreyScript API – Unofficial Documentation');
     expect(await page.locator('.tab[aria-selected="true"]').textContent()).toBe('API reference');
-    expect(await section(page, 'shell').isVisible()).toBe(true);
-    expect(await chapter(page, 'Values').isVisible()).toBe(false);
+    expect(await reference.getSection('shell').isVisible()).toBe(true);
+    expect(await reference.getChapter('Values').isVisible()).toBe(false);
 
-    await openGuide(page);
+    await reference.openGuide();
 
-    expect(await chapter(page, 'Values').isVisible()).toBe(true);
-    expect(await section(page, 'shell').isVisible()).toBe(false);
+    expect(await reference.getChapter('Values').isVisible()).toBe(true);
+    expect(await reference.getSection('shell').isVisible()).toBe(false);
     expect(await page.locator('input[aria-label="Search the API"]').count()).toBe(0);
     expect(await page.locator('input[aria-label="Search the guide"]').count()).toBe(1);
     expect(await page.locator('.introduction a', { hasText: /^MiniScript$/ }).getAttribute('href')).toBe(
@@ -120,9 +143,10 @@ describe('the API reference', () => {
   });
 
   it('should list each chapter with its parts in the sidebar of the guide', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
 
-    await openGuide(page);
+    await reference.openGuide();
 
     const chapters = page.locator('#panel-guide nav.contents > ul > li');
 
@@ -153,10 +177,11 @@ describe('the API reference', () => {
   });
 
   it('should highlight the code of the guide as the examples, without indenting its first line', async () => {
-    const page = await openPage();
-    const values = chapter(page, 'Values');
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const values = reference.getChapter('Values');
 
-    await openGuide(page);
+    await reference.openGuide();
 
     expect(await values.locator('h3').first().textContent()).toBe('Numbers');
     expect(await values.locator('pre.example .token.number').first().textContent()).toBe('7');
@@ -173,7 +198,8 @@ describe('the API reference', () => {
   });
 
   it('should space the tags of the filter apart', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
     const tags = page.locator('.tag-filter .tag');
     const first = (await tags.nth(0).boundingBox())!;
     const second = (await tags.nth(1).boundingBox())!;
@@ -182,21 +208,24 @@ describe('the API reference', () => {
   });
 
   it('should show code of another language as plain text', async () => {
-    const page = await openPage();
-    const json = chapter(page, 'Tools').locator('pre.example[data-language="json"]').first();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const json = reference.getChapter('Tools').locator('pre.example[data-language="json"]').first();
 
-    await openGuide(page);
+    await reference.openGuide();
     await json.waitFor();
     expect(await json.locator('.token').count()).toBe(0);
     expect(await json.locator('xpath=..').locator('button', { hasText: 'Open in editor' }).count()).toBe(0);
   });
 
   it('should scroll to the chapter a chapter links to', async () => {
-    const page = await openPage();
-    const classes = chapter(page, 'Classes and objects');
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const classes = reference.getChapter('Classes and objects');
 
-    await openGuide(page);
-    await chapter(page, 'Operators')
+    await reference.openGuide();
+    await reference
+      .getChapter('Operators')
       .locator('.description a', { hasText: /^Classes$/ })
       .click();
 
@@ -205,12 +234,14 @@ describe('the API reference', () => {
   });
 
   it('should open the tab a link leads to', async () => {
-    const page = await openPage();
-    const range = member(page, 'general', 'range');
-    const values = chapter(page, 'Values');
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const range = reference.getMember('general', 'range');
+    const values = reference.getChapter('Values');
 
-    await openGuide(page);
-    await chapter(page, 'Control flow')
+    await reference.openGuide();
+    await reference
+      .getChapter('Control flow')
       .locator('.description a', { hasText: /^range$/ })
       .first()
       .click();
@@ -229,24 +260,26 @@ describe('the API reference', () => {
   });
 
   it('should keep where each tab was scrolled to', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
 
-    await member(page, 'shell', 'host_computer').scrollIntoViewIfNeeded();
+    await reference.getMember('shell', 'host_computer').scrollIntoViewIfNeeded();
 
     const position = await page.evaluate(() => window.scrollY);
 
-    await openGuide(page);
+    await reference.openGuide();
     await page.locator('.tab', { hasText: 'API reference' }).click();
 
     expect(await page.evaluate(() => window.scrollY)).toBe(position);
   });
 
   it('should link every part of the guide from its heading', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
     const heading = page.locator('#guide-values-lists');
 
-    await openGuide(page);
-    await chapter(page, 'Syntax').scrollIntoViewIfNeeded();
+    await reference.openGuide();
+    await reference.getChapter('Syntax').scrollIntoViewIfNeeded();
     await heading.hover();
 
     expect(await heading.locator('a.heading-link').getAttribute('href')).toBe('#guide-values-lists');
@@ -259,24 +292,26 @@ describe('the API reference', () => {
   });
 
   it('should show the tables of the guide as tables', async () => {
-    const page = await openPage();
-    const table = chapter(page, 'Tools').locator('table').first();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+    const table = reference.getChapter('Tools').locator('table').first();
 
-    await openGuide(page);
+    await reference.openGuide();
 
     expect(await table.locator('thead th').count()).toBeGreaterThan(1);
     expect(await table.locator('tbody tr').count()).toBeGreaterThan(2);
   });
 
   it('should search the guide by its parts', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
     const logic = page.locator('#guide-operators-logic');
 
-    await openGuide(page);
+    await reference.openGuide();
     await page.locator('#panel-guide').waitFor();
     await page.locator('input[aria-label="Search the guide"]').fill('short-circuit evaluation');
 
-    await expect.poll(() => chapter(page, 'Values').isVisible()).toBe(false);
+    await expect.poll(() => reference.getChapter('Values').isVisible()).toBe(false);
     expect(await logic.isVisible()).toBe(true);
     expect(await page.locator('#guide-operators-arithmetic').isVisible()).toBe(false);
     expect(await page.locator('#panel-guide nav.contents a', { hasText: /^Logic$/ }).isVisible()).toBe(true);
@@ -288,7 +323,8 @@ describe('the API reference', () => {
   });
 
   it('should show the button that clears a search whenever it has text', async () => {
-    const page = await openPage();
+    const reference = await ReferencePage.open();
+    const page = reference.page;
     const search = page.locator('input[aria-label="Search the API"]');
     const clear = page.locator('#panel-api, .toolbar').locator('button.clear');
 
@@ -301,6 +337,6 @@ describe('the API reference', () => {
 
     expect(await search.inputValue()).toBe('');
     expect(await clear.count()).toBe(0);
-    await expect.poll(() => section(page, 'general').isVisible()).toBe(true);
+    await expect.poll(() => reference.getSection('general').isVisible()).toBe(true);
   });
 });

@@ -82,7 +82,6 @@ impl Emitter for BeautifyEmitter {
         Ok(())
     }
 
-    /// Re-indents the lines after the first: the closing `end` line at the statement's depth, the others one deeper.
     fn emit_block_source(&mut self, s: &mut EmitState<'_>, id: NodeId) {
         let text = s.text(id).to_owned();
         let mut lines = text.lines();

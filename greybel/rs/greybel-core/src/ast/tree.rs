@@ -2,7 +2,6 @@ use std::borrow::Cow;
 use std::fmt;
 use std::sync::{Arc, OnceLock};
 
-use super::nodes_by_line::NodesByLine;
 use super::{
     Atom, Comment, Node, NodeCommentContainer, NodeId, NodeKind, NodeList, NodeStore, ScopeData,
     TextSpan, Visitor, dump, walk,
@@ -19,7 +18,6 @@ pub struct Ast {
     pub comments: Vec<Comment>,
     pub scopes: Vec<NodeId>,
     line_items: Vec<NodeId>,
-    nodes_by_line: OnceLock<NodesByLine>,
     extents: OnceLock<Vec<Span>>,
     source: Arc<str>,
     lines: Arc<OnceLock<LineIndex>>,
@@ -47,7 +45,6 @@ impl Ast {
             comments: chunk_data.comments,
             scopes: chunk_data.scopes,
             line_items: chunk_data.line_items,
-            nodes_by_line: OnceLock::new(),
             extents: OnceLock::new(),
             source,
             lines,
@@ -79,10 +76,6 @@ impl Ast {
 
     pub fn nodes(&self) -> &NodeStore {
         &self.nodes
-    }
-
-    pub fn nodes_mut(&mut self) -> &mut NodeStore {
-        &mut self.nodes
     }
 
     pub fn node(&self, id: NodeId) -> &Node {
@@ -156,25 +149,6 @@ impl Ast {
 
     pub fn line_items(&self) -> &[NodeId] {
         &self.line_items
-    }
-
-    pub fn nodes_at_line(&self, line: u32) -> Vec<NodeId> {
-        let nodes = self.nodes_by_line.get_or_init(|| {
-            let ranges = self.line_items.iter().map(|&id| {
-                let span = self.span(id);
-                let end = if span.is_closed() {
-                    span.end
-                } else {
-                    span.start
-                };
-
-                (self.lines().line(span.start), self.lines().line(end), id)
-            });
-
-            NodesByLine::new(ranges)
-        });
-
-        nodes.get(line)
     }
 
     pub fn path_at(&self, offset: u32) -> Vec<NodeId> {

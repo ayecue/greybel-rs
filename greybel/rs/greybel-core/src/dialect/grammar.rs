@@ -12,7 +12,6 @@ use crate::parser::RuleIndex;
 pub struct Grammar {
     dialect: Dialect,
     version: Version,
-    strict: bool,
     pub(crate) lexicon: Lexicon,
     pub(crate) rules: RuleIndex,
     pub(crate) lexer: LexerRuleTable,
@@ -81,7 +80,6 @@ impl Grammar {
         Self {
             dialect,
             version,
-            strict,
             lexicon: Lexicon::new(rules.lexer, features, rules.keywords, &punctuators),
             rules: RuleIndex::new(rules, (rules.precedence)(version)),
             lexer: rules.lexer,
@@ -124,11 +122,6 @@ impl Grammar {
     #[must_use]
     pub fn version(&self) -> Version {
         self.version
-    }
-
-    #[must_use]
-    pub fn is_strict(&self) -> bool {
-        self.strict
     }
 
     #[must_use]

@@ -5,7 +5,7 @@ import { Description } from './description.js';
 import { Example } from './example.js';
 import { TypeName } from './link.js';
 import { MemberView } from './member.js';
-import { anchorId } from './reference-context.js';
+import { getAnchorId } from './reference-context.js';
 
 export const SectionView = memo(function SectionView({
   section,
@@ -17,7 +17,7 @@ export const SectionView = memo(function SectionView({
   hiddenMembers: ReadonlySet<string>;
 }) {
   return (
-    <section class="section" id={anchorId(section.name)} hidden={isHidden}>
+    <section class="section" id={getAnchorId(section.name)} hidden={isHidden}>
       <h2>
         {section.name}
         {section.extends !== undefined && (

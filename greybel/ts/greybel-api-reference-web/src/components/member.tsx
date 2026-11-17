@@ -4,7 +4,7 @@ import { useContext } from 'preact/hooks';
 import { Link, MemberKind, type Member } from '../protocol.generated.js';
 import { Description } from './description.js';
 import { Example } from './example.js';
-import { ReferenceContext, anchorId } from './reference-context.js';
+import { ReferenceContext, getAnchorId } from './reference-context.js';
 import { LiteralValue, Signature } from './signature.js';
 
 export const MemberView = memo(function MemberView({
@@ -20,7 +20,7 @@ export const MemberView = memo(function MemberView({
   const { kind } = member;
 
   return (
-    <article class="member" id={anchorId(owner, member.name)} hidden={isHidden}>
+    <article class="member" id={getAnchorId(owner, member.name)} hidden={isHidden}>
       <header>
         <h3>
           <span class="name">{member.name}</span>

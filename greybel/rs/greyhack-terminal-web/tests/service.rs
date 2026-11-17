@@ -3,7 +3,7 @@ use text_mesh_webgl::Vertex;
 
 use crate::support::output;
 use crate::support::service::TerminalHarness;
-use crate::support::service::page::{Material, Scroll, Textures};
+use crate::support::service::page::{LineLimits, Material, Scene, Scroll, Textures};
 
 #[test]
 fn should_give_the_page_every_atlas_of_the_fonts_and_the_sprite_sheet() {
@@ -108,4 +108,25 @@ fn should_draw_what_it_was_scrolled_to() {
     let scrolled = harness.draw();
 
     assert_ne!(scrolled.meshes, following.meshes);
+}
+
+#[test]
+fn should_draw_long_lines_cut_by_the_line_limits_set() {
+    let harness = TerminalHarness::new();
+    let vertices =
+        |scene: Scene| -> usize { scene.meshes.iter().map(|mesh| mesh.vertices.len()).sum() };
+
+    harness.print(&"<color=#ff0000>x</color>".repeat(250));
+
+    let game = vertices(harness.draw());
+
+    harness.set_line_limits(Some(LineLimits {
+        text_per_line: 256,
+        tags_per_line: None,
+    }));
+
+    let limited = vertices(harness.draw());
+
+    assert!(limited < game, "{limited} < {game}");
+    assert_eq!(harness.redraws.get(), 2);
 }

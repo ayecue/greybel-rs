@@ -38,6 +38,15 @@ describe('the parts of the page', () => {
     expect(await getWidth(page.locator('.file-list'))).toBe(120);
   });
 
+  it('should show a link to star the repository in the toolbar', async () => {
+    const editor = await EditorPage.open('print(1)');
+    const link = editor.page.locator('.toolbar a.star-link');
+
+    expect(await link.textContent()).toBe('★ Star on GitHub');
+    expect(await link.getAttribute('href')).toBe('https://github.com/ayecue/greybel-rs');
+    expect(await link.getAttribute('target')).toBe('_blank');
+  });
+
   it("should fit the page's width with the API reference open", async () => {
     const editor = await EditorPage.open('print(1)');
     const { page } = editor;

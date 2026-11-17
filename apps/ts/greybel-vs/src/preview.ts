@@ -3,24 +3,27 @@ import { MessageTargetDriver } from 'duplex-driver-worker';
 import { Output } from 'greybel-io-web';
 import { OutputBatch, ProgramChannel } from 'greybel-io-web/program';
 
-import { previewPage } from './preview/page';
+import { createPreviewPage } from './preview/page';
+import type { TerminalLineLimits } from './project';
 import { WebviewTarget } from './webview/target';
 
-class Preview {
-  private context: ExtensionContext;
-  private panel: vscode.WebviewPanel | null;
-  private channel: ProgramChannel | null;
+export interface PreviewOutput {
+  show(entries: Output[]): void;
+}
+
+export class Preview implements PreviewOutput {
+  readonly #context: ExtensionContext;
+  #panel: vscode.WebviewPanel | null = null;
+  #channel: ProgramChannel | null = null;
+  #lineLimits: TerminalLineLimits | undefined;
 
   constructor(context: ExtensionContext) {
-    this.context = context;
-    this.panel = null;
-    this.channel = null;
+    this.#context = context;
+    context.subscriptions.push(vscode.commands.registerCommand('greybel.preview', () => this.open()));
   }
 
-  open() {
-    if (this.panel) {
-      return;
-    }
+  open(): void {
+    if (this.#panel) return;
 
     const panel = vscode.window.createWebviewPanel(
       'greyHackOutputPreview',
@@ -31,69 +34,64 @@ class Preview {
       },
       {
         enableScripts: true,
-        localResourceRoots: [this.context.extensionUri],
+        localResourceRoots: [this.#context.extensionUri],
         retainContextWhenHidden: true
       }
     );
 
-    panel.webview.html = previewPage(panel.webview, this.context.extensionUri);
+    panel.webview.html = createPreviewPage(panel.webview, this.#context.extensionUri);
 
     const channel = new ProgramChannel(new MessageTargetDriver(new WebviewTarget(panel.webview)));
 
-    this.panel = panel;
-    this.channel = channel;
+    this.#panel = panel;
+    this.#channel = channel;
+    this.#postLineLimits();
 
     panel.onDidDispose(() => {
       channel.close();
-      this.panel = null;
-      this.channel = null;
+      this.#panel = null;
+      this.#channel = null;
     });
+  }
+
+  /** `undefined` splits long lines as the game does. */
+  setLineLimits(limits: TerminalLineLimits | undefined): void {
+    this.#lineLimits = limits;
+    this.#postLineLimits();
   }
 
   print(
     message: string,
     { appendNewLine = true, replace = false }: { appendNewLine?: boolean; replace?: boolean } = {}
-  ) {
-    this.send(new Output.Print({ text: message, newLine: appendNewLine, replace }));
+  ): void {
+    this.#send(new Output.Print({ text: message, newLine: appendNewLine, replace }));
   }
 
-  clear() {
-    this.send(new Output.Clear());
+  clear(): void {
+    this.#send(new Output.Clear());
   }
 
-  printInline(message: string) {
-    this.send(new Output.Print({ text: message, newLine: false, replace: false }));
+  printInline(message: string): void {
+    this.#send(new Output.Print({ text: message, newLine: false, replace: false }));
   }
 
-  replaceLast(message: string) {
-    this.send(new Output.Print({ text: message, newLine: false, replace: true }));
+  replaceLast(message: string): void {
+    this.#send(new Output.Print({ text: message, newLine: false, replace: true }));
   }
 
-  show(entries: Output[]) {
-    this.channel?.send(new OutputBatch({ entries }));
+  show(entries: Output[]): void {
+    this.#channel?.send(new OutputBatch({ entries }));
   }
 
-  showPrompt(message: string) {
+  showPrompt(message: string): void {
     this.printInline(message);
   }
 
-  private send(output: Output) {
-    this.channel?.send(new OutputBatch({ entries: [output] }));
+  #postLineLimits(): void {
+    void this.#panel?.webview.postMessage({ lineLimits: this.#lineLimits ?? null });
   }
-}
 
-let preview: Preview = null;
-
-export function getPreview() {
-  return preview;
-}
-
-export function setPreview(instance: Preview) {
-  preview = instance;
-}
-
-export function activate(context: ExtensionContext) {
-  setPreview(new Preview(context));
-
-  context.subscriptions.push(vscode.commands.registerCommand('greybel.preview', () => getPreview().open()));
+  #send(output: Output): void {
+    this.#channel?.send(new OutputBatch({ entries: [output] }));
+  }
 }

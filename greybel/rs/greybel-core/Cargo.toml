@@ -28,7 +28,6 @@ workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
-fastrand.workspace = true
 greybel-test-support = { workspace = true, features = ["node-depth"] }
 insta.workspace = true
 serde.workspace = true

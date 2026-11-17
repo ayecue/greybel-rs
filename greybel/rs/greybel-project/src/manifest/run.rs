@@ -28,6 +28,35 @@ pub struct RunSettings {
         }
     ))]
     pub variables: VariableSettings,
+    /// Splits long terminal lines as the greyhack-customizable-output mod does, the way the game did before
+    /// 0.9.5683; absent splits them as the game does now.
+    #[schemars(extend(
+        "x-vscode-setting" = {
+            "textPerLine": "greybel.interpreter.lineLimits.textPerLine",
+            "tagsPerLine": "greybel.interpreter.lineLimits.tagsPerLine"
+        }
+    ))]
+    pub line_limits: Option<LineLimits>,
+}
+
+/// A line whose visible text is longer than `textPerLine` characters, or whose tags take more than `tagsPerLine`
+/// characters, is cut into pieces of `textPerLine` characters. Characters count as UTF-16 code units.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", default, deny_unknown_fields)]
+pub struct LineLimits {
+    #[schemars(range(min = 1))]
+    pub text_per_line: u32,
+    /// Absent or `null` for no limit.
+    pub tags_per_line: Option<u32>,
+}
+
+impl Default for LineLimits {
+    fn default() -> Self {
+        Self {
+            text_per_line: 256,
+            tags_per_line: None,
+        }
+    }
 }
 
 impl RunSettings {
@@ -44,6 +73,7 @@ impl Default for RunSettings {
             program_name: Self::DEFAULT_PROGRAM_NAME.to_owned(),
             memory_limit: Self::DEFAULT_MEMORY_LIMIT,
             variables: VariableSettings::default(),
+            line_limits: None,
         }
     }
 }

@@ -8,12 +8,12 @@ pub(crate) use template::{
     REQUIRE, RUNTIME_NAMES, emit_multiline_string_function, multiline_string_helper,
 };
 
-use crate::documents::{AsyncResourceProvider, ModuleGraph, ResourceProvider, Uri};
 use crate::emit::{BeautifyEmitter, DefaultEmitter, UglifyEmitter};
 use crate::error::{Result, TranspileError};
 use crate::minify::Minification;
 use crate::options::BuildMode;
 use crate::transpiler::Transpiler;
+use greybel_documents::{AsyncResourceProvider, ModuleGraph, ResourceProvider, Uri};
 
 impl Transpiler<'_> {
     pub fn transpile_project(

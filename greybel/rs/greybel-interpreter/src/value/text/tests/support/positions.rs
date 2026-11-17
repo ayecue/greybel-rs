@@ -7,7 +7,6 @@ pub const ENCODINGS: [PositionEncoding; 3] = [
     PositionEncoding::Utf32,
 ];
 
-/// A text read in one encoding's units.
 pub struct Sample {
     text: Text,
     encoding: PositionEncoding,

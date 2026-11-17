@@ -59,7 +59,6 @@ pub(crate) struct VmOptions {
 }
 
 impl VmOptions {
-    /// Creates native terminal stdin/stdout and batches output on `clock`.
     #[cfg(not(target_family = "wasm"))]
     fn process_stdio(clock: &Rc<dyn Clock>) -> (Rc<dyn Stdout>, Rc<dyn Stdin>) {
         use greybel_io_terminal::{TerminalScreen, TerminalStdin, TerminalStdout};
@@ -111,8 +110,6 @@ enum State {
     Yield,
     Pause,
     Complete,
-    /// An opcode unable to return an error raises it through `Vm::raise`; `Vm::failure` retains it until the run
-    /// loop returns.
     Failure,
 }
 
@@ -217,8 +214,6 @@ impl Vm {
         }
     }
 
-    /// Returns `kind`'s intrinsic map as exposed by the type-named global. Before the program reads that global,
-    /// Grey Hack's MiniScript also treats every value of the type as null for `isa null`.
     pub fn type_map(&mut self, kind: ValueType) -> Map {
         self.named_types |= 1 << kind as u8;
 
@@ -272,14 +267,6 @@ impl Vm {
         )
     }
 
-    pub fn add_native_method(
-        &mut self,
-        params: impl IntoIterator<Item = Param>,
-        function: impl Fn(&mut Self, &ArgContainer) -> Result<Value, RuntimeError> + 'static,
-    ) -> Value {
-        self.add_native(Param::with_self(params), function)
-    }
-
     pub fn add_async_native<F>(
         &mut self,
         params: impl IntoIterator<Item = Param>,
@@ -301,17 +288,6 @@ impl Vm {
                 label: None,
             },
         )
-    }
-
-    pub fn add_async_native_method<F>(
-        &mut self,
-        params: impl IntoIterator<Item = Param>,
-        function: impl Fn(&mut Self, &ArgContainer) -> F + 'static,
-    ) -> Value
-    where
-        F: Future<Output = Result<Value, RuntimeError>> + 'static,
-    {
-        self.add_async_native(Param::with_self(params), function)
     }
 
     pub fn native_function(&mut self, native: &'static Native) -> Value {

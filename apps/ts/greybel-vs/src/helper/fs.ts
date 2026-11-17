@@ -62,45 +62,4 @@ export class FileSystemManager {
   }
 }
 
-export class CachedFileSystemManager extends FileSystemManager {
-  private fileContentCache: Map<string, Uint8Array>;
-  private existingUriCache: Map<string, Uri>;
-
-  constructor() {
-    super();
-    this.fileContentCache = new Map<string, Uint8Array>();
-    this.existingUriCache = new Map<string, Uri>();
-  }
-
-  async readFile(targetUri: Uri, quiet: boolean = false): Promise<Uint8Array | null> {
-    const key = targetUri.toString();
-    const result = this.fileContentCache.get(key);
-
-    if (result !== undefined) {
-      return result;
-    }
-
-    const content = await super.readFile(targetUri, quiet);
-
-    this.fileContentCache.set(key, content);
-
-    return content;
-  }
-
-  async getFirstExistingUri(mainUri: Uri, ...altUris: Uri[]): Promise<Uri | null> {
-    const key = mainUri.toString();
-    const cachedUri = this.existingUriCache.get(key);
-
-    if (cachedUri !== undefined) {
-      return cachedUri;
-    }
-
-    const result = await super.getFirstExistingUri(mainUri, ...altUris);
-
-    this.existingUriCache.set(key, result);
-
-    return result;
-  }
-}
-
 export const globalFileSystem = new FileSystemManager();

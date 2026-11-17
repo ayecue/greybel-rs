@@ -1,6 +1,6 @@
 use text_mesh_core::{
-    CellMetricContainer, Color, LayoutChange, Length, Run, Style, TerminalOutput, Text,
-    TextComponent,
+    CellMetricContainer, Color, LayoutChange, Length, LineSplitRule, Run, Style, TerminalOutput,
+    Text, TextComponent,
 };
 use text_mesh_layout::{ElementKind, Layout, TextLayout};
 
@@ -14,6 +14,7 @@ pub struct AnsiRenderer<'a> {
     paints_background: bool,
     cells: CellMetricContainer,
     layout: Option<(TextLayout<'a>, usize)>,
+    split_rule: LineSplitRule,
 }
 
 impl<'a> AnsiRenderer<'a> {
@@ -28,7 +29,13 @@ impl<'a> AnsiRenderer<'a> {
             paints_background: false,
             cells: CellMetricContainer::MONOSPACE,
             layout: None,
+            split_rule: LineSplitRule::Game,
         }
+    }
+
+    #[must_use]
+    pub const fn with_split_rule(self, split_rule: LineSplitRule) -> Self {
+        Self { split_rule, ..self }
     }
 
     #[must_use]
@@ -269,6 +276,7 @@ impl<'a> AnsiRenderer<'a> {
     #[must_use]
     pub fn render_terminal(&self, output: &str) -> String {
         TerminalOutput::new(output)
+            .with_split_rule(self.split_rule)
             .lines()
             .iter()
             .map(|line| self.render(&self.component.parse(line)))

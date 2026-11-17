@@ -1,5 +1,5 @@
 use greyhack_text_mesh_assets::{TERMINAL_TEXT, TERMINAL_THEME, TEXT_ASSETS};
-use text_mesh_core::TerminalOutput;
+use text_mesh_core::LineSplitRule;
 use text_mesh_layout::{Layout, LayoutGeometry, TerminalLayout, TextLayout};
 use text_mesh_webgl::{Mesh, MeshBuilder, SpriteSheet};
 
@@ -22,6 +22,7 @@ pub struct TerminalView {
     following: bool,
     lines: Vec<Line>,
     sprites: SpriteSheet,
+    split_rule: LineSplitRule,
 }
 
 impl TerminalView {
@@ -34,6 +35,7 @@ impl TerminalView {
             following: true,
             lines: Vec::new(),
             sprites: SpriteSheet::from_asset(&TERMINAL_TEXT.font_set.sprites).unwrap_or_default(),
+            split_rule: LineSplitRule::Game,
         }
     }
 
@@ -73,13 +75,18 @@ impl TerminalView {
         })
     }
 
+    /// Splits long lines by `split_rule` from the next [`Self::set_text`] on.
+    pub fn set_split_rule(&mut self, split_rule: LineSplitRule) {
+        self.split_rule = split_rule;
+    }
+
     pub fn set_text(&mut self, text: &str) {
-        let terminal = Self::terminal();
+        let terminal = Self::terminal().with_split_rule(self.split_rule);
         let frame = terminal.frame();
         let mut previous = std::mem::take(&mut self.lines).into_iter();
         let mut top = frame.padding;
 
-        for source in TerminalOutput::new(text).lines() {
+        for source in terminal.lines(text) {
             let line = match previous.next() {
                 Some(line) if line.text == source => Line { top, ..line },
                 _ => {

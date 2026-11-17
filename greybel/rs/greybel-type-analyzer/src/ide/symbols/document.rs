@@ -23,7 +23,7 @@ pub enum SymbolKind {
 }
 
 impl DocumentSymbol {
-    pub(crate) fn outline(ast: &Ast) -> Vec<Self> {
+    pub(crate) fn from_ast(ast: &Ast) -> Vec<Self> {
         let mut symbols = Vec::new();
 
         Self::collect(ast, ast.body(), &mut symbols);
@@ -31,8 +31,8 @@ impl DocumentSymbol {
         symbols
     }
 
-    pub(super) fn outline_with_types(ast: &Ast, comments: &CommentTable) -> Vec<Self> {
-        let mut symbols = Self::nest_member_paths(Self::outline(ast));
+    pub(super) fn from_ast_with_types(ast: &Ast, comments: &CommentTable) -> Vec<Self> {
+        let mut symbols = Self::nest_member_paths(Self::from_ast(ast));
 
         Self::declared_types(ast, comments, &mut symbols);
         symbols.sort_by_key(|symbol| symbol.range.start);
@@ -41,7 +41,7 @@ impl DocumentSymbol {
     }
 
     fn nest_member_paths(symbols: Vec<Self>) -> Vec<Self> {
-        let mut outline: Vec<Self> = Vec::new();
+        let mut roots: Vec<Self> = Vec::new();
 
         for mut symbol in symbols {
             symbol.children = Self::nest_member_paths(std::mem::take(&mut symbol.children));
@@ -50,7 +50,7 @@ impl DocumentSymbol {
                 && !owner.is_empty()
                 && !member.is_empty()
                 && !symbol.name.contains(['[', '(', ' '])
-                && let Some(parent) = Self::find_path(&mut outline, owner)
+                && let Some(parent) = Self::find_path(&mut roots, owner)
             {
                 let member_start = symbol.name.len() - member.len();
 
@@ -61,10 +61,10 @@ impl DocumentSymbol {
                 continue;
             }
 
-            outline.push(symbol);
+            roots.push(symbol);
         }
 
-        outline
+        roots
     }
 
     fn find_path<'a>(symbols: &'a mut [Self], path: &str) -> Option<&'a mut Self> {

@@ -145,12 +145,6 @@ impl<D: Driver> Transport<D> {
 }
 
 impl<D: Driver> Relay<D> {
-    /// Sets the batch bundle for the spawned channel.
-    pub fn set_bundle(self, bundle: Bundle) -> Self {
-        self.link.bundle.set(bundle);
-
-        self
-    }
 
     fn forward(&mut self, transport: &TransportState<D>, batch: &[u8]) {
         let Ok(slices) = BatchReader::new(batch) else {

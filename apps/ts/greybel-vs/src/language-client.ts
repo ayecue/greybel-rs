@@ -1,49 +1,55 @@
 import { workspace, ExtensionContext } from 'vscode';
-
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
-import { binaryPath } from './launcher/process';
+
+import { ProcessLauncher } from './launcher/process';
 import { SECTION } from './settings';
 
-let client: LanguageClient;
+export class LanguageServer {
+  readonly #context: ExtensionContext;
+  #client: LanguageClient | undefined;
 
-/** Starts the language server and resolves with its client when ready. */
-export async function activate(context: ExtensionContext): Promise<LanguageClient> {
-  const serverOptions: ServerOptions = {
-    command: binaryPath(context, 'greybel-lsp'),
-    transport: TransportKind.stdio
-  };
-
-  const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: 'file', language: 'greyscript' }],
-    synchronize: {
-      configurationSection: SECTION,
-      fileEvents: workspace.createFileSystemWatcher('**/*')
-    },
-    diagnosticCollectionName: 'greyscript',
-    // The server validates all documents in this dialect (greybel-lsp's InitializationOptions).
-    initializationOptions: { dialect: 'greyscript' },
-    middleware: {
-      provideDocumentSemanticTokens: () => {
-        return undefined;
-      },
-      provideFoldingRanges: () => {
-        return undefined;
-      }
-    }
-  };
-
-  client = new LanguageClient('greyscript-language-server', 'GreyScript Language Server', serverOptions, clientOptions);
-
-  client.registerProposedFeatures();
-  await client.start();
-
-  return client;
-}
-
-export function deactivate(): Thenable<void> | undefined {
-  if (!client) {
-    return undefined;
+  /** The client stops when the extension deactivates. */
+  constructor(context: ExtensionContext) {
+    this.#context = context;
+    context.subscriptions.push({ dispose: () => void this.#client?.stop() });
   }
 
-  return client.stop();
+  /** Starts the language server and resolves with its client when ready. */
+  async start(): Promise<LanguageClient> {
+    const serverOptions: ServerOptions = {
+      command: new ProcessLauncher(this.#context, 'greybel-lsp').getBinaryPath(),
+      transport: TransportKind.stdio
+    };
+
+    const clientOptions: LanguageClientOptions = {
+      documentSelector: [{ scheme: 'file', language: 'greyscript' }],
+      synchronize: {
+        configurationSection: SECTION,
+        fileEvents: workspace.createFileSystemWatcher('**/*')
+      },
+      diagnosticCollectionName: 'greyscript',
+      // The server validates all documents in this dialect (greybel-lsp's InitializationOptions).
+      initializationOptions: { dialect: 'greyscript' },
+      middleware: {
+        provideDocumentSemanticTokens: () => {
+          return undefined;
+        },
+        provideFoldingRanges: () => {
+          return undefined;
+        }
+      }
+    };
+
+    this.#client = new LanguageClient(
+      'greyscript-language-server',
+      'GreyScript Language Server',
+      serverOptions,
+      clientOptions
+    );
+
+    this.#client.registerProposedFeatures();
+    await this.#client.start();
+
+    return this.#client;
+  }
 }

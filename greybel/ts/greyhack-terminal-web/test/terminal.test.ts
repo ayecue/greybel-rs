@@ -20,6 +20,22 @@ describe('the terminal', () => {
     expect(difference.overLimit, JSON.stringify(difference)).toBeLessThan(OVER_LIMIT);
   });
 
+  it('should cut long lines by the line limits set', async () => {
+    const page = await openPage(800, 400);
+    const line = '<color=#ff0000>x</color>'.repeat(250);
+
+    const vertexBytes = () => page.evaluate(() => terminalPage.getVertexBytes());
+
+    await page.evaluate((text) => terminalPage.print(text), line);
+
+    const cutByTheGame = await vertexBytes();
+
+    await page.evaluate(() => terminalPage.setLineLimits({ textPerLine: 256 }));
+    await expect.poll(vertexBytes).toBeLessThan(cutByTheGame);
+    await page.evaluate(() => terminalPage.setLineLimits(undefined));
+    await expect.poll(vertexBytes).toBe(cutByTheGame);
+  });
+
   it('should scroll up with the wheel', async () => {
     const page = await openPage(400, 100);
 

@@ -58,7 +58,6 @@ pub(super) struct Context {
     pub(super) exports: Vec<Option<Value>>,
     native_depth: u32,
     data: HostData,
-    /// Controls whether the child-starting native call's result is discarded.
     discard: bool,
     on_child_end: ContextEndFn,
 }
@@ -168,8 +167,6 @@ impl Vm {
         let count = self.program.import_count as usize;
         let new_export_count = count.saturating_sub(self.scopes.exports.len());
 
-        // Avoid `resize` and `vec![None; n]`: their extra `Vec<Option<Value>>::extend_with` calls prevent inlining into
-        // the call path's slot binding.
         self.scopes
             .exports
             .extend(std::iter::repeat_n(None, new_export_count));

@@ -22,7 +22,6 @@ text-mesh-layout.workspace = true
 duplex-test-support = { workspace = true, features = ["tokio"] }
 duplex-ts.workspace = true
 greybel-test-support.workspace = true
-tokio = { workspace = true, features = ["rt", "macros"] }
 
 [[test]]
 name = "main"

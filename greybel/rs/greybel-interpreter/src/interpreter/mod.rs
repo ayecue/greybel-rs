@@ -73,12 +73,6 @@ impl<P: AsyncResourceProvider, S: Scheduler> Interpreter<P, S> {
         &self.options
     }
 
-    pub fn set_target(&mut self, target: impl Into<String>) {
-        self.options.target = target.into();
-        self.program = None;
-        self.vm = None;
-    }
-
     #[must_use]
     pub fn provider(&self) -> &P {
         &self.provider
@@ -87,10 +81,6 @@ impl<P: AsyncResourceProvider, S: Scheduler> Interpreter<P, S> {
     #[must_use]
     pub fn scheduler(&self) -> &S {
         &self.scheduler
-    }
-
-    pub fn scheduler_mut(&mut self) -> &mut S {
-        &mut self.scheduler
     }
 
     #[must_use]
@@ -193,15 +183,6 @@ impl<P: AsyncResourceProvider, S: Scheduler> Interpreter<P, S> {
         let vm = self.vm.as_ref()?;
 
         vm.globals().get(vm.heap(), &Value::from(name))
-    }
-
-    pub fn set_global(&mut self, name: &str, value: Value) -> Result<(), InterpreterError> {
-        let vm = self.vm.as_mut().ok_or(InterpreterError::NoProgram)?;
-        let globals = vm.globals();
-
-        globals.set(vm.heap_mut(), name.into(), value);
-
-        Ok(())
     }
 
     fn map_label(&self) -> Option<MapLabel> {
