@@ -69,10 +69,35 @@ print apt.install("libssh.so", home_dir)
 print mx.load(home_dir + "/libssh.so").version
 print apt.check_upgrade(home_dir + "/libssh.so")"#;
 
-    let (output, error, _) = run_on_host(code, plain_world(), true);
+    let world = plain_world();
+    let latest = block_on(
+        world
+            .modules
+            .libraries
+            .versions
+            .saved_library_versions(greyhack_behaviour::LibraryKind::Ssh),
+    )
+    .unwrap()
+    .last()
+    .expect("the initial SSH history")
+    .clone();
+    let local = block_on(world.modules.libraries.generator.full_file_library(
+        world.player(),
+        "/lib/libssh.so",
+        false,
+    ))
+    .unwrap()
+    .expect("the player's SSH library")
+    .version;
+    let first_upgrade = usize::from(greyhack_behaviour::compare_versions(&local, &latest).is_lt());
+    let released = greyhack_behaviour::next_version(&latest);
+    let (output, error, _) = run_on_host(code, world, true);
 
     assert_eq!(error, None);
-    assert_eq!(output, "\n0\n1.0.1\n1\n1\n1.0.1\n0");
+    assert_eq!(
+        output,
+        format!("\n{first_upgrade}\n{released}\n1\n1\n{released}\n0")
+    );
 }
 
 #[test]

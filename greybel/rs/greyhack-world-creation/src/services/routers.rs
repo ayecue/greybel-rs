@@ -36,9 +36,15 @@ impl NetworkGeneration {
         network: NetworkId,
         place: Option<&LanPlace>,
     ) -> Result<RouterId> {
+        let mut draft = draft.clone();
+
+        self.updates
+            .start_with_reported_libraries(network, &mut draft.computer)
+            .await?;
+
         let router = self
             .libraries
-            .insert_full_router(draft, network, place)
+            .insert_full_router(&draft, network, place)
             .await?;
 
         if let Some(port) = draft

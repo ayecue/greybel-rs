@@ -1,5 +1,5 @@
 //! Tests that game methods called as globals, with the object first, act as the method: Grey Hack's interpreter finds
-//! a name it has no variable for among its intrinsics (`TAC.Context.GetVar`), and a class's type map holds the same
+//! a name it has no variable for among its intrinsics (`TAC.Context.GetVar`), and a class's type map contains the same
 //! intrinsics. The classes a fixture world can't reach are here; `fixtures/game/detached.src` has the others.
 
 use greybel_interpreter::RuntimeErrorKind;
@@ -106,7 +106,7 @@ fn should_crash_where_a_detached_method_dereferences_another_classs_missing_help
         "sniffer(get_shell)",
         "net_use(get_shell, \"8.8.8.8\", 22)",
         "meta = include_lib(\"/lib/metaxploit.so\"); lib = load(meta, \"/lib/init.so\"); scan(get_shell, lib)",
-        "meta = include_lib(\"/lib/metaxploit.so\"); lib = load(meta, \"/lib/init.so\"); address = scan(meta, lib)[0]; scan_address(get_shell, lib, address)",
+        "admin = get_greybel_util(); admin.network(get_router.public_ip).computer(get_shell.host_computer.local_ip).set_library_version(\"/lib/metaxploit.so\", \"1.9.0\"); meta = include_lib(\"/lib/metaxploit.so\"); lib = load(meta, \"/lib/init.so\"); address = scan(meta, lib)[0]; scan_address(get_shell, lib, address)",
         "mail_login(\"test@test.com\", \"test\"); fetch(get_shell)",
         "mail_login(\"test@test.com\", \"test\"); read(get_shell, [])",
         "mail_login(\"test@test.com\", \"test\"); send(get_shell, \"other@test.com\", \"subject\", \"message\")",

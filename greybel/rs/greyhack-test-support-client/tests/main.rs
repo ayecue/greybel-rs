@@ -45,6 +45,8 @@ mod parity_lan_devices;
 #[cfg(feature = "game")]
 mod parity_language;
 #[cfg(feature = "game")]
+mod parity_library_history;
+#[cfg(feature = "game")]
 mod parity_library_updates;
 #[cfg(feature = "game")]
 mod parity_library_versions;
@@ -78,4 +80,6 @@ mod parity_services;
 mod parity_traces;
 #[cfg(feature = "game")]
 mod parity_traffic_edges;
+#[cfg(feature = "game")]
+mod parity_zero_day_rumor;
 mod support;

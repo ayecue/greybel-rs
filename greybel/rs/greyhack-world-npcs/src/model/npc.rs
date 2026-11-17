@@ -14,6 +14,8 @@ pub struct Npc {
     pub user: String,
     pub name: String,
     pub online: bool,
+    /// Whether this NPC has a first-rumor chat (`NpcInfo.hasRumor`).
+    pub rumor: bool,
     /// World second after which the NPC is dead (`NpcInfo.deadTime`).
     pub dead_at: Option<u64>,
     pub job_role: JobRole,
@@ -41,6 +43,8 @@ pub struct Npc {
     pub company_align: CompanyAlign,
     /// Mail address of the colleague who writes about the zero-day (`NpcInfo.dayZeroContact`).
     pub day_zero_contact: Option<String>,
+    /// Insertion order in `NetworkLan.dayZeroNpcRumors`, if aligned for the rumor.
+    pub zero_day_index: Option<u32>,
 }
 
 impl Npc {

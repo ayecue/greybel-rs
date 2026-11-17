@@ -329,6 +329,24 @@ amount_mined:
       origin: general
       search:
         - general
+answer_zero_day:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 apply_patch:
   all:
     origin: debugLibrary
@@ -489,6 +507,24 @@ buy_coin:
       origin: wallet
       search:
         - wallet
+buy_debug_offer:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 buy_exploit:
   all:
     origin: admin
@@ -926,24 +962,6 @@ create_ctf_event:
       origin: admin
       search:
         - admin
-create_debug_account:
-  all:
-    origin: admin
-    search:
-      - admin
-  any:
-    origin: admin
-    search:
-      - admin
-  each:
-    admin:
-      origin: admin
-      search:
-        - admin
-    any:
-      origin: admin
-      search:
-        - admin
 create_folder:
   all:
     origin: computer
@@ -1049,6 +1067,24 @@ create_network:
       origin: admin
       search:
         - admin
+create_procedural_mission:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 create_program:
   all:
     origin: admin
@@ -1133,6 +1169,24 @@ create_wallet:
       origin: general
       search:
         - general
+create_zero_day_chain:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 current_date:
   all:
     origin: ~
@@ -1186,6 +1240,24 @@ date:
       origin: general
       search:
         - general
+debug_offer:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 debug_tools:
   all:
     origin: metaLib
@@ -2114,6 +2186,24 @@ get_lan_ip:
       origin: port
       search:
         - port
+get_mail_account:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 get_mail_content:
   all:
     origin: ctfEvent
@@ -5539,6 +5629,24 @@ report_library_update:
       origin: adminNetwork
       search:
         - adminNetwork
+request_zero_day_mission:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 reset_ctf_password:
   all:
     origin: ~
@@ -7059,6 +7167,24 @@ unit_testing:
       origin: general
       search:
         - general
+unlock_debug_library:
+  all:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  any:
+    origin: adminNetwork
+    search:
+      - adminNetwork
+  each:
+    adminNetwork:
+      origin: adminNetwork
+      search:
+        - adminNetwork
+    any:
+      origin: adminNetwork
+      search:
+        - adminNetwork
 update:
   all:
     origin: aptClient
@@ -7359,6 +7485,24 @@ version:
       origin: metaLib
       search:
         - metaLib
+visit_zero_day_hack_shop:
+  all:
+    origin: admin
+    search:
+      - admin
+  any:
+    origin: admin
+    search:
+      - admin
+  each:
+    admin:
+      origin: admin
+      search:
+        - admin
+    any:
+      origin: admin
+      search:
+        - admin
 wait:
   all:
     origin: ~

@@ -9,6 +9,7 @@ mod runtime;
 mod uri;
 
 pub use editor::EditorHost;
+pub use program::mock_world_server;
 pub use runtime::{Controller, Host, Io, Runtime, Yielder};
 #[cfg(not(target_family = "wasm"))]
 pub use runtime::{connect_on_tokio, connect_over_tcp};

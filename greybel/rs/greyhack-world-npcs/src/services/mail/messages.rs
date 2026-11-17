@@ -151,6 +151,7 @@ impl Mail {
         address: &str,
         conversation: &str,
         receive_user: &str,
+        zero_day_ip: &str,
     ) -> Result<()> {
         #[derive(serde::Deserialize)]
         struct Line {
@@ -173,9 +174,8 @@ impl Mail {
                 1 => receive_user,
                 _ => return Ok(()),
             };
-            // `HelperConversation.ResolveText` clears the zero-day address of a conversation
-            // without one.
-            let message = line.text.replace("$IP_ZERODAY", "");
+            // `HelperConversation.ResolveText` substitutes the state saved by ZeroDaySystem.
+            let message = line.text.replace("$IP_ZERODAY", zero_day_ip);
             let body = if speaker == address {
                 format!("> {message}")
             } else {

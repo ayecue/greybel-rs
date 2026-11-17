@@ -780,7 +780,30 @@ protocol World = "greyhack-world" {
         message AdminCreateCtfEvent { program: ProgramId, event: CtfEventOptions } -> Result<bool, ScriptFailure>
         /// Scores event `name` as the script computer's player.
         message AdminRateCtfEvent { program: ProgramId, name: string, quality: i64, difficulty: i64 } -> Result<CtfRating, ScriptFailure>
+        /// Retained only for wire compatibility; NPC credentials now come from `GetNpcPassword` instead.
         message AdminCreateDebugAccount { program: ProgramId, user: string, password: string } -> Result<bool, ScriptFailure>
+        /// Unlocks a saved zero-day zone into the selected library file for testing.
+        message AdminUnlockDebugLibrary {
+            program: ProgramId,
+            public_ip: string,
+            lan_ip: string,
+            path: string,
+        } -> Result<bool, ScriptFailure>
+        /// Reads the best current debug-tools offer with no credentials, or posts an offer when credentials are supplied.
+        message AdminDebugOffer {
+            program: ProgramId,
+            user: string,
+            password: string,
+            price: i64,
+        } -> Result<ZeroDayOffer, ScriptFailure>
+        /// Buys a debug-tools offer and binds its credentials to the first buyer.
+        message AdminBuyDebugOffer { program: ProgramId, seller: string, price: i64 } -> Result<ZeroDayOffer, ScriptFailure>
+        /// Generates a zero-day mission chain and its weak aptclient service.
+        message AdminCreateZeroDayChain { program: ProgramId } -> Result<string?, ScriptFailure>
+        /// Generates a seeded procedural mission network.
+        message AdminCreateProceduralMission { program: ProgramId, seed: u64 } -> Result<string?, ScriptFailure>
+        /// Reads a mail account for a sandbox mail or mission fixture.
+        message AdminGetMailAccount { program: ProgramId, address: string } -> Result<MailAccountInfo?, ScriptFailure>
         /// Reports the newest library file `library` as the update of the network behind `public_ip`, as an
         /// administrator replying to the update-libraries mail does (`Persona.UpdateReportedNetworks`). The network's
         /// older library files of that name take it as the game restores them
@@ -827,6 +850,18 @@ protocol World = "greyhack-world" {
         /// exploit report window does (`FileHelperServer.ExploitReportServerRpc`): the next check releases a version that
         /// patches it. Returns true or the game's failure.
         message AdminReportExploit { program: ProgramId, library: string, zone: string, unsec_value: string } -> Result<Outcome, ScriptFailure>
+        /// Requests the zero-day mission as `MissionsHelperServer.GetRumorServerRpc` does, including its first-rumor mail.
+        message AdminRequestZeroDayMission { program: ProgramId } -> Result<ZeroDayMission, ScriptFailure>
+        /// Answers a zero-day social-engineering mail as `Persona.ProcesaCredsDebug` does. `answer` is GOOD or BAD.
+        message AdminAnswerZeroDay {
+            program: ProgramId,
+            public_ip: string,
+            user: string,
+            from_mail: string,
+            answer: string,
+        } -> Result<string?, ScriptFailure>
+        /// Visits the website at `public_ip`; returns whether it is a HackShop offering zero-day access.
+        message AdminVisitZeroDayHackShop { program: ProgramId, public_ip: string } -> Result<bool, ScriptFailure>
     }
 
     /// Program runtime that receives output, termination, and throttle notifications.
@@ -905,6 +940,43 @@ struct ProgramSession {
     home: string,
     /// Path of the program file.
     path: string,
+}
+
+/// A debug-tools offer returned by the sandbox rumor operations.
+struct DebugOfferInfo {
+    seller: string,
+    user: string,
+    password: string,
+    price: i64,
+    expires_at: u64,
+    purchased: bool,
+}
+
+/// Offer read/post/purchase result. Failures are returned as browser-style text for the admin API.
+union ZeroDayOffer {
+    Offer(DebugOfferInfo),
+    Failure(string),
+    Null,
+}
+
+/// First-rumor network and its delivered mail (`MissionsHelperServer.GetRumorServerRpc`).
+struct ZeroDayMissionInfo {
+    public_ip: string,
+    lan_ip: string,
+    sender: string,
+    body: string,
+}
+
+/// Mission-window result; failure is the exact browser refusal text.
+union ZeroDayMission {
+    Rumor(ZeroDayMissionInfo),
+    Failure(string),
+}
+
+/// Public mail-account fields used by sandbox mission fixtures.
+struct MailAccountInfo {
+    address: string,
+    password_hash: string,
 }
 
 /// Script-visible result of a mutation.
@@ -2035,6 +2107,8 @@ union PatchState {
 union DebugFailure {
     /// The password does not open the debug account, or no account has the user.
     IncorrectPassword,
+    /// The credentials were already used by another player.
+    CredentialsInUse,
     /// Account failed to log in too often.
     LoginBlocked,
     /// Library file is not at the path.

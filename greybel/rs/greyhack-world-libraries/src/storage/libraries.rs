@@ -59,7 +59,7 @@ impl FromRow for WeaknessRow {
 pub(crate) struct LibraryRepository {
     db: Database,
     computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
-    files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
+    pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
     networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
 }
 
@@ -147,9 +147,14 @@ impl LibraryRepository {
             return Ok(id);
         }
 
+        let identity = greyhack_world_core::Library {
+            kind: library.kind,
+            version: library.version.clone(),
+        };
         let id = self
             .files
-            .library_row(library.kind, &library.version)
+            .library_rows
+            .library_identity_id(&identity)
             .await?;
 
         for zone in &library.zones {
@@ -200,6 +205,67 @@ impl LibraryRepository {
         Ok(id)
     }
 
+    /// Replaces the zones of an existing library identity, as unlocking a zero-day does for its selected file.
+    pub(crate) async fn replace_library_zones(
+        &self,
+        id: LibraryId,
+        library: &Library,
+    ) -> Result<()> {
+        execute(
+            &self.db.connection(),
+            "DELETE FROM memory_zones WHERE library_id = ?1",
+            params![id.0],
+        )
+        .await?;
+
+        for zone in &library.zones {
+            let zone_id = insert(
+                &self.db.connection(),
+                "INSERT INTO memory_zones (library_id, address, hide) VALUES (?1, ?2, ?3)",
+                params![id.0, zone.address.as_str(), zone.hide],
+            )
+            .await?;
+
+            for weakness in &zone.weaknesses {
+                let weakness_id = insert(
+                    &self.db.connection(),
+                    "INSERT INTO weaknesses (zone_id, unsec_value, details, reward, user, required_library, \
+                     required_version, metaxploit_version, num_register_users, num_port_forward, num_conn_gateway, \
+                     path_exist, random_path, remote) \
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+                    params![
+                        zone_id,
+                        weakness.unsec_value.as_str(),
+                        weakness.details.as_str(),
+                        weakness.reward.code(),
+                        weakness.user.as_str(),
+                        weakness.required_lib.map(LibraryKind::code),
+                        weakness.req_lib_version.as_str(),
+                        weakness.metaxploit_version.as_str(),
+                        weakness.num_register_users,
+                        weakness.num_port_forward,
+                        weakness.num_conn_gateway,
+                        weakness.path_exist.as_str(),
+                        weakness.random_path.as_str(),
+                        weakness.remote,
+                    ],
+                )
+                .await?;
+
+                for requirement in &weakness.requirements {
+                    execute(
+                        &self.db.connection(),
+                        "INSERT OR IGNORE INTO weakness_requirements (weakness_id, requirement) VALUES (?1, ?2)",
+                        params![weakness_id, requirement.code()],
+                    )
+                    .await?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     /// Returns the libraries reported as the newest of their kind for `network`
     /// (`NetworkLan.reportedLibUpdates`).
     pub(crate) async fn network_library_updates(
@@ -228,6 +294,39 @@ impl LibraryRepository {
         execute(
             &self.db.connection(),
             "INSERT INTO network_library_updates (network_id, kind, library_id) VALUES (?1, ?2, ?3) \
+             ON CONFLICT (network_id, kind) DO UPDATE SET library_id = ?3",
+            params![network.0, kind.code(), library.0],
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    /// Returns the saved library selected by each kind's router node (`HelperLibVersions.libVersions`).
+    pub(crate) async fn network_library_choices(
+        &self,
+        network: NetworkId,
+    ) -> Result<Vec<(LibraryKind, LibraryId)>> {
+        Ok(fetch_all::<(Code<LibraryKind>, u32)>(
+            &self.db.connection(),
+            "SELECT kind, library_id FROM network_library_choices WHERE network_id = ?1 ORDER BY kind",
+            params![network.0],
+        )
+        .await?
+        .into_iter()
+        .map(|(Code(kind), library)| (kind, LibraryId(library)))
+        .collect())
+    }
+
+    pub(crate) async fn set_network_library_choice(
+        &self,
+        network: NetworkId,
+        kind: LibraryKind,
+        library: LibraryId,
+    ) -> Result<()> {
+        execute(
+            &self.db.connection(),
+            "INSERT INTO network_library_choices (network_id, kind, library_id) VALUES (?1, ?2, ?3) \
              ON CONFLICT (network_id, kind) DO UPDATE SET library_id = ?3",
             params![network.0, kind.code(), library.0],
         )

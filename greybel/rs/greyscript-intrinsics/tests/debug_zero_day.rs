@@ -1,7 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::Requirement;
 use greyhack_world::World;
-use greyhack_world_libraries::DebugAccount;
+use greyhack_world_libraries::ZeroDayPlayerState;
 
 use crate::support::debug::debug_world;
 use crate::support::save_copy;
@@ -10,15 +10,6 @@ use crate::support::scripts::run_on_host;
 #[test]
 fn should_run_unit_testing_and_lock_out_a_failed_attempt() {
     let world = debug_world();
-
-    block_on(
-        world
-            .modules
-            .libraries
-            .debug
-            .save_debug_account(&DebugAccount::new("test", "test")),
-    )
-    .unwrap();
 
     let code = r#"
 meta = include_lib("/lib/metaxploit.so")
@@ -40,25 +31,17 @@ print debug.unit_testing([1])
         "{output}"
     );
     assert!(
-        block_on(restored.modules.libraries.debug.debug_account("test"))
+        block_on(restored.modules.libraries.debug.rumor())
             .unwrap()
-            .unwrap()
-            .unit_test_failed
+            .players
+            .values()
+            .any(|player| player.failed_unit_testing)
     );
 }
 
 #[test]
 fn should_report_a_zero_day_and_create_partial_payload_objects() {
     let world = debug_world();
-
-    block_on(
-        world
-            .modules
-            .libraries
-            .debug
-            .save_debug_account(&DebugAccount::new("test", "test")),
-    )
-    .unwrap();
 
     let address = block_on(
         world
@@ -150,31 +133,16 @@ print debug.payload("0xBAD")
 async fn should_preserve_the_unit_test_lockout() {
     let mut world = debug_world();
 
-    world
-        .modules
-        .libraries
-        .debug
-        .save_debug_account(&DebugAccount::new("test", "test"))
-        .await
-        .unwrap();
-
-    let mut account = world
-        .modules
-        .libraries
-        .debug
-        .debug_account("test")
-        .await
-        .unwrap()
-        .unwrap();
-
-    account.unit_test_failed = true;
-    world
-        .modules
-        .libraries
-        .debug
-        .save_debug_account(&account)
-        .await
-        .unwrap();
+    let debug = &world.modules.libraries.debug;
+    let mut rumor = debug.rumor().await.unwrap();
+    rumor.players.insert(
+        debug.player_id(),
+        ZeroDayPlayerState {
+            failed_unit_testing: true,
+            ..ZeroDayPlayerState::default()
+        },
+    );
+    debug.restore_rumor(&rumor).await.unwrap();
 
     let database = save_copy(&mut world).await;
 
@@ -185,11 +153,12 @@ async fn should_preserve_the_unit_test_lockout() {
             .modules
             .libraries
             .debug
-            .debug_account("test")
+            .rumor()
             .await
             .unwrap()
-            .unwrap()
-            .unit_test_failed
+            .players
+            .values()
+            .any(|player| player.failed_unit_testing)
     );
 }
 

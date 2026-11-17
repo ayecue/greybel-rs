@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS npcs (
     person_id            INTEGER PRIMARY KEY REFERENCES persons(id) ON DELETE CASCADE,
     user_id              INTEGER NOT NULL UNIQUE REFERENCES computer_users(id) ON DELETE CASCADE,
     online               INTEGER NOT NULL,
+    has_rumor            INTEGER NOT NULL DEFAULT 0,
     dead_at              INTEGER,
     job_role             INTEGER NOT NULL DEFAULT 0,
     license_plate        TEXT,
@@ -41,7 +42,8 @@ CREATE TABLE IF NOT EXISTS npcs (
     alarm_deleted        INTEGER NOT NULL DEFAULT 0,
     work_performance     INTEGER NOT NULL DEFAULT 2,
     company_align        INTEGER NOT NULL DEFAULT 0,
-    day_zero_contact     TEXT
+    day_zero_contact     TEXT,
+    zero_day_index       INTEGER
 );
 
 -- an open job position of a network's company (`NpcHiring.availJobs`): the computer of the NPC who left it, by role,

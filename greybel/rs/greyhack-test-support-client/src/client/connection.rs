@@ -14,19 +14,20 @@ use crate::protocol::TestClientNotification;
 use crate::protocol::test_support::{
     AdvanceClockRpc, AllowFirewallRpc, BuyExploitRpc, ConfigZeroDayInfoRpc, ConfigureApplianceRpc,
     ConfigureComputerRpc, ConfigureEconomyRpc, ConfigureMailRpc, ConnectNetworkRpc,
-    CreateFixtureNetworkRpc, CreateNetworkRpc, DeleteCtfRpc, DisableNetworkRpc, EndGameRpc,
-    ExecuteInTerminalRpc, ExecuteInteractiveRpc, ExecutePairRpc, ExecuteRpc, ExecuteUntilInputRpc,
-    FireNpcRpc, ForceAdminLoginRpc, ForwardServiceRpc, FreezeClockRpc, HireRentalAdminRpc,
-    InstallFixtureLibraryRpc, InstallLibraryRpc, LockApplianceRpc, MissionRpc, PrimeFloodRpc,
-    PromoteAdminRpc, QueryExploitsRpc, QueryFileRpc, QueryGuildsRpc, QueryNetworkRpc,
-    QueryPlayerRpc, QueryTracesRpc, QueryWordListsRpc, RateCtfRpc, RebootPlayerRpc,
-    RefreshNpcAccountRpc, ReleaseLibraryVersionRpc, RentNetworkRpc, RentalAdminServiceRpc, Reply,
-    ReportLibraryUpdateRpc, ResetTrafficCooldownRpc, RunPaymentRpc, RunPaymentsRpc,
-    SetPhoneAlarmRpc, SetPlayerMoneyRpc, SetRouterKernelRequirementRpc, SetupBlockchainRpc,
-    SetupCtfRpc, SetupDebugRpc, SetupForeignCoinRpc, SetupGuildRpc, SetupMailRpc, SetupPlayerRpc,
-    SetupTrafficRpc, SetupWalletRpc, SpawnCtfNetworkRpc, SpawnNetworkRpc,
-    TestClient as TestProtocol, TrafficAccidentRpc, TypeInputRpc, WriteFileRpc,
-    WriteRouterKernelRpc,
+    CreateFixtureNetworkRpc, CreateNetworkRpc, CreateProceduralMissionRpc, CreateZeroDayChainRpc,
+    DeleteCtfRpc, DisableNetworkRpc, EndGameRpc, ExecuteInTerminalRpc, ExecuteInteractiveRpc,
+    ExecutePairRpc, ExecuteRpc, ExecuteUntilInputRpc, FireNpcRpc, ForceAdminLoginRpc,
+    ForwardServiceRpc, FreezeClockRpc, HireRentalAdminRpc, InstallFixtureLibraryRpc,
+    InstallLibraryRpc, LockApplianceRpc, MissionRpc, PrimeFloodRpc, PromoteAdminRpc,
+    QueryExploitsRpc, QueryFileRpc, QueryGuildsRpc, QueryNetworkRpc, QueryPlayerRpc,
+    QueryTracesRpc, QueryWordListsRpc, RateCtfRpc, RebootPlayerRpc, RefreshNpcAccountRpc,
+    ReleaseLibraryVersionRpc, RentNetworkRpc, RentalAdminServiceRpc, Reply, ReportLibraryUpdateRpc,
+    ResetTrafficCooldownRpc, RunPaymentRpc, RunPaymentsRpc, SetPhoneAlarmRpc, SetPlayerMoneyRpc,
+    SetRouterKernelRequirementRpc, SetupBlockchainRpc, SetupCtfRpc, SetupDebugRpc,
+    SetupForeignCoinRpc, SetupGuildRpc, SetupMailRpc, SetupPlayerRpc, SetupTrafficRpc,
+    SetupWalletRpc, SpawnCtfNetworkRpc, SpawnNetworkRpc, TestClient as TestProtocol,
+    TrafficAccidentRpc, TypeInputRpc, UnlockDebugLibraryRpc, WriteFileRpc, WriteRouterKernelRpc,
+    ZeroDayRumorRpc, ZeroDayStateRpc,
 };
 use crate::{TestClientError, TestClientOptions};
 
@@ -162,7 +163,7 @@ impl Connection {
                             RequestKind::TypeInput { .. } | RequestKind::ExecutePair { .. } | RequestKind::QueryPlayer | RequestKind::QueryFile { .. } | RequestKind::SetRouterKernelRequirement { .. } | RequestKind::WriteRouterKernel { .. } | RequestKind::QueryNetwork | RequestKind::InstallLibrary { .. } | RequestKind::InstallFixtureLibrary { .. } | RequestKind::SetupBlockchain { .. } | RequestKind::SetupMail { .. } | RequestKind::SetupWallet { .. } | RequestKind::ConfigureComputer { .. } | RequestKind::ConfigureEconomy { .. } | RequestKind::ConfigureMail { .. } | RequestKind::DeleteCtf { .. } | RequestKind::ConfigureAppliance { .. } => send_execution(&channel, request, kind),
                             RequestKind::SetupForeignCoin { .. } | RequestKind::ForwardService { .. } | RequestKind::LockAppliance { .. } | RequestKind::PrimeFlood { .. } | RequestKind::FreezeClock | RequestKind::DisableNetwork { .. } | RequestKind::PromoteAdmin { .. } | RequestKind::FireNpc { .. } => send_network(&channel, request, kind),
                             RequestKind::RefreshNpcAccount { .. } | RequestKind::ConfigZeroDayInfo { .. } | RequestKind::SetPhoneAlarm { .. } | RequestKind::SetupTraffic | RequestKind::TrafficAccident { .. } | RequestKind::ResetTrafficCooldown | RequestKind::HireRentalAdmin { .. } | RequestKind::SpawnNetwork { .. } | RequestKind::AllowFirewall { .. } | RequestKind::ForceAdminLogin { .. } | RequestKind::AdvanceClock { .. } => send_network_admin(&channel, request, kind),
-                            RequestKind::Mission { .. } | RequestKind::QueryExploits { .. } | RequestKind::BuyExploit { .. } | RequestKind::RentNetwork { .. } | RequestKind::RentalAdminService { .. } | RequestKind::RunPayments | RequestKind::SetPlayerMoney { .. } | RequestKind::RebootPlayer { .. } | RequestKind::ReportLibraryUpdate { .. } | RequestKind::ReleaseLibraryVersion { .. } | RequestKind::SetupGuild(_) | RequestKind::QueryTraces => send_economy(&channel, request, kind),
+                            RequestKind::Mission { .. } | RequestKind::ZeroDayRumor | RequestKind::ZeroDayState { .. } | RequestKind::CreateZeroDayChain | RequestKind::CreateProceduralMission | RequestKind::UnlockDebugLibrary { .. } | RequestKind::QueryExploits { .. } | RequestKind::BuyExploit { .. } | RequestKind::RentNetwork { .. } | RequestKind::RentalAdminService { .. } | RequestKind::RunPayments | RequestKind::SetPlayerMoney { .. } | RequestKind::RebootPlayer { .. } | RequestKind::ReportLibraryUpdate { .. } | RequestKind::ReleaseLibraryVersion { .. } | RequestKind::SetupGuild(_) | RequestKind::QueryTraces => send_economy(&channel, request, kind),
                             RequestKind::QueryWordLists | RequestKind::RunPayment { .. } | RequestKind::EndGame { .. } | RequestKind::QueryGuilds { .. } | RequestKind::ExecuteInTerminal { .. } | RequestKind::RateCtf { .. } | RequestKind::SpawnCtfNetwork => send_player(&channel, request, kind),
                         };
                         if let Err(error) = result
@@ -528,6 +529,10 @@ fn send_network_admin(
     .map_err(Into::into)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Every test-support operation has its own typed wire request"
+)]
 fn send_economy(
     channel: &Channel<TestProtocol, StreamDriver>,
     request: u32,
@@ -538,6 +543,37 @@ fn send_economy(
             request,
             kind: kind.into(),
             index,
+        }),
+        RequestKind::ZeroDayRumor => channel.send(&ZeroDayRumorRpc { request }),
+        RequestKind::ZeroDayState {
+            player_id,
+            open,
+            fresh,
+            first_rumor,
+            bind_user,
+            bind_to,
+        } => channel.send(&ZeroDayStateRpc {
+            request,
+            player_id: player_id.into(),
+            open,
+            fresh,
+            first_rumor,
+            bind_user: bind_user.into(),
+            bind_to: bind_to.into(),
+        }),
+        RequestKind::CreateZeroDayChain => channel.send(&CreateZeroDayChainRpc { request }),
+        RequestKind::CreateProceduralMission => {
+            channel.send(&CreateProceduralMissionRpc { request })
+        }
+        RequestKind::UnlockDebugLibrary {
+            public_ip,
+            lan_ip,
+            path,
+        } => channel.send(&UnlockDebugLibraryRpc {
+            request,
+            public_ip: public_ip.into(),
+            lan_ip: lan_ip.into(),
+            path: path.into(),
         }),
         RequestKind::QueryExploits { library, version } => channel.send(&QueryExploitsRpc {
             request,

@@ -27,6 +27,8 @@ async fn should_match_intrinsics_for_metaxploit_library_discovery() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
+
+    client.install_library("", "crypto.so", 0).await.unwrap();
     let snapshot = client.network_state().await.unwrap();
     let player = snapshot
         .nodes

@@ -13,7 +13,12 @@ MetaLib
 1
 
 Starting attack...success!
-Accessing firewall config...
-Firewall disabled.
-1
+Privileges obtained from user: guest
+
+Starting attack...Failed!
+No lan ip indicated or invalid.
+
+Starting attack...success!
+Privileges obtained from user: guest
+0
 0

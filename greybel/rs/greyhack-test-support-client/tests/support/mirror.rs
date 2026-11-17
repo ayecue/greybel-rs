@@ -81,6 +81,16 @@ pub fn layout(snapshot: &NetworkSnapshot) -> NetworkLayout {
                 },
             })
             .collect(),
+        library_choices: snapshot
+            .library_choices
+            .iter()
+            .filter_map(|choice| {
+                Some((
+                    greyhack_behaviour::LibraryKind::of_file(&choice.kind)?,
+                    choice.version.clone(),
+                ))
+            })
+            .collect(),
     }
 }
 
@@ -96,7 +106,7 @@ pub fn economy(snapshot: &NetworkSnapshot) -> EconomyLayout {
                 money: bank.money,
             })
             .collect(),
-        // The game keeps the payments of earlier tests' bank accounts; the copy has only the accounts of the snapshot.
+        // The game stores payments of earlier tests' bank accounts; the copy has only the accounts of the snapshot.
         subscriptions: snapshot
             .subscriptions
             .iter()
@@ -454,6 +464,65 @@ pub fn register_latest_libraries(world: &World, snapshot: &NetworkSnapshot) {
             .expect("the game's newest library is registered");
         }
     }
+
+    for history in &snapshot.library_history {
+        for content in &history.contents {
+            if let Some(library) = library(content) {
+                greybel_test_support::future::block_on(
+                    world
+                        .modules
+                        .libraries
+                        .updates
+                        .register_saved_library(&library),
+                )
+                .expect("the game's saved library history is registered");
+            }
+        }
+    }
+
+    let Some(router) = greybel_test_support::future::block_on(
+        world.modules.core.networks.router_at(&snapshot.public_ip),
+    )
+    .expect("the mirrored network lookup") else {
+        return;
+    };
+    let choices: Vec<_> = snapshot
+        .library_choices
+        .iter()
+        .filter_map(|choice| {
+            Some((
+                greyhack_behaviour::LibraryKind::of_file(&choice.kind)?,
+                choice.version.clone(),
+            ))
+        })
+        .collect();
+
+    greybel_test_support::future::block_on(async {
+        if choices.is_empty() {
+            world
+                .modules
+                .libraries
+                .updates
+                .ensure_network_library_choices(router.network, &snapshot.public_ip)
+                .await
+        } else {
+            world
+                .modules
+                .libraries
+                .updates
+                .set_network_library_choices(router.network, &choices)
+                .await
+        }
+    })
+    .expect("the mirrored router-node library choices");
+    greybel_test_support::future::block_on(
+        world
+            .modules
+            .libraries
+            .updates
+            .apply_network_choices_to_computers(router.network),
+    )
+    .expect("the mirrored computers use the router-node choices");
 }
 
 /// A library from the game's own serialized `Library` (`Library`: `listaZonaMem`, `Vulnerabilidad` and

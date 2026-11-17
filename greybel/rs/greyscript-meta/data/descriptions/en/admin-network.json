@@ -116,5 +116,12 @@
       "network = admin.network(\"82.110.42.17\")",
       "print(network.set_admin_restore(\"Owls\", 0))"
     ]
+  },
+  "unlock_debug_library": {
+    "description": "Unlocks the saved zero-day zone into the library at `path` on `lanIp`, preserving its existing zones and weaknesses. Returns `1` when the library was updated and `0` when it cannot be found.",
+    "example": [
+      "admin = get_greybel_util()",
+      "print(admin.network(\"1.2.3.4\").unlock_debug_library(\"192.168.1.2\", \"/lib/aptclient.so\"))"
+    ]
   }
 }

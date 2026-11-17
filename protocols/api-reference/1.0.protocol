@@ -193,6 +193,8 @@ enum Highlight {
     Comment,
     Name,
     Operator,
+    /// A type name written in code, such as a parameter type or `as T`.
+    Type,
 }
 
 /// Type names and member paths that matched.

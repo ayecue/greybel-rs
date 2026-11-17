@@ -115,6 +115,14 @@ CREATE TABLE IF NOT EXISTS network_library_updates (
     PRIMARY KEY (network_id, kind)
 );
 
+-- the saved version chosen by each network's router node (`HelperLibVersions.libVersions`)
+CREATE TABLE IF NOT EXISTS network_library_choices (
+    network_id INTEGER NOT NULL REFERENCES networks(id) ON DELETE CASCADE,
+    kind       INTEGER NOT NULL,
+    library_id INTEGER NOT NULL REFERENCES libraries(id),
+    PRIMARY KEY (network_id, kind)
+);
+
 -- patch state saved with each library file; its challenge is derived from its library and the world clock
 CREATE TABLE IF NOT EXISTS debug_libraries (
     node_id       INTEGER PRIMARY KEY REFERENCES nodes(id) ON DELETE CASCADE,
@@ -123,12 +131,10 @@ CREATE TABLE IF NOT EXISTS debug_libraries (
     num_patches   INTEGER NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS debug_accounts (
-    user             TEXT PRIMARY KEY,
-    password_hash    TEXT NOT NULL REFERENCES passwords(hash),
-    failed_logins    INTEGER NOT NULL,
-    unit_test_failed INTEGER NOT NULL,
-    last_network_ip  TEXT
+-- saved zero-day rumor offers and their first-buyer credential bindings
+CREATE TABLE IF NOT EXISTS zero_day_state (
+    id    INTEGER PRIMARY KEY,
+    state TEXT NOT NULL
 );
 
 ",
@@ -144,8 +150,9 @@ CREATE TABLE IF NOT EXISTS debug_accounts (
         "library_reporters",
         "reverse_shells",
         "network_library_updates",
+        "network_library_choices",
         "debug_libraries",
-        "debug_accounts",
+        "zero_day_state",
     ],
 );
 

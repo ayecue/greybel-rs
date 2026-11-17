@@ -68,6 +68,7 @@ impl NetworkGeneration {
         self.configure_record_service(details.kind, computers, details.domain, rng)
             .await?;
         self.add_network_npcs(computers, rng).await?;
+        self.resolve_zero_day_files(computers).await?;
         self.add_random_mails(computers, details.public_ip, details.kind)
             .await?;
 
@@ -125,6 +126,10 @@ impl NetworkGeneration {
         })
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Network creation follows the game's generation order, including its seeded library choices"
+    )]
     pub async fn add_network(&self, options: &NetworkOptions) -> Result<RouterId> {
         let mut rng = self.world.world_mut().rng.fork("network");
         let NetworkIdentity {
@@ -139,13 +144,20 @@ impl NetworkGeneration {
         let position = options
             .position
             .unwrap_or_else(|| greyhack_behaviour::position_for_ip(&public_ip));
-        let kind = greyhack_behaviour::kind_for_ip(&self.world.world_seed(), &public_ip);
-        let (local_ip, plan) = self.lan_plan(
+        let kind = options.kind.unwrap_or_else(|| {
+            greyhack_behaviour::kind_for_ip(&self.world.world_seed(), &public_ip)
+        });
+        let (local_ip, mut plan) = self.lan_plan(
             &public_ip,
             kind,
             options.computers.is_none(),
             is_rumor_time(self.world.time_seconds()),
         );
+        if !options.allow_missions
+            && let Some(plan) = &mut plan
+        {
+            plan.mission = None;
+        }
         let network_id = self
             .networks
             .insert_network(&NetworkDraft {
@@ -157,6 +169,11 @@ impl NetworkGeneration {
                 position,
             })
             .await?;
+
+        self.updates
+            .ensure_network_library_choices(network_id, &public_ip)
+            .await?;
+
         // All routers and switches in a network share the main router root password (`LanRouter`).
         let root_password =
             Word::Password.generate(&mut Rng::root_password(self.world.seed(), &public_ip));
@@ -312,6 +329,7 @@ pub struct NetworkGeneration {
     pub(crate) npcs: greyhack_world_modules::Dep<greyhack_world_npcs::NpcService>,
     pub(crate) libraries: greyhack_world_modules::Dep<greyhack_world_libraries::LibraryService>,
     pub(crate) updates: greyhack_world_modules::Dep<greyhack_world_libraries::UpdateService>,
+    pub(crate) debug: greyhack_world_modules::Dep<greyhack_world_libraries::services::Debug>,
     pub(crate) traffic: greyhack_world_modules::Dep<greyhack_world_smart_devices::Traffic>,
     pub(crate) appliances:
         greyhack_world_modules::Dep<greyhack_world_smart_devices::ApplianceService>,
@@ -331,6 +349,7 @@ impl NetworkGeneration {
             npcs: registry.get(),
             libraries: registry.get(),
             updates: registry.get(),
+            debug: registry.get(),
             traffic: registry.get(),
             appliances: registry.get(),
             mission_placement: registry.get(),

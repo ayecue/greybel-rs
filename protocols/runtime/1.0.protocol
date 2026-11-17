@@ -29,6 +29,11 @@ protocol Runtime = "greybel-runtime" {
             /// Name of the program binary in the home folder of its executing user. The simulated world builds it
             /// there from the program files so the program can launch it.
             program_name: string,
+            /// Greybel syntax features turned off, by their `greybel.json` names (e.g. `ternary`); absent turns none
+            /// off.
+            disabled_syntax?: list<string>,
+            /// How the program's build writes strings with line breaks; absent writes `Concatenation`.
+            multiline_strings?: MultilineStringStyle,
         } -> Result<Exit, LaunchFailure>
         /// Replaces every breakpoint in `uri` and returns their resolved states in the same order.
         message SetBreakpoints {
@@ -238,4 +243,12 @@ struct Evaluation {
     type_name: string,
     /// Reference supplied to [`Variables`] for list/map items; 0 for other values.
     reference: u32,
+}
+
+/// How a build writes a string with line breaks, which Grey Hack's parser does not accept.
+enum MultilineStringStyle {
+    /// `"a"+__NL+"b"` with `__NL=char(10)`.
+    Concatenation,
+    /// `__MSTR(["a","b"])`, which joins the lines with `char(10)`.
+    Join,
 }

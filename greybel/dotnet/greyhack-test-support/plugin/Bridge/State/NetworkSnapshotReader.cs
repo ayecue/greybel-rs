@@ -106,8 +106,44 @@ internal static class NetworkSnapshotReader
             VersionsControl
                 .Singleton.GetLastLibs()
                 .Values.Select(library => JsonConvert.SerializeObject(library))
-                .ToList()
+                .ToList(),
+            ReadLibraryHistory(),
+            ReadLibraryChoices(routerNode)
         );
+    }
+
+    private static List<LibraryHistorySnapshot> ReadLibraryHistory()
+    {
+        return VersionsControl
+            .Singleton.GetAllLibs()
+            .Select(entry => new LibraryHistorySnapshot(
+                entry.Key,
+                entry.Value.Select(id => ReadLibraryContent(entry.Key, id)).ToList()
+            ))
+            .ToList();
+    }
+
+    private static string ReadLibraryContent(string kind, string id)
+    {
+        string content = Database.Singleton.GetContenido(id);
+        return string.IsNullOrEmpty(content)
+            ? JsonConvert.SerializeObject(VersionsControl.Singleton.GetLastLibs()[kind])
+            : content;
+    }
+
+    private static List<LibraryChoiceSnapshot> ReadLibraryChoices(ServerMap.RouterNode routerNode)
+    {
+        return VersionsControl
+            .Singleton.GetAllLibs()
+            .Select(entry =>
+            {
+                string content = VersionsControl.Singleton.GetRandomLibContent(routerNode, entry.Key);
+                string version = string.IsNullOrEmpty(content)
+                    ? ""
+                    : JsonConvert.DeserializeObject<Library>(content).GetStrVersion();
+                return new LibraryChoiceSnapshot(entry.Key, version);
+            })
+            .ToList();
     }
 
     /// <summary>

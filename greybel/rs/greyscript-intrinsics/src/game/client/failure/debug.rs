@@ -9,6 +9,9 @@ use crate::protocol::{DebugFailure, DebugScan, UnitTestReport, ZeroDayObjectKind
 pub(super) fn debug_text(failure: &DebugFailure) -> String {
     match failure {
         DebugFailure::IncorrectPassword => "Error: Incorrect password".to_owned(),
+        DebugFailure::CredentialsInUse => {
+            "Error: These credentials are being used by another person.".to_owned()
+        }
         DebugFailure::LoginBlocked => {
             "Error: The maximum number of login attempts has been reached. Access blocked."
                 .to_owned()

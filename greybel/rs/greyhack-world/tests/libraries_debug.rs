@@ -6,93 +6,53 @@ use crate::support::debug::{LIBRARY_PATH, debug_world};
 #[tokio::test]
 async fn should_block_debug_login_after_the_attempt_limit() {
     let (world, _) = debug_world().await;
+    let debug = &world.modules.libraries.debug;
+    let player = debug.player_id();
 
     for attempt in 1..=MAX_DEBUG_LOGIN_ATTEMPTS {
         assert_eq!(
-            world
-                .modules
-                .libraries
-                .debug
-                .login_debug("dbg", "wrong")
+            debug
+                .login_debug_for_player(&player, "dbg", "wrong")
                 .await
                 .unwrap(),
             Err(DebugFailure::IncorrectPassword)
         );
         assert_eq!(
-            world
-                .modules
-                .libraries
-                .debug
-                .debug_account("dbg")
-                .await
-                .unwrap()
-                .unwrap()
-                .failed_logins,
+            debug.rumor().await.unwrap().players[&player].login_attempts,
             attempt
         );
     }
 
     assert_eq!(
-        world
-            .modules
-            .libraries
-            .debug
-            .login_debug("dbg", "secret")
+        debug
+            .login_debug_for_player(&player, "dbg", "secret")
             .await
             .unwrap(),
         Err(DebugFailure::LoginLockout)
     );
     assert_eq!(
-        world
-            .modules
-            .libraries
-            .debug
-            .debug_account("dbg")
-            .await
-            .unwrap()
-            .unwrap()
-            .failed_logins,
+        debug.rumor().await.unwrap().players[&player].login_attempts,
         MAX_DEBUG_LOGIN_ATTEMPTS
     );
 
-    let mut account = world
-        .modules
-        .libraries
-        .debug
-        .debug_account("dbg")
-        .await
-        .unwrap()
-        .unwrap();
-
-    account.failed_logins = 1;
-    world
-        .modules
-        .libraries
-        .debug
-        .save_debug_account(&account)
-        .await
-        .unwrap();
+    let mut rumor = debug.rumor().await.unwrap();
+    rumor.players.get_mut(&player).unwrap().login_attempts = 1;
+    debug.restore_rumor(&rumor).await.unwrap();
     assert_eq!(
-        world
-            .modules
-            .libraries
-            .debug
-            .login_debug("dbg", "secret")
+        debug
+            .login_debug_for_player(&player, "dbg", "secret")
             .await
             .unwrap(),
         Ok(())
     );
+    // Unlike the old sandbox table, the game's player info keeps its failure count until a new rumor.
     assert_eq!(
-        world
-            .modules
-            .libraries
-            .debug
-            .debug_account("dbg")
-            .await
-            .unwrap()
-            .unwrap()
-            .failed_logins,
-        0
+        debug.rumor().await.unwrap().players[&player].login_attempts,
+        1
+    );
+    assert_eq!(
+        debug.rumor().await.unwrap().npc_passwords["dbg"].player_id,
+        Some(player)
     );
 }
 
@@ -213,15 +173,7 @@ async fn should_lock_debug_tests_after_an_incorrect_answer() {
         Err(DebugFailure::IncorrectErrorLines)
     );
     assert!(
-        world
-            .modules
-            .libraries
-            .debug
-            .debug_account("dbg")
-            .await
-            .unwrap()
-            .unwrap()
-            .unit_test_failed
+        world.modules.libraries.debug.rumor().await.unwrap().players["dbg"].failed_unit_testing
     );
     assert_eq!(
         world

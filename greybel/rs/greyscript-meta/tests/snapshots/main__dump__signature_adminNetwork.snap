@@ -17,6 +17,7 @@ definitionOrder:
   - set_company_shares
   - hire_crown_shield
   - set_admin_restore
+  - unlock_debug_library
 definitions:
   add_computer:
     argStrings:
@@ -548,6 +549,45 @@ definitions:
     typeString: function
     variations:
       ok: []
+  unlock_debug_library:
+    argStrings:
+      - - string
+      - - string
+    id: unlock_debug_library
+    json:
+      arguments:
+        - default: ~
+          label: lan_ip
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: path
+          opt: false
+          types:
+            - string
+      description: "Unlocks the saved zero-day zone into the library at `path` on `lanIp`, preserving its existing zones and weaknesses. Returns `1` when the library was updated and `0` when it cannot be found."
+      example:
+        - admin = get_greybel_util()
+        - "print(admin.network(\"1.2.3.4\").unlock_debug_library(\"192.168.1.2\", \"/lib/aptclient.so\"))"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: adminNetwork
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel
+    typeString: function
+    variations:
+      ok: []
 descriptionOrder:
   - $meta
   - computer
@@ -564,6 +604,7 @@ descriptionOrder:
   - set_company_shares
   - hire_crown_shield
   - set_admin_restore
+  - unlock_debug_library
 descriptions:
   $meta:
     description: "An `adminNetwork` belongs to Greybel's interpreter, not to the game: `admin.network` returns one for a network's public address, in Greybel's simulated world only. Its methods change that network, including what the game only does from its websites, such as firing and hiring its NPCs. The `classID` used for this object is `\"adminNetwork\"`."
@@ -655,5 +696,10 @@ descriptions:
       - admin = get_greybel_util()
       - "network = admin.network(\"82.110.42.17\")"
       - "print(network.set_phone_alarm(\"smith\", 23, 30, 0))"
+  unlock_debug_library:
+    description: "Unlocks the saved zero-day zone into the library at `path` on `lanIp`, preserving its existing zones and weaknesses. Returns `1` when the library was updated and `0` when it cannot be found."
+    example:
+      - admin = get_greybel_util()
+      - "print(admin.network(\"1.2.3.4\").unlock_debug_library(\"192.168.1.2\", \"/lib/aptclient.so\"))"
 extends: map
 hidden: false

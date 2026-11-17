@@ -111,7 +111,9 @@ impl<C: Copy + PartialEq> ProgramTreePool<C> {
     pub fn remove(&self, id: TreeId) -> Option<ProgramTree<C>> {
         let tree = self.trees.borrow_mut().remove(&id)?;
 
-        self.programs.borrow_mut().retain(|_, owner| *owner != id);
+        self.programs
+            .borrow_mut()
+            .retain(|_, owner: &mut TreeId| *owner != id);
 
         Some(tree)
     }

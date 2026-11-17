@@ -66,6 +66,7 @@ print [typeof(session), typeof(meta.net_use("8.8.8.8", 22))]
 lib = dump_lib(session)
 print [lib_name(lib) == lib.lib_name, version(lib) == lib.version]
 print [get_num_users(session) == session.get_num_users, is_any_active_user(session) == session.is_any_active_user]
+admin.network(get_router.public_ip).computer(get_shell.host_computer.local_ip).set_library_version("/lib/metaxploit.so", "1.9.0")
 loaded = load(meta, "/lib/init.so")
 print [typeof(loaded), lib_name(loaded)]
 print scan(meta, loaded).len == meta.scan(loaded).len

@@ -21,6 +21,7 @@ mod set_admin_restore;
 mod set_company_shares;
 mod set_net_speed;
 mod set_phone_alarm;
+mod unlock_debug_library;
 
 pub(crate) const METHODS: &[(&str, &Native)] = &[
     ("computer", &computer::computer::NATIVE),
@@ -48,6 +49,10 @@ pub(crate) const METHODS: &[(&str, &Native)] = &[
     (
         "set_admin_restore",
         &set_admin_restore::set_admin_restore::NATIVE,
+    ),
+    (
+        "unlock_debug_library",
+        &unlock_debug_library::unlock_debug_library::NATIVE,
     ),
 ];
 

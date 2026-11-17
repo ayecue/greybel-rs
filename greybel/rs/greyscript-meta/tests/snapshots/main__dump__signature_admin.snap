@@ -19,7 +19,9 @@ definitionOrder:
   - create_mail_account
   - create_ctf_account
   - accept_mission
-  - create_debug_account
+  - request_zero_day_mission
+  - answer_zero_day
+  - visit_zero_day_hack_shop
   - deposit
   - grant_coins
   - create_ctf_event
@@ -27,6 +29,11 @@ definitionOrder:
   - create_guild
   - release_library_version
   - report_exploit
+  - debug_offer
+  - buy_debug_offer
+  - create_zero_day_chain
+  - create_procedural_mission
+  - get_mail_account
 definitions:
   accept_mission:
     argStrings:
@@ -51,6 +58,100 @@ definitions:
     origin: admin
     otherLanguageDescription: ~
     returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel
+    typeString: function
+    variations:
+      ok: []
+  answer_zero_day:
+    argStrings:
+      - - string
+      - - string
+      - - string
+      - - string
+    id: answer_zero_day
+    json:
+      arguments:
+        - default: ~
+          label: public_ip
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: from_mail
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: answer
+          opt: false
+          types:
+            - string
+      description: "Answers a zero-day social-engineering message to NPC `user` on the network at `public_ip` as `Persona.ProcesaCredsDebug` does. `from_mail` must be the sender address and `answer` either `GOOD` or `BAD`, matching the NPC's company alignment. The NPC's own address, an unrecognized sender, and the wrong alignment return the game's refusal text; a correct aligned answer returns `ANSWER_ZERODAY_OK` with the player's reusable NPC `GetNpcPassword` credentials substituted. Returns `null` when the network, NPC, or mail account is missing or when called on anything but the `admin` object. Invalid argument types or an alignment other than `GOOD` or `BAD` raise `answer_zero_day: Invalid arguments`."
+      example:
+        - admin = get_greybel_util()
+        - "print(admin.answer_zero_day(\"1.2.3.4\", \"surname\", \"contact@example.com\", \"GOOD\"))"
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel
+    typeString: function
+    variations:
+      ok: []
+  buy_debug_offer:
+    argStrings:
+      - - string
+      - - number
+    id: buy_debug_offer
+    json:
+      arguments:
+        - default: ~
+          label: seller
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: price
+          opt: false
+          types:
+            - number
+      description: "Buys the offer from `seller` at `price` as `BankHelperServer.BuyDebugToolsCredsServerRpc` and `ZeroDaySystem.BuyOfferCreds` do. The first successful buyer binds the NPC debug-tools credentials, marks the offer purchased, and receives its user and password; refused purchases return the exact game error text."
+      example:
+        - admin = get_greybel_util()
+        - "print(admin.buy_debug_offer(\"npcUser\", 1000))"
+      isProtected: false
+      returns:
+        - keyType: any
+          type: map
+          valueType: any
+        - string
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - "map<any,any>"
       - string
       - "null"
     returnVariations:
@@ -179,47 +280,6 @@ definitions:
         - "admin.create_ctf_account(\"ctfuser\", \"secret\")"
         - "admin.create_ctf_event({\"eventName\": \"mission\", \"user\": \"ctfuser\", \"password\": \"secret\", \"description\": \"Find the flag\", \"publicAddress\": \"82.110.42.17\", \"creatorName\": \"creator\", \"mailContent\": \"Good luck\"})"
         - "print(get_ctf(\"ctfuser\", \"secret\", \"mission\").get_description)"
-      isProtected: false
-      returns:
-        - number
-        - "null"
-      type: function
-    origin: admin
-    otherLanguageDescription: ~
-    returnStrings:
-      - number
-      - "null"
-    returnVariations:
-      ok: []
-    tags:
-      - method
-      - greybel
-    typeString: function
-    variations:
-      ok: []
-  create_debug_account:
-    argStrings:
-      - - string
-      - - string
-    id: create_debug_account
-    json:
-      arguments:
-        - default: ~
-          label: user
-          opt: false
-          types:
-            - string
-        - default: ~
-          label: password
-          opt: false
-          types:
-            - string
-      description: "Creates the debug account `user` with `password`, which `debug_tools` accepts. Returns `1` when it was created, otherwise `0`. Non-string arguments raise `create_debug_account: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
-      example:
-        - admin = get_greybel_util()
-        - "admin.create_debug_account(\"dbg\", \"secret\")"
-        - "lib = include_lib(\"/lib/metaxploit.so\").load(\"/lib/init.so\")"
-        - "print(lib.debug_tools(\"dbg\", \"secret\"))"
       isProtected: false
       returns:
         - number
@@ -383,6 +443,39 @@ definitions:
     typeString: function
     variations:
       ok: []
+  create_procedural_mission:
+    argStrings:
+      - - number
+    id: create_procedural_mission
+    json:
+      arguments:
+        - default: ~
+          label: seed
+          opt: false
+          types:
+            - number
+      description: "Creates a procedural mission at a deterministic seed. Returns its first network public IP, or `null` when no mission can be generated."
+      example:
+        - admin = get_greybel_util()
+        - print(admin.create_procedural_mission(42))
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel
+    typeString: function
+    variations:
+      ok: []
   create_program:
     argStrings:
       - - string
@@ -414,6 +507,83 @@ definitions:
     otherLanguageDescription: ~
     returnStrings:
       - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel
+    typeString: function
+    variations:
+      ok: []
+  create_zero_day_chain:
+    argStrings: []
+    id: create_zero_day_chain
+    json:
+      arguments: []
+      description: "Creates a zero-day mission chain and installs a weak aptclient library on its first service computer. Returns the first network public IP, or `null` when it cannot be created."
+      example:
+        - admin = get_greybel_util()
+        - print(admin.create_zero_day_chain())
+      isProtected: false
+      returns:
+        - string
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel
+    typeString: function
+    variations:
+      ok: []
+  debug_offer:
+    argStrings:
+      - - string
+      - - string
+      - - number
+    id: debug_offer
+    json:
+      arguments:
+        - default: ~
+          label: user
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: password
+          opt: false
+          types:
+            - string
+        - default: ~
+          label: price
+          opt: false
+          types:
+            - number
+      description: "Reads the best offer as `BankHelperServer.GetOfferDebugToolsCredsServerRpc` does, or posts credentials and `price` as `BankHelperServer.SellDebugToolsCredsServerRpc` does. With no `user`, returns the cheapest unused offer or `null`; with credentials, returns the best offer after posting. Offers are available only while `ZeroDaySystem.IsRumorTime` is true. Returns the offer map or the exact `ZeroDaySystem.AddOfferCreds` error text."
+      example:
+        - admin = get_greybel_util()
+        - print(admin.debug_offer())
+        - "print(admin.debug_offer(\"npcUser\", \"password\", 1000))"
+      isProtected: false
+      returns:
+        - keyType: any
+          type: map
+          valueType: any
+        - string
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - "map<any,any>"
+      - string
       - "null"
     returnVariations:
       ok: []
@@ -496,6 +666,41 @@ definitions:
     returnStrings:
       - list<any>
       - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel
+    typeString: function
+    variations:
+      ok: []
+  get_mail_account:
+    argStrings:
+      - - string
+    id: get_mail_account
+    json:
+      arguments:
+        - default: ~
+          label: address
+          opt: false
+          types:
+            - string
+      description: "Returns the sandbox mail account for `address`, including its password hash, or `null` when no account exists."
+      example:
+        - admin = get_greybel_util()
+        - "print(admin.get_mail_account(\"neo@test.com\"))"
+      isProtected: false
+      returns:
+        - keyType: any
+          type: map
+          valueType: any
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - "map<any,any>"
       - "null"
     returnVariations:
       ok: []
@@ -776,6 +981,37 @@ definitions:
     typeString: function
     variations:
       ok: []
+  request_zero_day_mission:
+    argStrings: []
+    id: request_zero_day_mission
+    json:
+      arguments: []
+      description: "Requests the zero-day mission as `MissionsHelperServer.GetRumorServerRpc` does. Lazily creates or removes the final Neurobox network as the rumor window opens or closes, applies the per-player thirty-day request rule, creates a first-rumor Police, University, or MobileShop network, and sends `EMAIL_FIRST_RUMOR` to the player's mail account. Returns a map with `public_ip`, `lan_ip`, `sender`, and `body`; on refusal returns `You need to have an email account to continue.` or `There are no rumors at the moment.`. Returns `null` when called on anything but the `admin` object."
+      example:
+        - admin = get_greybel_util()
+        - print(admin.request_zero_day_mission())
+      isProtected: false
+      returns:
+        - keyType: any
+          type: map
+          valueType: any
+        - string
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - "map<any,any>"
+      - string
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel
+    typeString: function
+    variations:
+      ok: []
   seed:
     argStrings: []
     id: seed
@@ -953,6 +1189,39 @@ definitions:
     typeString: function
     variations:
       ok: []
+  visit_zero_day_hack_shop:
+    argStrings:
+      - - string
+    id: visit_zero_day_hack_shop
+    json:
+      arguments:
+        - default: ~
+          label: public_ip
+          opt: false
+          types:
+            - string
+      description: "Visits the website at `public_ip` as `NetworkHelperServer.AccessWebServerRpc` does and returns `1` only when it is a HackShop whose zero-day access is available to this player under the thirty-day request rule. Other networks return `0` without triggering the lazy rumor lifecycle. A non-string address raises `visit_zero_day_hack_shop: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
+      example:
+        - admin = get_greybel_util()
+        - "print(admin.visit_zero_day_hack_shop(\"1.2.3.4\"))"
+      isProtected: false
+      returns:
+        - number
+        - "null"
+      type: function
+    origin: admin
+    otherLanguageDescription: ~
+    returnStrings:
+      - number
+      - "null"
+    returnVariations:
+      ok: []
+    tags:
+      - method
+      - greybel
+    typeString: function
+    variations:
+      ok: []
 descriptionOrder:
   - $meta
   - seed
@@ -971,7 +1240,9 @@ descriptionOrder:
   - create_mail_account
   - create_ctf_account
   - accept_mission
-  - create_debug_account
+  - request_zero_day_mission
+  - answer_zero_day
+  - visit_zero_day_hack_shop
   - deposit
   - grant_coins
   - create_ctf_event
@@ -979,6 +1250,11 @@ descriptionOrder:
   - create_guild
   - release_library_version
   - report_exploit
+  - debug_offer
+  - buy_debug_offer
+  - create_zero_day_chain
+  - create_procedural_mission
+  - get_mail_account
 descriptions:
   $meta:
     description: "The `admin` object belongs to Greybel's interpreter, not to the game: `get_greybel_util()` returns it in Greybel's simulated world, and the function is unavailable in Grey Hack. Its methods build and change the world for tests and sandboxes, such as creating networks, moving the clock and doing what the game only does from its own interface. The `classID` used for this object is `\"admin\"`."
@@ -988,6 +1264,16 @@ descriptions:
     example:
       - admin = get_greybel_util()
       - "print(admin.accept_mission(\"1.2.3.4\"))"
+  answer_zero_day:
+    description: "Answers a zero-day social-engineering message to NPC `user` on the network at `public_ip` as `Persona.ProcesaCredsDebug` does. `from_mail` must be the sender address and `answer` either `GOOD` or `BAD`, matching the NPC's company alignment. The NPC's own address, an unrecognized sender, and the wrong alignment return the game's refusal text; a correct aligned answer returns `ANSWER_ZERODAY_OK` with the player's reusable NPC `GetNpcPassword` credentials substituted. Returns `null` when the network, NPC, or mail account is missing or when called on anything but the `admin` object. Invalid argument types or an alignment other than `GOOD` or `BAD` raise `answer_zero_day: Invalid arguments`."
+    example:
+      - admin = get_greybel_util()
+      - "print(admin.answer_zero_day(\"1.2.3.4\", \"surname\", \"contact@example.com\", \"GOOD\"))"
+  buy_debug_offer:
+    description: "Buys the offer from `seller` at `price` as `BankHelperServer.BuyDebugToolsCredsServerRpc` and `ZeroDaySystem.BuyOfferCreds` do. The first successful buyer binds the NPC debug-tools credentials, marks the offer purchased, and receives its user and password; refused purchases return the exact game error text."
+    example:
+      - admin = get_greybel_util()
+      - "print(admin.buy_debug_offer(\"npcUser\", 1000))"
   buy_exploit:
     description: "Buys the exploit `exploit` of the library file `library` at `version` into `folder` of this computer, as the shop's window does: the player's coupons pay for it, or the bank account when the coupons cannot. With `compile` not `0` the file is a program named `exploit`; otherwise it is source text named `exploit.src`. The shop makes no folders: when `folder` is not there the coupons or the bank account still pay and the failure text is that of the missing folder. Returns `1` when it was bought, otherwise the shop's failure text. Non-string arguments or a non-number `compile` raise `buy_exploit: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
     example:
@@ -1006,13 +1292,6 @@ descriptions:
       - "admin.create_ctf_account(\"ctfuser\", \"secret\")"
       - "admin.create_ctf_event({\"eventName\": \"mission\", \"user\": \"ctfuser\", \"password\": \"secret\", \"description\": \"Find the flag\", \"publicAddress\": \"82.110.42.17\", \"creatorName\": \"creator\", \"mailContent\": \"Good luck\"})"
       - "print(get_ctf(\"ctfuser\", \"secret\", \"mission\").get_description)"
-  create_debug_account:
-    description: "Creates the debug account `user` with `password`, which `debug_tools` accepts. Returns `1` when it was created, otherwise `0`. Non-string arguments raise `create_debug_account: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
-    example:
-      - admin = get_greybel_util()
-      - "admin.create_debug_account(\"dbg\", \"secret\")"
-      - "lib = include_lib(\"/lib/metaxploit.so\").load(\"/lib/init.so\")"
-      - "print(lib.debug_tools(\"dbg\", \"secret\"))"
   create_guild:
     description: "Creates the guild `name`, which holds company shares under the bank account `bank_account`, has `total_exp` experience, `investment_perks` investment licences and `admin_restore_perks` Admin Restore perks (none when omitted), and has the player as a member when `join` is not `0`. Guilds are made in the game's interface only. Returns `1`, or why the guild can't be created as a `string`. Arguments of the wrong type raise `create_guild: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
     example:
@@ -1030,12 +1309,28 @@ descriptions:
       - admin = get_greybel_util()
       - "router = admin.create_network({\"public_ip\": \"82.110.42.17\", \"domain\": \"target.com\", \"computers\": 2})"
       - print(router.local_ip)
+  create_procedural_mission:
+    description: "Creates a procedural mission at a deterministic seed. Returns its first network public IP, or `null` when no mission can be generated."
+    example:
+      - admin = get_greybel_util()
+      - print(admin.create_procedural_mission(42))
   create_program:
     description: "Writes `source` as an executable source file at `path`. Returns `1` when it was written, otherwise `0`. Non-string arguments raise `create_program: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
     example:
       - admin = get_greybel_util()
       - "admin.create_program(\"/home/test/hello.src\", \"print(\\\"hello\\\")\")"
       - "print(get_shell.build(\"/home/test/hello.src\", \"/home/test\"))"
+  create_zero_day_chain:
+    description: "Creates a zero-day mission chain and installs a weak aptclient library on its first service computer. Returns the first network public IP, or `null` when it cannot be created."
+    example:
+      - admin = get_greybel_util()
+      - print(admin.create_zero_day_chain())
+  debug_offer:
+    description: "Reads the best offer as `BankHelperServer.GetOfferDebugToolsCredsServerRpc` does, or posts credentials and `price` as `BankHelperServer.SellDebugToolsCredsServerRpc` does. With no `user`, returns the cheapest unused offer or `null`; with credentials, returns the best offer after posting. Offers are available only while `ZeroDaySystem.IsRumorTime` is true. Returns the offer map or the exact `ZeroDaySystem.AddOfferCreds` error text."
+    example:
+      - admin = get_greybel_util()
+      - print(admin.debug_offer())
+      - "print(admin.debug_offer(\"npcUser\", \"password\", 1000))"
   deposit:
     description: "Adds `amount` to the bank account `number`. Returns `1` when the account exists, otherwise `0`. Arguments of the wrong type raise `deposit: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
     example:
@@ -1047,6 +1342,11 @@ descriptions:
       - admin = get_greybel_util()
       - "offers = admin.exploit_shop(\"libssh.so\", \"1.0.0\")"
       - "print(offers[0].name + \" $\" + offers[0].price)"
+  get_mail_account:
+    description: "Returns the sandbox mail account for `address`, including its password hash, or `null` when no account exists."
+    example:
+      - admin = get_greybel_util()
+      - "print(admin.get_mail_account(\"neo@test.com\"))"
   grant_coins:
     description: "Sets the balance of the wallet `walletUser` in the coin `coin` to `amount`. Returns `1` when the wallet and coin exist, otherwise `0`. Arguments of the wrong type raise `grant_coins: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
     example:
@@ -1086,6 +1386,11 @@ descriptions:
     example:
       - admin = get_greybel_util()
       - "print(admin.report_exploit(\"libssh.so\", \"0x1A2B3C\", \"buffer\"))"
+  request_zero_day_mission:
+    description: "Requests the zero-day mission as `MissionsHelperServer.GetRumorServerRpc` does. Lazily creates or removes the final Neurobox network as the rumor window opens or closes, applies the per-player thirty-day request rule, creates a first-rumor Police, University, or MobileShop network, and sends `EMAIL_FIRST_RUMOR` to the player's mail account. Returns a map with `public_ip`, `lan_ip`, `sender`, and `body`; on refusal returns `You need to have an email account to continue.` or `There are no rumors at the moment.`. Returns `null` when called on anything but the `admin` object."
+    example:
+      - admin = get_greybel_util()
+      - print(admin.request_zero_day_mission())
   seed:
     description: "Returns the seed the simulated world was generated from. Returns `null` when called on anything but the `admin` object."
     example:
@@ -1119,5 +1424,10 @@ descriptions:
     example:
       - admin = get_greybel_util()
       - print(admin.traffic_accident)
+  visit_zero_day_hack_shop:
+    description: "Visits the website at `public_ip` as `NetworkHelperServer.AccessWebServerRpc` does and returns `1` only when it is a HackShop whose zero-day access is available to this player under the thirty-day request rule. Other networks return `0` without triggering the lazy rumor lifecycle. A non-string address raises `visit_zero_day_hack_shop: Invalid arguments`. Returns `null` when called on anything but the `admin` object."
+    example:
+      - admin = get_greybel_util()
+      - "print(admin.visit_zero_day_hack_shop(\"1.2.3.4\"))"
 extends: map
 hidden: false

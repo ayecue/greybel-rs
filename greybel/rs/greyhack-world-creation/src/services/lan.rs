@@ -4,6 +4,7 @@ use greyhack_behaviour::{
     DeviceDraw, DeviceKind, FileData, NetworkKind, ROOT_USER, Rng, ServiceId, Word,
     main_router_address, path,
 };
+use greyhack_world_assets::GameTextTable;
 use greyhack_world_core::{ComputerId, LanPlace, NetworkId, Result, RouterId};
 use greyhack_world_libraries::{ComputerDraft, RouterDraft};
 use greyhack_world_missions::{MissionPlacement, request_for};
@@ -206,12 +207,67 @@ impl NetworkGeneration {
         Ok(network_computers)
     }
 
+    /// Resolves `$IP_ZERODAY` in random `HelperConversation` files from the saved rumor state.
+    pub(super) async fn resolve_zero_day_files(&self, computers: &[ComputerId]) -> Result<()> {
+        let rumor_ip = self.debug.rumor_ip().await?;
+        if rumor_ip.is_empty() {
+            return Ok(());
+        }
+
+        for &computer in computers {
+            for user in self.computers.users.users(computer).await? {
+                let home = path::home(&user.name);
+                let Some(folder) = self.files.lookup.folder(computer, &home, false).await? else {
+                    continue;
+                };
+
+                for file in self.files.lookup.files(&folder).await? {
+                    let Some(data) = file.data().cloned() else {
+                        continue;
+                    };
+                    if data.kind != greyhack_behaviour::FileKind::ChatLog {
+                        continue;
+                    }
+                    let Ok(conversation) = serde_json::from_str::<serde_json::Value>(&data.content)
+                    else {
+                        continue;
+                    };
+                    let Some(id) = conversation["chatID"].as_str() else {
+                        continue;
+                    };
+                    if !GameTextTable::english()
+                        .get(id)
+                        .is_some_and(|text| text.contains("$IP_ZERODAY"))
+                    {
+                        continue;
+                    }
+                    let marker = format!(
+                        "\"zeroDayNetworkIP\":{}",
+                        serde_json::to_string(&rumor_ip).expect("an IP is JSON")
+                    );
+                    let data = greyhack_behaviour::FileData {
+                        content: data.content.replace("\"zeroDayNetworkIP\":\"\"", &marker),
+                        ..data
+                    };
+                    self.files
+                        .changes
+                        .write_file_as(computer, &file.path, &file.owner, data)
+                        .await?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     pub async fn add_random_mails(
         &self,
         computers: &[ComputerId],
         public_ip: &str,
         kind: NetworkKind,
     ) -> Result<()> {
+        let zero_day_ip = self.debug.rumor_ip().await?;
+
         for &computer in computers {
             let Some(row) = self.computers.computer(computer).await? else {
                 continue;
@@ -246,7 +302,12 @@ impl NetworkGeneration {
                 };
 
                 self.mail
-                    .add_conversation_mail(&address, &mail.conversation, &mail.receive_user)
+                    .add_conversation_mail(
+                        &address,
+                        &mail.conversation,
+                        &mail.receive_user,
+                        &zero_day_ip,
+                    )
                     .await?;
             }
         }
@@ -321,7 +382,12 @@ impl NetworkGeneration {
         place: &LanPlace,
         (kind, mission): (NetworkKind, Option<&MissionPlacement>),
     ) -> Result<ComputerId> {
-        let draft = self.draft_of_plan(public_ip, computer_plan, kind, mission);
+        let mut draft = self.draft_of_plan(public_ip, computer_plan, kind, mission);
+
+        self.updates
+            .start_with_reported_libraries(network, &mut draft)
+            .await?;
+
         let computer = self
             .libraries
             .insert_full_computer(&draft, network, place)

@@ -27,7 +27,8 @@ internal sealed class PluginRouter(
     ExploitShopFixture exploitShop,
     BankFixture bank,
     MissionFixture missions,
-    GuildFixture guilds
+    GuildFixture guilds,
+    ZeroDayFixture zeroDay
 ) : TestSupportPluginRouter
 {
     public override void OnSetupPlayerRpc(SetupPlayerRpc message) =>
@@ -188,6 +189,21 @@ internal sealed class PluginRouter(
 
     public override void OnMissionRpc(MissionRpc message) =>
         Respond(message.Request, message, () => missions.ReadMission(message));
+
+    public override void OnZeroDayRumorRpc(ZeroDayRumorRpc message) =>
+        Respond(message.Request, message, () => zeroDay.Rumor(message));
+
+    public override void OnZeroDayStateRpc(ZeroDayStateRpc message) =>
+        Respond(message.Request, message, () => zeroDay.State(message));
+
+    public override void OnCreateZeroDayChainRpc(CreateZeroDayChainRpc message) =>
+        Respond(message.Request, message, () => zeroDay.CreateZeroDayChain(message));
+
+    public override void OnCreateProceduralMissionRpc(CreateProceduralMissionRpc message) =>
+        Respond(message.Request, message, () => zeroDay.CreateProceduralMission(message));
+
+    public override void OnUnlockDebugLibraryRpc(UnlockDebugLibraryRpc message) =>
+        Respond(message.Request, message, () => zeroDay.Unlock(message));
 
     public override void OnBuyExploitRpc(BuyExploitRpc message) =>
         exploitShop.CreatePurchase(From(message.Request, message), message);

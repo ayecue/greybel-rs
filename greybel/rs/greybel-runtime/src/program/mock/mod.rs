@@ -240,12 +240,18 @@ impl<'r, H: Host> MockProgram<'r, H> {
 
 /// Creates an in-memory `WorldServer` from a seed and connects through `host`.
 async fn own_world<H: Host>(host: &H, seed: &str) -> (ServerConnection, WorldServer) {
+    let server = mock_world_server(seed, host.clock()).await;
+
+    (host.connect(&server), server)
+}
+
+/// Creates an in-memory [`WorldServer`] from `seed`, generating the default player world.
+pub async fn mock_world_server(seed: &str, clock: Rc<dyn greybel_interpreter::Clock>) -> WorldServer {
     let world = World::from_seed(seed, &PlayerOptions::default())
         .await
         .expect("the world generates");
-    let server = WorldServer::new(world, host.clock())
-        .await
-        .expect("the server restores payments");
 
-    (host.connect(&server), server)
+    WorldServer::new(world, clock)
+        .await
+        .expect("the server restores payments")
 }

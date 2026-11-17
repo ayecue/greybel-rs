@@ -26,6 +26,7 @@ use greyhack_world_modules::{Module, Registry};
 use greyhack_world_storage::DomainSchema;
 pub use model::{DeviceLayout, ForwardLayout, LanNodeLayout, NetworkLayout};
 pub use objects::ObjectTableExt;
+use services::zero_day::ZeroDayMissions;
 pub use services::{MissionPlacement, NetworkGeneration, RestoreService};
 
 /// Creation services built from core, NPC, services, libraries, and smart-device services.
@@ -37,6 +38,8 @@ pub struct CreationModule {
     pub mission_placement: Rc<MissionPlacement>,
     /// Administrator restoration of generated networks.
     pub restores: Rc<RestoreService>,
+    /// Deterministic zero-day and procedural mission fixtures.
+    pub zero_day: Rc<ZeroDayMissions>,
 }
 
 impl CreationModule {
@@ -47,6 +50,17 @@ impl CreationModule {
             mission_placement: Rc::new(MissionPlacement::new(world, registry)),
             network_generation: Rc::new(NetworkGeneration::new(registry)),
             restores: Rc::new(RestoreService::new(registry)),
+            zero_day: Rc::new(ZeroDayMissions::new(
+                world,
+                registry.get(),
+                registry.get(),
+                registry.get(),
+                registry.get(),
+                registry.get(),
+                registry.get(),
+                registry.get(),
+                registry.get(),
+            )),
         }
     }
 

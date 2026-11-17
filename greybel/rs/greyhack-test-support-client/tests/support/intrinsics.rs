@@ -14,7 +14,7 @@ use greyhack_behaviour::{AlarmConfig, CompanyAlign, JobRole, NpcSchedule, WorkPe
 use greyhack_test_support_client::protocol::test_support::{MailSnapshot, NetworkSnapshot};
 use greyhack_world::{DatabaseOpen, PlayerOptions, World};
 use greyhack_world_core::Database;
-use greyhack_world_libraries::DebugAccount;
+use greyhack_world_libraries::{NpcDebugCredentials, ZeroDayRumor};
 use greyhack_world_npcs::{Email, MailSpamConfig};
 use greyhack_world_operations::WorldServer;
 use greyhack_world_player::CtfEvent;
@@ -363,28 +363,20 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
                 .register_password(&debug.password),
         )
         .expect("the debug password is registered");
-        block_on(
-            world
-                .modules
-                .libraries
-                .debug
-                .save_debug_account(&DebugAccount::new(&debug.user, &debug.password)),
-        )
-        .expect("the mirrored debug account");
-        if debug.user != user {
-            // Greybel stores the game player's `ZeroDayPlayerInfo` on the player user's row, separately from the NPC
-            // credentials used to open the tools.
-            block_on(world.modules.core.computers.users.register_password(""))
-                .expect("the player debug-state password");
-            block_on(
-                world
-                    .modules
-                    .libraries
-                    .debug
-                    .save_debug_account(&DebugAccount::new(user, "")),
-            )
-            .expect("the mirrored player debug state");
-        }
+        let rumor = ZeroDayRumor {
+            npc_passwords: [(
+                debug.user.clone(),
+                NpcDebugCredentials {
+                    password: debug.password.clone(),
+                    player_id: None,
+                },
+            )]
+            .into_iter()
+            .collect(),
+            ..ZeroDayRumor::default()
+        };
+        block_on(world.modules.libraries.debug.restore_rumor(&rumor))
+            .expect("the mirrored zero-day credentials");
     }
 
     if let Some(ctf) = &snapshot.ctf {
@@ -525,6 +517,7 @@ pub fn snapshot_world(user: &str, snapshot: &NetworkSnapshot) -> World {
             person,
             CompanyAlign::from_code(npc.company_align).expect("the game's company alignment"),
             (!npc.day_zero_contact.is_empty()).then(|| npc.day_zero_contact.clone()),
+            (npc.company_align != 0).then_some(0),
         ))
         .expect("the mirrored company alignment");
         if let Some(mail) = &npc.mail {

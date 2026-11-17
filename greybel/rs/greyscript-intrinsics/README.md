@@ -340,9 +340,10 @@ tests and sandboxes; they must not be cited as game-intrinsic parity.
 World-level helpers are `seed`, `snapshot`, `tick`, `set_date`,
 `traffic_accident`, `networks`, `network`, `create_network`, `sudo`,
 `create_program`, `exploit_shop`, `buy_exploit`, `register_password`,
-`create_mail_account`, `create_ctf_account`, `accept_mission`,
-`create_debug_account`, `deposit`, `grant_coins`, `create_ctf_event`,
-`rate_ctf_event`, `create_guild`, `release_library_version`, and `report_exploit`.
+`create_mail_account`, `create_ctf_account`, `accept_mission`, `deposit`,
+`grant_coins`, `create_ctf_event`, `rate_ctf_event`, `create_guild`,
+`release_library_version`, `report_exploit`, `debug_offer`, `buy_debug_offer`,
+`request_zero_day_mission`, `answer_zero_day`, and `visit_zero_day_hack_shop`.
 
 `admin.network(public_ip)` returns an `adminNetwork` with `computer`,
 `add_computer`, `fire_npc`, `hire_npc`, `hire_admin`, `fire_admin`, `remove`,

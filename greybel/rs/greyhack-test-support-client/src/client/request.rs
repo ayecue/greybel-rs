@@ -181,6 +181,22 @@ pub(super) enum RequestKind {
         kind: String,
         index: u32,
     },
+    ZeroDayRumor,
+    ZeroDayState {
+        player_id: String,
+        open: bool,
+        fresh: bool,
+        first_rumor: bool,
+        bind_user: String,
+        bind_to: String,
+    },
+    CreateZeroDayChain,
+    CreateProceduralMission,
+    UnlockDebugLibrary {
+        public_ip: String,
+        lan_ip: String,
+        path: String,
+    },
     BuyExploit {
         library: String,
         version: String,

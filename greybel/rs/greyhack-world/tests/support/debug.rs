@@ -1,7 +1,7 @@
 use greyhack_behaviour::{FileData, PermissionSet, ROOT_USER};
 use greyhack_world::{PlayerOptions, World};
 use greyhack_world_core::ComputerId;
-use greyhack_world_libraries::{DebugAccount, NodeDraft};
+use greyhack_world_libraries::{NodeDraft, NpcDebugCredentials, ZeroDayRumor};
 
 pub const LIBRARY_PATH: &str = "/lib/metaxploit.so";
 
@@ -21,7 +21,18 @@ pub async fn debug_world() -> (World, ComputerId) {
         .modules
         .libraries
         .debug
-        .save_debug_account(&DebugAccount::new("dbg", "secret"))
+        .restore_rumor(&ZeroDayRumor {
+            npc_passwords: [(
+                "dbg".to_owned(),
+                NpcDebugCredentials {
+                    password: "secret".to_owned(),
+                    player_id: None,
+                },
+            )]
+            .into_iter()
+            .collect(),
+            ..ZeroDayRumor::default()
+        })
         .await
         .unwrap();
 

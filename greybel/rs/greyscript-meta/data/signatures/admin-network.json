@@ -295,6 +295,28 @@
         "string",
         "null"
       ]
+    },
+    "unlock_debug_library": {
+      "id": "unlock_debug_library",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel"
+      ],
+      "arguments": [
+        {
+          "label": "lan_ip",
+          "type": "string"
+        },
+        {
+          "label": "path",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "number",
+        "null"
+      ]
     }
   }
 }

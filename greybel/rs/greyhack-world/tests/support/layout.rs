@@ -120,6 +120,7 @@ pub fn layout() -> NetworkLayout {
         disabled: false,
         net_speed: greyhack_behaviour::DEFAULT_NET_SPEED,
         rental_admin: false,
+        library_choices: Vec::new(),
         nodes: vec![
             node(
                 None,

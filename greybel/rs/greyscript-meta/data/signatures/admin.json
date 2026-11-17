@@ -298,8 +298,21 @@
         "null"
       ]
     },
-    "create_debug_account": {
-      "id": "create_debug_account",
+    "request_zero_day_mission": {
+      "id": "request_zero_day_mission",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel"
+      ],
+      "returns": [
+        "map",
+        "string",
+        "null"
+      ]
+    },
+    "answer_zero_day": {
+      "id": "answer_zero_day",
       "type": "function",
       "tags": [
         "method",
@@ -307,11 +320,37 @@
       ],
       "arguments": [
         {
+          "label": "public_ip",
+          "type": "string"
+        },
+        {
           "label": "user",
           "type": "string"
         },
         {
-          "label": "password",
+          "label": "from_mail",
+          "type": "string"
+        },
+        {
+          "label": "answer",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "visit_zero_day_hack_shop": {
+      "id": "visit_zero_day_hack_shop",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel"
+      ],
+      "arguments": [
+        {
+          "label": "public_ip",
           "type": "string"
         }
       ],
@@ -501,6 +540,104 @@
       "returns": [
         "number",
         "string",
+        "null"
+      ]
+    },
+    "debug_offer": {
+      "id": "debug_offer",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel"
+      ],
+      "arguments": [
+        {
+          "label": "user",
+          "type": "string"
+        },
+        {
+          "label": "password",
+          "type": "string"
+        },
+        {
+          "label": "price",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "map",
+        "string",
+        "null"
+      ]
+    },
+    "buy_debug_offer": {
+      "id": "buy_debug_offer",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel"
+      ],
+      "arguments": [
+        {
+          "label": "seller",
+          "type": "string"
+        },
+        {
+          "label": "price",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "map",
+        "string",
+        "null"
+      ]
+    },
+    "create_zero_day_chain": {
+      "id": "create_zero_day_chain",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel"
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "create_procedural_mission": {
+      "id": "create_procedural_mission",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel"
+      ],
+      "arguments": [
+        {
+          "label": "seed",
+          "type": "number"
+        }
+      ],
+      "returns": [
+        "string",
+        "null"
+      ]
+    },
+    "get_mail_account": {
+      "id": "get_mail_account",
+      "type": "function",
+      "tags": [
+        "method",
+        "greybel"
+      ],
+      "arguments": [
+        {
+          "label": "address",
+          "type": "string"
+        }
+      ],
+      "returns": [
+        "map",
         "null"
       ]
     }

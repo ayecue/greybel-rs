@@ -7,6 +7,7 @@ use crate::protocol::test_support::{
     LibraryReleasedReply, LibraryReportedReply, MissionReply, NetworkConnectionReply,
     NetworkCreatedReply, NetworkSnapshot, NetworkStateReply, PairExecutionResultReply,
     PlayerReadyReply, PlayerStateReply, Reply, TracesReply, TrafficReadyReply, WordListsReply,
+    ZeroDayRumorReply, ZeroDayStateReply,
 };
 
 impl TestClient {
@@ -740,6 +741,76 @@ impl TestClient {
         {
             Reply::Mission(result) => Ok(result),
             _ => Err(TestClientError::UnexpectedResponse("Mission")),
+        }
+    }
+
+    /// Runs the game's debug-tools offer flow and its first/second purchase and expiry.
+    pub async fn zero_day_rumor(&self) -> Result<ZeroDayRumorReply, TestClientError> {
+        match self.request(RequestKind::ZeroDayRumor).await? {
+            Reply::ZeroDayRumor(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("ZeroDayRumor")),
+        }
+    }
+
+    /// Drives the selected ZeroDaySystem calls and returns its persisted state and rumor chats.
+    pub async fn zero_day_state(
+        &self,
+        player_id: &str,
+        open: bool,
+        fresh: bool,
+        first_rumor: bool,
+        bind_user: &str,
+        bind_to: &str,
+    ) -> Result<ZeroDayStateReply, TestClientError> {
+        match self
+            .request(RequestKind::ZeroDayState {
+                player_id: player_id.to_owned(),
+                open,
+                fresh,
+                first_rumor,
+                bind_user: bind_user.to_owned(),
+                bind_to: bind_to.to_owned(),
+            })
+            .await?
+        {
+            Reply::ZeroDayState(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("ZeroDayState")),
+        }
+    }
+
+    /// Builds the zero-day mission chain with a weak aptclient service.
+    pub async fn create_zero_day_chain(&self) -> Result<MissionReply, TestClientError> {
+        match self.request(RequestKind::CreateZeroDayChain).await? {
+            Reply::Mission(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("Mission")),
+        }
+    }
+
+    /// Builds a seeded procedural mission.
+    pub async fn create_procedural_mission(&self) -> Result<MissionReply, TestClientError> {
+        match self.request(RequestKind::CreateProceduralMission).await? {
+            Reply::Mission(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("Mission")),
+        }
+    }
+
+    /// Unlocks a saved zero-day zone into a library on a real game computer.
+    pub async fn unlock_debug_library(
+        &self,
+        public_ip: &str,
+        lan_ip: &str,
+        path: &str,
+    ) -> Result<bool, TestClientError> {
+        match self
+            .request(RequestKind::UnlockDebugLibrary {
+                public_ip: public_ip.to_owned(),
+                lan_ip: lan_ip.to_owned(),
+                path: path.to_owned(),
+            })
+            .await?
+        {
+            Reply::ZeroDayUnlocked(result) => Ok(result),
+            _ => Err(TestClientError::UnexpectedResponse("ZeroDayUnlocked")),
         }
     }
 

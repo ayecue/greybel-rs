@@ -126,13 +126,25 @@
       "print(admin.accept_mission(\"1.2.3.4\"))"
     ]
   },
-  "create_debug_account": {
-    "description": "Creates the debug account `user` with `password`, which `debug_tools` accepts. Returns `1` when it was created, otherwise `0`. Non-string arguments raise `create_debug_account: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
+  "request_zero_day_mission": {
+    "description": "Requests the zero-day mission as `MissionsHelperServer.GetRumorServerRpc` does. Lazily creates or removes the final Neurobox network as the rumor window opens or closes, applies the per-player thirty-day request rule, creates a first-rumor Police, University, or MobileShop network, and sends `EMAIL_FIRST_RUMOR` to the player's mail account. Returns a map with `public_ip`, `lan_ip`, `sender`, and `body`; on refusal returns `You need to have an email account to continue.` or `There are no rumors at the moment.`. Returns `null` when called on anything but the `admin` object.",
     "example": [
       "admin = get_greybel_util()",
-      "admin.create_debug_account(\"dbg\", \"secret\")",
-      "lib = include_lib(\"/lib/metaxploit.so\").load(\"/lib/init.so\")",
-      "print(lib.debug_tools(\"dbg\", \"secret\"))"
+      "print(admin.request_zero_day_mission())"
+    ]
+  },
+  "answer_zero_day": {
+    "description": "Answers a zero-day social-engineering message to NPC `user` on the network at `public_ip` as `Persona.ProcesaCredsDebug` does. `from_mail` must be the sender address and `answer` either `GOOD` or `BAD`, matching the NPC's company alignment. The NPC's own address, an unrecognized sender, and the wrong alignment return the game's refusal text; a correct aligned answer returns `ANSWER_ZERODAY_OK` with the player's reusable NPC `GetNpcPassword` credentials substituted. Returns `null` when the network, NPC, or mail account is missing or when called on anything but the `admin` object. Invalid argument types or an alignment other than `GOOD` or `BAD` raise `answer_zero_day: Invalid arguments`.",
+    "example": [
+      "admin = get_greybel_util()",
+      "print(admin.answer_zero_day(\"1.2.3.4\", \"surname\", \"contact@example.com\", \"GOOD\"))"
+    ]
+  },
+  "visit_zero_day_hack_shop": {
+    "description": "Visits the website at `public_ip` as `NetworkHelperServer.AccessWebServerRpc` does and returns `1` only when it is a HackShop whose zero-day access is available to this player under the thirty-day request rule. Other networks return `0` without triggering the lazy rumor lifecycle. A non-string address raises `visit_zero_day_hack_shop: Invalid arguments`. Returns `null` when called on anything but the `admin` object.",
+    "example": [
+      "admin = get_greybel_util()",
+      "print(admin.visit_zero_day_hack_shop(\"1.2.3.4\"))"
     ]
   },
   "deposit": {
@@ -184,6 +196,42 @@
     "example": [
       "admin = get_greybel_util()",
       "print(admin.report_exploit(\"libssh.so\", \"0x1A2B3C\", \"buffer\"))"
+    ]
+  },
+  "debug_offer": {
+    "description": "Reads the best offer as `BankHelperServer.GetOfferDebugToolsCredsServerRpc` does, or posts credentials and `price` as `BankHelperServer.SellDebugToolsCredsServerRpc` does. With no `user`, returns the cheapest unused offer or `null`; with credentials, returns the best offer after posting. Offers are available only while `ZeroDaySystem.IsRumorTime` is true. Returns the offer map or the exact `ZeroDaySystem.AddOfferCreds` error text.",
+    "example": [
+      "admin = get_greybel_util()",
+      "print(admin.debug_offer())",
+      "print(admin.debug_offer(\"npcUser\", \"password\", 1000))"
+    ]
+  },
+  "buy_debug_offer": {
+    "description": "Buys the offer from `seller` at `price` as `BankHelperServer.BuyDebugToolsCredsServerRpc` and `ZeroDaySystem.BuyOfferCreds` do. The first successful buyer binds the NPC debug-tools credentials, marks the offer purchased, and receives its user and password; refused purchases return the exact game error text.",
+    "example": [
+      "admin = get_greybel_util()",
+      "print(admin.buy_debug_offer(\"npcUser\", 1000))"
+    ]
+  },
+  "create_zero_day_chain": {
+    "description": "Creates a zero-day mission chain and installs a weak aptclient library on its first service computer. Returns the first network public IP, or `null` when it cannot be created.",
+    "example": [
+      "admin = get_greybel_util()",
+      "print(admin.create_zero_day_chain())"
+    ]
+  },
+  "create_procedural_mission": {
+    "description": "Creates a procedural mission at a deterministic seed. Returns its first network public IP, or `null` when no mission can be generated.",
+    "example": [
+      "admin = get_greybel_util()",
+      "print(admin.create_procedural_mission(42))"
+    ]
+  },
+  "get_mail_account": {
+    "description": "Returns the sandbox mail account for `address`, including its password hash, or `null` when no account exists.",
+    "example": [
+      "admin = get_greybel_util()",
+      "print(admin.get_mail_account(\"neo@test.com\"))"
     ]
   }
 }

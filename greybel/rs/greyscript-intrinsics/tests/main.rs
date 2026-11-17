@@ -42,3 +42,4 @@ mod terminal;
 mod throttle;
 mod traces;
 mod traffic;
+mod zero_day_rumor;

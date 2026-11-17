@@ -41,9 +41,16 @@ impl<'a> LayoutBuilder<'a> {
                 forwards,
             } => {
                 let place = parent.map(LanPlace::device_under);
+                let mut draft_with_choices = draft.clone();
+
+                generation
+                    .updates
+                    .start_with_reported_libraries(network, &mut draft_with_choices.computer)
+                    .await?;
+
                 let router = generation
                     .libraries
-                    .insert_full_router(draft, network, place.as_ref())
+                    .insert_full_router(&draft_with_choices, network, place.as_ref())
                     .await?;
 
                 for port in ports {
@@ -83,9 +90,16 @@ impl<'a> LayoutBuilder<'a> {
                     }));
                 };
                 let place = LanPlace::computer_under(parent, main, &node.gateway);
+                let mut draft_with_choices = draft.clone();
+
+                generation
+                    .updates
+                    .start_with_reported_libraries(network, &mut draft_with_choices)
+                    .await?;
+
                 let computer = generation
                     .libraries
-                    .insert_full_computer(draft, network, &place)
+                    .insert_full_computer(&draft_with_choices, network, &place)
                     .await?;
 
                 if let Some(smart) = &draft.smart {
@@ -126,6 +140,16 @@ impl NetworkGeneration {
                 position: layout.position,
             })
             .await?;
+
+        if layout.library_choices.is_empty() {
+            self.updates
+                .ensure_network_library_choices(network, &layout.public_ip)
+                .await?;
+        } else {
+            self.updates
+                .set_network_library_choices(network, &layout.library_choices)
+                .await?;
+        }
 
         if let Some(admin) = &layout.admin {
             self.npcs.set_network_admin(network, None, admin).await?;

@@ -91,6 +91,7 @@ impl JobService {
         npc: PersonId,
         company_align: CompanyAlign,
         day_zero_contact: Option<String>,
+        zero_day_index: Option<u32>,
     ) -> Result<()> {
         let Some(mut row) = self.npcs.npc(npc).await? else {
             return Ok(());
@@ -98,7 +99,18 @@ impl JobService {
 
         row.company_align = company_align;
         row.day_zero_contact = day_zero_contact;
+        row.zero_day_index = zero_day_index;
 
+        self.npcs.save_npc_job(&row).await
+    }
+
+    /// Marks the NPC as the source of a first-rumor chat (`NpcInfo.SetRumor`).
+    pub async fn set_npc_rumor(&self, npc: PersonId) -> Result<()> {
+        let Some(mut row) = self.npcs.npc(npc).await? else {
+            return Ok(());
+        };
+
+        row.rumor = true;
         self.npcs.save_npc_job(&row).await
     }
 

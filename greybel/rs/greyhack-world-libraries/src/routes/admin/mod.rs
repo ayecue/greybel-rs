@@ -1,17 +1,16 @@
-//! Library versions, exploit reports and purchases, and debug accounts (`get_greybel_util()`).
+//! Library versions, exploit reports and purchases (`get_greybel_util()`).
 
 use greyhack_world_core::ObjectTableExt as _;
 use greyhack_world_router::RouteTable;
 
-use crate::DebugAccount;
 use crate::routes::protocol::{
-    AdminBuyExploit, AdminCreateDebugAccount, AdminExploitShop, AdminReleaseLibraryVersion,
-    AdminReportExploit,
+    AdminBuyExploit, AdminExploitShop, AdminReleaseLibraryVersion, AdminReportExploit,
 };
 
 mod computer;
 mod library_versions;
 mod shop;
+mod zero_day;
 
 use self::library_versions::{release_library_version, report_exploit};
 use self::shop::{buy_exploit, exploit_shop};
@@ -22,6 +21,7 @@ pub(crate) fn register<
     routes: &RouteTable,
 ) {
     computer::register::<W>(routes);
+    zero_day::register::<W>(routes);
     routes.change::<_, _, W, greyhack_world_core::WorldError>(
         async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
                     _call,
@@ -66,19 +66,6 @@ pub(crate) fn register<
                 &message,
             )
             .await
-        },
-    );
-    routes.change::<_, _, W, greyhack_world_core::WorldError>(
-        async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
-                    _call,
-                    message: AdminCreateDebugAccount<'static>| {
-            ctx.modules
-                .module::<crate::LibraryModule>()
-                .debug
-                .save_debug_account(&DebugAccount::new(&message.user, &message.password))
-                .await?;
-
-            Ok(true)
         },
     );
 }

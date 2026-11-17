@@ -32,6 +32,9 @@ pub enum WorldError {
     /// Nonempty library content is not valid JSON (`PlayerIntrinsics.include_lib`).
     #[error("malformed library JSON: {0}")]
     MalformedLibrary(String),
+    /// Persisted auxiliary state is not valid JSON.
+    #[error("invalid saved state: {0}")]
+    InvalidState(String),
     /// A `NetworkLayout` references a missing or later device, or gives a computer no
     /// parent.
     #[error("invalid network layout: {0}")]

@@ -10,7 +10,6 @@ mod accept_mission;
 mod buy_exploit;
 mod create_ctf_account;
 mod create_ctf_event;
-mod create_debug_account;
 mod create_guild;
 mod create_mail_account;
 mod create_network;
@@ -30,6 +29,7 @@ mod snapshot;
 mod sudo;
 mod tick;
 mod traffic_accident;
+mod zero_day;
 
 pub(crate) const METHODS: &[(&str, &Native)] = &[
     ("seed", &seed::seed::NATIVE),
@@ -60,10 +60,6 @@ pub(crate) const METHODS: &[(&str, &Native)] = &[
         &create_ctf_account::create_ctf_account::NATIVE,
     ),
     ("accept_mission", &accept_mission::accept_mission::NATIVE),
-    (
-        "create_debug_account",
-        &create_debug_account::create_debug_account::NATIVE,
-    ),
     ("deposit", &deposit::deposit::NATIVE),
     ("grant_coins", &grant_coins::grant_coins::NATIVE),
     (
@@ -77,6 +73,26 @@ pub(crate) const METHODS: &[(&str, &Native)] = &[
         &release_library_version::release_library_version::NATIVE,
     ),
     ("report_exploit", &report_exploit::report_exploit::NATIVE),
+    ("debug_offer", &zero_day::debug_offer::NATIVE),
+    ("buy_debug_offer", &zero_day::buy_debug_offer::NATIVE),
+    (
+        "create_zero_day_chain",
+        &zero_day::create_zero_day_chain::NATIVE,
+    ),
+    (
+        "create_procedural_mission",
+        &zero_day::create_procedural_mission::NATIVE,
+    ),
+    ("get_mail_account", &zero_day::get_mail_account::NATIVE),
+    (
+        "request_zero_day_mission",
+        &zero_day::request_zero_day_mission::NATIVE,
+    ),
+    ("answer_zero_day", &zero_day::answer_zero_day::NATIVE),
+    (
+        "visit_zero_day_hack_shop",
+        &zero_day::visit_zero_day_hack_shop::NATIVE,
+    ),
 ];
 
 pub(crate) fn create(vm: &mut Vm) -> Value {

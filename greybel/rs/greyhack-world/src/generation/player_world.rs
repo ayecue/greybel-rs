@@ -69,6 +69,14 @@ async fn generate_player_network(
             position: position_for_ip(&player.public_ip),
         })
         .await?;
+
+    world
+        .modules
+        .libraries
+        .updates
+        .ensure_network_library_choices(network, &player.public_ip)
+        .await?;
+
     let essid = Some(format!("{}_net", player.computer_name));
     let router_ip = main_router_address(0);
     let bssid = Some(player_rng.mac());
@@ -106,6 +114,12 @@ async fn generate_player_network(
     let mut computer = preset::player_computer(player);
 
     assign_player_libraries(&mut computer, player_rng);
+    world
+        .modules
+        .libraries
+        .updates
+        .apply_random_saved_libraries(&mut computer, player_rng)
+        .await?;
 
     for user in &mut computer.users {
         if user.name == player.user {
@@ -141,6 +155,15 @@ pub(crate) async fn player_world(options: &WorldOptions, db: Database) -> Result
 
     world.handle.world_mut().rng = rng;
     world.begin().await?;
+
+    if player.network.is_none() {
+        world
+            .modules
+            .libraries
+            .versions
+            .prepare_initial_versions()
+            .await?;
+    }
 
     let repository = RepositoryDraft::default_repository(&mut repo_rng)
         .store(&world.modules.libraries.generator)

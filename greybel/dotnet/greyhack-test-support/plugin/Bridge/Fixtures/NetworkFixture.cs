@@ -640,7 +640,7 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore, Fixtur
                 lib.AddFile(new FileSystem.Archivo("libssh.so", "not a library", "root", false, true));
                 break;
             case "unexpected":
-                fs.GetArchivo("/lib/libssh.so").SetContenido("{\"idLib\":\"LIBFTP\"}", true);
+                fs.GetArchivo("/lib/libssh.so").SetContenido("{\"idLib\":1}", true);
                 break;
             case "malformed":
                 FileSystem.Archivo badLibrary = fs.GetArchivo("/lib/libssh.so");

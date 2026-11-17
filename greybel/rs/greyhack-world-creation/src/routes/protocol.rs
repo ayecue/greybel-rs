@@ -16,6 +16,8 @@ impl From<NetworkOptionsMessage> for crate::NetworkOptions {
     fn from(network: NetworkOptionsMessage) -> Self {
         Self {
             public_ip: network.public_ip,
+            kind: None,
+            allow_missions: true,
             essid: network.essid,
             wifi_password: network.wifi_password,
             domain: network.domain,

@@ -11,8 +11,8 @@ use std::time::Duration;
 use greybel_documents::{PathResolution, Uri};
 use greybel_documents_fs_provider::FsProvider;
 use greybel_io::{Echo, InputFuture, Key, PrintOptions, Stdin, Stdout, TextScreen};
-use greybel_runtime::protocol::{Exit, Launch, LaunchFailure, LogMessage, StopNotice};
-use greybel_runtime::{Host, Io, Runtime, connect_on_tokio};
+use greybel_runtime::protocol::{Environment, Exit, Launch, LaunchFailure, LogMessage, StopNotice};
+use greybel_runtime::{Host, Io, Runtime, connect_on_tokio, mock_world_server};
 use greyhack_terminal_text::plain_text;
 use greyhack_world_operations::WorldServer;
 use greyscript_intrinsics::ServerConnection;
@@ -40,12 +40,20 @@ pub struct Outcome {
 
 impl Program {
     /// Runs until exit or timeout; terminates timed-out programs and returns captured terminal output.
+    /// The simulated world generates before the timeout starts, so the timeout bounds only program execution.
     pub async fn run(self) -> Outcome {
+        let server = match &self.launch.environment {
+            Environment::Mock { seed, .. } => {
+                Some(mock_world_server(seed, Rc::new(TokioScheduler::new())).await)
+            }
+            Environment::Game { .. } => None,
+        };
         let screen = Rc::new(RefCell::new(TextScreen::default()));
         let host = ProgramHost {
             memory: Arc::new(self.memory),
             screen: Rc::clone(&screen),
             input: Rc::new(RefCell::new(self.input.into())),
+            world: server.as_ref().map(connect_on_tokio),
         };
         let (runtime, controller) = Runtime::with_host(host);
 
@@ -61,6 +69,7 @@ impl Program {
             }
         };
         let screen = screen.borrow().text();
+        drop(server);
 
         Outcome {
             screen,
@@ -75,6 +84,7 @@ struct ProgramHost {
     memory: Arc<BTreeMap<Uri, String>>,
     screen: Rc<RefCell<TextScreen>>,
     input: Rc<RefCell<VecDeque<String>>>,
+    world: Option<ServerConnection>,
 }
 
 impl Host for ProgramHost {
@@ -87,7 +97,7 @@ impl Host for ProgramHost {
     fn io(&self) -> Io {
         Io {
             stdout: Rc::new(ScreenStdout(Rc::clone(&self.screen))),
-            stdin: Rc::new(GivenInput {
+            stdin: Rc::new(ScreenStdin {
                 screen: Rc::clone(&self.screen),
                 lines: Rc::clone(&self.input),
             }),
@@ -96,6 +106,10 @@ impl Host for ProgramHost {
 
     fn clock(&self) -> Rc<dyn Clock> {
         Rc::new(TokioScheduler::new())
+    }
+
+    fn world(&self) -> Option<ServerConnection> {
+        self.world.clone()
     }
 
     fn connect(&self, server: &WorldServer) -> ServerConnection {
@@ -121,12 +135,12 @@ impl Stdout for ScreenStdout {
 }
 
 /// Stdin backed by preloaded lines that echoes prompts and supplied lines to the screen.
-struct GivenInput {
+struct ScreenStdin {
     screen: Rc<RefCell<TextScreen>>,
     lines: Rc<RefCell<VecDeque<String>>>,
 }
 
-impl GivenInput {
+impl ScreenStdin {
     /// Prints `prompt` and removes the next preloaded line. Exhaustion returns `UnexpectedEof`, which the program's
     /// input intrinsic converts to an empty line.
     fn next_line(&self, prompt: &str) -> io::Result<String> {
@@ -143,7 +157,7 @@ impl GivenInput {
     }
 }
 
-impl Stdin for GivenInput {
+impl Stdin for ScreenStdin {
     fn read_line(&self, prompt: &str, echo: Echo) -> InputFuture<String> {
         let line = self.next_line(prompt).inspect(|line| {
             let echo = match echo {

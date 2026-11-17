@@ -1,20 +1,21 @@
-//! Debug account and library patch-state storage.
+//! Zero-day rumor and library patch-state storage.
 
 use greyhack_behaviour::{LibraryKind, WorldSeed, date_parts};
 use greyhack_world_core::{ComputerId, Database, NodeId, Result};
 use greyhack_world_storage::sql::{FromRow, RowView, execute, fetch_opt};
 use turso::params;
 
-use crate::{DebugAccount, DebugLibraryState};
+use crate::DebugLibraryState;
+use crate::model::zero_day_rumor::ZeroDayRumor;
 
-impl FromRow for DebugAccount {
+struct ZeroDayStateRow {
+    state: String,
+}
+
+impl FromRow for ZeroDayStateRow {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
         Ok(Self {
-            user: row.get("user")?,
-            password_hash: row.get("password_hash")?,
-            failed_logins: row.get("failed_logins")?,
-            unit_test_failed: row.get("unit_test_failed")?,
-            last_network_ip: row.get("last_network_ip")?,
+            state: row.get("state")?,
         })
     }
 }
@@ -56,28 +57,28 @@ impl DebugRepository {
         Self { db }
     }
 
-    pub(crate) async fn debug_account(&self, user: &str) -> Result<Option<DebugAccount>> {
-        Ok(fetch_opt(
+    pub(crate) async fn zero_day_state(&self) -> Result<ZeroDayRumor> {
+        let row: Option<ZeroDayStateRow> = fetch_opt(
             &self.db.connection(),
-            "SELECT user, password_hash, failed_logins, unit_test_failed, last_network_ip FROM debug_accounts \
-             WHERE user = ?1",
-            params![user],
+            "SELECT state FROM zero_day_state WHERE id = 1",
+            (),
         )
-        .await?)
+        .await?;
+
+        row.map_or(Ok(ZeroDayRumor::default()), |row| {
+            serde_json::from_str(&row.state)
+                .map_err(|error| greyhack_world_core::WorldError::InvalidState(error.to_string()))
+        })
     }
 
-    pub(crate) async fn set_debug_account(&self, account: &DebugAccount) -> Result<()> {
+    pub(crate) async fn save_zero_day_state(&self, state: &ZeroDayRumor) -> Result<()> {
+        let state = serde_json::to_string(state)
+            .map_err(|error| greyhack_world_core::WorldError::InvalidState(error.to_string()))?;
+
         execute(
             &self.db.connection(),
-            "INSERT OR REPLACE INTO debug_accounts (user, password_hash, failed_logins, unit_test_failed, \
-             last_network_ip) VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![
-                account.user.as_str(),
-                account.password_hash.as_str(),
-                account.failed_logins,
-                account.unit_test_failed,
-                account.last_network_ip.as_deref(),
-            ],
+            "INSERT INTO zero_day_state (id, state) VALUES (1, ?1) ON CONFLICT (id) DO UPDATE SET state = excluded.state",
+            params![state],
         )
         .await?;
 

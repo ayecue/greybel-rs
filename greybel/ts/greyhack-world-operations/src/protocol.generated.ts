@@ -583,6 +583,372 @@ export namespace ProgramSession {
     path: string;
   }
 }
+/** A debug-tools offer returned by the sandbox rumor operations. */
+export class DebugOfferInfo {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  static readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "seller",
+      property: "seller",
+      tags: []
+    },
+    {
+      name: "user",
+      property: "user",
+      tags: []
+    },
+    {
+      name: "password",
+      property: "password",
+      tags: []
+    },
+    {
+      name: "price",
+      property: "price",
+      tags: []
+    },
+    {
+      name: "expires_at",
+      property: "expiresAt",
+      tags: []
+    },
+    {
+      name: "purchased",
+      property: "purchased",
+      tags: []
+    }
+  ];
+  protected readonly [BODY]: DebugOfferInfo.Fields;
+  constructor(body: DebugOfferInfo.Fields) {
+    this[BODY] = body;
+  }
+  get seller(): string {
+    return this[BODY].seller;
+  }
+  get user(): string {
+    return this[BODY].user;
+  }
+  get password(): string {
+    return this[BODY].password;
+  }
+  get price(): bigint {
+    return this[BODY].price;
+  }
+  get expiresAt(): bigint {
+    return this[BODY].expiresAt;
+  }
+  get purchased(): boolean {
+    return this[BODY].purchased;
+  }
+  write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    writer.byte(body.purchased ? 1 : 0);
+    writer.string(body.seller);
+    writer.string(body.user);
+    writer.string(body.password);
+    writer.i64(body.price);
+    writer.u64(body.expiresAt);
+  }
+  static read(reader: BinaryReader): DebugOfferInfo {
+    const flags0 = reader.flags(1);
+    const fieldSeller = reader.string();
+    const fieldUser = reader.string();
+    const fieldPassword = reader.string();
+    const fieldPrice = reader.i64();
+    const fieldExpiresAt = reader.u64();
+    const fieldPurchased = (flags0 & 1) !== 0;
+    return new DebugOfferInfo({
+      seller: fieldSeller,
+      user: fieldUser,
+      password: fieldPassword,
+      price: fieldPrice,
+      expiresAt: fieldExpiresAt,
+      purchased: fieldPurchased
+    });
+  }
+}
+export namespace DebugOfferInfo {
+  export interface Fields {
+    seller: string;
+    user: string;
+    password: string;
+    price: bigint;
+    expiresAt: bigint;
+    purchased: boolean;
+  }
+}
+/** Offer read/post/purchase result. Failures are returned as browser-style text for the admin API. */
+export abstract class ZeroDayOffer {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  abstract write(writer: BinaryWriter): void;
+  static read(reader: BinaryReader): ZeroDayOffer {
+    const index = reader.u32();
+    switch (index) {
+      case 0: return ZeroDayOffer.Offer.read(reader);
+      case 1: return ZeroDayOffer.Failure.read(reader);
+      case 2: return ZeroDayOffer.Null.read(reader);
+      default: throw new RangeError(`no variant ${index} of \`ZeroDayOffer\``);
+    }
+  }
+}
+export namespace ZeroDayOffer {
+  export class Offer extends ZeroDayOffer {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: ZeroDayOffer.Offer.Fields;
+    constructor(body: ZeroDayOffer.Offer.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): DebugOfferInfo {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): ZeroDayOffer.Offer {
+      const value = DebugOfferInfo.read(reader);
+      return new ZeroDayOffer.Offer({ value });
+    }
+  }
+  export namespace Offer {
+    export interface Fields {
+      value: DebugOfferInfo;
+    }
+  }
+  export class Failure extends ZeroDayOffer {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: ZeroDayOffer.Failure.Fields;
+    constructor(body: ZeroDayOffer.Failure.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): string {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(1);
+      const body = this[BODY];
+      writer.string(body.value);
+    }
+    static read(reader: BinaryReader): ZeroDayOffer.Failure {
+      const value = reader.string();
+      return new ZeroDayOffer.Failure({ value });
+    }
+  }
+  export namespace Failure {
+    export interface Fields {
+      value: string;
+    }
+  }
+  export class Null extends ZeroDayOffer {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(2);
+    }
+    static read(reader: BinaryReader): ZeroDayOffer.Null {
+      return new ZeroDayOffer.Null();
+    }
+  }
+}
+/** First-rumor network and its delivered mail (`MissionsHelperServer.GetRumorServerRpc`). */
+export class ZeroDayMissionInfo {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  static readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "public_ip",
+      property: "publicIp",
+      tags: []
+    },
+    {
+      name: "lan_ip",
+      property: "lanIp",
+      tags: []
+    },
+    {
+      name: "sender",
+      property: "sender",
+      tags: []
+    },
+    {
+      name: "body",
+      property: "body",
+      tags: []
+    }
+  ];
+  protected readonly [BODY]: ZeroDayMissionInfo.Fields;
+  constructor(body: ZeroDayMissionInfo.Fields) {
+    this[BODY] = body;
+  }
+  get publicIp(): string {
+    return this[BODY].publicIp;
+  }
+  get lanIp(): string {
+    return this[BODY].lanIp;
+  }
+  get sender(): string {
+    return this[BODY].sender;
+  }
+  get body(): string {
+    return this[BODY].body;
+  }
+  write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    writer.string(body.publicIp);
+    writer.string(body.lanIp);
+    writer.string(body.sender);
+    writer.string(body.body);
+  }
+  static read(reader: BinaryReader): ZeroDayMissionInfo {
+    const fieldPublicIp = reader.string();
+    const fieldLanIp = reader.string();
+    const fieldSender = reader.string();
+    const fieldBody = reader.string();
+    return new ZeroDayMissionInfo({
+      publicIp: fieldPublicIp,
+      lanIp: fieldLanIp,
+      sender: fieldSender,
+      body: fieldBody
+    });
+  }
+}
+export namespace ZeroDayMissionInfo {
+  export interface Fields {
+    publicIp: string;
+    lanIp: string;
+    sender: string;
+    body: string;
+  }
+}
+/** Mission-window result; failure is the exact browser refusal text. */
+export abstract class ZeroDayMission {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  abstract write(writer: BinaryWriter): void;
+  static read(reader: BinaryReader): ZeroDayMission {
+    const index = reader.u32();
+    switch (index) {
+      case 0: return ZeroDayMission.Rumor.read(reader);
+      case 1: return ZeroDayMission.Failure.read(reader);
+      default: throw new RangeError(`no variant ${index} of \`ZeroDayMission\``);
+    }
+  }
+}
+export namespace ZeroDayMission {
+  export class Rumor extends ZeroDayMission {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: ZeroDayMission.Rumor.Fields;
+    constructor(body: ZeroDayMission.Rumor.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): ZeroDayMissionInfo {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(0);
+      const body = this[BODY];
+      body.value.write(writer);
+    }
+    static read(reader: BinaryReader): ZeroDayMission.Rumor {
+      const value = ZeroDayMissionInfo.read(reader);
+      return new ZeroDayMission.Rumor({ value });
+    }
+  }
+  export namespace Rumor {
+    export interface Fields {
+      value: ZeroDayMissionInfo;
+    }
+  }
+  export class Failure extends ZeroDayMission {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+      name: "value",
+      property: "value",
+      tags: []
+    }];
+    protected readonly [BODY]: ZeroDayMission.Failure.Fields;
+    constructor(body: ZeroDayMission.Failure.Fields) {
+      super();
+      this[BODY] = body;
+    }
+    get value(): string {
+      return this[BODY].value;
+    }
+    override write(writer: BinaryWriter): void {
+      writer.u32(1);
+      const body = this[BODY];
+      writer.string(body.value);
+    }
+    static read(reader: BinaryReader): ZeroDayMission.Failure {
+      const value = reader.string();
+      return new ZeroDayMission.Failure({ value });
+    }
+  }
+  export namespace Failure {
+    export interface Fields {
+      value: string;
+    }
+  }
+}
+/** Public mail-account fields used by sandbox mission fixtures. */
+export class MailAccountInfo {
+  static readonly tags: ReadonlyArray<Tag> = [];
+  static readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "address",
+    property: "address",
+    tags: []
+  }, {
+    name: "password_hash",
+    property: "passwordHash",
+    tags: []
+  }];
+  protected readonly [BODY]: MailAccountInfo.Fields;
+  constructor(body: MailAccountInfo.Fields) {
+    this[BODY] = body;
+  }
+  get address(): string {
+    return this[BODY].address;
+  }
+  get passwordHash(): string {
+    return this[BODY].passwordHash;
+  }
+  write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    writer.string(body.address);
+    writer.string(body.passwordHash);
+  }
+  static read(reader: BinaryReader): MailAccountInfo {
+    const fieldAddress = reader.string();
+    const fieldPasswordHash = reader.string();
+    return new MailAccountInfo({
+      address: fieldAddress,
+      passwordHash: fieldPasswordHash
+    });
+  }
+}
+export namespace MailAccountInfo {
+  export interface Fields {
+    address: string;
+    passwordHash: string;
+  }
+}
 /** Script-visible result of a mutation. */
 export abstract class Outcome {
   static readonly tags: ReadonlyArray<Tag> = [];
@@ -10052,19 +10418,20 @@ export abstract class DebugFailure {
     const index = reader.u32();
     switch (index) {
       case 0: return DebugFailure.IncorrectPassword.read(reader);
-      case 1: return DebugFailure.LoginBlocked.read(reader);
-      case 2: return DebugFailure.MissingFile.read(reader);
-      case 3: return DebugFailure.OutsideLib.read(reader);
-      case 4: return DebugFailure.Patched.read(reader);
-      case 5: return DebugFailure.NoVulnerability.read(reader);
-      case 6: return DebugFailure.UnreachableResource.read(reader);
-      case 7: return DebugFailure.ScanPatchPresent.read(reader);
-      case 8: return DebugFailure.TestPatchPresent.read(reader);
-      case 9: return DebugFailure.InvalidPatchFile.read(reader);
-      case 10: return DebugFailure.IncorrectPatch.read(reader);
-      case 11: return DebugFailure.PatchAlreadyPresent.read(reader);
-      case 12: return DebugFailure.UnitTestLockout.read(reader);
-      case 13: return DebugFailure.IncorrectErrorLines.read(reader);
+      case 1: return DebugFailure.CredentialsInUse.read(reader);
+      case 2: return DebugFailure.LoginBlocked.read(reader);
+      case 3: return DebugFailure.MissingFile.read(reader);
+      case 4: return DebugFailure.OutsideLib.read(reader);
+      case 5: return DebugFailure.Patched.read(reader);
+      case 6: return DebugFailure.NoVulnerability.read(reader);
+      case 7: return DebugFailure.UnreachableResource.read(reader);
+      case 8: return DebugFailure.ScanPatchPresent.read(reader);
+      case 9: return DebugFailure.TestPatchPresent.read(reader);
+      case 10: return DebugFailure.InvalidPatchFile.read(reader);
+      case 11: return DebugFailure.IncorrectPatch.read(reader);
+      case 12: return DebugFailure.PatchAlreadyPresent.read(reader);
+      case 13: return DebugFailure.UnitTestLockout.read(reader);
+      case 14: return DebugFailure.IncorrectErrorLines.read(reader);
       default: throw new RangeError(`no variant ${index} of \`DebugFailure\``);
     }
   }
@@ -10081,12 +10448,23 @@ export namespace DebugFailure {
       return new DebugFailure.IncorrectPassword();
     }
   }
+  /** The credentials were already used by another player. */
+  export class CredentialsInUse extends DebugFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(1);
+    }
+    static read(reader: BinaryReader): DebugFailure.CredentialsInUse {
+      return new DebugFailure.CredentialsInUse();
+    }
+  }
   /** Account failed to log in too often. */
   export class LoginBlocked extends DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(1);
+      writer.u32(2);
     }
     static read(reader: BinaryReader): DebugFailure.LoginBlocked {
       return new DebugFailure.LoginBlocked();
@@ -10097,7 +10475,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(2);
+      writer.u32(3);
     }
     static read(reader: BinaryReader): DebugFailure.MissingFile {
       return new DebugFailure.MissingFile();
@@ -10108,7 +10486,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(3);
+      writer.u32(4);
     }
     static read(reader: BinaryReader): DebugFailure.OutsideLib {
       return new DebugFailure.OutsideLib();
@@ -10119,7 +10497,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(4);
+      writer.u32(5);
     }
     static read(reader: BinaryReader): DebugFailure.Patched {
       return new DebugFailure.Patched();
@@ -10130,7 +10508,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(5);
+      writer.u32(6);
     }
     static read(reader: BinaryReader): DebugFailure.NoVulnerability {
       return new DebugFailure.NoVulnerability();
@@ -10153,7 +10531,7 @@ export namespace DebugFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(6);
+      writer.u32(7);
       const body = this[BODY];
       writer.string(body.value);
     }
@@ -10172,7 +10550,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(7);
+      writer.u32(8);
     }
     static read(reader: BinaryReader): DebugFailure.ScanPatchPresent {
       return new DebugFailure.ScanPatchPresent();
@@ -10183,7 +10561,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(8);
+      writer.u32(9);
     }
     static read(reader: BinaryReader): DebugFailure.TestPatchPresent {
       return new DebugFailure.TestPatchPresent();
@@ -10194,7 +10572,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(9);
+      writer.u32(10);
     }
     static read(reader: BinaryReader): DebugFailure.InvalidPatchFile {
       return new DebugFailure.InvalidPatchFile();
@@ -10205,7 +10583,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(10);
+      writer.u32(11);
     }
     static read(reader: BinaryReader): DebugFailure.IncorrectPatch {
       return new DebugFailure.IncorrectPatch();
@@ -10216,7 +10594,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(11);
+      writer.u32(12);
     }
     static read(reader: BinaryReader): DebugFailure.PatchAlreadyPresent {
       return new DebugFailure.PatchAlreadyPresent();
@@ -10227,7 +10605,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(12);
+      writer.u32(13);
     }
     static read(reader: BinaryReader): DebugFailure.UnitTestLockout {
       return new DebugFailure.UnitTestLockout();
@@ -10238,7 +10616,7 @@ export namespace DebugFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(13);
+      writer.u32(14);
     }
     static read(reader: BinaryReader): DebugFailure.IncorrectErrorLines {
       return new DebugFailure.IncorrectErrorLines();
@@ -34320,6 +34698,7 @@ export namespace AdminRateCtfEvent {
     difficulty: bigint;
   }
 }
+/** Retained only for wire compatibility; NPC credentials now come from `GetNpcPassword` instead. */
 export class AdminCreateDebugAccount extends Message<WorldPeer.Program, AdminCreateDebugAccount.Fields, ValueResponse<boolean, ScriptFailure>> {
   static readonly id = 222;
   static readonly since = 0;
@@ -34393,6 +34772,434 @@ export namespace AdminCreateDebugAccount {
     password: string;
   }
 }
+/** Unlocks a saved zero-day zone into the selected library file for testing. */
+export class AdminUnlockDebugLibrary extends Message<WorldPeer.Program, AdminUnlockDebugLibrary.Fields, ValueResponse<boolean, ScriptFailure>> {
+  static readonly id = 223;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminUnlockDebugLibrary.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "program",
+      property: "program",
+      tags: []
+    },
+    {
+      name: "public_ip",
+      property: "publicIp",
+      tags: []
+    },
+    {
+      name: "lan_ip",
+      property: "lanIp",
+      tags: []
+    },
+    {
+      name: "path",
+      property: "path",
+      tags: []
+    }
+  ];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get publicIp(): string {
+    return this[BODY].publicIp;
+  }
+  get lanIp(): string {
+    return this[BODY].lanIp;
+  }
+  get path(): string {
+    return this[BODY].path;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    writer.string(body.publicIp);
+    writer.string(body.lanIp);
+    writer.string(body.path);
+  }
+  static read(reader: BinaryReader): AdminUnlockDebugLibrary {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldPublicIp = reader.string();
+    const fieldLanIp = reader.string();
+    const fieldPath = reader.string();
+    return new AdminUnlockDebugLibrary({
+      program: fieldProgram,
+      publicIp: fieldPublicIp,
+      lanIp: fieldLanIp,
+      path: fieldPath
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: boolean): void {
+    writer.boolean(value);
+  }
+  static readResponseEnd(reader: BinaryReader): boolean {
+    const value = reader.boolean();
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminUnlockDebugLibrary {
+  export interface Fields {
+    program: ProgramId;
+    publicIp: string;
+    lanIp: string;
+    path: string;
+  }
+}
+/** Reads the best current debug-tools offer with no credentials, or posts an offer when credentials are supplied. */
+export class AdminDebugOffer extends Message<WorldPeer.Program, AdminDebugOffer.Fields, ValueResponse<ZeroDayOffer, ScriptFailure>> {
+  static readonly id = 224;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminDebugOffer.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "program",
+      property: "program",
+      tags: []
+    },
+    {
+      name: "user",
+      property: "user",
+      tags: []
+    },
+    {
+      name: "password",
+      property: "password",
+      tags: []
+    },
+    {
+      name: "price",
+      property: "price",
+      tags: []
+    }
+  ];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get user(): string {
+    return this[BODY].user;
+  }
+  get password(): string {
+    return this[BODY].password;
+  }
+  get price(): bigint {
+    return this[BODY].price;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    writer.string(body.user);
+    writer.string(body.password);
+    writer.i64(body.price);
+  }
+  static read(reader: BinaryReader): AdminDebugOffer {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldUser = reader.string();
+    const fieldPassword = reader.string();
+    const fieldPrice = reader.i64();
+    return new AdminDebugOffer({
+      program: fieldProgram,
+      user: fieldUser,
+      password: fieldPassword,
+      price: fieldPrice
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: ZeroDayOffer): void {
+    value.write(writer);
+  }
+  static readResponseEnd(reader: BinaryReader): ZeroDayOffer {
+    const value = ZeroDayOffer.read(reader);
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminDebugOffer {
+  export interface Fields {
+    program: ProgramId;
+    user: string;
+    password: string;
+    price: bigint;
+  }
+}
+/** Buys a debug-tools offer and binds its credentials to the first buyer. */
+export class AdminBuyDebugOffer extends Message<WorldPeer.Program, AdminBuyDebugOffer.Fields, ValueResponse<ZeroDayOffer, ScriptFailure>> {
+  static readonly id = 225;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminBuyDebugOffer.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "program",
+      property: "program",
+      tags: []
+    },
+    {
+      name: "seller",
+      property: "seller",
+      tags: []
+    },
+    {
+      name: "price",
+      property: "price",
+      tags: []
+    }
+  ];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get seller(): string {
+    return this[BODY].seller;
+  }
+  get price(): bigint {
+    return this[BODY].price;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    writer.string(body.seller);
+    writer.i64(body.price);
+  }
+  static read(reader: BinaryReader): AdminBuyDebugOffer {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldSeller = reader.string();
+    const fieldPrice = reader.i64();
+    return new AdminBuyDebugOffer({
+      program: fieldProgram,
+      seller: fieldSeller,
+      price: fieldPrice
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: ZeroDayOffer): void {
+    value.write(writer);
+  }
+  static readResponseEnd(reader: BinaryReader): ZeroDayOffer {
+    const value = ZeroDayOffer.read(reader);
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminBuyDebugOffer {
+  export interface Fields {
+    program: ProgramId;
+    seller: string;
+    price: bigint;
+  }
+}
+/** Generates a zero-day mission chain and its weak aptclient service. */
+export class AdminCreateZeroDayChain extends Message<WorldPeer.Program, AdminCreateZeroDayChain.Fields, ValueResponse<string | null, ScriptFailure>> {
+  static readonly id = 226;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminCreateZeroDayChain.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "program",
+    property: "program",
+    tags: []
+  }];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+  }
+  static read(reader: BinaryReader): AdminCreateZeroDayChain {
+    const fieldProgram = ProgramId.read(reader);
+    return new AdminCreateZeroDayChain({ program: fieldProgram });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: string | null): void {
+    const value0 = value;
+    if (value0 === null) {
+      writer.byte(0);
+    } else {
+      writer.byte(1);
+      writer.string(value0);
+    }
+  }
+  static readResponseEnd(reader: BinaryReader): string | null {
+    const value = reader.boolean() ? reader.string() : null;
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminCreateZeroDayChain {
+  export interface Fields {
+    program: ProgramId;
+  }
+}
+/** Generates a seeded procedural mission network. */
+export class AdminCreateProceduralMission extends Message<WorldPeer.Program, AdminCreateProceduralMission.Fields, ValueResponse<string | null, ScriptFailure>> {
+  static readonly id = 227;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminCreateProceduralMission.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "program",
+    property: "program",
+    tags: []
+  }, {
+    name: "seed",
+    property: "seed",
+    tags: []
+  }];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get seed(): bigint {
+    return this[BODY].seed;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    writer.u64(body.seed);
+  }
+  static read(reader: BinaryReader): AdminCreateProceduralMission {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldSeed = reader.u64();
+    return new AdminCreateProceduralMission({
+      program: fieldProgram,
+      seed: fieldSeed
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: string | null): void {
+    const value0 = value;
+    if (value0 === null) {
+      writer.byte(0);
+    } else {
+      writer.byte(1);
+      writer.string(value0);
+    }
+  }
+  static readResponseEnd(reader: BinaryReader): string | null {
+    const value = reader.boolean() ? reader.string() : null;
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminCreateProceduralMission {
+  export interface Fields {
+    program: ProgramId;
+    seed: bigint;
+  }
+}
+/** Reads a mail account for a sandbox mail or mission fixture. */
+export class AdminGetMailAccount extends Message<WorldPeer.Program, AdminGetMailAccount.Fields, ValueResponse<MailAccountInfo | null, ScriptFailure>> {
+  static readonly id = 228;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminGetMailAccount.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "program",
+    property: "program",
+    tags: []
+  }, {
+    name: "address",
+    property: "address",
+    tags: []
+  }];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get address(): string {
+    return this[BODY].address;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    writer.string(body.address);
+  }
+  static read(reader: BinaryReader): AdminGetMailAccount {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldAddress = reader.string();
+    return new AdminGetMailAccount({
+      program: fieldProgram,
+      address: fieldAddress
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: MailAccountInfo | null): void {
+    const value0 = value;
+    if (value0 === null) {
+      writer.byte(0);
+    } else {
+      writer.byte(1);
+      value0.write(writer);
+    }
+  }
+  static readResponseEnd(reader: BinaryReader): MailAccountInfo | null {
+    const value = reader.boolean() ? MailAccountInfo.read(reader) : null;
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminGetMailAccount {
+  export interface Fields {
+    program: ProgramId;
+    address: string;
+  }
+}
 /**
 * Reports the newest library file `library` as the update of the network behind `public_ip`, as an
 * administrator replying to the update-libraries mail does (`Persona.UpdateReportedNetworks`). The network's
@@ -34401,7 +35208,7 @@ export namespace AdminCreateDebugAccount {
 * has no library of that name (the game fails on it).
 */
 export class AdminReportLibraryUpdate extends Message<WorldPeer.Program, AdminReportLibraryUpdate.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 223;
+  static readonly id = 229;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminReportLibraryUpdate.Fields) {
@@ -34479,7 +35286,7 @@ export namespace AdminReportLibraryUpdate {
 * its contract to the player. Returns the public address of that network.
 */
 export class AdminAcceptMission extends Message<WorldPeer.Program, AdminAcceptMission.Fields, ValueResponse<MissionAcceptance, ScriptFailure>> {
-  static readonly id = 224;
+  static readonly id = 230;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminAcceptMission.Fields) {
@@ -34542,7 +35349,7 @@ export namespace AdminAcceptMission {
 * script computer's player as a member when `join` is set. Guilds are made in the game's interface only.
 */
 export class AdminCreateGuild extends Message<WorldPeer.Program, AdminCreateGuild.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 225;
+  static readonly id = 231;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminCreateGuild.Fields) {
@@ -34668,7 +35475,7 @@ export namespace AdminCreateGuild {
 * (`StocksCompany.BuyStocksCompany`). Returns false when no network exists there.
 */
 export class AdminSetCompanyShares extends Message<WorldPeer.Program, AdminSetCompanyShares.Fields, ValueResponse<boolean, ScriptFailure>> {
-  static readonly id = 226;
+  static readonly id = 232;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSetCompanyShares.Fields) {
@@ -34757,7 +35564,7 @@ export namespace AdminSetCompanyShares {
 * (`NetworkHelperServer.ActivateCrownShieldProtection`).
 */
 export class AdminHireCrownShield extends Message<WorldPeer.Program, AdminHireCrownShield.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 227;
+  static readonly id = 233;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminHireCrownShield.Fields) {
@@ -34835,7 +35642,7 @@ export namespace AdminHireCrownShield {
 * the game's failure.
 */
 export class AdminSetAdminRestore extends Message<WorldPeer.Program, AdminSetAdminRestore.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 228;
+  static readonly id = 234;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminSetAdminRestore.Fields) {
@@ -34927,7 +35734,7 @@ export namespace AdminSetAdminRestore {
 * no such library.
 */
 export class AdminReleaseLibraryVersion extends Message<WorldPeer.Program, AdminReleaseLibraryVersion.Fields, ValueResponse<LibraryRelease, ScriptFailure>> {
-  static readonly id = 229;
+  static readonly id = 235;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminReleaseLibraryVersion.Fields) {
@@ -34990,7 +35797,7 @@ export namespace AdminReleaseLibraryVersion {
 * patches it. Returns true or the game's failure.
 */
 export class AdminReportExploit extends Message<WorldPeer.Program, AdminReportExploit.Fields, ValueResponse<Outcome, ScriptFailure>> {
-  static readonly id = 230;
+  static readonly id = 236;
   static readonly since = 0;
   static readonly sender = WorldPeer.Program;
   constructor(body: AdminReportExploit.Fields) {
@@ -35072,6 +35879,215 @@ export namespace AdminReportExploit {
     library: string;
     zone: string;
     unsecValue: string;
+  }
+}
+/** Requests the zero-day mission as `MissionsHelperServer.GetRumorServerRpc` does, including its first-rumor mail. */
+export class AdminRequestZeroDayMission extends Message<WorldPeer.Program, AdminRequestZeroDayMission.Fields, ValueResponse<ZeroDayMission, ScriptFailure>> {
+  static readonly id = 237;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminRequestZeroDayMission.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "program",
+    property: "program",
+    tags: []
+  }];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+  }
+  static read(reader: BinaryReader): AdminRequestZeroDayMission {
+    const fieldProgram = ProgramId.read(reader);
+    return new AdminRequestZeroDayMission({ program: fieldProgram });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: ZeroDayMission): void {
+    value.write(writer);
+  }
+  static readResponseEnd(reader: BinaryReader): ZeroDayMission {
+    const value = ZeroDayMission.read(reader);
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminRequestZeroDayMission {
+  export interface Fields {
+    program: ProgramId;
+  }
+}
+/** Answers a zero-day social-engineering mail as `Persona.ProcesaCredsDebug` does. `answer` is GOOD or BAD. */
+export class AdminAnswerZeroDay extends Message<WorldPeer.Program, AdminAnswerZeroDay.Fields, ValueResponse<string | null, ScriptFailure>> {
+  static readonly id = 238;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminAnswerZeroDay.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [
+    {
+      name: "program",
+      property: "program",
+      tags: []
+    },
+    {
+      name: "public_ip",
+      property: "publicIp",
+      tags: []
+    },
+    {
+      name: "user",
+      property: "user",
+      tags: []
+    },
+    {
+      name: "from_mail",
+      property: "fromMail",
+      tags: []
+    },
+    {
+      name: "answer",
+      property: "answer",
+      tags: []
+    }
+  ];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get publicIp(): string {
+    return this[BODY].publicIp;
+  }
+  get user(): string {
+    return this[BODY].user;
+  }
+  get fromMail(): string {
+    return this[BODY].fromMail;
+  }
+  get answer(): string {
+    return this[BODY].answer;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    writer.string(body.publicIp);
+    writer.string(body.user);
+    writer.string(body.fromMail);
+    writer.string(body.answer);
+  }
+  static read(reader: BinaryReader): AdminAnswerZeroDay {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldPublicIp = reader.string();
+    const fieldUser = reader.string();
+    const fieldFromMail = reader.string();
+    const fieldAnswer = reader.string();
+    return new AdminAnswerZeroDay({
+      program: fieldProgram,
+      publicIp: fieldPublicIp,
+      user: fieldUser,
+      fromMail: fieldFromMail,
+      answer: fieldAnswer
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: string | null): void {
+    const value0 = value;
+    if (value0 === null) {
+      writer.byte(0);
+    } else {
+      writer.byte(1);
+      writer.string(value0);
+    }
+  }
+  static readResponseEnd(reader: BinaryReader): string | null {
+    const value = reader.boolean() ? reader.string() : null;
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminAnswerZeroDay {
+  export interface Fields {
+    program: ProgramId;
+    publicIp: string;
+    user: string;
+    fromMail: string;
+    answer: string;
+  }
+}
+/** Visits the website at `public_ip`; returns whether it is a HackShop offering zero-day access. */
+export class AdminVisitZeroDayHackShop extends Message<WorldPeer.Program, AdminVisitZeroDayHackShop.Fields, ValueResponse<boolean, ScriptFailure>> {
+  static readonly id = 239;
+  static readonly since = 0;
+  static readonly sender = WorldPeer.Program;
+  constructor(body: AdminVisitZeroDayHackShop.Fields) {
+    super(body);
+  }
+  static override readonly tags: ReadonlyArray<Tag> = [];
+  static override readonly fields: ReadonlyArray<FieldTagContainer> = [{
+    name: "program",
+    property: "program",
+    tags: []
+  }, {
+    name: "public_ip",
+    property: "publicIp",
+    tags: []
+  }];
+  get program(): ProgramId {
+    return this[BODY].program;
+  }
+  get publicIp(): string {
+    return this[BODY].publicIp;
+  }
+  override write(writer: BinaryWriter): void {
+    const body = this[BODY];
+    body.program.write(writer);
+    writer.string(body.publicIp);
+  }
+  static read(reader: BinaryReader): AdminVisitZeroDayHackShop {
+    const fieldProgram = ProgramId.read(reader);
+    const fieldPublicIp = reader.string();
+    return new AdminVisitZeroDayHackShop({
+      program: fieldProgram,
+      publicIp: fieldPublicIp
+    });
+  }
+  static override readonly responds = true;
+  static writeResponseEnd(writer: BinaryWriter, value: boolean): void {
+    writer.boolean(value);
+  }
+  static readResponseEnd(reader: BinaryReader): boolean {
+    const value = reader.boolean();
+    return value;
+  }
+  static writeFailure(writer: BinaryWriter, value: ScriptFailure): void {
+    value.write(writer);
+  }
+  static readFailure(reader: BinaryReader): ScriptFailure {
+    const value = ScriptFailure.read(reader);
+    return value;
+  }
+}
+export namespace AdminVisitZeroDayHackShop {
+  export interface Fields {
+    program: ProgramId;
+    publicIp: string;
   }
 }
 /**
@@ -35244,7 +36260,7 @@ export const World = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 1483666248 }],
+  versions: [{ fingerprint: 157710011 }],
   peers: [WorldPeer.Program, WorldPeer.GameServer],
   messages: [[
     ProgramEnd,
@@ -35474,6 +36490,12 @@ export const World = {
     AdminCreateCtfEvent,
     AdminRateCtfEvent,
     AdminCreateDebugAccount,
+    AdminUnlockDebugLibrary,
+    AdminDebugOffer,
+    AdminBuyDebugOffer,
+    AdminCreateZeroDayChain,
+    AdminCreateProceduralMission,
+    AdminGetMailAccount,
     AdminReportLibraryUpdate,
     AdminAcceptMission,
     AdminCreateGuild,
@@ -35481,7 +36503,10 @@ export const World = {
     AdminHireCrownShield,
     AdminSetAdminRestore,
     AdminReleaseLibraryVersion,
-    AdminReportExploit
+    AdminReportExploit,
+    AdminRequestZeroDayMission,
+    AdminAnswerZeroDay,
+    AdminVisitZeroDayHackShop
   ]],
   tags: [],
   requiredCapabilities: Capabilities.PERSISTENT

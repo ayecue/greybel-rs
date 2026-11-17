@@ -105,6 +105,7 @@ impl IntoProtocol for crate::DebugFailure {
 
         match failure {
             crate::DebugFailure::IncorrectPassword => DebugFailure::IncorrectPassword,
+            crate::DebugFailure::CredentialsInUse => DebugFailure::CredentialsInUse,
             crate::DebugFailure::LoginLockout => DebugFailure::LoginBlocked,
             crate::DebugFailure::MissingFile => DebugFailure::MissingFile,
             crate::DebugFailure::OutsideLib => DebugFailure::OutsideLib,

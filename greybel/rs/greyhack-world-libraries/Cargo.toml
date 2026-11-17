@@ -14,6 +14,7 @@ doctest = false
 [dependencies]
 greyhack-world-programs.workspace = true
 greyhack-behaviour.workspace = true
+greyhack-world-assets.workspace = true
 greyhack-world-core.workspace = true
 greyhack-world-economy.workspace = true
 greyhack-world-guilds.workspace = true
@@ -25,6 +26,8 @@ greyhack-world-effects.workspace = true
 greyhack-world-smart-devices.workspace = true
 greyhack-world-storage.workspace = true
 mono-random.workspace = true
+indexmap.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 turso.workspace = true
 

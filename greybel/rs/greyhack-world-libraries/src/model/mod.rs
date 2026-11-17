@@ -6,13 +6,17 @@ pub mod debug;
 pub mod exploit;
 pub mod libraries;
 pub mod network;
+pub mod zero_day_rumor;
 
-pub use debug::{
-    DebugAccount, DebugChallenge, DebugLibraryState, ZeroDay, ZeroDayObject, ZeroDayObjectKind,
-};
+pub use debug::{DebugChallenge, DebugLibraryState, ZeroDay, ZeroDayObject, ZeroDayObjectKind};
 pub use exploit::{Exploit, ExploitOffer};
 pub use libraries::{Library, MemoryZone, ReverseShell, Weakness};
 pub use network::{NetUseFailure, NetUseSession, RshellFailure};
+pub use zero_day_rumor::{
+    CREDENTIALS_IN_USE, DebugCredentials, DebugNetworkBinding, DebugOffer, DebugPurchase,
+    INCORRECT_OFFER_CREDENTIALS, NpcDebugCredentials, OFFER_NOT_AVAILABLE, ONE_OFFER_PER_PLAYER,
+    SALE_CLOSED, USED_OFFER_CREDENTIALS, ZeroDayPlayerState, ZeroDayRumor,
+};
 
 /// Computer generation draft carrying full library entities.
 pub type ComputerDraft = greyhack_world_core::ComputerDraft<Library, SmartApplianceSettings>;

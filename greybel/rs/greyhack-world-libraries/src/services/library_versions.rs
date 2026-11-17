@@ -188,6 +188,43 @@ impl VersionService {
         Ok(())
     }
 
+    /// Configures the v1 contents and exploit batches, then performs the game's five initial releases for every other kind.
+    /// A saved history is never regenerated, including a mirrored history registered by the test bridge.
+    pub async fn prepare_initial_versions(&self) -> Result<()> {
+        if !self.library_versions.saved_versions().await?.is_empty() {
+            return Ok(());
+        }
+
+        for kind in LibraryKind::ALL.iter().copied() {
+            let mut rng = Rng::new(
+                self.world
+                    .world_seed()
+                    .derive_u64("library-history-v1", &[&kind.code().to_string()]),
+            );
+            let library = Library::generate(&mut rng, kind, FIRST_VERSION);
+            let id = self.libraries.library_id(&library).await?;
+
+            self.library_versions.save_library(kind, id).await?;
+            self.libraries
+                .files
+                .library_row(kind, FIRST_VERSION)
+                .await?;
+            self.shop.library_exploits(id, &library).await?;
+        }
+
+        for kind in LibraryKind::ALL
+            .iter()
+            .copied()
+            .filter(|kind| *kind != LibraryKind::Metaxploit)
+        {
+            for _ in 0..5 {
+                self.release_library_version(kind).await?;
+            }
+        }
+
+        Ok(())
+    }
+
     pub async fn release_library_version(&self, kind: LibraryKind) -> Result<Option<String>> {
         self.wear_out_visible_weaknesses(kind).await?;
 
@@ -279,6 +316,10 @@ impl VersionService {
                 || release.rng.range(0, 9),
             );
 
+            for address in &release.exhausted_zones {
+                release.patches.remove(address);
+            }
+
             release
                 .new
                 .zones
@@ -334,22 +375,19 @@ impl VersionService {
         )
         .await?;
         self.store_release(kind, release.old_id, new_id).await?;
+        self.shop.library_exploits(new_id, &release.new).await?;
         self.prune_oldest(LibraryKind::Metaxploit).await?;
 
         if kind != LibraryKind::Metaxploit {
             self.prune_oldest(kind).await?;
         }
 
-        let current_uses: Vec<UseCount> = release
-            .uses
-            .into_iter()
-            .filter(|entry| {
-                release
-                    .new
-                    .weakness(&entry.address, &entry.unsec_value)
-                    .is_some()
-            })
-            .collect();
+        // `Vulnerabilidad.Configure` creates fresh helperHackResult state for the new version. Reusing a weakness's
+        // old unsec value must not carry its exhausted use count into the release.
+        self.library_versions
+            .replace_weakness_uses(kind, &[])
+            .await?;
+
         let zone_patches: Vec<(String, u32)> = release
             .new
             .zones
@@ -362,9 +400,6 @@ impl VersionService {
             })
             .collect();
 
-        self.library_versions
-            .replace_weakness_uses(kind, &current_uses)
-            .await?;
         self.library_versions
             .replace_zone_patches(kind, &zone_patches)
             .await?;
@@ -470,7 +505,16 @@ impl VersionService {
             self.library_versions.save_library(kind, base).await?;
         }
 
-        self.library_versions.save_library(kind, next).await
+        self.library_versions.save_library(kind, next).await?;
+
+        if let Some(library) = self.libraries.library(next).await? {
+            self.libraries
+                .files
+                .library_row(kind, &library.version)
+                .await?;
+        }
+
+        Ok(())
     }
 
     pub async fn prune_oldest(&self, kind: LibraryKind) -> Result<()> {

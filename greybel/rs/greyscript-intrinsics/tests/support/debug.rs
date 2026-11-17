@@ -1,7 +1,7 @@
 use greybel_test_support::future::block_on;
 use greyhack_behaviour::{FileData, LibraryKind, PermissionSet};
 use greyhack_world::{PlayerOptions, World};
-use greyhack_world_libraries::{DebugAccount, Library, NodeDraft};
+use greyhack_world_libraries::{Library, NodeDraft, NpcDebugCredentials, ZeroDayRumor};
 
 use super::set_library;
 
@@ -18,11 +18,18 @@ pub fn debug_world() -> World {
     )
     .unwrap();
     block_on(
-        world
-            .modules
-            .libraries
-            .debug
-            .save_debug_account(&DebugAccount::new("dbg", "secret")),
+        world.modules.libraries.debug.restore_rumor(&ZeroDayRumor {
+            npc_passwords: [(
+                "dbg".to_owned(),
+                NpcDebugCredentials {
+                    password: "secret".to_owned(),
+                    player_id: None,
+                },
+            )]
+            .into_iter()
+            .collect(),
+            ..ZeroDayRumor::default()
+        }),
     )
     .expect("the debug account is saved");
 

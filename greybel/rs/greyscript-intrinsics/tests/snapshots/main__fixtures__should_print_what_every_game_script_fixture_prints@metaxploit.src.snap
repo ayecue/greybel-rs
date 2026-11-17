@@ -10,47 +10,94 @@ NetSession
 1
 MetaLib
 libssh.so
-1.3.0
-addresses: 3
+1.0.0
+addresses: 7
 1
+Searching required library kernel_module.so => found!
+
+Starting attack...success!
+Computer obtained with credentials from user: guest
+Exploit failed. Vulnerability not found.
+Exploit failed. Vulnerability not found.
+Searching required library kernel_module.so => found!
+
+Starting attack...success!
+Computer obtained with credentials from user: guest
+Exploit failed. Vulnerability not found.
+Exploit failed. Vulnerability not found.
+Starting attack... failed!
+Insufficient amount of port forward towards the target.
 Starting attack... failed!
 No guest user found.
 
 Starting attack...success!
-Computer obtained with credentials from user: bob
+Privileges obtained from user: guest
 Searching required library kernel_module.so => found!
+
+Starting attack...success!
+Computer obtained with credentials from user: guest
+Exploit failed. Vulnerability not found.
+Exploit failed. Vulnerability not found.
+Starting attack... failed!
+No guest user found.
+Exploit failed. Vulnerability not found.
+Exploit failed. Vulnerability not found.
+Starting attack... failed!
+No guest user found.
+Starting attack... failed!
+No guest user found.
+Starting attack... failed!
+No guest user found.
+
+Starting attack...success!
+Computer obtained with credentials from user: root
+Searching required library net.so => found!
+
+Starting attack...success!
+Privileges obtained from user: guest
+Exploit failed. Vulnerability not found.
+Exploit failed. Vulnerability not found.
+Starting attack... failed!
+No guest user found.
+
+Starting attack...success!
+Privileges obtained from user: bob
+
+Starting attack...success!
+Privileges obtained from user: guest
 
 Starting attack...success!
 Executing payload...
 error: can't change password for user bob. Passwords must be alphanumeric.
-Exploit failed. Vulnerability not found.
-Exploit failed. Vulnerability not found.
 Starting attack... failed!
-/Public does not exist.
-
-Starting attack...success!
-Computer obtained with credentials from user: guest
-
-Starting attack...success!
-Computer obtained with credentials from user: bob
+No guest user found.
+Starting attack... failed!
+No guest user found.
+Searching required library net.so => found!
 
 Starting attack...success!
 Privileges obtained from user: guest
+Exploit failed. Vulnerability not found.
+Exploit failed. Vulnerability not found.
+
+Starting attack...success!
+Computer obtained with credentials from user: guest
 Starting attack... failed!
 No guest user found.
+Searching required library net.so => found!
+
+Starting attack...success!
+Computer obtained with credentials from user: guest
+Exploit failed. Vulnerability not found.
+Exploit failed. Vulnerability not found.
 Starting attack... failed!
 Insufficient amount of port forward towards the target.
 
 Starting attack...success!
-Computer obtained with credentials from user: guest
-
-Starting attack...success!
 Privileges obtained from user: guest
-
-Starting attack...success!
-Executing payload...
-error: can't change password for user bob. Passwords must be alphanumeric.
-exploit result: number
+Starting attack... failed!
+Insufficient amount of port forward towards the target.
+exploit result: shell
 Exploit failed. Vulnerability not found.
 null
 Invalid ip address: 300.0.0.1

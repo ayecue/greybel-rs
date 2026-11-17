@@ -66,7 +66,15 @@ impl Generator {
 
     pub async fn set_full_library_of(&self, node: &Node, library: Option<&Library>) -> Result<()> {
         let library = match library {
-            Some(library) => Some(self.libraries.library_id(library).await?),
+            Some(library) => {
+                let id = self.libraries.library_id(library).await?;
+
+                self.files
+                    .library_row(library.kind, &library.version)
+                    .await?;
+
+                Some(id)
+            }
             None => None,
         };
 

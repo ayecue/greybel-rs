@@ -1,4 +1,4 @@
-use greyhack_behaviour::{NetworkAdmin, NetworkKind};
+use greyhack_behaviour::{LibraryKind, NetworkAdmin, NetworkKind};
 use greyhack_world_core::{Contact, Port};
 use greyhack_world_libraries::{ComputerDraft, RouterDraft};
 
@@ -22,6 +22,8 @@ pub struct NetworkLayout {
     pub net_speed: u8,
     /// Whether a rented-server network hired an administrator (`NetworkLan.superAdminRental`).
     pub rental_admin: bool,
+    /// Saved versions selected by this network's router node. Empty chooses with the seeded draw.
+    pub library_choices: Vec<(LibraryKind, String)>,
 }
 
 /// Device or computer in a [`NetworkLayout`].

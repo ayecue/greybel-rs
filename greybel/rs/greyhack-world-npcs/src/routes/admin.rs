@@ -1,6 +1,8 @@
 //! NPC operations of the global `get_greybel_util()` program.
 
-use greyhack_world_programs::protocol::AdminCreateMailAccount;
+use greyhack_world_programs::protocol::{
+    AdminCreateMailAccount, AdminGetMailAccount, MailAccountInfo,
+};
 use greyhack_world_router::RouteTable;
 
 pub(crate) fn register<
@@ -19,6 +21,22 @@ pub(crate) fn register<
                 .await?;
 
             Ok(true)
+        },
+    );
+    routes.change::<_, _, W, greyhack_world_core::WorldError>(
+        async move |ctx: &greyhack_world_router::RouteContext<'_, W>,
+                    _call,
+                    message: AdminGetMailAccount<'static>| {
+            Ok(ctx
+                .modules
+                .module::<crate::NpcModule>()
+                .mail
+                .mail_account(&message.address)
+                .await?
+                .map(|account| MailAccountInfo {
+                    address: account.address,
+                    password_hash: account.password_hash,
+                }))
         },
     );
 }

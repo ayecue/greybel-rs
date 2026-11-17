@@ -50,10 +50,14 @@ pub fn system_processes() -> Vec<Process> {
 }
 
 /// Optional network overrides. Missing values are drawn from world random state.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct NetworkOptions {
     /// Public address of the main router.
     pub public_ip: Option<String>,
+    /// Explicit network kind (`ServerMap.SpawnRouter`'s preserved `tipoRed`).
+    pub kind: Option<NetworkKind>,
+    /// Whether the LAN may receive a procedural mission (`SpawnRouter.allowMission`).
+    pub allow_missions: bool,
     /// Wireless network name.
     pub essid: Option<String>,
     /// Wireless password.
@@ -64,6 +68,21 @@ pub struct NetworkOptions {
     pub position: Option<[f32; 2]>,
     /// Initial computer count.
     pub computers: Option<u32>,
+}
+
+impl Default for NetworkOptions {
+    fn default() -> Self {
+        Self {
+            public_ip: None,
+            kind: None,
+            allow_missions: true,
+            essid: None,
+            wifi_password: None,
+            domain: None,
+            position: None,
+            computers: None,
+        }
+    }
 }
 
 /// Optional computer overrides. Missing values are drawn from world random state.

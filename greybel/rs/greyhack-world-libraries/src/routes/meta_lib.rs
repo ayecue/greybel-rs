@@ -72,7 +72,11 @@ fn register_meta_lib_details<
                 match world
                     .module::<crate::LibraryModule>()
                     .debug
-                    .login_debug(&message.user, &message.password)
+                    .login_debug_for_player(
+                        &world.module::<crate::LibraryModule>().debug.player_id(),
+                        &message.user,
+                        &message.password,
+                    )
                     .await?
                 {
                     Ok(()) => ObjectOutcome::Object(

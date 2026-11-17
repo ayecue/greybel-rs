@@ -9,6 +9,7 @@ pub mod network;
 pub mod npcs;
 pub mod restore;
 pub mod routers;
+pub mod zero_day;
 
 pub use missions::MissionPlacement;
 pub use network::NetworkGeneration;

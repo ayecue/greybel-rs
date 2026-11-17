@@ -27,7 +27,7 @@ pub mod write;
 /// File-system services.
 pub struct FileSystemService {
     pub(crate) node_rows: Rc<NodeRepository>,
-    pub(crate) library_rows: Rc<LibraryIdentityRepository>,
+    pub library_rows: Rc<LibraryIdentityRepository>,
     pub changes: Dep<FileChangeService>,
     pub lookup: Dep<FileLookup>,
     pub permissions: Dep<FilePermissionService>,

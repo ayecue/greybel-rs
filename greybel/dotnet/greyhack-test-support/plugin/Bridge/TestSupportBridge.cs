@@ -75,7 +75,8 @@ internal sealed class TestSupportBridge : IDisposable
                 exploitShop,
                 bank,
                 missions,
-                guilds
+                guilds,
+                new ZeroDayFixture(player, clock, missions)
             )
         );
     }

@@ -40,37 +40,8 @@ ftpshell
 [1, 1]
 [1, 1]
 ["MetaLib", "init.so"]
+**Warning: One or more memory zones with possible vulnerabilities could not be scanned. Update your Metaxploit library.**
+**Warning: One or more memory zones with possible vulnerabilities could not be scanned. Update your Metaxploit library.**
 1
-1
-["cryptoLib", 1]
-["", 1]
-1
-[1, 1]
-["wallet", 1, 1]
-1
-["service", 1]
-["MetaMail", 1, 1, 1, "function"]
-["ctfEvent", "desc", 1, 1]
-[null, null, null, null, null]
-[null, null, null, null]
-[null, null]
-null
-["function", "function", "function", "function"]
-[null, null, null, null, null, null]
-[null, null, null, null]
-[null, null, null]
-["load: Invalid arguments", "overflow: Invalid arguments"]
-["error: file not found", "error: file not found", "error: file not found", null, null]
-["launch: Invalid arguments", "launch: Invalid arguments"]
-["aircrack: Invalid arguments", 0, "aireplay: Invalid arguments"]
-["Error: Invalid ip address", "Error: only alphanumeric allowed as password.", "rshell_client: Invalid IP address"]
-Invalid ip address: bad
-[null, null, null]
-[1, 1, 1]
-[1, 1, 1, 1]
-[1, 1, 1, 1]
-[1, 1, 1]
-[1, 1, 1]
-[1, 1, 1, 1]
-[1, 1]
-[null, null, null]
+**Warning: One or more memory zones with possible vulnerabilities could not be scanned. Update your Metaxploit library.**
+error: Index Error: list index (0) out of range (0 to -1)

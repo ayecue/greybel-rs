@@ -15,6 +15,7 @@ impl FromRow for Npc {
             user: row.get("user")?,
             name: row.get("name")?,
             online: row.get("online")?,
+            rumor: row.get("has_rumor")?,
             dead_at: row.get("dead_at")?,
             job_role: {
                 let code: u8 = row.get("job_role")?;
@@ -56,6 +57,9 @@ impl FromRow for Npc {
                 })?
             },
             day_zero_contact: row.get("day_zero_contact")?,
+            zero_day_index: row
+                .get::<Option<i64>>("zero_day_index")?
+                .and_then(|index| u32::try_from(index).ok()),
         })
     }
 }
@@ -89,11 +93,11 @@ impl NpcRepository {
     pub(crate) async fn npc(&self, person: PersonId) -> Result<Option<Npc>> {
         Ok(fetch_opt(
             &self.db.connection(),
-            "SELECT npcs.person_id, computer_users.computer_id, computer_users.name AS user, persons.name, npcs.online, npcs.dead_at, \
+            "SELECT npcs.person_id, computer_users.computer_id, computer_users.name AS user, persons.name, npcs.online, npcs.has_rumor, npcs.dead_at, \
              npcs.job_role, npcs.license_plate, npcs.fired, npcs.hire_time, npcs.forced_login_until, npcs.schedule_work1_start, npcs.schedule_work2_start, \
              npcs.walk_to_appliance, npcs.wake_up_time, npcs.late_strikes, npcs.day_alarm, \
              npcs.alarm_hour, npcs.alarm_minute, npcs.alarm_modified, npcs.alarm_deleted, \
-             npcs.work_performance, npcs.company_align, npcs.day_zero_contact \
+             npcs.work_performance, npcs.company_align, npcs.day_zero_contact, npcs.zero_day_index \
              FROM npcs JOIN computer_users ON computer_users.id = npcs.user_id \
              JOIN persons ON persons.id = npcs.person_id WHERE npcs.person_id = ?1",
             params![person.0],
@@ -104,11 +108,11 @@ impl NpcRepository {
     pub(crate) async fn npcs_on(&self, computer: ComputerId) -> Result<Vec<Npc>> {
         Ok(fetch_all(
             &self.db.connection(),
-            "SELECT npcs.person_id, computer_users.computer_id, computer_users.name AS user, persons.name, npcs.online, npcs.dead_at, \
+            "SELECT npcs.person_id, computer_users.computer_id, computer_users.name AS user, persons.name, npcs.online, npcs.has_rumor, npcs.dead_at, \
              npcs.job_role, npcs.license_plate, npcs.fired, npcs.hire_time, npcs.forced_login_until, npcs.schedule_work1_start, npcs.schedule_work2_start, \
              npcs.walk_to_appliance, npcs.wake_up_time, npcs.late_strikes, npcs.day_alarm, \
              npcs.alarm_hour, npcs.alarm_minute, npcs.alarm_modified, npcs.alarm_deleted, \
-             npcs.work_performance, npcs.company_align, npcs.day_zero_contact \
+             npcs.work_performance, npcs.company_align, npcs.day_zero_contact, npcs.zero_day_index \
              FROM npcs JOIN computer_users ON computer_users.id = npcs.user_id \
              JOIN persons ON persons.id = npcs.person_id WHERE computer_users.computer_id = ?1 ORDER BY npcs.person_id",
             params![computer.0],
@@ -164,7 +168,7 @@ impl NpcRepository {
              schedule_work1_start = ?7, schedule_work2_start = ?8, walk_to_appliance = ?9, forced_login_until = ?10, \
              wake_up_time = ?11, late_strikes = ?12, day_alarm = ?13, alarm_hour = ?14, alarm_minute = ?15, \
              alarm_modified = ?16, alarm_deleted = ?17, work_performance = ?18, company_align = ?19, \
-             day_zero_contact = ?20 WHERE person_id = ?1",
+             day_zero_contact = ?20, has_rumor = ?21, zero_day_index = ?22 WHERE person_id = ?1",
             params![
                 npc.person.0,
                 npc.dead_at.map(u64::cast_signed),
@@ -186,6 +190,8 @@ impl NpcRepository {
                 npc.work_performance as u8,
                 npc.company_align.code(),
                 npc.day_zero_contact.as_deref(),
+                npc.rumor,
+                npc.zero_day_index.map(u64::from).map(u64::cast_signed),
             ],
         )
         .await?;
@@ -196,11 +202,11 @@ impl NpcRepository {
     pub(crate) async fn npcs_in(&self, network: NetworkId) -> Result<Vec<Npc>> {
         Ok(fetch_all(
             &self.db.connection(),
-            "SELECT npcs.person_id, computer_users.computer_id, computer_users.name AS user, persons.name, npcs.online, \
+            "SELECT npcs.person_id, computer_users.computer_id, computer_users.name AS user, persons.name, npcs.online, npcs.has_rumor, \
              npcs.dead_at, npcs.job_role, npcs.license_plate, npcs.fired, npcs.hire_time, npcs.forced_login_until, npcs.schedule_work1_start, npcs.schedule_work2_start, \
              npcs.walk_to_appliance, npcs.wake_up_time, npcs.late_strikes, npcs.day_alarm, \
              npcs.alarm_hour, npcs.alarm_minute, npcs.alarm_modified, npcs.alarm_deleted, \
-             npcs.work_performance, npcs.company_align, npcs.day_zero_contact \
+             npcs.work_performance, npcs.company_align, npcs.day_zero_contact, npcs.zero_day_index \
              FROM npcs JOIN computer_users ON computer_users.id = npcs.user_id \
              JOIN persons ON persons.id = npcs.person_id \
              \

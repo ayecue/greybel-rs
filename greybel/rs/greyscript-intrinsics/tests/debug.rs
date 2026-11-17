@@ -50,7 +50,7 @@ print lib.debug_tools("dbg", "bad")
 }
 
 #[tokio::test]
-async fn should_preserve_debug_accounts_and_patches() {
+async fn should_preserve_zero_day_credentials_and_patches() {
     let mut world = debug_world();
     let mut library = world
         .modules
@@ -79,10 +79,11 @@ async fn should_preserve_debug_accounts_and_patches() {
             .modules
             .libraries
             .debug
-            .debug_account("dbg")
+            .rumor()
             .await
             .unwrap()
-            .is_some()
+            .npc_passwords
+            .contains_key("dbg")
     );
     assert!(
         restored

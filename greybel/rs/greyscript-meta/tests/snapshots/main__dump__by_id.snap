@@ -45,6 +45,8 @@ allow_import:
 amount_mined:
   - general
   - blockchain
+answer_zero_day:
+  - admin
 apply_patch:
   - general
   - debugLibrary
@@ -69,6 +71,8 @@ build:
 buy_coin:
   - general
   - wallet
+buy_debug_offer:
+  - admin
 buy_exploit:
   - admin
 camera_link_system:
@@ -129,8 +133,6 @@ create_ctf_account:
   - admin
 create_ctf_event:
   - admin
-create_debug_account:
-  - admin
 create_folder:
   - general
   - computer
@@ -144,6 +146,8 @@ create_mail_account:
   - admin
 create_network:
   - admin
+create_procedural_mission:
+  - admin
 create_program:
   - admin
 create_subwallet:
@@ -155,6 +159,8 @@ create_user:
 create_wallet:
   - general
   - blockchain
+create_zero_day_chain:
+  - admin
 current_date:
   - general
 current_path:
@@ -163,6 +169,8 @@ date:
   - general
   - file
   - ftpFile
+debug_offer:
+  - admin
 debug_tools:
   - general
   - metaLib
@@ -292,6 +300,8 @@ get_info:
 get_lan_ip:
   - general
   - port
+get_mail_account:
+  - admin
 get_mail_content:
   - general
   - ctfEvent
@@ -650,6 +660,8 @@ report_exploit:
   - admin
 report_library_update:
   - adminNetwork
+request_zero_day_mission:
+  - admin
 reset_ctf_password:
   - general
 reset_password:
@@ -831,6 +843,8 @@ typeof:
 unit_testing:
   - general
   - debugLibrary
+unlock_debug_library:
+  - adminNetwork
 update:
   - general
   - aptClient
@@ -860,6 +874,8 @@ values:
 version:
   - general
   - metaLib
+visit_zero_day_hack_shop:
+  - admin
 wait:
   - general
 wallet_username:

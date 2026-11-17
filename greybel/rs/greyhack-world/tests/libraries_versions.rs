@@ -22,16 +22,15 @@ async fn should_release_nothing_while_no_weakness_is_used_up() {
             .unwrap();
     }
 
-    assert!(
-        world
-            .modules
-            .libraries
-            .versions
-            .check_library_versions()
-            .await
-            .unwrap()
-            .is_empty()
-    );
+    let released = world
+        .modules
+        .libraries
+        .versions
+        .check_library_versions()
+        .await
+        .unwrap();
+
+    assert!(!released.contains(&SSH), "{released:?}");
     assert_eq!(newest(&world, SSH).await.version, VERSION);
 }
 
@@ -47,10 +46,10 @@ async fn should_release_the_next_version_when_a_weakness_is_used_up() {
             .modules
             .libraries
             .versions
-            .check_library_versions()
+            .check_library(SSH)
             .await
             .unwrap(),
-        [SSH]
+        Some("9.0.1".to_owned())
     );
 
     let library = newest(&world, SSH).await;
@@ -506,7 +505,7 @@ async fn should_replace_a_zone_whose_weaknesses_were_patched_three_times() {
 async fn should_keep_the_saved_versions_and_forget_the_oldest_beyond_a_hundred() {
     let (world, _) = shop_world().await;
 
-    assert!(
+    assert_eq!(
         world
             .modules
             .libraries
@@ -514,7 +513,8 @@ async fn should_keep_the_saved_versions_and_forget_the_oldest_beyond_a_hundred()
             .saved_library_versions(SSH)
             .await
             .unwrap()
-            .is_empty()
+            .len(),
+        6
     );
 
     world
@@ -532,8 +532,10 @@ async fn should_keep_the_saved_versions_and_forget_the_oldest_beyond_a_hundred()
             .versions
             .saved_library_versions(SSH)
             .await
-            .unwrap(),
-        [VERSION, "9.0.1"]
+            .unwrap()
+            .last()
+            .map(String::as_str),
+        Some("9.0.1")
     );
 
     for _ in 1..100 {

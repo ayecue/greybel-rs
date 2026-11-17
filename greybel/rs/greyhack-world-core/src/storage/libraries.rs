@@ -11,7 +11,7 @@ use super::Database;
 use crate::{Library, LibraryId, Result};
 
 /// Queries of the tables owned by this area.
-pub(crate) struct LibraryIdentityRepository {
+pub struct LibraryIdentityRepository {
     db: Database,
 }
 
@@ -56,21 +56,36 @@ impl LibraryIdentityRepository {
         .map(LibraryId))
     }
 
-    /// Returns the stored identity matching `library`, or inserts its identity if absent.
+    /// Returns the stored identity matching `library`, or inserts its identity if absent without changing `lastLibs`.
     pub async fn library_identity_id(&self, library: &Library) -> Result<LibraryId> {
-        self.library_row(library.kind, &library.version).await
+        match self.library_of(library.kind, &library.version).await? {
+            Some(id) => Ok(id),
+            None => {
+                self.insert_library_head(library.kind, &library.version, false)
+                    .await
+            }
+        }
     }
 
     /// Returns library `kind` at `version`, inserting it without weaknesses if absent.
     pub async fn library_row(&self, kind: LibraryKind, version: &str) -> Result<LibraryId> {
         match self.library_of(kind, version).await? {
-            Some(id) => Ok(id),
-            None => self.insert_library_head(kind, version).await,
+            Some(id) => {
+                self.mark_latest(kind, version, id).await?;
+
+                Ok(id)
+            }
+            None => self.insert_library_head(kind, version, true).await,
         }
     }
 
     /// Inserts library `kind` at `version` and marks it newest unless a newer version exists.
-    async fn insert_library_head(&self, kind: LibraryKind, version: &str) -> Result<LibraryId> {
+    async fn insert_library_head(
+        &self,
+        kind: LibraryKind,
+        version: &str,
+        update_latest: bool,
+    ) -> Result<LibraryId> {
         let id = insert(
             &self.db.connection(),
             "INSERT INTO libraries (kind, version) VALUES (?1, ?2)",
@@ -78,6 +93,15 @@ impl LibraryIdentityRepository {
         )
         .await?;
         let id = LibraryId(u32::try_from(id).expect("library ids fit u32"));
+
+        if update_latest {
+            self.mark_latest(kind, version, id).await?;
+        }
+
+        Ok(id)
+    }
+
+    async fn mark_latest(&self, kind: LibraryKind, version: &str, id: LibraryId) -> Result<()> {
         let latest: Option<String> = fetch_value(
             &self.db.connection(),
             "SELECT libraries.version FROM library_latest JOIN libraries ON libraries.id = library_latest.library_id \
@@ -96,6 +120,6 @@ impl LibraryIdentityRepository {
             .await?;
         }
 
-        Ok(id)
+        Ok(())
     }
 }
