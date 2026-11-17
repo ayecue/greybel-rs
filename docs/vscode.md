@@ -41,7 +41,7 @@ Add a [`greybel.json`](#project-configuration) when several files share an entry
 - Completion of the string keys of a map inside `m["..."]`, and inside `//` comments: tag names after `@`, type names inside `{...}`, and the parameter names of the documented function after `@param`.
 - Color swatches and a color picker for the values of `<color=...>`, `<mark=...>` and `<#...>` tags in strings (hex forms and the TextMesh color names); a picked color is written as `#RRGGBB` or `#RRGGBBAA`.
 - Folding of function bodies, `if`/`else` clauses, loops, multi-line lists and maps, comment lines and import lines, and Expand/Shrink Selection by syntax node.
-- Inlay hints: the type of a variable at its first assignment, parameter names before literal arguments, and return types of functions without a `@return` tag. `greybel.typeAnalyzer.inlayHints.variableTypes`, `.parameterNames` and `.returnTypes` turn each off; the editor's `editor.inlayHints.enabled` turns all of them off.
+- Inlay hints: the type of a variable at its first assignment, parameter names before arguments that don't have the parameter's name, the types of parameters without a written type, and return types of functions without a `@return` tag. `greybel.typeAnalyzer.inlayHints.variableTypes`, `.parameterNames`, `.parameterTypes` and `.returnTypes` turn each off; the editor's `editor.inlayHints.enabled` turns all of them off.
 - Quick fixes: add an `#include` or `import_code` for a name another workspace file defines; change a name that isn't found to a close name in scope, a close member, `self.name` inside a method, or `return`/`break`/`continue`; remove or rename (`_name`) an unused local; rename an unused parameter; remove unreachable statements; change a misspelled code in an `@ignore` comment to a close one; ignore a diagnostic on its line or in the file.
 - Default, minified, and formatted transformations.
 - Project builds with dependency bundling, installer generation, and optional deployment to Grey Hack.
@@ -204,7 +204,7 @@ The transform commands operate on the active editor's text. They do not bundle d
 
 `Default` writes the code without comments or minification. `Uglify` minifies code and optimizes literals and namespaces. `Beautify` formats code using `format`.
 
-Uglify settings include `disableLiteralsOptimization`, `disableNamespacesOptimization`, `excludedNamespaces`, and `obfuscation`. Obfuscation also shortens names read as strings, such as map keys; enable it only when the program does not depend on those names remaining unchanged.
+Uglify settings include `disableLiteralsOptimization`, `disableNamespacesOptimization`, `excludedNamespaces`, and `obfuscation`. The namespaces optimization also calls general API functions through short global aliases when that makes the build shorter. `multilineStrings` (`greybel.transpiler.multilineStrings`) sets how builds and runs write strings with line breaks: `Concatenation` (default) or `Join`, which is faster for strings with many lines. Obfuscation also shortens names read as strings, such as map keys; enable it only when the program does not depend on those names remaining unchanged.
 
 Both builds and runs read `#envar` values from `variables.files` first and `variables.values` second. Later values override earlier values. Variable files contain `NAME=value` lines and are relative to the project folder; missing files are ignored.
 

@@ -1,15 +1,14 @@
 import { StepMode, type SourceLocation, type StackFrame, type Variable } from 'greybel-runtime';
 import { useEffect, useState } from 'preact/hooks';
 
-import { filePath } from '../project/paths.js';
-import { describeFailure, describeLocation, type RuntimeSession } from '../runtime/session.js';
+import { useServices } from './services.js';
+import type { RuntimeSession } from '../runtime/session.js';
 
 export interface DebugPanelConfiguration {
   readonly session: RuntimeSession;
-  /** Changes each time the program stops, so the panel reads it again. */
+  /** Incremented on each stop to reload the stack and scopes. */
   readonly stop: number;
   readonly onResume: () => void;
-  /** Shows the project's file at `path`. */
   readonly onOpenFile: (path: string) => void;
 }
 
@@ -18,7 +17,6 @@ interface ScopeContent {
   readonly variables: readonly Variable[];
 }
 
-/** The stopped program: its call stack, the variables of its innermost frame, and code run where it stopped. */
 export function DebugPanel({ session, stop, onResume, onOpenFile }: DebugPanelConfiguration) {
   const [frames, setFrames] = useState<readonly StackFrame[]>([]);
   const [scopes, setScopes] = useState<readonly ScopeContent[]>([]);
@@ -30,15 +28,15 @@ export function DebugPanel({ session, stop, onResume, onOpenFile }: DebugPanelCo
 
     void (async () => {
       try {
-        const stack = await session.stackTrace();
+        const stack = await session.getStackTrace();
         const frame = stack[0];
         const content =
           frame === undefined
             ? []
             : await Promise.all(
-                (await session.scopes(frame.id)).map(async (scope) => ({
+                (await session.getScopes(frame.id)).map(async (scope) => ({
                   name: scope.name,
-                  variables: await session.variables(scope.reference)
+                  variables: await session.getVariables(scope.reference)
                 }))
               );
 
@@ -46,7 +44,7 @@ export function DebugPanel({ session, stop, onResume, onOpenFile }: DebugPanelCo
         setFrames(stack);
         setScopes(content);
       } catch (error) {
-        if (isCurrent) setLog((entries) => [...entries, describeFailure(error)]);
+        if (isCurrent) setLog((entries) => [...entries, session.describeFailure(error)]);
       }
     })();
 
@@ -65,7 +63,7 @@ export function DebugPanel({ session, stop, onResume, onOpenFile }: DebugPanelCo
 
       setLog((entries) => [...entries, `> ${entry}`, ...(evaluation ? [evaluation.value] : [])]);
     } catch (error) {
-      setLog((entries) => [...entries, `> ${entry}`, describeFailure(error)]);
+      setLog((entries) => [...entries, `> ${entry}`, session.describeFailure(error)]);
     }
   };
 
@@ -102,7 +100,7 @@ export function DebugPanel({ session, stop, onResume, onOpenFile }: DebugPanelCo
           {frames.map((frame) => (
             <li key={frame.id}>
               {frame.name}
-              {frame.location && <FrameLocation location={frame.location} onOpenFile={onOpenFile} />}
+              {frame.location && <FrameLocation session={session} location={frame.location} onOpenFile={onOpenFile} />}
             </li>
           ))}
         </ol>
@@ -137,15 +135,20 @@ export function DebugPanel({ session, stop, onResume, onOpenFile }: DebugPanelCo
   );
 }
 
-/** Where a frame is: a button showing its file, when it is a file of the project. */
-function FrameLocation({ location, onOpenFile }: { location: SourceLocation; onOpenFile: (path: string) => void }) {
-  const path = filePath(location.uri);
+interface FrameLocationConfiguration {
+  readonly session: RuntimeSession;
+  readonly location: SourceLocation;
+  readonly onOpenFile: (path: string) => void;
+}
 
-  if (path === undefined) return <span class="debug-location"> {describeLocation(location)}</span>;
+function FrameLocation({ session, location, onOpenFile }: FrameLocationConfiguration) {
+  const path = useServices().paths.toPath(location.uri);
+
+  if (path === undefined) return <span class="debug-location"> {session.describeLocation(location)}</span>;
 
   return (
     <button type="button" class="debug-location" onClick={() => onOpenFile(path)}>
-      {describeLocation(location)}
+      {session.describeLocation(location)}
     </button>
   );
 }

@@ -1,6 +1,6 @@
 [package]
 name = "greybel-vs-assets"
-description = "What greybel-vs takes from the libraries, kept up to date by its tests: the game's scripts as snippets, greybel.json's JSON Schema, and the defaults its settings declare"
+description = "What greybel-vs and greybel-editor-web take from the libraries, kept up to date by its tests: the game's scripts as snippets, greybel.json's JSON Schema, and the defaults greybel-vs's settings declare"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

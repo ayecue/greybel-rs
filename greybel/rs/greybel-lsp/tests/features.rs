@@ -178,12 +178,19 @@ fn should_select_from_a_name_out_to_its_statement() {
 }
 
 #[test]
-fn should_hint_the_type_of_a_variable() {
+fn should_send_inlay_hints() {
     let mut client = project_with_main_open();
 
     let hints = inlay_hints(&mut client);
 
-    assert_eq!(hints, [(lsp_position(1, 7), ": string".to_owned())]);
+    assert_eq!(
+        hints,
+        [
+            (lsp_position(1, 7), ": string".to_owned()),
+            (lsp_position(1, 16), "name:".to_owned()),
+            (lsp_position(2, 6), "s:".to_owned()),
+        ]
+    );
 }
 
 #[test]
@@ -194,7 +201,13 @@ fn should_leave_out_inlay_hints_the_settings_turn_off() {
 
     client.open("main.src", MAIN);
 
-    assert_eq!(inlay_hints(&mut client), []);
+    assert_eq!(
+        inlay_hints(&mut client),
+        [
+            (lsp_position(1, 16), "name:".to_owned()),
+            (lsp_position(2, 6), "s:".to_owned()),
+        ]
+    );
 }
 
 #[test]

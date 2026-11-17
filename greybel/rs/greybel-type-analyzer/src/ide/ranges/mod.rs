@@ -50,7 +50,7 @@ impl Analyzer<'_> {
             .lines()
             .offset(range.end, ColumnSettings::default())
             .unwrap_or_else(|| u32::try_from(ast.source().len()).unwrap_or(u32::MAX));
-        let Some(&(analysis, document)) = self.analyses_of(file).first() else {
+        let Some((analysis, document)) = self.entry_analysis(file) else {
             return Vec::new();
         };
 

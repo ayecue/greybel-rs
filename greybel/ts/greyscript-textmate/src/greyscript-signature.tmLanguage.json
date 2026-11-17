@@ -138,13 +138,13 @@
                             "name": "variable.parameter.greyscript"
                         },
                         "2": {
-                            "name": "keyword.operator.type.greyscript"
+                            "name": "keyword.operator.expression.is.greyscript"
                         }
                     }
                 },
                 {
                     "match": "\\bor\\b",
-                    "name": "keyword.operator.type.greyscript"
+                    "name": "keyword.operator.expression.or.greyscript"
                 },
                 {
                     "include": "#type-name"

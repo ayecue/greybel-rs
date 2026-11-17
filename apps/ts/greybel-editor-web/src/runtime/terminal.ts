@@ -16,21 +16,18 @@ import { OutputBatch, ProgramChannel } from 'greybel-io-web/program';
 import { openTerminal, type TerminalPage } from 'greyhack-terminal-web';
 import terminalWasm from 'greyhack-terminal-web/greyhack-terminal-web.wasm?url';
 
-/** Pending user-input read, ended by a keypress or program exit. */
+import type { WasmLoader } from '../wasm.js';
+
 interface PendingRead {
   readonly key: (key: Key) => void;
   readonly cancel: () => void;
 }
 
-/**
- * Canvas-based program terminal matching Grey Hack output and keyboard input. The page implements the
- * program's io page and relays output to greyhack-terminal-web's worker. `onText` also receives text for
- * canvas-inaccessible consumers such as screen readers.
- */
+/** Implements the program's io page; greyhack-terminal-web's worker draws the output. */
 export class Terminal extends PageRouter {
   readonly #canvas: HTMLCanvasElement;
-  readonly #page: TerminalPage;
-  readonly #screen: ProgramChannel;
+  /** Opened once the terminal's module is compiled; see `startWorker`. */
+  readonly #screen: Promise<{ readonly page: TerminalPage; readonly channel: ProgramChannel }>;
   readonly #text = new TextScreen();
   readonly #onText: (text: string) => void;
 
@@ -46,20 +43,21 @@ export class Terminal extends PageRouter {
     this.#read.key(key);
   };
 
-  constructor(canvas: HTMLCanvasElement, onText: (text: string) => void) {
+  constructor(canvas: HTMLCanvasElement, onText: (text: string) => void, wasm: WasmLoader) {
     super();
 
     const { port1, port2 } = new MessageChannel();
 
     this.#canvas = canvas;
     this.#onText = onText;
-    this.#page = openTerminal(canvas, port1, terminalWasm);
-    this.#screen = new ProgramChannel(new MessageTargetDriver(port2));
+    this.#screen = wasm.load('terminal', terminalWasm).then((module) => ({
+      page: openTerminal(canvas, port1, module),
+      channel: new ProgramChannel(new MessageTargetDriver(port2))
+    }));
     canvas.tabIndex = 0;
     canvas.addEventListener('keydown', this.#onKeyDown);
   }
 
-  /** Whether the program is waiting for user input. */
   get isReading(): boolean {
     return this.#read !== undefined;
   }
@@ -100,7 +98,6 @@ export class Terminal extends PageRouter {
     return this.#readUntil((key, resolve) => resolve(key));
   }
 
-  /** Write `text` on its own line, for example a program failure reason. */
   printLine(text: string): void {
     this.#print(text, { newLine: true, replace: false });
   }
@@ -109,7 +106,6 @@ export class Terminal extends PageRouter {
     this.#show([new Output.Clear()]);
   }
 
-  /** Cancel the active read because the program ended. */
   cancelRead(): void {
     this.#read?.cancel();
   }
@@ -117,8 +113,10 @@ export class Terminal extends PageRouter {
   close(): void {
     this.cancelRead();
     this.#canvas.removeEventListener('keydown', this.#onKeyDown);
-    this.#screen.close();
-    this.#page.close();
+    void this.#screen.then(({ page, channel }) => {
+      channel.close();
+      page.close();
+    });
   }
 
   #readUntil<T>(onKey: (key: Key, resolve: (value: T) => void) => void): Promise<T> {
@@ -148,7 +146,7 @@ export class Terminal extends PageRouter {
   }
 
   #show(entries: Output[]): void {
-    void this.#screen.send(new OutputBatch({ entries }));
+    void this.#screen.then(({ channel }) => channel.send(new OutputBatch({ entries })));
     this.#text.apply(entries);
     this.#onText(this.#text.text);
   }

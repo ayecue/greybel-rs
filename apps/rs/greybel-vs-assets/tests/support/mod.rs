@@ -11,6 +11,10 @@ pub fn greybel_vs() -> PathBuf {
     Path::new(env!("APPS_TS")).join("greybel-vs")
 }
 
+pub fn greybel_editor_web() -> PathBuf {
+    Path::new(env!("APPS_TS")).join("greybel-editor-web")
+}
+
 pub fn package() -> Value {
     let path = greybel_vs().join("package.json");
     let text = std::fs::read_to_string(&path)

@@ -28,3 +28,21 @@ export function Tabs({ tab, onSelect }: { tab: ReferenceTab; onSelect: (tab: Ref
     </div>
   );
 }
+
+/** The tabs as the menu of a narrow page lists them, above the selected tab's contents. */
+export function TabChoices({ tab, onSelect }: { tab: ReferenceTab; onSelect: (tab: ReferenceTab) => void }) {
+  return (
+    <div class="tab-choices">
+      {Object.values(ReferenceTab).map((each) => (
+        <button
+          type="button"
+          class="tab-choice"
+          aria-current={each === tab ? 'page' : undefined}
+          onClick={() => onSelect(each)}
+        >
+          {TITLES[each]}
+        </button>
+      ))}
+    </div>
+  );
+}

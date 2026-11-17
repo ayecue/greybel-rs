@@ -1,6 +1,7 @@
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { EditorView } from '@codemirror/view';
+import { tags } from '@lezer/highlight';
 
-/** Dark theme with language-server semantic-token colors matching VS Code's dark theme. */
 export const editorTheme = EditorView.theme(
   {
     '&': { height: '100%', backgroundColor: '#1e1e1e', color: '#d4d4d4' },
@@ -23,6 +24,8 @@ export const editorTheme = EditorView.theme(
       backgroundColor: '#e51400'
     },
     '.cm-tooltip': { backgroundColor: '#252526', color: '#cccccc', border: '1px solid #454545' },
+    '.cm-manifest-hover': { maxWidth: '480px', padding: '4px 8px' },
+    '.cm-manifest-hover p': { margin: '4px 0 0' },
     '.cm-tooltip-autocomplete ul li[aria-selected]': { backgroundColor: '#04395e' },
     '.cm-panels': { backgroundColor: '#252526', color: '#cccccc' },
     '.cm-token-keyword': { color: '#c586c0' },
@@ -35,7 +38,23 @@ export const editorTheme = EditorView.theme(
     '.cm-token-property': { color: '#9cdcfe' },
     '.cm-token-parameter': { color: '#9cdcfe', fontStyle: 'italic' },
     '.cm-token-operator': { color: '#d4d4d4' },
-    '.cm-token-punctuator': { color: '#d4d4d4' }
+    '.cm-token-punctuator': { color: '#d4d4d4' },
+    '.cm-token-type': { color: '#4ec9b0' }
   },
   { dark: true }
+);
+
+export const editorHighlightStyle = syntaxHighlighting(
+  HighlightStyle.define([
+    { tag: [tags.keyword, tags.operatorKeyword], color: '#c586c0' },
+    { tag: [tags.atom, tags.bool, tags.null], color: '#569cd6' },
+    { tag: tags.string, color: '#ce9178' },
+    { tag: tags.number, color: '#b5cea8' },
+    { tag: tags.comment, color: '#6a9955' },
+    { tag: tags.function(tags.variableName), color: '#dcdcaa' },
+    { tag: [tags.variableName, tags.propertyName], color: '#9cdcfe' },
+    { tag: tags.special(tags.variableName), color: '#9cdcfe', fontStyle: 'italic' },
+    { tag: tags.typeName, color: '#4ec9b0' },
+    { tag: [tags.operator, tags.punctuation], color: '#d4d4d4' }
+  ])
 );

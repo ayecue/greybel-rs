@@ -53,6 +53,7 @@ pub struct TypeAnalyzerSettings {
 pub struct InlayHintSettings {
     pub variable_types: bool,
     pub parameter_names: bool,
+    pub parameter_types: bool,
     pub return_types: bool,
 }
 
@@ -63,6 +64,7 @@ impl Default for InlayHintSettings {
         Self {
             variable_types: options.variable_types,
             parameter_names: options.parameter_names,
+            parameter_types: options.parameter_types,
             return_types: options.return_types,
         }
     }

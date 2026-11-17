@@ -23,6 +23,16 @@ pub struct BeautifyOptions {
     pub indentation: Indentation,
 }
 
+/// How a build writes a string with line breaks, which Grey Hack's parser does not accept.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum MultilineStringStyle {
+    /// `"a"+__NL+"b"` with `__NL=char(10)`; each `+` copies the string built so far.
+    #[default]
+    Concatenation,
+    /// `__MSTR(["a","b"])`, which joins the lines with `char(10)` in one pass.
+    Join,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Indentation {
     #[default]
@@ -41,9 +51,12 @@ pub struct TranspileOptions {
     /// The syntax features to accept, of those the dialect has.
     pub syntax_features: SyntaxFeatures,
     pub excluded_names: Vec<String>,
+    /// General API functions: never renamed, and called through short aliases by uglify builds.
+    pub native_functions: Vec<String>,
     pub path_mapping: Option<PathMapping>,
     pub retain_debugger: bool,
     pub retain_multiline_strings: bool,
+    pub multiline_strings: MultilineStringStyle,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -86,6 +99,12 @@ impl TranspileOptions {
         }
     }
 
+    /// Whether uglify calls general API functions through short aliases: with namespace optimization on.
+    #[must_use]
+    pub fn aliases_natives(&self) -> bool {
+        matches!(self.mode, BuildMode::Uglify(uglify) if !uglify.disable_namespaces_optimization)
+    }
+
     #[must_use]
     pub fn shortens_assignments(&self) -> bool {
         match self.dialect {
@@ -106,9 +125,11 @@ impl Default for TranspileOptions {
             strict_mode: false,
             syntax_features: SyntaxFeatures::ALL,
             excluded_names: Vec::new(),
+            native_functions: Vec::new(),
             path_mapping: None,
             retain_debugger: false,
             retain_multiline_strings: false,
+            multiline_strings: MultilineStringStyle::Concatenation,
         }
     }
 }

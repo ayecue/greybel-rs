@@ -1,4 +1,5 @@
 mod literals;
+mod natives;
 
 use greybel_core::lexer::{KEYWORDS, Keyword};
 use greybel_core::syntax::Literal;
@@ -6,8 +7,9 @@ use greybel_core::{Ast, Atom, NodeId, NodeKind};
 use greybel_symbols::names::{LOCALS, OUTER, SELF, SUPER};
 use greybel_symbols::types::{FUNC_REF, LIST, MAP, NUMBER, STRING};
 use literals::LiteralTable;
+use natives::NativeAliasTable;
 
-use crate::bundle::{MULTILINE_STRING, RUNTIME_NAMES};
+use crate::bundle::{RUNTIME_NAMES, multiline_string_helper};
 use crate::emit::LineBreakStyle;
 use crate::names::{Charset, NameTable};
 use crate::options::TranspileOptions;
@@ -20,6 +22,7 @@ const RESERVED_NAMES: &[&str] = &[
 pub struct Minification {
     variables: NameTable,
     literals: LiteralTable,
+    natives: NativeAliasTable,
 }
 
 impl Minification {
@@ -30,7 +33,8 @@ impl Minification {
             .copied()
             .chain(KEYWORDS.iter().map(|keyword| keyword.as_str()))
             .chain([Keyword::End.as_str()])
-            .chain(options.excluded_names.iter().map(String::as_str));
+            .chain(options.excluded_names.iter().map(String::as_str))
+            .chain(options.native_functions.iter().map(String::as_str));
         let names: Vec<&str> = asts
             .iter()
             .flat_map(|ast| Self::variable_names(ast))
@@ -56,17 +60,40 @@ impl Minification {
             }
         }
 
-        variables.insert(MULTILINE_STRING);
+        variables.insert(multiline_string_helper(options));
+
+        let natives = if options.aliases_natives() {
+            NativeAliasTable::of(
+                asts,
+                &options.native_functions,
+                &options.excluded_names,
+                &mut variables,
+            )
+        } else {
+            NativeAliasTable::default()
+        };
 
         Self {
             variables,
             literals,
+            natives,
         }
     }
 
     #[must_use]
     pub fn rename<'a>(&'a self, name: &'a str) -> &'a str {
         self.variables.get(name).unwrap_or(name)
+    }
+
+    /// The global alias uglify calls the general API function `name` through.
+    #[must_use]
+    pub fn native_alias(&self, name: &str) -> Option<&str> {
+        self.natives.alias(name)
+    }
+
+    /// `(name, alias)` of every aliased general API function, in the order the header assigns them.
+    pub fn native_aliases(&self) -> impl Iterator<Item = (&str, &str)> {
+        self.natives.entries()
     }
 
     #[must_use]

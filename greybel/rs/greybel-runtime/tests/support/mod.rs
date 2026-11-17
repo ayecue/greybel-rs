@@ -272,6 +272,7 @@ impl Harness {
                 strict_mode: false,
                 program_name: "runtime".into(),
                 disabled_syntax: None,
+                multiline_strings: None,
             })
             .expect("the launch is sent")
     }
@@ -364,6 +365,7 @@ pub fn mock_launch(debug: bool, stop_on_entry: bool) -> Launch<'static> {
         strict_mode: false,
         program_name: "myprogram".into(),
         disabled_syntax: None,
+        multiline_strings: None,
     }
 }
 

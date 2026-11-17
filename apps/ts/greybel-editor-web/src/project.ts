@@ -1,67 +1,67 @@
-import { DEFAULT_PATH, type ProjectContent } from './project/content.js';
+import { DEFAULT_PATH, MANIFEST_PATH, ProjectContent } from './project/content.js';
 import type { ProjectEvent } from './project/event.js';
-import { fileUri, pathProblem } from './project/paths.js';
+import { MANIFEST_TEMPLATE } from './project/manifest.js';
+import type { PathResolver } from './project/paths.js';
 
-/**
- * Current project files and entry file. The language server reads files outside the editor, and the runtime
- * reads all files for each run.
- */
 export class Project {
+  readonly paths: PathResolver;
   readonly #files: Map<string, string>;
   readonly #listeners = new Set<(event: ProjectEvent) => void>();
 
   #entry: string;
 
-  constructor(content: ProjectContent) {
+  constructor(content: ProjectContent, paths: PathResolver) {
+    this.paths = paths;
     this.#files = new Map(content.files);
-    if (this.#files.size === 0) this.#files.set(DEFAULT_PATH, '');
-    this.#entry = this.#files.has(content.entry) ? content.entry : [...this.#files.keys()][0]!;
+    if (this.scripts.length === 0) this.#files.set(DEFAULT_PATH, '');
+    this.#entry = this.scripts.includes(content.entry) ? content.entry : this.scripts[0]!;
   }
 
   get entry(): string {
     return this.#entry;
   }
 
-  /** Sorted project file paths. */
-  get paths(): string[] {
+  get filePaths(): string[] {
     return [...this.#files.keys()].sort((left, right) => left.localeCompare(right));
   }
 
-  get content(): ProjectContent {
-    return { entry: this.#entry, files: new Map(this.#files) };
+  /** All files except `greybel.json`. */
+  get scripts(): string[] {
+    return this.filePaths.filter((path) => path !== MANIFEST_PATH);
   }
 
-  /** Project file contents keyed by URI. */
+  get content(): ProjectContent {
+    return new ProjectContent(this.#entry, new Map(this.#files));
+  }
+
+  /** Keyed by URI. */
   get documents(): Map<string, string> {
-    return new Map([...this.#files].map(([path, code]): [string, string] => [fileUri(path), code]));
+    return new Map([...this.#files].map(([path, code]): [string, string] => [this.paths.toUri(path), code]));
   }
 
   has(path: string): boolean {
     return this.#files.has(path);
   }
 
-  /** Contents of `path`, or undefined if the file does not exist. */
   read(path: string): string | undefined {
     return this.#files.get(path);
   }
 
-  /** Registers `listener` for project changes. */
   subscribe(listener: (event: ProjectEvent) => void): () => void {
     this.#listeners.add(listener);
 
     return () => this.#listeners.delete(listener);
   }
 
-  /** Replaces the edited contents of `path`. */
   write(path: string, code: string): void {
     if (!this.#files.has(path)) return;
     this.#files.set(path, code);
     this.#notify({ kind: 'edit', path });
   }
 
-  /** Adds a file at `path`; returns an error on failure. */
-  create(path: string, code = ''): string | undefined {
-    const problem = this.#newPathProblem(path);
+  /** Uses the template for `greybel.json` when `code` is omitted. Returns an error message on failure. */
+  create(path: string, code = path === MANIFEST_PATH ? MANIFEST_TEMPLATE : ''): string | undefined {
+    const problem = this.#findNewPathProblem(path);
 
     if (problem !== undefined) return problem;
     this.#files.set(path, code);
@@ -70,14 +70,16 @@ export class Project {
     return undefined;
   }
 
-  /** Moves the file at `from` to `to`; why it cannot, when it cannot. */
+  /** Returns an error message on failure. */
   rename(from: string, to: string): string | undefined {
     const code = this.#files.get(from);
 
     if (code === undefined) return `There is no file ${from}.`;
     if (from === to) return undefined;
+    if (from === MANIFEST_PATH) return `${MANIFEST_PATH} holds the project's settings and keeps its name.`;
+    if (to === MANIFEST_PATH) return `${MANIFEST_PATH} is the name of the project's settings file.`;
 
-    const problem = this.#newPathProblem(to);
+    const problem = this.#findNewPathProblem(to);
 
     if (problem !== undefined) return problem;
     this.#files.delete(from);
@@ -90,30 +92,31 @@ export class Project {
         { path: to, kind: 'creation' }
       ]
     });
+    this.#notify({ kind: 'rename', from, to });
 
     return undefined;
   }
 
-  /** Delete the file at `path` and return the reason on failure; a project must retain at least one file. */
+  /** Returns an error message on failure. */
   delete(path: string): string | undefined {
     if (!this.#files.has(path)) return `There is no file ${path}.`;
-    if (this.#files.size === 1) return 'A project has at least one file.';
+    if (path === MANIFEST_PATH) return `${MANIFEST_PATH} holds the project's settings and can't be deleted.`;
+    if (this.scripts.length === 1) return 'A project has at least one file.';
     this.#files.delete(path);
-    if (this.#entry === path) this.#entry = this.paths[0]!;
+    if (this.#entry === path) this.#entry = this.scripts[0]!;
     this.#notify({ kind: 'files', changes: [{ path, kind: 'deletion' }] });
 
     return undefined;
   }
 
-  /** Set the file at `path` as the entry point for runs. */
   setEntry(path: string): void {
-    if (!this.#files.has(path) || this.#entry === path) return;
+    if (!this.#files.has(path) || path === MANIFEST_PATH || this.#entry === path) return;
     this.#entry = path;
     this.#notify({ kind: 'entry' });
   }
 
-  #newPathProblem(path: string): string | undefined {
-    const problem = pathProblem(path);
+  #findNewPathProblem(path: string): string | undefined {
+    const problem = this.paths.findProblem(path);
 
     if (problem !== undefined) return problem;
     if (this.#files.has(path)) return `There is a file ${path} already.`;

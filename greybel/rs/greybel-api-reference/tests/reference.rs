@@ -342,6 +342,38 @@ fn should_render_code_of_another_language_as_plain_text() {
 }
 
 #[test]
+fn should_highlight_syntax_features_in_code() {
+    let mut harness = Harness::new();
+
+    let blocks = harness.render(
+        "```greyscript\nlet port: number = 22\nclass Dog\nend class\nlabel = #\"at {port}\"\n```\n",
+    );
+    let Some(Block::Code { tokens, .. }) = blocks.first() else {
+        panic!("a code block: {blocks:?}");
+    };
+    let highlight_of = |text: &str| {
+        tokens
+            .iter()
+            .find(|token| token.text == text)
+            .map(|token| token.highlight)
+    };
+
+    assert_eq!(highlight_of("let"), Some(Highlight::Keyword));
+    assert_eq!(highlight_of("number"), Some(Highlight::Type));
+    assert_eq!(highlight_of("class"), Some(Highlight::Keyword));
+    assert_eq!(highlight_of("Dog"), Some(Highlight::Name));
+    assert_eq!(highlight_of("#\"at {"), Some(Highlight::String));
+    assert_eq!(
+        tokens
+            .iter()
+            .filter(|token| token.text == "port")
+            .map(|token| token.highlight)
+            .collect::<Vec<_>>(),
+        [Highlight::Name, Highlight::Name]
+    );
+}
+
+#[test]
 fn should_render_a_table_with_its_header_and_rows() {
     let mut harness = Harness::new();
 

@@ -95,7 +95,7 @@ impl LiteralTable {
             let text = LiteralText::new(&hoist.literal, &hoist.source, LiteralStyle::Source)
                 .with_line_breaks(line_breaks);
 
-            Some((text.joins(), (&*hoist.variable, text.to_string())))
+            Some((text.rewrites(), (&*hoist.variable, text.to_string())))
         });
         let (calls, plain): (Vec<_>, Vec<_>) = texts.partition(|(joins, _)| *joins);
 

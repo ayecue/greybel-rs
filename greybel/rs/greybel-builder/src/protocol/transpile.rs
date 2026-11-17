@@ -1,9 +1,10 @@
 use greybel_core::{Dialect, SyntaxFeatures};
 use greybel_transpiler::{
-    BeautifyOptions, BuildMode, Indentation, TranspileOptions, UglifyOptions,
+    BeautifyOptions, BuildMode, Indentation, MultilineStringStyle as TranspiledStyle,
+    TranspileOptions, UglifyOptions,
 };
 
-use super::{TranspileMode, TranspileSettings};
+use super::{MultilineStringStyle, TranspileMode, TranspileSettings};
 
 impl From<&TranspileSettings> for TranspileOptions {
     fn from(settings: &TranspileSettings) -> Self {
@@ -45,6 +46,10 @@ impl From<&TranspileSettings> for TranspileOptions {
                 .iter()
                 .map(ToString::to_string)
                 .collect(),
+            multiline_strings: match settings.multiline_strings {
+                Some(MultilineStringStyle::Join) => TranspiledStyle::Join,
+                Some(MultilineStringStyle::Concatenation) | None => TranspiledStyle::Concatenation,
+            },
             ..TranspileOptions::default()
         }
     }

@@ -12,6 +12,7 @@ use crate::error::Result;
 pub fn transform(source: &str, options: &TranspileOptions) -> Result<String> {
     let options = TranspileOptions {
         excluded_names: Build::excluded_names(options),
+        native_functions: Build::native_functions(options),
         ..options.clone()
     };
 

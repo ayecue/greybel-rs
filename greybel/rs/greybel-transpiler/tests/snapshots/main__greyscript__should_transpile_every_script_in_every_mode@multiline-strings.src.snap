@@ -1,86 +1,75 @@
 ---
 source: greybel-transpiler/tests/greyscript.rs
-assertion_line: 17
 expression: out
 input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/multiline-strings.src
 ---
 === default
-__MSTR=function(lines)
-return lines.join(char(10))
-end function
-banner=__MSTR(["first line","second line"])
-print(__MSTR(["trailing",""]))
-print(__MSTR(["","leading"]))
-print(__MSTR(["a","","b"]).len)
-print(__MSTR(["say ""hi""","ok"]))
-repeated=[__MSTR(["x","y"]),__MSTR(["x","y"]),__MSTR(["x","y"]),__MSTR(["x","y"])]
+__NL=char(10)
+banner="first line"+__NL+"second line"
+print("trailing"+__NL)
+print(__NL+"leading")
+print(("a"+__NL+__NL+"b").len)
+print("say ""hi"""+__NL+"ok")
+repeated=["x"+__NL+"y","x"+__NL+"y","x"+__NL+"y","x"+__NL+"y"]
 print("single line")
-crlf=__MSTR(["a","b"])
+crlf="a"+__NL+"b"
 === uglify
-N=function(lines)
-return lines.join(char(10))
-end function
+N=char(10)
 globals.I=globals
-I.M=N(["x","y"])
-J=N(["first line","second line"])
-print(N(["trailing",""]))
-print(N(["","leading"]))
-print(N(["a","","b"]).len)
-print(N(["say ""hi""","ok"]))
+I.M="x"+N+"y"
+J="first line"+N+"second line"
+print("trailing"+N)
+print(N+"leading")
+print(("a"+N+N+"b").len)
+print("say ""hi"""+N+"ok")
 K=[M,M,M,M]
 print("single line")
-L=N(["a","b"])
+L="a"+N+"b"
 === beautify
-__MSTR = function(lines)
-	return lines.join(char(10))
-end function
+__NL = char(10)
 // Grey Hack ends a string at a line break, so a string with line breaks becomes a call of __MSTR with its lines.
-banner = __MSTR(["first line", "second line"])
-print __MSTR(["trailing", ""])
-print __MSTR(["", "leading"])
-print __MSTR(["a", "", "b"]).len
-print __MSTR(["say ""hi""", "ok"])
+banner = "first line" + __NL + "second line"
+print "trailing" + __NL
+print __NL + "leading"
+print ("a" + __NL + __NL + "b").len
+print "say ""hi""" + __NL + "ok"
 repeated = [
-	__MSTR(["x", "y"]),
-	__MSTR(["x", "y"]),
-	__MSTR(["x", "y"]),
-	__MSTR(["x", "y"]),
+	"x" + __NL + "y",
+	"x" + __NL + "y",
+	"x" + __NL + "y",
+	"x" + __NL + "y",
 ]
 print "single line"
-crlf = __MSTR(["a", "b"])
+crlf = "a" + __NL + "b"
 === beautify, dev mode
-__MSTR = function(lines)
-	return lines.join(char(10))
-end function
+__NL = char(10)
 // Grey Hack ends a string at a line break, so a string with line breaks becomes a call of __MSTR with its lines.
-banner = __MSTR(["first line", "second line"])
-print __MSTR(["trailing", ""])
-print __MSTR(["", "leading"])
-print __MSTR(["a", "", "b"]).len
-print __MSTR(["say ""hi""", "ok"])
+banner = "first line" + __NL + "second line"
+print "trailing" + __NL
+print __NL + "leading"
+print ("a" + __NL + __NL + "b").len
+print "say ""hi""" + __NL + "ok"
 repeated = [
-	__MSTR(["x", "y"]),
-	__MSTR(["x", "y"]),
-	__MSTR(["x", "y"]),
-	__MSTR(["x", "y"]),
+	"x" + __NL + "y",
+	"x" + __NL + "y",
+	"x" + __NL + "y",
+	"x" + __NL + "y",
 ]
 print "single line"
-crlf = __MSTR(["a", "b"])
+crlf = "a" + __NL + "b"
 === beautify, dev mode, keep parentheses, 10 spaces
-__MSTR = function(lines)
-          return lines.join(char(10))
-end function
+__NL = char(10)
 // Grey Hack ends a string at a line break, so a string with line breaks becomes a call of __MSTR with its lines.
-banner = __MSTR(["first line", "second line"])
-print(__MSTR(["trailing", ""]))
-print(__MSTR(["", "leading"]))
-print(__MSTR(["a", "", "b"]).len)
-print(__MSTR(["say ""hi""", "ok"]))
+banner = "first line" + __NL + "second line"
+print("trailing" + __NL)
+print(__NL + "leading")
+print(("a" + __NL + __NL + "b").len)
+print("say ""hi""" + __NL + "ok")
 repeated = [
-          __MSTR(["x", "y"]),
-          __MSTR(["x", "y"]),
-          __MSTR(["x", "y"]),
-          __MSTR(["x", "y"]),
+          "x" + __NL + "y",
+          "x" + __NL + "y",
+          "x" + __NL + "y",
+          "x" + __NL + "y",
 ]
 print("single line")
-crlf = __MSTR(["a", "b"])
+crlf = "a" + __NL + "b"

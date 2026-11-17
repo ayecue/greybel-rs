@@ -24,7 +24,7 @@ pub(crate) use self::features::EmitFeatures;
 pub(crate) use self::functions::EmitFunctions;
 pub(crate) use self::statements::EmitStatements;
 use super::{EmitFlags, EmitOutput, EmitState, LiteralStyle};
-use crate::bundle::{MULTILINE_STRING, REQUIRE};
+use crate::bundle::{REQUIRE, multiline_string_helper};
 use crate::error::Result;
 
 pub trait Emitter: Sized {
@@ -393,10 +393,11 @@ pub trait Emitter: Sized {
 
     fn emit_literal(&mut self, s: &mut EmitState<'_>, id: NodeId, node: &Literal) -> Result<()> {
         s.literal(
+            id,
             node,
             s.text(id),
             LiteralStyle::Output,
-            self.runtime_name(MULTILINE_STRING),
+            self.runtime_name(multiline_string_helper(s.options())),
         );
 
         Ok(())

@@ -519,7 +519,12 @@
           "greybel.typeAnalyzer.inlayHints.parameterNames": {
             "type": "boolean",
             "default": true,
-            "description": "Show the parameter name before literal arguments of calls with more than one argument."
+            "description": "Show the parameter name before each argument, unless the argument has the same name."
+          },
+          "greybel.typeAnalyzer.inlayHints.parameterTypes": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show the type of each function parameter without a written type."
           },
           "greybel.typeAnalyzer.inlayHints.returnTypes": {
             "type": "boolean",
@@ -706,6 +711,20 @@
             "type": "array",
             "default": [],
             "description": "Names excluded from uglification.",
+            "scope": "resource"
+          },
+          "greybel.transpiler.multilineStrings": {
+            "type": "string",
+            "enum": [
+              "Concatenation",
+              "Join"
+            ],
+            "enumDescriptions": [
+              "\"a\"+__NL+\"b\" with __NL=char(10). Each + copies the string built so far, so strings with many lines are slow to build.",
+              "__MSTR([\"a\",\"b\"]), a function that joins the lines with char(10) in one pass."
+            ],
+            "default": "Concatenation",
+            "description": "How builds write strings with line breaks, which Grey Hack does not accept.",
             "scope": "resource"
           },
           "greybel.transpiler.obfuscation": {

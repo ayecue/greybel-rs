@@ -98,9 +98,15 @@ impl<'w> Analyzer<'w> {
 
     pub(crate) fn ide_context(self, uri: &Uri, position: Position) -> Option<Context<'w>> {
         let (file, ast, offset) = self.locate(uri, position)?;
-        let (_, analysis, document) = self.entry_analyses(file).into_iter().next()?;
+        let (analysis, document) = self.entry_analysis(file)?;
 
         Some(Context::new(ast, analysis, document, offset))
+    }
+
+    pub(crate) fn entry_analysis(self, file: SourceFile) -> Option<(&'w Analysis, DocumentIndex)> {
+        let (_, analysis, document) = self.entry_analyses(file).into_iter().next()?;
+
+        Some((analysis, document))
     }
 
     pub(crate) fn analyses_of(self, file: SourceFile) -> Vec<(&'w Analysis, DocumentIndex)> {

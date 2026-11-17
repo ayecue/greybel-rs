@@ -12,7 +12,7 @@ impl Analyzer<'_> {
     pub(super) fn type_hover(self, uri: &Uri, position: Position) -> Option<Hover> {
         let (file, ast, offset) = self.locate(uri, position)?;
         let span = Self::type_name_at(ast, offset)?;
-        let (analysis, _) = self.analyses_of(file).into_iter().next()?;
+        let (analysis, _) = self.entry_analysis(file)?;
         let (text, description) = Self::describe_type(analysis, ast.slice(span))?;
 
         Some(Hover {

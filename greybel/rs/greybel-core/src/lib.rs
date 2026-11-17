@@ -6,6 +6,7 @@ pub mod ast;
 pub mod diagnostics;
 pub mod dialect;
 pub mod error;
+pub mod highlight;
 pub mod lexer;
 pub mod parser;
 pub mod position;

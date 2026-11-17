@@ -1,10 +1,11 @@
-use greybel_core::{Lexer, TokenKind, Version};
+use greybel_core::highlight::{HighlightKind, Highlighter};
+use greybel_core::{Parser, ParserOptions};
 use meta_utils::{BaseType, Signature};
 
 use crate::api;
 use crate::protocol::{Highlight, Link, Token};
 
-/// Lexes GreyScript examples and links general API function calls.
+/// Highlights GreyScript examples as the language server does and links general API function calls.
 pub(crate) struct ExampleHighlighter {
     general: Option<&'static Signature>,
 }
@@ -21,17 +22,17 @@ impl ExampleHighlighter {
         self.code(&lines.join("\n"))
     }
 
-    /// Highlights `code`; the first lexer error and all remaining source are emitted as plain text.
+    /// Highlights `code` with the AST of a recovering parse; the source after the first lexer error is plain text.
     pub(crate) fn code(&self, code: &str) -> Vec<Token> {
-        let lexer = Lexer::new(code, api::LANGUAGE, Version::Latest);
+        let ast = Parser::new(code, ParserOptions::new(api::LANGUAGE))
+            .parse_unsafe()
+            .ast;
         let mut tokens = Vec::new();
         let mut end = 0;
         let mut after_dot = false;
 
-        for token in lexer.tokens() {
-            let Ok(token) = token else { break };
-            let span = token.span();
-            let (start, stop) = (span.start as usize, span.end as usize);
+        for token in Highlighter::new(&ast).tokens(api::LANGUAGE) {
+            let (start, stop) = (token.span.start as usize, token.span.end as usize);
 
             if start < end || stop > code.len() || !code.is_char_boundary(start) {
                 break;
@@ -40,13 +41,13 @@ impl ExampleHighlighter {
             Self::push(&mut tokens, &code[end..start], Highlight::Plain, None);
 
             let text = &code[start..stop];
-            let highlight = Self::highlight(token.kind());
+            let highlight = Self::highlight(token.kind);
             let link = (highlight == Highlight::Name && !after_dot)
                 .then(|| self.general_function(text))
                 .flatten();
 
             Self::push(&mut tokens, text, highlight, link);
-            if token.kind() != TokenKind::Comment {
+            if token.kind != HighlightKind::Comment {
                 after_dot = text == ".";
             }
 
@@ -58,16 +59,19 @@ impl ExampleHighlighter {
         tokens
     }
 
-    fn highlight(kind: TokenKind) -> Highlight {
+    fn highlight(kind: HighlightKind) -> Highlight {
         match kind {
-            TokenKind::Keyword => Highlight::Keyword,
-            TokenKind::StringLiteral => Highlight::String,
-            TokenKind::NumericLiteral => Highlight::Number,
-            TokenKind::BooleanLiteral | TokenKind::NilLiteral => Highlight::Constant,
-            TokenKind::Comment => Highlight::Comment,
-            TokenKind::Identifier => Highlight::Name,
-            TokenKind::Punctuator | TokenKind::SliceOperator => Highlight::Operator,
-            TokenKind::Eof | TokenKind::Eol | TokenKind::Invalid => Highlight::Plain,
+            HighlightKind::Keyword => Highlight::Keyword,
+            HighlightKind::String => Highlight::String,
+            HighlightKind::Number => Highlight::Number,
+            HighlightKind::Constant => Highlight::Constant,
+            HighlightKind::Comment => Highlight::Comment,
+            HighlightKind::Variable
+            | HighlightKind::Property
+            | HighlightKind::Function
+            | HighlightKind::Parameter => Highlight::Name,
+            HighlightKind::Type => Highlight::Type,
+            HighlightKind::Operator | HighlightKind::Punctuator => Highlight::Operator,
         }
     }
 

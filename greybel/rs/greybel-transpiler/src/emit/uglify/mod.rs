@@ -5,7 +5,7 @@ use greybel_symbols::names::{GLOBALS, LOOP_INDEX_PREFIX, LOOP_INDEX_SUFFIX};
 use rustc_hash::FxHashMap;
 
 use super::{EmitFlags, EmitState, Emitter};
-use crate::bundle::{MULTILINE_STRING, REQUIRE};
+use crate::bundle::{REQUIRE, multiline_string_helper};
 use crate::error::Result;
 use crate::minify::Minification;
 use crate::options::UglifyOptions;
@@ -60,7 +60,7 @@ impl UglifyEmitter {
 
     fn preamble_lines(&self, s: &EmitState<'_>) -> Vec<String> {
         let globals = self.minification.rename(GLOBALS);
-        let line_breaks = s.line_breaks(self.runtime_name(MULTILINE_STRING));
+        let line_breaks = s.line_breaks(self.runtime_name(multiline_string_helper(s.options())));
         let literals: Vec<_> = self.minification.hoisted_literals(line_breaks).collect();
         let mut lines = Vec::new();
 
@@ -68,6 +68,11 @@ impl UglifyEmitter {
             lines.push(format!("{GLOBALS}.{globals}={GLOBALS}"));
         }
 
+        lines.extend(
+            self.minification
+                .native_aliases()
+                .map(|(name, alias)| format!("{globals}.{alias}=@{name}")),
+        );
         lines.extend(
             literals
                 .into_iter()

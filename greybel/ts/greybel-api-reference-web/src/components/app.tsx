@@ -5,6 +5,7 @@ import type { ReaderChannel } from '../reader.generated.js';
 import { useGuide } from '../state/use-guide.js';
 import { useReference, type ReferenceProgress } from '../state/use-reference.js';
 import { useSearch } from '../state/use-search.js';
+import { useFitToView, useViewHeight } from '../state/use-view-height.js';
 import { guideVisibilityOf } from '../state/guide-visibility.js';
 import { ALL_VISIBLE, visibilityOf } from '../state/visibility.js';
 import { ChapterView, outlineOf } from './chapter.js';
@@ -14,7 +15,7 @@ import { Filter } from './filter.js';
 import { ReferenceContext, linkedId, type ReferenceContextValue } from './reference-context.js';
 import { SearchBox } from './search-box.js';
 import { SectionView } from './section.js';
-import { ReferenceTab, Tabs } from './tabs.js';
+import { ReferenceTab, TabChoices, Tabs } from './tabs.js';
 
 const NONE: ReadonlySet<string> = new Set();
 
@@ -46,9 +47,12 @@ export function App(props: AppConfiguration) {
   const [excludedTags, setExcludedTags] = useState(props.excludedTags);
   /** The id of what a link leads to, scrolled to once its tab, search and tags show it. */
   const [pendingId, setPendingId] = useState(props.anchor);
+  /** Whether a narrow page shows its menu: the tabs and the selected tab's contents. */
+  const [isMenuOpen, setMenuOpen] = useState(false);
   const result = useSearch(reader, query, excludedTags);
   const root = useRef<HTMLDivElement>(null);
   const toolbar = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
   const currentTab = useRef(tab);
   /** Where the page was scrolled to in each tab, restored when the tab is selected again. */
   const scrollPositions = useRef(new Map<ReferenceTab, number>());
@@ -151,6 +155,31 @@ export function App(props: AppConfiguration) {
     element.scrollIntoView({ block: 'start' });
   }, [pendingId, visibility, guideVisibility, tab, outlines, sections]);
 
+  useLayoutEffect(() => {
+    const bar = toolbar.current;
+    const ownerDocument = bar?.ownerDocument;
+
+    if (!isMenuOpen || bar === null || ownerDocument === undefined) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setMenuOpen(false);
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (bar.contains(event.target as Node)) return;
+      setMenuOpen(false);
+    };
+
+    ownerDocument.addEventListener('keydown', onKeyDown);
+    ownerDocument.addEventListener('pointerdown', onPointerDown);
+
+    return () => {
+      ownerDocument.removeEventListener('keydown', onKeyDown);
+      ownerDocument.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [isMenuOpen]);
+
   useEffect(() => {
     const bar = toolbar.current;
     const page = root.current;
@@ -166,6 +195,9 @@ export function App(props: AppConfiguration) {
     return () => observer.disconnect();
   }, [overview === undefined]);
 
+  useViewHeight(root, overview !== undefined);
+  useFitToView(menu, isMenuOpen);
+
   if (overview === undefined) return null;
 
   return (
@@ -175,6 +207,16 @@ export function App(props: AppConfiguration) {
           <h1>{GUIDE.title}</h1>
         </header>
         <div class="toolbar" ref={toolbar}>
+          <button
+            type="button"
+            class="menu-toggle"
+            aria-label="Contents"
+            aria-expanded={isMenuOpen}
+            aria-controls="reference-menu"
+            onClick={() => setMenuOpen(!isMenuOpen)}
+          >
+            <span aria-hidden="true">☰</span>
+          </button>
           <Tabs tab={tab} onSelect={selectTab} />
           {tab === ReferenceTab.Api && (
             <Filter
@@ -193,6 +235,24 @@ export function App(props: AppConfiguration) {
           {tab === ReferenceTab.Guide && (
             <div class="filter">
               <SearchBox query={guideQuery} placeholder="Search the guide" onQuery={setGuideQuery} />
+            </div>
+          )}
+          {isMenuOpen && (
+            <div
+              ref={menu}
+              class="menu"
+              id="reference-menu"
+              onClick={(event) => {
+                if ((event.target as Element).closest('a, .tab-choice') === null) return;
+                setMenuOpen(false);
+              }}
+            >
+              <TabChoices tab={tab} onSelect={selectTab} />
+              {tab === ReferenceTab.Api ? (
+                <ApiContents entries={overview.contents} visibility={visibility} />
+              ) : (
+                <GuideContents outlines={outlines} visibility={guideVisibility} />
+              )}
             </div>
           )}
         </div>

@@ -5,6 +5,7 @@ mod emitter;
 mod import_code;
 mod literal;
 mod nodes;
+mod operands;
 mod output;
 mod state;
 mod uglify;

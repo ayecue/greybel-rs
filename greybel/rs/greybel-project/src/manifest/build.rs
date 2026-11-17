@@ -57,6 +57,9 @@ pub struct BuildSettings {
     /// Names excluded from uglification.
     #[schemars(extend("x-vscode-setting" = "greybel.transpiler.excludedNamespaces"))]
     pub excluded_namespaces: Vec<String>,
+    /// How builds write strings with line breaks, which Grey Hack does not accept.
+    #[schemars(extend("x-vscode-setting" = "greybel.transpiler.multilineStrings"))]
+    pub multiline_strings: MultilineStringStyle,
     /// In-game folder from which the build runs.
     #[schemars(extend("x-vscode-setting" = "greybel.transpiler.ingameDirectory"))]
     pub ingame_directory: String,
@@ -85,6 +88,7 @@ impl Default for BuildSettings {
             disable_literals_optimization: false,
             disable_namespaces_optimization: false,
             excluded_namespaces: Vec::new(),
+            multiline_strings: MultilineStringStyle::Concatenation,
             ingame_directory: BuildOptions::DEFAULT_INGAME_DIRECTORY.to_owned(),
             auto_compile: true,
             installer: InstallerSettings::default(),
@@ -112,6 +116,16 @@ pub enum BuildMode {
     Uglify,
     /// Output formatted according to `format`.
     Beautify,
+}
+
+/// How builds write a string with line breaks.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub enum MultilineStringStyle {
+    /// `"a"+__NL+"b"` with `__NL=char(10)`; slow for many lines, as each `+` copies the string built so far.
+    #[default]
+    Concatenation,
+    /// `__MSTR(["a","b"])`, a function that joins the lines with `char(10)` in one pass.
+    Join,
 }
 
 /// Installer files that recreate the build when run in-game.

@@ -1,0 +1,254 @@
+use core 1.0;
+
+/// Executes and debugs one editor program per runtime. Uses the io protocol for stdin/stdout and the documents
+/// protocol for files on the same transport.
+protocol Runtime = "greybel-runtime" {
+    /// Runtime that executes and debugs the editor program.
+    provider Runner {
+        /// Starts execution at `entry` and responds after the program exits. Keeps previously configured breakpoints.
+        message Launch {
+            /// URI of the entry file.
+            entry: string,
+            /// Project root URI used for absolute import paths and as the game execution directory. Defaults to the
+            /// entry folder.
+            root?: string,
+            /// Extensions to try in declaration order when an import omits one.
+            extensions: list<string>,
+            /// Environment in which the program executes.
+            environment: Environment,
+            /// Enables breakpoints, stepping, and pausing; otherwise execution continues to exit.
+            debug: bool,
+            /// Stops before the first statement executes.
+            stop_on_entry: bool,
+            /// Values assigned to the program `params`.
+            params: list<string>,
+            /// Environment-variable values exposed by `#envar`.
+            variables: record<string>,
+            /// Rejects syntax extensions not supported by the reference implementation.
+            strict_mode: bool,
+            /// Name of the program binary in the home folder of its executing user. The simulated world builds it
+            /// there from the program files so the program can launch it.
+            program_name: string,
+            /// Greybel syntax features turned off, by their `greybel.json` names (e.g. `ternary`); absent turns none
+            /// off.
+            disabled_syntax?: list<string>,
+            /// How the program's build writes strings with line breaks; absent writes `Concatenation`.
+            multiline_strings?: MultilineStringStyle,
+        } -> Result<Exit, LaunchFailure>
+        /// Replaces every breakpoint in `uri` and returns their resolved states in the same order.
+        message SetBreakpoints {
+            uri: string,
+            breakpoints: list<SourceBreakpoint>,
+        } -> list<Breakpoint>
+        /// Resumes execution until the next breakpoint or program exit.
+        message Continue {}
+        /// Executes one step with `mode`.
+        message Step {
+            mode: StepMode,
+        }
+        /// Pauses execution before the next statement.
+        message Pause {}
+        /// Stops the program and completes [`Launch`] with [`Exit::Termination`].
+        message Terminate {}
+        /// Gets the stopped call stack with the innermost frame first.
+        message StackTrace {} -> Result<list<StackFrame>, InspectionFailure>
+        /// Gets scopes for stopped frame `frame` ([`StackFrame::id`]).
+        message Scopes {
+            frame: u32,
+        } -> Result<list<Scope>, InspectionFailure>
+        /// Gets variables in a scope or items in the list/map identified by `reference`.
+        message Variables {
+            reference: u32,
+        } -> Result<list<Variable>, InspectionFailure>
+        /// Evaluates `code` in the innermost stopped frame and returns its value, or null for non-expressions.
+        message Evaluate {
+            code: string,
+        } -> Result<Evaluation?, EvaluationFailure>
+        /// Evaluates `value` and assigns it to variable `name` in the scope or list/map identified by `reference`.
+        /// Selects the innermost frame or globals and returns the updated variable.
+        message SetVariable {
+            reference: u32,
+            name: string,
+            value: string,
+        } -> Result<Variable, EvaluationFailure>
+    }
+
+    /// Editor that receives execution-state notifications.
+    client Editor {
+        /// Signals that the program stopped.
+        message StopNotice {
+            reason: StopReason,
+            location?: SourceLocation,
+        }
+        /// Reports a logpoint message and source location.
+        message LogMessage {
+            text: string,
+            location?: SourceLocation,
+        }
+    }
+}
+
+/// Environment for program execution.
+union Environment {
+    /// Executes in the runtime against a simulated Grey Hack world.
+    Mock {
+        /// World-generation seed; equal seeds generate equal worlds.
+        seed: string,
+        /// Memory allowance in MiB before the program is interrupted, matching Grey Hack out-of-memory interruption.
+        /// Call nesting is unlimited.
+        memory_limit: u32,
+    },
+    /// Executes in single-player Grey Hack through the local message-hook plugin.
+    Game {
+        /// Listening port for the message hook.
+        port: u16,
+    },
+}
+
+/// Failure to launch a program.
+union LaunchFailure {
+    /// This runtime is already running another program.
+    Busy,
+    /// Requested environment cannot be used on this host, such as Grey Hack in a browser.
+    Unavailable,
+    /// Message hook cannot be reached or no single-player game is running.
+    Unreachable {
+        message: string,
+    },
+    /// Source validation failed before launch, for example because of a syntax error.
+    Invalid {
+        message: string,
+        location?: SourceLocation,
+    },
+}
+
+/// Result of program exit.
+union Exit {
+    /// Execution finished or called `exit`.
+    Completion,
+    /// Execution failed because of a runtime error.
+    Crash {
+        message: string,
+        /// Failure stack with the innermost call first.
+        stack: list<SourceLocation>,
+    },
+    /// Editor requested program termination.
+    Termination,
+}
+
+/// Reason the debugger stopped.
+enum StopReason {
+    /// Execution stopped before the first statement at launch.
+    Entry,
+    /// Stopped on a breakpoint.
+    Breakpoint,
+    /// Stopped on a `debugger` statement.
+    Debugger,
+    /// Step finished. Grey Hack advances each step to the next line; step-out continues execution.
+    Step,
+    /// Stopped because the editor requested a pause.
+    Pause,
+}
+
+/// Debugger stepping mode.
+enum StepMode {
+    /// Continues to the next statement, entering called functions.
+    Into,
+    /// Continues to the next statement in the current function or its caller.
+    Over,
+    /// Continues to the next statement in the caller.
+    Out,
+}
+
+/// Failure during debugger inspection.
+enum InspectionFailure {
+    /// There is no stopped program to inspect.
+    ActiveProgram,
+    /// Frame or reference is unknown or expired. References remain valid only until execution resumes.
+    Unknown,
+}
+
+/// Failure during expression evaluation.
+union EvaluationFailure {
+    /// There is no stopped program to inspect.
+    ActiveProgram,
+    /// Code is invalid or raised an error while being evaluated.
+    CodeError {
+        message: string,
+    },
+}
+
+/// Source location using one-based line and character numbers.
+struct SourceLocation {
+    uri: string,
+    line: u32,
+    character: u32,
+}
+
+/// Editor-supplied breakpoint request.
+struct SourceBreakpoint {
+    /// Source line numbered from 1.
+    line: u32,
+    /// Optional expression that must evaluate to true for execution to stop.
+    condition?: string,
+    /// Hit-count condition evaluated after the breakpoint condition passes. Supports `5`, `>= 5`, `== 5`, `> 5`, `<
+    /// 5`, `<= 5`, and `% 5`.
+    hit_condition?: string,
+    /// Logs this text without stopping and replaces `{expression}` placeholders with evaluated values.
+    log_message?: string,
+}
+
+/// Resolved state of a breakpoint.
+struct Breakpoint {
+    /// Source line numbered from 1.
+    line: u32,
+    /// Whether source resolution found a statement beginning on this line.
+    verified: bool,
+    /// Explanation for an unverified breakpoint.
+    message?: string,
+}
+
+/// Frame in a call stack.
+struct StackFrame {
+    /// Frame ID valid while execution remains stopped.
+    id: u32,
+    name: string,
+    location?: SourceLocation,
+}
+
+/// Scope containing frame variables or program globals.
+struct Scope {
+    name: string,
+    /// Reference supplied to [`Variables`] to read this scope.
+    reference: u32,
+}
+
+/// Debugger variable name and value.
+struct Variable {
+    name: string,
+    /// Value formatted as the program would print it.
+    value: string,
+    /// Runtime type name: `null`, `number`, `string`, `list`, `map`, or `function`.
+    type_name: string,
+    /// Reference supplied to [`Variables`] for list/map items; 0 for other values.
+    reference: u32,
+    /// Expression for reading this variable in the innermost frame, when available.
+    evaluate_name?: string,
+}
+
+/// Result of expression evaluation.
+struct Evaluation {
+    /// Value formatted as the program would print it.
+    value: string,
+    type_name: string,
+    /// Reference supplied to [`Variables`] for list/map items; 0 for other values.
+    reference: u32,
+}
+
+/// How a build writes a string with line breaks, which Grey Hack's parser does not accept.
+enum MultilineStringStyle {
+    /// `"a"+__NL+"b"` with `__NL=char(10)`.
+    Concatenation,
+    /// `__MSTR(["a","b"])`, which joins the lines with `char(10)`.
+    Join,
+}

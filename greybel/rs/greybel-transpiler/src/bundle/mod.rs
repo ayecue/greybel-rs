@@ -5,7 +5,7 @@ mod template;
 use bundler::Bundler;
 pub use output::Output;
 pub(crate) use template::{
-    MULTILINE_STRING, REQUIRE, RUNTIME_NAMES, emit_multiline_string_function,
+    REQUIRE, RUNTIME_NAMES, emit_multiline_string_function, multiline_string_helper,
 };
 
 use crate::documents::{AsyncResourceProvider, ModuleGraph, ResourceProvider, Uri};

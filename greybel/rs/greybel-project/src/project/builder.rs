@@ -1,9 +1,11 @@
 use std::collections::BTreeMap;
 
-use greybel_builder::protocol::{AutoCompile, Build, TranspileMode, TranspileSettings};
+use greybel_builder::protocol::{
+    AutoCompile, Build, MultilineStringStyle as BuiltStyle, TranspileMode, TranspileSettings,
+};
 use greybel_documents::Uri;
 
-use crate::manifest::{BuildMode, Indentation};
+use crate::manifest::{BuildMode, Indentation, MultilineStringStyle};
 use crate::project::Project;
 
 impl Project {
@@ -31,6 +33,10 @@ impl Project {
             variables,
             excluded_names: build.excluded_namespaces.clone(),
             disabled_syntax: manifest.syntax.off_names(),
+            multiline_strings: Some(match build.multiline_strings {
+                MultilineStringStyle::Concatenation => BuiltStyle::Concatenation,
+                MultilineStringStyle::Join => BuiltStyle::Join,
+            }),
         }
     }
 

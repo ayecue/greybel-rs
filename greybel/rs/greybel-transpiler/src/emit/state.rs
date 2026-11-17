@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::cell::OnceCell;
 
 use greybel_core::ast::NodeList;
 use greybel_core::syntax::greybel::{Class, ClassMember};
@@ -9,6 +10,7 @@ use greybel_symbols::names::UNNAMED_SOURCE;
 use greybel_symbols::{Keyword, Punct};
 use rustc_hash::{FxHashMap, FxHashSet};
 
+use super::operands::OperandTable;
 use super::{ConstantTable, EmitOutput, LineBreakStyle, LiteralStyle, LiteralText, Origin};
 use crate::documents::{Module, ModuleGraph, ModuleId};
 use crate::options::TranspileOptions;
@@ -39,6 +41,7 @@ pub struct EmitState<'a> {
     constants: Option<&'a ConstantTable>,
     variable_constants: FxHashSet<String>,
     assignment_targets: FxHashSet<NodeId>,
+    operands: OnceCell<OperandTable>,
 }
 
 impl<'a> EmitState<'a> {
@@ -59,6 +62,7 @@ impl<'a> EmitState<'a> {
             constants: None,
             variable_constants: FxHashSet::default(),
             assignment_targets: FxHashSet::default(),
+            operands: OnceCell::new(),
         }
     }
 
@@ -317,25 +321,38 @@ impl<'a> EmitState<'a> {
         self.output.push_fmt(args);
     }
 
+    /// `helper` is the name of the function or variable strings with line breaks are written with.
     pub fn literal(
         &mut self,
+        id: NodeId,
         literal: &Literal,
         source: &str,
         style: LiteralStyle,
-        multiline_string: &str,
+        helper: &str,
     ) {
-        let text = LiteralText::new(literal, source, style)
-            .with_line_breaks(self.line_breaks(multiline_string));
+        let text =
+            LiteralText::new(literal, source, style).with_line_breaks(self.line_breaks(helper));
 
-        match text.raw_text() {
-            Some(raw_text) => self.push(raw_text),
-            None => self.push_fmt(format_args!("{text}")),
+        if let Some(raw_text) = text.raw_text() {
+            self.push(raw_text);
+        } else if text.concatenates() && self.is_concatenation_operand(id) {
+            self.push_fmt(format_args!("({text})"));
+        } else {
+            self.push_fmt(format_args!("{text}"));
         }
     }
 
+    /// Whether a concatenation written for `id` needs parentheses.
     #[must_use]
-    pub fn line_breaks<'f>(&self, multiline_string: &'f str) -> LineBreakStyle<'f> {
-        LineBreakStyle::of(self.options, multiline_string)
+    pub(crate) fn is_concatenation_operand(&self, id: NodeId) -> bool {
+        self.operands
+            .get_or_init(|| OperandTable::of(self.ast))
+            .contains(id)
+    }
+
+    #[must_use]
+    pub fn line_breaks<'f>(&self, helper: &'f str) -> LineBreakStyle<'f> {
+        LineBreakStyle::of(self.options, helper)
     }
 
     pub fn keyword(&mut self, keyword: Keyword) {

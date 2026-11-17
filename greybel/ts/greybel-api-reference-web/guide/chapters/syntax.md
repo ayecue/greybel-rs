@@ -81,7 +81,7 @@ lines = "first" + char(10) + "second"
 print lines.len // 12
 ```
 
-Grey Hack's lexer does not accept a string literal spanning multiple source lines. Greybel accepts multiline strings; a build for the game writes each as a call of its `__MSTR` function, which joins the lines with `char(10)` (see [Greybel](#guide-greybel)).
+Grey Hack's lexer does not accept a string literal spanning multiple source lines. Greybel accepts multiline strings; a build for the game writes each as its lines concatenated with a `char(10)` variable, or joined by a function (see [Greybel](#guide-greybel)).
 
 Other literal forms are `true`, `false`, `null`, list literals such as `[1, 2]`, map literals such as `{"id": 1}`, and function expressions introduced by `function`. See [Values](#guide-values) and [Functions](#guide-functions).
 

@@ -5,10 +5,13 @@ A browser-based GreyScript editor with language-server features, multi-file proj
 ## Features
 
 - **Files and tabs:** create, rename, and delete nested files; select an entry file; retain each file's editing state and breakpoints when its tab closes.
-- **Editing:** CodeMirror 6 with semantic highlighting, completion, hover, signature help, diagnostics, definitions, references, rename, and formatting across project files.
-- **Run and debug:** run from the entry file with program parameters, set breakpoints in any file, inspect stacks and variables, and evaluate code while stopped.
-- **Terminals:** run programs in multiple terminals. Their runtimes share one persistent simulated world; **New world** stops current programs and regenerates it from the seed.
-- **Transform and reference:** transform the current file as written, uglified, or beautified, and browse or insert API examples.
+- **Settings:** the project's `greybel.json` holds the settings of runs, transforms and diagnostics, as in the CLI and greybel-vs. It is listed with its template until its first edit creates it, and edited with completion and hovers from its schema; a problem greybel-lsp reports in it is shown on its line, and the last valid settings stay in use until it is fixed.
+- **Editing:** CodeMirror 6 with semantic highlighting, completion, hover, signature help, diagnostics, definitions, references, rename, and formatting across project files. The signatures and code examples in hovers, completions and signature help are highlighted.
+- **Run and debug:** run with the `run` settings of `greybel.json`, set breakpoints in any file, inspect stacks and variables, and evaluate code while stopped.
+- **Terminals:** run programs in multiple terminals, each its own script (the entry file by default) with its own `greybel.json` profile. Their runtimes share one persistent simulated world generated from `run.seed`; **New world** stops current programs and regenerates it. **Copy** copies a terminal's text without its colors and other rich-text formatting.
+- **Transform and reference:** transform the current file with the `build` settings of `greybel.json`, and browse or insert API examples.
+- **Loading:** the toolbar shows the parts still loading their WebAssembly, and those that failed to; Run, Debug and Transform wait until their parts are loaded.
+- **Layout:** splitters resize the file list, the code, the API reference, the panels and the debugger, dragged or with the arrow keys; the sizes are stored in browser local storage, and a double click resets one.
 - **Sharing and storage:** share a project in a `?c=` link or save it to an optional editor service for an `?id=` link. The last edited project is stored in browser local storage.
 
 Imports use project paths such as `import_code("/lib/util.src")` or paths relative to the importing file such as `#include "util.src"`.

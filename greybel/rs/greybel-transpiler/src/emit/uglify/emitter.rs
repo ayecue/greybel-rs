@@ -1,11 +1,11 @@
 use greybel_core::NodeId;
-use greybel_core::syntax::{Call, Function, Identifier, Literal, Member};
+use greybel_core::syntax::{Call, Function, Identifier, IdentifierKind, Literal, Member};
 use greybel_symbols::delimiters::QUOTE;
 use greybel_symbols::names::{LOOP_INDEX_PREFIX, LOOP_INDEX_SUFFIX};
 use greybel_symbols::{Keyword, Punct};
 
 use super::{UglifyEmitter, member_flags};
-use crate::bundle::MULTILINE_STRING;
+use crate::bundle::multiline_string_helper;
 use crate::emit::{EmitExpressions, EmitFlags, EmitFunctions, EmitState, Emitter, LiteralStyle};
 use crate::error::Result;
 
@@ -79,6 +79,15 @@ impl Emitter for UglifyEmitter {
             return Ok(());
         }
 
+        if !flags.is_member
+            && node.kind == IdentifierKind::Variable
+            && let Some(alias) = self.minification.native_alias(original)
+        {
+            s.push(alias);
+
+            return Ok(());
+        }
+
         let name = if !flags.is_member || flags.base_is_scope {
             self.resolved_name(original)
         } else {
@@ -147,10 +156,11 @@ impl Emitter for UglifyEmitter {
         }
 
         s.literal(
+            id,
             node,
             source,
             LiteralStyle::Output,
-            self.runtime_name(MULTILINE_STRING),
+            self.runtime_name(multiline_string_helper(s.options())),
         );
 
         Ok(())

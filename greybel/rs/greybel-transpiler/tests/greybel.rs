@@ -3,7 +3,9 @@
 use greybel_documents_fs_provider::FsProvider;
 use greybel_documents_memory_provider::MemoryProvider;
 use greybel_test_support::future::block_on;
-use greybel_transpiler::{BeautifyOptions, BuildMode, TranspileOptions, Transpiler, UglifyOptions};
+use greybel_transpiler::{
+    BeautifyOptions, BuildMode, MultilineStringStyle, TranspileOptions, Transpiler, UglifyOptions,
+};
 
 use crate::support::greybel::{fixtures, modes, options, project};
 use crate::support::unobfuscated;
@@ -97,6 +99,25 @@ fn should_retain_multiline_strings_when_asked() {
     assert_eq!(output, "a = \"one\ntwo\"");
 }
 
+/// `Join` writes a string with line breaks as a call of `__MSTR` with its lines.
+#[test]
+fn should_join_multiline_strings_when_asked() {
+    let source = "a = \"one\n\ntwo\"\nprint \"x\ny\".len\n";
+    let options = TranspileOptions {
+        multiline_strings: MultilineStringStyle::Join,
+        ..TranspileOptions::default()
+    };
+
+    let output = Transpiler::new(&options)
+        .transpile(source)
+        .expect("a transpiled script");
+
+    assert_eq!(
+        output,
+        "__MSTR=function(lines)\nreturn lines.join(char(10))\nend function\na=__MSTR([\"one\",\"\",\"two\"])\nprint(__MSTR([\"x\",\"y\"]).len)"
+    );
+}
+
 /// `const enum` entries are written as values in every file of a build and before the enum, except in a file that
 /// also uses the enum's name as a variable.
 #[test]
@@ -130,5 +151,35 @@ fn should_write_const_enum_values_across_files() {
     assert!(
         other.contains("print(Port.Name)") && other.contains("return Port.Ssh"),
         "{other}"
+    );
+}
+
+/// Uglify calls a general API function through a global alias when that saves characters, except one the build
+/// assigns, takes as a parameter or writes through `globals`.
+#[test]
+fn should_call_natives_through_aliases_in_uglify_builds() {
+    let source = "f = function(range)\n  return range\nend function\nprint \"a\"\nprint \"b\"\nprint(@print)\nprint(range(1, 2) + range(3, 4) + range(5, 6))\nglobals.typeof = 1\nprint(typeof(1) + typeof(2) + typeof(3) + typeof(4))\nprint(get_shell)\n";
+    let options = TranspileOptions {
+        mode: BuildMode::Uglify(UglifyOptions::default()),
+        native_functions: ["print", "range", "typeof", "get_shell"]
+            .map(str::to_owned)
+            .to_vec(),
+        obfuscation: false,
+        ..TranspileOptions::default()
+    };
+
+    let transpile = |source: &str| {
+        Transpiler::new(&options)
+            .transpile(source)
+            .expect("a transpiled script")
+    };
+
+    assert_eq!(
+        transpile(source),
+        "globals.I=globals\nI.L=@print\nJ=function(range)\nreturn range\nend function\nL(\"a\")\nL(\"b\")\nL(@L)\nL(range(1,2)+range(3,4)+range(5,6))\nI.typeof=1\nL(typeof(1)+typeof(2)+typeof(3)+typeof(4))\nL(get_shell)"
+    );
+    assert_eq!(
+        transpile("k = \"x\"\nglobals[k] = 1\nprint 1\nprint 2\nprint 3\nprint 4\n"),
+        "globals.I=globals\nJ=\"x\"\nI[J]=1\nprint(1)\nprint(2)\nprint(3)\nprint(4)"
     );
 }

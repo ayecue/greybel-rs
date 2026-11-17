@@ -42,6 +42,7 @@ impl Settings {
         InlayHintOptions {
             variable_types: hints.variable_types,
             parameter_names: hints.parameter_names,
+            parameter_types: hints.parameter_types,
             return_types: hints.return_types,
         }
     }

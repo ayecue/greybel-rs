@@ -75,6 +75,12 @@
           "default": "Default",
           "x-vscode-setting": "greybel.transpiler.buildType"
         },
+        "multilineStrings": {
+          "$ref": "#/$defs/MultilineStringStyle",
+          "default": "Concatenation",
+          "description": "How builds write strings with line breaks, which Grey Hack does not accept.",
+          "x-vscode-setting": "greybel.transpiler.multilineStrings"
+        },
         "obfuscation": {
           "default": false,
           "description": "Also shortens names accessed as strings, including map keys.",
@@ -242,6 +248,21 @@
       },
       "type": "object"
     },
+    "MultilineStringStyle": {
+      "description": "How builds write a string with line breaks.",
+      "oneOf": [
+        {
+          "const": "Concatenation",
+          "description": "`\"a\"+__NL+\"b\"` with `__NL=char(10)`; slow for many lines, as each `+` copies the string built so far.",
+          "type": "string"
+        },
+        {
+          "const": "Join",
+          "description": "`__MSTR([\"a\",\"b\"])`, a function that joins the lines with `char(10)` in one pass.",
+          "type": "string"
+        }
+      ]
+    },
     "Profile": {
       "additionalProperties": false,
       "description": "Named overrides for project `build` and `run` settings. Objects merge by key; all other values, including lists,\nreplace the original value entirely.",
@@ -395,6 +416,7 @@
           "maxChars": 160000
         },
         "mode": "Default",
+        "multilineStrings": "Concatenation",
         "obfuscation": false,
         "output": "build",
         "outputName": null,

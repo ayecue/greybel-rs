@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
 
 use greybel_documents::Uri;
-use greybel_runtime::protocol::{Environment, Launch};
+use greybel_runtime::protocol::{Environment, Launch, MultilineStringStyle as LaunchedStyle};
 
+use crate::manifest::MultilineStringStyle;
 use crate::project::Project;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -41,6 +42,10 @@ impl Project {
             strict_mode: self.manifest.strict_mode,
             program_name: run.program_name.clone().into(),
             disabled_syntax: self.manifest.syntax.off_names().map(Into::into),
+            multiline_strings: Some(match self.manifest.build.multiline_strings {
+                MultilineStringStyle::Concatenation => LaunchedStyle::Concatenation,
+                MultilineStringStyle::Join => LaunchedStyle::Join,
+            }),
         }
     }
 }

@@ -2,53 +2,54 @@ import { useEffect, useReducer, useRef, useState } from 'preact/hooks';
 
 import type { ProjectEditor } from '../editor/view.js';
 import type { Project } from '../project.js';
-import { fileUri } from '../project/paths.js';
+import { MANIFEST_PATH } from '../project/content.js';
+import type { ProjectSettings } from '../project/settings.js';
 import { ProgramTerminal } from '../runtime/program-terminal.js';
-import { describeExit, describeFailure } from '../runtime/session.js';
 import { WorldWorker } from '../runtime/world.js';
 import { DebugPanel } from './debug-panel.js';
+import { useServices } from './services.js';
+import { usePartChanges } from './wasm-status.js';
+import { Splitter } from './splitter.js';
 
-/** The seed of the world the page starts with. */
+const WAIT_TITLE = 'Loading the runtime...';
+
+/** Same as `run.seed` in `MANIFEST_TEMPLATE`. */
 const DEFAULT_SEED = 'test';
 
 export interface ExecutePanelConfiguration {
   readonly editor: ProjectEditor;
   readonly project: Project;
-  /** Where the editor's breakpoint changes go, once the panel has runtimes. */
+  readonly settings: ProjectSettings;
   readonly breakpointChanges: { current: ((path: string, lines: number[]) => void) | undefined };
   readonly onFailure: (message: string) => void;
 }
 
-/** The page's terminals and the game server whose world their programs share. */
 interface TerminalTable {
   readonly world: WorldWorker;
   readonly list: ProgramTerminal[];
   count: number;
 }
 
-/**
- * Runs and debugs the project from its entry file, on Grey Hack's terminals: each terminal runs a program of its own,
- * at the same time as the others, all in one simulated world, which lasts from run to run until it is reset.
- */
-export function ExecutePanel({ editor, project, breakpointChanges, onFailure }: ExecutePanelConfiguration) {
+export function ExecutePanel({ editor, project, settings, breakpointChanges, onFailure }: ExecutePanelConfiguration) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalsRef = useRef<TerminalTable | undefined>(undefined);
   const [current, setCurrent] = useState<ProgramTerminal>();
   const currentRef = useRef<ProgramTerminal | undefined>(undefined);
   const [, refresh] = useReducer((count: number) => count + 1, 0);
-  const [params, setParams] = useState('');
-  const [seed, setSeed] = useState(DEFAULT_SEED);
+  const { wasm } = useServices();
+  const isRuntimeReady = wasm.isReady('language server', 'runtime', 'world', 'terminal');
 
-  const showStopOf = (terminal: ProgramTerminal | undefined) => editor.showStop(terminal?.stopPlace);
+  usePartChanges();
 
-  const select = (terminal: ProgramTerminal | undefined) => {
+  const showStop = (terminal: ProgramTerminal | undefined) => editor.showStop(terminal?.stopPlace);
+
+  const selectTerminal = (terminal: ProgramTerminal | undefined) => {
     currentRef.current = terminal;
     setCurrent(terminal);
     for (const other of terminalsRef.current?.list ?? []) other.canvas.hidden = other !== terminal;
-    showStopOf(terminal);
+    showStop(terminal);
   };
 
-  /** Opens a new terminal and selects it; none when its canvas can't be drawn. */
   const addTerminal = (): ProgramTerminal | undefined => {
     const terminals = terminalsRef.current;
     const container = containerRef.current;
@@ -58,13 +59,19 @@ export function ExecutePanel({ editor, project, breakpointChanges, onFailure }: 
     let terminal: ProgramTerminal;
 
     try {
-      terminal = new ProgramTerminal(`Terminal ${terminals.count + 1}`, terminals.world, {
-        onChange: (target) => {
-          if (target === currentRef.current && target.state !== 'stopped') showStopOf(target);
-          refresh(undefined);
+      terminal = new ProgramTerminal(
+        `Terminal ${terminals.count + 1}`,
+        terminals.world,
+        {
+          onChange: (target) => {
+            if (target === currentRef.current && target.state !== 'stopped') showStop(target);
+            refresh(undefined);
+          },
+          onStop: (target) => selectTerminal(target)
         },
-        onStop: (target) => select(target)
-      });
+        wasm,
+        project.paths
+      );
     } catch (error) {
       onFailure(`The terminal can't be drawn: ${error instanceof Error ? error.message : String(error)}`);
 
@@ -74,7 +81,7 @@ export function ExecutePanel({ editor, project, breakpointChanges, onFailure }: 
     terminals.count += 1;
     terminals.list.push(terminal);
     container.append(terminal.canvas);
-    select(terminal);
+    selectTerminal(terminal);
 
     return terminal;
   };
@@ -88,20 +95,45 @@ export function ExecutePanel({ editor, project, breakpointChanges, onFailure }: 
 
     list.splice(index, 1);
     terminal.close();
-    if (terminal === currentRef.current) select(list[Math.min(index, list.length - 1)]);
+    if (terminal === currentRef.current) selectTerminal(list[Math.min(index, list.length - 1)]);
     else refresh(undefined);
   };
 
   useEffect(() => {
-    terminalsRef.current = { world: new WorldWorker(DEFAULT_SEED), list: [], count: 0 };
+    terminalsRef.current = { world: new WorldWorker(DEFAULT_SEED, wasm), list: [], count: 0 };
     addTerminal();
+    void settings.ready.then(() => {
+      const terminals = terminalsRef.current;
+      const seed = settings.current?.manifest.run.seed ?? DEFAULT_SEED;
+
+      if (terminals === undefined || terminals.world.seed === seed) return;
+      if (terminals.list.some((terminal) => terminal.state !== 'idle')) return;
+      terminals.world.reset(seed);
+      for (const terminal of terminals.list) terminal.reconnect(terminals.world);
+    });
     breakpointChanges.current = (path, lines) => {
       for (const terminal of terminalsRef.current?.list ?? []) {
-        void terminal.session.setBreakpoints(fileUri(path), lines).catch(() => undefined);
+        void terminal.session.setBreakpoints(project.paths.toUri(path), lines).catch(() => undefined);
       }
     };
 
+    const unsubscribeSettings = settings.subscribe(() => refresh(undefined));
+    const unsubscribeProject = project.subscribe((event) => {
+      const list = terminalsRef.current?.list ?? [];
+
+      if (event.kind === 'rename') {
+        for (const terminal of list) if (terminal.script === event.from) terminal.script = event.to;
+      } else if (event.kind === 'files') {
+        for (const terminal of list)
+          if (terminal.script !== undefined && !project.has(terminal.script)) {
+            terminal.script = undefined;
+          }
+      }
+    });
+
     return () => {
+      unsubscribeSettings();
+      unsubscribeProject();
       breakpointChanges.current = undefined;
       for (const terminal of terminalsRef.current?.list ?? []) terminal.close();
       terminalsRef.current?.world.close();
@@ -117,15 +149,18 @@ export function ExecutePanel({ editor, project, breakpointChanges, onFailure }: 
 
     const session = terminal.session;
 
-    terminal.update('running');
+    terminal.setState('running');
     try {
-      for (const [uri, lines] of editor.breakpoints()) await session.setBreakpoints(uri, lines);
+      const script = terminal.script ?? project.entry;
+      const runSettings = await settings.read(script, terminal.profile);
 
-      const summary = describeExit(
+      for (const [uri, lines] of editor.getBreakpoints()) await session.setBreakpoints(uri, lines);
+
+      const summary = session.describeExit(
         await session.run({
           documents: project.documents,
-          entry: project.entry,
-          params: params.split(' ').filter((param) => param !== ''),
+          entry: script,
+          settings: runSettings,
           seed: world.seed,
           debug
         })
@@ -133,44 +168,78 @@ export function ExecutePanel({ editor, project, breakpointChanges, onFailure }: 
 
       if (summary !== undefined) terminal.terminal.printLine(summary);
     } catch (error) {
-      if (session === terminal.session) terminal.terminal.printLine(describeFailure(error));
+      if (session === terminal.session) terminal.terminal.printLine(session.describeFailure(error));
     } finally {
       if (session === terminal.session) {
         terminal.terminal.cancelRead();
-        terminal.update('idle');
+        terminal.setState('idle');
       }
     }
   };
 
-  /** Replaces the world with one generated from the seed, stopping the programs running in the old one. */
-  const resetWorld = () => {
+  const copyTerminal = async () => {
+    if (current === undefined) return;
+    try {
+      await navigator.clipboard.writeText(await current.session.renderPlainText(current.output));
+    } catch (error) {
+      onFailure(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  /** Stops the programs running in the old world. */
+  const resetWorld = async () => {
     const terminals = terminalsRef.current;
 
     if (terminals === undefined) return;
+
+    let seed: string;
+
+    try {
+      seed = (await settings.read(MANIFEST_PATH)).manifest.run.seed;
+    } catch (error) {
+      onFailure(error instanceof Error ? error.message : String(error));
+
+      return;
+    }
+
     terminals.world.reset(seed);
     for (const terminal of terminals.list) {
       if (terminal.state !== 'idle') terminal.terminal.printLine('The program was stopped: the world was reset.');
       terminal.reconnect(terminals.world);
     }
 
-    showStopOf(currentRef.current);
+    showStop(currentRef.current);
   };
 
   const resume = () => {
-    current?.update('running');
+    current?.setState('running');
   };
 
   const state = current?.state ?? 'idle';
   const list = terminalsRef.current?.list ?? [];
+  const profiles = Object.keys(settings.current?.manifest.profiles ?? {});
+  const isMissingProfile = current?.profile !== undefined && !profiles.includes(current.profile);
 
   return (
     <section class="panel execute-panel">
       <header class="panel-header">
         <h2>Execute</h2>
-        <button type="button" class="run" disabled={state !== 'idle'} onClick={() => void run(false)}>
+        <button
+          type="button"
+          class="run"
+          disabled={!current || state !== 'idle' || !isRuntimeReady}
+          title={isRuntimeReady ? undefined : WAIT_TITLE}
+          onClick={() => void run(false)}
+        >
           Run
         </button>
-        <button type="button" class="debug" disabled={state !== 'idle'} onClick={() => void run(true)}>
+        <button
+          type="button"
+          class="debug"
+          disabled={!current || state !== 'idle' || !isRuntimeReady}
+          title={isRuntimeReady ? undefined : WAIT_TITLE}
+          onClick={() => void run(true)}
+        >
           Debug
         </button>
         <button
@@ -196,29 +265,71 @@ export function ExecutePanel({ editor, project, breakpointChanges, onFailure }: 
         <button type="button" class="clear" onClick={() => current?.terminal.clear()}>
           Clear
         </button>
+        <button
+          type="button"
+          class="copy-terminal"
+          disabled={!current || current.output === '' || !wasm.isReady('runtime')}
+          title="Copy the terminal's text, without colors and other formatting"
+          onClick={() => void copyTerminal()}
+        >
+          Copy
+        </button>
       </header>
       <div class="panel-options">
         <label>
-          Params
-          <input
-            type="text"
-            class="params"
-            value={params}
-            placeholder="separated by spaces"
-            onInput={(event) => setParams(event.currentTarget.value)}
-          />
+          Script
+          <select
+            class="script"
+            value={current?.script ?? ''}
+            disabled={!current}
+            title="The file the terminal's runs start at"
+            onChange={(event) => {
+              if (current === undefined) return;
+              current.script = event.currentTarget.value === '' ? undefined : event.currentTarget.value;
+              refresh(undefined);
+            }}
+          >
+            <option value="">Entry file ({project.entry})</option>
+            {project.scripts.map((path) => (
+              <option key={path} value={path}>
+                {path}
+              </option>
+            ))}
+          </select>
         </label>
         <label>
-          Seed
-          <input type="text" class="seed" value={seed} onInput={(event) => setSeed(event.currentTarget.value)} />
+          Profile
+          <select
+            class="profile"
+            value={current?.profile ?? ''}
+            disabled={!current}
+            title="The greybel.json profile whose run settings the terminal's runs use"
+            onChange={(event) => {
+              if (current === undefined) return;
+              current.profile = event.currentTarget.value === '' ? undefined : event.currentTarget.value;
+              refresh(undefined);
+            }}
+          >
+            <option value="">Default</option>
+            {profiles.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+            {isMissingProfile && <option value={current.profile}>{current.profile} (missing)</option>}
+          </select>
         </label>
         <button
           type="button"
           class="reset-world"
-          onClick={resetWorld}
-          title="Generates a new world from the seed; the programs running in the old one stop"
+          disabled={!isRuntimeReady}
+          onClick={() => void resetWorld()}
+          title="Generates a new world from run.seed in greybel.json; the programs running in the old one stop"
         >
           New world
+        </button>
+        <button type="button" class="open-settings" onClick={() => editor.open(MANIFEST_PATH)}>
+          greybel.json
         </button>
       </div>
       <div class="terminal-tabs" role="tablist">
@@ -229,9 +340,10 @@ export function ExecutePanel({ editor, project, breakpointChanges, onFailure }: 
             role="tab"
             aria-selected={terminal === current}
             data-state={terminal.state}
-            onClick={() => select(terminal)}
+            onClick={() => selectTerminal(terminal)}
           >
             <span class="terminal-name">{terminal.name}</span>
+            <span class="terminal-script">{terminal.script ?? project.entry}</span>
             {terminal.state !== 'idle' && <span class="terminal-state">{terminal.state}</span>}
             {list.length > 1 && (
               <button
@@ -257,10 +369,11 @@ export function ExecutePanel({ editor, project, breakpointChanges, onFailure }: 
           +
         </button>
       </div>
-      <div class="terminals" ref={containerRef} />
       <pre class="terminal-text" aria-live="polite">
         {current?.output ?? ''}
       </pre>
+      <div class="terminals" ref={containerRef} />
+      {current && current.state === 'stopped' && <Splitter name="debug" axis="y" side="after" min={80} />}
       {current && current.state === 'stopped' && (
         <DebugPanel
           key={current.name}

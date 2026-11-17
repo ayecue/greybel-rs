@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'preact/hooks';
 
 import { Builder } from '../builder.js';
-import { canSave, saveProject, shareLink, storeProject } from '../code-storage.js';
-import { startLanguageServer } from '../editor/language-server.js';
+import { LanguageServer } from '../editor/language-server.js';
 import { ProjectEditor } from '../editor/view.js';
 import { Project } from '../project.js';
 import type { ProjectContent } from '../project/content.js';
+import { ProjectSettings } from '../project/settings.js';
+import { useServices } from './services.js';
 import { ExecutePanel } from './execute-panel.js';
 import { FileList } from './file-list.js';
+import { WasmStatus } from './wasm-status.js';
 import { TabBar } from './tab-bar.js';
 import { ReferencePanel } from './reference-panel.js';
+import { Splitter } from './splitter.js';
 import { TransformPanel } from './transform-panel.js';
 
-/** How long a notice shows. */
 const NOTICE_TIME = 10_000;
 
 const HINT =
@@ -28,18 +30,20 @@ export interface AppConfiguration {
   readonly content: ProjectContent;
 }
 
-/** The editor page: the project's files, the API reference, their transformation and their execution. */
 export function App({ content }: AppConfiguration) {
   const editorRef = useRef<HTMLDivElement>(null);
   const breakpointChanges = useRef<((path: string, lines: number[]) => void) | undefined>(undefined);
-  const project = useMemo(() => new Project(content), []);
+  const services = useServices();
+  const { storage } = services;
+  const project = useMemo(() => new Project(content, services.paths), []);
   const [editor, setEditor] = useState<ProjectEditor>();
+  const [settings, setSettings] = useState<ProjectSettings>();
   const [, refresh] = useReducer((count: number) => count + 1, 0);
   const [notices, setNotices] = useState<readonly Notice[]>([]);
   const [link, setLink] = useState<string>();
   const [isReferenceOpen, setReferenceOpen] = useState(false);
   const [hasSaveRequest, setSaveRequest] = useState(false);
-  const builder = useMemo(() => new Builder(), []);
+  const builder = useMemo(() => new Builder(services.wasm), []);
 
   const notify = (text: string) => {
     const id = Date.now() + Math.random();
@@ -53,23 +57,29 @@ export function App({ content }: AppConfiguration) {
 
     if (parent === null) return;
 
-    const server = startLanguageServer(project);
+    const server = new LanguageServer(project, services.wasm, services.highlighter);
     const projectEditor = new ProjectEditor(parent, {
       project,
       client: server.client,
+      manifestHelp: services.manifestHelp,
       onBreakpointsChange: (file, lines) => breakpointChanges.current?.(file, lines),
       onTabsChange: () => refresh(undefined)
     });
+    const projectSettings = new ProjectSettings(server.client, project, services.languageServerSettings);
+    const unsubscribeSettings = projectSettings.subscribe(() => projectEditor.showProblem(projectSettings.problem));
     const unsubscribe = project.subscribe((event) => {
-      storeProject(project.content);
+      storage.store(project.content);
       if (event.kind === 'edit') return;
       refresh(undefined);
     });
 
     setEditor(projectEditor);
+    setSettings(projectSettings);
 
     return () => {
       unsubscribe();
+      unsubscribeSettings();
+      projectSettings.close();
       projectEditor.destroy();
       server.close();
       builder.close();
@@ -79,7 +89,7 @@ export function App({ content }: AppConfiguration) {
   const save = async () => {
     setSaveRequest(true);
     try {
-      setLink(await saveProject(project.content));
+      setLink(await storage.save(project.content));
     } catch (error) {
       notify(error instanceof Error ? error.message : String(error));
     } finally {
@@ -91,10 +101,10 @@ export function App({ content }: AppConfiguration) {
     <div class="editor-app">
       <header class="toolbar">
         <h1>Greybel Editor</h1>
-        <button type="button" class="share" onClick={() => setLink(shareLink(location, project.content))}>
+        <button type="button" class="share" onClick={() => setLink(storage.createShareLink(project.content))}>
           Share
         </button>
-        {canSave && (
+        {storage.canSave && (
           <button type="button" class="save" disabled={hasSaveRequest} onClick={() => void save()}>
             Save
           </button>
@@ -107,6 +117,7 @@ export function App({ content }: AppConfiguration) {
         >
           API reference
         </button>
+        <WasmStatus />
         <span class="hint">{HINT}</span>
       </header>
       {link !== undefined && (
@@ -122,17 +133,27 @@ export function App({ content }: AppConfiguration) {
       )}
       <main class="workspace">
         {editor && <FileList project={project} editor={editor} path={editor.path} onFailure={notify} />}
+        {editor && <Splitter name="file-list" axis="x" side="before" min={120} />}
         <div class="code-area">
           {editor && <TabBar editor={editor} />}
           <div class="code" ref={editorRef} hidden={editor !== undefined && editor.path === undefined} />
           {editor && editor.path === undefined && <p class="no-file">Open a file of the list to edit it.</p>}
         </div>
+        {isReferenceOpen && editor && <Splitter name="reference" axis="x" side="after" min={200} />}
         {isReferenceOpen && editor && <ReferencePanel editor={editor} />}
       </main>
-      {editor && (
+      {editor && settings && <Splitter name="panels" axis="y" side="after" min={120} />}
+      {editor && settings && (
         <div class="panels">
-          <TransformPanel builder={builder} code={() => editor.code} onFailure={notify} />
-          <ExecutePanel editor={editor} project={project} breakpointChanges={breakpointChanges} onFailure={notify} />
+          <TransformPanel builder={builder} editor={editor} settings={settings} onFailure={notify} />
+          <Splitter name="transform" axis="x" side="before" min={200} />
+          <ExecutePanel
+            editor={editor}
+            project={project}
+            settings={settings}
+            breakpointChanges={breakpointChanges}
+            onFailure={notify}
+          />
         </div>
       )}
       <ul class="notices">

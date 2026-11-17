@@ -29,6 +29,7 @@ export interface BuildSettings {
   readonly disableLiteralsOptimization: boolean;
   readonly disableNamespacesOptimization: boolean;
   readonly excludedNamespaces: readonly string[];
+  readonly multilineStrings: 'Concatenation' | 'Join';
   readonly ingameDirectory: string;
   readonly autoCompile: boolean;
   readonly installer: { readonly active: boolean; readonly maxChars: number; readonly allowImport: boolean };

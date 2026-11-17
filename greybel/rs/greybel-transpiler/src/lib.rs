@@ -15,6 +15,7 @@ pub use emit::{BeautifyEmitter, DefaultEmitter, EmitFlags, EmitState, Emitter, U
 pub use error::{Result, TranspileError};
 pub use minify::Minification;
 pub use options::{
-    BeautifyOptions, BuildMode, Indentation, PathMapping, TranspileOptions, UglifyOptions,
+    BeautifyOptions, BuildMode, Indentation, MultilineStringStyle, PathMapping, TranspileOptions,
+    UglifyOptions,
 };
 pub use transpiler::Transpiler;

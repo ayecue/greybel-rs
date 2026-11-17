@@ -4,7 +4,6 @@ export interface TabBarConfiguration {
   readonly editor: ProjectEditor;
 }
 
-/** The tabs of the files opened: a click shows one, `×` or a middle click closes it. */
 export function TabBar({ editor }: TabBarConfiguration) {
   return (
     <div class="tab-bar" role="tablist" aria-label="Open files">

@@ -36,6 +36,20 @@ describe('the API reference', () => {
     await expect.poll(() => hostComputer.isVisible()).toBe(false);
   });
 
+  it('should hide a type whose members all have an excluded tag', async () => {
+    const page = await openPage();
+    const admin = section(page, 'admin');
+    const contentsEntry = page.locator('#panel-api nav.contents > ul > li', { hasText: /^adminComputer/ });
+
+    expect(await admin.isVisible()).toBe(true);
+    await page.locator('.tag-filter button', { hasText: /^greybel$/ }).click();
+
+    await expect.poll(() => admin.isVisible()).toBe(false);
+    expect(await section(page, 'adminNetwork').isVisible()).toBe(false);
+    expect(await contentsEntry.isVisible()).toBe(false);
+    expect(await section(page, 'shell').isVisible()).toBe(true);
+  });
+
   it('should scroll to the member a description links to', async () => {
     const page = await openPage();
     const getShell = member(page, 'general', 'get_shell');

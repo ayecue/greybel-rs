@@ -16,6 +16,9 @@
   --reference-toolbar-height: 6em;
   --reference-scroll-margin: calc(var(--reference-toolbar-height) + 0.75em);
 
+  /* Narrow layouts follow the reference's own width, such as a panel beside an editor, not the window's. */
+  container: api-reference / inline-size;
+
   color: var(--reference-foreground);
   background: var(--reference-background);
   font-family: var(--vscode-font-family, system-ui, sans-serif);
@@ -162,7 +165,7 @@
 .api-reference .contents {
   flex: 0 0 15em;
   box-sizing: border-box;
-  max-height: calc(100vh - var(--reference-toolbar-height));
+  max-height: calc(var(--reference-view-height, 100vh) - var(--reference-toolbar-height));
   position: sticky;
   top: var(--reference-toolbar-height);
   padding: 0.75em 0.5em 1.5em 0;
@@ -207,11 +210,84 @@
   font-weight: 600;
 }
 
-/* A narrow page, such as a webview beside an editor, leaves the sidebar out for the content. */
-@media (max-width: 720px) {
-  .api-reference .contents {
+/*
+ * A narrow reference, such as a webview or panel beside an editor, leaves the tabs and the sidebar out for the
+ * content; a menu beside the search lists both instead.
+ */
+.api-reference .menu-toggle,
+.api-reference .menu {
+  display: none;
+}
+
+@container api-reference (max-width: 720px) {
+  .api-reference .layout > .contents,
+  .api-reference .toolbar > .tabs {
     display: none;
   }
+
+  .api-reference .toolbar {
+    display: flex;
+    gap: 0 0.75em;
+    align-items: flex-start;
+  }
+
+  .api-reference .toolbar > .filter {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .api-reference .menu-toggle {
+    display: block;
+    margin-top: 0.6em;
+    padding: 0.2em 0.6em;
+    font-size: 1.1em;
+    line-height: 1.4;
+  }
+
+  .api-reference .menu-toggle[aria-expanded='true'] {
+    color: var(--reference-foreground);
+    outline: 1px solid var(--reference-accent);
+  }
+
+  .api-reference .menu {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    box-sizing: border-box;
+    width: min(22em, 100%);
+    max-height: calc(var(--reference-view-height, 100vh) - var(--reference-toolbar-height) - 1em);
+    padding: 0.5em 0.75em 0.75em;
+    overflow: auto;
+    border: 1px solid var(--reference-border);
+    border-top: none;
+    background: var(--reference-background);
+    box-shadow: 0 6px 16px rgb(0 0 0 / 35%);
+  }
+
+  .api-reference .menu .contents {
+    position: static;
+    max-height: none;
+    padding: 0.5em 0 0;
+    overflow: visible;
+  }
+}
+
+.api-reference .tab-choices {
+  display: flex;
+  gap: 0.5em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid var(--reference-border);
+}
+
+.api-reference .tab-choice {
+  flex: 1 1 0;
+  padding: 0.3em 0.6em;
+  font-weight: 600;
+}
+
+.api-reference .tab-choice[aria-current='page'] {
+  outline: 1px solid var(--reference-accent);
 }
 
 .api-reference .sections {
@@ -375,6 +451,10 @@
 
 .api-reference .token.name {
   color: var(--vscode-symbolIcon-variableForeground, #9cdcfe);
+}
+
+.api-reference .token.type {
+  color: var(--vscode-symbolIcon-classForeground, #4ec9b0);
 }
 
 .api-reference .token.operator {

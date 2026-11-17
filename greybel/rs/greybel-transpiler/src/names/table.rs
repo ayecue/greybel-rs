@@ -53,6 +53,24 @@ impl NameTable {
         self.get(original)
     }
 
+    /// The length of the name `create` would assign next.
+    #[must_use]
+    pub fn next_length(&self) -> usize {
+        let mut candidates = self.candidates.clone();
+        let mut buffer = String::new();
+
+        loop {
+            candidates.write_next(&mut buffer);
+
+            if !self.forbidden.contains(buffer.as_str())
+                && !self.aliases.contains_key(buffer.as_str())
+                && !self.owners.contains_key(buffer.as_str())
+            {
+                return buffer.chars().count();
+            }
+        }
+    }
+
     pub fn insert(&mut self, original: &str) {
         if !self.aliases.contains_key(original) && !self.forbidden.contains(original) {
             self.assign(&Arc::from(original));

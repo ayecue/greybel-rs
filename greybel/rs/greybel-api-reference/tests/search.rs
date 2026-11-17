@@ -42,7 +42,7 @@ fn should_leave_out_members_with_an_excluded_tag() {
     let all = harness.search("", &[]);
     let without_methods = harness.search("", &["method"]);
 
-    assert_eq!(all.types, without_methods.types);
+    assert!(without_methods.types.contains(&"general".to_owned()));
     assert!(all.members.contains(&path("shell", "host_computer")));
     assert!(
         !without_methods
@@ -63,4 +63,25 @@ fn should_take_a_query_as_text() {
     let matches = harness.search("(", &[]);
 
     assert!(matches.types.is_empty() && matches.members.is_empty());
+}
+
+#[test]
+fn should_leave_out_a_type_whose_members_all_have_an_excluded_tag() {
+    let mut harness = Harness::new();
+
+    let all = harness.search("", &[]);
+    let without_greybel = harness.search("", &["greybel"]);
+
+    for owner in ["admin", "adminComputer", "adminNetwork"] {
+        assert!(all.types.contains(&owner.to_owned()));
+        assert!(!without_greybel.types.contains(&owner.to_owned()));
+        assert!(
+            without_greybel
+                .members
+                .iter()
+                .all(|member| member.owner != owner)
+        );
+    }
+
+    assert!(without_greybel.types.contains(&"shell".to_owned()));
 }

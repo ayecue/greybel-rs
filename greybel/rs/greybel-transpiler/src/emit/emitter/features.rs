@@ -98,6 +98,13 @@ pub(crate) trait EmitFeatures: Emitter {
         let expressions = s.ast().list(node.expressions).to_vec();
         let plus = format!("{0}+{0}", Self::INFIX_PADDING);
         let mut first = true;
+        let concatenates =
+            !expressions.is_empty() || pieces.iter().any(|piece| piece.contains('\n'));
+        let parenthesized = concatenates && s.is_concatenation_operand(id);
+
+        if parenthesized {
+            s.punct(Punct::LParen);
+        }
 
         for (index, piece) in pieces.iter().enumerate() {
             if !piece.is_empty() || (index == 0 && !expressions.is_empty()) || pieces.len() == 1 {
@@ -119,6 +126,10 @@ pub(crate) trait EmitFeatures: Emitter {
                 s.punct(Punct::RParen);
                 first = false;
             }
+        }
+
+        if parenthesized {
+            s.punct(Punct::RParen);
         }
 
         Ok(())

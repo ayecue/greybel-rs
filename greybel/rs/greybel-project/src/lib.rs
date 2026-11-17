@@ -8,8 +8,8 @@ mod project;
 
 pub use manifest::{
     BuildMode, BuildSettings, DeploySettings, DiagnosticLevel, DiagnosticSettings, Format,
-    Indentation, InstallerSettings, Manifest, Profile, ProfileError, RunSettings, SyntaxSettings,
-    VariableFile, VariableSettings,
+    Indentation, InstallerSettings, Manifest, MultilineStringStyle, Profile, ProfileError,
+    RunSettings, SyntaxSettings, VariableFile, VariableSettings,
 };
 #[cfg(feature = "runtime")]
 pub use project::Place;

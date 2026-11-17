@@ -1,0 +1,209 @@
+use core 1.0;
+
+/// Provides GreyScript API documentation with parsed descriptions, highlighted examples, and search. Parses
+/// surrounding page Markdown using the same rules.
+protocol ApiReference = "greybel-api-reference" {
+    /// GreyScript API documentation provider.
+    provider Documentation {
+        /// Streams the overview, then one section per type in table-of-contents order.
+        message Reference {} -> Stream(Overview, _)<Section>
+        /// Searches type names without case sensitivity and member names as `type.member`. Omits members that have
+        /// any `excluded_tags`. An empty query matches every item.
+        message Search {
+            query: string(..=256),
+            excluded_tags: list<string(..=64)>(..=32),
+        } -> SearchResult
+        /// Parses Markdown into blocks using description rules. `#TYPE` and `#TYPE_MEMBER` links target sections,
+        /// other `#` anchors target the page, and code blocks are highlighted as examples.
+        message Render {
+            markdown: string(..=60KiB),
+        } -> list<Block>
+    }
+
+    client Reader {}
+}
+
+/// Table of contents emitted before the type sections.
+struct Overview {
+    /// Every member tag available for filtering.
+    tags: list<string>,
+    /// Types and member names in display order.
+    contents: list<Entry>,
+}
+
+/// One type in the table of contents.
+struct Entry {
+    name: string,
+    members: list<string>,
+}
+
+/// Documentation for one type and its direct members, sorted by name.
+struct Section {
+    name: string,
+    /// Base type that provides inherited members.
+    extends?: string,
+    description: list<Block>,
+    example: list<Token>,
+    members: list<Member>,
+}
+
+/// Function or value defined on a type.
+struct Member {
+    name: string,
+    tags: list<string>,
+    kind: MemberKind,
+    description: list<Block>,
+    example: list<Token>,
+}
+
+union MemberKind {
+    Function {
+        arguments: list<Argument>,
+        /// Supported return types.
+        returns: list<TypeText>,
+        /// Documented literal return values, including error messages.
+        return_variations: list<Literal>,
+    },
+    Value {
+        type: TypeText,
+    },
+}
+
+struct Argument {
+    name: string,
+    optional: bool,
+    /// Types accepted for the argument.
+    types: list<TypeText>,
+    default?: Literal,
+}
+
+/// Formatted type split into ordered parts, such as `list<map<string,number>>`.
+struct TypeText {
+    parts: list<TypePart>,
+}
+
+union TypePart {
+    /// Literal type syntax, for example `list<` or `,`.
+    Text {
+        text: string,
+    },
+    /// Type name that can link to a reference section.
+    Name {
+        name: string,
+    },
+}
+
+union Literal {
+    String {
+        value: string,
+    },
+    Number {
+        value: f64,
+    },
+}
+
+/// Markdown block after parsing.
+union Block {
+    Paragraph {
+        spans: list<Span>,
+    },
+    List {
+        items: list<ListItem>,
+    },
+    Heading {
+        /// Markdown heading level: 1 for `#`, through 6.
+        level: u8(1..=6),
+        spans: list<Span>,
+    },
+    /// Code block. Without `language`, contains highlighted GreyScript like an example. With `language`, contains one
+    /// plain token in the fence-named language, such as `json`.
+    Code {
+        tokens: list<Token>,
+        language?: string,
+    },
+    /// Table containing its header cells followed by its body rows.
+    Table {
+        head: list<TableCell>,
+        rows: list<TableRow>,
+    },
+}
+
+struct ListItem {
+    spans: list<Span>,
+}
+
+struct TableRow {
+    cells: list<TableCell>,
+}
+
+struct TableCell {
+    spans: list<Span>,
+}
+
+/// Styled text using `\n` for line breaks, with an optional link.
+struct Span {
+    text: string,
+    style: Style,
+    link?: Link,
+}
+
+enum Style {
+    Plain,
+    Emphasis,
+    Strong,
+    Code,
+}
+
+/// Destination of a span or token link.
+union Link {
+    /// Documentation section for a type.
+    Type {
+        name: string,
+    },
+    /// Member in its type documentation section.
+    Member {
+        owner: string,
+        name: string,
+    },
+    /// Web page outside the documentation.
+    Web {
+        url: string,
+    },
+    /// Anchor on the page displaying the reference, such as guide chapter anchor `guide-values`.
+    Page {
+        anchor: string,
+    },
+}
+
+/// Token produced by lexing an example. Concatenated token text reproduces the example source.
+struct Token {
+    text: string,
+    highlight: Highlight,
+    link?: Link,
+}
+
+enum Highlight {
+    /// Whitespace or input not otherwise recognized.
+    Plain,
+    Keyword,
+    String,
+    Number,
+    /// One of the literals `true`, `false`, or `null`.
+    Constant,
+    Comment,
+    Name,
+    Operator,
+    /// A type name written in code, such as a parameter type or `as T`.
+    Type,
+}
+
+/// Type names and member paths that matched.
+struct SearchResult {
+    types: list<string>,
+    members: list<MemberPath>,
+}
+
+struct MemberPath {
+    owner: string,
+    name: string,
+}

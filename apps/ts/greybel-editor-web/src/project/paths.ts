@@ -1,40 +1,56 @@
-/** Project root: `main.src` maps to `file:///main.src` and imports use `/main.src`. */
-const ROOT = 'file:///';
+import { URI } from 'vscode-uri';
 
-/** Validation error for a project file path, or undefined when valid. */
-export function pathProblem(path: string): string | undefined {
-  if (path === '') return 'A file needs a name.';
-  if (path.startsWith('/') || path.endsWith('/')) return 'A path neither starts nor ends with a slash.';
+import { MANIFEST_PATH } from './content.js';
 
-  const segments = path.split('/');
+/** Converts project paths such as `lib/util.src` to file URIs under `file:///` and back. */
+export class PathResolver {
+  readonly #root = URI.file('/');
 
-  if (segments.some((segment) => segment === '' || segment === '.' || segment === '..')) {
-    return 'A path has no empty, "." or ".." folder.';
+  get rootUri(): string {
+    return this.#root.toString();
   }
 
-  return undefined;
-}
+  toUri(path: string): string {
+    return URI.file(`/${path}`).toString();
+  }
 
-/** Normalizes `path` by trimming whitespace and converting backslashes to slashes. */
-export function normalizePath(path: string): string {
-  return path.trim().replaceAll('\\', '/');
-}
+  /** Undefined outside the project. */
+  toPath(uri: string): string | undefined {
+    let target: URI;
 
-/** Returns the project file URI for `path`. */
-export function fileUri(path: string): string {
-  return new URL(path.split('/').map(encodeURIComponent).join('/'), ROOT).href;
-}
+    try {
+      target = URI.parse(uri, true);
+    } catch {
+      return undefined;
+    }
 
-/** Project root URI used to resolve absolute imports. */
-export const rootUri = ROOT;
+    if (target.scheme !== this.#root.scheme || target.authority !== '' || !target.path.startsWith('/')) {
+      return undefined;
+    }
 
-/** Project-relative path for `uri`, or undefined when outside the project. */
-export function filePath(uri: string): string | undefined {
-  if (!uri.startsWith(ROOT)) return undefined;
+    return target.path.slice(1);
+  }
 
-  try {
-    return decodeURIComponent(new URL(uri).pathname.slice(1));
-  } catch {
+  /** Returns an error message for an invalid path. */
+  findProblem(path: string): string | undefined {
+    if (path === '') return 'A file needs a name.';
+    if (path.startsWith('/') || path.endsWith('/')) return 'A path neither starts nor ends with a slash.';
+
+    const segments = path.split('/');
+
+    if (segments.some((segment) => segment === '' || segment === '.' || segment === '..')) {
+      return 'A path has no empty, "." or ".." folder.';
+    }
+
     return undefined;
+  }
+
+  normalize(text: string): string {
+    return text.trim().replaceAll('\\', '/');
+  }
+
+  /** Also matches the `greybel.json` of a nested folder. */
+  isManifest(path: string): boolean {
+    return path === MANIFEST_PATH || path.endsWith(`/${MANIFEST_PATH}`);
   }
 }

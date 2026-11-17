@@ -23,6 +23,7 @@ pub enum InlayHintKind {
 pub struct InlayHintOptions {
     pub variable_types: bool,
     pub parameter_names: bool,
+    pub parameter_types: bool,
     pub return_types: bool,
 }
 
@@ -31,6 +32,7 @@ impl Default for InlayHintOptions {
         Self {
             variable_types: true,
             parameter_names: true,
+            parameter_types: true,
             return_types: true,
         }
     }
@@ -83,7 +85,15 @@ impl<'a> InlayHintCollector<'a> {
                 NodeKind::Call(call) if self.options.parameter_names => {
                     self.parameter_names(call.base, self.ast.list(call.arguments));
                 }
-                NodeKind::Function(_) if self.options.return_types => self.return_type(node),
+                NodeKind::Function(_) => {
+                    if self.options.parameter_types {
+                        self.parameter_types(node);
+                    }
+
+                    if self.options.return_types {
+                        self.return_type(node);
+                    }
+                }
                 _ => {}
             }
         }
@@ -96,6 +106,7 @@ impl<'a> InlayHintCollector<'a> {
 
         if !matches!(ast.kind(variable), NodeKind::Identifier(_))
             || matches!(ast.kind(init), NodeKind::Literal(_) | NodeKind::Function(_))
+            || ast.type_syntax.variable(variable).is_some()
         {
             return;
         }
@@ -137,17 +148,42 @@ impl<'a> InlayHintCollector<'a> {
             return;
         };
 
-        if signature.parameters.len() < 2 || arguments.len() < 2 {
-            return;
-        }
-
         for (&argument, parameter) in arguments.iter().zip(&signature.parameters) {
-            if Self::is_literal(ast, argument) {
-                self.hints.push(InlayHint {
-                    position: self.position(Self::argument_start(ast, argument)),
-                    label: format!("{}:", parameter.name),
-                    kind: InlayHintKind::Parameter,
-                });
+            if Self::has_name(ast, argument, parameter.name) {
+                continue;
+            }
+
+            self.hints.push(InlayHint {
+                position: self.position(Self::argument_start(ast, argument)),
+                label: format!("{}:", parameter.name),
+                kind: InlayHintKind::Parameter,
+            });
+        }
+    }
+
+    fn parameter_types(&mut self, node: NodeId) {
+        let ast = self.ast;
+        let model = self.analysis.model();
+        let Some(id) = model.function_at(self.site(node)) else {
+            return;
+        };
+        let data = model.function(id);
+
+        for parameter in &data.parameters {
+            let doc = data.doc.as_ref().and_then(|doc| doc.param(&parameter.name));
+
+            if doc.is_some_and(|doc| doc.ty.is_some()) {
+                continue;
+            }
+
+            let name = match ast.kind(parameter.node) {
+                NodeKind::Assignment(assignment) => assignment.variable,
+                _ => parameter.node,
+            };
+            let ty = model.slot_type(parameter.slot);
+
+            if ty != TypeId::UNKNOWN {
+                self.push_label(ast.span(name).end, ty);
             }
         }
     }
@@ -173,30 +209,41 @@ impl<'a> InlayHintCollector<'a> {
     fn header_end(&self, node: NodeId) -> Option<u32> {
         let span = self.ast.span(node);
         let source = self.ast.slice(span);
-        let after = source.strip_prefix("function")?;
-        let keyword_end = span.start + 8;
-
-        if !after.trim_start_matches([' ', '\t']).starts_with('(') {
-            return Some(keyword_end);
-        }
-
-        let mut depth = 0_u32;
+        let (offset, header) = match source.strip_prefix("function") {
+            Some(header) => (8, header),
+            None => (0, source),
+        };
+        let mut end = offset;
+        let mut parentheses = 0_u32;
+        let mut angles = 0_u32;
         let mut quoted = false;
 
-        for (index, character) in after.char_indices() {
+        for (index, character) in header.char_indices() {
+            let index = u32::try_from(index).ok()?;
+
             match character {
-                '"' => quoted = !quoted,
-                '(' if !quoted => depth += 1,
-                ')' if !quoted => {
-                    depth -= 1;
+                '"' if parentheses > 0 => quoted = !quoted,
+                _ if quoted => {}
+                '(' if angles == 0 => parentheses += 1,
+                ')' if parentheses > 0 => {
+                    parentheses -= 1;
 
-                    if depth == 0 {
-                        let index = u32::try_from(index).ok()?;
-
-                        return Some(keyword_end + index + 1);
+                    if parentheses == 0 {
+                        return Some(span.start + offset + index + 1);
                     }
                 }
-                '\n' => return None,
+                '<' if parentheses == 0 => angles += 1,
+                '>' if parentheses == 0 && angles > 0 => {
+                    angles -= 1;
+
+                    if angles == 0 {
+                        end = offset + index + 1;
+                    }
+                }
+                ' ' | '\t' => {}
+                _ if parentheses == 0 && angles == 0 => {
+                    return (offset > 0).then_some(span.start + end);
+                }
                 _ => {}
             }
         }
@@ -215,19 +262,23 @@ impl<'a> InlayHintCollector<'a> {
         }
     }
 
-    fn is_literal(ast: &Ast, node: NodeId) -> bool {
-        match ast.kind(node) {
-            NodeKind::Literal(_) | NodeKind::List(_) | NodeKind::Map(_) => true,
-            NodeKind::Unary(unary) => matches!(ast.kind(unary.argument), NodeKind::Literal(_)),
-            _ => false,
-        }
+    fn has_name(ast: &Ast, node: NodeId, name: &str) -> bool {
+        let identifier = match ast.kind(node) {
+            NodeKind::Identifier(_) => node,
+            NodeKind::Member(member) => member.identifier,
+            _ => return false,
+        };
+
+        ast.slice(ast.span(identifier)).eq_ignore_ascii_case(name)
     }
 
     fn push_type(&mut self, offset: u32, ty: TypeId) {
-        if ty == TypeId::UNKNOWN || ty == TypeId::ANY {
-            return;
+        if ty != TypeId::UNKNOWN && ty != TypeId::ANY {
+            self.push_label(offset, ty);
         }
+    }
 
+    fn push_label(&mut self, offset: u32, ty: TypeId) {
         let mut label = format!(
             ": {}",
             self.analysis.notation_in(self.analysis.types()).display(ty)

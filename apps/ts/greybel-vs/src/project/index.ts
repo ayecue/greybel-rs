@@ -1,5 +1,5 @@
-import { AutoCompile, Build, TranspileMode, TranspileSettings } from 'greybel-builder';
-import { Environment, Launch } from 'greybel-runtime';
+import { AutoCompile, Build, MultilineStringStyle, TranspileMode, TranspileSettings } from 'greybel-builder';
+import { Environment, Launch, MultilineStringStyle as LaunchedStyle } from 'greybel-runtime';
 import vscode, { Uri } from 'vscode';
 
 import type { BuildMode, Project } from './manifest';
@@ -71,7 +71,8 @@ export function transpileSettingsOf(
     strictMode,
     variables: { ...project.buildVariables },
     excludedNames: [...build.excludedNamespaces],
-    disabledSyntax: disabledSyntaxOf(project)
+    disabledSyntax: disabledSyntaxOf(project),
+    multilineStrings: build.multilineStrings === 'Join' ? MultilineStringStyle.Join : MultilineStringStyle.Concatenation
   });
 
   function transpileModeOf({ manifest }: Project, mode: BuildMode): TranspileMode {
@@ -132,7 +133,7 @@ export function launchOf(
   params: readonly string[],
   options: { readonly debug: boolean; readonly stopOnEntry: boolean }
 ): Launch {
-  const { extensions, strictMode, run } = project.manifest;
+  const { build, extensions, strictMode, run } = project.manifest;
 
   return new Launch({
     entry: entry.toString(),
@@ -145,7 +146,8 @@ export function launchOf(
     variables: { ...project.runVariables },
     strictMode,
     programName: run.programName,
-    disabledSyntax: disabledSyntaxOf(project)
+    disabledSyntax: disabledSyntaxOf(project),
+    multilineStrings: build.multilineStrings === 'Join' ? LaunchedStyle.Join : LaunchedStyle.Concatenation
   });
 }
 

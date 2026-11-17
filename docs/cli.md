@@ -65,7 +65,7 @@ A typical project is:
 
 `entries` supplies the files for `greybel build` and the first entry for `greybel execute` when no file is named. Entry and environment-file paths are relative to the project folder. `extensions` lists suffixes an import may omit, in lookup order; its default is `src`, `gs`, `ms`. `strictMode` rejects Greybel syntax that Grey Hack's compiler does not accept. `exclude` is a separate type-analyzer exclusion glob, defaulting to `**/{node_modules,.*}/**`; it does not exclude build dependencies.
 
-Build settings also include `outputName` for a single entry, `disableLiteralsOptimization`, `disableNamespacesOptimization`, and `excludedNamespaces`. `memoryLimit` is in MiB and applies to mock execution. Unknown configuration fields are rejected. The complete editor schema is [greybel.schema.json](../apps/ts/greybel-vs/schemas/greybel.schema.json).
+Build settings also include `outputName` for a single entry, `disableLiteralsOptimization`, `disableNamespacesOptimization`, `excludedNamespaces`, and `multilineStrings`. `multilineStrings` sets how builds and runs write strings with line breaks: `Concatenation` (default) writes `"a"+__NL+"b"` with `__NL=char(10)`; `Join` writes `__MSTR(["a","b"])`, which joins the lines in one pass and is faster for strings with many lines. `memoryLimit` is in MiB and applies to mock execution. Unknown configuration fields are rejected. The complete editor schema is [greybel.schema.json](../apps/ts/greybel-vs/schemas/greybel.schema.json).
 
 Profiles override `build` and `run`:
 
@@ -109,7 +109,7 @@ There is no separate `greybel transform` subcommand. A build transforms each fil
 | `Uglify` | `--uglify` / `-u` | Minified code with literal and namespace optimizations. |
 | `Beautify` | `--beautify` / `-b` | Formatted code using the `format` settings. |
 
-Uglify builds support `--obfuscation` / `-o` to shorten names even where code reads them as strings, `--disable-literals-optimization`, `--disable-namespaces-optimization`, and `--exclude-namespaces NAME...` to preserve selected names. Beautify builds support `--beautify-keep-parentheses`, `--beautify-indentation tab|whitespace`, and `--beautify-indentation-spaces N`.
+Uglify builds support `--obfuscation` / `-o` to shorten names even where code reads them as strings, `--disable-literals-optimization`, `--disable-namespaces-optimization`, and `--exclude-namespaces NAME...` to preserve selected names. The namespaces optimization also calls general API functions through short global aliases (`globals.A=@get_shell`, then `A()`) when that makes the build shorter; a function the program assigns, takes as a parameter or writes through `globals` keeps its name, and a write through `globals`, `locals` or `outer` with a computed key turns the aliases off. `--multiline-strings concatenation|join` overrides `multilineStrings`. Beautify builds support `--beautify-keep-parentheses`, `--beautify-indentation tab|whitespace`, and `--beautify-indentation-spaces N`.
 
 Use `--strict-mode` to reject syntax extensions and `--file-extensions EXT...` to replace the import suffix list. `--silent` suppresses build progress, not errors.
 

@@ -1,4 +1,4 @@
-// Grey Hack ends a string at a line break, so a string with line breaks becomes a call of __MSTR with its lines.
+// Grey Hack ends a string at a line break, so builds write a string with line breaks as its lines joined by char(10).
 banner = "first line
 second line"
 print "trailing
@@ -18,3 +18,15 @@ y"]
 print "single line"
 crlf = "a
 b"
+print "p
+q"[0]
+print 2 * "p
+q"
+print "p
+q" + 1
+print 1 + "p
+q"
+print -"p
+q"
+print #"t{1}".len
+print 3 * #"t{1}"

@@ -8,7 +8,10 @@ mod variables;
 
 use std::collections::BTreeMap;
 
-pub use build::{BuildMode, BuildSettings, DeploySettings, Format, Indentation, InstallerSettings};
+pub use build::{
+    BuildMode, BuildSettings, DeploySettings, Format, Indentation, InstallerSettings,
+    MultilineStringStyle,
+};
 pub use diagnostics::{DiagnosticLevel, DiagnosticSettings};
 pub use profile::{Profile, ProfileError};
 pub use run::RunSettings;

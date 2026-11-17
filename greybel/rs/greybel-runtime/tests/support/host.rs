@@ -114,6 +114,7 @@ pub fn launch(debug: bool, params: &[&str]) -> Launch<'static> {
         strict_mode: false,
         program_name: "myprogram".into(),
         disabled_syntax: None,
+        multiline_strings: None,
     }
 }
 

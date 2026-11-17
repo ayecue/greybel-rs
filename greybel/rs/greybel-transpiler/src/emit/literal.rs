@@ -6,7 +6,7 @@ use greybel_core::syntax::Literal;
 use greybel_symbols::delimiters::QUOTE;
 use greybel_symbols::literals::NULL;
 
-use crate::{BuildMode, TranspileOptions};
+use crate::{BuildMode, MultilineStringStyle, TranspileOptions};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LiteralStyle {
@@ -19,7 +19,16 @@ pub enum LiteralStyle {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LineBreakStyle<'a> {
     Retain,
-    Join { function: &'a str, compact: bool },
+    /// `function(["a","b"])`.
+    Join {
+        function: &'a str,
+        compact: bool,
+    },
+    /// `"a"+variable+"b"`, omitting empty lines.
+    Concatenate {
+        variable: &'a str,
+        compact: bool,
+    },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -53,7 +62,7 @@ impl<'a> LiteralText<'a> {
     pub fn raw_text(&self) -> Option<&'a str> {
         match (&self.literal.value, self.style, self.literal.negated) {
             (LiteralValue::Nil, ..) => Some(NULL),
-            (LiteralValue::String(_), ..) if self.joins() || !self.source.starts_with(QUOTE) => {
+            (LiteralValue::String(_), ..) if self.rewrites() || !self.source.starts_with(QUOTE) => {
                 None
             }
             (LiteralValue::String(_), ..) => Some(self.source),
@@ -85,8 +94,11 @@ impl fmt::Display for LiteralText<'_> {
             }
             (LiteralValue::Number(_), _) => write!(f, "{sign}{}", self.source),
             (LiteralValue::String(_), _) => match self.line_breaks {
-                LineBreakStyle::Join { function, compact } if self.joins() => {
+                LineBreakStyle::Join { function, compact } if self.rewrites() => {
                     self.write_join(f, function, compact)
+                }
+                LineBreakStyle::Concatenate { variable, compact } if self.rewrites() => {
+                    self.write_concatenation(f, variable, compact)
                 }
                 _ if !self.source.starts_with(QUOTE) => {
                     write!(f, "{QUOTE}{}{QUOTE}", self.source.replace(QUOTE, "\"\""))
@@ -98,28 +110,43 @@ impl fmt::Display for LiteralText<'_> {
 }
 
 impl<'a> LineBreakStyle<'a> {
+    /// `helper` is the name of the function or variable `options.multiline_strings` writes.
     #[must_use]
-    pub fn of(options: &TranspileOptions, function: &'a str) -> Self {
+    pub fn of(options: &TranspileOptions, helper: &'a str) -> Self {
+        let compact = !matches!(options.mode, BuildMode::Beautify(_));
+
         if options.retain_multiline_strings {
-            Self::Retain
-        } else {
-            Self::Join {
-                function,
-                compact: !matches!(options.mode, BuildMode::Beautify(_)),
-            }
+            return Self::Retain;
+        }
+
+        match options.multiline_strings {
+            MultilineStringStyle::Join => Self::Join {
+                function: helper,
+                compact,
+            },
+            MultilineStringStyle::Concatenation => Self::Concatenate {
+                variable: helper,
+                compact,
+            },
         }
     }
 
+    /// Whether strings with line breaks are rewritten.
     #[must_use]
-    pub fn joins(self) -> bool {
-        matches!(self, Self::Join { .. })
+    pub fn rewrites(self) -> bool {
+        !matches!(self, Self::Retain)
+    }
+
+    #[must_use]
+    pub fn concatenates(self) -> bool {
+        matches!(self, Self::Concatenate { .. })
     }
 }
 
 impl LiteralText<'_> {
     #[must_use]
-    pub fn joins(&self) -> bool {
-        self.line_breaks.joins()
+    pub fn rewrites(&self) -> bool {
+        self.line_breaks.rewrites()
             && matches!(self.literal.value, LiteralValue::String(_))
             && Self::is_multiline(self.source)
     }
@@ -129,18 +156,58 @@ impl LiteralText<'_> {
         source.contains(['\n', '\r'])
     }
 
-    fn write_join(&self, f: &mut fmt::Formatter<'_>, function: &str, compact: bool) -> fmt::Result {
+    /// Whether the text is a concatenation, which needs parentheses as an operand.
+    #[must_use]
+    pub fn concatenates(&self) -> bool {
+        self.line_breaks.concatenates() && self.rewrites()
+    }
+
+    fn lines(&self) -> impl Iterator<Item = &str> {
         let source = self.source;
-        let inner = &source[QUOTE.len()..source.len() - QUOTE.len()];
+
+        source[QUOTE.len()..source.len() - QUOTE.len()]
+            .split("\r\n")
+            .flat_map(|line| line.split(['\n', '\r']))
+    }
+
+    fn write_concatenation(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        variable: &str,
+        compact: bool,
+    ) -> fmt::Result {
+        let plus = if compact { "+" } else { " + " };
+        let mut is_first = true;
+
+        for (index, line) in self.lines().enumerate() {
+            if index > 0 {
+                if !is_first {
+                    f.write_str(plus)?;
+                }
+
+                f.write_str(variable)?;
+                is_first = false;
+            }
+
+            if !line.is_empty() {
+                if !is_first {
+                    f.write_str(plus)?;
+                }
+
+                write!(f, "{QUOTE}{line}{QUOTE}")?;
+                is_first = false;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn write_join(&self, f: &mut fmt::Formatter<'_>, function: &str, compact: bool) -> fmt::Result {
         let separator = if compact { "," } else { ", " };
 
         write!(f, "{function}([")?;
 
-        for (index, line) in inner
-            .split("\r\n")
-            .flat_map(|line| line.split(['\n', '\r']))
-            .enumerate()
-        {
+        for (index, line) in self.lines().enumerate() {
             if index > 0 {
                 f.write_str(separator)?;
             }

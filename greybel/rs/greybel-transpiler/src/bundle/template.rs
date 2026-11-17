@@ -4,11 +4,12 @@ use greybel_symbols::names::{GLOBALS, MODULE as MODULE_NAME};
 use super::output::Part;
 use crate::emit::{EmitFlags, EmitState, Emitter, LineBreakStyle, LiteralText};
 use crate::error::Result;
-use crate::options::TranspileOptions;
+use crate::options::{MultilineStringStyle, TranspileOptions};
 use crate::transpiler::Transpiler;
 
 pub(crate) const REQUIRE: &str = "__REQUIRE";
 pub(crate) const MULTILINE_STRING: &str = "__MSTR";
+pub(crate) const LINE_BREAK: &str = "__NL";
 
 pub(crate) const RUNTIME_NAMES: &[&str] = &[
     "BACKSLASH_CODE",
@@ -40,6 +41,14 @@ pub(super) const HEADER: &str = "MODULES={}
 \treturn @__REQUIRE_EVAL(@MODULES[ns],ns).exports
 \tend function";
 
+/// The function or variable that builds write strings with line breaks with.
+pub(crate) fn multiline_string_helper(options: &TranspileOptions) -> &'static str {
+    match options.multiline_strings {
+        MultilineStringStyle::Concatenation => LINE_BREAK,
+        MultilineStringStyle::Join => MULTILINE_STRING,
+    }
+}
+
 /// Definition of the multiline-string function, emitted first when any string contains a line break.
 const MULTILINE_STRING_FUNCTION: &str = "__MSTR=function(lines)
 \treturn lines.join(char(10))
@@ -59,7 +68,8 @@ pub(crate) fn emit_multiline_string_function<'a, E: Emitter>(
     mut asts: impl Iterator<Item = &'a Ast>,
     options: &TranspileOptions,
 ) -> Result<Option<String>> {
-    let joins = LineBreakStyle::of(options, MULTILINE_STRING).joins()
+    let helper = multiline_string_helper(options);
+    let rewrites = LineBreakStyle::of(options, helper).rewrites()
         && asts.any(|ast| {
             ast.literals.iter().any(|&id| {
                 matches!(ast.kind(id), NodeKind::Literal(literal) if matches!(literal.value, LiteralValue::String(_)))
@@ -67,11 +77,21 @@ pub(crate) fn emit_multiline_string_function<'a, E: Emitter>(
             })
         });
 
-    if !joins {
+    if !rewrites {
         return Ok(None);
     }
 
-    emit_boilerplate(emitter, MULTILINE_STRING_FUNCTION, options).map(Some)
+    match options.multiline_strings {
+        MultilineStringStyle::Join => {
+            emit_boilerplate(emitter, MULTILINE_STRING_FUNCTION, options).map(Some)
+        }
+        // Written as text, so the uglify emitter cannot put a hoisted literal defined after it in place of `10`.
+        MultilineStringStyle::Concatenation => Ok(Some(format!(
+            "{}{padding}={padding}char(10)",
+            emitter.runtime_name(LINE_BREAK),
+            padding = E::INFIX_PADDING
+        ))),
+    }
 }
 
 pub(super) fn emit_boilerplate<E: Emitter>(

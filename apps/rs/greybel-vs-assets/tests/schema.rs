@@ -1,10 +1,11 @@
 //! greybel.json's JSON Schema, which greybel-vs publishes in `schemas/greybel.schema.json` and syncs its settings
-//! by, and the settings it names: each one greybel-vs has, with greybel.json's default, for a workspace folder.
+//! by, and greybel-editor-web uses for completion and hovers in `src/greybel.schema.json`, and the settings it names:
+//! each one greybel-vs has, with greybel.json's default, for a workspace folder.
 
 use greybel_project::Manifest;
 
 use crate::support::schema::{vscode_settings, vscode_value};
-use crate::support::{assert_up_to_date, declared_settings, greybel_vs};
+use crate::support::{assert_up_to_date, declared_settings, greybel_editor_web, greybel_vs};
 
 #[test]
 fn should_publish_the_schema_of_greybel_json() {
@@ -14,6 +15,10 @@ fn should_publish_the_schema_of_greybel_json() {
     );
 
     assert_up_to_date(&greybel_vs().join("schemas/greybel.schema.json"), &schema);
+    assert_up_to_date(
+        &greybel_editor_web().join("src/greybel.schema.json"),
+        &schema,
+    );
 }
 
 #[test]

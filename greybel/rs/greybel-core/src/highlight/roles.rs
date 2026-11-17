@@ -1,15 +1,16 @@
 use std::collections::HashMap;
 
-use greybel_core::syntax::greybel::TypeBody;
-use greybel_core::{Ast, IdentifierKind, Node, NodeId, NodeKind, Span, Visitor};
 use greybel_symbols::contextual_keywords;
 
-use super::token_type::TokenType;
+use crate::syntax::greybel::TypeBody;
+use crate::{Ast, IdentifierKind, Node, NodeId, NodeKind, Span, Visitor};
+
+use super::HighlightKind;
 
 pub(super) struct IdentifierRoles<'a> {
     type_spans: Vec<Span>,
     ast: &'a Ast,
-    types: HashMap<u32, TokenType>,
+    kinds: HashMap<u32, HighlightKind>,
 }
 
 impl<'a> IdentifierRoles<'a> {
@@ -21,7 +22,7 @@ impl<'a> IdentifierRoles<'a> {
         let mut roles = Self {
             type_spans,
             ast,
-            types: HashMap::new(),
+            kinds: HashMap::new(),
         };
 
         ast.walk(ast.root(), &mut roles);
@@ -29,24 +30,24 @@ impl<'a> IdentifierRoles<'a> {
         roles
     }
 
-    pub(super) fn of_token(&self, span: Span) -> TokenType {
-        if let Some(&token_type) = self.types.get(&span.start) {
-            return token_type;
+    pub(super) fn of_token(&self, span: Span) -> HighlightKind {
+        if let Some(&kind) = self.kinds.get(&span.start) {
+            return kind;
         }
 
         let text = &self.ast.source()[span.start as usize..span.end as usize];
 
         if contextual_keywords::STATEMENT_KEYWORDS.contains(&text) {
-            return TokenType::Keyword;
+            return HighlightKind::Keyword;
         }
 
         let index = self.type_spans.partition_point(|ty| ty.start <= span.start);
         let in_type = self.type_spans[..index].iter().any(|ty| span.end <= ty.end);
 
         if in_type {
-            TokenType::Type
+            HighlightKind::Type
         } else {
-            TokenType::Variable
+            HighlightKind::Variable
         }
     }
 
@@ -63,38 +64,40 @@ impl Visitor for IdentifierRoles<'_> {
     fn enter(&mut self, _id: NodeId, node: &Node) -> bool {
         match &node.kind {
             NodeKind::Identifier(identifier) => {
-                let token_type = match identifier.kind {
-                    IdentifierKind::Argument => TokenType::Parameter,
-                    IdentifierKind::Property => TokenType::Property,
-                    IdentifierKind::Variable | IdentifierKind::ForInVariable => TokenType::Variable,
+                let kind = match identifier.kind {
+                    IdentifierKind::Argument => HighlightKind::Parameter,
+                    IdentifierKind::Property => HighlightKind::Property,
+                    IdentifierKind::Variable | IdentifierKind::ForInVariable => {
+                        HighlightKind::Variable
+                    }
                 };
 
-                self.types.entry(node.span.start).or_insert(token_type);
+                self.kinds.entry(node.span.start).or_insert(kind);
             }
             NodeKind::Call(call) => {
                 if let Some(callee) = self.called_identifier(call.base) {
-                    self.types
-                        .insert(self.ast.span(callee).start, TokenType::Function);
+                    self.kinds
+                        .insert(self.ast.span(callee).start, HighlightKind::Function);
                 }
             }
             NodeKind::CallStatement(statement) => {
                 if let Some(callee) = self.called_identifier(statement.expression) {
-                    self.types
-                        .insert(self.ast.span(callee).start, TokenType::Function);
+                    self.kinds
+                        .insert(self.ast.span(callee).start, HighlightKind::Function);
                 }
             }
             NodeKind::TypeStatement(statement) => {
                 if let TypeBody::Members { members, .. } = &statement.body {
                     for member in members {
-                        let token_type = match member.parameters {
-                            Some(_) => TokenType::Function,
-                            None => TokenType::Property,
+                        let kind = match member.parameters {
+                            Some(_) => HighlightKind::Function,
+                            None => HighlightKind::Property,
                         };
 
-                        self.types.insert(member.name.start, token_type);
+                        self.kinds.insert(member.name.start, kind);
 
                         for &(parameter, _) in member.parameters.iter().flatten() {
-                            self.types.insert(parameter.start, TokenType::Parameter);
+                            self.kinds.insert(parameter.start, HighlightKind::Parameter);
                         }
                     }
                 }

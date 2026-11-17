@@ -13,11 +13,16 @@
     "test": "vite build --mode test && vitest run"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.4",
     "@codemirror/commands": "^6.11.1",
+    "@codemirror/lang-json": "^6.0.2",
     "@codemirror/language": "^6.13.1",
+    "@codemirror/lint": "^6.9.7",
     "@codemirror/lsp-client": "^6.3.0",
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.15",
+    "@lezer/common": "^1.5.5",
+    "@lezer/highlight": "^1.2.5",
     "codemirror": "^6.0.2",
     "duplex-core": "^0.1.0",
     "duplex-driver-worker": "^0.1.0",
@@ -29,11 +34,13 @@
     "greybel-lsp-web": "^0.1.0",
     "greybel-runtime": "^0.1.0",
     "greybel-runtime-web": "^0.1.0",
+    "greyhack-terminal-text": "^0.1.0",
     "greyhack-terminal-web": "^0.1.0",
     "greyhack-world-operations": "^0.1.0",
     "greyhack-world-operations-web": "^0.1.0",
     "picomatch": "^4.0.3",
     "preact": "^11.1.1",
+    "vscode-uri": "^3.2.0",
     "wasm-host": "^0.1.0"
   },
   "devDependencies": {

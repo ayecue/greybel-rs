@@ -145,26 +145,31 @@ impl Build {
         TranspileOptions {
             path_mapping: Some(mapping),
             excluded_names: Self::excluded_names(&self.options.transpile),
+            native_functions: Self::native_functions(&self.options.transpile),
             ..self.options.transpile.clone()
         }
     }
 
-    /// Collects names that renaming must preserve: `options.excluded_names`, `params`, and all general API definitions.
+    /// `options.excluded_names` and `params`, which renaming preserves.
     pub(crate) fn excluded_names(options: &TranspileOptions) -> Vec<String> {
+        let mut excluded_names = options.excluded_names.clone();
+
+        excluded_names.push(Self::PARAMS.to_owned());
+
+        excluded_names
+    }
+
+    /// The dialect's general API functions, which renaming preserves and uglify may call through aliases.
+    pub(crate) fn native_functions(options: &TranspileOptions) -> Vec<String> {
         let api = match options.dialect {
             Dialect::MiniScript => miniscript_meta::container(),
             Dialect::Greybel | Dialect::GreyScript => greyscript_meta::container(),
         };
-        let general = api
-            .signature(Self::GENERAL)
+
+        api.signature(Self::GENERAL)
             .into_iter()
-            .flat_map(|signature| signature.definitions().keys().cloned());
-        let mut excluded_names = options.excluded_names.clone();
-
-        excluded_names.push(Self::PARAMS.to_owned());
-        excluded_names.extend(general);
-
-        excluded_names
+            .flat_map(|signature| signature.definitions().keys().cloned())
+            .collect()
     }
 
     fn replace_file_name(path: &str, name: &str) -> String {

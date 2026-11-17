@@ -12,7 +12,8 @@ const HIGHLIGHT_CLASSES: Record<Highlight, string | undefined> = {
   [Highlight.Constant]: 'token constant',
   [Highlight.Comment]: 'token comment',
   [Highlight.Name]: 'token name',
-  [Highlight.Operator]: 'token operator'
+  [Highlight.Operator]: 'token operator',
+  [Highlight.Type]: 'token type'
 };
 
 /** Code highlighted as examples are, which the editor can open; or, with `language`, the plain text of another language. */

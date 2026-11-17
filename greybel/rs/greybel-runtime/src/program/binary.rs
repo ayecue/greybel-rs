@@ -3,11 +3,11 @@
 use greybel_core::{Dialect, SyntaxFeatures};
 use greybel_documents::{AsyncResourceProvider, Uri};
 use greybel_source_map::SourceMap;
-use greybel_transpiler::{TranspileOptions, Transpiler};
+use greybel_transpiler::{MultilineStringStyle as TranspiledStyle, TranspileOptions, Transpiler};
 use greyhack_behaviour::{Import, put_imports};
 use greyscript_intrinsics::ProgramBinary;
 
-use crate::protocol::{Launch, LaunchFailure};
+use crate::protocol::{Launch, LaunchFailure, MultilineStringStyle};
 use crate::uri::EditorUri as _;
 
 /// Builds `launch` into a binary from `provider` files, with source-map filenames set to URIs. Retains `debugger`
@@ -38,6 +38,10 @@ pub(crate) async fn build(
         ),
         obfuscation: false,
         retain_debugger,
+        multiline_strings: match launch.multiline_strings {
+            Some(MultilineStringStyle::Join) => TranspiledStyle::Join,
+            Some(MultilineStringStyle::Concatenation) | None => TranspiledStyle::Concatenation,
+        },
         ..TranspileOptions::default()
     };
     let mut outputs = Transpiler::new(&options)

@@ -81,9 +81,9 @@ describe('the signature grammar for hovers', () => {
       [')', 'punctuation.definition.parameters.end.greyscript'],
       [':', 'keyword.operator.type.annotation.greyscript'],
       ['shell', 'entity.name.type.greyscript'],
-      ['or', 'keyword.operator.type.greyscript'],
+      ['or', 'keyword.operator.expression.or.greyscript'],
       ['null', 'support.type.primitive.greyscript'],
-      ['or', 'keyword.operator.type.greyscript'],
+      ['or', 'keyword.operator.expression.or.greyscript'],
       ['string', 'support.type.primitive.greyscript']
     ]);
   });
@@ -150,7 +150,7 @@ describe('the signature grammar for hovers', () => {
       ['declared', 'storage.modifier.declared.greyscript'],
       [':', 'keyword.operator.type.annotation.greyscript'],
       ['map', 'support.type.primitive.greyscript'],
-      ['or', 'keyword.operator.type.greyscript'],
+      ['or', 'keyword.operator.expression.or.greyscript'],
       ['null', 'support.type.primitive.greyscript'],
       [')', 'punctuation.section.parens.end.greyscript'],
       ['{', 'punctuation.definition.dictionary.begin.greyscript'],
@@ -196,7 +196,7 @@ describe('the signature grammar for hovers', () => {
       ['<', 'punctuation.definition.typeparameters.begin.greyscript'],
       ['number', 'support.type.primitive.greyscript'],
       ['>', 'punctuation.definition.typeparameters.end.greyscript'],
-      ['or', 'keyword.operator.type.greyscript'],
+      ['or', 'keyword.operator.expression.or.greyscript'],
       ['funcRef', 'support.type.primitive.greyscript']
     ]);
   });
@@ -206,7 +206,7 @@ describe('the signature grammar for hovers', () => {
 
     expect(tokens.slice(-3)).toEqual([
       ['value', 'variable.parameter.greyscript'],
-      ['is', 'keyword.operator.type.greyscript'],
+      ['is', 'keyword.operator.expression.is.greyscript'],
       ['Dog', 'entity.name.type.greyscript']
     ]);
   });

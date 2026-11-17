@@ -1,7 +1,6 @@
 use gen_lsp_types as lsp;
+use greybel_core::highlight::{HighlightKind, HighlightToken};
 use greybel_core::{Ast, ColumnSettings};
-
-use super::token_type::TokenType;
 
 pub(super) struct TokenEncoder<'a> {
     ast: &'a Ast,
@@ -24,7 +23,9 @@ impl<'a> TokenEncoder<'a> {
         self.tokens
     }
 
-    pub(super) fn push(&mut self, start: u32, end: u32, token_type: TokenType) {
+    pub(super) fn push(&mut self, token: HighlightToken) {
+        let HighlightToken { span, kind } = token;
+        let (start, end) = (span.start, span.end);
         let text = &self.ast.source()[start as usize..end as usize];
         let mut offset = start;
 
@@ -36,7 +37,7 @@ impl<'a> TokenEncoder<'a> {
                     offset,
                     offset
                         + u32::try_from(segment.len()).expect("value fits the target integer type"),
-                    token_type,
+                    kind,
                 );
             }
 
@@ -44,7 +45,7 @@ impl<'a> TokenEncoder<'a> {
         }
     }
 
-    fn push_segment(&mut self, start: u32, end: u32, token_type: TokenType) {
+    fn push_segment(&mut self, start: u32, end: u32, kind: HighlightKind) {
         let lines = self.ast.lines();
         let from = lines.position(start, ColumnSettings::default());
         let to = lines.position(end, ColumnSettings::default());
@@ -61,7 +62,7 @@ impl<'a> TokenEncoder<'a> {
             delta_line,
             delta_start,
             length: to.character - from.character,
-            token_type: token_type as u32,
+            token_type: kind as u32,
             token_modifiers_bitset: 0,
         });
         self.line = line;

@@ -113,7 +113,7 @@ impl<'w> Analyzer<'w> {
 
     fn function_at(self, uri: &Uri, position: Position) -> Option<(&'w Analysis, Site)> {
         let (file, ast, offset) = self.locate(uri, position)?;
-        let &(analysis, document) = self.analyses_of(file).first()?;
+        let (analysis, document) = self.entry_analysis(file)?;
 
         for node in ast.path_at(offset).into_iter().rev() {
             if let NodeKind::Assignment(assignment) = ast.kind(node) {

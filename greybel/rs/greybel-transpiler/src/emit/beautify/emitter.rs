@@ -13,7 +13,7 @@ use greybel_symbols::literals::NULL;
 use greybel_symbols::{Keyword, Punct};
 
 use super::{BeautifyEmitter, MAX_INLINE_ARGUMENTS, MAX_INLINE_OPERATIONS};
-use crate::bundle::MULTILINE_STRING;
+use crate::bundle::multiline_string_helper;
 use crate::emit::{
     EmitExpressions, EmitFeatures, EmitFlags, EmitFunctions, EmitOutput, EmitState, EmitStatements,
     Emitter, LiteralStyle,
@@ -325,10 +325,11 @@ impl Emitter for BeautifyEmitter {
         }
 
         s.literal(
+            id,
             node,
             s.text(id),
             LiteralStyle::Value,
-            self.runtime_name(MULTILINE_STRING),
+            self.runtime_name(multiline_string_helper(s.options())),
         );
 
         Ok(())

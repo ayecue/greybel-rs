@@ -85,7 +85,7 @@ impl Analyzer<'_> {
             .map(str::to_owned)
             .collect();
 
-        if let Some(&(analysis, _)) = self.analyses_of(file).first() {
+        if let Some((analysis, _)) = self.entry_analysis(file) {
             names.extend(analysis.model().custom_types().map(|ty| ty.name.clone()));
         }
 

@@ -22,11 +22,20 @@ pub fn hints(source: &str, options: InlayHintOptions) -> Vec<(u32, u32, String, 
         .collect()
 }
 
-/// Options with only `variable_types`, `parameter_names` or `return_types` turned on.
-pub fn only(variable_types: bool, parameter_names: bool, return_types: bool) -> InlayHintOptions {
+#[derive(Debug, Clone, Copy)]
+pub enum HintOption {
+    VariableTypes,
+    ParameterNames,
+    ParameterTypes,
+    ReturnTypes,
+}
+
+/// Options with only `option` turned on.
+pub fn only(option: HintOption) -> InlayHintOptions {
     InlayHintOptions {
-        variable_types,
-        parameter_names,
-        return_types,
+        variable_types: matches!(option, HintOption::VariableTypes),
+        parameter_names: matches!(option, HintOption::ParameterNames),
+        parameter_types: matches!(option, HintOption::ParameterTypes),
+        return_types: matches!(option, HintOption::ReturnTypes),
     }
 }
