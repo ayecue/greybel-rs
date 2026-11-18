@@ -24,6 +24,19 @@ fn should_find_where_a_name_starts() {
 }
 
 #[test]
+fn should_find_where_a_word_starts_after_a_multibyte_character() {
+    let source = SourceText::new("x = ¶ab");
+
+    let after_name = source.name_start(8);
+    let after_symbol = SourceText::new("x = ¶").name_start(6);
+    let tag = SourceText::new("// ¶@para-m").word_start(12, |c| c.is_alphanumeric() || c == '-');
+
+    assert_eq!(after_name, 6);
+    assert_eq!(after_symbol, 6);
+    assert_eq!(tag, 6);
+}
+
+#[test]
 fn should_find_the_open_call_and_its_commas() {
     let source = "print foo(1, [2, 3], \"a,b\", ";
 

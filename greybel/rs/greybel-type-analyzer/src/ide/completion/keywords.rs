@@ -3,6 +3,7 @@ use greybel_symbols::Keyword;
 
 use super::{CompletionItem, CompletionItemKind};
 use crate::ide::Context;
+use crate::ide::text::SourceText;
 
 const STATEMENT_SNIPPETS: &[(&str, &str, &str)] = &[
     (
@@ -101,10 +102,7 @@ impl Context<'_> {
             return true;
         }
 
-        let word_start = before
-            .rfind(|c: char| !(c.is_alphanumeric() || c == '_'))
-            .map_or(0, |index| index + 1);
-        let word = &before[word_start..];
+        let word = &before[SourceText::new(before).name_start(before.len())..];
 
         !word.is_empty() && Keyword::parse(word).is_none()
     }

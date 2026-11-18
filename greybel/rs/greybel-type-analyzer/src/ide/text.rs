@@ -13,10 +13,15 @@ impl<'a> SourceText<'a> {
     }
 
     pub(crate) fn name_start(self, end: usize) -> usize {
+        self.word_start(end, Self::is_name)
+    }
+
+    /// Byte offset where the run of `is_word` characters ending at `end` starts; `end` when there is none.
+    pub(crate) fn word_start(self, end: usize, is_word: impl Fn(char) -> bool) -> usize {
         self.source[..end]
             .char_indices()
             .rev()
-            .take_while(|&(_, c)| Self::is_name(c))
+            .take_while(|&(_, c)| is_word(c))
             .last()
             .map_or(end, |(start, _)| start)
     }

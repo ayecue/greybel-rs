@@ -33,6 +33,20 @@ fn should_leave_loop_keywords_out_of_functions_in_loops() {
 }
 
 #[test]
+fn should_complete_after_a_multibyte_character() {
+    let after_symbol = keyword_labels("x = 1 ¶ |");
+    let after_name = keyword_labels("x = ¶a |");
+    let in_comment = labels_at("// @¶par|\nf = function\nend function");
+
+    assert_eq!(
+        after_symbol,
+        ["function", "true", "false", "null", "new", "not"]
+    );
+    assert_eq!(after_name, ["and", "or", "isa"]);
+    assert!(in_comment.is_empty(), "{in_comment:?}");
+}
+
+#[test]
 fn should_complete_values_in_an_expression() {
     let labels = keyword_labels("x = |");
 

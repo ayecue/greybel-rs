@@ -7,6 +7,7 @@ use super::{CompletionItem, CompletionItemKind};
 use crate::analyzer::Analyzer;
 use crate::api::Api;
 use crate::ide::TextEdit;
+use crate::ide::text::SourceText;
 
 impl Analyzer<'_> {
     pub(super) fn comment_completions(
@@ -20,9 +21,8 @@ impl Analyzer<'_> {
             .iter()
             .find(|comment| comment.text_span.start <= offset && offset <= comment.span.end)?;
         let text = &ast.source()[comment.text_span.start as usize..offset as usize];
-        let word_start = text
-            .rfind(|c: char| !(c.is_alphanumeric() || c == '_' || c == '-'))
-            .map_or(0, |index| index + 1);
+        let word_start = SourceText::new(text)
+            .word_start(text.len(), |c| c.is_alphanumeric() || c == '_' || c == '-');
         let word_span = Span::new(
             comment.text_span.start + u32::try_from(word_start).ok()?,
             offset,
