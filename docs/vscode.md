@@ -66,7 +66,7 @@ Open the Command Palette with `Ctrl+Shift+P` (`Cmd+Shift+P` on macOS). Most comm
 | **Greybel: Snippets** | Open a game script snippet in a new document. |
 | **Greybel: Share** | Save the active file with every file it imports and the project's `greybel.json` through the editor service, and copy the web editor link. |
 | **Greybel: Select profile** | Select the active project's build/run profile. |
-| **Greybel: Reset the mock world** | Discard the current mock world and generate a new one. |
+| **Greybel: Reset the mock world** | Discard the mock world, including its saved state, and generate it again. |
 
 The editor's **Greybel: Transform** submenu contains **Transform**, **Uglify**, **Beautify**, and **Transform to clipboard**. **Greybel: Go to error** in the editor context menu selects the next error in the current file.
 
@@ -204,7 +204,7 @@ The transform commands operate on the active editor's text. They do not bundle d
 
 `Default` writes the code without comments or minification. `Uglify` minifies code and optimizes literals and namespaces. `Beautify` formats code using `format`.
 
-Uglify settings include `disableLiteralsOptimization`, `disableNamespacesOptimization`, `excludedNamespaces`, and `obfuscation`. The namespaces optimization also calls general API functions through short global aliases when that makes the build shorter. `multilineStrings` (`greybel.transpiler.multilineStrings`) sets how builds and runs write strings with line breaks: `Concatenation` (default) or `Join`, which is faster for strings with many lines. Obfuscation also shortens names read as strings, such as map keys; enable it only when the program does not depend on those names remaining unchanged.
+Uglify settings include `disableLiteralsOptimization`, `disableNamespacesOptimization`, `excludedNamespaces`, and `obfuscation`. The namespaces optimization also calls general API functions through short global aliases when that makes the build shorter. `multilineStrings` (`greybel.transpiler.multilineStrings`) sets how builds and runs write strings with line breaks: `Replace` (default), which writes the string on one line with a marker character replaced by `char(10)`, `Concatenation` or `Join`. `Replace` keeps a file about the size of its source; the other two can push an imported file past Grey Hack's 160,000 characters per file. Obfuscation also shortens names read as strings, such as map keys; enable it only when the program does not depend on those names remaining unchanged.
 
 Both builds and runs read `#envar` values from `variables.files` first and `variables.values` second. Later values override earlier values. Variable files contain `NAME=value` lines and are relative to the project folder; missing files are ignored.
 
@@ -252,9 +252,9 @@ Both features use `build.ingameDirectory`. Enable `greybel.transpiler.ingameDire
 
 ### Mock environment
 
-The default `Mock` environment generates computers, networks, file systems, services, and other world state from `run.seed`. The same seed generates the same initial world. `get_shell("root", "test")` returns the local root shell.
+The default `Mock` environment generates computers, networks, file systems, services, and other world state from `run.seed`. The same seed generates the same initial world. `get_shell("root", "test")` returns the local root shell. Programs run as the player's user `test`; `run.user` (setting `greybel.interpreter.user`) set to `Root` runs them as `root`, as after `sudo -s` in the game.
 
-All runtimes in the VS Code window share that world, and changes persist between runs. Use **Greybel: Reset the mock world** or change the seed to start again. `run.memoryLimit` limits a program's memory in MiB; `run.programName` sets the binary name used inside the world. `run.lineLimits` (settings `greybel.interpreter.lineLimits.textPerLine` and `.tagsPerLine`) replaces the game's rule for cutting long printed lines with the one of the greyhack-customizable-output mod, in the terminal and the output preview.
+Debug sessions use the world server that the VS Code windows and `greybel` commands of the machine share, on the port of `greybel.world.port` (default `41740`). The first session starts it when none runs; it shuts down after `greybel.world.idleTimeout` seconds without connections (default `600`, `0` never stops it). When it runs another seed, the window starts a world server of its own for its seed; `greybel.world.port` `0` always does. Changes persist between runs, and world servers save each seed's world in `greybel/worlds` of the user's data folder, or in `greybel.world.folder`, so it continues after restarts; see the [CLI guide](cli.md#mock-and-shared-worlds). **Greybel: Reset the mock world** generates the world again and interrupts the programs running in it, also those of other windows. The web extension keeps its world in memory. `run.memoryLimit` limits a program's memory in MiB; `run.programName` sets the binary name used inside the world. `run.lineLimits` (settings `greybel.interpreter.lineLimits.textPerLine` and `.tagsPerLine`) replaces the game's rule for cutting long printed lines with the one of the greyhack-customizable-output mod, in the terminal and the output preview.
 
 The mock environment is local and does not require Grey Hack. Some game-specific behavior can differ from the real game.
 
@@ -399,7 +399,7 @@ Confirm that the file is a valid JSON object in the workspace folder root. VS Co
 
 ### A mock run sees old files or world state
 
-Programs in the window share one persistent mock world. Run **Greybel: Reset the mock world** to discard its changes. This does not delete source files on disk.
+Programs share one saved mock world, also with other windows and `greybel` commands. Run **Greybel: Reset the mock world** to discard its changes. This does not delete source files on disk.
 
 ### Grey Hack import, deployment, or in-game execution fails
 

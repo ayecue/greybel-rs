@@ -5,9 +5,10 @@ use std::future::Future;
 use std::rc::Rc;
 use std::time::Duration;
 
-use duplex_core::{Channel, Driver};
+use duplex_core::{Channel, Driver, ErrorCode};
 use greybel_interpreter::Stdout;
 use greyhack_behaviour::META_MAIL_COOLDOWN;
+use tokio::sync::Notify;
 
 use super::handle::{Handle, HandleTable};
 use super::programs::ProgramTable;
@@ -23,6 +24,16 @@ pub struct ServerConnection {
     handles: Rc<HandleTable>,
     /// Player's last MetaMail use on the program clock (`MailHelperServer.metaMailCooldownWatch`).
     last_mail_at: Rc<Cell<Option<Duration>>>,
+    on_disconnect: Rc<DisconnectHandler>,
+    /// Closes the transport the channel runs on.
+    closer: Rc<dyn Fn()>,
+}
+
+/// Tracks game-server disconnection and notifies waiting tasks.
+#[derive(Default)]
+struct DisconnectHandler {
+    closed: Cell<bool>,
+    notify: Notify,
 }
 
 impl ServerConnection {
@@ -31,13 +42,47 @@ impl ServerConnection {
     pub fn new<D: Driver>(channel: Channel<Program, D>) -> Self {
         let programs = Rc::new(ProgramTable::default());
 
+        let on_disconnect = Rc::new(DisconnectHandler::default());
+        let transport = channel.transport().clone();
+
         Rc::clone(&programs).attach(&channel);
+        channel.on_close({
+            let on_disconnect = Rc::clone(&on_disconnect);
+
+            move |_| {
+                on_disconnect.closed.set(true);
+                on_disconnect.notify.notify_waiters();
+            }
+        });
 
         Self {
             channel: Rc::new(channel),
             programs,
             handles: Rc::default(),
             last_mail_at: Rc::default(),
+            on_disconnect,
+            closer: Rc::new(move || transport.close_all(ErrorCode::ClosedChannel)),
+        }
+    }
+
+    /// Closes the connection to the game server, which then releases the connection's objects.
+    pub fn close(&self) {
+        (self.closer)();
+    }
+
+    /// Resolves once the connection to the game server closes, for example because its world was reset.
+    pub fn on_disconnect(&self) -> impl Future<Output = ()> + 'static {
+        let on_disconnect = Rc::clone(&self.on_disconnect);
+
+        async move {
+            let notification = on_disconnect.notify.notified();
+            let mut notification = std::pin::pin!(notification);
+
+            notification.as_mut().enable();
+
+            if !on_disconnect.closed.get() {
+                notification.await;
+            }
         }
     }
 

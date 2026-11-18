@@ -33,8 +33,8 @@ pub struct Transpilation {
     /// Exclude these namespace names from minification.
     #[arg(long = "exclude-namespaces", value_name = "NAMESPACE", num_args = 1..)]
     pub excluded_namespaces: Option<Vec<String>>,
-    /// Write strings with line breaks as concatenations with a `char(10)` variable, or as a joining function call
-    /// [default: concatenation].
+    /// Write multiline strings on one line using marker replacement, concatenation with a `char(10)` variable,
+    /// or a joining function [default: replace].
     #[arg(long = "multiline-strings", value_enum, ignore_case = true)]
     pub multiline_strings: Option<MultilineStringStyle>,
 }
@@ -42,6 +42,7 @@ pub struct Transpilation {
 /// How builds write strings with line breaks.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum MultilineStringStyle {
+    Replace,
     Concatenation,
     Join,
 }
@@ -87,6 +88,7 @@ impl Transpilation {
 
         if let Some(style) = self.multiline_strings {
             build.multiline_strings = match style {
+                MultilineStringStyle::Replace => MultilineStringStyles::Replace,
                 MultilineStringStyle::Concatenation => MultilineStringStyles::Concatenation,
                 MultilineStringStyle::Join => MultilineStringStyles::Join,
             };

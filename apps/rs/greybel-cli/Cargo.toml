@@ -25,7 +25,8 @@ greybel-project = { workspace = true, features = ["builder", "runtime"] }
 greybel-runtime = { workspace = true, features = ["game"] }
 greyhack-message-hook-client.workspace = true
 greyhack-terminal-text.workspace = true
-greyhack-world-operations.workspace = true
+greybel-runtime-world.workspace = true
+greyhack-world-host.workspace = true
 greyscript-intrinsics.workspace = true
 clap.workspace = true
 crossterm.workspace = true
@@ -35,6 +36,7 @@ tokio = { workspace = true, features = ["rt", "macros", "sync"] }
 [dev-dependencies]
 duplex-driver-stdio.workspace = true
 greyhack-world.workspace = true
+greyhack-world-operations.workspace = true
 tokio = { workspace = true, features = ["net"] }
 
 [[test]]

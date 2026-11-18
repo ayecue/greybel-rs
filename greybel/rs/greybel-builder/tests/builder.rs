@@ -175,3 +175,20 @@ fn should_refuse_to_deploy_into_the_game_here() {
 
     assert_eq!(result, Err(Error::Failure(BuildFailure::Unavailable)));
 }
+
+#[test]
+fn should_refuse_to_deploy_a_file_longer_than_the_game_saves() {
+    let library = format!("x = \"{}\"", "a".repeat(160_000));
+    let mut harness = Harness::new(&[(MAIN, "import_code(\"/lib.src\")"), (LIBRARY, &library)]);
+
+    let result = harness.request(&build(&[MAIN], None, Some(7777)));
+
+    assert_eq!(
+        result.map(|_| ()),
+        Err(Error::Failure(BuildFailure::Invalid {
+            message: "lib.src has 160,004 characters; Grey Hack saves at most 160,000 per file."
+                .into(),
+            location: None,
+        }))
+    );
+}

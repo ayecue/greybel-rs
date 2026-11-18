@@ -19,7 +19,7 @@ pub struct Installer<'a> {
 }
 
 impl<'a> Installer<'a> {
-    pub const DEFAULT_MAX_CHARS: usize = 160_000;
+    pub const DEFAULT_MAX_CHARS: usize = BuildOutput::GAME_FILE_LIMIT;
     const SELF_DELETE: &str = "d";
 
     #[must_use]

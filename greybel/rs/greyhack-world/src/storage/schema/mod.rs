@@ -4,7 +4,7 @@
 use greyhack_world_storage::Schema;
 
 /// Returns the world's schema, with each domain's tables and open-time cleanup in dependency order.
-pub(crate) fn world_schema() -> Schema {
+pub fn world_schema() -> Schema {
     let mut schema = Schema::new();
 
     schema.register_domain(greyhack_world_core::CoreModule::schema());

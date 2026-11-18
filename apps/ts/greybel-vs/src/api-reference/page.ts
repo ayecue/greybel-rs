@@ -2,13 +2,14 @@ import { Uri, type Webview } from 'vscode';
 
 const SCRIPT = 'dist/api-reference.js';
 const WASM = 'dist/api-reference.wasm';
+const MERMAID_ORIGIN = 'https://cdn.jsdelivr.net';
 
 export function createApiReferencePage(webview: Webview, extensionUri: Uri): string {
   const script = webview.asWebviewUri(Uri.joinPath(extensionUri, SCRIPT));
   const wasm = webview.asWebviewUri(Uri.joinPath(extensionUri, WASM));
   const policy = [
     "default-src 'none'",
-    `script-src ${webview.cspSource} 'wasm-unsafe-eval'`,
+    `script-src ${webview.cspSource} 'wasm-unsafe-eval' ${MERMAID_ORIGIN}`,
     `connect-src ${webview.cspSource}`,
 
     'worker-src blob:',

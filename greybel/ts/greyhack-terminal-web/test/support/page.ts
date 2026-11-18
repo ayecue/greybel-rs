@@ -63,6 +63,7 @@ export async function open(wasm: string): Promise<void> {
   };
 
   recordDraws();
+
   const channel = new ProgramChannel(new MessageTargetDriver(port2));
 
   await new Promise<void>((resolve) => channel.onAck(() => resolve()));

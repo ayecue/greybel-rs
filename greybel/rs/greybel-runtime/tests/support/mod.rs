@@ -24,6 +24,7 @@ use editor::{
 use greybel_documents_host_provider::protocol::Editor as DocumentsEditor;
 use greybel_io_web::protocol::Page;
 use greybel_runtime::{EditorHost, Runtime};
+use greybel_runtime_world::LocalWorldFactory;
 use greybel_test_support::file_editor::FileEditor;
 use greybel_test_support::game::RUN_TIME;
 use greybel_test_support::terminal::TerminalRecorder;
@@ -76,7 +77,13 @@ impl Harness {
         configure: impl FnOnce(Runtime<EditorHost<Memory>>) -> Runtime<EditorHost<Memory>>,
     ) -> Self {
         let (editor_transport, runtime_transport, queue) = Memory::transports();
-        let serve = Box::pin(configure(Runtime::new(&runtime_transport)).serve());
+        let serve = Box::pin(
+            configure(Runtime::with_world_factory(
+                &runtime_transport,
+                Rc::new(LocalWorldFactory),
+            ))
+            .serve(),
+        );
         let editor = Channel::new(&editor_transport, ChannelOptions::default());
         let page = Channel::new(&editor_transport, ChannelOptions::default());
         let documents = Channel::new(&editor_transport, ChannelOptions::default());
@@ -357,6 +364,7 @@ pub fn mock_launch(debug: bool, stop_on_entry: bool) -> Launch<'static> {
         environment: editor::Environment::Mock {
             seed: "test".into(),
             memory_limit: 1024,
+            user: None,
         },
         debug,
         stop_on_entry,

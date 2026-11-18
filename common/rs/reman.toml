@@ -1,2 +1,7 @@
 [workspace]
 language = "rust"
+
+# scheduler's tests need its `tokio` and `manual` features (`required-features`), which `--test '*'` alone rejects.
+[tasks.integration]
+suite = "integration"
+run = "cargo nextest run {packages} --no-tests=warn --test '*' --all-features"

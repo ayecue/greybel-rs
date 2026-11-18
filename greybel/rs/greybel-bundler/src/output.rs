@@ -20,6 +20,19 @@ pub struct BuildOutput {
 }
 
 impl BuildOutput {
+    /// Characters Grey Hack saves per file (`OS.MAX_CHARS_FILE`), counted in UTF-16 units like its C# strings.
+    pub const GAME_FILE_LIMIT: usize = 160_000;
+
+    /// The first file longer than `GAME_FILE_LIMIT`, with its length in UTF-16 units.
+    #[must_use]
+    pub fn find_oversized_file(&self) -> Option<(&OutputFile, usize)> {
+        self.files.iter().find_map(|file| {
+            let length = file.code.encode_utf16().count();
+
+            (length > Self::GAME_FILE_LIMIT).then_some((file, length))
+        })
+    }
+
     #[must_use]
     pub fn file(&self, path: &str) -> Option<&OutputFile> {
         self.files.iter().find(|file| file.path == path)

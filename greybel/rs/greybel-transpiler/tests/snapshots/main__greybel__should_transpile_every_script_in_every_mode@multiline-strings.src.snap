@@ -4,35 +4,36 @@ expression: out
 input_file: greybel-transpiler/tests/fixtures/greybel/scripts/multiline-strings.src
 ---
 === default
-__NL=char(10)
-banner="first line"+__NL+"second line"
-print("trailing"+__NL)
-print(__NL+"leading")
-print(("a"+__NL+__NL+"b").len)
-print("say ""hi"""+__NL+"ok")
-repeated=["x"+__NL+"y","x"+__NL+"y","x"+__NL+"y","x"+__NL+"y"]
+banner="first line¶second line".replace("¶",char(10))
+print("trailing¶".replace("¶",char(10)))
+print("¶leading".replace("¶",char(10)))
+print("a¶¶b".replace("¶",char(10)).len)
+print("say ""hi""¶ok".replace("¶",char(10)))
+repeated=["x¶y".replace("¶",char(10)),"x¶y".replace("¶",char(10)),"x¶y".replace("¶",char(10)),"x¶y".replace("¶",char(10))]
 print("single line")
-crlf="a"+__NL+"b"
-print(("p"+__NL+"q")[0])
-print(2*("p"+__NL+"q"))
-print("p"+__NL+"q"+1)
-print(1+("p"+__NL+"q"))
-print(-("p"+__NL+"q"))
+crlf="a¶b".replace("¶",char(10))
+print("p¶q".replace("¶",char(10))[0])
+print(2*"p¶q".replace("¶",char(10)))
+print("p¶q".replace("¶",char(10))+1)
+print(1+"p¶q".replace("¶",char(10)))
+print(-"p¶q".replace("¶",char(10)))
 print(("t"+(1)).len)
 print(3*("t"+(1)))
+print("uses ¶¤and §".replace("¤",char(10)))
+print(("¶¤§¦¬µ¢£¥¨¯°±×÷"+char(10)+"all markers").len)
+print(2*("¶¤§¦¬µ¢£¥¨¯°±×÷"+char(10)+"all markers"))
 === uglify
-O=char(10)
 globals.I=globals
-I.M="x"+O+"y"
-I.N="p"+O+"q"
-J="first line"+O+"second line"
-print("trailing"+O)
-print(O+"leading")
-print(("a"+O+O+"b").len)
-print("say ""hi"""+O+"ok")
+I.M="x¶y".replace("¶",char(10))
+I.N="p¶q".replace("¶",char(10))
+J="first line¶second line".replace("¶",char(10))
+print("trailing¶".replace("¶",char(10)))
+print("¶leading".replace("¶",char(10)))
+print("a¶¶b".replace("¶",char(10)).len)
+print("say ""hi""¶ok".replace("¶",char(10)))
 K=[M,M,M,M]
 print("single line")
-L="a"+O+"b"
+L="a¶b".replace("¶",char(10))
 print(N[0])
 print(2*N)
 print(N+1)
@@ -40,49 +41,56 @@ print(1+N)
 print(-N)
 print(("t"+(1)).len)
 print(3*("t"+(1)))
+print("uses ¶¤and §".replace("¤",char(10)))
+print(("¶¤§¦¬µ¢£¥¨¯°±×÷"+char(10)+"all markers").len)
+print(2*("¶¤§¦¬µ¢£¥¨¯°±×÷"+char(10)+"all markers"))
 === beautify
-__NL = char(10)
-// Grey Hack ends a string at a line break, so builds write a string with line breaks as its lines joined by char(10).
-banner = "first line" + __NL + "second line"
-print "trailing" + __NL
-print __NL + "leading"
-print ("a" + __NL + __NL + "b").len
-print "say ""hi""" + __NL + "ok"
+// Grey Hack ends a string at a line break, so builds write a string with line breaks on one line, with a marker character replaced by char(10).
+banner = "first line¶second line".replace("¶", char(10))
+print "trailing¶".replace("¶", char(10))
+print "¶leading".replace("¶", char(10))
+print "a¶¶b".replace("¶", char(10)).len
+print "say ""hi""¶ok".replace("¶", char(10))
 repeated = [
-	"x" + __NL + "y",
-	"x" + __NL + "y",
-	"x" + __NL + "y",
-	"x" + __NL + "y",
+	"x¶y".replace("¶", char(10)),
+	"x¶y".replace("¶", char(10)),
+	"x¶y".replace("¶", char(10)),
+	"x¶y".replace("¶", char(10)),
 ]
 print "single line"
-crlf = "a" + __NL + "b"
-print ("p" + __NL + "q")[0]
-print 2 * ("p" + __NL + "q")
-print "p" + __NL + "q" + 1
-print 1 + ("p" + __NL + "q")
-print -("p" + __NL + "q")
+crlf = "a¶b".replace("¶", char(10))
+print "p¶q".replace("¶", char(10))[0]
+print 2 * "p¶q".replace("¶", char(10))
+print "p¶q".replace("¶", char(10)) + 1
+print 1 + "p¶q".replace("¶", char(10))
+print -"p¶q".replace("¶", char(10))
 print ("t" + (1)).len
 print 3 * ("t" + (1))
+print "uses ¶¤and §".replace("¤", char(10))
+print ("¶¤§¦¬µ¢£¥¨¯°±×÷" + char(10) + "all markers").len
+print 2 * ("¶¤§¦¬µ¢£¥¨¯°±×÷" + char(10) + "all markers")
 === beautify, dev mode, keep parentheses, 10 spaces
-__NL = char(10)
-// Grey Hack ends a string at a line break, so builds write a string with line breaks as its lines joined by char(10).
-banner = "first line" + __NL + "second line"
-print("trailing" + __NL)
-print(__NL + "leading")
-print(("a" + __NL + __NL + "b").len)
-print("say ""hi""" + __NL + "ok")
+// Grey Hack ends a string at a line break, so builds write a string with line breaks on one line, with a marker character replaced by char(10).
+banner = "first line¶second line".replace("¶", char(10))
+print("trailing¶".replace("¶", char(10)))
+print("¶leading".replace("¶", char(10)))
+print("a¶¶b".replace("¶", char(10)).len)
+print("say ""hi""¶ok".replace("¶", char(10)))
 repeated = [
-          "x" + __NL + "y",
-          "x" + __NL + "y",
-          "x" + __NL + "y",
-          "x" + __NL + "y",
+          "x¶y".replace("¶", char(10)),
+          "x¶y".replace("¶", char(10)),
+          "x¶y".replace("¶", char(10)),
+          "x¶y".replace("¶", char(10)),
 ]
 print("single line")
-crlf = "a" + __NL + "b"
-print(("p" + __NL + "q")[0])
-print(2 * ("p" + __NL + "q"))
-print("p" + __NL + "q" + 1)
-print(1 + ("p" + __NL + "q"))
-print(-("p" + __NL + "q"))
+crlf = "a¶b".replace("¶", char(10))
+print("p¶q".replace("¶", char(10))[0])
+print(2 * "p¶q".replace("¶", char(10)))
+print("p¶q".replace("¶", char(10)) + 1)
+print(1 + "p¶q".replace("¶", char(10)))
+print(-"p¶q".replace("¶", char(10)))
 print(#"t{1}".len)
 print(3 * #"t{1}")
+print("uses ¶¤and §".replace("¤", char(10)))
+print(("¶¤§¦¬µ¢£¥¨¯°±×÷" + char(10) + "all markers").len)
+print(2 * ("¶¤§¦¬µ¢£¥¨¯°±×÷" + char(10) + "all markers"))

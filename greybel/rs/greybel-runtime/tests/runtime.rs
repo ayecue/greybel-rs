@@ -524,6 +524,7 @@ fn should_generate_the_mock_world_from_the_launchs_seed() {
             environment: Environment::Mock {
                 seed: seed.into(),
                 memory_limit: 1024,
+                user: None,
             },
             ..mock_launch(false, false)
         });

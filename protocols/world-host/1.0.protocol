@@ -1,0 +1,32 @@
+use core 1.0;
+
+/// Administers a world server that the runtimes of one machine share. Runtimes reach the world itself through the
+/// `greyhack-world` protocol on the same connection.
+protocol WorldHost = "greyhack-world-host" {
+    ack HostInfo;
+
+    /// World server.
+    provider Host {
+        /// Generates the world again from its seed and returns the server's description. Closes every world
+        /// connection, which interrupts their programs.
+        message Reset {} -> Result<HostInfo, ResetFailure>
+    }
+
+    /// Program that looks for or resets the server.
+    client Admin {}
+}
+
+/// Server description sent when an administrator connects.
+struct HostInfo {
+    /// Seed the world was generated from.
+    seed: string,
+}
+
+union ResetFailure {
+    /// The world is stored in a database, which a reset would overwrite.
+    Persistent,
+    /// The world couldn't be generated again.
+    Generation {
+        message: string,
+    },
+}

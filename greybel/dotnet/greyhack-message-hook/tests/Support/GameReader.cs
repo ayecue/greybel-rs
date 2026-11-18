@@ -39,7 +39,9 @@ internal static class GameReader
         }
         if (name.Contains("List"))
         {
-            return typeof(List<>).MakeGenericType(name.Contains("String") ? typeof(string) : typeof(int));
+            return typeof(List<>).MakeGenericType(
+                name.Contains("String") ? typeof(string) : typeof(int)
+            );
         }
         if (name.Contains("Nullable") && name.Contains("Boolean"))
         {
@@ -47,11 +49,15 @@ internal static class GameReader
         }
         if (name.Contains("UnityEngine.Vector2"))
         {
-            return name.Contains("Nullable") ? typeof(UnityEngine.Vector2?) : typeof(UnityEngine.Vector2);
+            return name.Contains("Nullable")
+                ? typeof(UnityEngine.Vector2?)
+                : typeof(UnityEngine.Vector2);
         }
-        Type gameType = AppDomain.CurrentDomain.GetAssemblies()
-            .Select(assembly => assembly.GetType(name))
-            .FirstOrDefault(type => type != null)
+        Type gameType =
+            AppDomain
+                .CurrentDomain.GetAssemblies()
+                .Select(assembly => assembly.GetType(name))
+                .FirstOrDefault(type => type != null)
             ?? throw new ArgumentException($"cannot find game parameter type {name}");
         return gameType;
     }

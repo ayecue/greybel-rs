@@ -23,7 +23,9 @@ internal sealed class ApplianceFixture(Player player, ClockFixture clock)
         SmartAppliance appliance = player.GetLanComputer(request.LocalIp) as SmartAppliance;
         if (appliance == null)
         {
-            throw new InvalidOperationException("The appliance fixture target is not a smart appliance");
+            throw new InvalidOperationException(
+                "The appliance fixture target is not a smart appliance"
+            );
         }
 
         switch (request.Fixture)
@@ -38,13 +40,16 @@ internal sealed class ApplianceFixture(Player player, ClockFixture clock)
                     appliance.GetMainRouter().GetNetworkLan(),
                     appliance.GetMainRouter()
                 );
-                DateTime walk = ClockServer.Singleton.GetDateTime().Date
+                DateTime walk =
+                    ClockServer.Singleton.GetDateTime().Date
                     + npc.schedule.GetTimeWalkToAppliance();
                 clock.SetTime(walk.AddMinutes(-1));
                 clock.Stop();
                 break;
             default:
-                throw new InvalidOperationException("Unknown appliance fixture: " + request.Fixture);
+                throw new InvalidOperationException(
+                    "Unknown appliance fixture: " + request.Fixture
+                );
         }
 
         Database.Singleton.SyncConfigOS(appliance);

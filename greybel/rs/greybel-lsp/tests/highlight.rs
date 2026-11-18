@@ -159,3 +159,44 @@ fn should_classify_contextual_keywords_and_types() {
     assert_eq!(at(6, 12), Some("type"));
     assert_eq!(at(8, 0), Some("variable"));
 }
+
+#[test]
+fn should_mark_api_function_names_as_default_library() {
+    let mut client = Client::new(&[]);
+    let initialized = client.initialize();
+    let Some(lsp::SemanticTokensProvider::SemanticTokensOptions(options)) =
+        initialized.capabilities.semantic_tokens_provider
+    else {
+        panic!("semantic tokens");
+    };
+
+    assert_eq!(options.legend.token_modifiers, ["defaultLibrary"]);
+
+    client.open(
+        "main.src",
+        "f = function(x)\n  return x\nend function\nprint(f([1].len))\nshell = get_shell\nshell.host_computer\n",
+    );
+
+    let tokens = client
+        .request::<lsp::SemanticTokensRequest>(
+            json!({ "textDocument": { "uri": uri("main.src") } }),
+        )
+        .expect("tokens");
+    let (mut line, mut character) = (0, 0);
+    let mut library = Vec::new();
+
+    for token in &tokens.data {
+        line += token.delta_line;
+        character = if token.delta_line == 0 {
+            character + token.delta_start
+        } else {
+            token.delta_start
+        };
+
+        if token.token_modifiers_bitset == 1 {
+            library.push((line, character));
+        }
+    }
+
+    assert_eq!(library, [(3, 0), (4, 8), (5, 6)]);
+}

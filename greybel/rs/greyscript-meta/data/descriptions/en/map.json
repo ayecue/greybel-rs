@@ -58,7 +58,7 @@
     "description": "Returns a `number`. If the provided key is available in the `map`, the value will be one. Otherwise, the value will be zero.",
     "example": [
       "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }",
-      "containsIndex = myList.hasIndex(\"answer\")",
+      "containsIndex = myMap.hasIndex(\"answer\")",
       "if containsIndex then",
       "   print(\"Map contains the answer.\")",
       "else",
@@ -70,7 +70,7 @@
     "description": "Returns the first key associated with `value`, or `null` when no match exists. The optional `after` argument restricts the search to entries after that key.",
     "example": [
       "myMap = { \"answer\": 42, \"bar\": 23, \"foo\": \"moo\" }",
-      "key = myList.indexOf(42)",
+      "key = myMap.indexOf(42)",
       "if key != null then",
       "   print(\"Map contains the answer.\")",
       "else",

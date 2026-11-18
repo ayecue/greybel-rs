@@ -40,7 +40,8 @@ pub(crate) async fn build(
         retain_debugger,
         multiline_strings: match launch.multiline_strings {
             Some(MultilineStringStyle::Join) => TranspiledStyle::Join,
-            Some(MultilineStringStyle::Concatenation) | None => TranspiledStyle::Concatenation,
+            Some(MultilineStringStyle::Concatenation) => TranspiledStyle::Concatenation,
+            Some(MultilineStringStyle::Replace) | None => TranspiledStyle::Replace,
         },
         ..TranspileOptions::default()
     };

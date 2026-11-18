@@ -1,9 +1,11 @@
 use std::collections::BTreeMap;
 
 use greybel_documents::Uri;
-use greybel_runtime::protocol::{Environment, Launch, MultilineStringStyle as LaunchedStyle};
+use greybel_runtime::protocol::{
+    Environment, Launch, MultilineStringStyle as LaunchedStyle, RunUser as LaunchedUser,
+};
 
-use crate::manifest::MultilineStringStyle;
+use crate::manifest::{MultilineStringStyle, RunUser};
 use crate::project::Project;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -26,6 +28,10 @@ impl Project {
             Place::Simulation => Environment::Mock {
                 seed: run.seed.clone(),
                 memory_limit: run.memory_limit,
+                user: Some(match run.user {
+                    RunUser::User => LaunchedUser::User,
+                    RunUser::Root => LaunchedUser::Root,
+                }),
             },
             Place::Game { port } => Environment::Game { port },
         };
@@ -43,6 +49,7 @@ impl Project {
             program_name: run.program_name.clone().into(),
             disabled_syntax: self.manifest.syntax.off_names().map(Into::into),
             multiline_strings: Some(match self.manifest.build.multiline_strings {
+                MultilineStringStyle::Replace => LaunchedStyle::Replace,
                 MultilineStringStyle::Concatenation => LaunchedStyle::Concatenation,
                 MultilineStringStyle::Join => LaunchedStyle::Join,
             }),

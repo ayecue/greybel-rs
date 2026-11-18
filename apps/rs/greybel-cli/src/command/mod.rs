@@ -7,6 +7,7 @@ mod mcp;
 mod options;
 mod repl;
 mod ui;
+mod world;
 
 use std::future::Future;
 use std::process::ExitCode;
@@ -37,6 +38,8 @@ enum Command {
     Ui(ui::UiCommand),
     /// Exposes greybel tools to models over the Model Context Protocol on stdin/stdout.
     Mcp(mcp::McpCommand),
+    /// Serves or resets the simulated world shared by commands and editors on this machine.
+    World(world::WorldCommand),
 }
 
 impl Cli {
@@ -69,6 +72,7 @@ impl Command {
             Self::Repl(command) => command.run(),
             Self::Ui(command) => command.run(),
             Self::Mcp(command) => command.run(),
+            Self::World(command) => command.run(),
         }
     }
 }

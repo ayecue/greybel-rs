@@ -20,6 +20,10 @@ pub struct RunSettings {
     /// Call nesting is unlimited.
     #[schemars(extend("x-vscode-setting" = "greybel.interpreter.memoryLimit"))]
     pub memory_limit: u32,
+    /// Account a simulated program runs as on the player's computer: the player's user, or `root` like after
+    /// `sudo -s` in the game.
+    #[schemars(extend("x-vscode-setting" = "greybel.interpreter.user"))]
+    pub user: RunUser,
     /// Run-time values for `#envar`.
     #[schemars(extend(
         "x-vscode-setting" = {
@@ -37,6 +41,16 @@ pub struct RunSettings {
         }
     ))]
     pub line_limits: Option<LineLimits>,
+}
+
+/// Account a simulated program runs as.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub enum RunUser {
+    /// The player's user, with its home folder in `/home`.
+    #[default]
+    User,
+    /// `root`, with its home folder `/root`.
+    Root,
 }
 
 /// A line whose visible text is longer than `textPerLine` characters, or whose tags take more than `tagsPerLine`
@@ -72,6 +86,7 @@ impl Default for RunSettings {
             params: Vec::new(),
             program_name: Self::DEFAULT_PROGRAM_NAME.to_owned(),
             memory_limit: Self::DEFAULT_MEMORY_LIMIT,
+            user: RunUser::User,
             variables: VariableSettings::default(),
             line_limits: None,
         }

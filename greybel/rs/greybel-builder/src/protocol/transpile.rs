@@ -48,7 +48,8 @@ impl From<&TranspileSettings> for TranspileOptions {
                 .collect(),
             multiline_strings: match settings.multiline_strings {
                 Some(MultilineStringStyle::Join) => TranspiledStyle::Join,
-                Some(MultilineStringStyle::Concatenation) | None => TranspiledStyle::Concatenation,
+                Some(MultilineStringStyle::Concatenation) => TranspiledStyle::Concatenation,
+                Some(MultilineStringStyle::Replace) | None => TranspiledStyle::Replace,
             },
             ..TranspileOptions::default()
         }

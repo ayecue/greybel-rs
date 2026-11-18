@@ -253,7 +253,8 @@ export class IncomingFlow implements ItemSource, ItemSink, Work {
 
     if (earlySegment === undefined) return;
     this.#earlySegments = undefined;
-    for (const [segment, body] of earlySegment) if (this.#state === BUSY_STATE) this.readSegment(segment, body, session);
+    for (const [segment, body] of earlySegment)
+      if (this.#state === BUSY_STATE) this.readSegment(segment, body, session);
   }
 
   readSegment(segment: MessageSegment, body: BinaryReader, session: Session): void {

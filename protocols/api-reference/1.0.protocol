@@ -195,6 +195,8 @@ enum Highlight {
     Operator,
     /// A type name written in code, such as a parameter type or `as T`.
     Type,
+    /// The name of an API function, which Grey Hack's code editor colors apart from other names.
+    Library,
 }
 
 /// Type names and member paths that matched.

@@ -9,8 +9,8 @@ mod mock;
 
 #[cfg(feature = "game")]
 pub(crate) use game::GameProgram;
-pub use mock::mock_world_server;
 pub(crate) use mock::MockProgram;
+pub use mock::PLAYER_USER;
 
 use crate::protocol::EvaluationFailure;
 

@@ -67,7 +67,7 @@ export class TranspileSettings {
   get disabledSyntax(): string[] | undefined {
     return this[BODY].disabledSyntax;
   }
-  /** Absent writes `Concatenation`. */
+  /** Absent writes `Replace`. */
   get multilineStrings(): MultilineStringStyle | undefined {
     return this[BODY].multilineStrings;
   }
@@ -147,10 +147,12 @@ export namespace TranspileSettings {
 }
 /** How a build writes a string with line breaks, which Grey Hack's parser does not accept. */
 export enum MultilineStringStyle {
+  /** `"a¶b".replace("¶",char(10))`, with a marker character the string doesn't contain. */
+  Replace = 0,
   /** `"a"+__NL+"b"` with `__NL=char(10)`. */
-  Concatenation = 0,
+  Concatenation = 1,
   /** `__MSTR(["a","b"])`, which joins the lines with `char(10)`. */
-  Join = 1
+  Join = 2
 }
 export namespace MultilineStringStyle {
   export function write(writer: BinaryWriter, value: MultilineStringStyle): void {
@@ -158,21 +160,29 @@ export namespace MultilineStringStyle {
   }
   export function read(reader: BinaryReader): MultilineStringStyle {
     const value = reader.u32();
-    if (value >= 2) {
+    if (value >= 3) {
       throw new RangeError(`no member ${value} of \`MultilineStringStyle\``);
     }
     return value;
   }
   export const tags: ReadonlyArray<Tag> = [];
-  export const members: ReadonlyArray<MemberTagContainer> = [{
-    name: "Concatenation",
-    value: 0,
-    tags: []
-  }, {
-    name: "Join",
-    value: 1,
-    tags: []
-  }];
+  export const members: ReadonlyArray<MemberTagContainer> = [
+    {
+      name: "Replace",
+      value: 0,
+      tags: []
+    },
+    {
+      name: "Concatenation",
+      value: 1,
+      tags: []
+    },
+    {
+      name: "Join",
+      value: 2,
+      tags: []
+    }
+  ];
 }
 /** Source-code output transformation. */
 export abstract class TranspileMode {
@@ -961,7 +971,7 @@ export const Builds = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 1948373354 }],
+  versions: [{ fingerprint: 3183191813 }],
   peers: [BuildsPeer.Editor, BuildsPeer.Builder],
   messages: [[], [
     Build,

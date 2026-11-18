@@ -83,8 +83,11 @@ public sealed class Converter
         {
             FieldType field = layout.Message.Fields[index];
             object? value = field.Get(message);
-            if (value == null && layout.OptionalParameters.Contains(index)
-                && layout.Message.Fields.Skip(index).All(f => f.Get(message) == null))
+            if (
+                value == null
+                && layout.OptionalParameters.Contains(index)
+                && layout.Message.Fields.Skip(index).All(f => f.Get(message) == null)
+            )
             {
                 break;
             }
@@ -100,11 +103,14 @@ public sealed class Converter
             return null;
         }
         RawMessageReader reader = raw.GetReader();
-        object?[] values = layout.Message.Fields.Select((field, index) =>
-            !reader.HasNext && layout.OptionalParameters.Contains(index)
-                ? null
-                : Read(reader.Next(), field.Type, AllowsNull(field))
-        ).ToArray();
+        object?[] values = layout
+            .Message.Fields.Select(
+                (field, index) =>
+                    !reader.HasNext && layout.OptionalParameters.Contains(index)
+                        ? null
+                        : Read(reader.Next(), field.Type, AllowsNull(field))
+            )
+            .ToArray();
         return layout.Message.Create(values);
     }
 
@@ -278,7 +284,10 @@ public sealed class Converter
                 }
                 converter.CheckStruct(field.Type, $"{message.Name}.{field.Name}", problems);
             }
-            if (optionalParameters.Count > 0 && optionalParameters.Min() != message.Fields.Count - optionalParameters.Count)
+            if (
+                optionalParameters.Count > 0
+                && optionalParameters.Min() != message.Fields.Count - optionalParameters.Count
+            )
             {
                 problems.Add($"{message.Name} has a non-trailing optional game parameter");
             }

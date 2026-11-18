@@ -176,14 +176,19 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore, Fixtur
             if (device == NetworkLan.TypeDevice.SMARTPHONE)
             {
                 DateTime now = ClockServer.Singleton.GetDateTime();
-                string owner = network
-                    .GetNpcInfos()
-                    .Values.FirstOrDefault(npc =>
-                    {
-                        Activity activity = npc.schedule.GetCurrentActivity(now.DayOfWeek, now.TimeOfDay);
-                        return activity == Activity.Trabajando || activity == Activity.DescansoBreve;
-                    })
-                    ?.GetSurname()
+                string owner =
+                    network
+                        .GetNpcInfos()
+                        .Values.FirstOrDefault(npc =>
+                        {
+                            Activity activity = npc.schedule.GetCurrentActivity(
+                                now.DayOfWeek,
+                                now.TimeOfDay
+                            );
+                            return activity == Activity.Trabajando
+                                || activity == Activity.DescansoBreve;
+                        })
+                        ?.GetSurname()
                     ?? throw new InvalidOperationException("No working NPC can own the smartphone");
                 GameField.LanNpcOwner.SetValue(info, owner);
             }
@@ -637,7 +642,9 @@ internal sealed class NetworkFixture(Player player, WorldRestore restore, Fixtur
                 lib.RemoveFichero(lib.GetFichero("libssh.so"), true);
                 break;
             case "invalid":
-                lib.AddFile(new FileSystem.Archivo("libssh.so", "not a library", "root", false, true));
+                lib.AddFile(
+                    new FileSystem.Archivo("libssh.so", "not a library", "root", false, true)
+                );
                 break;
             case "unexpected":
                 fs.GetArchivo("/lib/libssh.so").SetContenido("{\"idLib\":1}", true);

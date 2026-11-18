@@ -19,13 +19,19 @@ text-mesh-core.workspace = true
 text-mesh-layout.workspace = true
 
 [dev-dependencies]
+duplex-driver-stdio.workspace = true
 duplex-test-support = { workspace = true, features = ["tokio"] }
 duplex-ts.workspace = true
 greybel-test-support.workspace = true
+tokio = { workspace = true, features = ["rt"] }
 
 [[test]]
 name = "main"
 path = "tests/main.rs"
+
+[[example]]
+name = "stdio-renderer"
+path = "examples/stdio-renderer.rs"
 
 [lints]
 workspace = true

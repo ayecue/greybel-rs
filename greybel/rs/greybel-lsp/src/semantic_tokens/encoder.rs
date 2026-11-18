@@ -24,7 +24,11 @@ impl<'a> TokenEncoder<'a> {
     }
 
     pub(super) fn push(&mut self, token: HighlightToken) {
-        let HighlightToken { span, kind } = token;
+        let HighlightToken {
+            span,
+            kind,
+            library,
+        } = token;
         let (start, end) = (span.start, span.end);
         let text = &self.ast.source()[start as usize..end as usize];
         let mut offset = start;
@@ -38,6 +42,7 @@ impl<'a> TokenEncoder<'a> {
                     offset
                         + u32::try_from(segment.len()).expect("value fits the target integer type"),
                     kind,
+                    library,
                 );
             }
 
@@ -45,7 +50,7 @@ impl<'a> TokenEncoder<'a> {
         }
     }
 
-    fn push_segment(&mut self, start: u32, end: u32, kind: HighlightKind) {
+    fn push_segment(&mut self, start: u32, end: u32, kind: HighlightKind, library: bool) {
         let lines = self.ast.lines();
         let from = lines.position(start, ColumnSettings::default());
         let to = lines.position(end, ColumnSettings::default());
@@ -63,7 +68,7 @@ impl<'a> TokenEncoder<'a> {
             delta_start,
             length: to.character - from.character,
             token_type: kind as u32,
-            token_modifiers_bitset: 0,
+            token_modifiers_bitset: u32::from(library),
         });
         self.line = line;
         self.character = character;

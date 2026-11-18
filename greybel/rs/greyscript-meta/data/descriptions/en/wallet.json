@@ -100,7 +100,7 @@
     "example": [
       "blockchain = include_lib(\"/lib/blockchain.so\")",
       "wallet = blockchain.login_wallet(\"test\", \"test\")",
-      "print \"All existing coins: \" wallet.list_global_coins.join(\", \")"
+      "print \"All existing coins: \" + wallet.list_global_coins.join(\", \")"
     ]
   },
   "show_nodes": {
@@ -108,7 +108,7 @@
     "example": [
       "blockchain = include_lib(\"/lib/blockchain.so\")",
       "wallet = login_wallet(blockchain, \"test\", \"test\")",
-      "print \"Active miners: \" show_nodes(wallet, \"test\")"
+      "print \"Active miners: \" + wallet.show_nodes(\"test\")"
     ]
   },
   "reset_password": {

@@ -2,12 +2,12 @@
 
 use serde_json::json;
 
-use crate::support::{Client, OPTIONS, run};
+use crate::support::{Client, options, run};
 
 #[test]
 fn should_run_a_program_with_its_params_and_input() {
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
 
         let (text, failed) = client
             .call(
@@ -31,7 +31,7 @@ fn should_run_a_program_with_its_params_and_input() {
 #[test]
 fn should_report_a_crash_and_terminate_a_program_out_of_time() {
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
 
         let (crash, _) = client.call("run", json!({ "code": "x = {}.y" })).await;
         let (timeout, _) = client

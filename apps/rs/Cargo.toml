@@ -25,11 +25,13 @@ greybel-lsp = { path = "../../greybel/rs/greybel-lsp" }
 greybel-mcp = { path = "../../greybel/rs/greybel-mcp" }
 greybel-project = { path = "../../greybel/rs/greybel-project" }
 greybel-runtime = { path = "../../greybel/rs/greybel-runtime" }
+greybel-runtime-world = { path = "../../greybel/rs/greybel-runtime-world" }
 greybel-test-support = { path = "../../greybel/rs/greybel-test-support" }
 greyhack-message-hook-client = { path = "../../greybel/rs/greyhack-message-hook-client" }
 greyhack-terminal-text = { path = "../../greybel/rs/greyhack-terminal-text" }
 greyhack-world = { path = "../../greybel/rs/greyhack-world" }
 greyhack-world-core = { path = "../../greybel/rs/greyhack-world-core" }
+greyhack-world-host = { path = "../../greybel/rs/greyhack-world-host" }
 greyhack-world-operations = { path = "../../greybel/rs/greyhack-world-operations" }
 greyscript-intrinsics = { path = "../../greybel/rs/greyscript-intrinsics" }
 

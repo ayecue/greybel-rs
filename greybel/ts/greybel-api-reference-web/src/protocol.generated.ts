@@ -1433,7 +1433,9 @@ export enum Highlight {
   Name = 6,
   Operator = 7,
   /** A type name written in code, such as a parameter type or `as T`. */
-  Type = 8
+  Type = 8,
+  /** The name of an API function, which Grey Hack's code editor colors apart from other names. */
+  Library = 9
 }
 export namespace Highlight {
   export function write(writer: BinaryWriter, value: Highlight): void {
@@ -1441,7 +1443,7 @@ export namespace Highlight {
   }
   export function read(reader: BinaryReader): Highlight {
     const value = reader.u32();
-    if (value >= 9) {
+    if (value >= 10) {
       throw new RangeError(`no member ${value} of \`Highlight\``);
     }
     return value;
@@ -1491,6 +1493,11 @@ export namespace Highlight {
     {
       name: "Type",
       value: 8,
+      tags: []
+    },
+    {
+      name: "Library",
+      value: 9,
       tags: []
     }
   ];
@@ -1779,7 +1786,7 @@ export const ApiReference = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 533029436 }],
+  versions: [{ fingerprint: 3662919624 }],
   peers: [ApiReferencePeer.Reader, ApiReferencePeer.Documentation],
   messages: [[], [
     Reference,

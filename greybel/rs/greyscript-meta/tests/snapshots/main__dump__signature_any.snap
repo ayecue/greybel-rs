@@ -29,7 +29,7 @@ definitions:
             - any
       description: "Verifies if an index is available within an object. In case of success this method will return a `number` with the value one. In case of failure the value will be a zero. This method supports `map`s, `list`s and `string`s. Each passed type may result in different behavior therefore it is advisable to take a look at each of their specific signatures."
       example:
-        - "print(\"List has index: \" + [1, 2, 3].hasIndex(2)"
+        - "print(\"List has index: \" + [1, 2, 3].hasIndex(2))"
       isProtected: false
       returns:
         - number
@@ -271,7 +271,7 @@ definitions:
       description: "Depending on the data type, this function will remove a value in the provided object, potentially mutating the object. This method works with `map`s, `list`s, and `string`s. Each passed type may support different types for the `key` argument. For example, using this method on a string would treat the key as a character index. Therefore, it is advised to review the signatures of each type. Passing a key with the type `null` may cause an error to be thrown, preventing further script execution."
       example:
         - "list = [9, 3, 5, 7]"
-        - list.remove(5)
+        - list.remove(2)
         - "print(\"List after removal: \" + list.join(\", \"))"
       isProtected: false
       returns:
@@ -389,7 +389,7 @@ descriptions:
   hasIndex:
     description: "Verifies if an index is available within an object. In case of success this method will return a `number` with the value one. In case of failure the value will be a zero. This method supports `map`s, `list`s and `string`s. Each passed type may result in different behavior therefore it is advisable to take a look at each of their specific signatures."
     example:
-      - "print(\"List has index: \" + [1, 2, 3].hasIndex(2)"
+      - "print(\"List has index: \" + [1, 2, 3].hasIndex(2))"
   indexOf:
     description: "Lookups index of value within `map`s, `list`s, or `string`s. For `list`s and `string`s, the behavior is very similar. On success, you'll receive a `number` representing the found index. On failure, it will return `null`. For `map`s, it's a bit different since the returned value could be of any type. On failure, it will return `null` as well."
     example:
@@ -432,7 +432,7 @@ descriptions:
     description: "Depending on the data type, this function will remove a value in the provided object, potentially mutating the object. This method works with `map`s, `list`s, and `string`s. Each passed type may support different types for the `key` argument. For example, using this method on a string would treat the key as a character index. Therefore, it is advised to review the signatures of each type. Passing a key with the type `null` may cause an error to be thrown, preventing further script execution."
     example:
       - "list = [9, 3, 5, 7]"
-      - list.remove(5)
+      - list.remove(2)
       - "print(\"List after removal: \" + list.join(\", \"))"
   shuffle:
     description: "Randomizes content of an object. Valid data types for this method are `list` and `map`. In case a map-like object such as a `file` or `computer` a runtime exception will be thrown."

@@ -7,9 +7,15 @@ mod program;
 pub mod protocol;
 mod runtime;
 mod uri;
+mod world;
 
 pub use editor::EditorHost;
-pub use program::mock_world_server;
+pub use program::PLAYER_USER;
 pub use runtime::{Controller, Host, Io, Runtime, Yielder};
 #[cfg(not(target_family = "wasm"))]
-pub use runtime::{connect_on_tokio, connect_over_tcp};
+pub use world::machine::{
+    DEFAULT_IDLE_TIMEOUT, DEFAULT_PORT, ServerCommand, SharedWorld, SharedWorldFailure,
+};
+#[cfg(not(target_family = "wasm"))]
+pub use world::tcp::connect_over_tcp;
+pub use world::{LaunchWorld, WorldFactory, WorldFuture};

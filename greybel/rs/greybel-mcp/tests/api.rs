@@ -2,12 +2,12 @@
 
 use serde_json::json;
 
-use crate::support::{Client, OPTIONS, run};
+use crate::support::{Client, options, run};
 
 #[test]
 fn should_read_the_api_reference() {
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
 
         let (matches, _) = client
             .call("api_search", json!({ "query": "shell.host" }))

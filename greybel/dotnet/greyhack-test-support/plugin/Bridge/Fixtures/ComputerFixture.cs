@@ -36,9 +36,7 @@ internal sealed class ComputerFixture(Player player)
     public Reply Configure(ConfigureComputerRpc request)
     {
         Computer computer =
-            request.LocalIp.Length == 0
-                ? player.Computer
-                : player.GetLanComputer(request.LocalIp);
+            request.LocalIp.Length == 0 ? player.Computer : player.GetLanComputer(request.LocalIp);
         switch (request.Fixture)
         {
             case "permissions":
@@ -65,7 +63,8 @@ internal sealed class ComputerFixture(Player player)
                 break;
             case "ethernet_home":
                 EnsureEthernet(computer);
-                ((PlayerComputer)computer).GetPlayerConfigOS().rentalHomeIP = computer.GetPublicIP();
+                ((PlayerComputer)computer).GetPlayerConfigOS().rentalHomeIP =
+                    computer.GetPublicIP();
                 break;
             case "missing_isp":
                 EnsureEthernet(computer);
@@ -73,7 +72,9 @@ internal sealed class ComputerFixture(Player player)
                 break;
             case "deep_tree":
                 string owner = computer.GetUsers().First().nombreUsuario;
-                computer.GetFileSystem().GetLastFolder("/" + string.Join("/", Enumerable.Repeat("d", 16)), owner);
+                computer
+                    .GetFileSystem()
+                    .GetLastFolder("/" + string.Join("/", Enumerable.Repeat("d", 16)), owner);
                 break;
             case "low_ram":
                 Hardware lowRam = computer.GetHardware();
@@ -84,7 +85,13 @@ internal sealed class ComputerFixture(Player player)
             case "terminal_limit":
                 while (computer.GetProcesos().Count(process => process.isTerminal) < 15)
                 {
-                    computer.AddProcess("Terminal", "root", Computer.GetRamUsage("Terminal"), false, true);
+                    computer.AddProcess(
+                        "Terminal",
+                        "root",
+                        Computer.GetRamUsage("Terminal"),
+                        false,
+                        true
+                    );
                 }
                 break;
             case "rebooting":
@@ -98,17 +105,26 @@ internal sealed class ComputerFixture(Player player)
                 break;
             case "missing_ssh_service":
                 while (computer.RemoveServicio(ServicioID.ssh)) { }
-                computer.GetConfigOS().puertos.allPorts.RemoveAll(port => port.ID == ServicioID.ssh);
+                computer
+                    .GetConfigOS()
+                    .puertos.allPorts.RemoveAll(port => port.ID == ServicioID.ssh);
                 if (computer.ExisteServicio(ServicioID.ssh))
                 {
-                    throw new InvalidOperationException("The SSH service fixture still has a registered service");
+                    throw new InvalidOperationException(
+                        "The SSH service fixture still has a registered service"
+                    );
                 }
                 break;
             case "unreachable":
                 computer.GetMainRouter().GetNetworkLan().routerDevice.localIp = "0.0.0.0";
                 break;
             case "firewall_deny":
-                foreach (HwFirewallRule rule in computer.GetMainRouter().GetNetworkLan().routerDevice.firewallRules)
+                foreach (
+                    HwFirewallRule rule in computer
+                        .GetMainRouter()
+                        .GetNetworkLan()
+                        .routerDevice.firewallRules
+                )
                 {
                     rule.action = HwFirewallRule.Action.DENY;
                 }
@@ -134,14 +150,25 @@ internal sealed class ComputerFixture(Player player)
                 kernelFolder.RemoveFichero(kernelFolder.GetFichero("kernel_router.so"), true);
                 break;
             case "invalid_kernel":
-                FileSystem.Carpeta invalidKernelFolder = computer.GetFileSystem().GetCarpeta("/lib");
-                invalidKernelFolder.AddFile(new FileSystem.Archivo("kernel_router.so", "not a kernel", "root", false, true));
+                FileSystem.Carpeta invalidKernelFolder = computer
+                    .GetFileSystem()
+                    .GetCarpeta("/lib");
+                invalidKernelFolder.AddFile(
+                    new FileSystem.Archivo("kernel_router.so", "not a kernel", "root", false, true)
+                );
                 break;
             case "symlink_kernel":
-                computer.GetFileSystem().GetArchivo("/lib/kernel_router.so").SetSymlink("/lib/kernel_router.so");
+                computer
+                    .GetFileSystem()
+                    .GetArchivo("/lib/kernel_router.so")
+                    .SetSymlink("/lib/kernel_router.so");
                 break;
             case "closed_ports":
-                foreach (Router router in player.GetRouterInstances(computer.GetMainRouter().GetLocalIP()))
+                foreach (
+                    Router router in player.GetRouterInstances(
+                        computer.GetMainRouter().GetLocalIP()
+                    )
+                )
                 {
                     foreach (Puerto port in router.GetConfigOS().puertos.allPorts)
                     {
@@ -154,29 +181,55 @@ internal sealed class ComputerFixture(Player player)
                 computer.GetFileSystem().GetCarpeta("/home/test").SetPermisos("dr-xr-xr-x");
                 break;
             case "crypto_files":
-                FileSystem.Carpeta cryptoHome = computer.GetFileSystem().GetLastFolder("/home/test", "test");
-                cryptoHome.AddFile(new FileSystem.Archivo("plain.txt", "plain", "test", false, true));
-                cryptoHome.AddFile(new FileSystem.Archivo("malformed.cap", "not json", "root", true, true));
-                FileSystem.Carpeta noAccess = computer.GetFileSystem().GetLastFolder("/home/test/noaccess", "root");
+                FileSystem.Carpeta cryptoHome = computer
+                    .GetFileSystem()
+                    .GetLastFolder("/home/test", "test");
+                cryptoHome.AddFile(
+                    new FileSystem.Archivo("plain.txt", "plain", "test", false, true)
+                );
+                cryptoHome.AddFile(
+                    new FileSystem.Archivo("malformed.cap", "not json", "root", true, true)
+                );
+                FileSystem.Carpeta noAccess = computer
+                    .GetFileSystem()
+                    .GetLastFolder("/home/test/noaccess", "root");
                 noAccess.SetPermisos("d---------");
-                FileSystem.Archivo lockedCapture = new FileSystem.Archivo("locked.cap", "not json", "root", true, true);
+                FileSystem.Archivo lockedCapture = new FileSystem.Archivo(
+                    "locked.cap",
+                    "not json",
+                    "root",
+                    true,
+                    true
+                );
                 lockedCapture.SetPermisos("----------");
                 noAccess.AddFile(lockedCapture);
-                FileSystem.Archivo encryptedCapture = new FileSystem.Archivo("encrypted.cap", "not json", "root", true, true);
+                FileSystem.Archivo encryptedCapture = new FileSystem.Archivo(
+                    "encrypted.cap",
+                    "not json",
+                    "root",
+                    true,
+                    true
+                );
                 encryptedCapture.Encrypt("hunter2");
                 cryptoHome.AddFile(encryptedCapture);
-                string missingCapture = JsonConvert.SerializeObject(new
-                {
-                    power = 1,
-                    numAcks = 300000,
-                    bssid = "00:00:00:00:00:00",
-                    essid = "missing",
-                    origPublicIp = computer.GetPublicIP()
-                });
-                cryptoHome.AddFile(new FileSystem.Archivo("missing_router.cap", missingCapture, "root", true, true));
+                string missingCapture = JsonConvert.SerializeObject(
+                    new
+                    {
+                        power = 1,
+                        numAcks = 300000,
+                        bssid = "00:00:00:00:00:00",
+                        essid = "missing",
+                        origPublicIp = computer.GetPublicIP(),
+                    }
+                );
+                cryptoHome.AddFile(
+                    new FileSystem.Archivo("missing_router.cap", missingCapture, "root", true, true)
+                );
                 break;
             case "distant_router":
-                ServerMap.RouterNode distantNode = Database.Singleton.GetRouterNode(computer.GetPublicIP());
+                ServerMap.RouterNode distantNode = Database.Singleton.GetRouterNode(
+                    computer.GetPublicIP()
+                );
                 distantNode.routerPos = new CustomVector.Vector2(
                     distantNode.routerPos.x + 1f,
                     distantNode.routerPos.y
@@ -184,7 +237,11 @@ internal sealed class ComputerFixture(Player player)
                 Database.Singleton.SyncServerMap(distantNode);
                 break;
             case "unsupported_monitor":
-                foreach (Hardware.NetworkDevice card in computer.GetHardware().networkDevices.Where(card => card.isWifi))
+                foreach (
+                    Hardware.NetworkDevice card in computer
+                        .GetHardware()
+                        .networkDevices.Where(card => card.isWifi)
+                )
                 {
                     card.monitorSupport = false;
                 }
@@ -195,10 +252,14 @@ internal sealed class ComputerFixture(Player player)
                 break;
             case "missing_smtp_service":
                 while (computer.RemoveServicio(ServicioID.smtp)) { }
-                computer.GetConfigOS().puertos.allPorts.RemoveAll(port => port.ID == ServicioID.smtp);
+                computer
+                    .GetConfigOS()
+                    .puertos.allPorts.RemoveAll(port => port.ID == ServicioID.smtp);
                 break;
             case "malformed_metaxploit":
-                FileSystem.Archivo badLibrary = computer.GetFileSystem().GetArchivo("/lib/metaxploit.so");
+                FileSystem.Archivo badLibrary = computer
+                    .GetFileSystem()
+                    .GetArchivo("/lib/metaxploit.so");
                 badLibrary.SetContentId(Computer.Md5Sum("not json"), "");
                 Database.Singleton.SetContenido(badLibrary, "not json", "");
                 break;
@@ -207,12 +268,25 @@ internal sealed class ComputerFixture(Player player)
                     XmlGlobal.Singleton.tipoServidor.GetServicio(ServicioID.ssh),
                     11022
                 );
-                foreach (Router router in player.GetRouterInstances(computer.GetMainRouter().GetLocalIP()))
+                foreach (
+                    Router router in player.GetRouterInstances(
+                        computer.GetMainRouter().GetLocalIP()
+                    )
+                )
                 {
-                    router.GetConfigOS().puertos.AddPuerto(
-                        new Puerto(ServicioID.ssh, 11022, 11022, false, true, computer.GetLocalIP()),
-                        computer.GetLocalIP()
-                    );
+                    router
+                        .GetConfigOS()
+                        .puertos.AddPuerto(
+                            new Puerto(
+                                ServicioID.ssh,
+                                11022,
+                                11022,
+                                false,
+                                true,
+                                computer.GetLocalIP()
+                            ),
+                            computer.GetLocalIP()
+                        );
                     Database.Singleton.SyncConfigOS(router);
                 }
                 break;
@@ -223,7 +297,10 @@ internal sealed class ComputerFixture(Player player)
                 computer.GetFileSystem().GetArchivo("/etc/apt/aptcache.bin").SetBinario(true);
                 break;
             case "apt_cache_malformed":
-                computer.GetFileSystem().GetArchivo("/etc/apt/aptcache.bin").SetContenido("not json", true);
+                computer
+                    .GetFileSystem()
+                    .GetArchivo("/etc/apt/aptcache.bin")
+                    .SetContenido("not json", true);
                 break;
             case "apt_cache_empty":
                 computer.GetFileSystem().GetArchivo("/etc/apt/aptcache.bin").SetContenido("", true);
@@ -236,19 +313,24 @@ internal sealed class ComputerFixture(Player player)
                 break;
             case "apt_sources_malformed":
                 computer.GetFileSystem().GetArchivo("/etc/apt/sources.txt").SetBinario(false);
-                computer.GetFileSystem().GetArchivo("/etc/apt/sources.txt").SetContenido("not json", true);
+                computer
+                    .GetFileSystem()
+                    .GetArchivo("/etc/apt/sources.txt")
+                    .SetContenido("not json", true);
                 break;
             case "apt_sources_unknown":
-                computer.GetFileSystem().ForceAddFile(
-                    new FileSystem.Archivo(
-                        "sources.txt",
-                        "{\"official_server\":false,\"sourceList\":{\"ghost.org\":0}}",
-                        "root",
-                        false,
-                        true
-                    ),
-                    "/etc/apt"
-                );
+                computer
+                    .GetFileSystem()
+                    .ForceAddFile(
+                        new FileSystem.Archivo(
+                            "sources.txt",
+                            "{\"official_server\":false,\"sourceList\":{\"ghost.org\":0}}",
+                            "root",
+                            false,
+                            true
+                        ),
+                        "/etc/apt"
+                    );
                 break;
             case "repository_missing_db":
                 RemoveEntry(computer, "/server/conf/repod.conf");
@@ -257,7 +339,10 @@ internal sealed class ComputerFixture(Player player)
                 computer.GetFileSystem().GetArchivo("/server/conf/repod.conf").SetBinario(true);
                 break;
             case "repository_malformed_db":
-                computer.GetFileSystem().GetArchivo("/server/conf/repod.conf").SetContenido("not json", true);
+                computer
+                    .GetFileSystem()
+                    .GetArchivo("/server/conf/repod.conf")
+                    .SetContenido("not json", true);
                 break;
             case "repository_missing_folder":
                 RemoveEntry(computer, "/Public/htdocs/downloads");
@@ -265,7 +350,10 @@ internal sealed class ComputerFixture(Player player)
             case "repository_missing_package":
                 foreach (string package in new[] { "metaxploit.so", "scanlib" })
                 {
-                    if (computer.GetFileSystem().GetFichero("/Public/htdocs/downloads/" + package) != null)
+                    if (
+                        computer.GetFileSystem().GetFichero("/Public/htdocs/downloads/" + package)
+                        != null
+                    )
                     {
                         RemoveEntry(computer, "/Public/htdocs/downloads/" + package);
                     }
@@ -273,23 +361,34 @@ internal sealed class ComputerFixture(Player player)
                 break;
             case "repository_empty_package":
             case "repository_malformed_package":
-                FileSystem.Archivo badPackage = computer.GetFileSystem().GetArchivo("/Public/htdocs/downloads/metaxploit.so");
-                string packageContent = request.Fixture == "repository_empty_package" ? "" : "not json";
+                FileSystem.Archivo badPackage = computer
+                    .GetFileSystem()
+                    .GetArchivo("/Public/htdocs/downloads/metaxploit.so");
+                string packageContent =
+                    request.Fixture == "repository_empty_package" ? "" : "not json";
                 badPackage.SetContentId(Computer.Md5Sum(packageContent), "");
                 Database.Singleton.SetContenido(badPackage, packageContent, "");
                 break;
             case "repository_service_down":
                 while (computer.RemoveServicio(ServicioID.repository)) { }
-                computer.GetConfigOS().puertos.allPorts.RemoveAll(port => port.ID == ServicioID.repository);
+                computer
+                    .GetConfigOS()
+                    .puertos.allPorts.RemoveAll(port => port.ID == ServicioID.repository);
                 break;
             case "missing_traffic_workstation":
                 NetworkLan trafficNetwork = computer.GetMainRouter().GetNetworkLan();
                 NpcInfo trafficNpc =
                     trafficNetwork.GetNpcInfoTrafficCrecentials()
                     ?? NpcFixture.EnsureNpc(trafficNetwork, computer.GetMainRouter());
-                Traverse.Create(trafficNetwork).Field("trafficCredentials").SetValue(trafficNpc.GetSurname());
-                LanPcInfo workstation = trafficNetwork.GetLanPcInfo(computer.GetID())
-                    ?? throw new InvalidOperationException("The traffic fixture has no target workstation");
+                Traverse
+                    .Create(trafficNetwork)
+                    .Field("trafficCredentials")
+                    .SetValue(trafficNpc.GetSurname());
+                LanPcInfo workstation =
+                    trafficNetwork.GetLanPcInfo(computer.GetID())
+                    ?? throw new InvalidOperationException(
+                        "The traffic fixture has no target workstation"
+                    );
                 trafficNpc.SetLocalIP(workstation.localIp);
                 workstation.SetHidden(true);
                 break;
@@ -301,10 +400,19 @@ internal sealed class ComputerFixture(Player player)
                 );
                 foreach (Router router in player.GetRouterInstances(targetRouter.GetLocalIP()))
                 {
-                    router.GetConfigOS().puertos.AddPuerto(
-                        new Puerto(ServicioID.ssh, 22, 22, false, true, targetRouter.GetLocalIP()),
-                        targetRouter.GetLocalIP()
-                    );
+                    router
+                        .GetConfigOS()
+                        .puertos.AddPuerto(
+                            new Puerto(
+                                ServicioID.ssh,
+                                22,
+                                22,
+                                false,
+                                true,
+                                targetRouter.GetLocalIP()
+                            ),
+                            targetRouter.GetLocalIP()
+                        );
                     Database.Singleton.SyncConfigOS(router);
                 }
                 break;

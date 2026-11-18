@@ -11,7 +11,7 @@ use greybel_project::Place;
 use greybel_runtime::protocol::Exit;
 
 use super::block_on;
-use super::options::{ProjectOptions, Simulation, SourceOptions, current_folder};
+use super::options::{ProjectOptions, Simulation, SourceOptions, WorldOptions, current_folder};
 use crate::report::{self, Failure};
 use crate::terminal::{RichTextScreen, TerminalHost};
 
@@ -32,6 +32,8 @@ pub struct ReplCommand {
     simulation: Simulation,
     #[command(flatten)]
     sources: SourceOptions,
+    #[command(flatten)]
+    world: WorldOptions,
 }
 
 impl ReplCommand {
@@ -57,8 +59,10 @@ impl ReplCommand {
             ..ParserOptions::new(Dialect::GreyScript)
         };
 
+        let world = self.world.source()?;
+
         report::exit(block_on(async move {
-            let (controller, mut stops) = TerminalHost::start(memory, None, split_rule);
+            let (controller, mut stops) = TerminalHost::start(memory, world, split_rule);
             let mut exit = pin!(controller.launch(launch));
 
             tokio::select! {

@@ -2,7 +2,11 @@
   <!-- A BepInEx plugin's version as a constant its BepInPlugin attribute can take: a project setting
        PluginInfoNamespace gets PluginInfo.PLUGIN_VERSION = $(Version) in that namespace (its PluginInfo is partial),
        so the version reman writes is the one the plugin declares. -->
-  <Target Name="WritePluginVersion" BeforeTargets="BeforeCompile" Condition="'$(PluginInfoNamespace)' != ''">
+  <Target
+    Name="WritePluginVersion"
+    BeforeTargets="BeforeCompile"
+    Condition="'$(PluginInfoNamespace)' != ''"
+  >
     <PropertyGroup>
       <PluginVersionFile>$(IntermediateOutputPath)PluginInfo.Version.g.cs</PluginVersionFile>
     </PropertyGroup>

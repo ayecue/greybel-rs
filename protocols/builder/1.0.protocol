@@ -60,12 +60,14 @@ struct TranspileSettings {
     excluded_names: list<string>,
     /// Greybel syntax features turned off, by their `greybel.json` names (e.g. `ternary`); absent turns none off.
     disabled_syntax?: list<string>,
-    /// Absent writes `Concatenation`.
+    /// Absent writes `Replace`.
     multiline_strings?: MultilineStringStyle,
 }
 
 /// How a build writes a string with line breaks, which Grey Hack's parser does not accept.
 enum MultilineStringStyle {
+    /// `"a¶b".replace("¶",char(10))`, with a marker character the string doesn't contain.
+    Replace,
     /// `"a"+__NL+"b"` with `__NL=char(10)`.
     Concatenation,
     /// `__MSTR(["a","b"])`, which joins the lines with `char(10)`.

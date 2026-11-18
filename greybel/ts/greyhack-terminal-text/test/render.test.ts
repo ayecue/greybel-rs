@@ -3,10 +3,10 @@ import { execFileSync } from 'node:child_process';
 import { afterEach, beforeAll, describe, expect, inject, it } from 'vitest';
 
 import { Render, RichText } from '../src/index.js';
-import { BUILD_TIMEOUT, processes, start } from './support/runtime.js';
+import { BUILD_TIMEOUT, EXAMPLE, processes, start } from './support/runtime.js';
 
 beforeAll(() => {
-  execFileSync('cargo', ['build', '--quiet', '--package', 'greybel-runtime-stdio'], {
+  execFileSync('cargo', ['build', '--quiet', '--package', 'greyhack-terminal-text', '--example', EXAMPLE], {
     cwd: inject('rust'),
     stdio: 'inherit'
   });
@@ -16,7 +16,7 @@ afterEach(() => {
   for (const child of processes.splice(0)) child.kill();
 });
 
-describe('the renderer of the Rust runtime over standard input and output', () => {
+describe('the Rust terminal renderer over standard input and output', () => {
   it('should render rich text as ANSI escape sequences, laid out at the columns', async () => {
     const terminal = start();
 

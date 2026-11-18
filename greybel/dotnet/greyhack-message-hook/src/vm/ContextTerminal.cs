@@ -245,7 +245,10 @@ namespace GreyHackMessageHook
                 Stop(download);
                 download = null;
 
-                MessageServer cancelDownload = new MessageServer(IdServer.CancelDownloadServerRpc, pid);
+                MessageServer cancelDownload = new MessageServer(
+                    IdServer.CancelDownloadServerRpc,
+                    pid
+                );
                 Send(cancelDownload);
             }
             else if (decipher != null)

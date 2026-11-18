@@ -114,7 +114,7 @@ definitions:
       description: "Connects to SSH or FTP and returns a shell, or an error `string` on failure. Invalid arguments and missing internet now return strings. Valid credentials for a dead or fired NPC return `\"This account is disabled.\"`; SSH encryption still raises."
       example:
         - shell = get_shell
-        - "connectionResult = shell.connect_service(\"1.1.1.1\", 22, \"test\", \"test\")"
+        - "connectionResult = shell.connect_service(\"12.12.12.12\", 22, \"test\", \"test\")"
         - "if typeof(connectionResult) != \"shell\" then"
         - "   print(\"There was an error while connecting: \" + connectionResult)"
         - else
@@ -251,7 +251,7 @@ definitions:
       description: "Returns one for a reachable address, zero for an unreachable one, and an error `string` for invalid input. Signature mismatches return `\"ping: Invalid arguments\"` instead of raising."
       example:
         - shell = get_shell
-        - "isPingable = shell.ping(\"1.1.1.1\")"
+        - "isPingable = shell.ping(\"12.12.12.12\")"
         - if isPingable then
         - "   print(\"Ping was successful!\")"
         - else
@@ -314,7 +314,7 @@ definitions:
       description: "Copies files between shells and returns one on complete success. Invalid arguments return `\"scp: Invalid arguments\"`. If nested items are skipped, returns `\"Warning: one or more files or folders cannot be copied.\"`; SSH encryption still raises."
       example:
         - shell = get_shell
-        - "remoteShell = shell.connect_service(\"1.1.1.1\", 22, \"test\", \"test\")"
+        - "remoteShell = shell.connect_service(\"12.12.12.12\", 22, \"test\", \"test\")"
         - "result = remoteShell.scp(\"/bin/ls\", \"/etc/\", shell)"
         - "if typeof(result) == \"string\" then"
         - "   print(\"There was an error while sending file: \" + result)"
@@ -416,7 +416,7 @@ descriptions:
     description: "Connects to SSH or FTP and returns a shell, or an error `string` on failure. Invalid arguments and missing internet now return strings. Valid credentials for a dead or fired NPC return `\"This account is disabled.\"`; SSH encryption still raises."
     example:
       - shell = get_shell
-      - "connectionResult = shell.connect_service(\"1.1.1.1\", 22, \"test\", \"test\")"
+      - "connectionResult = shell.connect_service(\"12.12.12.12\", 22, \"test\", \"test\")"
       - "if typeof(connectionResult) != \"shell\" then"
       - "   print(\"There was an error while connecting: \" + connectionResult)"
       - else
@@ -437,7 +437,7 @@ descriptions:
     description: "Returns one for a reachable address, zero for an unreachable one, and an error `string` for invalid input. Signature mismatches return `\"ping: Invalid arguments\"` instead of raising."
     example:
       - shell = get_shell
-      - "isPingable = shell.ping(\"1.1.1.1\")"
+      - "isPingable = shell.ping(\"12.12.12.12\")"
       - if isPingable then
       - "   print(\"Ping was successful!\")"
       - else
@@ -447,7 +447,7 @@ descriptions:
     description: "Copies files between shells and returns one on complete success. Invalid arguments return `\"scp: Invalid arguments\"`. If nested items are skipped, returns `\"Warning: one or more files or folders cannot be copied.\"`; SSH encryption still raises."
     example:
       - shell = get_shell
-      - "remoteShell = shell.connect_service(\"1.1.1.1\", 22, \"test\", \"test\")"
+      - "remoteShell = shell.connect_service(\"12.12.12.12\", 22, \"test\", \"test\")"
       - "result = remoteShell.scp(\"/bin/ls\", \"/etc/\", shell)"
       - "if typeof(result) == \"string\" then"
       - "   print(\"There was an error while sending file: \" + result)"

@@ -4,9 +4,6 @@ mod command;
 mod controller;
 mod host;
 mod state;
-#[cfg(not(target_family = "wasm"))]
-#[cfg(not(target_family = "wasm"))]
-mod tokio_world;
 mod yielder;
 
 use std::pin::pin;
@@ -18,15 +15,12 @@ use futures_util::future::{Either, select};
 pub use host::{Host, Io};
 pub(crate) use state::RuntimeState;
 use tokio::sync::mpsc;
-#[cfg(not(target_family = "wasm"))]
-#[cfg(not(target_family = "wasm"))]
-pub use tokio_world::{connect_on_tokio, connect_over_tcp};
 pub use yielder::Yielder;
 
 #[cfg(feature = "game")]
 use crate::program::GameProgram;
 use crate::program::MockProgram;
-use crate::protocol::{Environment, Exit, Launch, LaunchFailure};
+use crate::protocol::{Environment, Exit, Launch, LaunchFailure, RunUser};
 
 /// Executes one program at a time with host resources and controller commands.
 pub struct Runtime<H: Host> {
@@ -92,13 +86,18 @@ impl<H: Host> Runtime<H> {
         self.state.breakpoints.borrow_mut().reset_hits();
 
         match &launch.environment {
-            Environment::Mock { seed, memory_limit } => {
+            Environment::Mock {
+                seed,
+                memory_limit,
+                user,
+            } => {
                 MockProgram::run(
                     &self.state,
                     &mut self.commands,
                     &launch,
                     seed,
                     *memory_limit,
+                    user.unwrap_or(RunUser::User),
                 )
                 .await
             }

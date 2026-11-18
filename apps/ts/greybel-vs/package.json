@@ -86,6 +86,20 @@
     "onLanguage:greyscript"
   ],
   "contributes": {
+    "themes": [
+      {
+        "label": "Grey Hack",
+        "uiTheme": "vs-dark",
+        "path": "./themes/grey-hack-color-theme.json"
+      }
+    ],
+    "semanticTokenTypes": [
+      {
+        "id": "punctuator",
+        "superType": "operator",
+        "description": "Brackets, commas, dots and colons."
+      }
+    ],
     "menus": {
       "editor/title/run": [
         {
@@ -642,11 +656,43 @@
             "minimum": 0,
             "description": "With greybel.interpreter.lineLimits.textPerLine: also cuts lines whose tags take more than this many characters. Empty for no limit."
           },
+          "greybel.world.port": {
+            "type": "integer",
+            "default": 41740,
+            "minimum": 0,
+            "maximum": 65535,
+            "description": "Port of the world server that the windows and greybel commands of this machine share. When none runs there, the first debug session starts it. 0 starts a world server for this window."
+          },
+          "greybel.world.idleTimeout": {
+            "type": "integer",
+            "default": 600,
+            "minimum": 0,
+            "description": "Seconds without connections after which a shared world server this window starts stops. 0 never stops it."
+          },
+          "greybel.world.folder": {
+            "type": "string",
+            "default": "",
+            "description": "Folder in which world servers this window starts save the world of each seed. Empty for greybel/worlds in the user's data folder."
+          },
+          "greybel.interpreter.user": {
+            "scope": "resource",
+            "type": "string",
+            "enum": [
+              "User",
+              "Root"
+            ],
+            "enumDescriptions": [
+              "The player's user, with its home folder in /home.",
+              "root, with its home folder /root, as after sudo -s in the game."
+            ],
+            "default": "User",
+            "description": "Account a mock program runs as on the player's computer."
+          },
           "greybel.interpreter.seed": {
             "scope": "resource",
             "type": "string",
             "default": "test",
-            "description": "Seed for the mock world shared by all debug sessions in the window. A new seed starts a new world."
+            "description": "Seed for the mock world of debug sessions. Sessions use the shared world server when it runs this seed, and a world server for this window otherwise."
           },
           "greybel.interpreter.environmentVariables": {
             "type": "object",
@@ -737,14 +783,16 @@
           "greybel.transpiler.multilineStrings": {
             "type": "string",
             "enum": [
+              "Replace",
               "Concatenation",
               "Join"
             ],
             "enumDescriptions": [
+              "\"a¶b\".replace(\"¶\",char(10)) with a marker character the string doesn't contain. About the size of the source, and one pass at run time.",
               "\"a\"+__NL+\"b\" with __NL=char(10). Each + copies the string built so far, so strings with many lines are slow to build.",
               "__MSTR([\"a\",\"b\"]), a function that joins the lines with char(10) in one pass."
             ],
-            "default": "Concatenation",
+            "default": "Replace",
             "description": "How builds write strings with line breaks, which Grey Hack does not accept.",
             "scope": "resource"
           },

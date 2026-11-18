@@ -88,7 +88,7 @@ impl Default for BuildSettings {
             disable_literals_optimization: false,
             disable_namespaces_optimization: false,
             excluded_namespaces: Vec::new(),
-            multiline_strings: MultilineStringStyle::Concatenation,
+            multiline_strings: MultilineStringStyle::Replace,
             ingame_directory: BuildOptions::DEFAULT_INGAME_DIRECTORY.to_owned(),
             auto_compile: true,
             installer: InstallerSettings::default(),
@@ -121,8 +121,11 @@ pub enum BuildMode {
 /// How builds write a string with line breaks.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub enum MultilineStringStyle {
-    /// `"a"+__NL+"b"` with `__NL=char(10)`; slow for many lines, as each `+` copies the string built so far.
+    /// `"a¶b".replace("¶",char(10))`, with a marker character the string doesn't contain: about the source's size, and
+    /// one pass at run time. A string containing every marker is written as `Concatenation`.
     #[default]
+    Replace,
+    /// `"a"+__NL+"b"` with `__NL=char(10)`; slow for many lines, as each `+` copies the string built so far.
     Concatenation,
     /// `__MSTR(["a","b"])`, a function that joins the lines with `char(10)` in one pass.
     Join,

@@ -819,7 +819,7 @@ definitions:
         - hostComputer = get_shell.host_computer
         - "lsBinary = hostComputer.File(\"/bin/ls\")"
         - "ownerResult = lsBinary.set_group(\"root\")"
-        - "if typeof(ownerResult) == \"string\" then"
+        - "if ownerResult != \"\" then"
         - "   print(\"There was an error while changing group: \" + ownerResult)"
         - else
         - "   print(\"File group changed successfully.\")"
@@ -871,7 +871,7 @@ definitions:
         - hostComputer = get_shell.host_computer
         - "lsBinary = hostComputer.File(\"/bin/ls\")"
         - "ownerResult = lsBinary.set_owner(\"root\")"
-        - "if typeof(ownerResult) == \"string\" then"
+        - "if ownerResult != \"\" then"
         - "   print(\"There was an error while changing owner: \" + ownerResult)"
         - else
         - "   print(\"File owner changed successfully.\")"
@@ -1206,7 +1206,7 @@ descriptions:
       - hostComputer = get_shell.host_computer
       - "lsBinary = hostComputer.File(\"/bin/ls\")"
       - "ownerResult = lsBinary.set_group(\"root\")"
-      - "if typeof(ownerResult) == \"string\" then"
+      - "if ownerResult != \"\" then"
       - "   print(\"There was an error while changing group: \" + ownerResult)"
       - else
       - "   print(\"File group changed successfully.\")"
@@ -1217,7 +1217,7 @@ descriptions:
       - hostComputer = get_shell.host_computer
       - "lsBinary = hostComputer.File(\"/bin/ls\")"
       - "ownerResult = lsBinary.set_owner(\"root\")"
-      - "if typeof(ownerResult) == \"string\" then"
+      - "if ownerResult != \"\" then"
       - "   print(\"There was an error while changing owner: \" + ownerResult)"
       - else
       - "   print(\"File owner changed successfully.\")"

@@ -16,17 +16,20 @@ pub enum LiteralStyle {
     Output,
 }
 
+/// Characters a `Replace` build writes in place of line breaks, one UTF-16 unit each, so the game counts one character
+/// per line break; none is special to Grey Hack's `replace`.
+const LINE_BREAK_MARKERS: &[char] = &[
+    '¶', '¤', '§', '¦', '¬', 'µ', '¢', '£', '¥', '¨', '¯', '°', '±', '×', '÷',
+];
+
+const LINE_BREAK_CALL: &str = "char(10)";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LineBreakStyle<'a> {
     Retain,
-    Join {
-        function: &'a str,
-        compact: bool,
-    },
-    Concatenate {
-        variable: &'a str,
-        compact: bool,
-    },
+    Join { function: &'a str, compact: bool },
+    Concatenate { variable: &'a str, compact: bool },
+    Replace { compact: bool },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -98,6 +101,10 @@ impl fmt::Display for LiteralText<'_> {
                 LineBreakStyle::Concatenate { variable, compact } if self.rewrites() => {
                     self.write_concatenation(f, variable, compact)
                 }
+                LineBreakStyle::Replace { compact } if self.rewrites() => match self.marker() {
+                    Some(marker) => self.write_replacement(f, marker, compact),
+                    None => self.write_concatenation(f, LINE_BREAK_CALL, compact),
+                },
                 _ if !self.source.starts_with(QUOTE) => {
                     write!(f, "{QUOTE}{}{QUOTE}", self.source.replace(QUOTE, "\"\""))
                 }
@@ -125,17 +132,13 @@ impl<'a> LineBreakStyle<'a> {
                 variable: helper,
                 compact,
             },
+            MultilineStringStyle::Replace => Self::Replace { compact },
         }
     }
 
     #[must_use]
     pub fn rewrites(self) -> bool {
         !matches!(self, Self::Retain)
-    }
-
-    #[must_use]
-    pub fn concatenates(self) -> bool {
-        matches!(self, Self::Concatenate { .. })
     }
 }
 
@@ -152,9 +155,46 @@ impl LiteralText<'_> {
         source.contains(['\n', '\r'])
     }
 
+    /// Whether the text is a `+` chain, which needs parentheses as an operand.
     #[must_use]
     pub fn concatenates(&self) -> bool {
-        self.line_breaks.concatenates() && self.rewrites()
+        self.rewrites()
+            && match self.line_breaks {
+                LineBreakStyle::Concatenate { .. } => true,
+                LineBreakStyle::Replace { .. } => self.marker().is_none(),
+                LineBreakStyle::Retain | LineBreakStyle::Join { .. } => false,
+            }
+    }
+
+    fn marker(&self) -> Option<char> {
+        LINE_BREAK_MARKERS
+            .iter()
+            .copied()
+            .find(|&marker| !self.source.contains(marker))
+    }
+
+    fn write_replacement(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        marker: char,
+        compact: bool,
+    ) -> fmt::Result {
+        let separator = if compact { "," } else { ", " };
+
+        f.write_str(QUOTE)?;
+
+        for (index, line) in self.lines().enumerate() {
+            if index > 0 {
+                write!(f, "{marker}")?;
+            }
+
+            f.write_str(line)?;
+        }
+
+        write!(
+            f,
+            "{QUOTE}.replace({QUOTE}{marker}{QUOTE}{separator}{LINE_BREAK_CALL})"
+        )
     }
 
     fn lines(&self) -> impl Iterator<Item = &str> {

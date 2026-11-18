@@ -14,6 +14,7 @@ import {
   LaunchFailure,
   MultilineStringStyle,
   Pause,
+  RunUser,
   Scopes,
   SetBreakpoints,
   SetVariable,
@@ -122,7 +123,11 @@ export class RuntimeSession {
         entry: this.#paths.toUri(options.entry),
         root: this.#paths.rootUri,
         extensions: [...manifest.extensions],
-        environment: new Environment.Mock({ seed: options.seed, memoryLimit: manifest.run.memoryLimit }),
+        environment: new Environment.Mock({
+          seed: options.seed,
+          memoryLimit: manifest.run.memoryLimit,
+          user: RunUser[manifest.run.user]
+        }),
         debug: options.debug,
         stopOnEntry: false,
         params: [...manifest.run.params],
@@ -130,8 +135,7 @@ export class RuntimeSession {
         strictMode: manifest.strictMode,
         programName: manifest.run.programName,
         disabledSyntax: options.settings.disabledSyntax,
-        multilineStrings:
-          manifest.build.multilineStrings === 'Join' ? MultilineStringStyle.Join : MultilineStringStyle.Concatenation
+        multilineStrings: MultilineStringStyle[manifest.build.multilineStrings]
       })
     );
   }

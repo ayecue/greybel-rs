@@ -27,7 +27,6 @@ impl BitwiseOp {
     pub fn as_str(self) -> &'static str {
         self.punct().as_str()
     }
-
 }
 
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]

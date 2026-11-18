@@ -287,7 +287,7 @@ definitions:
       description: "Connects to a Wi-Fi network and returns one on success or an error `string` on failure. A rented computer cannot join another network and returns `\"connect_wifi: rented computers cannot connect to another network.\"`."
       example:
         - hostComputer = get_shell.host_computer
-        - networks = hostComputer.wifi_networks
+        - "networks = hostComputer.wifi_networks(\"wlan0\")"
         - "firstNetwork = networks[0].split(\" \")"
         - "BSSID = firstNetwork[0]"
         - "ESSID = firstNetwork[2]"
@@ -346,7 +346,7 @@ definitions:
             - string
       description: "Creates a folder and returns one on success or an error `string` on failure. Invalid argument types return `\"create_folder: Invalid arguments\"`; use during SSH encryption still raises a runtime error."
       example:
-        - "path = \"/home/\" + active_user + \"/Desktop\""
+        - "path = home_dir + \"/Desktop\""
         - hostComputer = get_shell.host_computer
         - "createResult = hostComputer.create_folder(path, \"myfolder\")"
         - "if typeof(createResult) == \"string\" then"
@@ -917,7 +917,7 @@ definitions:
             - string
       description: "Creates an empty text `file` at the provided path. Certain limitations apply to file creation: the `file` name must be alphanumeric and below 128 characters. Creation will fail if there is already a `file` in place or if permissions are lacking. Additionally, there is a file limit of about 250 in each folder and 3125 files in the computer overall. In case of success, it returns a `number` with the value one. In case of failure, it returns a `string` with details. Using this method in an SSH encryption process will cause an error to be thrown, preventing any further script execution."
       example:
-        - "path = \"/home/\" + active_user + \"/Desktop\""
+        - "path = home_dir + \"/Desktop\""
         - hostComputer = get_shell.host_computer
         - "createResult = hostComputer.touch(path, \"myFile.txt\")"
         - "if typeof(createResult) == \"string\" then"
@@ -1083,7 +1083,7 @@ descriptions:
     description: "Connects to a Wi-Fi network and returns one on success or an error `string` on failure. A rented computer cannot join another network and returns `\"connect_wifi: rented computers cannot connect to another network.\"`."
     example:
       - hostComputer = get_shell.host_computer
-      - networks = hostComputer.wifi_networks
+      - "networks = hostComputer.wifi_networks(\"wlan0\")"
       - "firstNetwork = networks[0].split(\" \")"
       - "BSSID = firstNetwork[0]"
       - "ESSID = firstNetwork[2]"
@@ -1096,7 +1096,7 @@ descriptions:
   create_folder:
     description: "Creates a folder and returns one on success or an error `string` on failure. Invalid argument types return `\"create_folder: Invalid arguments\"`; use during SSH encryption still raises a runtime error."
     example:
-      - "path = \"/home/\" + active_user + \"/Desktop\""
+      - "path = home_dir + \"/Desktop\""
       - hostComputer = get_shell.host_computer
       - "createResult = hostComputer.create_folder(path, \"myfolder\")"
       - "if typeof(createResult) == \"string\" then"
@@ -1230,7 +1230,7 @@ descriptions:
   touch:
     description: "Creates an empty text `file` at the provided path. Certain limitations apply to file creation: the `file` name must be alphanumeric and below 128 characters. Creation will fail if there is already a `file` in place or if permissions are lacking. Additionally, there is a file limit of about 250 in each folder and 3125 files in the computer overall. In case of success, it returns a `number` with the value one. In case of failure, it returns a `string` with details. Using this method in an SSH encryption process will cause an error to be thrown, preventing any further script execution."
     example:
-      - "path = \"/home/\" + active_user + \"/Desktop\""
+      - "path = home_dir + \"/Desktop\""
       - hostComputer = get_shell.host_computer
       - "createResult = hostComputer.touch(path, \"myFile.txt\")"
       - "if typeof(createResult) == \"string\" then"

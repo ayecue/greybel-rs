@@ -24,8 +24,6 @@ greybel-source-map.workspace = true
 greybel-transpiler.workspace = true
 greyscript-intrinsics.workspace = true
 greyhack-behaviour.workspace = true
-greyhack-world.workspace = true
-greyhack-world-operations.workspace = true
 futures-util.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
@@ -33,7 +31,7 @@ greyhack-message-hook-client = { workspace = true, optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 duplex-driver-stdio.workspace = true
-tokio = { workspace = true, features = ["net", "time"] }
+tokio = { workspace = true, features = ["net", "time", "process", "io-util"] }
 
 [features]
 # Runs programs in Grey Hack, through its message hook plugin: native only.
@@ -43,6 +41,7 @@ game = ["dep:greyhack-message-hook-client", "tokio/time"]
 game-tests = ["game"]
 
 [dev-dependencies]
+greybel-runtime-world.workspace = true
 scheduler = { workspace = true, features = ["tokio"] }
 duplex-test-support = { workspace = true, features = ["tokio"] }
 duplex-ts.workspace = true

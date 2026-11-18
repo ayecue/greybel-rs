@@ -3,14 +3,14 @@
 use serde_json::json;
 
 use crate::support::code::{LIB, path, project};
-use crate::support::{Client, OPTIONS, run};
+use crate::support::{Client, options, run};
 
 #[test]
 fn should_list_the_symbols_of_a_file_as_a_tree() {
     let folder = project("symbols");
 
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
         let (symbols, failed) = client
             .call(
                 "document_symbols",
@@ -33,7 +33,7 @@ fn should_find_symbols_by_part_of_their_name_path() {
     let folder = project("find");
 
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
         let (found, _) = client
             .call(
                 "find_symbol",
@@ -67,7 +67,7 @@ fn should_find_references_describe_and_list_calls_by_symbol_name() {
     let main = path(&folder, "main.src");
 
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
         let target = json!({ "symbol": "App.utils.format", "path": folder.display().to_string() });
         let (references, _) = client.call("find_references", target.clone()).await;
         let (description, _) = client.call("describe", target.clone()).await;
@@ -110,7 +110,7 @@ fn should_ask_for_the_full_name_of_an_ambiguous_symbol() {
     let folder = project("ambiguous");
 
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
         let (error, failed) = client
             .call(
                 "describe",
@@ -136,7 +136,7 @@ fn should_rename_a_symbol_in_every_file() {
     let folder = project("rename");
 
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
         let target = |dry_run: bool| {
             json!({
                 "symbol": "App.utils.format",

@@ -78,12 +78,7 @@ internal static class NetworkSnapshotReader
             ReadContact(router),
             ReadRentalContact(lan),
             NpcSnapshotReader.ReadNpcs(router, lan),
-            NpcSnapshotReader.ReadTraffic(
-                router,
-                lan,
-                trafficAccidentAt,
-                trafficAccidentDriver
-            ),
+            NpcSnapshotReader.ReadTraffic(router, lan, trafficAccidentAt, trafficAccidentDriver),
             economy.PlayerBank,
             AccountSnapshotReader.ReadMail(playerComputer.GetPlayerConfigOS().GetMailAccount()),
             AccountSnapshotReader.ReadMailAddress(
@@ -138,7 +133,10 @@ internal static class NetworkSnapshotReader
             .Singleton.GetAllLibs()
             .Select(entry =>
             {
-                string content = VersionsControl.Singleton.GetRandomLibContent(routerNode, entry.Key);
+                string content = VersionsControl.Singleton.GetRandomLibContent(
+                    routerNode,
+                    entry.Key
+                );
                 string version = string.IsNullOrEmpty(content)
                     ? ""
                     : JsonConvert.DeserializeObject<Library>(content).GetStrVersion();

@@ -1,4 +1,4 @@
-import { ExtensionContext } from 'vscode';
+import vscode, { ExtensionContext } from 'vscode';
 
 import { ApiReference } from './api-reference';
 import { BuildCommand } from './build';
@@ -13,6 +13,7 @@ import { Preview } from './preview';
 import { ProjectReader } from './project';
 import { ProfilePicker } from './project/profile-picker';
 import { ProjectSettings } from './project/settings';
+import { Configuration } from './settings';
 import { ShareCommand } from './share';
 import { SnippetCommand } from './snippets';
 import { TransformCommand } from './transform';
@@ -26,7 +27,20 @@ export async function activate(context: ExtensionContext) {
   new ProfilePicker(context, projects);
 
   const preview = new Preview(context);
-  const world = new WorldProcess(new ProcessLauncher(context, 'greyhack-world-server').getBinaryPath());
+  const world = new WorldProcess(
+    new ProcessLauncher(context, 'greyhack-world-server').getBinaryPath(),
+    new ProcessLauncher(context, 'greybel-runtime').getBinaryPath(),
+    () => {
+      const configuration = new Configuration();
+
+      return {
+        port: configuration.get('world.port'),
+        idleTimeout: configuration.get('world.idleTimeout'),
+        folder: configuration.get('world.folder')
+      };
+    },
+    (reason) => void vscode.window.showWarningMessage(`The debug session uses a world of this window: ${reason}.`)
+  );
   const runtimeLauncher = new RuntimePeerLauncher(world, (address) =>
     new ProcessLauncher(context, 'greybel-runtime', address === undefined ? [] : ['--world', address]).launch()
   );

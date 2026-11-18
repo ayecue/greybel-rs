@@ -10,19 +10,20 @@ autotests = false
 
 [dependencies]
 clap.workspace = true
-duplex-driver-stdio.workspace = true
-greyhack-world.workspace = true
-greyhack-world-core.workspace = true
-greyhack-world-operations.workspace = true
-scheduler = { workspace = true, features = ["tokio"] }
+greyhack-world-host.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["rt", "macros", "net", "io-std", "io-util"] }
+tokio = { workspace = true, features = ["rt"] }
 
 [dev-dependencies]
 duplex-core.workspace = true
+duplex-driver-stdio.workspace = true
 duplex-test-support = { workspace = true, features = ["tokio"] }
+greybel-runtime.workspace = true
 greybel-test-support = { workspace = true, features = ["interpreter"] }
+greyhack-world.workspace = true
 greyscript-intrinsics.workspace = true
+serde_json.workspace = true
+tokio = { workspace = true, features = ["net", "time"] }
 
 [[test]]
 name = "main"

@@ -73,9 +73,9 @@ definitions:
       description: "Returns a `netSession` for an IP address and port, or `null` on failure. Disabled internet returns `\"net_use: No internet connection\"`; invalid addresses print an error and return `null`. SSH encryption still raises."
       example:
         - "metax = include_lib(\"/lib/metaxploit.so\")"
-        - "ports = get_router(\"1.1.1.1\").used_ports"
+        - "ports = get_router(\"12.12.12.12\").used_ports"
         - for port in ports
-        - "   netSession = metax.net_use(\"1.1.1.1\", port.port_number)"
+        - "   netSession = metax.net_use(\"12.12.12.12\", port.port_number)"
         - "   metaLib = netSession.dump_lib"
         - "   print(\"Library: \" + metaLib.lib_name + \" - \" + metaLib.version + \" on port \" + port.port_number)"
         - end for
@@ -130,7 +130,7 @@ definitions:
       description: "Launches a process on the victim's `computer`, silently attempting to continuously connect in the background to the specified address and port. For the reverse shell to run successfully, the `rshell` service must be installed, and the port forward must be configured correctly on the machine where the server is waiting for the victim's connection. If the launch was successful, a `number` with the value one will be returned. In case of failure, a `string` with details will be returned."
       example:
         - "metax = include_lib(\"/lib/metaxploit.so\")"
-        - "metax.rshell_client(\"1.1.1.1\", 1222, \"bgprocess\")"
+        - "metax.rshell_client(\"12.12.12.12\", 1222, \"bgprocess\")"
       isProtected: false
       returns:
         - string
@@ -399,9 +399,9 @@ descriptions:
     description: "Returns a `netSession` for an IP address and port, or `null` on failure. Disabled internet returns `\"net_use: No internet connection\"`; invalid addresses print an error and return `null`. SSH encryption still raises."
     example:
       - "metax = include_lib(\"/lib/metaxploit.so\")"
-      - "ports = get_router(\"1.1.1.1\").used_ports"
+      - "ports = get_router(\"12.12.12.12\").used_ports"
       - for port in ports
-      - "   netSession = metax.net_use(\"1.1.1.1\", port.port_number)"
+      - "   netSession = metax.net_use(\"12.12.12.12\", port.port_number)"
       - "   metaLib = netSession.dump_lib"
       - "   print(\"Library: \" + metaLib.lib_name + \" - \" + metaLib.version + \" on port \" + port.port_number)"
       - end for
@@ -409,7 +409,7 @@ descriptions:
     description: "Launches a process on the victim's `computer`, silently attempting to continuously connect in the background to the specified address and port. For the reverse shell to run successfully, the `rshell` service must be installed, and the port forward must be configured correctly on the machine where the server is waiting for the victim's connection. If the launch was successful, a `number` with the value one will be returned. In case of failure, a `string` with details will be returned."
     example:
       - "metax = include_lib(\"/lib/metaxploit.so\")"
-      - "metax.rshell_client(\"1.1.1.1\", 1222, \"bgprocess\")"
+      - "metax.rshell_client(\"12.12.12.12\", 1222, \"bgprocess\")"
   rshell_remove:
     description: "Removes reverse shells connected to this computer's `rshell` service. With no argument or `null`, removes every shell on the forwarded service port; with a `list` of reverse `shell` objects, removes only matching connections. Returns `1` when at least one connection was removed and `0` otherwise. Invalid arguments, a missing service or port forward, a CTF network, and unavailable internet return the game's error `string`."
     example:

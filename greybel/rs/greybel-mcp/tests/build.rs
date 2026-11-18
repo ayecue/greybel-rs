@@ -2,7 +2,7 @@
 
 use serde_json::json;
 
-use crate::support::{Client, OPTIONS, run};
+use crate::support::{Client, options, run};
 
 #[test]
 fn should_build_a_file_with_what_it_imports_as_its_greybel_json_says() {
@@ -26,7 +26,7 @@ fn should_build_a_file_with_what_it_imports_as_its_greybel_json_says() {
     let output = folder.join("out");
 
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
 
         let (code, _) = client.call("build", json!({ "path": entry })).await;
         let (written, failed) = client
@@ -62,7 +62,7 @@ fn should_write_installers_that_compile_the_build_by_default() {
     let entry = folder.join("main.src").display().to_string();
 
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
 
         let (code, failed) = client.call("build", json!({ "path": entry })).await;
 
@@ -93,7 +93,7 @@ fn should_build_with_the_settings_of_a_profile() {
     let entry = folder.join("main.src").display().to_string();
 
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
 
         let (code, _) = client
             .call("build", json!({ "path": entry, "profile": "home" }))

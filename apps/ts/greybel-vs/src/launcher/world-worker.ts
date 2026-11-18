@@ -30,7 +30,13 @@ export class WorldWorker implements WorldHost<MessagePort> {
   }
 
   /** Stops the game server so the next program uses a new world. */
-  reset(): void {
+  reset(): Promise<void> {
+    this.dispose();
+
+    return Promise.resolve();
+  }
+
+  dispose(): void {
     this.#current?.host.close();
     this.#current = undefined;
   }

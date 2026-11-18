@@ -1,4 +1,8 @@
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it } from 'vitest';
+
+import { MERMAID_URL } from '../src/components/diagram.js';
 
 import { ReferencePage } from './support/reference-page.js';
 
@@ -110,6 +114,29 @@ describe('the API reference', () => {
     expect(await example.locator('a', { hasText: 'get_shell' }).getAttribute('href')).toBe('#api-general.get_shell');
   });
 
+  it("should colour examples like Grey Hack's code editor", async () => {
+    const reference = await ReferencePage.open();
+    const example = reference.getMember('shell', 'host_computer').locator('pre.example');
+    const colorOf = (selector: string) =>
+      example
+        .locator(selector)
+        .first()
+        .evaluate((element) => getComputedStyle(element).color);
+
+    expect(await example.locator('.token.library').allTextContents()).toEqual([
+      'get_shell',
+      'host_computer',
+      'print',
+      'public_ip'
+    ]);
+    expect(await colorOf('.token.library')).toBe('rgb(66, 200, 239)');
+    expect(await colorOf('.token.library a')).toBe('rgb(66, 200, 239)');
+    expect(await colorOf('.token.name')).toBe('rgb(255, 255, 255)');
+    expect(await colorOf('.token.string')).toBe('rgb(218, 219, 105)');
+    expect(await colorOf('.token.paren-1')).toBe('rgb(115, 164, 231)');
+    expect(await example.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe('rgb(4, 7, 25)');
+  });
+
   it('should request the editor to open an example', async () => {
     const reference = await ReferencePage.open();
     const page = reference.page;
@@ -142,6 +169,74 @@ describe('the API reference', () => {
     );
   });
 
+  it('should zoom and drag the diagram', async () => {
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+
+    await reference.openGuide();
+
+    const viewport = page.locator('#panel-guide .diagram');
+    const svg = viewport.locator('svg');
+    const zoom = page.locator('#panel-guide .diagram-tools .zoom');
+    const width = () => svg.evaluate((element) => element.getBoundingClientRect().width);
+    const percent = async () => Number((await zoom.textContent())!.replace('%', ''));
+
+    await svg.waitFor();
+    await viewport.scrollIntoViewIfNeeded();
+
+    const fitted = await percent();
+
+    expect(fitted).toBeLessThan(100);
+    expect(Math.abs((await width()) - (await viewport.evaluate((element) => element.clientWidth)))).toBeLessThan(2);
+
+    await page.locator('#panel-guide .diagram-tools button[aria-label="Zoom in"]').click();
+    expect(await percent()).toBe(Math.round(fitted * 1.25));
+
+    await page.locator('#panel-guide .diagram-tools button', { hasText: /^100%$/ }).click();
+    expect(await zoom.textContent()).toBe('100%');
+
+    const natural = await width();
+    const box = (await viewport.boundingBox())!;
+
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.keyboard.down('Control');
+    await page.mouse.wheel(0, 300);
+    await page.keyboard.up('Control');
+    await expect.poll(width).toBeLessThan(natural);
+
+    await page.locator('#panel-guide .diagram-tools button', { hasText: /^100%$/ }).click();
+    await viewport.evaluate((element) => element.scrollTo(0, 0));
+    await page.mouse.move(box.x + 300, box.y + 200);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 100, box.y + 100, { steps: 5 });
+    await page.mouse.up();
+    expect(await viewport.evaluate((element) => [element.scrollLeft, element.scrollTop])).toEqual([200, 100]);
+  }, 20_000);
+
+  it('should load Mermaid at the version of its dev dependency', () => {
+    const { version } = JSON.parse(
+      readFileSync(new URL('../node_modules/mermaid/package.json', import.meta.url), 'utf8')
+    ) as {
+      version: string;
+    };
+
+    expect(MERMAID_URL).toBe(`https://cdn.jsdelivr.net/npm/mermaid@${version}/dist/mermaid.esm.min.mjs`);
+  });
+
+  it('should draw the flow of overflow from its Mermaid block', async () => {
+    const reference = await ReferencePage.open();
+    const page = reference.page;
+
+    await reference.openGuide();
+
+    const diagram = page.locator('#panel-guide .diagram svg');
+
+    await diagram.waitFor();
+    expect(await diagram.locator('.node').count()).toBeGreaterThan(50);
+    expect(await diagram.textContent()).toContain('Exploit failed. Vulnerability not found.');
+    expect(await page.locator('#panel-guide pre[data-language="mermaid"]').count()).toBe(0);
+  }, 20_000);
+
   it('should list each chapter with its parts in the sidebar of the guide', async () => {
     const reference = await ReferencePage.open();
     const page = reference.page;
@@ -150,7 +245,7 @@ describe('the API reference', () => {
 
     const chapters = page.locator('#panel-guide nav.contents > ul > li');
 
-    await expect.poll(() => chapters.count()).toBe(13);
+    await expect.poll(() => chapters.count()).toBe(14);
     expect(await chapters.first().locator('a.entry').textContent()).toBe('Syntax');
     expect(await chapters.nth(1).locator('ul a').allTextContents()).toEqual([
       'Numbers',
@@ -164,6 +259,7 @@ describe('the API reference', () => {
 
     expect(await chapters.nth(10).locator('a.entry').textContent()).toBe('Syntax features');
     expect(await chapters.nth(10).locator('ul a').allTextContents()).toContain('Classes');
+    expect(await chapters.nth(12).locator('a.entry').textContent()).toBe('Exploits');
 
     const lists = page.locator('#guide-values-lists');
 

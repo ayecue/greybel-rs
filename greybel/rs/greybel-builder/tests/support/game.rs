@@ -60,6 +60,8 @@ pub async fn run_in_game(port: u16, code: &str) -> (bool, Vec<String>) {
             params: Vec::new().into(),
             variables: BTreeMap::new(),
             strict_mode: false,
+            disabled_syntax: None,
+            multiline_strings: None,
         })
         .expect("the launch is sent");
     let mut launch = pin!(launch);

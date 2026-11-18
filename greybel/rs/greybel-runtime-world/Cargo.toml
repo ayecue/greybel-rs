@@ -1,0 +1,29 @@
+[package]
+name = "greybel-runtime-world"
+description = "Simulated Grey Hack worlds generated from a seed, for greybel-runtime hosts that run programs in a world of their own"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[dependencies]
+duplex-core.workspace = true
+futures-util.workspace = true
+greybel-interpreter.workspace = true
+greybel-runtime.workspace = true
+greyhack-world.workspace = true
+greyhack-world-operations.workspace = true
+greyscript-intrinsics.workspace = true
+scheduler.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

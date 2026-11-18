@@ -12,5 +12,4 @@ internal static class MessageTypeTable
 
     public static IEnumerable<object?> GetValues(MessageType type, Duplex.Message message) =>
         type.Fields.Select(field => field.Get(message));
-
 }

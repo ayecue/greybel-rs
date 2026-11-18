@@ -1,3 +1,4 @@
+use greybel_documents::{ImportKind, ModuleGraph, ModuleId};
 use rustc_hash::FxHashSet;
 
 use super::output::{Output, Part, PendingOutput};
@@ -6,7 +7,6 @@ use crate::emit::{ConstantTable, EmitFlags, EmitState, Emitter};
 use crate::error::Result;
 use crate::names::{Charset, NameTable};
 use crate::options::TranspileOptions;
-use greybel_documents::{ImportKind, ModuleGraph, ModuleId};
 
 pub(super) struct Bundler<'a, E> {
     emitter: E,

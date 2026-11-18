@@ -21,6 +21,9 @@ export interface Settings {
   'transpiler.ingameDirectoryPrompt': boolean;
   'createIngame.port': number;
   'createIngame.active': boolean;
+  'world.port': number;
+  'world.idleTimeout': number;
+  'world.folder': string;
 }
 
 /** Current extension settings. */

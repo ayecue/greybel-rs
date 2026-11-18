@@ -17,15 +17,23 @@ export namespace Environment {
   /** Executes in the runtime against a simulated Grey Hack world. */
   export class Mock extends Environment {
     static readonly tags: ReadonlyArray<Tag> = [];
-    static readonly fields: ReadonlyArray<FieldTagContainer> = [{
-      name: "seed",
-      property: "seed",
-      tags: []
-    }, {
-      name: "memory_limit",
-      property: "memoryLimit",
-      tags: []
-    }];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [
+      {
+        name: "seed",
+        property: "seed",
+        tags: []
+      },
+      {
+        name: "memory_limit",
+        property: "memoryLimit",
+        tags: []
+      },
+      {
+        name: "user",
+        property: "user",
+        tags: []
+      }
+    ];
     protected readonly [BODY]: Environment.Mock.Fields;
     constructor(body: Environment.Mock.Fields) {
       super();
@@ -42,18 +50,29 @@ export namespace Environment {
     get memoryLimit(): number {
       return this[BODY].memoryLimit;
     }
+    /** Account the program runs as on the player's computer; absent runs it as the player's user. */
+    get user(): RunUser | undefined {
+      return this[BODY].user;
+    }
     override write(writer: BinaryWriter): void {
       writer.u32(0);
       const body = this[BODY];
+      writer.byte(body.user !== undefined ? 1 : 0);
       writer.string(body.seed);
       writer.u32(body.memoryLimit);
+      if (body.user !== undefined) {
+        RunUser.write(writer, body.user);
+      }
     }
     static read(reader: BinaryReader): Environment.Mock {
+      const flags0 = reader.flags(1);
       const fieldSeed = reader.string();
       const fieldMemoryLimit = reader.u32();
+      const fieldUser = (flags0 & 1) !== 0 ? RunUser.read(reader) : undefined;
       return new Environment.Mock({
         seed: fieldSeed,
-        memoryLimit: fieldMemoryLimit
+        memoryLimit: fieldMemoryLimit,
+        user: fieldUser
       });
     }
   }
@@ -61,6 +80,7 @@ export namespace Environment {
     export interface Fields {
       seed: string;
       memoryLimit: number;
+      user?: RunUser;
     }
   }
   /** Executes in single-player Grey Hack through the local message-hook plugin. */
@@ -134,7 +154,7 @@ export namespace LaunchFailure {
       return new LaunchFailure.Unavailable();
     }
   }
-  /** Message hook cannot be reached or no single-player game is running. */
+  /** Message hook or world server cannot be reached, or no single-player game is running. */
   export class Unreachable extends LaunchFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [{
@@ -939,12 +959,43 @@ export namespace Evaluation {
     reference: number;
   }
 }
+/** Account on the player's computer that a simulated program runs as. */
+export enum RunUser {
+  /** The player's user, with its home folder in `/home`. */
+  User = 0,
+  /** `root`, with its home folder `/root`. */
+  Root = 1
+}
+export namespace RunUser {
+  export function write(writer: BinaryWriter, value: RunUser): void {
+    writer.u32(value);
+  }
+  export function read(reader: BinaryReader): RunUser {
+    const value = reader.u32();
+    if (value >= 2) {
+      throw new RangeError(`no member ${value} of \`RunUser\``);
+    }
+    return value;
+  }
+  export const tags: ReadonlyArray<Tag> = [];
+  export const members: ReadonlyArray<MemberTagContainer> = [{
+    name: "User",
+    value: 0,
+    tags: []
+  }, {
+    name: "Root",
+    value: 1,
+    tags: []
+  }];
+}
 /** How a build writes a string with line breaks, which Grey Hack's parser does not accept. */
 export enum MultilineStringStyle {
+  /** `"a¶b".replace("¶",char(10))`, with a marker character the string doesn't contain. */
+  Replace = 0,
   /** `"a"+__NL+"b"` with `__NL=char(10)`. */
-  Concatenation = 0,
+  Concatenation = 1,
   /** `__MSTR(["a","b"])`, which joins the lines with `char(10)`. */
-  Join = 1
+  Join = 2
 }
 export namespace MultilineStringStyle {
   export function write(writer: BinaryWriter, value: MultilineStringStyle): void {
@@ -952,21 +1003,29 @@ export namespace MultilineStringStyle {
   }
   export function read(reader: BinaryReader): MultilineStringStyle {
     const value = reader.u32();
-    if (value >= 2) {
+    if (value >= 3) {
       throw new RangeError(`no member ${value} of \`MultilineStringStyle\``);
     }
     return value;
   }
   export const tags: ReadonlyArray<Tag> = [];
-  export const members: ReadonlyArray<MemberTagContainer> = [{
-    name: "Concatenation",
-    value: 0,
-    tags: []
-  }, {
-    name: "Join",
-    value: 1,
-    tags: []
-  }];
+  export const members: ReadonlyArray<MemberTagContainer> = [
+    {
+      name: "Replace",
+      value: 0,
+      tags: []
+    },
+    {
+      name: "Concatenation",
+      value: 1,
+      tags: []
+    },
+    {
+      name: "Join",
+      value: 2,
+      tags: []
+    }
+  ];
 }
 /** Peer role IDs for `Runtime`. */
 export enum RuntimePeer {
@@ -1097,7 +1156,7 @@ export class Launch extends Message<RuntimePeer.Editor, Launch.Fields, ValueResp
   get disabledSyntax(): string[] | undefined {
     return this[BODY].disabledSyntax;
   }
-  /** How the program's build writes strings with line breaks; absent writes `Concatenation`. */
+  /** How the program's build writes strings with line breaks; absent writes `Replace`. */
   get multilineStrings(): MultilineStringStyle | undefined {
     return this[BODY].multilineStrings;
   }
@@ -1743,7 +1802,7 @@ export const Runtime = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 2643909953 }],
+  versions: [{ fingerprint: 2198439289 }],
   peers: [RuntimePeer.Editor, RuntimePeer.Runner],
   messages: [[StopNotice, LogMessage], [
     Launch,

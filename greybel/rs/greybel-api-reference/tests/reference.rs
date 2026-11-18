@@ -202,7 +202,7 @@ fn should_highlight_examples_and_link_their_general_functions() {
         .find(|token| token.text == "get_shell")
         .expect("get_shell");
 
-    assert_eq!(get_shell.highlight, Highlight::Name);
+    assert_eq!(get_shell.highlight, Highlight::Library);
     assert_eq!(
         get_shell.link,
         Some(Link::Member {
@@ -217,6 +217,15 @@ fn should_highlight_examples_and_link_their_general_functions() {
         .expect("member");
 
     assert_eq!(host_computer.link, None);
+    assert_eq!(host_computer.highlight, Highlight::Library);
+    assert_eq!(
+        example
+            .iter()
+            .filter(|token| token.highlight == Highlight::Library)
+            .map(|token| token.text.as_str())
+            .collect::<Vec<_>>(),
+        ["get_shell", "host_computer", "print", "public_ip"]
+    );
     assert!(
         example
             .iter()
@@ -299,7 +308,7 @@ fn should_render_headings_code_and_links_to_the_page() {
             .first()
             .map(|token| (token.highlight, token.link.clone())),
         Some((
-            Highlight::Name,
+            Highlight::Library,
             Some(Link::Member {
                 owner: "general".into(),
                 name: "print".into()
@@ -337,7 +346,7 @@ fn should_render_code_of_another_language_as_plain_text() {
     );
     assert_eq!(
         script.first().map(|token| token.highlight),
-        Some(Highlight::Name)
+        Some(Highlight::Library)
     );
 }
 

@@ -2,12 +2,12 @@
 
 use serde_json::json;
 
-use crate::support::{Client, OPTIONS, run};
+use crate::support::{Client, options, run};
 
 #[test]
 fn should_transform_code() {
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
 
         let (uglified, failed) = client
             .call(

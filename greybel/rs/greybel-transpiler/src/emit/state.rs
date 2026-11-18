@@ -5,6 +5,7 @@ use greybel_core::ast::NodeList;
 use greybel_core::syntax::greybel::{Class, ClassMember};
 use greybel_core::syntax::{Literal, Member};
 use greybel_core::{Ast, Atom, NodeId, NodeKind, Span, TextSpan};
+use greybel_documents::{Module, ModuleGraph, ModuleId};
 use greybel_symbols::delimiters::QUOTE;
 use greybel_symbols::names::UNNAMED_SOURCE;
 use greybel_symbols::{Keyword, Punct};
@@ -13,7 +14,6 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use super::operands::OperandTable;
 use super::{ConstantTable, EmitOutput, LineBreakStyle, LiteralStyle, LiteralText, Origin};
 use crate::options::TranspileOptions;
-use greybel_documents::{Module, ModuleGraph, ModuleId};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 #[allow(clippy::struct_excessive_bools)]

@@ -35,8 +35,18 @@ enum DeployFailure {
 #[cfg(feature = "game")]
 const DEPLOY_TIMEOUT: Duration = Duration::from_secs(120);
 
-/// Deploys `output` through the message hook on `port`; returns `Unavailable` without the `game` feature.
+/// Deploys `output` through the message hook on `port`; returns `Unavailable` without the `game` feature. A file the
+/// game can't save fails before anything is written into the game.
 pub(crate) async fn deploy(port: u16, output: &BuildOutput) -> Result<(), BuildFailure> {
+    if let Some((file, length)) = output.find_oversized_file() {
+        return Err(BuildFailure::invalid(format!(
+            "{} has {} characters; Grey Hack saves at most {} per file.",
+            file.path,
+            CharacterCount(length),
+            CharacterCount(BuildOutput::GAME_FILE_LIMIT)
+        )));
+    }
+
     #[cfg(feature = "game")]
     return output
         .deploy(port)
@@ -50,6 +60,25 @@ pub(crate) async fn deploy(port: u16, output: &BuildOutput) -> Result<(), BuildF
         let _ = (port, output);
 
         Err(BuildFailure::Unavailable)
+    }
+}
+
+/// A count written with thousands separators, as in `160,000`.
+struct CharacterCount(usize);
+
+impl std::fmt::Display for CharacterCount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let digits = self.0.to_string();
+
+        for (index, digit) in digits.chars().enumerate() {
+            if index > 0 && (digits.len() - index).is_multiple_of(3) {
+                f.write_str(",")?;
+            }
+
+            write!(f, "{digit}")?;
+        }
+
+        Ok(())
     }
 }
 

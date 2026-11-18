@@ -12,16 +12,21 @@ use futures_util::future::{Either, select};
 use greybel_core::SyntaxFeatures;
 use greybel_documents::{AsyncResourceProvider, Uri};
 use greybel_interpreter::{InterpreterError, InterpreterOptions, Param, Pin, RunResult, Value, Vm};
-use greyhack_behaviour::path;
-use greyhack_world::{PlayerOptions, World};
-use greyhack_world_operations::WorldServer;
+use greyhack_behaviour::{ROOT_USER, path};
 use greyscript_intrinsics::protocol::ClientEnd;
 use greyscript_intrinsics::{GreyHackInterpreter, ServerConnection};
 
 use super::binary;
-use crate::protocol::{Exit, Launch, LaunchFailure, SourceLocation, StopReason};
+use crate::protocol::{Exit, Launch, LaunchFailure, RunUser, SourceLocation, StopReason};
 use crate::runtime::{CommandQueue, Host, Io, RuntimeState};
 use crate::uri::EditorUri as _;
+use crate::world::LaunchWorld;
+
+/// Username matching `greyhack_world::PlayerOptions::default().user`; `greybel-runtime-world` tests rely on this match.
+pub const PLAYER_USER: &str = "test";
+
+const WORLD_DISCONNECT: &str =
+    "the world server closed the connection: its world was reset or the server stopped";
 
 /// Native API global for expression values, named to avoid program-variable collisions.
 const EVALUATION_GLOBAL: &str = "__greybel_evaluation";
@@ -51,14 +56,15 @@ pub(crate) struct MockProgram<'r, H: Host> {
 }
 
 impl<'r, H: Host> MockProgram<'r, H> {
-    /// Runs `launch` in the host world or a world seeded by `seed`, handles debugger stops until exit, and limits
-    /// memory to `memory_limit` MiB.
+    /// Runs `launch` as `user` in the host world or a world seeded by `seed`, handles debugger stops until exit, and
+    /// limits memory to `memory_limit` MiB.
     pub(crate) async fn run(
         state: &'r Rc<RuntimeState<H>>,
         commands: &'r mut CommandQueue,
         launch: &Launch<'static>,
         seed: &str,
         memory_limit: u32,
+        user: RunUser,
     ) -> Result<Exit, LaunchFailure> {
         let mut program = Self {
             state,
@@ -67,15 +73,15 @@ impl<'r, H: Host> MockProgram<'r, H> {
             memory_limit: usize::try_from(memory_limit)
                 .map_or(usize::MAX, |limit| limit.saturating_mul(1 << 20)),
         };
-        let (world, _server) = match state.host.world() {
-            Some(world) => (world, None),
-            None => {
-                let (world, server) = own_world(&state.host, seed).await;
-
-                (world, Some(server))
-            }
+        let LaunchWorld {
+            connection: world,
+            guard: _guard,
+        } = state.host.world(seed).await?;
+        let user = match user {
+            RunUser::User => PLAYER_USER,
+            RunUser::Root => ROOT_USER,
         };
-        let mut game = program.start(launch, &world).await?;
+        let mut game = program.start(launch, &world, user).await?;
         let control = &state.control;
 
         if launch.debug {
@@ -86,7 +92,20 @@ impl<'r, H: Host> MockProgram<'r, H> {
             }
         }
 
-        let (exit, end) = program.drive(&mut game, launch.debug).await;
+        let (exit, end) = {
+            let drive = pin!(program.drive(&mut game, launch.debug));
+
+            match select(drive, pin!(world.on_disconnect())).await {
+                Either::Left((outcome, _)) => outcome,
+                Either::Right(((), _)) => (
+                    Exit::Crash {
+                        message: WORLD_DISCONNECT.to_owned(),
+                        stack: Vec::new(),
+                    },
+                    ClientEnd::Error,
+                ),
+            }
+        };
 
         game.end(end).await;
 
@@ -101,6 +120,7 @@ impl<'r, H: Host> MockProgram<'r, H> {
         &self,
         launch: &Launch<'static>,
         world: &ServerConnection,
+        user: &str,
     ) -> Result<MockGame<H>, LaunchFailure> {
         let Io { stdout, stdin } = self.state.host.io();
         let options = InterpreterOptions {
@@ -125,11 +145,10 @@ impl<'r, H: Host> MockProgram<'r, H> {
             stdin,
             ..InterpreterOptions::new(self.state.host.clock())
         };
-        let player = PlayerOptions::default();
-        let program_path = path::join(&path::home(&player.user), &launch.program_name);
+        let program_path = path::join(&path::home(user), &launch.program_name);
         let mut game = GreyHackInterpreter::start_at(
             world,
-            &player.user,
+            user,
             Some(&program_path),
             options,
             self.state.provider(launch),
@@ -236,22 +255,4 @@ impl<'r, H: Host> MockProgram<'r, H> {
             }
         }
     }
-}
-
-/// Creates an in-memory `WorldServer` from a seed and connects through `host`.
-async fn own_world<H: Host>(host: &H, seed: &str) -> (ServerConnection, WorldServer) {
-    let server = mock_world_server(seed, host.clock()).await;
-
-    (host.connect(&server), server)
-}
-
-/// Creates an in-memory [`WorldServer`] from `seed`, generating the default player world.
-pub async fn mock_world_server(seed: &str, clock: Rc<dyn greybel_interpreter::Clock>) -> WorldServer {
-    let world = World::from_seed(seed, &PlayerOptions::default())
-        .await
-        .expect("the world generates");
-
-    WorldServer::new(world, clock)
-        .await
-        .expect("the server restores payments")
 }

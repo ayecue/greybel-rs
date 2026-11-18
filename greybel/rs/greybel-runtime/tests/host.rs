@@ -2,7 +2,9 @@
 
 use greybel_documents_memory_provider::MemoryProvider;
 use greybel_runtime::Runtime;
-use greybel_runtime::protocol::{Exit, SourceBreakpoint, StopReason};
+use greybel_runtime::protocol::{
+    Environment, Exit, LaunchFailure, RunUser, SourceBreakpoint, StopReason,
+};
 
 use crate::support::host::{MAIN, launch, run, setup};
 
@@ -96,5 +98,83 @@ fn terminates_a_running_program() {
         let exit = exit.await.expect("the launch completes");
 
         assert!(matches!(exit, Ok(Exit::Termination)), "{exit:?}");
+    });
+}
+
+#[test]
+fn refuses_a_simulated_launch_without_a_world() {
+    let mut setup = setup("print(1)", Vec::new());
+
+    setup.host.has_worlds = false;
+
+    run(async move {
+        let (runtime, controller) = Runtime::with_host(setup.host);
+
+        tokio::task::spawn_local(runtime.serve());
+
+        let exit = controller.launch(launch(false, &[])).await;
+
+        assert!(matches!(exit, Err(LaunchFailure::Unavailable)), "{exit:?}");
+        assert!(setup.printed.borrow().is_empty());
+    });
+}
+
+#[test]
+fn interrupts_a_program_whose_world_server_closes_the_connection() {
+    let setup = setup("while true\n  wait(0.01)\nend while", Vec::new());
+
+    run(async move {
+        let (runtime, controller) = Runtime::with_host(setup.host);
+
+        tokio::task::spawn_local(runtime.serve());
+
+        let exit = controller.launch(launch(false, &[]));
+        let mut exit = std::pin::pin!(exit);
+
+        while setup.connections.borrow().is_empty() {
+            tokio::select! {
+                exit = &mut exit => panic!("the program ended: {exit:?}"),
+                () = tokio::time::sleep(std::time::Duration::from_millis(10)) => {}
+            }
+        }
+
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        setup.connections.borrow()[0].close();
+
+        let exit = tokio::time::timeout(std::time::Duration::from_secs(5), exit)
+            .await
+            .expect("the program stops");
+
+        assert!(
+            matches!(&exit, Ok(Exit::Crash { message, .. }) if message.contains("world server closed the connection")),
+            "{exit:?}"
+        );
+    });
+}
+
+#[test]
+fn runs_a_simulated_program_as_root() {
+    let setup = setup(
+        "print(active_user + \" \" + home_dir + \" \" + program_path)",
+        Vec::new(),
+    );
+
+    run(async move {
+        let (runtime, controller) = Runtime::with_host(setup.host);
+        let mut root = launch(false, &[]);
+
+        if let Environment::Mock { user, .. } = &mut root.environment {
+            *user = Some(RunUser::Root);
+        }
+
+        tokio::task::spawn_local(runtime.serve());
+
+        let exit = controller.launch(root).await;
+
+        assert!(matches!(exit, Ok(Exit::Completion)), "{exit:?}");
+        assert_eq!(
+            setup.printed.borrow().last().map(String::as_str),
+            Some("root /root /root/myprogram")
+        );
     });
 }

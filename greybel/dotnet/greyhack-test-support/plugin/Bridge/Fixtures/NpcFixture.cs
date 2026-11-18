@@ -85,20 +85,27 @@ internal sealed class NpcFixture : IFixture
     /// <summary>Provides an ordinary NPC on a real workstation when a generated network has none.</summary>
     internal static NpcInfo EnsureNpc(NetworkLan network, Router router, string localIp = null)
     {
-        NpcInfo existing = network.GetNpcInfos().Values.FirstOrDefault(
-            npc => !npc.IsDevice() && network.GetLanPcInfo(npc.GetLocalIP()) != null
-        );
+        NpcInfo existing = network
+            .GetNpcInfos()
+            .Values.FirstOrDefault(npc =>
+                !npc.IsDevice() && network.GetLanPcInfo(npc.GetLocalIP()) != null
+            );
         if (existing != null)
         {
             return existing;
         }
 
-        LanPcInfo workstation = localIp == null
-            ? network.GetLanPcInfos().FirstOrDefault(info => info.typeDevice == NetworkLan.TypeDevice.COMPUTER)
-            : network.GetLanPcInfo(localIp);
+        LanPcInfo workstation =
+            localIp == null
+                ? network
+                    .GetLanPcInfos()
+                    .FirstOrDefault(info => info.typeDevice == NetworkLan.TypeDevice.COMPUTER)
+                : network.GetLanPcInfo(localIp);
         if (workstation == null)
         {
-            throw new InvalidOperationException("The fixture has no computer workstation for an NPC");
+            throw new InvalidOperationException(
+                "The fixture has no computer workstation for an NPC"
+            );
         }
 
         NpcInfo npc = new NpcInfo(
@@ -109,15 +116,18 @@ internal sealed class NpcFixture : IFixture
             router.GetPublicIP()
         );
         // RentServer creates empty account lists for every workstation before any NPC exists.
-        Traverse.Create(network)
+        Traverse
+            .Create(network)
             .Field("npcUserNames")
             .GetValue<Dictionary<string, List<string>>>()
             .Remove(workstation.GetID());
-        Traverse.Create(network)
+        Traverse
+            .Create(network)
             .Field("userBankIds")
             .GetValue<Dictionary<string, List<string>>>()
             .Remove(workstation.GetID());
-        Traverse.Create(network)
+        Traverse
+            .Create(network)
             .Method(
                 "AddNpcUser",
                 workstation.GetID(),

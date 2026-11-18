@@ -5,13 +5,18 @@ use crate::{Lexer, Punct, Span, TokenKind, TokenStream};
 
 pub(super) struct TokenScanner<'a> {
     roles: &'a IdentifierRoles<'a>,
+    library: Option<&'a dyn Fn(&str) -> bool>,
     tokens: Vec<HighlightToken>,
 }
 
 impl<'a> TokenScanner<'a> {
-    pub(super) fn new(roles: &'a IdentifierRoles<'a>) -> Self {
+    pub(super) fn new(
+        roles: &'a IdentifierRoles<'a>,
+        library: Option<&'a dyn Fn(&str) -> bool>,
+    ) -> Self {
         Self {
             roles,
+            library,
             tokens: Vec::new(),
         }
     }
@@ -20,7 +25,6 @@ impl<'a> TokenScanner<'a> {
         self.tokens
     }
 
-    /// Stops at the first lexer error.
     pub(super) fn scan(&mut self, lexer: &Lexer<'_>, stream: &mut TokenStream) {
         while let Ok(token) = lexer.next_token(stream) {
             let span = token.span();
@@ -41,7 +45,14 @@ impl<'a> TokenScanner<'a> {
                 TokenKind::Eol | TokenKind::Invalid => continue,
             };
 
-            self.push(span.start, span.end, kind);
+            let library = matches!(
+                kind,
+                HighlightKind::Variable | HighlightKind::Function | HighlightKind::Property
+            ) && self.library.is_some_and(|is_library| {
+                is_library(&lexer.source()[span.start as usize..span.end as usize])
+            });
+
+            self.push_token(span.start, span.end, kind, library);
         }
     }
 
@@ -70,10 +81,15 @@ impl<'a> TokenScanner<'a> {
     }
 
     fn push(&mut self, start: u32, end: u32, kind: HighlightKind) {
+        self.push_token(start, end, kind, false);
+    }
+
+    fn push_token(&mut self, start: u32, end: u32, kind: HighlightKind, library: bool) {
         if start < end {
             self.tokens.push(HighlightToken {
                 span: Span::new(start, end),
                 kind,
+                library,
             });
         }
     }

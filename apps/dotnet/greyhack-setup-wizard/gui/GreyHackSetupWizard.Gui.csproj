@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <AssemblyName>greyhack-setup-wizard-gui</AssemblyName>
     <RootNamespace>GreyHackSetupWizard.Gui</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>

@@ -95,12 +95,7 @@ internal sealed class AccountFixture(Player player) : IFixture
     /// <summary>Rates an event as <c>MissionsHelperServer.RateCTFServerRpc</c> does, through <c>CTF_Event.AddScore</c>.</summary>
     public Reply WriteCtfScore(RateCtfRpc request)
     {
-        CTF_Event gameEvent = Database.Singleton.GetEvent(
-            request.EventName,
-            "",
-            "",
-            false
-        );
+        CTF_Event gameEvent = Database.Singleton.GetEvent(request.EventName, "", "", false);
         string output;
 
         if (gameEvent == null)
@@ -140,7 +135,8 @@ internal sealed class AccountFixture(Player player) : IFixture
                 Database.Singleton.UserMailUpdate(account);
                 break;
             case "delete_account":
-                object db = Traverse.Create(Database.Singleton)
+                object db = Traverse
+                    .Create(Database.Singleton)
                     .Method("Config", "DELETE FROM MailAccounts WHERE User=@address")
                     .GetValue();
                 db.GetType()
@@ -155,7 +151,10 @@ internal sealed class AccountFixture(Player player) : IFixture
             case "npc_sender":
                 UserMail recipient = Database.Singleton.GetMailAccount(request.Address, out _);
                 recipient.playerPcID = "fixture-recipient";
-                recipient.spamFilter = request.Fixture == "block_players" ? 0 : request.Fixture == "block_npcs" || request.Fixture == "npc_sender" ? 1 : 2;
+                recipient.spamFilter =
+                    request.Fixture == "block_players" ? 0
+                    : request.Fixture == "block_npcs" || request.Fixture == "npc_sender" ? 1
+                    : 2;
                 if (request.Fixture == "blacklist" && !recipient.blacklist.Contains(request.Sender))
                 {
                     recipient.blacklist.Add(request.Sender);

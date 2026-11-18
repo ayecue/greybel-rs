@@ -33,6 +33,7 @@ greybel-lsp-web = { path = "greybel-lsp-web" }
 greybel-ms-intrinsics = { path = "greybel-ms-intrinsics" }
 greybel-runtime = { path = "greybel-runtime" }
 greybel-runtime-web = { path = "greybel-runtime-web" }
+greybel-runtime-world = { path = "greybel-runtime-world" }
 greybel-symbols = { path = "greybel-symbols" }
 greybel-source-map = { path = "greybel-source-map" }
 greybel-test-support = { path = "greybel-test-support" }
@@ -72,6 +73,7 @@ greyhack-world-libraries = { path = "greyhack-world-libraries" }
 greyhack-world-missions = { path = "greyhack-world-missions" }
 greyhack-world-modules = { path = "greyhack-world-modules" }
 greyhack-world-npcs = { path = "greyhack-world-npcs" }
+greyhack-world-host = { path = "greyhack-world-host" }
 greyhack-world-operations = { path = "greyhack-world-operations" }
 greyhack-world-player = { path = "greyhack-world-player" }
 greyhack-world-programs = { path = "greyhack-world-programs" }

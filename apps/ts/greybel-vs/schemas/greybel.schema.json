@@ -77,7 +77,7 @@
         },
         "multilineStrings": {
           "$ref": "#/$defs/MultilineStringStyle",
-          "default": "Concatenation",
+          "default": "Replace",
           "description": "How builds write strings with line breaks, which Grey Hack does not accept.",
           "x-vscode-setting": "greybel.transpiler.multilineStrings"
         },
@@ -275,6 +275,11 @@
       "description": "How builds write a string with line breaks.",
       "oneOf": [
         {
+          "const": "Replace",
+          "description": "`\"a¶b\".replace(\"¶\",char(10))`, with a marker character the string doesn't contain: about the source's size, and\none pass at run time. A string containing every marker is written as `Concatenation`.",
+          "type": "string"
+        },
+        {
           "const": "Concatenation",
           "description": "`\"a\"+__NL+\"b\"` with `__NL=char(10)`; slow for many lines, as each `+` copies the string built so far.",
           "type": "string"
@@ -357,6 +362,12 @@
           "type": "string",
           "x-vscode-setting": "greybel.interpreter.seed"
         },
+        "user": {
+          "$ref": "#/$defs/RunUser",
+          "default": "User",
+          "description": "Account a simulated program runs as on the player's computer: the player's user, or `root` like after\n`sudo -s` in the game.",
+          "x-vscode-setting": "greybel.interpreter.user"
+        },
         "variables": {
           "$ref": "#/$defs/VariableSettings",
           "default": {
@@ -373,6 +384,21 @@
         }
       },
       "type": "object"
+    },
+    "RunUser": {
+      "description": "Account a simulated program runs as.",
+      "oneOf": [
+        {
+          "const": "User",
+          "description": "The player's user, with its home folder in `/home`.",
+          "type": "string"
+        },
+        {
+          "const": "Root",
+          "description": "`root`, with its home folder `/root`.",
+          "type": "string"
+        }
+      ]
     },
     "SyntaxSettings": {
       "additionalProperties": {
@@ -455,7 +481,7 @@
           "maxChars": 160000
         },
         "mode": "Default",
-        "multilineStrings": "Concatenation",
+        "multilineStrings": "Replace",
         "obfuscation": false,
         "output": "build",
         "outputName": null,
@@ -527,6 +553,7 @@
         "params": [],
         "programName": "myprogram",
         "seed": "test",
+        "user": "User",
         "variables": {
           "files": [
             ".env"

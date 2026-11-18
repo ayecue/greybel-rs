@@ -9,11 +9,13 @@ import { TerminalChannel } from '../../src/index.js';
 
 export const BUILD_TIMEOUT = 600_000;
 
+export const EXAMPLE = 'stdio-renderer';
+
 export const processes: ChildProcessByStdio<Writable, Readable, null>[] = [];
 
 export function start(): TerminalChannel {
   const target = process.env.CARGO_TARGET_DIR ?? inject('target');
-  const child = spawn(join(target, 'debug', 'greybel-runtime'), [], { stdio: ['pipe', 'pipe', 'inherit'] });
+  const child = spawn(join(target, 'debug', 'examples', EXAMPLE), [], { stdio: ['pipe', 'pipe', 'inherit'] });
 
   processes.push(child);
 

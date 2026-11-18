@@ -12,10 +12,9 @@ use greybel_documents::{PathResolution, Uri};
 use greybel_documents_fs_provider::FsProvider;
 use greybel_io::{Echo, InputFuture, Key, PrintOptions, Stdin, Stdout, TextScreen};
 use greybel_runtime::protocol::{Environment, Exit, Launch, LaunchFailure, LogMessage, StopNotice};
-use greybel_runtime::{Host, Io, Runtime, connect_on_tokio, mock_world_server};
+use greybel_runtime::{Host, Io, LaunchWorld, Runtime, WorldFuture};
+use greybel_runtime_world::WorldSource;
 use greyhack_terminal_text::{LineLimits, LineSplitRule, plain_text};
-use greyhack_world_operations::WorldServer;
-use greyscript_intrinsics::ServerConnection;
 use scheduler::{Clock, TokioScheduler};
 
 /// Program launch and its supplied input.
@@ -29,6 +28,8 @@ pub struct Program {
     pub timeout: Duration,
     /// How the captured output splits long lines.
     pub split_rule: LineSplitRule,
+    /// Source of the simulated world used by the run.
+    pub world: WorldSource,
 }
 
 /// Program exit outcome and captured terminal state.
@@ -54,9 +55,25 @@ impl Program {
     /// Runs until exit or timeout; terminates timed-out programs and returns captured terminal output.
     /// The simulated world generates before the timeout starts, so the timeout bounds only program execution.
     pub async fn run(self) -> Outcome {
-        let server = match &self.launch.environment {
+        let world = match &self.launch.environment {
             Environment::Mock { seed, .. } => {
-                Some(mock_world_server(seed, Rc::new(TokioScheduler::new())).await)
+                let world = self
+                    .world
+                    .launch_world(seed, Rc::new(TokioScheduler::new()), |failure| {
+                        eprintln!("the run uses a world of its own: {failure}");
+                    })
+                    .await;
+
+                match world {
+                    Ok(world) => Some(world),
+                    Err(failure) => {
+                        return Outcome {
+                            screen: String::new(),
+                            exit: Err(failure),
+                            out_of_time: false,
+                        };
+                    }
+                }
             }
             Environment::Game { .. } => None,
         };
@@ -65,7 +82,7 @@ impl Program {
             memory: Arc::new(self.memory),
             screen: Rc::clone(&screen),
             input: Rc::new(RefCell::new(self.input.into())),
-            world: server.as_ref().map(connect_on_tokio),
+            world: RefCell::new(world),
             split_rule: self.split_rule,
         };
         let (runtime, controller) = Runtime::with_host(host);
@@ -82,7 +99,6 @@ impl Program {
             }
         };
         let screen = screen.borrow().text();
-        drop(server);
 
         Outcome {
             screen,
@@ -97,7 +113,8 @@ struct ProgramHost {
     memory: Arc<BTreeMap<Uri, String>>,
     screen: Rc<RefCell<TextScreen>>,
     input: Rc<RefCell<VecDeque<String>>>,
-    world: Option<ServerConnection>,
+    /// World consumed when the launch starts.
+    world: RefCell<Option<LaunchWorld>>,
     split_rule: LineSplitRule,
 }
 
@@ -126,12 +143,14 @@ impl Host for ProgramHost {
         Rc::new(TokioScheduler::new())
     }
 
-    fn world(&self) -> Option<ServerConnection> {
-        self.world.clone()
-    }
+    fn world(&self, _seed: &str) -> WorldFuture {
+        let world = self
+            .world
+            .borrow_mut()
+            .take()
+            .ok_or(LaunchFailure::Unavailable);
 
-    fn connect(&self, server: &WorldServer) -> ServerConnection {
-        connect_on_tokio(server)
+        Box::pin(async move { world })
     }
 
     fn report_stop(&self, _notice: &StopNotice) {}

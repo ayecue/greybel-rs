@@ -3,10 +3,9 @@ use std::rc::Rc;
 
 use greybel_documents::{AsyncResourceProvider, PathResolution};
 use greybel_interpreter::{Clock, Stdin, Stdout};
-use greyhack_world_operations::WorldServer;
-use greyscript_intrinsics::ServerConnection;
 
-use crate::protocol::{LogMessage, StopNotice};
+use crate::protocol::{LaunchFailure, LogMessage, StopNotice};
+use crate::world::WorldFuture;
 
 /// Runtime resources and events: documents, standard I/O, clock, stop/logpoint reports, and world connections.
 /// [`crate::EditorHost`] implements this interface for duplex editors.
@@ -29,13 +28,11 @@ pub trait Host: 'static {
     /// Reports an emitted logpoint.
     fn report_log(&self, message: &LogMessage<'_>);
 
-    /// Returns a shared world-server connection; `None` creates a separate from_seed world per program.
-    fn world(&self) -> Option<ServerConnection> {
-        None
+    /// Returns the world a simulated launch of `seed` runs in, or the failure that refuses the launch. The default
+    /// refuses with [`LaunchFailure::Unavailable`].
+    fn world(&self, _seed: &str) -> WorldFuture {
+        Box::pin(async { Err(LaunchFailure::Unavailable) })
     }
-
-    /// Connects a program to in-process world `server`.
-    fn connect(&self, server: &WorldServer) -> ServerConnection;
 
     /// Completes on host-initiated runtime shutdown. The default never completes, so shutdown otherwise requires all
     /// [`crate::Controller`] handles to be dropped.

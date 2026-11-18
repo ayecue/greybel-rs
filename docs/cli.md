@@ -65,7 +65,7 @@ A typical project is:
 
 `entries` supplies the files for `greybel build` and the first entry for `greybel execute` when no file is named. Entry and environment-file paths are relative to the project folder. `extensions` lists suffixes an import may omit, in lookup order; its default is `src`, `gs`, `ms`. `strictMode` rejects Greybel syntax that Grey Hack's compiler does not accept. `exclude` is a separate type-analyzer exclusion glob, defaulting to `**/{node_modules,.*}/**`; it does not exclude build dependencies.
 
-Build settings also include `outputName` for a single entry, `disableLiteralsOptimization`, `disableNamespacesOptimization`, `excludedNamespaces`, and `multilineStrings`. `multilineStrings` sets how builds and runs write strings with line breaks: `Concatenation` (default) writes `"a"+__NL+"b"` with `__NL=char(10)`; `Join` writes `__MSTR(["a","b"])`, which joins the lines in one pass and is faster for strings with many lines. `memoryLimit` is in MiB and applies to mock execution. `run.lineLimits` (`{ "textPerLine": 256, "tagsPerLine": null }`) replaces the game's rule for cutting long printed lines with the one of the greyhack-customizable-output mod: a line whose visible text is longer than `textPerLine` characters, or whose tags take more than `tagsPerLine` characters, is cut into pieces of `textPerLine` characters; `null` for `tagsPerLine` means no tag limit. `greybel execute` and `greybel repl` take `--text-per-line N` and `--tags-per-line N` for the same. Unknown configuration fields are rejected. The complete editor schema is [greybel.schema.json](../apps/ts/greybel-vs/schemas/greybel.schema.json).
+Build settings also include `outputName` for a single entry, `disableLiteralsOptimization`, `disableNamespacesOptimization`, `excludedNamespaces`, and `multilineStrings`. `multilineStrings` sets how builds and runs write strings with line breaks: `Replace` (default) writes `"a¶b".replace("¶",char(10))` with a marker character the string doesn't contain, which keeps the file about the size of the source and takes one pass at run time; `Concatenation` writes `"a"+__NL+"b"` with `__NL=char(10)`; `Join` writes `__MSTR(["a","b"])`. Grey Hack saves at most 160,000 characters per file, so the other two styles can make an imported file with a long string too large for the game. `memoryLimit` is in MiB and applies to mock execution. `run.lineLimits` (`{ "textPerLine": 256, "tagsPerLine": null }`) replaces the game's rule for cutting long printed lines with the one of the greyhack-customizable-output mod: a line whose visible text is longer than `textPerLine` characters, or whose tags take more than `tagsPerLine` characters, is cut into pieces of `textPerLine` characters; `null` for `tagsPerLine` means no tag limit. `greybel execute` and `greybel repl` take `--text-per-line N` and `--tags-per-line N` for the same. Unknown configuration fields are rejected. The complete editor schema is [greybel.schema.json](../apps/ts/greybel-vs/schemas/greybel.schema.json).
 
 Profiles override `build` and `run`:
 
@@ -221,15 +221,26 @@ With no file, the first project entry runs. `--params` / `-p` supplies the progr
 
 ### Mock and shared worlds
 
-The default `--env-type mock` generates a local simulated Grey Hack world. `--seed` / `-s` changes the default `test` seed; the same seed generates the same world. The mock world approximates Grey Hack; use an in-game run when exact game behavior matters. The local root shell is available as `get_shell("root", "test")`.
+The default `--env-type mock` generates a local simulated Grey Hack world. `--seed` / `-s` changes the default `test` seed; the same seed generates the same world. The mock world approximates Grey Hack; use an in-game run when exact game behavior matters. The local root shell is available as `get_shell("root", "test")`. Programs run as the player's user `test`; `--user root` or `run.user: "Root"` in `greybel.json` runs them as `root`, as after `sudo -s` in the game.
 
-To share one simulated world among separate CLI processes, connect to a running `greyhack-world-server` with:
+`execute`, `repl` and `mcp` run programs in the world server that the commands and VS Code windows of the machine share, on port 41740 of `127.0.0.1`. When none runs there, the command starts one for its seed in the background; it shuts down after 600 seconds without connections. When the running server has another seed, the program gets a world of its own and the command says so.
+
+| Option | Effect |
+|---|---|
+| `--world-port PORT` | Uses the shared server on another port. |
+| `--world-idle-timeout SECONDS` | Sets how long a server the command starts stays up without connections; `0` keeps it running. |
+| `--own-world` | Runs each program in a world of its own, which is discarded afterwards. The `GREYBEL_OWN_WORLD` environment variable does the same. |
+| `--world ADDRESS` | Uses the world server at `ADDRESS` instead. |
+| `--worlds FOLDER` | Sets the folder in which a server the command starts saves its worlds. The `GREYBEL_WORLDS` environment variable does the same. |
+
+World servers save the world of each seed, so it continues where it stopped when a server starts again. The worlds are kept in `greybel/worlds` in the user's data folder (`~/Library/Application Support` on macOS, `%APPDATA%` on Windows, `$XDG_DATA_HOME` or `~/.local/share` elsewhere), listed by seed in its `worlds.json`. While one server uses a seed's saved world, a second server of the same seed runs its world in memory only.
+
+`worlds.json` records the database layout of each saved world: the schema version of each part of the world and a hash of its tables. A world saved by an older Greybel version is migrated when its parts have newer versions with migrations. A world whose tables changed without a version step is renamed with an `.outdated` suffix and generated again, as is a world that fails to load (`.unreadable`). A world saved by a newer Greybel version is not changed; the server runs a world in memory instead.
 
 ```sh
-greybel execute src/main.src --world ADDRESS
+greybel world reset                 # generate the shared world again; running programs are interrupted
+greybel world serve --seed test     # serve a world yourself; see --help for --port, --idle-timeout, --memory
 ```
-
-`--world` replaces seed-generated world creation and cannot be combined with `--seed`.
 
 A run compiles the program and its dependencies into a binary in its user's home folder, normally `~/myprogram`, so `program_path` and `launch(program_path)` work. In the game this binary exists only for the run.
 

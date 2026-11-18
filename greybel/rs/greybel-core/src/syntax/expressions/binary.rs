@@ -38,7 +38,6 @@ impl BinaryOp {
             BinaryOp::GreaterEqual => Punct::GreaterEqual.as_str(),
         }
     }
-
 }
 
 #[derive(Debug, Clone, PartialEq, NodeFieldContainer)]

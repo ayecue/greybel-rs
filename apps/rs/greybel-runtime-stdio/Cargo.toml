@@ -12,6 +12,7 @@ name = "greybel-runtime"
 path = "src/main.rs"
 
 [dependencies]
+clap.workspace = true
 duplex-driver-stdio.workspace = true
 greybel-runtime = { workspace = true, features = ["game"] }
 greyhack-terminal-text.workspace = true

@@ -5,4 +5,5 @@ pub(crate) mod schema;
 pub(crate) mod world_database;
 
 pub(crate) use routines::RoutineRepository;
+pub use schema::world_schema;
 pub use world_database::DatabaseOpen;

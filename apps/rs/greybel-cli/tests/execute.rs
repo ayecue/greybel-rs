@@ -45,6 +45,24 @@ fn should_run_the_first_entry_of_greybel_json_with_its_settings() {
 }
 
 #[test]
+fn should_run_as_the_user_of_greybel_json_or_the_option() {
+    let project = Project::new(&[
+        ("main.src", "print(active_user + \" \" + home_dir)"),
+        (
+            "greybel.json",
+            r#"{ "entries": ["main.src"], "run": { "user": "Root" } }"#,
+        ),
+    ]);
+
+    let root = project.run(&["execute"], "");
+    let user = project.run(&["execute", "--user", "user"], "");
+
+    assert!(root.success(), "{root:?}");
+    assert_eq!(root.stdout(), "root /root\n");
+    assert_eq!(user.stdout(), "test /home/test\n");
+}
+
+#[test]
 fn should_read_input_from_the_terminal() {
     let project = Project::new(&[(
         "main.src",
@@ -116,4 +134,36 @@ fn should_run_programs_of_separate_processes_in_the_world_of_a_game_server() {
     assert!(write.success(), "{write:?}");
     assert!(read.success(), "{read:?}");
     assert_eq!(read.stdout(), "from the writer\n");
+}
+
+/// Verifies that programs in separate `greybel` processes share the world server the first one starts.
+#[test]
+fn should_run_programs_of_separate_processes_in_the_shared_world() {
+    let port = std::net::TcpListener::bind(("127.0.0.1", 0))
+        .and_then(|listener| listener.local_addr())
+        .expect("a free port is found")
+        .port()
+        .to_string();
+    let project = Project::new(&[
+        (
+            "write.src",
+            "computer = get_shell.host_computer\ncomputer.touch(home_dir, \"shared.txt\")\ncomputer.File(home_dir + \"/shared.txt\").set_content(\"from the writer\")",
+        ),
+        (
+            "read.src",
+            "print(get_shell.host_computer.File(home_dir + \"/shared.txt\").get_content)",
+        ),
+    ]);
+    let worlds = project.path("worlds");
+    let options = ["--world-port", &port, "--world-idle-timeout", "2"];
+
+    let write =
+        project.run_in_machine_world(&[&["execute", "write.src"][..], &options].concat(), &worlds);
+    let read =
+        project.run_in_machine_world(&[&["execute", "read.src"][..], &options].concat(), &worlds);
+
+    assert!(write.success(), "{write:?}");
+    assert!(read.success(), "{read:?}");
+    assert_eq!(read.stdout(), "from the writer\n");
+    assert!(worlds.join("worlds.json").exists(), "the world is saved");
 }

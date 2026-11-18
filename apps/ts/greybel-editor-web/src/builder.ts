@@ -47,8 +47,7 @@ export class Builder {
           variables: { ...settings.buildVariables },
           excludedNames: [...build.excludedNamespaces],
           disabledSyntax: settings.disabledSyntax,
-          multilineStrings:
-            build.multilineStrings === 'Join' ? MultilineStringStyle.Join : MultilineStringStyle.Concatenation
+          multilineStrings: MultilineStringStyle[build.multilineStrings]
         })
       })
     );

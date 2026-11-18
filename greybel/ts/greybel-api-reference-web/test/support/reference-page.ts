@@ -5,11 +5,17 @@ import { build } from 'esbuild';
 import { chromium, type Locator, type Page } from 'playwright';
 import { onTestFinished } from 'vitest';
 
+import { MERMAID_URL } from '../../src/components/diagram.js';
+
 const SCRIPT = new URL('../../dist-test/index.iife.js', import.meta.url);
 const WASM = new URL('../../dist-test/greybel-api-reference-web.wasm', import.meta.url);
 const CLIENT = fileURLToPath(new URL('./client.ts', import.meta.url));
 
 /** The API reference page in Chromium, with its test editor. */
+/** Mermaid's files on jsDelivr, which tests serve from the installed `mermaid` package instead. */
+const MERMAID_DIST = MERMAID_URL.slice(0, MERMAID_URL.lastIndexOf('/') + 1);
+const MERMAID_FILES = new URL('../../node_modules/mermaid/dist/', import.meta.url);
+
 export class ReferencePage {
   readonly page: Page;
 
@@ -26,6 +32,13 @@ export class ReferencePage {
 
     const page = await browser.newPage({ viewport: { width: 1200, height: 800 } });
     const reference = new ReferencePage(page);
+
+    await page.route(`${MERMAID_DIST}**`, (route) =>
+      route.fulfill({
+        contentType: 'text/javascript',
+        body: readFileSync(new URL(route.request().url().slice(MERMAID_DIST.length), MERMAID_FILES))
+      })
+    );
 
     await reference.#load(repositoryUrl);
 

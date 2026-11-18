@@ -10,9 +10,22 @@ interface SemanticTokenResponse {
 
 interface SemanticTokensLegend {
   readonly tokenTypes: readonly string[];
+  readonly tokenModifiers?: readonly string[];
 }
 
-/** Marks the language server's semantic tokens with one class per token type: `cm-token-<type>`. */
+/** Bracket colors cycle through this many classes by nesting depth, as in Grey Hack's code editor. */
+const BRACKET_DEPTHS = 6;
+
+const BRACKET_KINDS = [
+  { name: 'paren', open: '(', close: ')' },
+  { name: 'square', open: '[', close: ']' }
+] as const;
+
+/**
+ * Marks the language server's semantic tokens with one class per token type: `cm-token-<type>`, plus
+ * `cm-token-default-library` for API function names, `cm-<paren|square>-<1..6>` by bracket depth and
+ * `cm-bracket-unmatched` for a closing bracket without an opening one.
+ */
 export class SemanticTokenHighlighter {
   readonly #setTokens = StateEffect.define<DecorationSet>();
   readonly #field = StateField.define<DecorationSet>({
@@ -90,6 +103,8 @@ export class SemanticTokenHighlighter {
 
   #createMarks(data: readonly number[], legend: SemanticTokensLegend, plugin: LSPPlugin, doc: Text): DecorationSet {
     const builder = new RangeSetBuilder<Decoration>();
+    const libraryBit = 1 << (legend.tokenModifiers ?? []).indexOf('defaultLibrary');
+    const depths = new Map<string, number>(BRACKET_KINDS.map((kind) => [kind.name, 0]));
     let line = 0;
     let character = 0;
 
@@ -105,9 +120,27 @@ export class SemanticTokenHighlighter {
       const type = legend.tokenTypes[data[index + 3]!];
 
       if (type === undefined || to <= from) continue;
-      builder.add(from, to, Decoration.mark({ class: `cm-token-${type}` }));
+
+      const classes = [`cm-token-${type}`];
+
+      if (libraryBit > 0 && (data[index + 4]! & libraryBit) !== 0) classes.push('cm-token-default-library');
+      if (type === 'punctuator') classes.push(...this.#getBracketClasses(doc.sliceString(from, to), depths));
+      builder.add(from, to, Decoration.mark({ class: classes.join(' ') }));
     }
 
     return builder.finish();
+  }
+
+  /** Returns the classes for bracket `text` and updates `depths`; nesting colors match Grey Hack's editor. */
+  #getBracketClasses(text: string, depths: Map<string, number>): string[] {
+    const kind = BRACKET_KINDS.find((candidate) => text === candidate.open || text === candidate.close);
+
+    if (kind === undefined) return text === ':' ? ['cm-token-colon'] : [];
+
+    const depth = depths.get(kind.name)! + (text === kind.open ? 1 : 0);
+
+    depths.set(kind.name, text === kind.close ? depth - 1 : depth);
+
+    return depth < 1 ? ['cm-bracket-unmatched'] : [`cm-${kind.name}-${((depth - 1) % BRACKET_DEPTHS) + 1}`];
   }
 }

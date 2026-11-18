@@ -19,7 +19,7 @@ it('should keep the selected tab in the address', async () => {
   await page.locator('section.chapter').first().waitFor();
 
   expect(await page.locator('.tab[aria-selected="true"]').textContent()).toBe('Guide');
-  await expect.poll(() => page.locator('section.chapter:visible').count()).toBe(12);
+  await expect.poll(() => page.locator('section.chapter:visible').count()).toBe(14);
 });
 
 it('should filter the reference as its address says', async () => {

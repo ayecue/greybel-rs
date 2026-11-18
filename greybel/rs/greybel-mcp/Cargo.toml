@@ -23,7 +23,7 @@ greybel-project = { workspace = true, features = ["builder", "runtime"] }
 greybel-runtime = { workspace = true, features = ["game"] }
 greybel-type-analyzer.workspace = true
 greyhack-terminal-text.workspace = true
-greyhack-world-operations.workspace = true
+greybel-runtime-world.workspace = true
 greyscript-intrinsics.workspace = true
 rmcp.workspace = true
 schemars.workspace = true

@@ -14,7 +14,7 @@ pub use build::{
 };
 pub use diagnostics::{DiagnosticLevel, DiagnosticSettings};
 pub use profile::{Profile, ProfileError};
-pub use run::{LineLimits, RunSettings};
+pub use run::{LineLimits, RunSettings, RunUser};
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
 pub use syntax::SyntaxSettings;

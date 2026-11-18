@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 
 use indexmap::IndexMap;
-
 use serde::{Deserialize, Serialize};
 
 /// Credentials handed out by one aligned NPC (`ZeroDaySystem.GetNpcPassword`).

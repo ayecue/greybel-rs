@@ -25,7 +25,10 @@ pub struct BeautifyOptions {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum MultilineStringStyle {
+    /// `"a¶b".replace("¶",char(10))` with a marker character the string doesn't contain: about the source's size,
+    /// and one pass at run time. Falls back to `Concatenation` when the string contains every marker.
     #[default]
+    Replace,
     Concatenation,
     Join,
 }
@@ -123,7 +126,7 @@ impl Default for TranspileOptions {
             path_mapping: None,
             retain_debugger: false,
             retain_multiline_strings: false,
-            multiline_strings: MultilineStringStyle::Concatenation,
+            multiline_strings: MultilineStringStyle::Replace,
         }
     }
 }

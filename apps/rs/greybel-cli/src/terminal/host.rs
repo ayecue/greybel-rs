@@ -7,13 +7,11 @@ use greybel_documents_fs_provider::FsProvider;
 use greybel_io::{BufferedStdout, Stdout};
 use greybel_io_terminal::TerminalStdin;
 use greybel_runtime::protocol::{LogMessage, StopNotice};
-use greybel_runtime::{Controller, Host, Io, Runtime, connect_on_tokio};
-use greyhack_world_operations::WorldServer;
-use greyscript_intrinsics::ServerConnection;
+use greybel_runtime::{Controller, Host, Io, Runtime, WorldFuture};
+use greybel_runtime_world::WorldSource;
+use greyhack_terminal_text::LineSplitRule;
 use scheduler::{Clock, TokioScheduler};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
-
-use greyhack_terminal_text::LineSplitRule;
 
 use super::screen::RichTextScreen;
 use crate::report;
@@ -24,18 +22,17 @@ pub struct TerminalHost {
     stops: UnboundedSender<StopNotice>,
     /// Clock and timer scheduler for programs and generated worlds.
     scheduler: TokioScheduler,
-    /// Shared game-server world; programs use individual generated worlds when absent.
-    world: Option<ServerConnection>,
+    world: Rc<WorldSource>,
     split_rule: LineSplitRule,
 }
 
 impl TerminalHost {
-    /// Starts a terminal runtime on the current `LocalSet`. Programs read `memory` before the filesystem
-    /// and use `world` when provided; their output splits long lines by `split_rule`. Returns the runtime controller
-    /// and debugger stop receiver.
+    /// Starts a terminal runtime on the current `LocalSet` and returns its controller and debugger stop receiver.
+    /// Programs read `memory` before the filesystem, find their world through `world`, and split long output lines by
+    /// `split_rule`.
     pub fn start(
         memory: Arc<BTreeMap<Uri, String>>,
-        world: Option<ServerConnection>,
+        world: WorldSource,
         split_rule: LineSplitRule,
     ) -> (Controller<Self>, UnboundedReceiver<StopNotice>) {
         let (stops, receiver) = mpsc::unbounded_channel();
@@ -43,7 +40,7 @@ impl TerminalHost {
             memory,
             stops,
             scheduler: TokioScheduler::new(),
-            world,
+            world: Rc::new(world),
             split_rule,
         });
 
@@ -74,12 +71,16 @@ impl Host for TerminalHost {
         Rc::new(self.scheduler.clone())
     }
 
-    fn world(&self) -> Option<ServerConnection> {
-        self.world.clone()
-    }
+    fn world(&self, seed: &str) -> WorldFuture {
+        let (source, seed, clock) = (Rc::clone(&self.world), seed.to_owned(), self.clock());
 
-    fn connect(&self, server: &WorldServer) -> ServerConnection {
-        connect_on_tokio(server)
+        Box::pin(async move {
+            source
+                .launch_world(&seed, clock, |failure| {
+                    eprintln!("The program runs in a world of its own: {failure}.");
+                })
+                .await
+        })
     }
 
     fn report_stop(&self, notice: &StopNotice) {

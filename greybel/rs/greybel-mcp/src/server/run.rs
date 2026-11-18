@@ -110,6 +110,7 @@ impl Server {
             input: params.input,
             timeout,
             split_rule: Program::split_rule_of(project.manifest.run.line_limits.as_ref()),
+            world: self.options.world.clone(),
         }
         .run()
         .await;

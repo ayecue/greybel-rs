@@ -3,16 +3,18 @@
 
 mod transpilation;
 mod variables;
+mod world;
 
 use std::path::Path;
 
 use clap::Args;
 use greybel_documents::Uri;
 use greybel_documents_fs_provider::FsProvider;
-use greybel_project::{LineLimits, Manifest, Project};
+use greybel_project::{LineLimits, Manifest, Project, RunUser};
 use greyhack_message_hook_client::protocol::DEFAULT_PORT;
 pub use transpilation::Transpilation;
 pub use variables::VariableOptions;
+pub use world::WorldOptions;
 
 use crate::report::Failure;
 
@@ -58,12 +60,31 @@ pub struct Simulation {
     /// With `--text-per-line`: also cuts lines whose tags take more than this many characters.
     #[arg(long, value_name = "CHARACTERS", requires = "text_per_line")]
     pub tags_per_line: Option<u32>,
+    /// Account the program runs as on the player's computer [default: user].
+    #[arg(long, value_enum, ignore_case = true)]
+    pub user: Option<User>,
+}
+
+/// Account a simulated program runs as.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum User {
+    /// The player's user, with its home folder in `/home`.
+    User,
+    /// `root`, as after `sudo -s` in the game.
+    Root,
 }
 
 impl Simulation {
     pub fn apply(&self, manifest: &mut Manifest) {
         if let Some(seed) = &self.seed {
             manifest.run.seed.clone_from(seed);
+        }
+
+        if let Some(user) = self.user {
+            manifest.run.user = match user {
+                User::User => RunUser::User,
+                User::Root => RunUser::Root,
+            };
         }
 
         if let Some(text_per_line) = self.text_per_line {

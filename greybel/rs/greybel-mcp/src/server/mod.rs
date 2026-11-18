@@ -10,6 +10,7 @@ mod run;
 mod source;
 mod transform;
 
+use greybel_runtime_world::WorldSource;
 use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::model::{Implementation, ServerCapabilities, ServerConfig};
 use rmcp::{ServerHandler, tool_handler};
@@ -20,13 +21,15 @@ look up the API (api_search, api_reference), check code for errors (check), navi
 (transform), build projects with what they import (build) and run programs in a simulated Grey Hack world (run). In \
 the simulated world, `get_shell(\"root\", \"test\")` is the local root shell.";
 
-/// Configuration for Grey Hack message-hook access.
-#[derive(Debug, Clone, Copy)]
+/// Configuration for Grey Hack message-hook access and the simulated world of runs.
+#[derive(Debug, Clone)]
 pub struct ServerOptions {
     /// Enables game execution and file-import tools through the message hook.
     pub allow_game: bool,
     /// Game message-hook port.
     pub port: u16,
+    /// Source of the simulated world used by runs.
+    pub world: WorldSource,
 }
 
 /// MCP tool server for one client configuration.

@@ -37,9 +37,30 @@ impl Project {
         Self { folder }
     }
 
-    /// Runs `greybel` with `arguments` in the project directory and writes `input` to its stdin.
+    /// Runs `greybel` with `arguments` in the project directory and writes `input` to its stdin. Programs run in
+    /// worlds of their own.
     pub fn run(&self, arguments: &[&str], input: &str) -> Run {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_greybel"))
+        let mut command = Command::new(env!("CARGO_BIN_EXE_greybel"));
+
+        command.env("GREYBEL_OWN_WORLD", "true");
+
+        self.run_command(command, arguments, input)
+    }
+
+    /// Runs `greybel` like [`Project::run`], with programs in the shared world server, which saves its worlds in
+    /// `worlds`.
+    pub fn run_in_machine_world(&self, arguments: &[&str], worlds: &Path) -> Run {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_greybel"));
+
+        command
+            .env_remove("GREYBEL_OWN_WORLD")
+            .env("GREYBEL_WORLDS", worlds);
+
+        self.run_command(command, arguments, "")
+    }
+
+    fn run_command(&self, mut command: Command, arguments: &[&str], input: &str) -> Run {
+        let mut child = command
             .args(arguments)
             .env_remove("GREYBEL_PROFILE")
             .current_dir(&self.folder)

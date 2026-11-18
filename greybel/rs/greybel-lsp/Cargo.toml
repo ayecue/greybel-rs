@@ -16,6 +16,7 @@ greybel-core.workspace = true
 greybel-documents.workspace = true
 greybel-project.workspace = true
 greybel-type-analyzer.workspace = true
+greyscript-meta.workspace = true
 greybel-transpiler.workspace = true
 gen-lsp-types.workspace = true
 serde.workspace = true

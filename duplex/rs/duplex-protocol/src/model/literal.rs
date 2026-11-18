@@ -60,10 +60,7 @@ pub enum Value {
     Text(String),
     Char(char),
     Null,
-    Member {
-        name: String,
-        value: u32,
-    },
+    Member { name: String, value: u32 },
 }
 
 impl Value {

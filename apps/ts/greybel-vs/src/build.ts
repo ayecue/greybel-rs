@@ -58,7 +58,7 @@ export class BuildCommand {
         files.map((file) => vscode.workspace.fs.writeFile(Uri.joinPath(output, file.path), encoder.encode(file.code)))
       );
 
-      const importNote = deploy ? ' and imported into Grey Hack' : '';
+      const importNote = deploy ? ` and imported into Grey Hack at ${ingameDirectory}` : '';
 
       vscode.window.showInformationMessage(`Build complete${importNote}. [Open output](${output.toString()}).`);
     } catch (error) {

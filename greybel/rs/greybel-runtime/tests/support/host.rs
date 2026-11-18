@@ -8,10 +8,10 @@ use std::rc::Rc;
 use greybel_documents::PathResolution;
 use greybel_documents_memory_provider::MemoryProvider;
 use greybel_interpreter::Clock;
-use greybel_runtime::protocol::{Environment, Launch, LogMessage, StopNotice};
-use greybel_runtime::{Host, Io, connect_on_tokio};
+use greybel_runtime::protocol::{Environment, Launch, LaunchFailure, LogMessage, StopNotice};
+use greybel_runtime::{Host, Io, LaunchWorld, WorldFuture};
+use greybel_runtime_world::LocalWorld;
 use greybel_test_support::io::{CapturedStdout, PrintLog, ScriptedStdin};
-use greyhack_world_operations::WorldServer;
 use greyscript_intrinsics::ServerConnection;
 use scheduler::TokioScheduler;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
@@ -26,6 +26,10 @@ pub struct MemoryHost {
     input: Vec<&'static str>,
     stops: UnboundedSender<StopNotice>,
     logs: Rc<RefCell<Vec<String>>>,
+    /// Generates a world for each simulated launch; without, such launches are unavailable.
+    pub has_worlds: bool,
+    /// World connections of the launches.
+    connections: Rc<RefCell<Vec<ServerConnection>>>,
 }
 
 impl Host for MemoryHost {
@@ -52,8 +56,25 @@ impl Host for MemoryHost {
         Rc::new(TokioScheduler::new())
     }
 
-    fn connect(&self, server: &WorldServer) -> ServerConnection {
-        connect_on_tokio(server)
+    fn world(&self, seed: &str) -> WorldFuture {
+        let (seed, clock, has_worlds) = (seed.to_owned(), self.clock(), self.has_worlds);
+        let connections = Rc::clone(&self.connections);
+
+        Box::pin(async move {
+            if !has_worlds {
+                return Err(LaunchFailure::Unavailable);
+            }
+
+            let world = LocalWorld::generate(&seed, clock).await;
+            let connection = world.connect_on_tokio();
+
+            connections.borrow_mut().push(connection.clone());
+
+            Ok(LaunchWorld {
+                connection,
+                guard: Some(Box::new(world)),
+            })
+        })
     }
 
     fn report_stop(&self, notice: &StopNotice) {
@@ -71,6 +92,7 @@ pub struct Setup {
     pub printed: PrintLog,
     pub stops: UnboundedReceiver<StopNotice>,
     pub logs: Rc<RefCell<Vec<String>>>,
+    pub connections: Rc<RefCell<Vec<ServerConnection>>>,
 }
 
 /// Creates a memory host serving `code` as [`MAIN`] with scripted `input`.
@@ -78,6 +100,7 @@ pub fn setup(code: &'static str, input: Vec<&'static str>) -> Setup {
     let (sender, stops) = mpsc::unbounded_channel();
     let printed = PrintLog::default();
     let logs = Rc::default();
+    let connections = Rc::<RefCell<Vec<ServerConnection>>>::default();
 
     Setup {
         host: MemoryHost {
@@ -86,10 +109,13 @@ pub fn setup(code: &'static str, input: Vec<&'static str>) -> Setup {
             input,
             stops: sender,
             logs: Rc::clone(&logs),
+            has_worlds: true,
+            connections: Rc::clone(&connections),
         },
         printed,
         stops,
         logs,
+        connections,
     }
 }
 
@@ -102,6 +128,7 @@ pub fn launch(debug: bool, params: &[&str]) -> Launch<'static> {
         environment: Environment::Mock {
             seed: "test".into(),
             memory_limit: 1024,
+            user: None,
         },
         debug,
         stop_on_entry: false,

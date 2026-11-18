@@ -22,6 +22,7 @@ const SHARED = [
   'icon.png',
   'icons/**',
   'snippets.json',
+  'themes/grey-hack-color-theme.json',
   'schemas/greybel.schema.json',
   'dist/extension.js',
   'dist/extension.browser.js',

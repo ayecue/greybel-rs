@@ -147,7 +147,8 @@ internal sealed class GuildFixture(Player player) : IFixture
         Database.Singleton.GameOverStrike(computer, before);
         helper.ActiveGameOver(company, PlayerUtils.Trace.ACTIVE);
 
-        Router endedCompany = ServerMap.Singleton.GetRouter(new IP(request.CompanyIp), false) ?? company;
+        Router endedCompany =
+            ServerMap.Singleton.GetRouter(new IP(request.CompanyIp), false) ?? company;
 
         return new Reply.GameEnded(
             new GameEndedReply(
@@ -155,8 +156,8 @@ internal sealed class GuildFixture(Player player) : IFixture
                 BankFixture.Read(player.Server.GetPlayerID()),
                 endedCompany.GetNetworkLan().disabledNetwork,
                 endedCompany.IsHomeNetwork(),
-                helper.rentalIPs
-                    .Select(entry => new RentalStateSnapshot(entry.Key, entry.Value))
+                helper
+                    .rentalIPs.Select(entry => new RentalStateSnapshot(entry.Key, entry.Value))
                     .ToList()
             )
         );

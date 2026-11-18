@@ -2,10 +2,9 @@ use std::collections::HashMap;
 
 use greybel_symbols::contextual_keywords;
 
+use super::HighlightKind;
 use crate::syntax::greybel::TypeBody;
 use crate::{Ast, IdentifierKind, Node, NodeId, NodeKind, Span, Visitor};
-
-use super::HighlightKind;
 
 pub(super) struct IdentifierRoles<'a> {
     type_spans: Vec<Span>,

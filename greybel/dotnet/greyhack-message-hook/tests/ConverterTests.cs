@@ -33,17 +33,29 @@ public class ConverterTests
     public void ShouldKeepNullableAndAbsentParametersDistinct()
     {
         var remote = new GreyHackMessageHook.Protocol.UpdateTerminalRemoteClientRpc(
-            "user", "ip", "device", false, "folder", false, false, 7, null
+            "user",
+            "ip",
+            "device",
+            false,
+            "folder",
+            false,
+            false,
+            7,
+            null
         );
         RawMessage remoteRaw = Proxy.Converter.Encode(remote);
         Assert.Equal(9, remoteRaw.ToObject<Newtonsoft.Json.Linq.JObject>()["params"]!.Count());
-        var remoteRoundTrip = Assert.IsType<GreyHackMessageHook.Protocol.UpdateTerminalRemoteClientRpc>(
-            Proxy.Converter.Decode(remoteRaw, Role.Provider)
-        );
+        var remoteRoundTrip =
+            Assert.IsType<GreyHackMessageHook.Protocol.UpdateTerminalRemoteClientRpc>(
+                Proxy.Converter.Decode(remoteRaw, Role.Provider)
+            );
         Assert.Null(remoteRoundTrip.MapPosition);
 
         var mail = new GreyHackMessageHook.Protocol.PlayerRecibeMailClientRpc(
-            "from", "subject", new byte[0], null
+            "from",
+            "subject",
+            new byte[0],
+            null
         );
         RawMessage mailRaw = Proxy.Converter.Encode(mail);
         Assert.Equal(3, mailRaw.ToObject<Newtonsoft.Json.Linq.JObject>()["params"]!.Count());
@@ -52,11 +64,14 @@ public class ConverterTests
         );
 
         var folders = new GreyHackMessageHook.Protocol.SendPendingFoldersClientRpc(
-            new byte[0], null!, null
+            new byte[0],
+            null!,
+            null
         );
-        var foldersRoundTrip = Assert.IsType<GreyHackMessageHook.Protocol.SendPendingFoldersClientRpc>(
-            Proxy.Converter.Decode(Proxy.Converter.Encode(folders), Role.Provider)
-        );
+        var foldersRoundTrip =
+            Assert.IsType<GreyHackMessageHook.Protocol.SendPendingFoldersClientRpc>(
+                Proxy.Converter.Decode(Proxy.Converter.Encode(folders), Role.Provider)
+            );
         Assert.Empty(foldersRoundTrip.ZipEndCopy);
         Assert.Null(foldersRoundTrip.TrashHasItems);
     }

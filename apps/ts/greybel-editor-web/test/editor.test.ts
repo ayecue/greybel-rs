@@ -18,8 +18,30 @@ describe('the editor', () => {
     const types = page.locator('.cm-token-type');
 
     await expect.poll(() => types.allTextContents()).toEqual(['number', 'string', 'map']);
-    expect(await types.first().evaluate((element) => getComputedStyle(element).color)).toBe('rgb(78, 201, 176)');
+    expect(await types.first().evaluate((element) => getComputedStyle(element).color)).toBe('rgb(77, 124, 244)');
     expect(await page.locator('.cm-token-keyword').first().textContent()).toBe('let');
+  });
+
+  it("should colour the code like Grey Hack's code editor", async () => {
+    const editor = await EditorPage.open('f = function(n)\n  return n\nend function\nprint(f((1)), [get_shell, "s"])');
+    const { page } = editor;
+    const colorOf = (text: string, selector: string) =>
+      page
+        .locator(selector, { hasText: new RegExp(`^${text.replace(/[()[\]]/g, '\\$&')}$`) })
+        .first()
+        .evaluate((element) => getComputedStyle(element).color);
+
+    await expect
+      .poll(() => page.locator('.cm-token-default-library').allTextContents())
+      .toEqual(['print', 'get_shell']);
+    expect(await colorOf('print', '.cm-token-default-library')).toBe('rgb(66, 200, 239)');
+    expect(await colorOf('f', '.cm-token-function')).toBe('rgb(255, 255, 255)');
+    expect(await colorOf('function', '.cm-token-keyword')).toBe('rgb(249, 38, 114)');
+    expect(await colorOf('"s"', '.cm-token-string')).toBe('rgb(218, 219, 105)');
+    expect(await colorOf('1', '.cm-token-number')).toBe('rgb(68, 170, 68)');
+    expect(await colorOf('(', '.cm-paren-1')).toBe('rgb(115, 164, 231)');
+    expect(await colorOf('(', '.cm-paren-3')).toBe('rgb(231, 140, 115)');
+    expect(await colorOf('[', '.cm-square-1')).toBe('rgb(122, 122, 255)');
   });
 
   it('should highlight the signature a hover shows', async () => {
@@ -32,7 +54,7 @@ describe('the editor', () => {
     const name = page.locator('.cm-lsp-hover-tooltip code.language-greyscript-signature span', { hasText: /^print$/ });
 
     await name.waitFor();
-    expect(await name.evaluate((element) => getComputedStyle(element).color)).toBe('rgb(220, 220, 170)');
+    expect(await name.evaluate((element) => getComputedStyle(element).color)).toBe('rgb(66, 200, 239)');
     expect(
       await page.locator('.cm-lsp-hover-tooltip code.language-greyscript-signature span', { hasText: /^null$/ }).count()
     ).toBe(1);

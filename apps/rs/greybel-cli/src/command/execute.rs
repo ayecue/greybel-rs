@@ -8,13 +8,14 @@ use clap::{Args, ValueEnum};
 use greybel_documents::Uri;
 use greybel_documents_fs_provider::FsProvider;
 use greybel_project::{Place, Project};
-use greybel_runtime::connect_over_tcp;
 use greybel_runtime::protocol::{Exit, Launch, LaunchFailure, SourceBreakpoint};
+use greybel_runtime_world::WorldSource;
 use greyhack_terminal_text::LineSplitRule;
 
 use super::block_on;
 use super::options::{
-    MessageHook, ProjectOptions, Simulation, SourceOptions, VariableOptions, current_folder,
+    MessageHook, ProjectOptions, Simulation, SourceOptions, VariableOptions, WorldOptions,
+    current_folder,
 };
 use crate::report::{self, Failure, Report};
 use crate::terminal::{Debugger, RichTextScreen, TerminalHost};
@@ -39,10 +40,8 @@ pub struct ExecuteCommand {
     breakpoints: Vec<String>,
     #[command(flatten)]
     simulation: Simulation,
-    /// Address of a game server (greyhack-world-server) to run the program in its world, shared with the programs of
-    /// other processes, instead of a world generated from the seed.
-    #[arg(long, value_name = "ADDRESS", conflicts_with = "seed")]
-    world: Option<String>,
+    #[command(flatten)]
+    world: WorldOptions,
     #[command(flatten)]
     variables: VariableOptions,
     #[command(flatten)]
@@ -83,7 +82,7 @@ impl ExecuteCommand {
         let (launch, split_rule) = self.launch()?;
         let breakpoints = self.breakpoints().map_err(Failure::input)?;
 
-        report::exit(run(launch, &breakpoints, self.world, split_rule))
+        report::exit(run(launch, &breakpoints, self.world.source()?, split_rule))
     }
 
     /// The launch and how its output splits long lines.
@@ -177,25 +176,13 @@ impl ExecuteCommand {
     }
 }
 
-/// Execute `launch` on the terminal with `breakpoints` and handle debugger stops as they arrive. Connect to the
-/// shared game server at `world` when provided.
 fn run(
     launch: Launch<'static>,
     breakpoints: &BTreeMap<String, Vec<SourceBreakpoint>>,
-    world: Option<String>,
+    world: WorldSource,
     split_rule: LineSplitRule,
 ) -> Result<Exit, LaunchFailure> {
     block_on(async move {
-        let world =
-            match world {
-                Some(address) => Some(connect_over_tcp(&address).await.map_err(|error| {
-                    LaunchFailure::Invalid {
-                        message: format!("the game server at {address} is unreachable: {error}"),
-                        location: None,
-                    }
-                })?),
-                None => None,
-            };
         let (controller, mut stops) = TerminalHost::start(Arc::default(), world, split_rule);
 
         for (uri, breakpoints) in breakpoints {

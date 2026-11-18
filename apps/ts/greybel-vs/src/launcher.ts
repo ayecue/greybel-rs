@@ -17,5 +17,8 @@ export interface RuntimeLauncher {
 /** Window game server shared by all runtime programs; `C` is the runtime connection type. */
 export interface WorldHost<C> {
   connect(seed: string): Promise<C>;
-  reset(): void;
+  /** Regenerates the world, interrupting programs running in it. */
+  reset(): Promise<void>;
+  /** Stops the world resources started by this window. */
+  dispose(): void;
 }

@@ -52,7 +52,7 @@ Runs when a push to `main` changes `.changes/release.toml`, which `cargo reman r
    | greybel-vs | `greybel-vs-<platform>-<version>.vsix` for `web`, `win32-x64`, `win32-arm64`, `linux-x64`, `linux-arm64`, `linux-armhf`, `alpine-x64`, `alpine-arm64`, `darwin-x64`, `darwin-arm64`; also published to the Visual Studio Marketplace and Open VSX |
    | greybel-cli | `greybel-<version>-<rust target>.tar.gz`, `.zip` for Windows |
    | greybel-lsp-stdio | `greybel-lsp-<version>-<rust target>.tar.gz`, `.zip` for Windows |
-   | greyhack-setup-wizard | `greyhack-setup-wizard-<version>-<runtime>.tar.gz` (`.zip` for Windows) with the window and the command-line tool, self-contained, for `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`; on macOS the window is `Grey Hack Setup Wizard.app` |
+   | greyhack-setup-wizard | `greyhack-setup-wizard-<version>-<runtime>.tar.gz` (`.zip` for Windows) with the window and the command-line tool, self-contained and trimmed, for `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`; on macOS the window is `Grey Hack Setup Wizard.app` |
    | greyhack-message-hook | `GreyHackMessageHook5.dll` (BepInEx 5) and `GreyHackMessageHook.dll` (BepInEx 6) |
 
 4. **finish:** adds `SHA256SUMS` to each release, publishes the drafts and marks greyhack-message-hook's release as

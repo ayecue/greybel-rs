@@ -1,5 +1,5 @@
 import { AutoCompile, Build, MultilineStringStyle, TranspileMode, TranspileSettings } from 'greybel-builder';
-import { Environment, Launch, MultilineStringStyle as LaunchedStyle } from 'greybel-runtime';
+import { Environment, Launch, MultilineStringStyle as LaunchedStyle, RunUser } from 'greybel-runtime';
 import vscode, { Uri } from 'vscode';
 
 import type { BuildMode, Manifest, ProjectJson, TerminalLineLimits } from './manifest';
@@ -98,8 +98,7 @@ export class Project {
       variables: { ...this.#project.buildVariables },
       excludedNames: [...build.excludedNamespaces],
       disabledSyntax: this.#getDisabledSyntax(),
-      multilineStrings:
-        build.multilineStrings === 'Join' ? MultilineStringStyle.Join : MultilineStringStyle.Concatenation
+      multilineStrings: MultilineStringStyle[build.multilineStrings]
     });
   }
 
@@ -151,7 +150,7 @@ export class Project {
       strictMode,
       programName: run.programName,
       disabledSyntax: this.#getDisabledSyntax(),
-      multilineStrings: build.multilineStrings === 'Join' ? LaunchedStyle.Join : LaunchedStyle.Concatenation
+      multilineStrings: LaunchedStyle[build.multilineStrings]
     });
   }
 
@@ -168,7 +167,7 @@ export class Project {
     const { run } = this.manifest;
 
     return port === undefined
-      ? new Environment.Mock({ seed: run.seed, memoryLimit: run.memoryLimit })
+      ? new Environment.Mock({ seed: run.seed, memoryLimit: run.memoryLimit, user: RunUser[run.user] })
       : new Environment.Game({ port });
   }
 

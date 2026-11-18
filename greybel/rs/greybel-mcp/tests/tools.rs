@@ -2,15 +2,15 @@
 
 use greybel_mcp::ServerOptions;
 
-use crate::support::{Client, OPTIONS, run};
+use crate::support::{Client, options, run};
 
 #[test]
 fn should_list_the_game_tools_only_when_allowed() {
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
         let mut game_client = Client::connect(ServerOptions {
             allow_game: true,
-            ..OPTIONS
+            ..options()
         })
         .await;
         let names = client.tool_names().await;

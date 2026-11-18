@@ -31,7 +31,7 @@ export class DebugController {
         new InlineDebugAdapterFactory(launcher, projects, preview)
       ),
       vscode.commands.registerCommand('greybel.resetWorld', () => world.reset()),
-      { dispose: () => world.reset() }
+      { dispose: () => world.dispose() }
     );
   }
 

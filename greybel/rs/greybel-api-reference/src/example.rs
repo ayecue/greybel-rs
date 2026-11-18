@@ -31,7 +31,12 @@ impl ExampleHighlighter {
         let mut end = 0;
         let mut after_dot = false;
 
-        for token in Highlighter::new(&ast).tokens(api::LANGUAGE) {
+        let is_library = |name: &str| greyscript_meta::is_api_function(name);
+
+        for token in Highlighter::new(&ast)
+            .with_library(&is_library)
+            .tokens(api::LANGUAGE)
+        {
             let (start, stop) = (token.span.start as usize, token.span.end as usize);
 
             if start < end || stop > code.len() || !code.is_char_boundary(start) {
@@ -41,8 +46,11 @@ impl ExampleHighlighter {
             Self::push(&mut tokens, &code[end..start], Highlight::Plain, None);
 
             let text = &code[start..stop];
-            let highlight = Self::highlight(token.kind);
-            let link = (highlight == Highlight::Name && !after_dot)
+            let highlight = match Self::highlight(token.kind) {
+                Highlight::Name if token.library => Highlight::Library,
+                highlight => highlight,
+            };
+            let link = (matches!(highlight, Highlight::Name | Highlight::Library) && !after_dot)
                 .then(|| self.general_function(text))
                 .flatten();
 

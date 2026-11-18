@@ -3,6 +3,7 @@
 pub mod code;
 
 use greybel_mcp::{Server, ServerOptions};
+use greybel_runtime_world::WorldSource;
 use rmcp::ServiceExt as _;
 use serde_json::{Value, json};
 use tokio::io::{
@@ -10,11 +11,14 @@ use tokio::io::{
 };
 use tokio::task::LocalSet;
 
-/// Server options with game integration disabled.
-pub const OPTIONS: ServerOptions = ServerOptions {
-    allow_game: false,
-    port: 7777,
-};
+/// Server options with game integration disabled, running programs in worlds of their own.
+pub fn options() -> ServerOptions {
+    ServerOptions {
+        allow_game: false,
+        port: 7777,
+        world: WorldSource::Own,
+    }
+}
 
 /// Line-delimited JSON-RPC client for an in-memory MCP server.
 pub struct Client {

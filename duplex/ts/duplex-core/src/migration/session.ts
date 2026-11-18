@@ -40,7 +40,13 @@ export class Session {
     else this.writeMessage(frames, type.read(new BinaryReader(body)), exchangeId);
   }
 
-  writeSegment(frames: FrameEncoder, segment: MessageSegment, exchangeId: number, type: IMessage, value: unknown): void {
+  writeSegment(
+    frames: FrameEncoder,
+    segment: MessageSegment,
+    exchangeId: number,
+    type: IMessage,
+    value: unknown
+  ): void {
     const path = this.migrationPath;
     const migratedType = path === undefined ? type : path.getOldestType(type);
     const rewritten = path === undefined ? value : path.migrateDown(segment, type, value);

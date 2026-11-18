@@ -4,22 +4,19 @@ expression: out
 input_file: greybel-transpiler/tests/fixtures/greyscript/scripts/import-code-multiline.src
 ---
 === default
-__NL=char(10)
 import_code("/dependencies/multiline-import.src")
 print(banner)
 --- dependencies/multiline-import.src
-banner="first line"+__NL+"second line"
+banner="first line¶second line".replace("¶",char(10))
 === uglify
-K=char(10)
 globals.I=globals
 import_code("/dependencies/multiline-import.src")
 print(J)
 --- dependencies/multiline-import.src
-J="first line"+K+"second line"
+J="first line¶second line".replace("¶",char(10))
 === beautify
-__NL = char(10)
 // The imported file has the multiline string, so this file defines __MSTR for it.
 import_code("/dependencies/multiline-import.src")
 print banner
 --- dependencies/multiline-import.src
-banner = "first line" + __NL + "second line"
+banner = "first line¶second line".replace("¶", char(10))

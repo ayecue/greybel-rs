@@ -34,6 +34,7 @@ impl Project {
             excluded_names: build.excluded_namespaces.clone(),
             disabled_syntax: manifest.syntax.off_names(),
             multiline_strings: Some(match build.multiline_strings {
+                MultilineStringStyle::Replace => BuiltStyle::Replace,
                 MultilineStringStyle::Concatenation => BuiltStyle::Concatenation,
                 MultilineStringStyle::Join => BuiltStyle::Join,
             }),

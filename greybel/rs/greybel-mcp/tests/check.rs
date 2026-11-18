@@ -2,12 +2,12 @@
 
 use serde_json::json;
 
-use crate::support::{Client, OPTIONS, run};
+use crate::support::{Client, options, run};
 
 #[test]
 fn should_check_code_for_problems() {
     run(async {
-        let mut client = Client::connect(OPTIONS).await;
+        let mut client = Client::connect(options()).await;
 
         let (problems, _) = client
             .call("check", json!({ "code": "x = 1\nif x then" }))

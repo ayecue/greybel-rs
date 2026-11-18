@@ -20,5 +20,5 @@ mod world;
 pub use generation::{PlayerOptions, WorldOptions};
 pub use modules::{ModuleSet, WorldAssembly, assemble};
 pub use routines::{RoutineReport, RoutineService, ScheduledRoutine, TickReport};
-pub use storage::DatabaseOpen;
+pub use storage::{DatabaseOpen, world_schema};
 pub use world::World;

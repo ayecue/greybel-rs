@@ -4,6 +4,22 @@ import * as vscode from 'vscode';
 import { WRITE, readContent, run } from './support/world';
 import { TIMEOUT } from './support/workspace';
 
+/** Shared world server of every test: apart from the default port that a developer's editors use, and stopped soon. */
+const WORLD_SETTINGS = { 'world.port': 41799, 'world.idleTimeout': 5 };
+
+// Root hooks, which apply to the tests of every file.
+before(async () => {
+  for (const [key, value] of Object.entries(WORLD_SETTINGS)) {
+    await vscode.workspace.getConfiguration('greybel').update(key, value, vscode.ConfigurationTarget.Workspace);
+  }
+});
+
+after(async () => {
+  for (const key of Object.keys(WORLD_SETTINGS)) {
+    await vscode.workspace.getConfiguration('greybel').update(key, undefined, vscode.ConfigurationTarget.Workspace);
+  }
+});
+
 describe('the mock world the debug sessions share', function () {
   this.timeout(TIMEOUT);
 

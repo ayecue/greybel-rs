@@ -31,8 +31,8 @@
     "description": "Returns a `MetaMail` entity if the login was successful. On failure a `string` with details gets returned. In case any of the provided values deviate from the types defined in the signature this method will return `null`. Utilizing this method in an SSH encryption process will trigger an error, halting further script execution.",
     "example": [
       "metaMail = mail_login(\"test@test.com\", \"test\")",
-      "if metaMail == null then",
-      "   print(\"Loggin failed.\")",
+      "if typeof(metaMail) != \"MetaMail\" then",
+      "   print(\"Login failed: \" + metaMail)",
       "else",
       "   print(\"You've got mail.\")",
       "end if"
@@ -47,7 +47,7 @@
   "hasIndex": {
     "description": "Verifies if an index is available within an object. In case of success this method will return a `number` with the value one. In case of failure the value will be a zero. This method supports `map`s, `list`s and `string`s. Each passed type may result in different behavior therefore it is advisable to take a look at each of their specific signatures. In case an unsupported value gets passed this method will return `null`.",
     "example": [
-      "print(\"List has index: \" + hasIndex([1, 2, 3], 2)"
+      "print(\"List has index: \" + hasIndex([1, 2, 3], 2))"
     ]
   },
   "typeof": {
@@ -75,14 +75,14 @@
   "get_switch": {
     "description": "Returns the switch on the local network whose IP address matches, otherwise it returns `null`.",
     "example": [
-      "router = get_switch(\"192.168.0.2)",
+      "router = get_switch(\"192.168.0.2\")",
       "print(\"IP address of switch: \" + router.local_ip)"
     ]
   },
   "nslookup": {
     "description": "Returns the IP address for a web address, with or without the `www.` prefix. Returns `\"IP not found\"` when the name cannot be resolved and round-tripped, and `\"nslookup: Invalid arguments\"` for a missing, empty, or non-string address.",
     "example": [
-      "url = params[0]",
+      "url = \"www.google.com\"",
       "print(\"IP for website is: \" + nslookup(url))"
     ]
   },
@@ -226,7 +226,7 @@
     "description": "Depending on the data type, this function will remove a value in the provided object, potentially mutating the object. This method works with `map`s, `list`s, and `string`s. Each passed type may support different types for the `k` argument. For example, using this method on a string would treat the key as a character index. Therefore, it is advised to review the signatures of each type. Passing a key with the type `null` may cause an error to be thrown, preventing further script execution. The same will happen if the passed self value deviates from being a `map`, `list`, or `string`.",
     "example": [
       "list = [9, 3, 5, 7]",
-      "remove(list, 5)",
+      "remove(list, 2)",
       "print(\"List after removal: \" + list.join(\", \"))"
     ]
   },
@@ -310,7 +310,7 @@
   "whois": {
     "description": "Returns administrator information for an IP address or an error `string`. Invalid or empty arguments return `\"whois: Invalid arguments\"`. The result no longer appends `[Neurobox Network]` for Neurobox networks.",
     "example": [
-      "adminInfo = whos(\"1.1.1.1\")",
+      "adminInfo = whois(\"12.12.12.12\")",
       "infoLines = adminInfo.split(char(10))",
       "infoObject = {}",
       "infoObject.domainName = infoLines[0].split(\":\")[1].trim",
@@ -381,13 +381,13 @@
   "is_valid_ip": {
     "description": "Returns a `number`. If the provided IP address is valid, its value will be one. Otherwise, its value is zero.",
     "example": [
-      "print(\"Is valid IP: \" + is_valid_ip(\"1.1.1.1\"))"
+      "print(\"Is valid IP: \" + is_valid_ip(\"12.12.12.12\"))"
     ]
   },
   "bitwise": {
     "description": "Returns a `number` by performing bitwise operations. Supported operators are: `\"~\"`, `\"&\"`, `\"|\"`, `\"^\"`, `\"<<\"`, `\">>\"`, `\">>>\"`. In case you want to use the tilde operator you only need to provide the operator and the left argument. If any of the required arguments is `null` this method will return `null`. Warning: If either operand is >= `0x80000000`, it'll always returns 0.",
     "example": [
-      "num = params[0].to_int",
+      "num = 5",
       "isOdd = bitwise(\"&\", num, 1) == 1",
       "if isOdd then",
       "   print(\"Number is odd.\")",
@@ -436,7 +436,7 @@
     "description": "Returns the tangent of a `number` in radians.",
     "example": [
       "degrees = 90",
-      "tanFromDegrees = tan(degress * pi / 180)",
+      "tanFromDegrees = tan(degrees * pi / 180)",
       "print(\"Tan from degrees: \" + tanFromDegrees)"
     ]
   },
@@ -905,7 +905,7 @@
     "example": [
       "blockchain = include_lib(\"/lib/blockchain.so\")",
       "wallet = login_wallet(blockchain, \"test\", \"test\")",
-      "if typeof(wallet) == \"string\" then",
+      "if typeof(wallet) != \"wallet\" then",
       "  print \"Login failed due to: \" + wallet",
       "else",
       "  print \"Login was successful!\"",
@@ -917,7 +917,7 @@
     "example": [
       "blockchain = include_lib(\"/lib/blockchain.so\")",
       "wallet = create_wallet(blockchain, \"test\", \"test\")",
-      "if typeof(wallet) == \"string\" then",
+      "if typeof(wallet) != \"wallet\" then",
       "  print \"Wallet creation failed due to: \" + wallet",
       "else",
       "  print \"Wallet creation was successful!\"",
@@ -1129,7 +1129,7 @@
   "create_folder": {
     "description": "Creates a folder and returns one on success or an error `string` on failure. Invalid argument types return `\"create_folder: Invalid arguments\"`; use during SSH encryption still raises a runtime error.",
     "example": [
-      "path = \"/home/\" + active_user + \"/Desktop\"",
+      "path = home_dir + \"/Desktop\"",
       "computer = host_computer(get_shell)",
       "createResult = create_folder(computer, path, \"myfolder\")",
       "if typeof(createResult) == \"string\" then",
@@ -1153,7 +1153,7 @@
   "touch": {
     "description": "Creates an empty text `file` at the provided path. Certain limitations apply to file creation: the `file` name must be alphanumeric and below 128 characters. Creation will fail if a `file` already exists at the specified path or if there are insufficient permissions. Additionally, there is a file limit of about 250 per folder and 3125 files overall on the computer. If successful, it returns a `number` with the value one. On failure, it returns a `string` with details. Using this method in an SSH encryption process will cause an error to be thrown, preventing further script execution. If an invalid `computer` object is passed, this method will return `null`.",
     "example": [
-      "path = \"/home/\" + active_user + \"/Desktop\"",
+      "path = home_dir + \"/Desktop\"",
       "computer = host_computer(get_shell)",
       "createResult = touch(computer, path, \"myFile.txt\")",
       "if typeof(createResult) == \"string\" then",
@@ -1299,11 +1299,11 @@
     "description": "Connects to a Wi-Fi network and returns one on success or an error `string` on failure. A rented computer cannot join another network and returns `\"connect_wifi: rented computers cannot connect to another network.\"`.",
     "example": [
       "computer = host_computer(get_shell)",
-      "networks = wifi_networks(computer)",
+      "networks = wifi_networks(computer, \"wlan0\")",
       "firstNetwork = networks[0].split(\" \")",
       "BSSID = firstNetwork[0]",
       "ESSID = firstNetwork[2]",
-      "connectionResult = connect_wifi(host_computer, \"wlan0\", BSSID, ESSID, \"wifi-password\")",
+      "connectionResult = connect_wifi(computer, \"wlan0\", BSSID, ESSID, \"wifi-password\")",
       "if typeof(connectionResult) == \"string\" then",
       "   print(\"There was an error while connecting to new Wifi: \" + connectionResult)",
       "else",
@@ -1384,7 +1384,7 @@
       "pwr = parsed[1][:-1].to_int",
       "essid = parsed[2]",
       "potentialAcks = 300000 / (pwr + 15)",
-      "aireplaycrypto, bssid, essid, potentialAcks)",
+      "aireplay(crypto, bssid, essid, potentialAcks)",
       "wifiPassword = aircrack(crypto, \"/home/\" + active_user + \"/file.cap\")",
       "print(\"Wifi password for \" + essid + \" is \" + wifiPassword)"
     ]
@@ -1642,7 +1642,7 @@
       "computer = host_computer(get_shell)",
       "lsBinary = File(computer, \"/bin/ls\")",
       "ownerResult = set_owner(lsBinary, \"root\")",
-      "if typeof(ownerResult) == \"string\" then",
+      "if ownerResult != \"\" then",
       "   print(\"There was an error while changing owner: \" + ownerResult)",
       "else",
       "   print(\"File owner changed successfully.\")",
@@ -1663,7 +1663,7 @@
       "computer = host_computer(get_shell)",
       "lsBinary = File(computer, \"/bin/ls\")",
       "ownerResult = set_group(lsBinary, \"root\")",
-      "if typeof(ownerResult) == \"string\" then",
+      "if ownerResult != \"\" then",
       "   print(\"There was an error while changing group: \" + ownerResult)",
       "else",
       "   print(\"File group changed successfully.\")",
@@ -1698,9 +1698,9 @@
     "description": "Returns a `netSession` for an IP address and port, or `null` on failure. Disabled internet returns `\"net_use: No internet connection\"`; invalid addresses print an error and return `null`. SSH encryption still raises.",
     "example": [
       "metax = include_lib(\"/lib/metaxploit.so\")",
-      "ports = used_ports(get_router(\"1.1.1.1\"))",
+      "ports = used_ports(get_router(\"12.12.12.12\"))",
       "for port in ports",
-      "   netSession = net_use(metax, \"1.1.1.1\", port_number(port))",
+      "   netSession = net_use(metax, \"12.12.12.12\", port_number(port))",
       "   metaLib = dump_lib(netSession)",
       "   print(\"Library: \" + lib_name(metaLib) + \" - \" + version(metaLib) + \" on port \" + port_number(port))",
       "end for"
@@ -1710,7 +1710,7 @@
     "description": "Launches a process on the victim's `computer`, silently attempting to continuously connect in the background to the specified address and port. For the reverse shell to run successfully, the `rshell` service must be installed, and the port forward must be configured correctly on the machine where the server is waiting for the victim's connection. If the launch was successful, a `number` with the value one will be returned. In case of failure, a `string` with details will be returned.",
     "example": [
       "metax = include_lib(\"/lib/metaxploit.so\")",
-      "rshell_client(metax, \"1.1.1.1\", 1222, \"bgprocess\")"
+      "rshell_client(metax, \"12.12.12.12\", 1222, \"bgprocess\")"
     ]
   },
   "rshell_remove": {
@@ -1813,8 +1813,8 @@
     "description": "Returns the `metaLib` associated with the remote service. For example if the `metaxpoit` method `net_use` was used on a ssh port it will return the `metaLib` related to the ssh service. In case the port was zero is will return a `metaLib` related to the kernel router. If an invalid `netSession` gets passed this method will return `null`.",
     "example": [
       "metax = include_lib(\"/lib/metaxploit.so\")",
-      "ports = used_ports(get_router(\"1.1.1.1\"))",
-      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "ports = used_ports(get_router(\"12.12.12.12\"))",
+      "netSession = net_use(metax, \"12.12.12.12\", port_number(ports[0]))",
       "metaLib = dump_lib(netSession)",
       "print(\"Library: \" + lib_name(metaLib) + \" - \" + version(metaLib) + \" on port \" + port_number(ports[0]))"
     ]
@@ -1823,8 +1823,8 @@
     "description": "Returns the number of devices using this router as a gateway. If you obtained your `netSession` from a computer, it will fetch and return the value from its gateway router. If an invalid `netSession` gets passed this method will return `null`.",
     "example": [
       "metax = include_lib(\"/lib/metaxploit.so\")",
-      "ports = used_ports(get_router(\"1.1.1.1\"))",
-      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "ports = used_ports(get_router(\"12.12.12.12\"))",
+      "netSession = net_use(metax, \"12.12.12.12\", port_number(ports[0]))",
       "print(\"Gateway clients: \" + get_num_conn_gateway(netSession))"
     ]
   },
@@ -1832,8 +1832,8 @@
     "description": "Returns the number of ports forwarded by this router. If you obtained your `netSession` from a computer, it will fetch and return the value from its gateway router. If an invalid `netSession` gets passed this method will return `null`.",
     "example": [
       "metax = include_lib(\"/lib/metaxploit.so\")",
-      "ports = used_ports(get_router(\"1.1.1.1\"))",
-      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "ports = used_ports(get_router(\"12.12.12.12\"))",
+      "netSession = net_use(metax, \"12.12.12.12\", port_number(ports[0]))",
       "print(\"Port forwards: \" + get_num_portforward(netSession))"
     ]
   },
@@ -1841,8 +1841,8 @@
     "description": "Returns the number of user accounts on the system. If an invalid `netSession` gets passed this method will return `null`.",
     "example": [
       "metax = include_lib(\"/lib/metaxploit.so\")",
-      "ports = used_ports(get_router(\"1.1.1.1\"))",
-      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "ports = used_ports(get_router(\"12.12.12.12\"))",
+      "netSession = net_use(metax, \"12.12.12.12\", port_number(ports[0]))",
       "print(\"User accounts: \" + get_num_users(netSession))"
     ]
   },
@@ -1850,8 +1850,8 @@
     "description": "Returns a `number`. If there is an active user on the system it will be one. Otherwise, it will be zero. If an invalid `netSession` gets passed this method will return `null`.",
     "example": [
       "metax = include_lib(\"/lib/metaxploit.so\")",
-      "ports = used_ports(get_router(\"1.1.1.1\"))",
-      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "ports = used_ports(get_router(\"12.12.12.12\"))",
+      "netSession = net_use(metax, \"12.12.12.12\", port_number(ports[0]))",
       "print(\"User Active?: \" + is_any_active_user(netSession))"
     ]
   },
@@ -1859,8 +1859,8 @@
     "description": "Returns a `number`. If there is an active root on the system it will be one. Otherwise, it will be zero. If an invalid `netSession` gets passed this method will return `null`.",
     "example": [
       "metax = include_lib(\"/lib/metaxploit.so\")",
-      "ports = used_ports(get_router(\"1.1.1.1\"))",
-      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "ports = used_ports(get_router(\"12.12.12.12\"))",
+      "netSession = net_use(metax, \"12.12.12.12\", port_number(ports[0]))",
       "print(\"Root Active?: \" + is_root_active_user(netSession))"
     ]
   },
@@ -2048,7 +2048,7 @@
     "description": "Connects to SSH or FTP and returns a shell, or an error `string` on failure. Invalid arguments and missing internet now return strings. Valid credentials for a dead or fired NPC return `\"This account is disabled.\"`; SSH encryption still raises.",
     "example": [
       "shell = get_shell",
-      "connectionResult = connect_service(shell, \"1.1.1.1\", 22, \"test\", \"test\")",
+      "connectionResult = connect_service(shell, \"12.12.12.12\", 22, \"test\", \"test\")",
       "if typeof(connectionResult) != \"shell\" then",
       "   print(\"There was an error while connecting: \" + connectionResult)",
       "else",
@@ -2060,7 +2060,7 @@
     "description": "Returns one for a reachable address, zero for an unreachable one, and an error `string` for invalid input. Signature mismatches return `\"ping: Invalid arguments\"` instead of raising.",
     "example": [
       "shell = get_shell",
-      "isPingable = ping(shell, \"1.1.1.1\")",
+      "isPingable = ping(shell, \"12.12.12.12\")",
       "if isPingable then",
       "   print(\"Ping was successful!\")",
       "else",
@@ -2072,7 +2072,7 @@
     "description": "Copies files between shells and returns one on complete success. Invalid arguments return `\"scp: Invalid arguments\"`. If nested items are skipped, returns `\"Warning: one or more files or folders cannot be copied.\"`; SSH encryption still raises.",
     "example": [
       "shell = get_shell",
-      "remoteShell = connect_service(shell, \"1.1.1.1\", 22, \"test\", \"test\")",
+      "remoteShell = connect_service(shell, \"12.12.12.12\", 22, \"test\", \"test\")",
       "result = scp(remoteShell, \"/bin/ls\", \"/etc/\", shell)",
       "if typeof(result) == \"string\" then",
       "   print(\"There was an error while sending file: \" + result)",
@@ -2281,7 +2281,7 @@
     "example": [
       "blockchain = include_lib(\"/lib/blockchain.so\")",
       "wallet = login_wallet(blockchain, \"test\", \"test\")",
-      "print \"All existing coins: \" join(list_global_coins(wallet), \", \")"
+      "print \"All existing coins: \" + join(list_global_coins(wallet), \", \")"
     ]
   },
   "show_nodes": {
@@ -2289,7 +2289,7 @@
     "example": [
       "blockchain = include_lib(\"/lib/blockchain.so\")",
       "wallet = login_wallet(blockchain, \"test\", \"test\")",
-      "print \"Active miners: \" show_nodes(wallet, \"test\")"
+      "print \"Active miners: \" + show_nodes(wallet, \"test\")"
     ]
   },
   "reset_password": {
@@ -2420,7 +2420,8 @@
   "reset_ctf_password": {
     "description": "Resets the password of your CTF account. Returns a `number` with the value one if resetting was successful; otherwise, it will return a `string` containing the reason for failure.",
     "example": [
-      "reset_ctf_password(\"mysafepassword\")"
+      "result = reset_ctf_password(\"mysafepassword\")",
+      "print(\"Reset CTF password: \" + result)"
     ]
   },
   "reverse": {
@@ -2428,7 +2429,7 @@
     "example": [
       "myList = [42, 1, 3]",
       "reverse(myList)",
-      "print(\"Reversed list: \" + myList.split(\", \"))"
+      "print(\"Reversed list: \" + myList.join(\", \"))"
     ]
   },
   "trim": {
@@ -2637,8 +2638,8 @@
     "description": "Floods the target until stopped, or reboots it once enough distinct addresses flood it concurrently. The threshold is `netSpeed * 3` when a super administrator is on the network and three quarters of that otherwise. Super-admin networks print `\"Warning: Super administrator detected. Additional DDoS traffic required.\"`; a successful reboot prints `\"remote connection interrupted\"`. Returns `null`.",
     "example": [
       "metax = include_lib(\"/lib/metaxploit.so\")",
-      "ports = used_ports(get_router(\"1.1.1.1\"))",
-      "netSession = net_use(metax, \"1.1.1.1\", port_number(ports[0]))",
+      "ports = used_ports(get_router(\"12.12.12.12\"))",
+      "netSession = net_use(metax, \"12.12.12.12\", port_number(ports[0]))",
       "flood_connection(netSession)"
     ]
   },
@@ -2651,7 +2652,8 @@
   "cd": {
     "description": "Changes the active shell directory and returns an empty `string` on success. The target and every parent folder require execute permission. Invalid argument types return `\"cd: Invalid arguments\"`; SSH encryption still raises.",
     "example": [
-      "cd(\"/root\")"
+      "cd(\"/root\")",
+      "print(\"Working directory: \" + current_path)"
     ]
   },
   "encrypt": {

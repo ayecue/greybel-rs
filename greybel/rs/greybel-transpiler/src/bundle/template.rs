@@ -44,7 +44,7 @@ pub(super) const HEADER: &str = "MODULES={}
 /// The function or variable that builds write strings with line breaks with.
 pub(crate) fn multiline_string_helper(options: &TranspileOptions) -> &'static str {
     match options.multiline_strings {
-        MultilineStringStyle::Concatenation => LINE_BREAK,
+        MultilineStringStyle::Concatenation | MultilineStringStyle::Replace => LINE_BREAK,
         MultilineStringStyle::Join => MULTILINE_STRING,
     }
 }
@@ -69,7 +69,8 @@ pub(crate) fn emit_multiline_string_function<'a, E: Emitter>(
     options: &TranspileOptions,
 ) -> Result<Option<String>> {
     let helper = multiline_string_helper(options);
-    let rewrites = LineBreakStyle::of(options, helper).rewrites()
+    let rewrites = options.multiline_strings != MultilineStringStyle::Replace
+        && LineBreakStyle::of(options, helper).rewrites()
         && asts.any(|ast| {
             ast.literals.iter().any(|&id| {
                 matches!(ast.kind(id), NodeKind::Literal(literal) if matches!(literal.value, LiteralValue::String(_)))
@@ -91,6 +92,7 @@ pub(crate) fn emit_multiline_string_function<'a, E: Emitter>(
             emitter.runtime_name(LINE_BREAK),
             padding = E::INFIX_PADDING
         ))),
+        MultilineStringStyle::Replace => Ok(None),
     }
 }
 

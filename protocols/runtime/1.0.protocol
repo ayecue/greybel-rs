@@ -32,7 +32,7 @@ protocol Runtime = "greybel-runtime" {
             /// Greybel syntax features turned off, by their `greybel.json` names (e.g. `ternary`); absent turns none
             /// off.
             disabled_syntax?: list<string>,
-            /// How the program's build writes strings with line breaks; absent writes `Concatenation`.
+            /// How the program's build writes strings with line breaks; absent writes `Replace`.
             multiline_strings?: MultilineStringStyle,
         } -> Result<Exit, LaunchFailure>
         /// Replaces every breakpoint in `uri` and returns their resolved states in the same order.
@@ -97,6 +97,8 @@ union Environment {
         /// Memory allowance in MiB before the program is interrupted, matching Grey Hack out-of-memory interruption.
         /// Call nesting is unlimited.
         memory_limit: u32,
+        /// Account the program runs as on the player's computer; absent runs it as the player's user.
+        user?: RunUser,
     },
     /// Executes in single-player Grey Hack through the local message-hook plugin.
     Game {
@@ -111,7 +113,7 @@ union LaunchFailure {
     Busy,
     /// Requested environment cannot be used on this host, such as Grey Hack in a browser.
     Unavailable,
-    /// Message hook cannot be reached or no single-player game is running.
+    /// Message hook or world server cannot be reached, or no single-player game is running.
     Unreachable {
         message: string,
     },
@@ -245,8 +247,18 @@ struct Evaluation {
     reference: u32,
 }
 
+/// Account on the player's computer that a simulated program runs as.
+enum RunUser {
+    /// The player's user, with its home folder in `/home`.
+    User,
+    /// `root`, with its home folder `/root`.
+    Root,
+}
+
 /// How a build writes a string with line breaks, which Grey Hack's parser does not accept.
 enum MultilineStringStyle {
+    /// `"a¶b".replace("¶",char(10))`, with a marker character the string doesn't contain.
+    Replace,
     /// `"a"+__NL+"b"` with `__NL=char(10)`.
     Concatenation,
     /// `__MSTR(["a","b"])`, which joins the lines with `char(10)`.

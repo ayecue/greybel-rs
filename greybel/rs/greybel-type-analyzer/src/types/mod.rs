@@ -34,17 +34,11 @@ pub enum Type {
     Number,
     String,
     List(TypeId),
-    Map {
-        key: TypeId,
-        value: TypeId,
-    },
+    Map { key: TypeId, value: TypeId },
     Object(MapId),
     Function(FunctionRef),
     Class(&'static str),
-    TypeParameter {
-        name: Box<str>,
-        bound: TypeId,
-    },
+    TypeParameter { name: Box<str>, bound: TypeId },
     Union(Box<[TypeId]>),
     Literal(LiteralType),
 }

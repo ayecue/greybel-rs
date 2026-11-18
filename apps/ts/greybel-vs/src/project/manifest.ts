@@ -29,7 +29,7 @@ export interface BuildSettings {
   readonly disableLiteralsOptimization: boolean;
   readonly disableNamespacesOptimization: boolean;
   readonly excludedNamespaces: readonly string[];
-  readonly multilineStrings: 'Concatenation' | 'Join';
+  readonly multilineStrings: 'Replace' | 'Concatenation' | 'Join';
   readonly ingameDirectory: string;
   readonly autoCompile: boolean;
   readonly installer: { readonly active: boolean; readonly maxChars: number; readonly allowImport: boolean };
@@ -44,6 +44,7 @@ export interface RunSettings {
   readonly params: readonly string[];
   readonly programName: string;
   readonly memoryLimit: number;
+  readonly user: 'User' | 'Root';
   readonly variables: VariableSettings;
   /** `null` splits long terminal lines as the game does. */
   readonly lineLimits: LineLimitsSettings | null;
