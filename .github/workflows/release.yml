@@ -1,7 +1,8 @@
 # Releases the apps a prepared release names (`cargo reman release prepare`, committed and pushed to main): reman
-# tags them and creates draft releases, the jobs below build and attach their files and publish greybel-vs, and the
-# drafts are published once everything succeeded. A failed run can be re-run: publish lists the apps tagged at the
-# commit again.
+# tags them and creates draft releases, the jobs below build and attach their files, greybel-vs goes to the
+# marketplaces, and the drafts are published once everything succeeded. Creating the tags and drafts, publishing the
+# drafts, and publishing to the marketplaces wait for approval (environments `github-release` and `marketplaces`).
+# A failed run can be re-run: publish lists the apps tagged at the commit again.
 name: Release
 
 on:
@@ -27,6 +28,7 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-24.04
+    environment: github-release
     outputs:
       publications: ${{ steps.publish.outputs.publications }}
       vs: ${{ steps.publish.outputs.vs }}
@@ -167,18 +169,40 @@ jobs:
       - name: Attach the extension files
         working-directory: apps/ts/greybel-vs
         run: gh release upload "${{ needs.publish.outputs.vs }}" ./*.vsix --clobber
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: apps/ts/greybel-vs/*.vsix
+          retention-days: 7
+
+  # The VSIX files vscode packaged, to the Visual Studio Marketplace and Open VSX, once approved.
+  marketplaces:
+    needs: [publish, vscode]
+    if: needs.publish.outputs.vs != ''
+    runs-on: ubuntu-24.04
+    environment: marketplaces
+    steps:
+      - uses: actions/checkout@v4
+      # vsce and ovsx at greybel-vs's locked versions.
+      - uses: ./.github/actions/setup
+        with:
+          node: 'true'
+      - uses: actions/download-artifact@v4
+        with:
+          name: vsix
+          path: out/vsix
       - name: Publish to the Visual Studio Marketplace
         working-directory: apps/ts/greybel-vs
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: pnpm exec vsce publish --skip-duplicate --packagePath ./*.vsix
+        run: pnpm exec vsce publish --skip-duplicate --packagePath ../../../out/vsix/*.vsix
       - name: Publish to Open VSX
         working-directory: apps/ts/greybel-vs
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: |
-          for file in ./*.vsix; do
-            npx --yes ovsx publish "$file" --skip-duplicate
+          for file in ../../../out/vsix/*.vsix; do
+            pnpm exec ovsx publish "$file" --skip-duplicate
           done
 
   wizard:
@@ -229,13 +253,14 @@ jobs:
           Release-BepInEx5/BepInEx5/netstandard2.1/GreyHackMessageHook5.dll
           Release-BepInEx6/BepInEx6/netstandard2.1/GreyHackMessageHook.dll
 
-  # SHA256SUMS for every release, then the drafts become releases, the latest app's marked latest.
+  # SHA256SUMS for every release, then, once approved, the drafts become releases, the latest app's marked latest.
   finish:
     needs: [publish, native, vscode, wizard, hook]
     if: >-
       !cancelled() && needs.publish.result == 'success' && !contains(needs.*.result, 'failure')
       && needs.publish.outputs.publications != '[]'
     runs-on: ubuntu-24.04
+    environment: github-release
     steps:
       - name: Checksums and publication
         env:

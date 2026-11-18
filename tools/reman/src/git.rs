@@ -62,6 +62,19 @@ impl Git {
         self.resolve("HEAD")
     }
 
+    /// Whether commit `ancestor` is reachable from commit `descendant`, or is it.
+    pub fn is_ancestor(&self, ancestor: &str, descendant: &str) -> Result<bool> {
+        let ancestor = self.commit(ancestor)?;
+
+        for info in self.repository.rev_walk([self.commit(descendant)?]).all()? {
+            if info?.id == ancestor {
+                return Ok(true);
+            }
+        }
+
+        Ok(false)
+    }
+
     /// Newest commit reachable from HEAD that changed `path` (relative to the root): one whose `path` differs from
     /// every parent's, as `git log -1 -- <path>` finds it.
     pub fn last_commit_of(&self, path: &Path) -> Result<Option<String>> {

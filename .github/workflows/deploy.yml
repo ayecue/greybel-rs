@@ -1,5 +1,6 @@
 # Deploys the sites CI built and the editor service, after CI's tests pass (ci.yml). Pushes to main deploy to
-# production; pull requests get Netlify previews, linked in a comment. The .wasm files go to DigitalOcean Spaces.
+# production once approved (environments `netlify` and `digitalocean`); pull requests get Netlify previews without
+# approval (`netlify-preview`), linked in a comment. The .wasm files go to DigitalOcean Spaces.
 name: Deploy
 
 on:
@@ -29,6 +30,7 @@ jobs:
   sites:
     if: inputs.editor || inputs.reference
     runs-on: ubuntu-24.04
+    environment: ${{ github.event_name == 'pull_request' && 'netlify-preview' || 'netlify' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -85,6 +87,7 @@ jobs:
   service:
     if: inputs.service
     runs-on: ubuntu-24.04
+    environment: digitalocean
     steps:
       - uses: digitalocean/action-doctl@v2
         with:

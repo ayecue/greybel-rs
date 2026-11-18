@@ -209,12 +209,29 @@ impl<'a> Check<'a> {
 
         self.declared_versions(&changes, folder.record()?.as_ref());
 
-        let diff = Diff::since(self.repository, base)?;
+        let base = self.unreleased_base(base)?;
+        let diff = Diff::since(self.repository, base.as_deref())?;
 
         self.unnamed_projects(&diff, &changes);
         self.orphans(&diff);
 
         Ok(())
+    }
+
+    /// `base`, or the last release when it came after `base`: the change files that release consumed named what
+    /// changed before it, as a push of a release commit together with earlier commits has.
+    fn unreleased_base(&self, base: Option<&str>) -> Result<Option<String>> {
+        let Some(base) = base.filter(|base| !base.is_empty()) else {
+            return Ok(None);
+        };
+        let release = Diff::release_base(self.repository)?;
+        let git = Git::open(&self.repository.root)?;
+
+        Ok(Some(if git.is_ancestor(base, &release)? {
+            release
+        } else {
+            git.resolve(base)?
+        }))
     }
 
     /// Project whose versions its file names declare is named by the level its version moved since the last

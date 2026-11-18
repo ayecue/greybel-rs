@@ -2,7 +2,7 @@ use reman::check::Check;
 
 use crate::support::Fixture;
 use crate::support::check::lock_with_serde;
-use crate::support::release::diamond;
+use crate::support::release::{apply, diamond};
 
 #[test]
 fn should_report_a_changed_project_no_change_file_names() {
@@ -29,6 +29,25 @@ fn should_accept_a_changed_project_named_none() {
 
     // Act
     let report = Check::run(&fixture.repository(), None).unwrap();
+
+    // Assert
+    assert!(report.errors.is_empty(), "{:?}", report.errors);
+}
+
+#[test]
+fn should_count_changes_from_the_last_release_when_it_came_after_the_base() {
+    // Arrange
+    let fixture = diamond();
+
+    fixture
+        .file("rs/core/src/lib.rs", "// A comment.\n")
+        .change("comment", &[("core", "none")], "")
+        .commit();
+    apply(&fixture.repository());
+    fixture.commit();
+
+    // Act
+    let report = Check::run(&fixture.repository(), Some("HEAD~2")).unwrap();
 
     // Assert
     assert!(report.errors.is_empty(), "{:?}", report.errors);

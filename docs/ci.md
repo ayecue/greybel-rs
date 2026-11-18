@@ -31,32 +31,38 @@ Deploys what changed since the previous commit of `main`, or every site and the 
   application/wasm`, cached for a year), skips files already uploaded and never deletes any, so pages built before
   still load theirs.
 - **The sites** go to Netlify with `netlify deploy`, without the `.wasm` files. Pushes to `main` deploy to
-  production; pull requests from this repository get a preview (`pr-<number>`), linked in a pull request comment.
+  production once approved (environment `netlify`, which also covers the `.wasm` upload); pull requests from this
+  repository get a preview (`pr-<number>`, environment `netlify-preview`, no approval), linked in a pull request
+  comment.
   Previews call the production editor service, whose `ALLOWED_ORIGINS` doesn't list them, so saving fails there.
-- **greybel-editor-service** is deployed by `doctl apps create-deployment`, which makes App Platform build `main`
-  (`apps/rs/greybel-editor-service/deploy/app.yaml`, `deploy_on_push: false`). Pull requests don't deploy it.
+- **greybel-editor-service** is deployed by `doctl apps create-deployment` once approved (environment
+  `digitalocean`), which makes App Platform build `main` (`apps/rs/greybel-editor-service/deploy/app.yaml`,
+  `deploy_on_push: false`). Pull requests don't deploy it.
 
 ## Releases (`release.yml`)
 
 Runs when a push to `main` changes `.changes/release.toml`, which `cargo reman release prepare` writes
 ([Development](development.md#releases)), and manually.
 
-1. **publish:** `cargo reman release publish --draft` tags each app whose version is not released yet and creates
-   a draft release from its changelog section.
+1. **publish:** once approved (environment `github-release`), `cargo reman release publish --draft` tags each app
+   whose version is not released yet and creates a draft release from its changelog section.
 2. **native:** builds `greybel`, `greybel-lsp`, `greybel-runtime`, `greyhack-world-server` and `greybel-builder`
    for each platform. Linux uses `cargo zigbuild` against glibc 2.28 (VS Code's minimum) or musl.
 3. **The apps' files:**
 
    | Release | Files |
    |---|---|
-   | greybel-vs | `greybel-vs-<platform>-<version>.vsix` for `web`, `win32-x64`, `win32-arm64`, `linux-x64`, `linux-arm64`, `linux-armhf`, `alpine-x64`, `alpine-arm64`, `darwin-x64`, `darwin-arm64`; also published to the Visual Studio Marketplace and Open VSX |
+   | greybel-vs | `greybel-vs-<platform>-<version>.vsix` for `web`, `win32-x64`, `win32-arm64`, `linux-x64`, `linux-arm64`, `linux-armhf`, `alpine-x64`, `alpine-arm64`, `darwin-x64`, `darwin-arm64` |
    | greybel-cli | `greybel-<version>-<rust target>.tar.gz`, `.zip` for Windows |
    | greybel-lsp-stdio | `greybel-lsp-<version>-<rust target>.tar.gz`, `.zip` for Windows |
    | greyhack-setup-wizard | `greyhack-setup-wizard-<version>-<runtime>.tar.gz` (`.zip` for Windows) with the window and the command-line tool, self-contained and trimmed, for `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`; on macOS the window is `Grey Hack Setup Wizard.app` |
    | greyhack-message-hook | `GreyHackMessageHook5.dll` (BepInEx 5) and `GreyHackMessageHook.dll` (BepInEx 6) |
 
-4. **finish:** adds `SHA256SUMS` to each release, publishes the drafts and marks greyhack-message-hook's release as
-   the latest (its `reman.toml` sets `latest = true`; the setup wizard reads the latest release).
+4. **marketplaces:** once approved (environment `marketplaces`), publishes the VSIX files to the Visual Studio
+   Marketplace and Open VSX.
+5. **finish:** once approved (environment `github-release`), adds `SHA256SUMS` to each release, publishes the
+   drafts and marks greyhack-message-hook's release as the latest (its `reman.toml` sets `latest = true`; the setup
+   wizard reads the latest release).
 
 A release stays a draft while any job fails. Re-run the failed jobs, or the workflow at the same commit: publish then
 lists the apps tagged at that commit again (`is_new: false`) and the jobs rebuild them; attaching uses `--clobber`,
