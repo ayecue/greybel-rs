@@ -9,7 +9,7 @@ import { inject } from 'vitest';
 
 import { EditorChannel, EditorRouter, TranspileSettings, type TranspileMode } from '../../src/index.js';
 
-export const BINARY = 'greybel-builder';
+export const EXAMPLE = 'stdio-builder';
 
 export const BUILD_TIMEOUT = 600_000;
 
@@ -30,7 +30,7 @@ export const children: Child[] = [];
 export function binaryPath(): string {
   const target = process.env.CARGO_TARGET_DIR ?? inject('target');
 
-  return join(target, 'debug', BINARY);
+  return join(target, 'debug', 'examples', EXAMPLE);
 }
 
 export function start(files: Array<[string, string]>): EditorChannel {

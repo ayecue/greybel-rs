@@ -1299,6 +1299,7 @@ name = "greybel-builder"
 version = "0.1.0"
 dependencies = [
  "duplex-core",
+ "duplex-driver-stdio",
  "duplex-test-support",
  "duplex-ts",
  "fastrand",

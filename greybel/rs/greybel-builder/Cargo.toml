@@ -33,16 +33,21 @@ game = ["dep:greyhack-message-hook-client"]
 game-tests = ["game"]
 
 [dev-dependencies]
+duplex-driver-stdio.workspace = true
 duplex-test-support = { workspace = true, features = ["tokio"] }
 duplex-ts.workspace = true
 greybel-io-web.workspace = true
 greybel-runtime = { workspace = true, features = ["game"] }
 greybel-test-support = { workspace = true, features = ["file-editor", "game", "terminal"] }
-tokio = { workspace = true, features = ["time"] }
+tokio = { workspace = true, features = ["rt", "time"] }
 
 [[test]]
 name = "main"
 path = "tests/main.rs"
+
+[[example]]
+name = "stdio-builder"
+path = "examples/stdio-builder.rs"
 
 [lints]
 workspace = true

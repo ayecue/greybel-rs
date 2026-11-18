@@ -35,7 +35,7 @@ describe('greybel-lsp-web', () => {
   it('should hover with the type an include gives a name, in markdown', async () => {
     const hover = await session.page.evaluate((project) => lspPage.hover(project, 'main.src', 1, 7), LIBRARY_PROJECT);
 
-    expect(hover?.contents).toStrictEqual({ kind: 'markdown', value: '```greyscript\nhelper: number\n```' });
+    expect(hover?.contents).toStrictEqual({ kind: 'markdown', value: '```greyscript-signature\nhelper: number\n```' });
   });
 
   it.each(['{"jsonrpc":"2.0"}', 'not json'])(

@@ -3,10 +3,10 @@ import { execFileSync } from 'node:child_process';
 import { afterEach, beforeAll, describe, expect, inject, it } from 'vitest';
 
 import { Build, Transform, TranspileMode } from '../src/index.js';
-import { BUILD_TIMEOUT, LIBRARY, MAIN, children, settings, start } from './support/builder.js';
+import { BUILD_TIMEOUT, EXAMPLE, LIBRARY, MAIN, children, settings, start } from './support/builder.js';
 
 beforeAll(() => {
-  execFileSync('cargo', ['build', '--quiet', '--package', 'greybel-builder-stdio'], {
+  execFileSync('cargo', ['build', '--quiet', '--package', 'greybel-builder', '--example', EXAMPLE], {
     cwd: inject('rust'),
     stdio: 'inherit'
   });
@@ -32,7 +32,7 @@ describe('the Rust builder over standard input and output', () => {
 
   it('should build a project with the files it imports, read from the editor', async () => {
     const editor = start([
-      [MAIN, 'import_code("/project/lib.src")\nprint(double(4))'],
+      [MAIN, 'import_code("/lib.src")\nprint(double(4))'],
       [LIBRARY, 'double = function(n)\n  return n * 2\nend function']
     ]);
 
