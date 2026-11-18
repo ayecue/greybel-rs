@@ -9,7 +9,10 @@ const execFileAsync = promisify(execFile);
 
 const TARGET_DIR = process.env.CARGO_TARGET_DIR;
 
-const WASM_OPT = join(dirname(createRequire(import.meta.url).resolve('binaryen/package.json')), 'bin', 'wasm-opt');
+const BINARYEN = dirname(createRequire(import.meta.url).resolve('binaryen/package.json'));
+
+// A native wasm-opt of binaryen's version runs about ten times faster than the package's JavaScript one.
+const NATIVE_WASM_OPT = process.env.WASM_OPT;
 
 const WASM_BINDGEN = process.env.WASM_BINDGEN ?? 'wasm-bindgen';
 
@@ -78,6 +81,7 @@ export class CrateBuilder {
   readonly #profile: BuildProfile;
   readonly #builds = new Map<string, Promise<CrateBuild>>();
   #bindgen: Promise<string> | undefined;
+  #wasmOpt: Promise<string[]> | undefined;
 
   constructor(options: WasmOptions) {
     this.#crates = fileURLToPath(options.crates);
@@ -148,9 +152,10 @@ export class CrateBuilder {
     if (level === undefined) return wasm;
 
     const output = join(outDir, 'optimized.wasm');
+    const [command, ...prefix] = await this.#wasmOptCommand();
 
-    await this.#invokeProcess(process.execPath, [
-      WASM_OPT,
+    await this.#invokeProcess(command, [
+      ...prefix,
       level,
       '--strip-producers',
       '--strip-target-features',
@@ -160,6 +165,27 @@ export class CrateBuilder {
     ]);
 
     return output;
+  }
+
+  /** `WASM_OPT` when it is binaryen's version, else the package's wasm-opt through Node. */
+  #wasmOptCommand(): Promise<string[]> {
+    this.#wasmOpt ??= (async () => {
+      if (NATIVE_WASM_OPT === undefined) return [process.execPath, join(BINARYEN, 'bin', 'wasm-opt')];
+
+      const { version } = JSON.parse(await readFile(join(BINARYEN, 'package.json'), 'utf8')) as { version: string };
+      const major = version.split('.')[0];
+      const native = /version (\d+)/.exec(await this.#invokeProcess(NATIVE_WASM_OPT, ['--version']))?.[1];
+
+      if (native !== major) {
+        throw new Error(
+          `WASM_OPT is binaryen ${native ?? 'of an unknown version'}, but the package is binaryen ${major}`
+        );
+      }
+
+      return [NATIVE_WASM_OPT];
+    })();
+
+    return this.#wasmOpt;
   }
 
   #wasmBindgen(): Promise<string> {

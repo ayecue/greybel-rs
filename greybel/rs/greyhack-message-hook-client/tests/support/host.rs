@@ -13,8 +13,8 @@ use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use duplex_core::{FieldAccess, Message, Metadata, Tag, ValueRef};
 use greybel_test_support::game::{port, start_tool};
-use greyhack_message_hook_client::Client;
 use greyhack_message_hook_client::protocol::provider::{HealthCheckRpc, MessageHook};
+use greyhack_message_hook_client::{Client, ClientOptions};
 use serde_json::{Map, Value, json};
 use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel};
 
@@ -33,6 +33,10 @@ pub struct Host {
 }
 
 impl Host {
+    /// Answer time a request gets: the proxy is a .NET process whose first translations of each message type are
+    /// slow on busy CI machines, where 500 ms ran out.
+    const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+
     /// Starts the proxy with its tool built in `folder` (the test's `CARGO_TARGET_TMPDIR`).
     pub fn start(folder: impl AsRef<Path>) -> Self {
         let tool = start_tool(folder.as_ref(), ["proxy"]);
@@ -85,9 +89,12 @@ impl Host {
             }
         });
 
-        let client = Client::connect(options(host.port))
-            .await
-            .expect("the client connects");
+        let client = Client::connect(ClientOptions {
+            request_timeout: Self::REQUEST_TIMEOUT,
+            ..options(host.port)
+        })
+        .await
+        .expect("the client connects");
 
         (host, client, rx)
     }

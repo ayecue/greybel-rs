@@ -148,8 +148,10 @@ web-sys = "0.3"
 [profile.dev]
 debug = "line-tables-only"
 
+# Optimized dependencies: the workspace's integration tests run about three times faster.
 [profile.dev.package."*"]
 debug = false
+opt-level = 2
 
 # Binaries choose their own panic behavior.
 [profile.release]

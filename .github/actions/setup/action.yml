@@ -83,6 +83,21 @@ runs:
       with:
         tool: wasm-bindgen@${{ steps.wasm-bindgen.outputs.version }}
 
+    # A native wasm-opt of the binaryen version wasm-host uses (common/ts/pnpm-lock.yaml), which its builds take from
+    # WASM_OPT: about ten times faster than the package's JavaScript one.
+    - name: wasm-opt
+      if: inputs.wasm == 'true' && runner.os == 'Linux'
+      shell: bash
+      run: |
+        version=$(sed -n 's/^  binaryen@\([0-9]*\)\..*:$/\1/p' common/ts/pnpm-lock.yaml | head -1)
+        folder="$RUNNER_TEMP/binaryen"
+        mkdir -p "$folder"
+        curl --fail --silent --show-error --location \
+          "https://github.com/WebAssembly/binaryen/releases/download/version_$version/binaryen-version_$version-x86_64-linux.tar.gz" \
+          | tar -xz -C "$folder" --strip-components=1
+        echo "WASM_OPT=$folder/bin/wasm-opt" >> "$GITHUB_ENV"
+        "$folder/bin/wasm-opt" --version
+
     - if: inputs.node == 'true'
       uses: pnpm/action-setup@v4
       with:
