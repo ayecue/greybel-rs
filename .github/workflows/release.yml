@@ -228,9 +228,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      # Grey Hack's assembly the plugin compiles against, encrypted, on Spaces (never in the repository):
-      # openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -in Assembly-CSharp.dll -out message-hook-assembly.enc
-      # with the passphrase of the secret GREY_HACK_ASSEMBLY_KEY, uploaded as ci/message-hook-assembly.enc.
+      # Grey Hack's assembly the plugin compiles against, encrypted with the secret GREY_HACK_ASSEMBLY_KEY, on Spaces
+      # (never in the repository): .github/scripts/upload-message-hook-assembly.sh uploads it.
       - name: Grey Hack's Assembly-CSharp.dll
         env:
           GREY_HACK_ASSEMBLY_KEY: ${{ secrets.GREY_HACK_ASSEMBLY_KEY }}

@@ -26,3 +26,6 @@ rustc-ice-*.txt
 .omo
 .serena
 .vscode/
+
+# Local secrets for .github/scripts (SPACES_KEY, SPACES_SECRET, GREY_HACK_ASSEMBLY_KEY).
+/.env.local
