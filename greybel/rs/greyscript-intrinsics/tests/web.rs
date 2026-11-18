@@ -54,6 +54,6 @@ async fn should_launch_the_games_commands_on_the_web() {
     assert!(result.is_ok(), "{result:?}");
     assert_eq!(
         lines.0.borrow().join("\n"),
-        "/home/test\n1\ntest   \nguest\n<b>Usage: ls [opt:-l, -a, -la] [opt: path]</b>\nIt can be called without parameters."
+        "/home/test\n1\nguest  \ntest\n<b>Usage: ls [opt:-l, -a, -la] [opt: path]</b>\nIt can be called without parameters."
     );
 }

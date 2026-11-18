@@ -17,8 +17,8 @@ tag pid on field;
 /// Struct field name in the game JSON.
 tag game_field_name: string on field;
 
-/// Grey Hack messages exchanged between greybel and the game through the message hook plugin (Grey Hack 0.9.7389).
-@game_version("0.9.7389")
+/// Grey Hack messages exchanged between greybel and the game through the message hook plugin (Grey Hack 0.9.7392).
+@game_version("0.9.7392")
 protocol GreyHack = "greyhack" {
     limit 16MiB;
 

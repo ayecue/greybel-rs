@@ -3,6 +3,7 @@
 
 use asset_bundle::{Bundle, Fingerprint};
 use greyhack_text_mesh_assets::{AtlasFile, FontFile, TERMINAL_TEXT};
+use text_mesh_setup::Setup;
 
 #[test]
 fn should_hold_the_files_its_fingerprint_lists() {
@@ -91,14 +92,23 @@ fn should_keep_the_glyph_and_kerning_tables_sorted() {
 
 #[test]
 fn should_have_a_font_file_for_every_font_asset_made_from_one() {
-    let fonts = &TERMINAL_TEXT.font_set.fonts;
+    let bundle =
+        Bundle::read(include_bytes!("../assets.bundle")).expect("assets.bundle is a bundle");
+    let setup = Setup::read(
+        bundle
+            .text("text-mesh.json")
+            .expect("the bundle has text-mesh.json"),
+    )
+    .expect("text-mesh.json is the game's setup");
 
-    let missing: Vec<&str> = fonts
+    let sources = setup.font_sources();
+    let missing: Vec<&str> = sources
         .iter()
-        .map(|font| font.name.as_ref())
+        .map(|&(name, _)| name)
         .filter(|name| FontFile::find(name).is_none())
         .collect();
 
+    assert!(!sources.is_empty());
     assert!(missing.is_empty(), "{missing:?}");
 }
 
