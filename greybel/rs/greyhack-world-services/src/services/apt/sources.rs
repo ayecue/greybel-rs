@@ -8,7 +8,6 @@ use greyhack_world_core::systems::network::connect::ServiceCheck;
 use greyhack_world_core::{ComputerId, Result, WorldError};
 
 use super::json_deserializes_to_null;
-
 use crate::services::Apt;
 use crate::{AptFailure, Package, Repository, RepositoryConfig};
 
@@ -194,6 +193,7 @@ impl Apt {
         let Some(data) = node.data() else {
             return Ok(Err(AptFailure::MissingConfig));
         };
+
         if json_deserializes_to_null(&data.content) {
             return Err(WorldError::GameCrash);
         }

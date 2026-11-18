@@ -42,7 +42,7 @@ internal sealed class StateReader(Player player, AccountFixture accounts, Traffi
         return new Reply.NetworkState(
             new NetworkStateReply(
                 NetworkSnapshotReader.Read(
-                    player.Server.GetComputer(),
+                    player.Computer,
                     accounts.DebugUser,
                     accounts.DebugPassword,
                     accounts.CtfEventName,

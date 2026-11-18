@@ -279,8 +279,12 @@ namespace GreyHackMessageHook
                     return;
                 }
 
-                PlayerServerEx.SendData(new FinishedContextRpc(ContextId, failed), Player);
-                DisposeContext(ContextId);
+                // Announce the end only after teardown has removed the binary, closed the process and saved the
+                // computer, so the client never acts on the state of a program that is still being disposed.
+                string contextId = ContextId;
+                PlayerServer player = Player;
+                DisposeContext(contextId);
+                PlayerServerEx.SendData(new FinishedContextRpc(contextId, failed), player);
             }
 
             public void Dispose()

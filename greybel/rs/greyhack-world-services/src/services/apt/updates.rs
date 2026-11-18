@@ -13,7 +13,6 @@ use indexmap::IndexMap;
 use serde::Deserialize;
 
 use super::json_deserializes_to_null;
-
 use crate::services::Apt;
 use crate::{AptFailure, AptUpgradeReport, RepositoryConfig};
 
@@ -467,6 +466,7 @@ fn serialized_library_version(content: &str) -> Option<String> {
     struct SerializedLibrary {
         version: SerializedVersion,
     }
+
     #[derive(Deserialize)]
     struct SerializedVersion {
         version: [u32; 3],

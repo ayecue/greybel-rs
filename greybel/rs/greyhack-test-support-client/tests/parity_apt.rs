@@ -2,14 +2,13 @@
 
 use greybel_test_support::game::Game;
 use greyhack_behaviour::{APT_CACHE_PATH, APT_SOURCES_PATH, Reward, ServiceId};
-use greyhack_test_support_client::protocol::test_support::{
-    FileSnapshot, LanNodeKind, NetworkSnapshot,
-};
+use greyhack_test_support_client::protocol::test_support::LanNodeKind;
 
 use crate::support::game::{
     fixture_target, hackshop_repository, join_fixture, setup_player, test_client,
 };
 use crate::support::parity::{assert_succeeded, compare_in, compare_labeled};
+use crate::support::parity_apt::player_file;
 use crate::support::remote::script_string;
 
 /// Repository listing, search, source editing, update, upgrade checks and package installation.
@@ -135,20 +134,6 @@ async fn should_match_intrinsics_for_the_failures_of_check_upgrade() {
     client.shutdown();
 }
 
-fn player_file<'a>(snapshot: &'a NetworkSnapshot, path: &str) -> Option<&'a FileSnapshot> {
-    snapshot
-        .nodes
-        .iter()
-        .find_map(|node| match &node.node {
-            LanNodeKind::Computer(computer) if computer.player => Some(computer),
-            _ => None,
-        })
-        .expect("the snapshot contains the player computer")
-        .files
-        .iter()
-        .find(|file| file.path == path)
-}
-
 /// Local apt cache and source-file corruption, with each failure state isolated by its own snapshot.
 #[tokio::test]
 async fn should_match_intrinsics_for_local_apt_corruption() {
@@ -186,12 +171,14 @@ async fn should_match_intrinsics_for_local_apt_corruption() {
         // Updating and deleting in one script lets the game delete an older cache before the newly written one becomes
         // visible. Separate the two steps and verify both states in the snapshots used for the comparison.
         let prepared = client.network_state().await.unwrap();
+
         assert!(
             player_file(&prepared, APT_CACHE_PATH).is_some(),
             "{fixture}: apt.update created the cache before the fixture"
         );
 
         client.configure_computer("", fixture).await.unwrap();
+
         let snapshot = client.network_state().await.unwrap();
         let cache = player_file(&snapshot, APT_CACHE_PATH);
 
@@ -200,6 +187,7 @@ async fn should_match_intrinsics_for_local_apt_corruption() {
             "apt_cache_empty" => assert_eq!(cache.map(|file| file.content.as_str()), Some("")),
             _ => {}
         }
+
         let script = "apt = include_lib(\"/lib/aptclient.so\"); print apt.check_upgrade(home_dir + \"/blockchain.so\"); print apt.install(\"blockchain.so\", home_dir); print apt.search(\"blockchain\"); print apt.show(\"official_server\")".to_owned();
 
         compare_labeled(&client, &user, &snapshot, fixture, &[script]).await;
@@ -211,19 +199,8 @@ async fn should_match_intrinsics_for_local_apt_corruption() {
         "apt_sources_malformed",
         "apt_sources_unknown",
     ] {
-        // Use a fresh player for every sources fixture. The game's delayed file sync can otherwise leave the script on
-        // the preceding case's binary file while the mirror already has this case's text.
-        let user = setup_player(&client).await;
-        client
-            .install_library(
-                "",
-                "aptclient.so",
-                u8::try_from(Reward::Shell.code()).unwrap(),
-            )
-            .await
-            .unwrap();
-
         client.configure_computer("", fixture).await.unwrap();
+
         let snapshot = client.network_state().await.unwrap();
         let sources = player_file(&snapshot, APT_SOURCES_PATH);
 
@@ -288,16 +265,15 @@ async fn should_match_intrinsics_for_repository_corruption() {
         let target = fixture_target(&shop, "repository");
         let address = target.local_ip.clone();
         let port = target.services[1].internal_port;
-        join_fixture(&client, &shop).await;
-        // Writing before creating and joining the fixture lets the game's delayed filesystem synchronization leave an
-        // empty snapshot while a later script sees different content. Write only after joining, then use a fresh,
-        // verified snapshot for both sides.
         let empty_sources = "{\"official_server\":false,\"sourceList\":{}}";
+
         client
             .write_file("/etc/apt/sources.txt", empty_sources)
             .await
             .unwrap();
-        let snapshot = client.network_state().await.unwrap();
+
+        let snapshot = join_fixture(&client, &shop).await;
+
         assert_eq!(
             player_file(&snapshot, "/etc/apt/sources.txt").map(|file| file.content.as_str()),
             Some(empty_sources),
@@ -321,6 +297,7 @@ async fn should_match_intrinsics_for_repository_corruption() {
         .await;
 
         client.configure_computer(&address, fixture).await.unwrap();
+
         let snapshot = client.network_state().await.unwrap();
 
         assert!(
@@ -367,6 +344,7 @@ async fn should_match_intrinsics_for_apt_offline_and_wrong_self() {
         )
         .await
         .unwrap();
+
     let network = client.network_state().await.unwrap();
 
     client
@@ -420,6 +398,7 @@ async fn should_match_intrinsics_for_apt_install_failures() {
         if fixture != "missing_destination" {
             client.configure_computer("", fixture).await.unwrap();
         }
+
         let snapshot = client.network_state().await.unwrap();
         let destination = if fixture == "missing_destination" {
             "\"/missing\""

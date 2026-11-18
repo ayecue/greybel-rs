@@ -243,6 +243,7 @@ internal sealed class ScriptRunner(MainThread main, Player player)
                 break;
             case GameProtocol.FinishedContextRpc contextEnd
                 when executions.Remove(contextEnd.ContextId, out Execution execution):
+                // ContextManager.Finish sends this only after its teardown has saved the computer.
                 Finish(
                     execution,
                     new ExecutionResultReply(execution.Output.ToString(), contextEnd.Failed)

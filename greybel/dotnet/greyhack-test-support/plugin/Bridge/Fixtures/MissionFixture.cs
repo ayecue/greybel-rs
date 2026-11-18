@@ -56,14 +56,18 @@ internal sealed class MissionFixture(ClockFixture clock)
             // has none. A player reaches a computer through Router.GetComputer, which generates an unsaved one with
             // its mission files (Router.GeneraLanPc, PostGenMission); the computers are read the same way and not
             // saved. One router instance per network: an unsaved router is generated again on every GetRouter.
-            // The main router counts too: a mission can place its items on it. Every computer of the LAN is read,
-            // also those behind LAN routers: Router.GetComputersIPs and NetworkLan.GetComputersIPs only list the
-            // computers whose gateway is the main router, while the mission picks its computers from the entire
-            // network (NetworkLan.GetLanPcInfos walks every device).
+            // The main router counts too: a mission can place its items on it. Read every mission-assigned computer,
+            // also those behind LAN routers, but not unrelated computers: PostGenComputer can give one of those a
+            // HackShop catalog when the game's larger random LAN has a computer the simulation's smaller LAN doesn't.
             List<Computer> network = [router];
 
             foreach (LanPcInfo info in router.GetNetworkLan().GetLanPcInfos())
             {
+                if (router.GetNetworkLan().GetComputerMission(info.localIp) == null)
+                {
+                    continue;
+                }
+
                 Computer computer = router.GetComputer(info.localIp);
 
                 if (computer != null)

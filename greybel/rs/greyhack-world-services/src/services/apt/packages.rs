@@ -7,7 +7,6 @@ use greyhack_behaviour::{
 use greyhack_world_core::{ComputerId, LibraryId, NodeDraft, Result, WorldError};
 
 use super::json_deserializes_to_null;
-
 use super::updates::AptCache;
 use crate::services::Apt;
 use crate::{AptFailure, PackageEntry, RepositoryConfig};
@@ -62,6 +61,7 @@ impl Apt {
             Ok(content) => content,
             Err(failure) => return Ok(Err(failure)),
         };
+
         if json_deserializes_to_null(&content) {
             return Err(WorldError::GameCrash);
         }

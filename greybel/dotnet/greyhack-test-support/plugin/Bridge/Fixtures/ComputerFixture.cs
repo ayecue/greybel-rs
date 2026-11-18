@@ -235,6 +235,7 @@ internal sealed class ComputerFixture(Player player)
                 computer.GetFileSystem().GetArchivo("/etc/apt/sources.txt").SetBinario(true);
                 break;
             case "apt_sources_malformed":
+                computer.GetFileSystem().GetArchivo("/etc/apt/sources.txt").SetBinario(false);
                 computer.GetFileSystem().GetArchivo("/etc/apt/sources.txt").SetContenido("not json", true);
                 break;
             case "apt_sources_unknown":

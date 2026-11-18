@@ -13,6 +13,8 @@ pub mod mirror;
 #[cfg(feature = "game")]
 pub mod parity;
 #[cfg(feature = "game")]
+pub mod parity_apt;
+#[cfg(feature = "game")]
 pub mod parity_bank_payments;
 #[cfg(feature = "game")]
 pub mod parity_computers;

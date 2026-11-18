@@ -42,6 +42,37 @@ A project stores shared settings in `greybel.json`. The CLI, MCP server, languag
 
 A run builds the program, with the files it includes, imports, and loads through `import_code`, into a binary in its user's home folder: `~/myprogram`, named by `run.programName` (`--program-name` on the command line). The program runs as that binary, so `program_path` names it and `launch(program_path)` starts the program again. The binary keeps a source map of where each of its lines came from, so a runtime error names the file and line it was written on, and breakpoints stop in every file. In the simulated world the binary remains like one built with `build`; in the game it exists only while the run lasts, and a file of that name that isn't a binary is left alone, in which case the program can't launch itself.
 
+## Simulated world administration
+
+The simulated host provides `get_greybel_util()`, which returns Greybel's `admin` object.
+
+The utility is for setting up and inspecting the simulated world. `admin` controls the clock, tick and date, creates and lists networks, takes snapshots, changes economy state, and performs zero-day and debug-offer actions that are interface-only in the game. `admin.network(public_ip)` returns an `adminNetwork` for adding or removing computers, managing NPCs and administrators, and changing network settings, shares and library reports. Its `computer(lan_ip)` returns an `adminComputer` for shells and logins, NPC sessions, devices, services, ports and library versions.
+
+For example, set the date and advance the world clock:
+
+```
+admin = get_greybel_util()
+admin.set_date("01/Jan/2004 - 00:00")
+print current_date
+admin.tick(60)
+print current_date
+```
+
+Or obtain a shell on the current computer through its administrative handle:
+
+```
+admin = get_greybel_util()
+computer = admin.network(get_router.public_ip).computer(get_shell.host_computer.local_ip)
+shell = computer.shell(active_user)
+print shell.host_computer.local_ip
+```
+
+Differences from the game:
+
+- Missions are generated, placed and accepted, but direct mission play and mission completion, including evidence, rewards, karma and reputation, are not simulated.
+- Generated worlds are not seed-identical to the game's, and values the game seeds randomly, such as GUIDs, differ.
+- Actions that exist only in the game's interface are exposed through the admin methods.
+
 ## Profiles
 
 Profiles define named overrides for `build` and `run` settings. Profile values replace base values object key by object key. The `extends` property derives a profile from another profile.
