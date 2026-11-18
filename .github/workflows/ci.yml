@@ -133,9 +133,10 @@ jobs:
       - name: Build every workspace's packages
         run: cargo reman run build --language typescript
       - name: Chromium for the browser tests
+        # Through a package of each workspace that has playwright: neither workspace root does.
         run: |
-          pnpm --dir greybel/ts exec playwright install --with-deps chromium
-          pnpm --dir apps/ts exec playwright install chromium
+          pnpm --dir greybel/ts/greybel-lsp-web exec playwright install --with-deps chromium
+          pnpm --dir apps/ts/greybel-editor-web exec playwright install chromium
       - name: Unit tests
         run: >-
           cargo reman test unit --language typescript --no-fail-fast
