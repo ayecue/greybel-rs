@@ -1,0 +1,116 @@
+name: Setup
+description: >-
+  Toolchains, caches and dependencies for the repository's workspaces, and the commit the job's changes are measured
+  from. Needs a checkout with history (fetch-depth 0).
+
+inputs:
+  reman:
+    description: Build reman and install the selected languages' dependencies through it.
+    default: 'true'
+  rust-targets:
+    description: Rust targets to add besides the host's, space-separated.
+    default: ''
+  nightly:
+    description: Install nightly rustfmt, for rustfmt.toml's import options.
+    default: 'false'
+  wasm:
+    description: Add wasm32-unknown-unknown and the wasm-bindgen CLI of greybel/rs/Cargo.lock.
+    default: 'false'
+  node:
+    description: Install Node, pnpm and every TypeScript workspace's packages.
+    default: 'false'
+  dotnet:
+    description: Install the .NET SDK and the repository's .NET tools.
+    default: 'false'
+  cache-key:
+    description: Extra key of the Rust cache, for jobs that build different targets.
+    default: ''
+
+outputs:
+  base:
+    description: >-
+      The commit changes are measured from: a pull request's base, a push's previous commit, else HEAD's parent.
+    value: ${{ steps.base.outputs.sha }}
+
+runs:
+  using: composite
+  steps:
+    - id: base
+      shell: bash
+      run: |
+        base="${{ github.event.pull_request.base.sha || github.event.before }}"
+        if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+          base=$(git rev-parse HEAD~1)
+        fi
+        echo "sha=$base" >> "$GITHUB_OUTPUT"
+
+    - name: Rust
+      shell: bash
+      run: |
+        rustup toolchain install stable --profile minimal --component clippy
+        rustup default stable
+        targets="${{ inputs.rust-targets }}"
+        if [ "${{ inputs.wasm }}" = true ]; then targets="$targets wasm32-unknown-unknown"; fi
+        if [ -n "${targets// /}" ]; then rustup target add $targets; fi
+        if [ "${{ inputs.nightly }}" = true ]; then
+          rustup toolchain install nightly --profile minimal --component rustfmt
+        fi
+
+    - uses: Swatinem/rust-cache@v2
+      with:
+        # Every Cargo workspace builds into the root target/ (.cargo/config.toml).
+        workspaces: |
+          apps/rs -> ../../target
+          greybel/rs -> ../../target
+          tools/reman -> ../../target
+        key: ${{ inputs.cache-key }}
+        cache-on-failure: true
+
+    - uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-nextest
+
+    - name: wasm-bindgen version
+      if: inputs.wasm == 'true'
+      id: wasm-bindgen
+      shell: bash
+      run: |
+        version=$(grep -A1 '^name = "wasm-bindgen"$' greybel/rs/Cargo.lock | sed -n 's/^version = "\(.*\)"$/\1/p')
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+
+    - if: inputs.wasm == 'true'
+      uses: taiki-e/install-action@v2
+      with:
+        tool: wasm-bindgen@${{ steps.wasm-bindgen.outputs.version }}
+
+    - if: inputs.node == 'true'
+      uses: pnpm/action-setup@v4
+      with:
+        package_json_file: apps/ts/package.json
+
+    - if: inputs.node == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: pnpm
+        cache-dependency-path: '**/pnpm-lock.yaml'
+
+    - if: inputs.dotnet == 'true'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: reman
+      if: inputs.reman == 'true'
+      shell: bash
+      run: cargo reman --help > /dev/null
+
+    - name: TypeScript packages
+      if: inputs.reman == 'true' && inputs.node == 'true'
+      shell: bash
+      run: cargo reman install --language typescript
+
+    - name: .NET tools
+      if: inputs.reman == 'true' && inputs.dotnet == 'true'
+      shell: bash
+      run: cargo reman install --language dotnet

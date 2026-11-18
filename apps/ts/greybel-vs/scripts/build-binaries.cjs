@@ -3,7 +3,7 @@
 // `--debug` builds them without optimizations, for tests. `--target <platform>` builds them for a VS Code platform
 // other than this machine's (see RUST_TARGETS), which needs that Rust target and its linker installed.
 const { execFileSync } = require('node:child_process');
-const { copyFileSync, mkdirSync, rmSync } = require('node:fs');
+const { chmodSync, copyFileSync, mkdirSync, rmSync } = require('node:fs');
 const { join, resolve } = require('node:path');
 
 const RUST_WORKSPACE = resolve(__dirname, '../../../rs');
@@ -49,17 +49,22 @@ function buildBinaries({ debug = false, target } = {}) {
     { cwd: RUST_WORKSPACE, stdio: 'inherit' }
   );
 
+  copyBinaries(join(TARGET, ...(rustTarget ? [rustTarget] : []), debug ? 'debug' : 'release'), target);
+}
+
+/** Replaces dist/bin with the binaries in `folder`, built for `target` (a key of RUST_TARGETS) or this machine. */
+function copyBinaries(folder, target) {
   const windows = target === undefined ? process.platform === 'win32' : target.startsWith('win32-');
   const extension = windows ? '.exe' : '';
-  const built = join(TARGET, ...(rustTarget ? [rustTarget] : []), debug ? 'debug' : 'release');
   rmSync(OUTPUT, { recursive: true, force: true });
   mkdirSync(OUTPUT, { recursive: true });
   for (const { name } of BINARIES) {
-    copyFileSync(join(built, name + extension), join(OUTPUT, name + extension));
+    copyFileSync(join(folder, name + extension), join(OUTPUT, name + extension));
+    chmodSync(join(OUTPUT, name + extension), 0o755);
   }
 }
 
-module.exports = { RUST_TARGETS, buildBinaries };
+module.exports = { BINARIES, RUST_TARGETS, buildBinaries, copyBinaries };
 
 if (require.main === module) {
   const args = process.argv.slice(2);

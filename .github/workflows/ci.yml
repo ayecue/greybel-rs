@@ -1,0 +1,171 @@
+# Checks, lints and tests (reman's tasks, without op-lint), then deploys the sites and the editor service.
+# Pull requests test the projects their changes reach (`reman impact`) and get Netlify previews; pushes to main test
+# everything and deploy what changed.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: '0'
+  WASM_BASE_URL: https://greybel-assets.fra1.digitaloceanspaces.com/wasm
+
+jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      base: ${{ steps.setup.outputs.base }}
+      rust: ${{ steps.impact.outputs.rust }}
+      typescript: ${{ steps.impact.outputs.typescript }}
+      dotnet: ${{ steps.impact.outputs.dotnet }}
+      editor: ${{ steps.impact.outputs.editor }}
+      reference: ${{ steps.impact.outputs.reference }}
+      service: ${{ steps.impact.outputs.service }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: setup
+        uses: ./.github/actions/setup
+      - name: Change files
+        run: cargo reman check --since "${{ steps.setup.outputs.base }}"
+      - id: impact
+        name: Projects the changes reach
+        run: |
+          cargo reman impact --since "${{ steps.setup.outputs.base }}" | tee impact.txt
+          has() { grep -qE "$1" impact.txt && echo true || echo false; }
+          {
+            if [ "${{ github.event_name }}" = pull_request ]; then
+              echo "rust=$(has '^rs/')"
+              echo "typescript=$(has '^ts/')"
+              echo "dotnet=$(has '^dotnet/')"
+            else
+              echo "rust=true"
+              echo "typescript=true"
+              echo "dotnet=true"
+            fi
+            if [ "${{ github.event_name }}" = workflow_dispatch ]; then
+              echo "editor=true"
+              echo "reference=true"
+              echo "service=true"
+            else
+              echo "editor=$(has '^ts/greybel-editor-web$')"
+              echo "reference=$(has '^ts/greybel-api-reference-site$')"
+              echo "service=$(has '^rs/greybel-editor-service$')"
+            fi
+          } >> "$GITHUB_OUTPUT"
+
+  lint:
+    needs: changes
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          nightly: 'true'
+          node: 'true'
+          dotnet: 'true'
+      - name: rustfmt, clippy, ESLint and Prettier, CSharpier
+        run: >-
+          cargo reman lint --no-fail-fast
+          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+          --task rustfmt --task clippy --task format --task csharpier
+
+  rust:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          wasm: 'true'
+          node: 'true'
+          dotnet: 'true'
+      - name: Unit and integration tests
+        run: >-
+          cargo reman test unit integration --language rust --no-fail-fast
+          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+
+  dotnet:
+    needs: changes
+    if: needs.changes.outputs.dotnet == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          dotnet: 'true'
+      - name: Unit tests
+        run: >-
+          cargo reman test unit --language dotnet --no-fail-fast
+          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+
+  typescript:
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          wasm: 'true'
+          node: 'true'
+      - name: Build every workspace's packages
+        run: cargo reman run build --language typescript
+      - name: Chromium for the browser tests
+        run: |
+          pnpm --dir greybel/ts exec playwright install --with-deps chromium
+          pnpm --dir apps/ts exec playwright install chromium
+      - name: Unit tests
+        run: >-
+          cargo reman test unit --language typescript --no-fail-fast
+          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+      - name: greybel-vs in VS Code, desktop and web
+        run: >-
+          xvfb-run -a cargo reman test integration --language typescript --no-fail-fast
+          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+      # The production builds of the sites, with their .wasm URLs on Spaces (vite.config.ts, WASM_BASE_URL).
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sites
+          path: |
+            apps/ts/greybel-editor-web/dist
+            apps/ts/greybel-api-reference-site/dist
+          retention-days: 7
+
+  deploy:
+    needs: [changes, lint, rust, dotnet, typescript]
+    if: >-
+      !cancelled() && !contains(needs.*.result, 'failure')
+      && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+      && (needs.changes.outputs.editor == 'true' || needs.changes.outputs.reference == 'true'
+          || (needs.changes.outputs.service == 'true' && github.event_name != 'pull_request'))
+    uses: ./.github/workflows/deploy.yml
+    with:
+      editor: ${{ needs.changes.outputs.editor == 'true' && needs.typescript.result == 'success' }}
+      reference: ${{ needs.changes.outputs.reference == 'true' && needs.typescript.result == 'success' }}
+      service: ${{ needs.changes.outputs.service == 'true' && needs.rust.result == 'success' && github.event_name != 'pull_request' }}
+    permissions:
+      contents: read
+      pull-requests: write
+    secrets: inherit

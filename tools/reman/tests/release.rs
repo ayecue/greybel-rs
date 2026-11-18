@@ -263,21 +263,42 @@ fn should_publish_an_app_without_a_tag() {
 }
 
 #[test]
-fn should_not_publish_an_app_whose_tag_exists() {
+fn should_list_an_app_tagged_at_head_without_creating_its_release() {
     // Arrange
     let fixture = diamond();
 
-    fixture.git(&[
-        "-c",
-        "user.name=test",
-        "-c",
-        "user.email=test@example.com",
-        "tag",
-        "-a",
-        "app/v0.1.0",
-        "-m",
-        "app 0.1.0",
-    ]);
+    fixture.tag("app/v0.1.0");
+
+    let repository = fixture.repository();
+    let options = PublishOptions {
+        dry_run: true,
+        draft: true,
+        offline: true,
+    };
+
+    // Act
+    let published = Publisher::new(&repository, &options)
+        .unwrap()
+        .publish(&mut Vec::new())
+        .unwrap();
+
+    // Assert
+    assert_eq!(
+        published
+            .iter()
+            .map(|app| (app.tag.as_str(), app.is_new))
+            .collect::<Vec<_>>(),
+        [("app/v0.1.0", false)]
+    );
+}
+
+#[test]
+fn should_not_publish_an_app_whose_tag_names_an_earlier_commit() {
+    // Arrange
+    let fixture = diamond();
+
+    fixture.tag("app/v0.1.0");
+    fixture.file("notes.txt", "later\n").commit();
 
     let repository = fixture.repository();
     let options = PublishOptions {
@@ -294,6 +315,41 @@ fn should_not_publish_an_app_whose_tag_exists() {
 
     // Assert
     assert!(published.is_empty());
+}
+
+#[test]
+fn should_mark_the_latest_app_in_the_publications() {
+    // Arrange
+    let fixture = diamond();
+
+    fixture
+        .file(
+            "rs/app/reman.toml",
+            "[project]\nkind = \"app\"\nlatest = true\n",
+        )
+        .commit();
+
+    let repository = fixture.repository();
+    let options = PublishOptions {
+        dry_run: true,
+        draft: true,
+        offline: true,
+    };
+
+    // Act
+    let published = Publisher::new(&repository, &options)
+        .unwrap()
+        .publish(&mut Vec::new())
+        .unwrap();
+
+    // Assert
+    assert_eq!(
+        published
+            .iter()
+            .map(|app| (app.tag.as_str(), app.latest, app.is_new))
+            .collect::<Vec<_>>(),
+        [("app/v0.1.0", true, true)]
+    );
 }
 
 #[test]

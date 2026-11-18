@@ -93,6 +93,7 @@ Library dependencies point toward the supporting workspaces. The VS Code extensi
 - [Development](docs/development.md)
 - [Testing](docs/testing.md)
 - [Headless game testing](docs/game-testing.md)
+- [CI and releases](docs/ci.md)
 - [GreyScript emulation](greybel/rs/greyscript-intrinsics/README.md)
 - [Protocol definitions](protocols/README.md)
 - [Duplex specification](duplex/SPEC.md)

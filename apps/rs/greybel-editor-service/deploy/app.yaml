@@ -7,7 +7,7 @@ services:
     github:
       repo: ayecue/greybel-rs
       branch: main
-      deploy_on_push: true
+      deploy_on_push: false
     source_dir: apps/rs/greybel-editor-service
     dockerfile_path: apps/rs/greybel-editor-service/Dockerfile
     http_port: 8080

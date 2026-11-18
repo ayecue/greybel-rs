@@ -6,10 +6,13 @@ const { execFileSync } = require('node:child_process');
 const { mkdirSync, writeFileSync } = require('node:fs');
 const { join, resolve } = require('node:path');
 
-const { RUST_TARGETS, buildBinaries } = require('./build-binaries.cjs');
+const { RUST_TARGETS, buildBinaries, copyBinaries } = require('./build-binaries.cjs');
 
 const ROOT = resolve(__dirname, '..');
 const VSCE = require.resolve('@vscode/vsce/vsce');
+/** Where README.md's relative links point on the Marketplace and Open VSX pages. */
+const CONTENT_URL = 'https://github.com/ayecue/greybel-rs/blob/main/apps/ts/greybel-vs';
+const IMAGES_URL = 'https://github.com/ayecue/greybel-rs/raw/main/apps/ts/greybel-vs';
 
 /** Files every package carries; vsce adds package.json itself. */
 const SHARED = [
@@ -43,14 +46,21 @@ const WEB = [
 ];
 
 const PLATFORMS = ['web', ...Object.keys(RUST_TARGETS)];
-const targets = process.argv.slice(2);
+// `--binaries <folder>` takes each native platform's programs from `<folder>/<platform>` instead of building them.
+const args = process.argv.slice(2);
+const binariesIndex = args.indexOf('--binaries');
+const binaries = binariesIndex === -1 ? undefined : args[binariesIndex + 1];
+const targets =
+  binariesIndex === -1 ? args : args.filter((_, index) => index !== binariesIndex && index !== binariesIndex + 1);
 if (targets.length === 0 || targets.some((target) => !PLATFORMS.includes(target))) {
   throw new Error(`Name the platforms to package: ${PLATFORMS.join(', ')}`);
 }
 
 for (const target of targets) {
   const web = target === 'web';
-  if (!web) {
+  if (!web && binaries !== undefined) {
+    copyBinaries(resolve(binaries, target), target);
+  } else if (!web) {
     buildBinaries({ target });
   }
 
@@ -60,7 +70,19 @@ for (const target of targets) {
 
   execFileSync(
     process.execPath,
-    [VSCE, 'package', '--no-dependencies', '--target', target, '--ignoreFile', ignoreFile],
+    [
+      VSCE,
+      'package',
+      '--no-dependencies',
+      '--target',
+      target,
+      '--ignoreFile',
+      ignoreFile,
+      '--baseContentUrl',
+      CONTENT_URL,
+      '--baseImagesUrl',
+      IMAGES_URL
+    ],
     {
       cwd: ROOT,
       stdio: 'inherit'

@@ -1675,6 +1675,7 @@ dependencies = [
  "greyhack-world-router",
  "greyhack-world-smart-devices",
  "greyhack-world-storage",
+ "indexmap",
  "mono-random",
  "serde",
  "serde_json",

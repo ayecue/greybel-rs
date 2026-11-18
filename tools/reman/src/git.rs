@@ -143,6 +143,15 @@ impl Git {
         ))
     }
 
+    /// Commit the local tag `tag` names, peeled through an annotated tag; `None` without the tag.
+    pub fn tag_commit(&self, tag: &str) -> Result<Option<String>> {
+        if !self.has_tag(tag)? {
+            return Ok(None);
+        }
+
+        self.resolve(&format!("refs/tags/{tag}")).map(Some)
+    }
+
     pub fn has_tag(&self, tag: &str) -> Result<bool> {
         Ok(self
             .repository

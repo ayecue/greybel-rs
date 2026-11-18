@@ -1,0 +1,256 @@
+# Releases the apps a prepared release names (`cargo reman release prepare`, committed and pushed to main): reman
+# tags them and creates draft releases, the jobs below build and attach their files and publish greybel-vs, and the
+# drafts are published once everything succeeded. A failed run can be re-run: publish lists the apps tagged at the
+# commit again.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [.changes/release.toml]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: '0'
+  GH_TOKEN: ${{ github.token }}
+  SPACES_BUCKET: greybel-assets
+  SPACES_ENDPOINT: https://fra1.digitaloceanspaces.com
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    outputs:
+      publications: ${{ steps.publish.outputs.publications }}
+      vs: ${{ steps.publish.outputs.vs }}
+      vs-version: ${{ steps.publish.outputs.vs-version }}
+      cli: ${{ steps.publish.outputs.cli }}
+      cli-version: ${{ steps.publish.outputs.cli-version }}
+      lsp: ${{ steps.publish.outputs.lsp }}
+      lsp-version: ${{ steps.publish.outputs.lsp-version }}
+      wizard: ${{ steps.publish.outputs.wizard }}
+      wizard-version: ${{ steps.publish.outputs.wizard-version }}
+      hook: ${{ steps.publish.outputs.hook }}
+      hook-version: ${{ steps.publish.outputs.hook-version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - name: Tags and draft releases
+        id: publish
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          cargo reman release publish --draft > publications.json
+          jq . publications.json
+          echo "publications=$(jq -c . publications.json)" >> "$GITHUB_OUTPUT"
+          for pair in vs=ts/greybel-vs cli=rs/greybel-cli lsp=rs/greybel-lsp-stdio \
+            wizard=dotnet/GreyHackSetupWizard.App hook=dotnet/GreyHackMessageHook; do
+            key=${pair%%=*}
+            id=${pair#*=}
+            echo "$key=$(jq -r --arg id "$id" '.[] | select(.id == $id) | .tag' publications.json)" >> "$GITHUB_OUTPUT"
+            echo "$key-version=$(jq -r --arg id "$id" '.[] | select(.id == $id) | .version' publications.json)" >> "$GITHUB_OUTPUT"
+          done
+
+  # greybel-cli, greybel-lsp and the programs greybel-vs runs, for every native VS Code platform.
+  native:
+    needs: publish
+    if: needs.publish.outputs.vs != '' || needs.publish.outputs.cli != '' || needs.publish.outputs.lsp != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux through cargo-zigbuild: glibc 2.28, VS Code's minimum, or musl for Alpine.
+          - { platform: linux-x64, target: x86_64-unknown-linux-gnu, zig: x86_64-unknown-linux-gnu.2.28, runner: ubuntu-24.04 }
+          - { platform: linux-arm64, target: aarch64-unknown-linux-gnu, zig: aarch64-unknown-linux-gnu.2.28, runner: ubuntu-24.04 }
+          - { platform: linux-armhf, target: armv7-unknown-linux-gnueabihf, zig: armv7-unknown-linux-gnueabihf.2.28, runner: ubuntu-24.04 }
+          - { platform: alpine-x64, target: x86_64-unknown-linux-musl, zig: x86_64-unknown-linux-musl, runner: ubuntu-24.04 }
+          - { platform: alpine-arm64, target: aarch64-unknown-linux-musl, zig: aarch64-unknown-linux-musl, runner: ubuntu-24.04 }
+          - { platform: win32-x64, target: x86_64-pc-windows-msvc, runner: windows-2025, exe: .exe }
+          - { platform: win32-arm64, target: aarch64-pc-windows-msvc, runner: windows-2025, exe: .exe }
+          - { platform: darwin-x64, target: x86_64-apple-darwin, runner: macos-15 }
+          - { platform: darwin-arm64, target: aarch64-apple-darwin, runner: macos-15 }
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          reman: 'false'
+          rust-targets: ${{ matrix.target }}
+          cache-key: ${{ matrix.target }}
+      - if: matrix.zig
+        uses: mlugg/setup-zig@v2
+      - if: matrix.zig
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+      - name: Build
+        working-directory: apps/rs
+        run: |
+          packages=(-p greybel-cli -p greybel-lsp-stdio -p greybel-runtime-stdio -p greyhack-world-server -p greybel-builder-stdio)
+          if [ -n "${{ matrix.zig }}" ]; then
+            cargo zigbuild --release --locked --target "${{ matrix.zig }}" "${packages[@]}"
+          else
+            cargo build --release --locked --target "${{ matrix.target }}" "${packages[@]}"
+          fi
+          mkdir -p ../../out/bin
+          for program in greybel greybel-lsp greybel-runtime greyhack-world-server greybel-builder; do
+            cp "../../target/${{ matrix.target }}/release/${program}${{ matrix.exe }}" ../../out/bin/
+          done
+      - if: needs.publish.outputs.vs != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.platform }}
+          path: out/bin
+          retention-days: 7
+      - name: Attach greybel and greybel-lsp
+        run: |
+          pack() {
+            local tag=$1 version=$2 program=$3
+            [ -n "$tag" ] || return 0
+            local name="$program-$version-${{ matrix.target }}"
+            mkdir -p "out/pack/$name"
+            cp "out/bin/${program}${{ matrix.exe }}" LICENSE "out/pack/$name/"
+            if [ -n "${{ matrix.exe }}" ]; then
+              (cd out/pack && 7z a -tzip -bso0 "../$name.zip" "$name")
+              gh release upload "$tag" "out/$name.zip" --clobber
+            else
+              tar -czf "out/$name.tar.gz" -C out/pack "$name"
+              gh release upload "$tag" "out/$name.tar.gz" --clobber
+            fi
+          }
+          pack "${{ needs.publish.outputs.cli }}" "${{ needs.publish.outputs.cli-version }}" greybel
+          pack "${{ needs.publish.outputs.lsp }}" "${{ needs.publish.outputs.lsp-version }}" greybel-lsp
+
+  vscode:
+    needs: [publish, native]
+    if: needs.publish.outputs.vs != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          wasm: 'true'
+          node: 'true'
+      - name: Build every workspace's packages
+        run: cargo reman run build --language typescript
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: native-*
+          path: out/native
+      - name: Package the web extension and one per native platform
+        working-directory: apps/ts/greybel-vs
+        run: |
+          platforms=()
+          for folder in ../../../out/native/native-*; do
+            platform=${folder##*/native-}
+            mv "$folder" "../../../out/native/$platform"
+            platforms+=("$platform")
+          done
+          node scripts/package.cjs web "${platforms[@]}" --binaries ../../../out/native
+          ls -l ./*.vsix
+      - name: Attach the extension files
+        working-directory: apps/ts/greybel-vs
+        run: gh release upload "${{ needs.publish.outputs.vs }}" ./*.vsix --clobber
+      - name: Publish to the Visual Studio Marketplace
+        working-directory: apps/ts/greybel-vs
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: pnpm exec vsce publish --skip-duplicate --packagePath ./*.vsix
+      - name: Publish to Open VSX
+        working-directory: apps/ts/greybel-vs
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          for file in ./*.vsix; do
+            npx --yes ovsx publish "$file" --skip-duplicate
+          done
+
+  wizard:
+    needs: publish
+    if: needs.publish.outputs.wizard != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Package
+        run: bash .github/scripts/package-setup-wizard.sh "${{ needs.publish.outputs.wizard-version }}" out
+      - name: Attach
+        run: gh release upload "${{ needs.publish.outputs.wizard }}" out/* --clobber
+
+  hook:
+    needs: publish
+    if: needs.publish.outputs.hook != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      # Grey Hack's assembly the plugin compiles against, encrypted, on Spaces (never in the repository):
+      # openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -in Assembly-CSharp.dll -out message-hook-assembly.enc
+      # with the passphrase of the secret GREY_HACK_ASSEMBLY_KEY, uploaded as ci/message-hook-assembly.enc.
+      - name: Grey Hack's Assembly-CSharp.dll
+        env:
+          GREY_HACK_ASSEMBLY_KEY: ${{ secrets.GREY_HACK_ASSEMBLY_KEY }}
+        run: |
+          echo "GREY_HACK_MANAGED_PATH=$RUNNER_TEMP/managed" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/managed"
+          curl --fail --silent --show-error --location --output "$RUNNER_TEMP/message-hook-assembly.enc" \
+            https://greybel-assets.fra1.digitaloceanspaces.com/ci/message-hook-assembly.enc
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -pass env:GREY_HACK_ASSEMBLY_KEY \
+            -in "$RUNNER_TEMP/message-hook-assembly.enc" -out "$RUNNER_TEMP/managed/Assembly-CSharp.dll"
+      - name: Build for BepInEx 5 and 6
+        working-directory: greybel/dotnet/greyhack-message-hook
+        run: |
+          dotnet build src -c Release-BepInEx5
+          dotnet build src -c Release-BepInEx6
+      - name: Attach
+        working-directory: greybel/dotnet/greyhack-message-hook/src/bin
+        run: >-
+          gh release upload "${{ needs.publish.outputs.hook }}" --clobber
+          Release-BepInEx5/BepInEx5/netstandard2.1/GreyHackMessageHook5.dll
+          Release-BepInEx6/BepInEx6/netstandard2.1/GreyHackMessageHook.dll
+
+  # SHA256SUMS for every release, then the drafts become releases, the latest app's marked latest.
+  finish:
+    needs: [publish, native, vscode, wizard, hook]
+    if: >-
+      !cancelled() && needs.publish.result == 'success' && !contains(needs.*.result, 'failure')
+      && needs.publish.outputs.publications != '[]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checksums and publication
+        env:
+          PUBLICATIONS: ${{ needs.publish.outputs.publications }}
+        run: |
+          jq -c '.[]' <<< "$PUBLICATIONS" | while read -r app; do
+            tag=$(jq -r .tag <<< "$app")
+            latest=$(jq -r .latest <<< "$app")
+            folder=$(mktemp -d)
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$folder" --pattern '*' || true
+            rm -f "$folder/SHA256SUMS"
+            if [ -n "$(ls -A "$folder")" ]; then
+              (cd "$folder" && sha256sum -- * > SHA256SUMS)
+              gh release upload "$tag" "$folder/SHA256SUMS" --repo "$GITHUB_REPOSITORY" --clobber
+            fi
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --latest="$latest"
+            echo "published $tag (latest: $latest)"
+          done

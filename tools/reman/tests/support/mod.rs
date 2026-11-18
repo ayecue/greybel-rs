@@ -78,6 +78,23 @@ impl Fixture {
         self
     }
 
+    /// An annotated tag `name` at HEAD.
+    pub fn tag(&self, name: &str) -> &Self {
+        self.git(&[
+            "-c",
+            "user.name=test",
+            "-c",
+            "user.email=test@example.com",
+            "tag",
+            "-a",
+            name,
+            "-m",
+            name,
+        ]);
+
+        self
+    }
+
     pub fn git(&self, args: &[&str]) {
         let status = Command::new("git")
             .args(args)

@@ -10,6 +10,7 @@ use crate::git::Git;
 use crate::paths::PathExt;
 use crate::repository::Repository;
 
+/// A released app at HEAD, for build pipelines.
 #[derive(Debug, Serialize)]
 pub struct Publication {
     pub id: String,
@@ -18,6 +19,10 @@ pub struct Publication {
     pub tag: String,
     pub path: String,
     pub language: String,
+    /// The app whose release is the repository's latest.
+    pub latest: bool,
+    /// False when the tag already named HEAD, so a run repeated at the same commit lists the same apps.
+    pub is_new: bool,
 }
 
 pub struct PublishOptions {
@@ -95,7 +100,7 @@ impl<'a> Publisher<'a> {
         Ok(publications)
     }
 
-    /// Releases app `index` at `commit` if its version is untagged.
+    /// Releases app `index` at `commit` if its version is untagged; lists it unreleased when its tag names `commit`.
     fn publish_app(
         &self,
         index: usize,
@@ -118,6 +123,30 @@ impl<'a> Publisher<'a> {
         }
 
         let tag = self.repository.tag(index, &version);
+        let latest = node.project.as_ref().is_some_and(|project| project.latest);
+        let publication = Publication {
+            id: node.id.clone(),
+            name: node.name.clone(),
+            version: version.clone(),
+            tag: tag.clone(),
+            path: node.path().to_slash(),
+            language: node.language.name().to_owned(),
+            latest,
+            is_new: true,
+        };
+
+        if let Some(tag_commit) = self.git.tag_commit(&tag)? {
+            if tag_commit != commit {
+                return Ok(None);
+            }
+
+            writeln!(log, "tagged at HEAD already: {tag}")?;
+
+            return Ok(Some(Publication {
+                is_new: false,
+                ..publication
+            }));
+        }
 
         if self.has_tag(&tag)? {
             return Ok(None);
@@ -135,7 +164,7 @@ impl<'a> Publisher<'a> {
             title: &title,
             notes: &notes,
             draft: self.options.draft,
-            latest: node.project.as_ref().is_some_and(|project| project.latest),
+            latest,
         };
 
         writeln!(
@@ -159,22 +188,11 @@ impl<'a> Publisher<'a> {
                 .create_release(&release)?;
         }
 
-        Ok(Some(Publication {
-            id: node.id.clone(),
-            name: node.name.clone(),
-            version,
-            tag,
-            path: node.path().to_slash(),
-            language: node.language.name().to_owned(),
-        }))
+        Ok(Some(publication))
     }
 
-    /// Checks `tag` locally and, unless offline, on GitHub.
+    /// Checks `tag` on GitHub unless offline; local tags are checked before.
     fn has_tag(&self, tag: &str) -> Result<bool> {
-        if self.git.has_tag(tag)? {
-            return Ok(true);
-        }
-
         self.github
             .as_ref()
             .map_or(Ok(false), |github| github.has_tag(tag))

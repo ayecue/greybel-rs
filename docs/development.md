@@ -102,16 +102,17 @@ Run `cargo reman check` to find released projects with changes that no pending c
 
 ## Releases
 
-The release workflow is:
+Prepare a release locally, review the commit, and push it to `main`:
 
 ```sh
 cargo reman check
 cargo reman plan
 cargo reman release prepare
-cargo reman release publish
+git commit -am "release"   # versions, changelogs, .changes/release.toml
+git push
 ```
 
-`plan` previews version changes. `release prepare` updates versions, changelogs, and the release record. `release publish` creates tags and GitHub releases and therefore requires a clean tree and the appropriate GitHub credentials.
+`plan` previews version changes. `release prepare` updates versions, changelogs, and the release record. Pushing a commit that changes `.changes/release.toml` starts the release workflow ([CI and releases](ci.md)); it runs `cargo reman release publish --draft`, builds and attaches each app's files, publishes greybel-vs to the marketplaces, and publishes the drafts once everything succeeded.
 
 Use `--dry-run` before preparation or publishing to inspect the operations without applying them.
 

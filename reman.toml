@@ -80,6 +80,11 @@ suite = "lint"
 run = "pnpm format:check"
 fix = "pnpm format"
 
+# Each package's build: the wasm workers and dist/ folders that later workspaces, the tests and the sites read.
+[languages.typescript.tasks.build]
+suite = "build"
+run = "pnpm {packages} run --if-present build"
+
 # Each package's vitest suite.
 [languages.typescript.tasks.unit]
 suite = "unit"

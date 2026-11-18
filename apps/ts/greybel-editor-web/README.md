@@ -35,3 +35,5 @@ pnpm --filter greybel-editor-web test          # build in test mode and run Vite
 ```sh
 EDITOR_SERVICE_URL=http://localhost:8080 pnpm --filter greybel-editor-web build
 ```
+
+`WASM_BASE_URL` points the production build's `.wasm` URLs at another folder; CI sets it to the folder on DigitalOcean Spaces it uploads them to ([CI and releases](../../../docs/ci.md)).

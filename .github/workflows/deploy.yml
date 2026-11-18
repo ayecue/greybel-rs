@@ -1,0 +1,93 @@
+# Deploys the sites CI built and the editor service, after CI's tests pass (ci.yml). Pushes to main deploy to
+# production; pull requests get Netlify previews, linked in a comment. The .wasm files go to DigitalOcean Spaces.
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      editor:
+        type: boolean
+        default: false
+      reference:
+        type: boolean
+        default: false
+      service:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  SPACES_BUCKET: greybel-assets
+  SPACES_ENDPOINT: https://fra1.digitaloceanspaces.com
+  SPACES_FOLDER: wasm
+  NETLIFY_CLI: netlify-cli
+
+jobs:
+  sites:
+    if: inputs.editor || inputs.reference
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: sites
+          path: apps/ts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: brotli
+        run: sudo apt-get install --yes --no-install-recommends brotli
+      - name: Upload the .wasm files to Spaces
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: >-
+          bash .github/scripts/upload-wasm.sh
+          ${{ inputs.editor && 'apps/ts/greybel-editor-web/dist' || '' }}
+          ${{ inputs.reference && 'apps/ts/greybel-api-reference-site/dist' || '' }}
+      - name: Deploy to Netlify
+        id: netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          deploy() {
+            local name=$1 dist=$2 site=$3
+            if [ "${{ github.event_name }}" = pull_request ]; then
+              url=$(npx --yes "$NETLIFY_CLI" deploy --dir "$dist" --site "$site" \
+                --alias "pr-${{ github.event.pull_request.number }}" --message "PR #${{ github.event.pull_request.number }}" --json | jq -r .deploy_url)
+            else
+              url=$(npx --yes "$NETLIFY_CLI" deploy --dir "$dist" --site "$site" --prod \
+                --message "${{ github.sha }}" --json | jq -r .url)
+            fi
+            echo "$name: $url"
+            echo "- $name: $url" >> links.md
+          }
+          : > links.md
+          if [ "${{ inputs.editor }}" = true ]; then
+            deploy "Web editor" apps/ts/greybel-editor-web/dist "${{ secrets.NETLIFY_EDITOR_SITE_ID }}"
+          fi
+          if [ "${{ inputs.reference }}" = true ]; then
+            deploy "API reference" apps/ts/greybel-api-reference-site/dist "${{ secrets.NETLIFY_REFERENCE_SITE_ID }}"
+          fi
+      - name: Link the previews in the pull request
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          body=$(printf 'Netlify previews of %s:\n\n%s\n' "${{ github.event.pull_request.head.sha }}" "$(cat links.md)")
+          gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --edit-last --body "$body" \
+            || gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body "$body"
+
+  service:
+    if: inputs.service
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Deploy greybel-editor-service (App Platform builds main)
+        run: doctl apps create-deployment "${{ secrets.DIGITALOCEAN_APP_ID }}" --wait

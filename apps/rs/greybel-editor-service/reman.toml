@@ -1,0 +1,6 @@
+# Its own Cargo workspace, deployed from main to DigitalOcean App Platform (deploy/app.yaml).
+[workspace]
+language = "rust"
+
+[project]
+kind = "site"

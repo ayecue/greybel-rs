@@ -173,7 +173,11 @@ repository can make existing tags appear missing. A real publication cannot be
 created with `--offline`.
 
 Both modes print a JSON array of publications with `id`, `name`, `version`,
-`tag`, `path`, and `language` for downstream build pipelines.
+`tag`, `path`, `language`, `latest` (the configured `latest` app), and `is_new`
+for downstream build pipelines. An app whose tag already names HEAD is listed
+with `is_new: false` and nothing is created for it, so a repeated run at the
+same commit, such as a retried pipeline, lists the same apps. An app whose tag
+names another commit is not listed.
 
 ## Tasks
 
