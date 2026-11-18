@@ -145,7 +145,6 @@ impl<D: Driver> Transport<D> {
 }
 
 impl<D: Driver> Relay<D> {
-
     fn forward(&mut self, transport: &TransportState<D>, batch: &[u8]) {
         let Ok(slices) = BatchReader::new(batch) else {
             return;

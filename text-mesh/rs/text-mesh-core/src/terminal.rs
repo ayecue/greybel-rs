@@ -19,6 +19,12 @@ pub struct LineLimits {
 }
 
 impl LineLimits {
+    /// greyhack-customizable-output's defaults, the limits before 0.9.5683: 256 units of text, any number of tags.
+    pub const BEFORE_TAG_LIMIT: Self = Self {
+        text_per_line: 256,
+        tags_per_line: None,
+    };
+
     /// Raises `text_per_line` to at least 1.
     #[must_use]
     pub fn new(text_per_line: usize, tags_per_line: Option<usize>) -> Self {
@@ -27,12 +33,6 @@ impl LineLimits {
             tags_per_line,
         }
     }
-
-    /// greyhack-customizable-output's defaults, the limits before 0.9.5683: 256 units of text, any number of tags.
-    pub const BEFORE_TAG_LIMIT: Self = Self {
-        text_per_line: 256,
-        tags_per_line: None,
-    };
 }
 
 #[derive(Debug, Clone, Copy)]

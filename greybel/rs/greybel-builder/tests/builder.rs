@@ -1,5 +1,7 @@
 //! Tests builds, transformations, and unavailable-game failures through the builder protocol using an editor client.
 
+use std::fmt::Write;
+
 use duplex_core::Error;
 
 use crate::support::editor::{Build, BuildFailure, Transform, TranspileMode};
@@ -37,7 +39,11 @@ fn should_transform_code_as_a_build_would() {
 #[test]
 fn should_transform_code_larger_than_the_default_message_limit() {
     let mut harness = Harness::new(&[]);
-    let code: String = (0..10_000).map(|index| format!("x{index}=1\n")).collect();
+    let code = (0..10_000).fold(String::new(), |mut code, index| {
+        writeln!(code, "x{index}=1").expect("writing to a String cannot fail");
+
+        code
+    });
 
     assert!(code.len() > 64 << 10);
 

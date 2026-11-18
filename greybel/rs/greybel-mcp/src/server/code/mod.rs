@@ -6,11 +6,10 @@ mod project;
 mod target;
 mod tools;
 
-use project::CodeProject;
-use target::SymbolTarget;
-
 use greybel_documents::DocumentError;
 use greybel_project::ProjectError;
+use project::CodeProject;
+use target::SymbolTarget;
 
 use super::source::{SourceError, into_tool_contents};
 

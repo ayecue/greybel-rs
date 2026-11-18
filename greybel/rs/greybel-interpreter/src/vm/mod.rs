@@ -104,9 +104,7 @@ pub enum RunResult {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum State {
     Active,
-    Pending {
-        discard: bool,
-    },
+    Pending { discard: bool },
     Yield,
     Pause,
     Complete,
