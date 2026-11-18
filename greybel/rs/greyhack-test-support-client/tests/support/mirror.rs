@@ -447,6 +447,7 @@ fn file_data(file: &FileSnapshot) -> FileData {
         command: (kind == FileKind::Binary)
             .then(|| Command::of_name(&file.command))
             .flatten(),
+        command_name: file.command.clone(),
         size: file.size,
         encrypt_password: file.encrypt_password.clone(),
         ..FileData::default()
@@ -456,6 +457,8 @@ fn file_data(file: &FileSnapshot) -> FileData {
 /// Registers the game's newest version of every library (`VersionsControl.lastLibs`), so a copied library that the
 /// game already replaced is not the newest one in the copy either.
 pub fn register_latest_libraries(world: &World, snapshot: &NetworkSnapshot) {
+    greybel_test_support::future::block_on(world.begin())
+        .expect("the mirrored library transaction begins");
     for content in &snapshot.latest_libraries {
         if let Some(library) = library(content) {
             greybel_test_support::future::block_on(
@@ -523,6 +526,8 @@ pub fn register_latest_libraries(world: &World, snapshot: &NetworkSnapshot) {
             .apply_network_choices_to_computers(router.network),
     )
     .expect("the mirrored computers use the router-node choices");
+    greybel_test_support::future::block_on(world.commit())
+        .expect("the mirrored library transaction commits");
 }
 
 /// A library from the game's own serialized `Library` (`Library`: `listaZonaMem`, `Vulnerabilidad` and

@@ -70,6 +70,71 @@ async fn generated_world(seed: u64) -> World {
 }
 
 #[tokio::test]
+async fn should_not_return_a_cached_library_for_a_reused_database_id() {
+    let world = World::new(&greyhack_world::PlayerOptions::default())
+        .await
+        .unwrap();
+    let first = greyhack_world_libraries::Library {
+        kind: LibraryKind::Crypto,
+        version: "200.0.0".to_owned(),
+        zones: Vec::new(),
+    };
+
+    world.begin().await.unwrap();
+    world
+        .modules
+        .libraries
+        .updates
+        .register_library(&first)
+        .await
+        .unwrap();
+    let id = world
+        .modules
+        .core
+        .files
+        .latest_library(LibraryKind::Crypto)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        world
+            .modules
+            .libraries
+            .generator
+            .latest_full_library(LibraryKind::Crypto)
+            .await
+            .unwrap(),
+        Some(first)
+    );
+
+    // Rolling back removes the head and rewinds AUTOINCREMENT. A core identity write can then reuse the cached ID
+    // without any notification to the full-library repository.
+    world.database().rollback().await.unwrap();
+    world.database().begin().await.unwrap();
+    let reused = world
+        .modules
+        .core
+        .files
+        .library_row(LibraryKind::Crypto, "201.0.0")
+        .await
+        .unwrap();
+
+    assert_eq!(reused, id);
+    assert_eq!(
+        world
+            .modules
+            .libraries
+            .generator
+            .latest_full_library(LibraryKind::Crypto)
+            .await
+            .unwrap()
+            .unwrap()
+            .version,
+        "201.0.0"
+    );
+}
+
+#[tokio::test]
 async fn should_prepare_the_initial_history_and_metaxploit_versions() {
     let world = generated_world(41).await;
 

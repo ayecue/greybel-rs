@@ -74,14 +74,31 @@ impl Shop {
             return Ok(false);
         };
         let exploits = self.library_exploits(id, &library).await?;
+        let sources: Vec<Option<String>> = exploits
+            .iter()
+            .map(|exploit| exploit.source(&library))
+            .collect();
+        self.patch_known_exploit_description(id, &exploits, &sources, zone_address, unsec_value)
+            .await
+    }
+
+    /// Patches an exploit of an already loaded catalog and its source texts.
+    pub(crate) async fn patch_known_exploit_description(
+        &self,
+        id: LibraryId,
+        exploits: &[Exploit],
+        sources: &[Option<String>],
+        zone_address: &str,
+        unsec_value: &str,
+    ) -> Result<bool> {
         // The game looks for the overflow call in the script, which a password exploit's call (with the new password as
         // a third argument) never contains, so the description of that exploit is never patched.
         let call = format!(".overflow(\"{zone_address}\", \"{unsec_value}\")");
-        let Some(exploit) = exploits.iter().find(|exploit| {
-            exploit
-                .source(&library)
-                .is_some_and(|source| source.contains(&call))
-        }) else {
+        let Some((exploit, _)) = exploits
+            .iter()
+            .zip(sources)
+            .find(|(_, source)| source.as_ref().is_some_and(|source| source.contains(&call)))
+        else {
             return Ok(false);
         };
 
@@ -119,6 +136,20 @@ impl Shop {
             }
 
             self.make_exploits(id, library, hide).await?;
+        }
+
+        self.exploits.library_exploits(id).await
+    }
+
+    /// Generates the visible batch of a library that has just become the newest version. Its hidden batch does not
+    /// exist until a later version replaces it.
+    pub(crate) async fn new_library_exploits(
+        &self,
+        id: LibraryId,
+        library: &Library,
+    ) -> Result<Vec<Exploit>> {
+        if !self.exploits.has_exploit_batch(id, false).await? {
+            self.make_exploits(id, library, false).await?;
         }
 
         self.exploits.library_exploits(id).await

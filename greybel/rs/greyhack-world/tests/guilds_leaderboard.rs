@@ -42,6 +42,7 @@ async fn should_not_count_a_company_beyond_the_guilds_licences() {
             investment_perks: 0,
             admin_restore_perks: 0,
             player_member: false,
+            player_owner: false,
         })
         .await
         .unwrap()

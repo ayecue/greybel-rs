@@ -245,6 +245,38 @@ impl UpdateService {
         Ok(())
     }
 
+    /// Fills only unwritten library nodes of an explicit network layout. A copied node's full library or serialized
+    /// content is authoritative; reported updates apply when the game generates or restores a computer, not when a
+    /// snapshot copies its current state.
+    pub async fn apply_network_choices_to_layout(
+        &self,
+        network: NetworkId,
+        draft: &mut ComputerDraft,
+    ) -> Result<()> {
+        for (kind, library) in self.choice_records(network).await?.iter() {
+            let kind = *kind;
+            let fs = &mut draft.filesystem;
+
+            if let Some(folder) = fs.folder(LIBRARY_FOLDER, false) {
+                for file in fs.files(folder).to_vec() {
+                    let node = fs.node_mut(file);
+                    let is_library = node
+                        .data()
+                        .is_some_and(|data| data.kind == FileKind::Library);
+                    let has_content = node.library.is_some()
+                        || node.data().is_some_and(|data| !data.content.is_empty());
+
+                    if is_library && LibraryKind::of_file(&node.name) == Some(kind) && !has_content
+                    {
+                        node.library = Some(Box::new(library.clone()));
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     /// The player computer uses the random saved-version overload rather than its network's choice.
     pub async fn apply_random_saved_libraries(
         &self,
@@ -288,16 +320,20 @@ impl UpdateService {
 
     /// Refreshes generated computers after a mirrored history has been registered.
     pub async fn apply_network_choices_to_computers(&self, network: NetworkId) -> Result<()> {
+        let mut choices = Vec::new();
+
+        for (kind, choice) in self.libraries.network_library_choices(network).await? {
+            if self.libraries.library(choice).await?.is_some() {
+                choices.push((kind, choice));
+            }
+        }
+
         for computer in self.computers.computers_in(network).await? {
             if computer.id == self.world.player() {
                 continue;
             }
 
-            for (kind, choice) in self.libraries.network_library_choices(network).await? {
-                if self.libraries.library(choice).await?.is_none() {
-                    continue;
-                }
-
+            for (kind, choice) in choices.iter().copied() {
                 let path = library_path(kind.file_name());
                 let Some(node) = self.files.lookup.file(computer.id, &path, false).await? else {
                     continue;

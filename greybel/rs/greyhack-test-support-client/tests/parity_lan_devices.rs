@@ -18,9 +18,22 @@ async fn should_match_the_rules_of_the_random_devices_of_generated_networks() {
 
     setup_player(&client).await;
 
-    for (game_kind, kind) in KINDS {
+    // Each kind uses an independent seed-0 world, so generate those copies concurrently before the serial game fixture
+    // work. This preserves the exact networks and rules being compared.
+    let expected = std::thread::scope(|scope| {
+        let handles: Vec<_> = KINDS
+            .iter()
+            .map(|(_, kind)| scope.spawn(move || Rules::of(&greybel_networks(*kind))))
+            .collect();
+
+        handles
+            .into_iter()
+            .map(|handle| handle.join().expect("the Greybel networks are generated"))
+            .collect::<Vec<_>>()
+    });
+
+    for ((game_kind, _), expected) in KINDS.into_iter().zip(expected) {
         let actual = Rules::of(&game_networks(&client, game_kind).await);
-        let expected = Rules::of(&greybel_networks(kind));
 
         assert_eq!(actual, expected, "{game_kind}");
     }

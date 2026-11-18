@@ -60,6 +60,8 @@ pub struct Guild {
     pub crown_shield_public_ip: String,
     /// Whether the player is a member (`Guild.GetMemberByPlayerID`).
     pub player_member: bool,
+    /// Whether that member owns the guild (`Guild.Member.isOwner`).
+    pub player_owner: bool,
 }
 
 /// What a script defines for a guild (`Guilds.Guild` as the guild service stores it).
@@ -71,6 +73,7 @@ pub struct GuildDraft {
     pub investment_perks: u32,
     pub admin_restore_perks: u32,
     pub player_member: bool,
+    pub player_owner: bool,
 }
 
 /// Why a guild could not be created.

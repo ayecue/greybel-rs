@@ -4,7 +4,9 @@ use greyhack_behaviour::{
     APT_PACKAGE_SIZE, FileData, FileKind, LibraryKind, OFFICIAL_OMISSIONS, OFFICIAL_SERVER,
     PermissionSet, ROOT_USER, default_apt_install_folder, file_size_mb, path,
 };
-use greyhack_world_core::{ComputerId, LibraryId, NodeDraft, Result};
+use greyhack_world_core::{ComputerId, LibraryId, NodeDraft, Result, WorldError};
+
+use super::json_deserializes_to_null;
 
 use super::updates::AptCache;
 use crate::services::Apt;
@@ -60,6 +62,10 @@ impl Apt {
             Ok(content) => content,
             Err(failure) => return Ok(Err(failure)),
         };
+        if json_deserializes_to_null(&content) {
+            return Err(WorldError::GameCrash);
+        }
+
         let Ok(cache) = serde_json::from_str::<AptCache>(&content) else {
             return Ok(Err(AptFailure::MalformedCache));
         };

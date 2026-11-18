@@ -35,7 +35,7 @@ Downloads are cached in `target/greyhack-util`.
 
 ## Contract extraction
 
-`extract` decompiles `Assembly-CSharp.dll` and writes `game.bundle` containing
+`extract` writes `game.bundle` containing
 `game.json`, plus its fingerprint. The current game API is
 `NetworkMessages.RpcMessage`, serialized as JSON `method` and positional
 `params`:

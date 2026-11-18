@@ -78,6 +78,28 @@ impl LibraryVersionRepository {
         Ok(())
     }
 
+    pub(crate) async fn wear_out_visible_weaknesses(
+        &self,
+        kind: LibraryKind,
+        uses: u32,
+    ) -> Result<()> {
+        execute(
+            &self.db.connection(),
+            "INSERT INTO library_weakness_uses (kind, address, unsec_value, uses) \
+             SELECT ?1, memory_zones.address, weaknesses.unsec_value, ?2 \
+             FROM library_latest \
+             JOIN memory_zones ON memory_zones.library_id = library_latest.library_id \
+             JOIN weaknesses ON weaknesses.zone_id = memory_zones.id \
+             WHERE library_latest.kind = ?1 AND memory_zones.hide = 0 \
+             ORDER BY memory_zones.id, weaknesses.id \
+             ON CONFLICT (kind, address, unsec_value) DO UPDATE SET uses = excluded.uses",
+            params![kind.code(), uses],
+        )
+        .await?;
+
+        Ok(())
+    }
+
     pub(crate) async fn replace_weakness_uses(
         &self,
         kind: LibraryKind,

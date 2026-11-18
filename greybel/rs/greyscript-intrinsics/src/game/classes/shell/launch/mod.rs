@@ -18,7 +18,7 @@ use crate::error::IntrinsicError;
 use crate::game::client::failure::invalid_shell;
 use crate::game::client::login_encryption::LoginEncryption;
 use crate::game::client::object;
-use crate::protocol::{LaunchOutcome, ShellLaunch};
+use crate::protocol::{Failure, LaunchFailure, LaunchOutcome, ShellLaunch};
 
 static LAUNCH_PARAMS: &[NativeParam] = &[
     NativeParam::new("path"),
@@ -87,6 +87,10 @@ fn launch(vm: &mut Vm, args: &ArgContainer) -> NativeFuture {
                 child
                     .enter(session, paths, source, source_map, params)
                     .await
+            }
+            // Unlike other launch refusals, the safe-terminal GUI error is the intrinsic's return value.
+            Ok(LaunchOutcome::Failure(Failure::Launch(LaunchFailure::GuiUnavailable))) => {
+                NativeOutput::new("Error: Desktop GUI is not running.")
             }
             // Printed launch refusals arrive before this response.
             Ok(LaunchOutcome::Failure(_) | LaunchOutcome::Refusal) | Err(_) => {

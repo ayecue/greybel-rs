@@ -1,5 +1,8 @@
 //! Library zones, weaknesses, requirements, and per-network update reports.
 
+use std::cell::RefCell;
+use std::collections::HashMap;
+
 use greyhack_behaviour::{LibraryKind, Requirement};
 use greyhack_world_core::{ComputerId, Database, LanPlace, LibraryId, NetworkId, Result, RouterId};
 use greyhack_world_storage::sql::{
@@ -58,9 +61,22 @@ impl FromRow for WeaknessRow {
 /// Queries of the tables owned by this area.
 pub(crate) struct LibraryRepository {
     db: Database,
+    cache: RefCell<Option<HashMap<LibraryId, Library>>>,
     computers: greyhack_world_modules::Dep<greyhack_world_core::ComputerService>,
     pub(crate) files: greyhack_world_modules::Dep<greyhack_world_core::FileSystemService>,
     networks: greyhack_world_modules::Dep<greyhack_world_core::NetworkService>,
+}
+
+/// Enables the full-library cache only for one initial-history operation. Dropping it disables and empties the cache,
+/// including when generation returns an error or panics.
+pub(crate) struct LibraryCacheScope<'a> {
+    repository: &'a LibraryRepository,
+}
+
+impl Drop for LibraryCacheScope<'_> {
+    fn drop(&mut self) {
+        *self.repository.cache.borrow_mut() = None;
+    }
 }
 
 impl LibraryRepository {
@@ -72,13 +88,34 @@ impl LibraryRepository {
     ) -> Self {
         Self {
             db,
+            cache: RefCell::new(None),
             computers,
             files,
             networks,
         }
     }
 
+    pub(crate) fn cache_scope(&self) -> LibraryCacheScope<'_> {
+        assert!(
+            self.cache.borrow().is_none(),
+            "initial library history is not reentrant"
+        );
+        *self.cache.borrow_mut() = Some(HashMap::new());
+
+        LibraryCacheScope { repository: self }
+    }
+
     pub(crate) async fn library(&self, id: LibraryId) -> Result<Option<Library>> {
+        if let Some(library) = self
+            .cache
+            .borrow()
+            .as_ref()
+            .and_then(|cache| cache.get(&id))
+            .cloned()
+        {
+            return Ok(Some(library));
+        }
+
         let head: Option<(Code<LibraryKind>, String)> = fetch_all(
             &self.db.connection(),
             "SELECT kind, version FROM libraries WHERE id = ?1",
@@ -129,11 +166,16 @@ impl LibraryRepository {
             });
         }
 
-        Ok(Some(Library {
+        let library = Library {
             kind,
             version,
             zones,
-        }))
+        };
+        if let Some(cache) = self.cache.borrow_mut().as_mut() {
+            cache.insert(id, library.clone());
+        }
+
+        Ok(Some(library))
     }
 
     /// Returns the stored library matching `library` kind and version, or inserts `library` with
@@ -157,6 +199,40 @@ impl LibraryRepository {
             .library_identity_id(&identity)
             .await?;
 
+        self.insert_library_zones(id, library).await?;
+        self.cache_stored_library(id, library);
+
+        Ok(id)
+    }
+
+    /// Caches exactly what the uniqueness constraints leave in the database.
+    fn cache_stored_library(&self, id: LibraryId, library: &Library) {
+        let canonical = library
+            .zones
+            .iter()
+            .flat_map(|zone| &zone.weaknesses)
+            .all(|weakness| {
+                weakness
+                    .requirements
+                    .iter()
+                    .enumerate()
+                    .all(|(index, requirement)| {
+                        !weakness.requirements[index + 1..].contains(requirement)
+                    })
+            });
+        let mut cache = self.cache.borrow_mut();
+        let Some(cache) = cache.as_mut() else {
+            return;
+        };
+
+        cache.remove(&id);
+        if canonical {
+            cache.insert(id, library.clone());
+        }
+    }
+
+    /// Inserts library content in deterministic row order.
+    async fn insert_library_zones(&self, id: LibraryId, library: &Library) -> Result<()> {
         for zone in &library.zones {
             let zone_id = insert(
                 &self.db.connection(),
@@ -202,7 +278,7 @@ impl LibraryRepository {
             }
         }
 
-        Ok(id)
+        Ok(())
     }
 
     /// Replaces the zones of an existing library identity, as unlocking a zero-day does for its selected file.
@@ -218,50 +294,8 @@ impl LibraryRepository {
         )
         .await?;
 
-        for zone in &library.zones {
-            let zone_id = insert(
-                &self.db.connection(),
-                "INSERT INTO memory_zones (library_id, address, hide) VALUES (?1, ?2, ?3)",
-                params![id.0, zone.address.as_str(), zone.hide],
-            )
-            .await?;
-
-            for weakness in &zone.weaknesses {
-                let weakness_id = insert(
-                    &self.db.connection(),
-                    "INSERT INTO weaknesses (zone_id, unsec_value, details, reward, user, required_library, \
-                     required_version, metaxploit_version, num_register_users, num_port_forward, num_conn_gateway, \
-                     path_exist, random_path, remote) \
-                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
-                    params![
-                        zone_id,
-                        weakness.unsec_value.as_str(),
-                        weakness.details.as_str(),
-                        weakness.reward.code(),
-                        weakness.user.as_str(),
-                        weakness.required_lib.map(LibraryKind::code),
-                        weakness.req_lib_version.as_str(),
-                        weakness.metaxploit_version.as_str(),
-                        weakness.num_register_users,
-                        weakness.num_port_forward,
-                        weakness.num_conn_gateway,
-                        weakness.path_exist.as_str(),
-                        weakness.random_path.as_str(),
-                        weakness.remote,
-                    ],
-                )
-                .await?;
-
-                for requirement in &weakness.requirements {
-                    execute(
-                        &self.db.connection(),
-                        "INSERT OR IGNORE INTO weakness_requirements (weakness_id, requirement) VALUES (?1, ?2)",
-                        params![weakness_id, requirement.code()],
-                    )
-                    .await?;
-                }
-            }
-        }
+        self.insert_library_zones(id, library).await?;
+        self.cache_stored_library(id, library);
 
         Ok(())
     }

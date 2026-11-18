@@ -21,6 +21,7 @@ pub(in crate::game) fn launch_text(failure: &LaunchFailure) -> String {
         LaunchFailure::CommandNotFound(path) => format!("{path}: command not found"),
         LaunchFailure::NotExecutable(name) => format!("{name} is not an executable file."),
         LaunchFailure::NoPermission => "Can't launch program. Permission denied.".to_owned(),
+        LaunchFailure::GuiUnavailable => "Error: Desktop GUI is not running.".to_owned(),
         LaunchFailure::InvalidParameter(token) => {
             format!("Error: invalid character '{token}' in program parameters.")
         }

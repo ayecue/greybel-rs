@@ -26,6 +26,7 @@ pub async fn guild(world: &mut World, name: &str, account: &str, total_exp: u32,
             investment_perks: 5,
             admin_restore_perks: perks,
             player_member: false,
+            player_owner: false,
         })
         .await
         .unwrap()

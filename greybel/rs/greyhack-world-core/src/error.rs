@@ -21,6 +21,9 @@ pub enum LayoutFailure {
 /// A world operation failed because a database read or write failed.
 #[derive(Debug, thiserror::Error)]
 pub enum WorldError {
+    /// An unhandled game exception stops the running script.
+    #[error("the game crashed")]
+    GameCrash,
     #[error(transparent)]
     Database(#[from] turso::Error),
     /// A scheduled domain routine failed.

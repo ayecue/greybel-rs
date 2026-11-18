@@ -1448,13 +1448,16 @@ public sealed class GameEndedReply
     public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
         "GameEndedReply",
         global::System.Array.Empty<global::Duplex.Tag>(),
-        new global::Duplex.FieldType[] { new global::Duplex.FieldType("computer_exists", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEndedReply)holder).ComputerExists), new global::Duplex.FieldType("subscriptions", typeof(global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEndedReply)holder).Subscriptions) },
-        values => new GameEndedReply((bool)values[0]!, (global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>)values[1]!));
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("computer_exists", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEndedReply)holder).ComputerExists), new global::Duplex.FieldType("subscriptions", typeof(global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEndedReply)holder).Subscriptions), new global::Duplex.FieldType("network_disabled", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEndedReply)holder).NetworkDisabled), new global::Duplex.FieldType("network_home", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEndedReply)holder).NetworkHome), new global::Duplex.FieldType("rentals", typeof(global::System.Collections.Generic.IReadOnlyList<RentalStateSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GameEndedReply)holder).Rentals) },
+        values => new GameEndedReply((bool)values[0]!, (global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>)values[1]!, (bool)values[2]!, (bool)values[3]!, (global::System.Collections.Generic.IReadOnlyList<RentalStateSnapshot>)values[4]!));
 
-    public GameEndedReply(bool computerExists, global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> subscriptions)
+    public GameEndedReply(bool computerExists, global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> subscriptions, bool networkDisabled, bool networkHome, global::System.Collections.Generic.IReadOnlyList<RentalStateSnapshot> rentals)
     {
         ComputerExists = computerExists;
         Subscriptions = subscriptions;
+        NetworkDisabled = networkDisabled;
+        NetworkHome = networkHome;
+        Rentals = rentals;
     }
 
     /// <summary>
@@ -1467,20 +1470,41 @@ public sealed class GameEndedReply
     /// </summary>
     public global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> Subscriptions { get; }
 
+    /// <summary>
+    /// Whether the network the strike came from is disabled.
+    /// </summary>
+    public bool NetworkDisabled { get; }
+
+    /// <summary>
+    /// Whether its main router is still marked as the player's home network.
+    /// </summary>
+    public bool NetworkHome { get; }
+
+    /// <summary>
+    /// The player's rented networks and whether each is their home network after the strike.
+    /// </summary>
+    public global::System.Collections.Generic.IReadOnlyList<RentalStateSnapshot> Rentals { get; }
+
     public void Write(global::Duplex.DuplexWriter writer)
     {
-        writer.WriteByte((byte)((this.ComputerExists ? 1 : 0)));
+        writer.WriteByte((byte)((this.ComputerExists ? 1 : 0) | (this.NetworkDisabled ? 2 : 0) | (this.NetworkHome ? 4 : 0)));
         var items0 = this.Subscriptions;
         writer.WriteLength(items0.Count);
         foreach (var item1 in items0)
         {
             item1.Write(writer);
         }
+        var items2 = this.Rentals;
+        writer.WriteLength(items2.Count);
+        foreach (var item3 in items2)
+        {
+            item3.Write(writer);
+        }
     }
 
     public static GameEndedReply Read(global::Duplex.DuplexReader reader)
     {
-        var flags0 = reader.ReadFlags(1);
+        var flags0 = reader.ReadFlags(7);
         bool fieldComputerExists = (flags0 & 1) != 0;
         var value1 = new global::System.Collections.Generic.List<SubscriptionSnapshot>();
         var count2 = reader.ReadLength();
@@ -1489,7 +1513,52 @@ public sealed class GameEndedReply
             value1.Add(SubscriptionSnapshot.Read(reader));
         }
         global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> fieldSubscriptions = value1;
-        return new GameEndedReply(fieldComputerExists, fieldSubscriptions);
+        bool fieldNetworkDisabled = (flags0 & 2) != 0;
+        bool fieldNetworkHome = (flags0 & 4) != 0;
+        var value4 = new global::System.Collections.Generic.List<RentalStateSnapshot>();
+        var count5 = reader.ReadLength();
+        for (var index6 = 0; index6 < count5; index6++)
+        {
+            value4.Add(RentalStateSnapshot.Read(reader));
+        }
+        global::System.Collections.Generic.IReadOnlyList<RentalStateSnapshot> fieldRentals = value4;
+        return new GameEndedReply(fieldComputerExists, fieldSubscriptions, fieldNetworkDisabled, fieldNetworkHome, fieldRentals);
+    }
+}
+
+/// <summary>
+/// One entry of `PlayerHelperServer.rentalIPs`.
+/// </summary>
+public sealed class RentalStateSnapshot
+{
+    public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
+        "RentalStateSnapshot",
+        global::System.Array.Empty<global::Duplex.Tag>(),
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RentalStateSnapshot)holder).PublicIp), new global::Duplex.FieldType("home", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RentalStateSnapshot)holder).Home) },
+        values => new RentalStateSnapshot((string)values[0]!, (bool)values[1]!));
+
+    public RentalStateSnapshot(string publicIp, bool home)
+    {
+        PublicIp = publicIp;
+        Home = home;
+    }
+
+    public string PublicIp { get; }
+
+    public bool Home { get; }
+
+    public void Write(global::Duplex.DuplexWriter writer)
+    {
+        writer.WriteByte((byte)((this.Home ? 1 : 0)));
+        writer.WriteString(this.PublicIp);
+    }
+
+    public static RentalStateSnapshot Read(global::Duplex.DuplexReader reader)
+    {
+        var flags0 = reader.ReadFlags(1);
+        string fieldPublicIp = reader.ReadString();
+        bool fieldHome = (flags0 & 1) != 0;
+        return new RentalStateSnapshot(fieldPublicIp, fieldHome);
     }
 }
 
@@ -1609,10 +1678,10 @@ public sealed class GuildSnapshot
     public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
         "GuildSnapshot",
         global::System.Array.Empty<global::Duplex.Tag>(),
-        new global::Duplex.FieldType[] { new global::Duplex.FieldType("name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).Name), new global::Duplex.FieldType("bank_account", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).BankAccount), new global::Duplex.FieldType("total_exp", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).TotalExp), new global::Duplex.FieldType("investment_perks", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).InvestmentPerks), new global::Duplex.FieldType("has_crown", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).HasCrown), new global::Duplex.FieldType("crown_shield_public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).CrownShieldPublicIp), new global::Duplex.FieldType("player_member", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).PlayerMember), new global::Duplex.FieldType("admin_restore_perks", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).AdminRestorePerks), new global::Duplex.FieldType("admin_restore_disabled", typeof(global::System.Collections.Generic.IReadOnlyList<string>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).AdminRestoreDisabled) },
-        values => new GuildSnapshot((string)values[0]!, (string)values[1]!, (uint)values[2]!, (uint)values[3]!, (bool)values[4]!, (string)values[5]!, (bool)values[6]!, (uint)values[7]!, (global::System.Collections.Generic.IReadOnlyList<string>)values[8]!));
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("name", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).Name), new global::Duplex.FieldType("bank_account", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).BankAccount), new global::Duplex.FieldType("total_exp", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).TotalExp), new global::Duplex.FieldType("investment_perks", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).InvestmentPerks), new global::Duplex.FieldType("has_crown", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).HasCrown), new global::Duplex.FieldType("crown_shield_public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).CrownShieldPublicIp), new global::Duplex.FieldType("player_member", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).PlayerMember), new global::Duplex.FieldType("player_owner", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).PlayerOwner), new global::Duplex.FieldType("admin_restore_perks", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).AdminRestorePerks), new global::Duplex.FieldType("admin_restore_disabled", typeof(global::System.Collections.Generic.IReadOnlyList<string>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((GuildSnapshot)holder).AdminRestoreDisabled) },
+        values => new GuildSnapshot((string)values[0]!, (string)values[1]!, (uint)values[2]!, (uint)values[3]!, (bool)values[4]!, (string)values[5]!, (bool)values[6]!, (bool)values[7]!, (uint)values[8]!, (global::System.Collections.Generic.IReadOnlyList<string>)values[9]!));
 
-    public GuildSnapshot(string name, string bankAccount, uint totalExp, uint investmentPerks, bool hasCrown, string crownShieldPublicIp, bool playerMember, uint adminRestorePerks, global::System.Collections.Generic.IReadOnlyList<string> adminRestoreDisabled)
+    public GuildSnapshot(string name, string bankAccount, uint totalExp, uint investmentPerks, bool hasCrown, string crownShieldPublicIp, bool playerMember, bool playerOwner, uint adminRestorePerks, global::System.Collections.Generic.IReadOnlyList<string> adminRestoreDisabled)
     {
         Name = name;
         BankAccount = bankAccount;
@@ -1621,6 +1690,7 @@ public sealed class GuildSnapshot
         HasCrown = hasCrown;
         CrownShieldPublicIp = crownShieldPublicIp;
         PlayerMember = playerMember;
+        PlayerOwner = playerOwner;
         AdminRestorePerks = adminRestorePerks;
         AdminRestoreDisabled = adminRestoreDisabled;
     }
@@ -1643,6 +1713,11 @@ public sealed class GuildSnapshot
     public bool PlayerMember { get; }
 
     /// <summary>
+    /// Whether that member is its owner (`Guild.Member.isOwner`).
+    /// </summary>
+    public bool PlayerOwner { get; }
+
+    /// <summary>
     /// Admin Restore perks it bought (`Guild.purchasedAdminRestorePerks`).
     /// </summary>
     public uint AdminRestorePerks { get; }
@@ -1654,7 +1729,7 @@ public sealed class GuildSnapshot
 
     public void Write(global::Duplex.DuplexWriter writer)
     {
-        writer.WriteByte((byte)((this.HasCrown ? 1 : 0) | (this.PlayerMember ? 2 : 0)));
+        writer.WriteByte((byte)((this.HasCrown ? 1 : 0) | (this.PlayerMember ? 2 : 0) | (this.PlayerOwner ? 4 : 0)));
         writer.WriteString(this.Name);
         writer.WriteString(this.BankAccount);
         writer.WriteU32(this.TotalExp);
@@ -1671,7 +1746,7 @@ public sealed class GuildSnapshot
 
     public static GuildSnapshot Read(global::Duplex.DuplexReader reader)
     {
-        var flags0 = reader.ReadFlags(3);
+        var flags0 = reader.ReadFlags(7);
         string fieldName = reader.ReadString();
         string fieldBankAccount = reader.ReadString();
         uint fieldTotalExp = reader.ReadU32();
@@ -1679,6 +1754,7 @@ public sealed class GuildSnapshot
         bool fieldHasCrown = (flags0 & 1) != 0;
         string fieldCrownShieldPublicIp = reader.ReadString();
         bool fieldPlayerMember = (flags0 & 2) != 0;
+        bool fieldPlayerOwner = (flags0 & 4) != 0;
         uint fieldAdminRestorePerks = reader.ReadU32();
         var value1 = new global::System.Collections.Generic.List<string>();
         var count2 = reader.ReadLength();
@@ -1687,7 +1763,7 @@ public sealed class GuildSnapshot
             value1.Add(reader.ReadString());
         }
         global::System.Collections.Generic.IReadOnlyList<string> fieldAdminRestoreDisabled = value1;
-        return new GuildSnapshot(fieldName, fieldBankAccount, fieldTotalExp, fieldInvestmentPerks, fieldHasCrown, fieldCrownShieldPublicIp, fieldPlayerMember, fieldAdminRestorePerks, fieldAdminRestoreDisabled);
+        return new GuildSnapshot(fieldName, fieldBankAccount, fieldTotalExp, fieldInvestmentPerks, fieldHasCrown, fieldCrownShieldPublicIp, fieldPlayerMember, fieldPlayerOwner, fieldAdminRestorePerks, fieldAdminRestoreDisabled);
     }
 }
 
@@ -2537,10 +2613,10 @@ public sealed class NetworkSnapshot
     public static readonly global::Duplex.StructType StructType = new global::Duplex.StructType(
         "NetworkSnapshot",
         global::System.Array.Empty<global::Duplex.Tag>(),
-        new global::Duplex.FieldType[] { new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PublicIp), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Kind), new global::Duplex.FieldType("domain", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Domain), new global::Duplex.FieldType("nodes", typeof(global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Nodes), new global::Duplex.FieldType("admin", typeof(AdminSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Admin), new global::Duplex.FieldType("contact", typeof(ContactSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Contact), new global::Duplex.FieldType("rental_contact", typeof(ContactSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RentalContact), new global::Duplex.FieldType("npcs", typeof(global::System.Collections.Generic.IReadOnlyList<NpcSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Npcs), new global::Duplex.FieldType("traffic", typeof(TrafficSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Traffic), new global::Duplex.FieldType("player_bank", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PlayerBank), new global::Duplex.FieldType("player_mail", typeof(MailAccountSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PlayerMail), new global::Duplex.FieldType("recipient_mail", typeof(MailAccountSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RecipientMail), new global::Duplex.FieldType("current_date", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).CurrentDate), new global::Duplex.FieldType("debug", typeof(DebugSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Debug), new global::Duplex.FieldType("ctf", typeof(CtfSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Ctf), new global::Duplex.FieldType("banks", typeof(global::System.Collections.Generic.IReadOnlyList<BankSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Banks), new global::Duplex.FieldType("coins", typeof(global::System.Collections.Generic.IReadOnlyList<CoinSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Coins), new global::Duplex.FieldType("wallets", typeof(global::System.Collections.Generic.IReadOnlyList<WalletSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Wallets), new global::Duplex.FieldType("offers", typeof(global::System.Collections.Generic.IReadOnlyList<OfferSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Offers), new global::Duplex.FieldType("disabled", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Disabled), new global::Duplex.FieldType("rental_admin", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RentalAdmin), new global::Duplex.FieldType("net_speed", typeof(byte), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).NetSpeed), new global::Duplex.FieldType("position", typeof(global::System.Collections.Generic.IReadOnlyList<float>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Position), new global::Duplex.FieldType("world_secret", typeof(byte[]), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).WorldSecret), new global::Duplex.FieldType("subscriptions", typeof(global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Subscriptions), new global::Duplex.FieldType("latest_libraries", typeof(global::System.Collections.Generic.IReadOnlyList<string>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).LatestLibraries), new global::Duplex.FieldType("library_history", typeof(global::System.Collections.Generic.IReadOnlyList<LibraryHistorySnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).LibraryHistory), new global::Duplex.FieldType("library_choices", typeof(global::System.Collections.Generic.IReadOnlyList<LibraryChoiceSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).LibraryChoices) },
-        values => new NetworkSnapshot((string)values[0]!, (string)values[1]!, (string)values[2]!, (global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot>)values[3]!, (AdminSnapshot?)values[4], (ContactSnapshot?)values[5], (ContactSnapshot?)values[6], (global::System.Collections.Generic.IReadOnlyList<NpcSnapshot>)values[7]!, (TrafficSnapshot?)values[8], (string?)values[9], (MailAccountSnapshot?)values[10], (MailAccountSnapshot?)values[11], (string)values[12]!, (DebugSnapshot?)values[13], (CtfSnapshot?)values[14], (global::System.Collections.Generic.IReadOnlyList<BankSnapshot>)values[15]!, (global::System.Collections.Generic.IReadOnlyList<CoinSnapshot>)values[16]!, (global::System.Collections.Generic.IReadOnlyList<WalletSnapshot>)values[17]!, (global::System.Collections.Generic.IReadOnlyList<OfferSnapshot>)values[18]!, (bool)values[19]!, (bool)values[20]!, (byte)values[21]!, (global::System.Collections.Generic.IReadOnlyList<float>)values[22]!, (byte[])values[23]!, (global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>)values[24]!, (global::System.Collections.Generic.IReadOnlyList<string>)values[25]!, (global::System.Collections.Generic.IReadOnlyList<LibraryHistorySnapshot>)values[26]!, (global::System.Collections.Generic.IReadOnlyList<LibraryChoiceSnapshot>)values[27]!));
+        new global::Duplex.FieldType[] { new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PublicIp), new global::Duplex.FieldType("kind", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Kind), new global::Duplex.FieldType("domain", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Domain), new global::Duplex.FieldType("nodes", typeof(global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Nodes), new global::Duplex.FieldType("admin", typeof(AdminSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Admin), new global::Duplex.FieldType("contact", typeof(ContactSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Contact), new global::Duplex.FieldType("rental_contact", typeof(ContactSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RentalContact), new global::Duplex.FieldType("npcs", typeof(global::System.Collections.Generic.IReadOnlyList<NpcSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Npcs), new global::Duplex.FieldType("traffic", typeof(TrafficSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Traffic), new global::Duplex.FieldType("player_bank", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PlayerBank), new global::Duplex.FieldType("player_mail", typeof(MailAccountSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).PlayerMail), new global::Duplex.FieldType("recipient_mail", typeof(MailAccountSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RecipientMail), new global::Duplex.FieldType("current_date", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).CurrentDate), new global::Duplex.FieldType("debug", typeof(DebugSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Debug), new global::Duplex.FieldType("ctf", typeof(CtfSnapshot), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Ctf), new global::Duplex.FieldType("banks", typeof(global::System.Collections.Generic.IReadOnlyList<BankSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Banks), new global::Duplex.FieldType("coins", typeof(global::System.Collections.Generic.IReadOnlyList<CoinSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Coins), new global::Duplex.FieldType("wallets", typeof(global::System.Collections.Generic.IReadOnlyList<WalletSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Wallets), new global::Duplex.FieldType("offers", typeof(global::System.Collections.Generic.IReadOnlyList<OfferSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Offers), new global::Duplex.FieldType("disabled", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Disabled), new global::Duplex.FieldType("home", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Home), new global::Duplex.FieldType("rental_admin", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).RentalAdmin), new global::Duplex.FieldType("net_speed", typeof(byte), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).NetSpeed), new global::Duplex.FieldType("position", typeof(global::System.Collections.Generic.IReadOnlyList<float>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Position), new global::Duplex.FieldType("world_secret", typeof(byte[]), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).WorldSecret), new global::Duplex.FieldType("subscriptions", typeof(global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).Subscriptions), new global::Duplex.FieldType("latest_libraries", typeof(global::System.Collections.Generic.IReadOnlyList<string>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).LatestLibraries), new global::Duplex.FieldType("library_history", typeof(global::System.Collections.Generic.IReadOnlyList<LibraryHistorySnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).LibraryHistory), new global::Duplex.FieldType("library_choices", typeof(global::System.Collections.Generic.IReadOnlyList<LibraryChoiceSnapshot>), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((NetworkSnapshot)holder).LibraryChoices) },
+        values => new NetworkSnapshot((string)values[0]!, (string)values[1]!, (string)values[2]!, (global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot>)values[3]!, (AdminSnapshot?)values[4], (ContactSnapshot?)values[5], (ContactSnapshot?)values[6], (global::System.Collections.Generic.IReadOnlyList<NpcSnapshot>)values[7]!, (TrafficSnapshot?)values[8], (string?)values[9], (MailAccountSnapshot?)values[10], (MailAccountSnapshot?)values[11], (string)values[12]!, (DebugSnapshot?)values[13], (CtfSnapshot?)values[14], (global::System.Collections.Generic.IReadOnlyList<BankSnapshot>)values[15]!, (global::System.Collections.Generic.IReadOnlyList<CoinSnapshot>)values[16]!, (global::System.Collections.Generic.IReadOnlyList<WalletSnapshot>)values[17]!, (global::System.Collections.Generic.IReadOnlyList<OfferSnapshot>)values[18]!, (bool)values[19]!, (bool)values[20]!, (bool)values[21]!, (byte)values[22]!, (global::System.Collections.Generic.IReadOnlyList<float>)values[23]!, (byte[])values[24]!, (global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot>)values[25]!, (global::System.Collections.Generic.IReadOnlyList<string>)values[26]!, (global::System.Collections.Generic.IReadOnlyList<LibraryHistorySnapshot>)values[27]!, (global::System.Collections.Generic.IReadOnlyList<LibraryChoiceSnapshot>)values[28]!));
 
-    public NetworkSnapshot(string publicIp, string kind, string domain, global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot> nodes, AdminSnapshot? admin, ContactSnapshot? contact, ContactSnapshot? rentalContact, global::System.Collections.Generic.IReadOnlyList<NpcSnapshot> npcs, TrafficSnapshot? traffic, string? playerBank, MailAccountSnapshot? playerMail, MailAccountSnapshot? recipientMail, string currentDate, DebugSnapshot? debug, CtfSnapshot? ctf, global::System.Collections.Generic.IReadOnlyList<BankSnapshot> banks, global::System.Collections.Generic.IReadOnlyList<CoinSnapshot> coins, global::System.Collections.Generic.IReadOnlyList<WalletSnapshot> wallets, global::System.Collections.Generic.IReadOnlyList<OfferSnapshot> offers, bool disabled, bool rentalAdmin, byte netSpeed, global::System.Collections.Generic.IReadOnlyList<float> position, byte[] worldSecret, global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> subscriptions, global::System.Collections.Generic.IReadOnlyList<string> latestLibraries, global::System.Collections.Generic.IReadOnlyList<LibraryHistorySnapshot> libraryHistory, global::System.Collections.Generic.IReadOnlyList<LibraryChoiceSnapshot> libraryChoices)
+    public NetworkSnapshot(string publicIp, string kind, string domain, global::System.Collections.Generic.IReadOnlyList<LanNodeSnapshot> nodes, AdminSnapshot? admin, ContactSnapshot? contact, ContactSnapshot? rentalContact, global::System.Collections.Generic.IReadOnlyList<NpcSnapshot> npcs, TrafficSnapshot? traffic, string? playerBank, MailAccountSnapshot? playerMail, MailAccountSnapshot? recipientMail, string currentDate, DebugSnapshot? debug, CtfSnapshot? ctf, global::System.Collections.Generic.IReadOnlyList<BankSnapshot> banks, global::System.Collections.Generic.IReadOnlyList<CoinSnapshot> coins, global::System.Collections.Generic.IReadOnlyList<WalletSnapshot> wallets, global::System.Collections.Generic.IReadOnlyList<OfferSnapshot> offers, bool disabled, bool home, bool rentalAdmin, byte netSpeed, global::System.Collections.Generic.IReadOnlyList<float> position, byte[] worldSecret, global::System.Collections.Generic.IReadOnlyList<SubscriptionSnapshot> subscriptions, global::System.Collections.Generic.IReadOnlyList<string> latestLibraries, global::System.Collections.Generic.IReadOnlyList<LibraryHistorySnapshot> libraryHistory, global::System.Collections.Generic.IReadOnlyList<LibraryChoiceSnapshot> libraryChoices)
     {
         PublicIp = publicIp;
         Kind = kind;
@@ -2562,6 +2638,7 @@ public sealed class NetworkSnapshot
         Wallets = wallets;
         Offers = offers;
         Disabled = disabled;
+        Home = home;
         RentalAdmin = rentalAdmin;
         NetSpeed = netSpeed;
         Position = position;
@@ -2668,6 +2745,11 @@ public sealed class NetworkSnapshot
     public bool Disabled { get; }
 
     /// <summary>
+    /// Whether its main router is the player's home network (`RouterConfigOS.isHomeNetwork`).
+    /// </summary>
+    public bool Home { get; }
+
+    /// <summary>
     /// Whether the hired administrator of a rented server is alive and not fired (`NetworkLan.IsSuperAdminRental`).
     /// </summary>
     public bool RentalAdmin { get; }
@@ -2711,7 +2793,7 @@ public sealed class NetworkSnapshot
     public void Write(global::Duplex.DuplexWriter writer)
     {
         writer.WriteByte((byte)((this.Admin != null ? 1 : 0) | (this.Contact != null ? 2 : 0) | (this.RentalContact != null ? 4 : 0) | (this.Traffic != null ? 8 : 0) | (this.PlayerBank != null ? 16 : 0) | (this.PlayerMail != null ? 32 : 0) | (this.RecipientMail != null ? 64 : 0) | (this.Debug != null ? 128 : 0)));
-        writer.WriteByte((byte)((this.Ctf != null ? 1 : 0) | (this.Disabled ? 2 : 0) | (this.RentalAdmin ? 4 : 0)));
+        writer.WriteByte((byte)((this.Ctf != null ? 1 : 0) | (this.Disabled ? 2 : 0) | (this.Home ? 4 : 0) | (this.RentalAdmin ? 8 : 0)));
         writer.WriteString(this.PublicIp);
         writer.WriteString(this.Kind);
         writer.WriteString(this.Domain);
@@ -2825,7 +2907,7 @@ public sealed class NetworkSnapshot
     public static NetworkSnapshot Read(global::Duplex.DuplexReader reader)
     {
         var flags0 = reader.ReadFlags(255);
-        var flags1 = reader.ReadFlags(7);
+        var flags1 = reader.ReadFlags(15);
         string fieldPublicIp = reader.ReadString();
         string fieldKind = reader.ReadString();
         string fieldDomain = reader.ReadString();
@@ -2927,7 +3009,8 @@ public sealed class NetworkSnapshot
         }
         global::System.Collections.Generic.IReadOnlyList<OfferSnapshot> fieldOffers = value26;
         bool fieldDisabled = (flags1 & 2) != 0;
-        bool fieldRentalAdmin = (flags1 & 4) != 0;
+        bool fieldHome = (flags1 & 4) != 0;
+        bool fieldRentalAdmin = (flags1 & 8) != 0;
         byte fieldNetSpeed = reader.ReadU8();
         var value29 = new global::System.Collections.Generic.List<float>();
         var count30 = reader.ReadLength();
@@ -2965,7 +3048,7 @@ public sealed class NetworkSnapshot
             value41.Add(LibraryChoiceSnapshot.Read(reader));
         }
         global::System.Collections.Generic.IReadOnlyList<LibraryChoiceSnapshot> fieldLibraryChoices = value41;
-        return new NetworkSnapshot(fieldPublicIp, fieldKind, fieldDomain, fieldNodes, fieldAdmin, fieldContact, fieldRentalContact, fieldNpcs, fieldTraffic, fieldPlayerBank, fieldPlayerMail, fieldRecipientMail, fieldCurrentDate, fieldDebug, fieldCtf, fieldBanks, fieldCoins, fieldWallets, fieldOffers, fieldDisabled, fieldRentalAdmin, fieldNetSpeed, fieldPosition, fieldWorldSecret, fieldSubscriptions, fieldLatestLibraries, fieldLibraryHistory, fieldLibraryChoices);
+        return new NetworkSnapshot(fieldPublicIp, fieldKind, fieldDomain, fieldNodes, fieldAdmin, fieldContact, fieldRentalContact, fieldNpcs, fieldTraffic, fieldPlayerBank, fieldPlayerMail, fieldRecipientMail, fieldCurrentDate, fieldDebug, fieldCtf, fieldBanks, fieldCoins, fieldWallets, fieldOffers, fieldDisabled, fieldHome, fieldRentalAdmin, fieldNetSpeed, fieldPosition, fieldWorldSecret, fieldSubscriptions, fieldLatestLibraries, fieldLibraryHistory, fieldLibraryChoices);
     }
 }
 
@@ -8543,7 +8626,8 @@ public sealed class ReportLibraryUpdateRpc : global::Duplex.Message
 /// Makes the network at `public_ip` one the player rents, as renting a server does
 /// (`BankHelperServer.RentServer`): the player owns it (`NetworkLan.playerOwnerID`,
 /// `PlayerHelperServer.rentalIPs`), and the player's rental charge (`BankSubs.AddPayment` for
-/// `BankSubs.PaymentID.RENTED`) adds `amount` and lists its address. The player needs a bank account.
+/// `BankSubs.PaymentID.RENTED`) adds `amount` and lists its address. With `home`, it is the player's home
+/// network for Ethernet (`PlayerConfigOS.rentalHomeIP`). The player needs a bank account.
 /// </summary>
 public sealed class RentNetworkRpc : global::Duplex.Message
 {
@@ -8557,14 +8641,15 @@ public sealed class RentNetworkRpc : global::Duplex.Message
         streams: false,
         read: reader => Read(reader),
         tags: global::System.Array.Empty<global::Duplex.Tag>(),
-        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RentNetworkRpc)holder).Request), new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RentNetworkRpc)holder).PublicIp), new global::Duplex.FieldType("amount", typeof(long), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RentNetworkRpc)holder).Amount) },
-        create: values => new RentNetworkRpc((uint)values[0]!, (string)values[1]!, (long)values[2]!));
+        fields: new global::Duplex.FieldType[] { new global::Duplex.FieldType("request", typeof(uint), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RentNetworkRpc)holder).Request), new global::Duplex.FieldType("public_ip", typeof(string), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RentNetworkRpc)holder).PublicIp), new global::Duplex.FieldType("amount", typeof(long), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RentNetworkRpc)holder).Amount), new global::Duplex.FieldType("home", typeof(bool), global::System.Array.Empty<global::Duplex.Tag>(), holder => ((RentNetworkRpc)holder).Home) },
+        create: values => new RentNetworkRpc((uint)values[0]!, (string)values[1]!, (long)values[2]!, (bool)values[3]!));
 
-    public RentNetworkRpc(uint request, string publicIp, long amount)
+    public RentNetworkRpc(uint request, string publicIp, long amount, bool home)
     {
         Request = request;
         PublicIp = publicIp;
         Amount = amount;
+        Home = home;
     }
 
     public uint Request { get; }
@@ -8573,10 +8658,13 @@ public sealed class RentNetworkRpc : global::Duplex.Message
 
     public long Amount { get; }
 
+    public bool Home { get; }
+
     public override global::Duplex.MessageType GetMessageType() => MessageType;
 
     public override void Write(global::Duplex.DuplexWriter writer)
     {
+        writer.WriteByte((byte)((this.Home ? 1 : 0)));
         writer.WriteU32(this.Request);
         writer.WriteString(this.PublicIp);
         writer.WriteI64(this.Amount);
@@ -8584,10 +8672,12 @@ public sealed class RentNetworkRpc : global::Duplex.Message
 
     public static RentNetworkRpc Read(global::Duplex.DuplexReader reader)
     {
+        var flags0 = reader.ReadFlags(1);
         uint fieldRequest = reader.ReadU32();
         string fieldPublicIp = reader.ReadString();
         long fieldAmount = reader.ReadI64();
-        return new RentNetworkRpc(fieldRequest, fieldPublicIp, fieldAmount);
+        bool fieldHome = (flags0 & 1) != 0;
+        return new RentNetworkRpc(fieldRequest, fieldPublicIp, fieldAmount, fieldHome);
     }
 }
 
@@ -9676,7 +9766,7 @@ public static class TestSupport
         channelId: 3416832380u,
         version: new global::Duplex.VersionNumber(1, 0),
         core: new global::Duplex.VersionNumber(1, 0),
-        versions: new[] { new global::Duplex.VersionInfo(1606475618u, null, false) },
+        versions: new[] { new global::Duplex.VersionInfo(1491749797u, null, false) },
         messages: new[] { new[] { ReplyRpc.MessageType }, new[] { SetupPlayerRpc.MessageType, ConnectNetworkRpc.MessageType, WriteFileRpc.MessageType, CreateNetworkRpc.MessageType, CreateFixtureNetworkRpc.MessageType, SetupDebugRpc.MessageType, SetupCtfRpc.MessageType, ExecuteRpc.MessageType, ExecuteInteractiveRpc.MessageType, ExecuteUntilInputRpc.MessageType, TypeInputRpc.MessageType, ExecutePairRpc.MessageType, QueryPlayerRpc.MessageType, QueryFileRpc.MessageType, SetRouterKernelRequirementRpc.MessageType, WriteRouterKernelRpc.MessageType, QueryNetworkRpc.MessageType, InstallLibraryRpc.MessageType, InstallFixtureLibraryRpc.MessageType, SetupBlockchainRpc.MessageType, SetupMailRpc.MessageType, SetupWalletRpc.MessageType, ConfigureMailRpc.MessageType, DeleteCtfRpc.MessageType, ConfigureApplianceRpc.MessageType, SetupForeignCoinRpc.MessageType, ConfigureEconomyRpc.MessageType, ForwardServiceRpc.MessageType, LockApplianceRpc.MessageType, PrimeFloodRpc.MessageType, FreezeClockRpc.MessageType, DisableNetworkRpc.MessageType, PromoteAdminRpc.MessageType, FireNpcRpc.MessageType, RefreshNpcAccountRpc.MessageType, ConfigZeroDayInfoRpc.MessageType, SetPhoneAlarmRpc.MessageType, SetupTrafficRpc.MessageType, TrafficAccidentRpc.MessageType, ResetTrafficCooldownRpc.MessageType, AllowFirewallRpc.MessageType, SpawnNetworkRpc.MessageType, HireRentalAdminRpc.MessageType, ForceAdminLoginRpc.MessageType, AdvanceClockRpc.MessageType, QueryExploitsRpc.MessageType, BuyExploitRpc.MessageType, RebootPlayerRpc.MessageType, ReportLibraryUpdateRpc.MessageType, RentNetworkRpc.MessageType, RentalAdminServiceRpc.MessageType, RunPaymentsRpc.MessageType, SetPlayerMoneyRpc.MessageType, MissionRpc.MessageType, ZeroDayRumorRpc.MessageType, CreateZeroDayChainRpc.MessageType, CreateProceduralMissionRpc.MessageType, UnlockDebugLibraryRpc.MessageType, SetupGuildRpc.MessageType, QueryGuildsRpc.MessageType, QueryTracesRpc.MessageType, QueryWordListsRpc.MessageType, ExecuteInTerminalRpc.MessageType, EndGameRpc.MessageType, RunPaymentRpc.MessageType, ReleaseLibraryVersionRpc.MessageType, RateCtfRpc.MessageType, SpawnCtfNetworkRpc.MessageType, ConfigureComputerRpc.MessageType, ZeroDayStateRpc.MessageType } },
         security: null,
         flavours: global::System.Array.Empty<global::Duplex.Flavour>(),

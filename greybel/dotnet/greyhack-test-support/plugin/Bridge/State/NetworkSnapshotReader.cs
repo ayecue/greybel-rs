@@ -98,6 +98,7 @@ internal static class NetworkSnapshotReader
             economy.Wallets,
             economy.Offers,
             router.GetNetworkLan().disabledNetwork,
+            router.IsHomeNetwork(),
             router.GetNetworkLan().IsSuperAdminRental(),
             (byte)router.GetNetworkLan().netSpeed,
             new List<float> { routerNode.routerPos.x, routerNode.routerPos.y },

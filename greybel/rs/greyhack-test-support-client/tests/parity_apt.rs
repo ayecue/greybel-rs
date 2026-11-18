@@ -1,8 +1,10 @@
 //! apt: the official and a custom repository.
 
 use greybel_test_support::game::Game;
-use greyhack_behaviour::{Reward, ServiceId};
-use greyhack_test_support_client::protocol::test_support::LanNodeKind;
+use greyhack_behaviour::{APT_CACHE_PATH, APT_SOURCES_PATH, Reward, ServiceId};
+use greyhack_test_support_client::protocol::test_support::{
+    FileSnapshot, LanNodeKind, NetworkSnapshot,
+};
 
 use crate::support::game::{
     fixture_target, hackshop_repository, join_fixture, setup_player, test_client,
@@ -133,6 +135,20 @@ async fn should_match_intrinsics_for_the_failures_of_check_upgrade() {
     client.shutdown();
 }
 
+fn player_file<'a>(snapshot: &'a NetworkSnapshot, path: &str) -> Option<&'a FileSnapshot> {
+    snapshot
+        .nodes
+        .iter()
+        .find_map(|node| match &node.node {
+            LanNodeKind::Computer(computer) if computer.player => Some(computer),
+            _ => None,
+        })
+        .expect("the snapshot contains the player computer")
+        .files
+        .iter()
+        .find(|file| file.path == path)
+}
+
 /// Local apt cache and source-file corruption, with each failure state isolated by its own snapshot.
 #[tokio::test]
 async fn should_match_intrinsics_for_local_apt_corruption() {
@@ -153,6 +169,7 @@ async fn should_match_intrinsics_for_local_apt_corruption() {
         "apt_cache_missing",
         "apt_cache_binary",
         "apt_cache_malformed",
+        "apt_cache_empty",
     ] {
         let snapshot = client.network_state().await.unwrap();
         let prepare = "apt = include_lib(\"/lib/aptclient.so\"); print apt.update".to_owned();
@@ -166,8 +183,23 @@ async fn should_match_intrinsics_for_local_apt_corruption() {
         )
         .await;
 
+        // Updating and deleting in one script lets the game delete an older cache before the newly written one becomes
+        // visible. Separate the two steps and verify both states in the snapshots used for the comparison.
+        let prepared = client.network_state().await.unwrap();
+        assert!(
+            player_file(&prepared, APT_CACHE_PATH).is_some(),
+            "{fixture}: apt.update created the cache before the fixture"
+        );
+
         client.configure_computer("", fixture).await.unwrap();
         let snapshot = client.network_state().await.unwrap();
+        let cache = player_file(&snapshot, APT_CACHE_PATH);
+
+        match fixture {
+            "apt_cache_missing" => assert!(cache.is_none(), "the fixture deleted the new cache"),
+            "apt_cache_empty" => assert_eq!(cache.map(|file| file.content.as_str()), Some("")),
+            _ => {}
+        }
         let script = "apt = include_lib(\"/lib/aptclient.so\"); print apt.check_upgrade(home_dir + \"/blockchain.so\"); print apt.install(\"blockchain.so\", home_dir); print apt.search(\"blockchain\"); print apt.show(\"official_server\")".to_owned();
 
         compare_labeled(&client, &user, &snapshot, fixture, &[script]).await;
@@ -179,8 +211,41 @@ async fn should_match_intrinsics_for_local_apt_corruption() {
         "apt_sources_malformed",
         "apt_sources_unknown",
     ] {
+        // Use a fresh player for every sources fixture. The game's delayed file sync can otherwise leave the script on
+        // the preceding case's binary file while the mirror already has this case's text.
+        let user = setup_player(&client).await;
+        client
+            .install_library(
+                "",
+                "aptclient.so",
+                u8::try_from(Reward::Shell.code()).unwrap(),
+            )
+            .await
+            .unwrap();
+
         client.configure_computer("", fixture).await.unwrap();
         let snapshot = client.network_state().await.unwrap();
+        let sources = player_file(&snapshot, APT_SOURCES_PATH);
+
+        match fixture {
+            "apt_sources_missing" => assert!(sources.is_none()),
+            "apt_sources_binary" => {
+                assert!(sources.is_some_and(|file| file.binary));
+            }
+            "apt_sources_malformed" => {
+                assert_eq!(sources.map(|file| file.content.as_str()), Some("not json"));
+                assert!(sources.is_some_and(|file| !file.binary));
+            }
+            "apt_sources_unknown" => {
+                assert_eq!(
+                    sources.map(|file| file.content.as_str()),
+                    Some("{\"official_server\":false,\"sourceList\":{\"ghost.org\":0}}")
+                );
+                assert!(sources.is_some_and(|file| !file.binary));
+            }
+            _ => unreachable!(),
+        }
+
         let script = if fixture == "apt_sources_unknown" {
             "apt = include_lib(\"/lib/aptclient.so\"); print apt.update".to_owned()
         } else {
@@ -215,21 +280,29 @@ async fn should_match_intrinsics_for_repository_corruption() {
         "repository_malformed_db",
         "repository_missing_folder",
         "repository_missing_package",
+        "repository_empty_package",
+        "repository_malformed_package",
         "repository_service_down",
     ] {
-        client
-            .write_file(
-                "/etc/apt/sources.txt",
-                "{\"official_server\":false,\"sourceList\":{}}",
-            )
-            .await
-            .unwrap();
-
         let shop = hackshop_repository(&client).await;
         let target = fixture_target(&shop, "repository");
         let address = target.local_ip.clone();
         let port = target.services[1].internal_port;
-        let snapshot = join_fixture(&client, &shop).await;
+        join_fixture(&client, &shop).await;
+        // Writing before creating and joining the fixture lets the game's delayed filesystem synchronization leave an
+        // empty snapshot while a later script sees different content. Write only after joining, then use a fresh,
+        // verified snapshot for both sides.
+        let empty_sources = "{\"official_server\":false,\"sourceList\":{}}";
+        client
+            .write_file("/etc/apt/sources.txt", empty_sources)
+            .await
+            .unwrap();
+        let snapshot = client.network_state().await.unwrap();
+        assert_eq!(
+            player_file(&snapshot, "/etc/apt/sources.txt").map(|file| file.content.as_str()),
+            Some(empty_sources),
+            "{fixture}: reset sources before the valid-cache comparison"
+        );
         if let Some(admin) = snapshot.admin.as_ref() {
             client.fire_npc(&shop.public_ip, &admin.user).await.unwrap();
         }
@@ -261,8 +334,16 @@ async fn should_match_intrinsics_for_repository_corruption() {
         let sources = script_string(&format!(
             "{{\"official_server\":false,\"sourceList\":{{\"{address}\":{port}}}}}"
         ));
+        let local = if matches!(
+            fixture,
+            "repository_empty_package" | "repository_malformed_package"
+        ) {
+            "\"/lib/metaxploit.so\""
+        } else {
+            "home_dir + \"/metaxploit.so\""
+        };
         let script = format!(
-            "pc = get_shell.host_computer; pc.touch(\"/etc/apt\", \"sources.txt\"); pc.File(\"/etc/apt/sources.txt\").set_content({sources}); apt = include_lib(\"/lib/aptclient.so\"); print apt.check_upgrade(home_dir + \"/metaxploit.so\"); print apt.install(\"metaxploit.so\", home_dir); print apt.update"
+            "pc = get_shell.host_computer; pc.touch(\"/etc/apt\", \"sources.txt\"); pc.File(\"/etc/apt/sources.txt\").set_content({sources}); apt = include_lib(\"/lib/aptclient.so\"); print apt.check_upgrade({local}); print apt.install(\"metaxploit.so\", home_dir); print apt.update"
         );
 
         compare_labeled(&client, &user, &snapshot, fixture, &[script]).await;

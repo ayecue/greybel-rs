@@ -11,7 +11,7 @@ use greybel_test_support::greyhack::run_in_at;
 use greybel_test_support::interpreter::constant_clock;
 use greybel_test_support::io::MarkedStdout;
 use greyhack_test_support_client::protocol::test_support::{
-    GameEndedReply, GuildsReply, NetworkSnapshot,
+    GameEndedReply, GuildsReply, LanNodeKind, NetworkSnapshot,
 };
 use greyhack_test_support_client::{ExecutionStep, GuildSetup, TestClient};
 use greyhack_world::{DatabaseOpen, World};
@@ -19,7 +19,7 @@ use greyhack_world_core::{ComputerId, Database, TraceKind};
 use greyhack_world_operations::WorldServer;
 use tokio::sync::mpsc;
 
-use super::game::{empty_network, join_fixture, setup_player, test_client};
+use super::game::{empty_network, join_fixture, join_network, setup_player, test_client};
 use super::intrinsics::PROGRAM_NAME;
 use super::parity_bank_payments::RENTAL_AMOUNT;
 use super::parity_guilds::mirrored_world;
@@ -111,10 +111,13 @@ fn world_traces_while_waiting(
 pub struct Ended {
     pub computer_exists: bool,
     pub payments: Vec<(&'static str, i64, Vec<String>)>,
+    pub network_disabled: bool,
+    pub network_home: bool,
+    pub rentals: Vec<(String, bool)>,
 }
 
 /// [`Ended`] as the game reports it for the account `number`.
-pub fn ended_game(reply: &GameEndedReply, number: &str) -> Ended {
+pub fn ended_game(reply: &GameEndedReply, number: &str, network_address: &str) -> Ended {
     Ended {
         computer_exists: reply.computer_exists,
         payments: reply
@@ -134,6 +137,14 @@ pub fn ended_game(reply: &GameEndedReply, number: &str) -> Ended {
                 )
             })
             .collect(),
+        network_disabled: reply.network_disabled,
+        network_home: reply.network_home,
+        rentals: reply
+            .rentals
+            .iter()
+            .filter(|rental| rental.public_ip == network_address)
+            .map(|rental| (rental.public_ip.clone(), rental.home))
+            .collect(),
     }
 }
 
@@ -142,27 +153,81 @@ pub fn ended_world(
     world: &World,
     computer: greyhack_world_core::ComputerId,
     number: &str,
+    network_address: &str,
 ) -> Ended {
+    let computer_row = block_on(world.modules.core.networks.topology.computer(computer))
+        .expect("the computer is read");
+    let rental_home = computer_row
+        .as_ref()
+        .map(|computer| computer.rental_home_ip.as_str())
+        .unwrap_or_default();
+    let payments: Vec<_> = block_on(world.modules.economy.bank.bank_subscriptions())
+        .expect("the payments are read")
+        .into_iter()
+        .filter(|payment| payment.bank == number)
+        .collect();
+    let rentals = payments
+        .iter()
+        .filter(|payment| payment.kind == greyhack_behaviour::SubscriptionKind::Rented)
+        .flat_map(|payment| {
+            payment
+                .public_ips
+                .iter()
+                .map(|address| (address.clone(), address == rental_home))
+        })
+        .collect();
+    let router = block_on(
+        world
+            .modules
+            .core
+            .networks
+            .routers
+            .router_at(network_address),
+    )
+    .expect("the network is read");
+    let network_disabled = router.as_ref().is_some_and(|router| {
+        block_on(
+            world
+                .modules
+                .core
+                .networks
+                .settings
+                .is_disabled(router.id.computer()),
+        )
+        .expect("the disabled state is read")
+    });
+    let network_home = router.as_ref().is_some_and(|router| {
+        block_on(
+            world
+                .modules
+                .core
+                .networks
+                .settings
+                .is_home_network(router.id.computer()),
+        )
+        .expect("the home state is read")
+    });
+    let payments = payments
+        .into_iter()
+        .map(|payment| {
+            (
+                match payment.kind {
+                    greyhack_behaviour::SubscriptionKind::Bank => "Bank",
+                    greyhack_behaviour::SubscriptionKind::Rented => "Rented",
+                    greyhack_behaviour::SubscriptionKind::Admin => "Admin",
+                },
+                payment.amount,
+                payment.public_ips,
+            )
+        })
+        .collect();
+
     Ended {
-        computer_exists: block_on(world.modules.core.networks.topology.computer(computer))
-            .expect("the computer is read")
-            .is_some(),
-        payments: block_on(world.modules.economy.bank.bank_subscriptions())
-            .expect("the payments are read")
-            .into_iter()
-            .filter(|payment| payment.bank == number)
-            .map(|payment| {
-                (
-                    match payment.kind {
-                        greyhack_behaviour::SubscriptionKind::Bank => "Bank",
-                        greyhack_behaviour::SubscriptionKind::Rented => "Rented",
-                        greyhack_behaviour::SubscriptionKind::Admin => "Admin",
-                    },
-                    payment.amount,
-                    payment.public_ips,
-                )
-            })
-            .collect(),
+        computer_exists: computer_row.is_some(),
+        payments,
+        network_disabled,
+        network_home,
+        rentals,
     }
 }
 
@@ -172,6 +237,7 @@ pub async fn strike(strikes: u32) {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
+    let home = client.network_state().await.unwrap().public_ip;
     let suffix = std::process::id() % 10000;
     let bank = client
         .setup_blockchain(&format!("Gu{suffix}"), &format!("u{suffix}"))
@@ -201,14 +267,41 @@ pub async fn strike(strikes: u32) {
         })
         .await
         .unwrap();
-    client.rent_network(&address, RENTAL_AMOUNT).await.unwrap();
+    client
+        .rent_network(&address, RENTAL_AMOUNT, true)
+        .await
+        .unwrap();
 
-    let before = client.network_state().await.expect("the network is read");
     let guilds = client
         .query_guilds(std::slice::from_ref(&address))
         .await
         .expect("the guilds are read");
+    let before = client.network_state().await.expect("the network is read");
+    let mirrored_home = before
+        .nodes
+        .iter()
+        .find_map(|node| match &node.node {
+            LanNodeKind::Computer(computer) if computer.player => Some(computer),
+            _ => None,
+        })
+        .expect("the player is in the snapshot")
+        .rental_home_ip
+        .clone();
+    assert_eq!(
+        mirrored_home, address,
+        "the home rental is visible in the snapshot before mirroring"
+    );
+    assert!(before.home, "the router's home marker is in the snapshot");
     let world = mirrored_world(&user, &before, &guilds);
+    block_on(
+        world
+            .modules
+            .core
+            .networks
+            .settings
+            .set_home_network(&address, before.home),
+    )
+    .expect("the snapshot's home marker is mirrored");
 
     assert!(
         game_holders(&guilds)
@@ -244,6 +337,11 @@ pub async fn strike(strikes: u32) {
     // The strike is an event the player domain ends the game on; the world server delivers events at the end of each
     // cycle, so the test does the same.
     block_on(world.registry.events().dispatch_async()).expect("the strike is dispatched");
+    if strikes == 3 {
+        // Leave the rented company before game over. RemovePayments disables rentals, then GameOver removes the player
+        // from the network they currently occupy; keeping those as different networks avoids the same-network reset.
+        join_network(&client, &home).await;
+    }
 
     let ended = client
         .end_game(strikes, &address)
@@ -254,13 +352,32 @@ pub async fn strike(strikes: u32) {
         .await
         .expect("the guilds are read");
 
-    assert_eq!(
-        ended_world(&world, player, &bank),
-        ended_game(&ended, &bank)
-    );
+    let observed = ended_game(&ended, &bank, &address);
+    assert_eq!(ended_world(&world, player, &bank, &address), observed);
     assert_eq!(world_guild_exp(&world), game_guild_exp(&after));
+    if strikes == 3 {
+        assert!(
+            ended.rentals.iter().all(|rental| !rental.home),
+            "game over clears every rental's home flag"
+        );
+    }
     assert_eq!(world_holders(&world, router), game_holders(&after));
     assert_eq!(ended.computer_exists, strikes < 3);
+    assert_eq!(ended.network_disabled, strikes == 3);
+    assert_eq!(ended.network_home, strikes < 3);
+    assert!(
+        observed
+            .payments
+            .iter()
+            .any(|(kind, _, ips)| { *kind == "Rented" && ips.contains(&address) }),
+        "the RENTED payment contains the fixture network"
+    );
+    if strikes == 3 {
+        assert!(
+            observed.payments.iter().all(|(kind, _, _)| *kind != "Bank"),
+            "RemovePayments stops and removes BANK"
+        );
+    }
     assert_eq!(
         block_on(world.modules.traces.traces.strikes()).unwrap(),
         if strikes < 3 {
@@ -273,21 +390,21 @@ pub async fn strike(strikes: u32) {
     client.shutdown();
 }
 
-fn world_guild_exp(world: &greyhack_world::World) -> Vec<(String, u32)> {
+fn world_guild_exp(world: &greyhack_world::World) -> Vec<(String, u32, bool)> {
     block_on(world.modules.guilds.guilds.guilds())
         .expect("the guilds are read")
         .into_iter()
-        .map(|guild| (guild.name, guild.total_exp))
+        .map(|guild| (guild.name, guild.total_exp, guild.player_member))
         .collect()
 }
 
 fn game_guild_exp(
     reply: &greyhack_test_support_client::protocol::test_support::GuildsReply,
-) -> Vec<(String, u32)> {
+) -> Vec<(String, u32, bool)> {
     reply
         .guilds
         .iter()
-        .map(|guild| (guild.name.clone(), guild.total_exp))
+        .map(|guild| (guild.name.clone(), guild.total_exp, guild.player_member))
         .collect()
 }
 

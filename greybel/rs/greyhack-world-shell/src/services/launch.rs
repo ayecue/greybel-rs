@@ -15,6 +15,8 @@ pub enum LaunchFailure {
     NotExecutable(String),
     /// The user cannot run the file.
     NoPermission,
+    /// A GUI program needs the desktop, which the safe-mode terminal does not run.
+    GuiUnavailable,
     /// A parameter has a forbidden token.
     InvalidParameter(String),
     /// The program nesting exceeds the limit.
@@ -90,14 +92,14 @@ impl LaunchService {
         let account = self.computers.users.user(computer, user).await?;
         // A program of the safe-mode terminal doesn't need the file's execute permission on the player's
         // computer (`ShellIntrinsics.launch`); the access of its folders is still checked.
-        let safe_terminal = safe_terminal && computer == self.world.player();
+        let safe_permissions = safe_terminal && computer == self.world.player();
 
         if !self
             .files
             .permissions
             .can_access(&node, account.as_ref())
             .await?
-            || (!safe_terminal
+            || (!safe_permissions
                 && !self
                     .files
                     .permissions
@@ -105,6 +107,10 @@ impl LaunchService {
                     .await?)
         {
             return refusal(LaunchFailure::NoPermission);
+        }
+
+        if safe_terminal && data.command_name.contains(".exe") {
+            return refusal(LaunchFailure::GuiUnavailable);
         }
 
         let name = if data.command_name.is_empty() {

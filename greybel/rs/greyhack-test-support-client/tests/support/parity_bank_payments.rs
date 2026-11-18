@@ -129,7 +129,7 @@ pub async fn rent_network(client: &TestClient, suffix: u32) -> String {
 
     join_network(client, &address).await;
     client
-        .rent_network(&address, RENTAL_AMOUNT)
+        .rent_network(&address, RENTAL_AMOUNT, false)
         .await
         .expect("the player rents the network");
 

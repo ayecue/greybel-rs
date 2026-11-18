@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS guilds (
     player_member          INTEGER NOT NULL DEFAULT 0
 );
 
+-- the player's owner membership of a guild (`Guild.Member.isOwner`); absent for other members
+CREATE TABLE IF NOT EXISTS guild_player_owners (
+    guild_id INTEGER PRIMARY KEY REFERENCES guilds(id) ON DELETE CASCADE
+);
+
 -- the companies a guild invested in (`Guild.investedCompanies`)
 CREATE TABLE IF NOT EXISTS guild_companies (
     guild_id   INTEGER NOT NULL REFERENCES guilds(id) ON DELETE CASCADE,
@@ -75,6 +80,7 @@ CREATE TABLE IF NOT EXISTS crown_state (
 ",
     &[
     "guilds",
+    "guild_player_owners",
     "guild_companies",
     "guild_admin_restore_disabled",
     "guild_admin_absences",

@@ -268,6 +268,11 @@ fn register_shell_launch<
 
                         Ok(match launch {
                             Launch::Missing => LaunchOutcome::Refusal,
+                            Launch::Refusal(crate::LaunchFailure::GuiUnavailable) => {
+                                LaunchOutcome::Failure(Failure::Launch(
+                                    crate::LaunchFailure::GuiUnavailable.into_protocol(),
+                                ))
+                            }
                             Launch::Refusal(failure) => {
                                 ctx.print(
                                     call,

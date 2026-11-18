@@ -44,6 +44,7 @@ pub fn crown(world: &mut World, address: &str) {
         investment_perks: 1,
         admin_restore_perks: 0,
         player_member: true,
+        player_owner: true,
     }))
     .unwrap()
     .unwrap();

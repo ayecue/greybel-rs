@@ -11,7 +11,9 @@ use turso::params;
 use crate::{CrownState, Guild, GuildAbsence, GuildDraft, GuildId, Stake};
 
 const GUILD_COLUMNS: &str = "id, name, bank_account, total_exp, investment_perks, admin_restore_perks, \
-     has_crown, crown_shield_public_ip, player_member FROM guilds";
+     has_crown, crown_shield_public_ip, player_member, guild_player_owners.guild_id IS NOT NULL AS player_owner";
+const GUILD_FROM: &str =
+    "FROM guilds LEFT JOIN guild_player_owners ON guild_player_owners.guild_id = guilds.id";
 
 impl FromRow for Guild {
     fn from_row(row: &RowView<'_>) -> turso::Result<Self> {
@@ -25,6 +27,7 @@ impl FromRow for Guild {
             has_crown: row.get("has_crown")?,
             crown_shield_public_ip: row.get("crown_shield_public_ip")?,
             player_member: row.get("player_member")?,
+            player_owner: row.get("player_owner")?,
         })
     }
 }
@@ -78,13 +81,24 @@ impl GuildRepository {
         )
         .await?;
 
-        Ok(GuildId(u32::try_from(id).unwrap_or(u32::MAX)))
+        let id = GuildId(u32::try_from(id).unwrap_or(u32::MAX));
+
+        if draft.player_owner {
+            execute(
+                &self.db.connection(),
+                "INSERT INTO guild_player_owners (guild_id) VALUES (?1)",
+                params![id.0],
+            )
+            .await?;
+        }
+
+        Ok(id)
     }
 
     pub(crate) async fn guilds(&self) -> Result<Vec<Guild>> {
         Ok(fetch_all(
             &self.db.connection(),
-            &format!("SELECT {GUILD_COLUMNS} ORDER BY id"),
+            &format!("SELECT {GUILD_COLUMNS} {GUILD_FROM} ORDER BY id"),
             (),
         )
         .await?)
@@ -93,7 +107,7 @@ impl GuildRepository {
     pub(crate) async fn guild_by_name(&self, name: &str) -> Result<Option<Guild>> {
         Ok(fetch_opt(
             &self.db.connection(),
-            &format!("SELECT {GUILD_COLUMNS} WHERE name = ?1"),
+            &format!("SELECT {GUILD_COLUMNS} {GUILD_FROM} WHERE name = ?1"),
             params![name],
         )
         .await?)
@@ -102,7 +116,7 @@ impl GuildRepository {
     pub(crate) async fn guild_of_account(&self, bank_account: &str) -> Result<Option<Guild>> {
         Ok(fetch_opt(
             &self.db.connection(),
-            &format!("SELECT {GUILD_COLUMNS} WHERE bank_account = ?1 ORDER BY id"),
+            &format!("SELECT {GUILD_COLUMNS} {GUILD_FROM} WHERE bank_account = ?1 ORDER BY id"),
             params![bank_account],
         )
         .await?)

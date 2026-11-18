@@ -168,24 +168,9 @@ impl VersionService {
     }
 
     pub async fn wear_out_visible_weaknesses(&self, kind: LibraryKind) -> Result<()> {
-        let Some(library) = self.generator.latest_full_library(kind).await? else {
-            return Ok(());
-        };
-
-        for zone in library.zones.iter().filter(|zone| !zone.hide) {
-            for weakness in &zone.weaknesses {
-                self.library_versions
-                    .set_weakness_use_count(
-                        kind,
-                        &zone.address,
-                        &weakness.unsec_value,
-                        MAX_WEAKNESS_USES,
-                    )
-                    .await?;
-            }
-        }
-
-        Ok(())
+        self.library_versions
+            .wear_out_visible_weaknesses(kind, MAX_WEAKNESS_USES)
+            .await
     }
 
     /// Configures the v1 contents and exploit batches, then performs the game's five initial releases for every other kind.
@@ -194,6 +179,8 @@ impl VersionService {
         if !self.library_versions.saved_versions().await?.is_empty() {
             return Ok(());
         }
+
+        let _cache = self.libraries.cache_scope();
 
         for kind in LibraryKind::ALL.iter().copied() {
             let mut rng = Rng::new(
@@ -209,7 +196,7 @@ impl VersionService {
                 .files
                 .library_row(kind, FIRST_VERSION)
                 .await?;
-            self.shop.library_exploits(id, &library).await?;
+            self.shop.new_library_exploits(id, &library).await?;
         }
 
         for kind in LibraryKind::ALL
@@ -243,11 +230,8 @@ impl VersionService {
         Ok(kinds)
     }
 
-    async fn patch_weaknesses(
-        &self,
-        kind: LibraryKind,
-        release: &mut LibraryRelease,
-    ) -> Result<()> {
+    async fn patch_weaknesses(&self, release: &mut LibraryRelease) -> Result<()> {
+        let mut exploits = None;
         for zone in 0..release.new.zones.len() {
             if release.new.zones[zone].hide {
                 continue;
@@ -275,8 +259,28 @@ impl VersionService {
                 }
 
                 release.patched = true;
+                let (exploits, sources) = match exploits.as_ref() {
+                    Some(cached) => cached,
+                    None => {
+                        let loaded = self
+                            .shop
+                            .library_exploits(release.old_id, &release.old)
+                            .await?;
+                        let sources: Vec<Option<String>> = loaded
+                            .iter()
+                            .map(|exploit| exploit.source(&release.old))
+                            .collect();
+                        exploits.insert((loaded, sources))
+                    }
+                };
                 self.shop
-                    .patch_exploit_description(kind, &release.old.version, &address, &unsec_value)
+                    .patch_known_exploit_description(
+                        release.old_id,
+                        exploits,
+                        sources,
+                        &address,
+                        &unsec_value,
+                    )
                     .await?;
 
                 if !exhausted {
@@ -363,19 +367,25 @@ impl VersionService {
         } else {
             let mut next = release.metaxploit.clone();
 
-            next.version = next_metaxploit;
+            next.version.clone_from(&next_metaxploit);
 
             self.libraries.library_id(&next).await?
         };
 
-        self.store_release(
+        self.store_known_release(
             LibraryKind::Metaxploit,
             release.metaxploit_id,
             metaxploit_next_id,
+            if kind == LibraryKind::Metaxploit {
+                &release.new.version
+            } else {
+                &next_metaxploit
+            },
         )
         .await?;
-        self.store_release(kind, release.old_id, new_id).await?;
-        self.shop.library_exploits(new_id, &release.new).await?;
+        self.store_known_release(kind, release.old_id, new_id, &release.new.version)
+            .await?;
+        self.shop.new_library_exploits(new_id, &release.new).await?;
         self.prune_oldest(LibraryKind::Metaxploit).await?;
 
         if kind != LibraryKind::Metaxploit {
@@ -414,7 +424,11 @@ impl VersionService {
         let Some(old) = self.libraries.library(old_id).await? else {
             return Ok(None);
         };
-        let (metaxploit_id, metaxploit) = self.latest_metaxploit().await?;
+        let (metaxploit_id, metaxploit) = if kind == LibraryKind::Metaxploit {
+            (old_id, old.clone())
+        } else {
+            self.latest_metaxploit().await?
+        };
         let uses = self.library_versions.weakness_uses(kind).await?;
         let patches: HashMap<String, u32> = self
             .library_versions
@@ -445,7 +459,7 @@ impl VersionService {
             patched,
         };
 
-        self.patch_weaknesses(kind, &mut release).await?;
+        self.patch_weaknesses(&mut release).await?;
 
         self.finish_release(kind, release).await
     }
@@ -496,6 +510,31 @@ impl VersionService {
         base: LibraryId,
         next: LibraryId,
     ) -> Result<()> {
+        if let Some(library) = self.libraries.library(next).await? {
+            self.store_known_release(kind, base, next, &library.version)
+                .await?;
+        } else {
+            if self
+                .library_versions
+                .saved_libraries(kind)
+                .await?
+                .is_empty()
+            {
+                self.library_versions.save_library(kind, base).await?;
+            }
+            self.library_versions.save_library(kind, next).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn store_known_release(
+        &self,
+        kind: LibraryKind,
+        base: LibraryId,
+        next: LibraryId,
+        version: &str,
+    ) -> Result<()> {
         if self
             .library_versions
             .saved_libraries(kind)
@@ -506,13 +545,7 @@ impl VersionService {
         }
 
         self.library_versions.save_library(kind, next).await?;
-
-        if let Some(library) = self.libraries.library(next).await? {
-            self.libraries
-                .files
-                .library_row(kind, &library.version)
-                .await?;
-        }
+        self.files.library_row(kind, version).await?;
 
         Ok(())
     }

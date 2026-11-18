@@ -225,6 +225,9 @@ internal sealed class ComputerFixture(Player player)
             case "apt_cache_malformed":
                 computer.GetFileSystem().GetArchivo("/etc/apt/aptcache.bin").SetContenido("not json", true);
                 break;
+            case "apt_cache_empty":
+                computer.GetFileSystem().GetArchivo("/etc/apt/aptcache.bin").SetContenido("", true);
+                break;
             case "apt_sources_missing":
                 RemoveEntry(computer, "/etc/apt/sources.txt");
                 break;
@@ -266,6 +269,13 @@ internal sealed class ComputerFixture(Player player)
                         RemoveEntry(computer, "/Public/htdocs/downloads/" + package);
                     }
                 }
+                break;
+            case "repository_empty_package":
+            case "repository_malformed_package":
+                FileSystem.Archivo badPackage = computer.GetFileSystem().GetArchivo("/Public/htdocs/downloads/metaxploit.so");
+                string packageContent = request.Fixture == "repository_empty_package" ? "" : "not json";
+                badPackage.SetContentId(Computer.Md5Sum(packageContent), "");
+                Database.Singleton.SetContenido(badPackage, packageContent, "");
                 break;
             case "repository_service_down":
                 while (computer.RemoveServicio(ServicioID.repository)) { }

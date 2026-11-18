@@ -7,7 +7,7 @@ the receiver's `GetParam<T>()` calls, not the old `strValues`/`Get*` model.
 
 | File | Contents |
 |---|---|
-| `game.bundle` | Bundled `game.json`, extracted from the installed game's `Assembly-CSharp.dll`. |
+| `game.bundle` | Bundled `game.json` |
 | `fingerprint.json` | Game version and SHA-256 hashes of the bundle's unpacked files. |
 | `extension.json` | Hand-written plugin messages for contexts, builds and status; extension IDs start at 1000. |
 

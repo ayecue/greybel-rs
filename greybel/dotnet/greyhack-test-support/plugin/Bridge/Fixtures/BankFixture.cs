@@ -55,20 +55,28 @@ internal sealed class BankFixture(Player player) : IFixture
     public Reply CreateRental(RentNetworkRpc request)
     {
         PlayerServer server = player.Server;
+        PlayerComputer computer = server.GetComputer();
         Router router =
             ServerMap.Singleton.GetRouter(new IP(request.PublicIp), false)
             ?? throw new InvalidOperationException("No network at " + request.PublicIp);
 
         router.GetNetworkLan().playerOwnerID = server.GetPlayerID();
         Database.Singleton.SyncConfigOS(router);
-        server.playerHelper.rentalIPs[router.GetPublicIP()] = false;
+        server.playerHelper.rentalIPs[router.GetPublicIP()] = request.Home;
         Database.Singleton.SyncRentalsInfo(server.GetPlayerID(), server.playerHelper.rentalIPs);
+        if (request.Home)
+        {
+            GameField.RouterHomeNetwork.SetValue(router.GetRouterConfigOS(), true);
+            Database.Singleton.SyncConfigOS(router);
+            computer.GetPlayerConfigOS().rentalHomeIP = router.GetPublicIP();
+            Database.Singleton.SyncConfigOS(computer);
+        }
         rentalAddresses.Add(router.GetPublicIP());
         BankSubs.Singleton.AddPayment(
             server.GetPlayerID(),
             BankSubs.PaymentID.RENTED,
             (int)request.Amount,
-            server.GetComputer().GetUserBank().userName,
+            computer.GetUserBank().userName,
             router.GetPublicIP()
         );
         return new Reply.Applied();

@@ -78,6 +78,29 @@ async fn should_match_intrinsics_for_launching_in_the_safe_mode_terminal() {
     client.shutdown();
 }
 
+/// GUI programs return the desktop error instead of launching in the safe-mode terminal
+/// (`ShellIntrinsics.launch`, `GreyScriptHelperServer`).
+#[tokio::test]
+async fn should_refuse_gui_programs_in_the_safe_mode_terminal() {
+    let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
+    let client = test_client(&game).await;
+    let user = setup_player(&client).await;
+    client.configure_computer("", "gui_program").await.unwrap();
+    let snapshot = client.network_state().await.unwrap();
+    let phases = [
+        Phase::Restart { safe_mode: true },
+        Phase::TerminalScript("print get_shell.launch(\"/usr/bin/Notepad.exe\")", true),
+    ];
+
+    let outcomes = compare_with_restarts(&client, &user, &snapshot, &phases).await;
+
+    assert_eq!(
+        outcomes[0].output.as_deref(),
+        Some("Error: Desktop GUI is not running.")
+    );
+    client.shutdown();
+}
+
 /// The safe-mode terminal's flag belongs to the terminal a program is typed into: a program typed into it launches
 /// what it has no execute permission for, one typed into a terminal that isn't protected doesn't, while the computer
 /// runs the safe-mode terminal (`GreyScriptHelperServer.PrepareTerminalServerRpc`: `Proceso.isProtected` is

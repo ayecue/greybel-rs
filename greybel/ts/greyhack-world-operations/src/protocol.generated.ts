@@ -3820,9 +3820,10 @@ export abstract class LaunchFailure {
       case 0: return LaunchFailure.CommandNotFound.read(reader);
       case 1: return LaunchFailure.NotExecutable.read(reader);
       case 2: return LaunchFailure.NoPermission.read(reader);
-      case 3: return LaunchFailure.InvalidParameter.read(reader);
-      case 4: return LaunchFailure.TooManyStackCalls.read(reader);
-      case 5: return LaunchFailure.Process.read(reader);
+      case 3: return LaunchFailure.GuiUnavailable.read(reader);
+      case 4: return LaunchFailure.InvalidParameter.read(reader);
+      case 5: return LaunchFailure.TooManyStackCalls.read(reader);
+      case 6: return LaunchFailure.Process.read(reader);
       default: throw new RangeError(`no variant ${index} of \`LaunchFailure\``);
     }
   }
@@ -3901,6 +3902,17 @@ export namespace LaunchFailure {
       return new LaunchFailure.NoPermission();
     }
   }
+  /** A GUI program was launched from the safe-mode terminal, which has no desktop. */
+  export class GuiUnavailable extends LaunchFailure {
+    static readonly tags: ReadonlyArray<Tag> = [];
+    static readonly fields: ReadonlyArray<FieldTagContainer> = [];
+    override write(writer: BinaryWriter): void {
+      writer.u32(3);
+    }
+    static read(reader: BinaryReader): LaunchFailure.GuiUnavailable {
+      return new LaunchFailure.GuiUnavailable();
+    }
+  }
   /** Parameter has a character the game forbids. */
   export class InvalidParameter extends LaunchFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
@@ -3918,7 +3930,7 @@ export namespace LaunchFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(3);
+      writer.u32(4);
       const body = this[BODY];
       writer.string(body.value);
     }
@@ -3937,7 +3949,7 @@ export namespace LaunchFailure {
     static readonly tags: ReadonlyArray<Tag> = [];
     static readonly fields: ReadonlyArray<FieldTagContainer> = [];
     override write(writer: BinaryWriter): void {
-      writer.u32(4);
+      writer.u32(5);
     }
     static read(reader: BinaryReader): LaunchFailure.TooManyStackCalls {
       return new LaunchFailure.TooManyStackCalls();
@@ -3960,7 +3972,7 @@ export namespace LaunchFailure {
       return this[BODY].value;
     }
     override write(writer: BinaryWriter): void {
-      writer.u32(5);
+      writer.u32(6);
       const body = this[BODY];
       body.value.write(writer);
     }
@@ -36501,7 +36513,7 @@ export const World = {
     major: 1,
     minor: 0
   },
-  versions: [{ fingerprint: 157710011 }],
+  versions: [{ fingerprint: 1412495989 }],
   peers: [WorldPeer.Program, WorldPeer.GameServer],
   messages: [[
     ProgramEnd,

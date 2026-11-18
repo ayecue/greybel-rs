@@ -63,6 +63,7 @@ pub async fn guild(world: &mut World, name: &str, account: &str, join: bool) {
             investment_perks: 1,
             admin_restore_perks: 0,
             player_member: join,
+            player_owner: join,
         })
         .await
         .unwrap()

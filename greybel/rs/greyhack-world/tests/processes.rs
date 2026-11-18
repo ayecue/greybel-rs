@@ -2,6 +2,23 @@ use greyhack_behaviour::{FileData, PermissionSet};
 use greyhack_world::{PlayerOptions, World};
 use greyhack_world_assets::Script;
 use greyhack_world_core::NodeDraft;
+use greyhack_world_shell::{Launch, LaunchFailure};
+
+#[tokio::test]
+async fn should_refuse_gui_programs_in_the_safe_terminal() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .shell
+            .launches
+            .launch_program(world.player(), "root", "/usr/bin/Notepad.exe", &[], 0, true,)
+            .await
+            .unwrap(),
+        Launch::Refusal(LaunchFailure::GuiUnavailable)
+    );
+}
 
 #[tokio::test]
 async fn should_preserve_protected_system_processes_when_the_player_reboots() {

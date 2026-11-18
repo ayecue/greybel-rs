@@ -594,10 +594,15 @@ fn send_economy(
             folder: folder.into(),
             compile,
         }),
-        RequestKind::RentNetwork { public_ip, amount } => channel.send(&RentNetworkRpc {
+        RequestKind::RentNetwork {
+            public_ip,
+            amount,
+            home,
+        } => channel.send(&RentNetworkRpc {
             request,
             public_ip: public_ip.into(),
             amount,
+            home,
         }),
         RequestKind::RentalAdminService { public_ip, hire } => {
             channel.send(&RentalAdminServiceRpc {

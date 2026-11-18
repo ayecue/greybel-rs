@@ -1280,6 +1280,8 @@ union LaunchFailure {
     NotExecutable(string),
     /// User cannot execute the file.
     NoPermission,
+    /// A GUI program was launched from the safe-mode terminal, which has no desktop.
+    GuiUnavailable,
     /// Parameter has a character the game forbids.
     InvalidParameter(string),
     /// Program is launched from too many nested programs.

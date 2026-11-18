@@ -77,6 +77,92 @@ async fn should_build_the_players_network_as_laid_out() {
     assert_eq!(forwards, [(2222, "172.16.3.7".to_owned(), 22)]);
 }
 
+/// Mirrored computers' explicit library files win over router-node choices. Existing computers are copied state, not
+/// generated or restored computers to which library updates should be applied.
+#[tokio::test]
+async fn should_keep_mirrored_computers_exact_library_contents() {
+    use greyhack_behaviour::{LibraryKind, Rng};
+    use greyhack_world_libraries::{ComputerDraft, Library, LibraryGeneration};
+
+    let mut network = layout();
+    let expected_player = Library::generate(&mut Rng::new(918_273), LibraryKind::Crypto, "1.0.7");
+    let expected_npc = Library::generate(&mut Rng::new(456_789), LibraryKind::Crypto, "1.0.8");
+    let add_crypto = |draft: &mut ComputerDraft, library: Library| {
+        let root = draft.filesystem.root();
+        let lib = draft.filesystem.add(
+            root,
+            NodeDraft::folder("lib", ROOT_USER, PermissionSet::default_for(true)),
+        );
+        let mut crypto = NodeDraft::file(
+            "crypto.so",
+            ROOT_USER,
+            PermissionSet::default_for(false),
+            FileData::library(0),
+        );
+
+        crypto.library = Some(Box::new(library));
+        draft.filesystem.add(lib, crypto);
+    };
+    let DeviceLayout::Computer(player) = &mut network.nodes[1].device else {
+        panic!("the second node is the player")
+    };
+    add_crypto(player, expected_player.clone());
+    let DeviceLayout::Computer(npc) = &mut network.nodes[3].device else {
+        panic!("the fourth node is an NPC")
+    };
+    add_crypto(npc, expected_npc.clone());
+    network.library_choices = vec![(LibraryKind::Crypto, "1.0.0".to_owned())];
+
+    let world = World::new(&PlayerOptions {
+        network: Some(network),
+        ..PlayerOptions::default()
+    })
+    .await
+    .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .libraries
+            .generator
+            .full_file_library(world.player(), "/lib/crypto.so", false)
+            .await
+            .unwrap(),
+        Some(expected_player)
+    );
+    let network = world
+        .modules
+        .core
+        .networks
+        .topology
+        .computer(world.player())
+        .await
+        .unwrap()
+        .unwrap()
+        .network;
+    let npc = world
+        .modules
+        .core
+        .computers
+        .computers_in(network)
+        .await
+        .unwrap()
+        .into_iter()
+        .find(|computer| computer.local_ip == "172.16.3.7")
+        .unwrap();
+
+    assert_eq!(
+        world
+            .modules
+            .libraries
+            .generator
+            .full_file_library(npc.id, "/lib/crypto.so", false)
+            .await
+            .unwrap(),
+        Some(expected_npc)
+    );
+}
+
 #[tokio::test]
 async fn should_refuse_a_layout_with_a_computer_under_no_device() {
     let mut network = layout();

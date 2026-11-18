@@ -13,6 +13,7 @@ async fn should_not_create_a_guild_twice() {
         investment_perks: 0,
         admin_restore_perks: 0,
         player_member: false,
+        player_owner: false,
     };
 
     guild(&mut world, "Owls", "owls-bank", false).await;

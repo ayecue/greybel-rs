@@ -20,6 +20,13 @@ filter = 'package(greyhack-test-support-client) and (test(=parity_missions::shou
 test-group = 'game'
 slow-timeout = { period = "60s", terminate-after = 6 }
 
+# Generate and inspect thirty networks in the game and thirty in Greybel. This is mostly game fixture construction and
+# can exceed four minutes when four game copies share the machine.
+[[profile.default.overrides]]
+filter = 'package(greyhack-test-support-client) and test(=parity_lan_devices::should_match_the_rules_of_the_random_devices_of_generated_networks)'
+test-group = 'game'
+slow-timeout = { period = "60s", terminate-after = 6 }
+
 [[profile.default.overrides]]
 filter = 'package(greyhack-test-support-client) and test(/^(game|parity_[a-z_]+)::/)'
 test-group = 'game'

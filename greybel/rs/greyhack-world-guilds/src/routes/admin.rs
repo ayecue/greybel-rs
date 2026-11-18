@@ -29,6 +29,7 @@ pub(crate) fn register<
                         investment_perks: message.investment_perks,
                         admin_restore_perks: message.admin_restore_perks,
                         player_member: message.join,
+                        player_owner: message.join,
                     })
                     .await?
                 {

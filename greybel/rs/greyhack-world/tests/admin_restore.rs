@@ -358,6 +358,7 @@ async fn should_mirror_the_admin_restore_state_of_the_guilds() {
                 investment_perks: 1,
                 admin_restore_perks: 1,
                 player_member: false,
+                player_owner: false,
             },
             admin_restore_off: vec![owned.clone()],
             has_crown: false,

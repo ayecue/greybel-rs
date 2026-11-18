@@ -28,6 +28,7 @@ pub fn layout(reply: &GuildsReply) -> GuildsLayout {
                     investment_perks: guild.investment_perks,
                     admin_restore_perks: guild.admin_restore_perks,
                     player_member: guild.player_member,
+                    player_owner: guild.player_owner,
                 },
                 admin_restore_off: guild
                     .admin_restore_disabled

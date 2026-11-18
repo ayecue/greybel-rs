@@ -184,17 +184,23 @@ fn register_apt_client_queries<
                 .apt_client(message.apt_client)?;
             let terminal_computers = &ctx.terminal_computers(call);
 
-            Ok(
-                match world
-                    .module::<crate::ServicesModule>()
-                    .apt
-                    .check_apt_upgrade(access.computer, &message.path, terminal_computers)
-                    .await?
-                {
-                    Ok(newer) => newer.into_protocol(),
-                    Err(failure) => Outcome::Failure(Failure::Apt(failure.into_protocol())),
-                },
-            )
+            let report = world
+                .module::<crate::ServicesModule>()
+                .apt
+                .check_apt_upgrade(access.computer, &message.path, terminal_computers)
+                .await?;
+
+            for _ in 0..report.malformed_repositories {
+                ctx.print(
+                    call,
+                    PrintLine::AptUpdate(crate::AptUpdateLine::MalformedConfig.into_protocol()),
+                );
+            }
+
+            Ok(match report.result {
+                Ok(newer) => newer.into_protocol(),
+                Err(failure) => Outcome::Failure(Failure::Apt(failure.into_protocol())),
+            })
         },
     );
 }

@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS networks (
     has_plan      INTEGER NOT NULL DEFAULT 0,
     -- disabled for not having been paid for (`NetworkLan.disabledNetwork`)
     disabled      INTEGER NOT NULL DEFAULT 0,
+    -- the router's home-network marker (`RouterConfigOS.isHomeNetwork`)
+    home          INTEGER NOT NULL DEFAULT 0,
     -- its connection speed, one of the ISP's packs (`NetworkLan.netSpeed`)
     net_speed     INTEGER NOT NULL DEFAULT 6,
     -- the address its NPCs' starter mission mail names, set when a mission was placed in it

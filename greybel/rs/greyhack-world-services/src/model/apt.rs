@@ -2,6 +2,22 @@
 
 use greyhack_world_core::{ConnectionFailure, FileFailure, LibraryId, ServiceFailure};
 
+pub struct AptUpgradeReport {
+    /// Upgrade answer after every cached server has been tried.
+    pub result: std::result::Result<bool, AptFailure>,
+    /// Number of repository reads whose exception the game printed before continuing.
+    pub malformed_repositories: usize,
+}
+
+impl AptUpgradeReport {
+    pub(crate) fn new(result: std::result::Result<bool, AptFailure>) -> Self {
+        Self {
+            result,
+            malformed_repositories: 0,
+        }
+    }
+}
+
 /// Package published by a repository.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Package {

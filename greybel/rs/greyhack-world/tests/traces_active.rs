@@ -130,6 +130,7 @@ async fn should_not_trace_the_member_of_a_guild_that_owns_the_company() {
             investment_perks: 1,
             admin_restore_perks: 0,
             player_member: true,
+            player_owner: false,
         })
         .await
         .unwrap()

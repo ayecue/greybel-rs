@@ -334,6 +334,9 @@ fn respond_lifecycle<D: Driver, R: ValidatedEncode>(
     match result {
         Ok(value) => responder.respond(value),
         Err(OperationError::Script(failure)) => responder.fail(failure),
+        Err(OperationError::World(WorldError::GameCrash)) => {
+            responder.fail(ScriptFailure::GameCrash);
+        }
         Err(OperationError::World(error)) => state.record_failure(error),
         Err(OperationError::UnknownObject) => {}
     }
@@ -360,6 +363,9 @@ fn respond(
     match result {
         Ok(value) => route.respond(Ok(value)),
         Err(OperationError::Script(failure)) => route.respond(Err(failure)),
+        Err(OperationError::World(WorldError::GameCrash)) => {
+            route.respond(Err(ScriptFailure::GameCrash));
+        }
         Err(OperationError::World(error)) => state.record_failure(error),
         Err(OperationError::UnknownObject) => {}
     }

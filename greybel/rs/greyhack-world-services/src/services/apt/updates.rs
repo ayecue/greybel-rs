@@ -1,16 +1,21 @@
 //! Updating package caches and checking for upgrades.
 
 use greyhack_behaviour::{
-    APT_CACHE_NAME, APT_FOLDER, APT_SOURCES_PATH, DOWNLOADS_PATH, FileData, OFFICIAL_OMISSIONS,
-    PermissionSet, ROOT_USER, ServiceId, compare_versions, format_apt_sources, path,
+    APT_CACHE_NAME, APT_FOLDER, APT_SOURCES_PATH, DOWNLOADS_PATH, FileData, FileKind,
+    OFFICIAL_OMISSIONS, PermissionSet, ROOT_USER, ServiceId, compare_versions, format_apt_sources,
+    path,
 };
 use greyhack_world_core::systems::network::connect::ServiceCheck;
-use greyhack_world_core::{ComputerId, ConnectionFailure, NodeDraft, Result, ServiceFailure};
+use greyhack_world_core::{
+    ComputerId, ConnectionFailure, NodeDraft, Result, ServiceFailure, WorldError,
+};
 use indexmap::IndexMap;
 use serde::Deserialize;
 
+use super::json_deserializes_to_null;
+
 use crate::services::Apt;
-use crate::{AptFailure, RepositoryConfig};
+use crate::{AptFailure, AptUpgradeReport, RepositoryConfig};
 
 /// Output line produced by `AptClientIntrinsics.update` for one source.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -63,6 +68,13 @@ impl Apt {
             }
 
             return Ok(vec![AptUpdateLine::MissingSources]);
+        }
+
+        if source_file.as_ref().is_some_and(|node| {
+            node.data()
+                .is_some_and(|data| json_deserializes_to_null(&data.content))
+        }) {
+            return Err(WorldError::GameCrash);
         }
 
         if source_file.as_ref().is_some_and(|node| {
@@ -136,6 +148,10 @@ impl Apt {
             if data.kind == greyhack_behaviour::FileKind::Binary {
                 output.push(AptUpdateLine::InvalidConfig);
                 continue;
+            }
+
+            if json_deserializes_to_null(&data.content) {
+                return Err(WorldError::GameCrash);
             }
 
             let Ok(config) = serde_json::from_str::<RepositoryConfig>(&data.content) else {
@@ -238,10 +254,12 @@ impl Apt {
             .update_hackshop_libs(target, DOWNLOADS_PATH)
             .await?;
 
+        if json_deserializes_to_null(&data.content) {
+            return Err(WorldError::GameCrash);
+        }
+
         let Ok(config) = serde_json::from_str::<RepositoryConfig>(&data.content) else {
-            return Ok(RepositoryUpgrade::Failure(
-                AptFailure::MalformedConfigUpgrade(name.to_owned()),
-            ));
+            return Ok(RepositoryUpgrade::MalformedConfig);
         };
 
         if self
@@ -282,19 +300,43 @@ impl Apt {
             .await?
             .expect("the file was found");
 
-        if let Some(local_library) = self
-            .files
-            .libraries
-            .file_library(computer, file_path, true)
-            .await?
-            && let Some(remote_library) = self
+        if local
+            .data()
+            .is_some_and(|data| data.kind == FileKind::Library)
+            && remote
+                .data()
+                .is_some_and(|data| data.kind == FileKind::Library)
+        {
+            let local_version = self
+                .files
+                .libraries
+                .file_library(computer, file_path, true)
+                .await?
+                .map(|library| library.version)
+                .or_else(|| {
+                    local
+                        .data()
+                        .and_then(|data| serialized_library_version(&data.content))
+                });
+            let remote_version = self
                 .files
                 .libraries
                 .file_library(target, &remote_path, true)
                 .await?
-        {
+                .map(|library| library.version)
+                .or_else(|| {
+                    remote
+                        .data()
+                        .and_then(|data| serialized_library_version(&data.content))
+                });
+            let (Some(local_version), Some(remote_version)) = (local_version, remote_version)
+            else {
+                // The catch-all around these reads also catches the NullReferenceException from a null Library.
+                return Ok(RepositoryUpgrade::MalformedConfig);
+            };
+
             return Ok(RepositoryUpgrade::Upgrade(
-                compare_versions(&remote_library.version, &local_library.version).is_gt(),
+                compare_versions(&remote_version, &local_version).is_gt(),
             ));
         }
 
@@ -311,9 +353,9 @@ impl Apt {
         computer: ComputerId,
         file_path: &str,
         terminal_computers: &[ComputerId],
-    ) -> Result<Result<bool, AptFailure>> {
+    ) -> Result<AptUpgradeReport> {
         if self.networks.topology.computer(computer).await?.is_none() {
-            return Ok(Err(AptFailure::ComputerUnavailable));
+            return Ok(AptUpgradeReport::new(Err(AptFailure::ComputerUnavailable)));
         }
 
         if !self
@@ -322,20 +364,24 @@ impl Apt {
             .is_network_active(computer, terminal_computers)
             .await?
         {
-            return Ok(Err(AptFailure::NoInternet));
+            return Ok(AptUpgradeReport::new(Err(AptFailure::NoInternet)));
         }
 
         let content = match self.apt_cache_content(computer).await? {
             Ok(content) => content,
-            Err(failure) => return Ok(Err(failure)),
+            Err(failure) => return Ok(AptUpgradeReport::new(Err(failure))),
         };
 
         if file_path.is_empty() {
-            return Ok(Err(AptFailure::EmptyPackageName));
+            return Ok(AptUpgradeReport::new(Err(AptFailure::EmptyPackageName)));
+        }
+
+        if json_deserializes_to_null(&content) {
+            return Err(WorldError::GameCrash);
         }
 
         let Ok(cache) = serde_json::from_str::<AptCache>(&content) else {
-            return Ok(Err(AptFailure::MalformedCache));
+            return Ok(AptUpgradeReport::new(Err(AptFailure::MalformedCache)));
         };
         let name = path::file_name(file_path);
 
@@ -351,18 +397,22 @@ impl Apt {
                 .await?
                 .is_none()
             {
-                return Ok(Err(AptFailure::MissingLocalFile(name.to_owned())));
+                return Ok(AptUpgradeReport::new(Err(AptFailure::MissingLocalFile(
+                    name.to_owned(),
+                ))));
             }
 
-            return Ok(Ok(self
+            return Ok(AptUpgradeReport::new(Ok(self
                 .files
                 .libraries
                 .file_library(computer, file_path, true)
                 .await?
                 .is_some_and(|library| {
                     compare_versions(&latest.version, &library.version).is_gt()
-                })));
+                }))));
         }
+
+        let mut malformed_repositories = 0;
 
         for (address, server) in &cache.server_list {
             if !server.package_list.contains_key(name) {
@@ -380,12 +430,26 @@ impl Apt {
                 )
                 .await?
             {
-                RepositoryUpgrade::Upgrade(upgrade) => return Ok(Ok(upgrade)),
-                RepositoryUpgrade::Failure(failure) => return Ok(Err(failure)),
+                RepositoryUpgrade::Upgrade(upgrade) => {
+                    return Ok(AptUpgradeReport {
+                        result: Ok(upgrade),
+                        malformed_repositories,
+                    });
+                }
+                RepositoryUpgrade::Failure(failure) => {
+                    return Ok(AptUpgradeReport {
+                        result: Err(failure),
+                        malformed_repositories,
+                    });
+                }
+                RepositoryUpgrade::MalformedConfig => malformed_repositories += 1,
             }
         }
 
-        Ok(Err(AptFailure::UnknownPackage(name.to_owned())))
+        Ok(AptUpgradeReport {
+            result: Err(AptFailure::UnknownPackage(name.to_owned())),
+            malformed_repositories,
+        })
     }
 }
 
@@ -393,6 +457,25 @@ impl Apt {
 enum RepositoryUpgrade {
     Upgrade(bool),
     Failure(AptFailure),
+    /// The catch-all around repository configuration and library reads printed the malformed-config line.
+    MalformedConfig,
+}
+
+/// Reads the game's serialized `Library.version` without requiring unrelated weakness content.
+fn serialized_library_version(content: &str) -> Option<String> {
+    #[derive(Deserialize)]
+    struct SerializedLibrary {
+        version: SerializedVersion,
+    }
+    #[derive(Deserialize)]
+    struct SerializedVersion {
+        version: [u32; 3],
+    }
+
+    let library = serde_json::from_str::<SerializedLibrary>(content).ok()?;
+    let [major, minor, patch] = library.version.version;
+
+    Some(format!("{major}.{minor}.{patch}"))
 }
 
 /// What `update` saved in `aptcache.bin` (`Service_repod.ClientCacheRepos`).

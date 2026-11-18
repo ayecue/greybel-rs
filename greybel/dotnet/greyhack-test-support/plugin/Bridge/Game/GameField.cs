@@ -42,6 +42,12 @@ internal static class GameField
     );
 
     /// <summary>Runs a monthly bank payment as its timer does when the payment's date comes.</summary>
+    /// Whether a router is the player's home network (`RouterConfigOS.isHomeNetwork`).
+    public static readonly FieldInfo RouterHomeNetwork = typeof(RouterConfigOS).GetField(
+        "isHomeNetwork",
+        BindingFlags.Instance | BindingFlags.NonPublic
+    );
+
     public static readonly MethodInfo PaymentRunPayment = typeof(BankSubs.Payment).GetMethod(
         "RunPayment",
         BindingFlags.Instance | BindingFlags.NonPublic

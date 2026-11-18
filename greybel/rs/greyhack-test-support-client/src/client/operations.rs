@@ -636,10 +636,16 @@ impl TestClient {
 
     /// Makes the network at `public_ip` one the player rents, charged `amount` a month by the player's rental
     /// payment (`BankHelperServer.RentServer`, `BankSubs.AddPayment`).
-    pub async fn rent_network(&self, public_ip: &str, amount: i64) -> Result<(), TestClientError> {
+    pub async fn rent_network(
+        &self,
+        public_ip: &str,
+        amount: i64,
+        home: bool,
+    ) -> Result<(), TestClientError> {
         self.apply_fixture(RequestKind::RentNetwork {
             public_ip: public_ip.to_owned(),
             amount,
+            home,
         })
         .await
     }

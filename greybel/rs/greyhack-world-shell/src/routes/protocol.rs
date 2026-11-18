@@ -13,6 +13,7 @@ impl IntoProtocol for crate::LaunchFailure {
             crate::LaunchFailure::NoCommand(path) => LaunchFailure::CommandNotFound(path),
             crate::LaunchFailure::NotExecutable(name) => LaunchFailure::NotExecutable(name),
             crate::LaunchFailure::NoPermission => LaunchFailure::NoPermission,
+            crate::LaunchFailure::GuiUnavailable => LaunchFailure::GuiUnavailable,
             crate::LaunchFailure::InvalidParameter(token) => LaunchFailure::InvalidParameter(token),
             crate::LaunchFailure::TooManyStackCalls => LaunchFailure::TooManyStackCalls,
             crate::LaunchFailure::Process(failure) => LaunchFailure::Process(

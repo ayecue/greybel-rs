@@ -21,6 +21,7 @@ async fn should_end_the_game_on_the_third_strike() {
             investment_perks: 1,
             admin_restore_perks: 0,
             player_member: true,
+            player_owner: false,
         })
         .await
         .unwrap()
@@ -44,6 +45,14 @@ async fn should_end_the_game_on_the_third_strike() {
         .economy
         .bank
         .add_subscription("test", SubscriptionKind::Rented, 40, &address)
+        .await
+        .unwrap();
+    world
+        .modules
+        .core
+        .networks
+        .settings
+        .set_home_network(&address, true)
         .await
         .unwrap();
     world.modules.traces.traces.set_strikes(2).await.unwrap();
@@ -142,6 +151,59 @@ async fn should_end_the_game_on_the_third_strike() {
             .await
             .unwrap()
     );
+    assert!(
+        !world
+            .modules
+            .core
+            .networks
+            .settings
+            .is_home_network(
+                world
+                    .modules
+                    .core
+                    .networks
+                    .routers
+                    .router_at(&address)
+                    .await
+                    .unwrap()
+                    .unwrap()
+                    .id
+                    .computer()
+            )
+            .await
+            .unwrap(),
+        "Router.ResetHomeNetwork clears the router's home marker"
+    );
+}
+
+#[tokio::test]
+async fn should_keep_the_guild_owner_as_a_member_after_game_over() {
+    let (world, _, _, _, _) = bank().await;
+
+    world
+        .modules
+        .guilds
+        .guilds
+        .create_guild(&GuildDraft {
+            name: "Owners".to_owned(),
+            bank_account: "test".to_owned(),
+            total_exp: LEVEL_FIVE,
+            investment_perks: 1,
+            admin_restore_perks: 0,
+            player_member: true,
+            player_owner: true,
+        })
+        .await
+        .unwrap()
+        .unwrap();
+
+    world.modules.player.game_over.end_game().await.unwrap();
+
+    let guilds = world.modules.guilds.guilds.guilds().await.unwrap();
+    assert_eq!(guilds.len(), 1, "the guild itself is not deleted");
+    assert!(guilds[0].player_member);
+    assert!(guilds[0].player_owner);
+    assert_eq!(guilds[0].total_exp, exp_after_member_exit(LEVEL_FIVE));
 }
 
 #[tokio::test]

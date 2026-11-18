@@ -56,4 +56,5 @@ mod system_log;
 mod traces_active;
 mod traces_passive;
 mod world;
+mod worldgen_timing;
 mod zero_day_rumor;

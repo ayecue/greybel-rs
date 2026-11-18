@@ -59,7 +59,11 @@ impl GameOver {
         };
 
         self.guilds
-            .set_guild_exp_and_member(guild.id, exp_after_member_exit(guild.total_exp), false)
+            .set_guild_exp_and_member(
+                guild.id,
+                exp_after_member_exit(guild.total_exp),
+                guild.player_owner,
+            )
             .await?;
         self.world
             .world_mut()
@@ -98,6 +102,8 @@ impl GameOver {
     }
 
     pub async fn remove_player_payments(&self, account: &str) -> Result<()> {
+        // `BankSubs.RemovePayments`: the rental charge and its list remain, but every listed network is disabled and
+        // its router home flag is reset. Only the BANK payment is stopped and removed.
         if let Some(rental) = self
             .bank
             .subscription(account, SubscriptionKind::Rented)
@@ -107,6 +113,10 @@ impl GameOver {
                 self.networks
                     .settings
                     .disable_network(public_ip, true)
+                    .await?;
+                self.networks
+                    .settings
+                    .set_home_network(public_ip, false)
                     .await?;
             }
         }

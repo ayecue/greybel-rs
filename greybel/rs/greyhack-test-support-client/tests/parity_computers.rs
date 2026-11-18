@@ -15,21 +15,27 @@ use crate::support::parity::{compare_in, game_outcomes, intrinsics_outcomes};
 use crate::support::parity_computers::{ethernet_addresses, replace_last_octet};
 use crate::support::remote::{fixture_account, script_string};
 
-/// The `File` class on files the script makes itself. A copy or move isn't read back at once: the game updates what the
-/// script sees of it some time after the call returns.
+/// The `File` class on files the script makes itself. Creation and lookup of a file are in separate scripts: the game
+/// updates what a script sees of a new entry some time after the call returns. A copy or move isn't read back at once
+/// for the same reason.
 #[tokio::test]
 async fn should_match_intrinsics_for_file_operations() {
     let game = Game::start(env!("CARGO_TARGET_TMPDIR"));
     let client = test_client(&game).await;
     let user = setup_player(&client).await;
-    // Each script makes its own folder: the game may still show the previous script's folder, deleted at its end, for
+    // Each probe has its own folder: the game may still show the previous script's folder, deleted at its end, for
     // a moment after that script finished, so a shared name would let one script see another's leftovers.
-    let prelude = |index: usize| {
+    let setup = |index: usize| {
         format!(
-            "pc = get_shell.host_computer; pc.create_folder(home_dir, \"probe{index}\"); d = pc.File(home_dir + \"/probe{index}\"); pc.touch(d.path, \"a.txt\"); f = pc.File(d.path + \"/a.txt\")"
+            "pc = get_shell.host_computer; pc.create_folder(home_dir, \"probe{index}\"); d = pc.File(home_dir + \"/probe{index}\"); pc.touch(d.path, \"a.txt\")"
         )
     };
-    let scripts = [
+    let prelude = |index: usize| {
+        format!(
+            "pc = get_shell.host_computer; d = pc.File(home_dir + \"/probe{index}\"); f = pc.File(d.path + \"/a.txt\")"
+        )
+    };
+    let operations = [
         "print [d.name, d.path, d.is_folder, d.is_binary, d.is_symlink, d.size, d.permissions, d.owner, d.group, d.parent.path, d.has_permission(\"r\"), d.has_permission(\"x\"), d.has_permission(\"q\")]; print [f.name, f.size, f.permissions, f.owner, f.group, f.get_content, f.is_folder, f.allow_import, f.get_files, f.get_folders]; print f.set_content(\"hello\"); print [f.size, f.get_content]; print d.get_files.len; print d.get_folders; print typeof(d.get_files[0])",
         "print f.chmod(\"u-w\"); print f.permissions; print f.chmod(\"o+rwx\"); print f.permissions; print f.chmod(\"a-x\"); print f.permissions; print f.chmod(\"bad\"); print f.chmod(\"u+w\", 1); print f.chmod(\"g=r\"); print f.chmod(\"777\"); print f.permissions",
         "print f.copy(d.path, \"b.txt\"); f = pc.File(f.path); print f.copy(\"/nope\", \"c.txt\"); print f.copy(d.path, \"\"); print f.rename(\"\"); print f.rename(\"a/b\")",
@@ -38,11 +44,14 @@ async fn should_match_intrinsics_for_file_operations() {
         "print f.set_owner(\"root\"); print f.owner; print f.set_owner(\"nobody\"); print f.set_group(\"root\"); print f.group; print f.set_group(\"nogroup\"); print d.set_owner(\"root\", 1); print d.set_group(\"guest\", 1); print f.delete; print f.delete",
         "print pc.touch(d.path, \"a.txt\"); print pc.touch(\"/nope\", \"x\"); print pc.touch(d.path, \"\"); print pc.touch(d.path, \"bad name!\"); print pc.create_folder(d.path, \"sub\"); print pc.create_folder(d.path, \"sub\"); print pc.create_folder(\"/nope\", \"x\"); print pc.create_folder(d.path, \"\"); print pc.File(\"/nope\"); print pc.File(\"relative\"); print pc.File(\"\")",
         "print pc.File(\"/bin/ls\").get_content; print pc.File(\"/bin/ls\").set_content(\"x\"); print pc.File(\"/bin/ls\").allow_import; print pc.File(\"/etc/passwd\").permissions; print pc.File(\"/\").name; print pc.File(\"/\").parent; print pc.File(\"/\").permissions; print pc.File(\"/root\").permissions; print pc.File(home_dir).permissions; print pc.File(home_dir + \"/Config\").permissions; print pc.File(\"/home/guest/Config\").permissions",
-    ]
-    .iter()
-    .enumerate()
-    .map(|(index, script)| format!("{}\n{script}\nd.delete", prelude(index)))
-    .collect::<Vec<_>>();
+    ];
+    let mut scripts = Vec::new();
+
+    for (index, script) in operations.iter().enumerate() {
+        scripts.push(setup(index));
+        scripts.push(format!("{}\n{script}\nd.delete", prelude(index)));
+    }
+
     let scripts: Vec<&str> = scripts.iter().map(String::as_str).collect();
     let expected = intrinsics_outcomes(&scripts, &user);
 

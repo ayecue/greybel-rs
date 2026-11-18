@@ -217,6 +217,7 @@ pub(super) enum RequestKind {
     RentNetwork {
         public_ip: String,
         amount: i64,
+        home: bool,
     },
     RentalAdminService {
         public_ip: String,

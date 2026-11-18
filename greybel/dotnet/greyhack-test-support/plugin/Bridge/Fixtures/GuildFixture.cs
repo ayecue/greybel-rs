@@ -94,17 +94,22 @@ internal sealed class GuildFixture(Player player) : IFixture
     {
         string playerId = player.Server.GetPlayerID();
         List<GuildSnapshot> snapshots = Guilds
-            .Singleton.guilds.Values.Select(guild => new GuildSnapshot(
-                guild.name,
-                guild.bankAccount,
-                (uint)guild.totalExp,
-                (uint)guild.purchasedInvestmentLicensePerks,
-                guild.hasCrown,
-                guild.crownShieldPublicIp ?? "",
-                guild.GetMemberByPlayerID(playerId) != null,
-                (uint)guild.purchasedAdminRestorePerks,
-                guild.adminRestoreDisabledCompanies.ToList()
-            ))
+            .Singleton.guilds.Values.Select(guild =>
+            {
+                Guilds.Member member = guild.GetMemberByPlayerID(playerId);
+                return new GuildSnapshot(
+                    guild.name,
+                    guild.bankAccount,
+                    (uint)guild.totalExp,
+                    (uint)guild.purchasedInvestmentLicensePerks,
+                    guild.hasCrown,
+                    guild.crownShieldPublicIp ?? "",
+                    member != null,
+                    member?.isOwner ?? false,
+                    (uint)guild.purchasedAdminRestorePerks,
+                    guild.adminRestoreDisabledCompanies.ToList()
+                );
+            })
             .ToList();
         List<CompanySnapshot> companies = request
             .CompanyIps.Select(ip => ReadCompany(ip))
@@ -142,10 +147,17 @@ internal sealed class GuildFixture(Player player) : IFixture
         Database.Singleton.GameOverStrike(computer, before);
         helper.ActiveGameOver(company, PlayerUtils.Trace.ACTIVE);
 
+        Router endedCompany = ServerMap.Singleton.GetRouter(new IP(request.CompanyIp), false) ?? company;
+
         return new Reply.GameEnded(
             new GameEndedReply(
                 player.Server.GetComputer() != null,
-                BankFixture.Read(player.Server.GetPlayerID())
+                BankFixture.Read(player.Server.GetPlayerID()),
+                endedCompany.GetNetworkLan().disabledNetwork,
+                endedCompany.IsHomeNetwork(),
+                helper.rentalIPs
+                    .Select(entry => new RentalStateSnapshot(entry.Key, entry.Value))
+                    .ToList()
             )
         );
     }

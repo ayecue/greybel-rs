@@ -45,7 +45,7 @@ impl<'a> LayoutBuilder<'a> {
 
                 generation
                     .updates
-                    .start_with_reported_libraries(network, &mut draft_with_choices.computer)
+                    .apply_network_choices_to_layout(network, &mut draft_with_choices.computer)
                     .await?;
 
                 let router = generation
@@ -94,7 +94,7 @@ impl<'a> LayoutBuilder<'a> {
 
                 generation
                     .updates
-                    .start_with_reported_libraries(network, &mut draft_with_choices)
+                    .apply_network_choices_to_layout(network, &mut draft_with_choices)
                     .await?;
 
                 let computer = generation

@@ -5,7 +5,9 @@ use greyhack_behaviour::{
     FileKind, ServiceId, format_apt_sources, is_valid_ip, parse_apt_official, parse_apt_sources,
 };
 use greyhack_world_core::systems::network::connect::ServiceCheck;
-use greyhack_world_core::{ComputerId, Result};
+use greyhack_world_core::{ComputerId, Result, WorldError};
+
+use super::json_deserializes_to_null;
 
 use crate::services::Apt;
 use crate::{AptFailure, Package, Repository, RepositoryConfig};
@@ -68,12 +70,17 @@ impl Apt {
     }
 
     pub async fn apt_sources(&self, computer: ComputerId) -> Result<Vec<AptSource>> {
-        Ok(self
+        let content = self
             .files
             .lookup
             .content(computer, APT_SOURCES_PATH, true)
-            .await?
-            .map_or_else(Vec::new, |content| parse_apt_sources(&content)))
+            .await?;
+
+        if content.as_deref().is_some_and(json_deserializes_to_null) {
+            return Err(WorldError::GameCrash);
+        }
+
+        Ok(content.map_or_else(Vec::new, |content| parse_apt_sources(&content)))
     }
 
     pub async fn apt_cache_content(
@@ -103,20 +110,32 @@ impl Apt {
         &self,
         computer: ComputerId,
     ) -> Result<Result<bool, AptFailure>> {
-        Ok(self.apt_cache_content(computer).await?.and_then(|content| {
-            serde_json::from_str::<serde_json::Value>(&content)
-                .map_err(|_| AptFailure::MalformedCache)
-                .map(|_| parse_apt_official(&content))
-        }))
+        let content = match self.apt_cache_content(computer).await? {
+            Ok(content) => content,
+            Err(failure) => return Ok(Err(failure)),
+        };
+
+        if json_deserializes_to_null(&content) {
+            return Err(WorldError::GameCrash);
+        }
+
+        Ok(serde_json::from_str::<serde_json::Value>(&content)
+            .map_err(|_| AptFailure::MalformedCache)
+            .map(|_| parse_apt_official(&content)))
     }
 
     pub async fn apt_official(&self, computer: ComputerId) -> Result<bool> {
-        Ok(self
+        let content = self
             .files
             .lookup
             .content(computer, APT_SOURCES_PATH, true)
-            .await?
-            .is_some_and(|content| parse_apt_official(&content)))
+            .await?;
+
+        if content.as_deref().is_some_and(json_deserializes_to_null) {
+            return Err(WorldError::GameCrash);
+        }
+
+        Ok(content.is_some_and(|content| parse_apt_official(&content)))
     }
 
     pub async fn source_address(&self, source: &AptSource) -> Result<Option<String>> {
@@ -175,6 +194,10 @@ impl Apt {
         let Some(data) = node.data() else {
             return Ok(Err(AptFailure::MissingConfig));
         };
+        if json_deserializes_to_null(&data.content) {
+            return Err(WorldError::GameCrash);
+        }
+
         let Ok(config) = serde_json::from_str::<RepositoryConfig>(&data.content) else {
             return Ok(Err(AptFailure::MalformedConfig));
         };
@@ -219,6 +242,10 @@ impl Apt {
 
         if data.kind == FileKind::Binary {
             return Ok(Some(AptFailure::BinarySources));
+        }
+
+        if json_deserializes_to_null(&data.content) {
+            return Err(WorldError::GameCrash);
         }
 
         if serde_json::from_str::<serde_json::Value>(&data.content).is_err() {

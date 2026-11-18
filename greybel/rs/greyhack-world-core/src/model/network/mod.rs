@@ -20,6 +20,8 @@ pub struct Network {
     /// Whether the network is disabled for nonpayment (`NetworkLan.disabledNetwork`), rejecting all
     /// connections.
     pub disabled: bool,
+    /// Whether the main router is the player's home network (`RouterConfigOS.isHomeNetwork`).
+    pub home: bool,
     /// Connection speed from [`greyhack_behaviour::NET_SPEEDS`] (`NetworkLan.netSpeed`).
     pub net_speed: u8,
 }

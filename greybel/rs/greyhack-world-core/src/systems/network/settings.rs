@@ -54,6 +54,32 @@ impl NetworkSettingsService {
         Ok(true)
     }
 
+    /// Sets the main router's home marker (`Router.ResetHomeNetwork` when cleared).
+    pub async fn set_home_network(&self, public_ip: &str, home: bool) -> Result<bool> {
+        let Some(router) = self.router_rows.router_at(public_ip).await? else {
+            return Ok(false);
+        };
+
+        self.router_rows
+            .set_home_network(router.network, home)
+            .await?;
+
+        Ok(true)
+    }
+
+    /// Returns whether the network containing `computer` is its main router's home network.
+    pub async fn is_home_network(&self, computer: ComputerId) -> Result<bool> {
+        let Some(row) = self.computer_rows.computer(computer).await? else {
+            return Ok(false);
+        };
+
+        Ok(self
+            .router_rows
+            .network(row.network)
+            .await?
+            .is_some_and(|network| network.home))
+    }
+
     /// Returns connection speed for `router`'s network (`NetworkLan.netSpeed`), or `None` if the
     /// router is absent.
     ///

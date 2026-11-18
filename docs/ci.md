@@ -53,7 +53,7 @@ Runs when a push to `main` changes `.changes/release.toml`, which `cargo reman r
    | greybel-cli | `greybel-<version>-<rust target>.tar.gz`, `.zip` for Windows |
    | greybel-lsp-stdio | `greybel-lsp-<version>-<rust target>.tar.gz`, `.zip` for Windows |
    | greyhack-setup-wizard | `greyhack-setup-wizard-<version>-<runtime>.tar.gz` (`.zip` for Windows) with the window and the command-line tool, self-contained, for `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`; on macOS the window is `Grey Hack Setup Wizard.app` |
-   | greyhack-message-hook | `GreyHackMessageHook5.dll` (BepInEx 5) and `GreyHackMessageHook.dll` (BepInEx 6), the names the setup wizard downloads; built against Grey Hack's `Assembly-CSharp.dll`, which the job decrypts from Spaces |
+   | greyhack-message-hook | `GreyHackMessageHook5.dll` (BepInEx 5) and `GreyHackMessageHook.dll` (BepInEx 6) |
 
 4. **finish:** adds `SHA256SUMS` to each release, publishes the drafts and marks greyhack-message-hook's release as
    the latest (its `reman.toml` sets `latest = true`; the setup wizard reads the latest release).

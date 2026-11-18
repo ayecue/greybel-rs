@@ -4,7 +4,7 @@ use greyhack_behaviour::{
     ServiceId, format_apt_sources,
 };
 use greyhack_world::{PlayerOptions, World};
-use greyhack_world_core::{ConnectionFailure, Port};
+use greyhack_world_core::{ConnectionFailure, Port, WorldError};
 use greyhack_world_creation::DeviceLayout;
 use greyhack_world_libraries::Library;
 use greyhack_world_services::{AptFailure, AptUpdateLine, PackageEntry, RepositoryConfig};
@@ -441,7 +441,8 @@ async fn should_detect_a_newer_library_in_the_sources() {
             .apt
             .check_apt_upgrade(computer, path, &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Ok(false)
     );
     assert!(
@@ -461,7 +462,8 @@ async fn should_detect_a_newer_library_in_the_sources() {
             .apt
             .check_apt_upgrade(computer, path, &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Ok(true)
     );
 }
@@ -498,7 +500,8 @@ async fn should_refuse_to_check_an_upgrade_without_network_access() {
             .apt
             .check_apt_upgrade(computer, "/lib/blockchain.so", &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Err(AptFailure::NoInternet),
         "without a cache the network is refused first"
     );
@@ -518,7 +521,8 @@ async fn should_refuse_to_check_an_upgrade_in_the_order_the_game_checks() {
             .apt
             .check_apt_upgrade(computer, "/lib/blockchain.so", &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Err(AptFailure::NoCache)
     );
 
@@ -537,7 +541,8 @@ async fn should_refuse_to_check_an_upgrade_in_the_order_the_game_checks() {
             .apt
             .check_apt_upgrade(computer, "", &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Err(AptFailure::EmptyPackageName)
     );
     assert_eq!(
@@ -547,7 +552,8 @@ async fn should_refuse_to_check_an_upgrade_in_the_order_the_game_checks() {
             .apt
             .check_apt_upgrade(computer, "/lib/ghost/blockchain.so", &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Err(AptFailure::MissingLocalFile("blockchain.so".to_owned())),
         "the official server has the library, the computer does not"
     );
@@ -558,7 +564,8 @@ async fn should_refuse_to_check_an_upgrade_in_the_order_the_game_checks() {
             .apt
             .check_apt_upgrade(computer, "/lib/missing.so", &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Err(AptFailure::UnknownPackage("missing.so".to_owned()))
     );
 }
@@ -603,7 +610,8 @@ async fn should_refuse_to_check_an_upgrade_with_a_cache_that_is_not_one() {
             .apt
             .check_apt_upgrade(computer, "/lib/blockchain.so", &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Err(AptFailure::MalformedCache)
     );
 }
@@ -648,7 +656,8 @@ async fn should_reject_malformed_cache_for_every_reader() {
             .apt
             .check_apt_upgrade(computer, "/lib/blockchain.so", &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Err(AptFailure::MalformedCache)
     );
     assert_eq!(
@@ -691,6 +700,368 @@ async fn should_reject_malformed_cache_for_every_reader() {
             .unwrap(),
         Err(AptFailure::MalformedCache)
     );
+}
+
+#[tokio::test]
+async fn should_crash_for_null_cache_for_every_reader() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
+
+    world
+        .modules
+        .services
+        .apt
+        .update_apt_packages(computer, &[])
+        .await
+        .unwrap();
+
+    let mut cache = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(computer, APT_CACHE_PATH, true)
+        .await
+        .unwrap()
+        .unwrap();
+
+    for content in ["", " \n\t", "null"] {
+        cache.data_mut().unwrap().set_content(content);
+        world
+            .modules
+            .core
+            .files
+            .changes
+            .save_node(&cache)
+            .await
+            .unwrap();
+
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .check_apt_upgrade(computer, "/lib/blockchain.so", &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .install_apt_package(computer, "root", "blockchain.so", "/root", &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .search_apt_packages(computer, "blockchain", &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .show_apt_repository(computer, "custom", &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .validate_apt_cache(computer)
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(
+            world
+                .modules
+                .services
+                .apt
+                .show_apt_repository(computer, "official_server", &[])
+                .await
+                .unwrap()
+                .is_ok()
+        );
+    }
+}
+
+#[tokio::test]
+async fn should_crash_for_null_sources_for_every_reader() {
+    let world = World::new(&PlayerOptions::default()).await.unwrap();
+    let computer = world.handle.player();
+
+    world
+        .modules
+        .services
+        .apt
+        .update_apt_packages(computer, &[])
+        .await
+        .unwrap();
+
+    let mut sources = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(computer, APT_SOURCES_PATH, true)
+        .await
+        .unwrap()
+        .unwrap();
+
+    for content in ["", " \n\t", "null"] {
+        sources.data_mut().unwrap().set_content(content);
+        world
+            .modules
+            .core
+            .files
+            .changes
+            .save_node(&sources)
+            .await
+            .unwrap();
+
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .add_apt_repository(computer, "1.2.3.4", 80)
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .remove_apt_repository(computer, "1.2.3.4")
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .update_apt_packages(computer, &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .search_apt_packages(computer, "blockchain", &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .show_apt_repository(computer, "custom", &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+    }
+}
+
+#[tokio::test]
+async fn should_crash_for_null_repository_config_for_every_reader() {
+    for content in ["", " \n\t", "null"] {
+        let (world, player, shop) = world_with_shop_source().await;
+        let mut config = world
+            .modules
+            .core
+            .files
+            .lookup
+            .file(shop, ServiceId::Repository.config_path(), true)
+            .await
+            .unwrap()
+            .unwrap();
+
+        config.data_mut().unwrap().set_content(content);
+        world
+            .modules
+            .core
+            .files
+            .changes
+            .save_node(&config)
+            .await
+            .unwrap();
+
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .update_apt_packages(player, &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .check_apt_upgrade(player, "/lib/metaxploit.so", &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .install_apt_package(player, ROOT_USER, "metaxploit.so", "/root", &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .search_apt_packages(player, "metaxploit", &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+        let shop_address = world
+            .modules
+            .services
+            .apt
+            .apt_sources(player)
+            .await
+            .unwrap()[0]
+            .address
+            .clone();
+        assert!(matches!(
+            world
+                .modules
+                .services
+                .apt
+                .show_apt_repository(player, &shop_address, &[])
+                .await,
+            Err(WorldError::GameCrash)
+        ));
+    }
+}
+
+#[tokio::test]
+async fn should_print_a_malformed_repository_config_and_continue_the_upgrade_check() {
+    let (world, player, shop) = world_with_shop_source().await;
+    let mut config = world
+        .modules
+        .core
+        .files
+        .lookup
+        .file(shop, ServiceId::Repository.config_path(), true)
+        .await
+        .unwrap()
+        .unwrap();
+
+    config.data_mut().unwrap().set_content("not json");
+    world
+        .modules
+        .core
+        .files
+        .changes
+        .save_node(&config)
+        .await
+        .unwrap();
+
+    let report = world
+        .modules
+        .services
+        .apt
+        .check_apt_upgrade(player, "/lib/metaxploit.so", &[])
+        .await
+        .unwrap();
+
+    assert_eq!(report.malformed_repositories, 1);
+    assert_eq!(
+        report.result,
+        Err(AptFailure::UnknownPackage("metaxploit.so".to_owned()))
+    );
+}
+
+#[tokio::test]
+async fn should_catch_null_and_malformed_library_reads_during_an_upgrade_check() {
+    for remote in [false, true] {
+        for content in ["", " \n\t", "null", "not json"] {
+            let (world, player, shop) = world_with_shop_source().await;
+            if remote {
+                // A non-HackShop repository does not run UpdateHackshopLibs before the read.
+                world
+                    .database()
+                    .conn
+                    .execute(
+                        "UPDATE networks SET kind = ?1",
+                        turso::params![NetworkKind::Residential.code()],
+                    )
+                    .await
+                    .unwrap();
+            }
+            let (computer, path) = if remote {
+                (shop, "/Public/htdocs/downloads/metaxploit.so")
+            } else {
+                (player, "/lib/metaxploit.so")
+            };
+            let mut library = world
+                .modules
+                .core
+                .files
+                .lookup
+                .file(computer, path, true)
+                .await
+                .unwrap()
+                .unwrap();
+
+            library.data_mut().unwrap().set_content(content);
+            world
+                .modules
+                .core
+                .files
+                .changes
+                .save_node(&library)
+                .await
+                .unwrap();
+            // Mirrored invalid library content has no database library association.
+            world
+                .modules
+                .core
+                .files
+                .libraries
+                .set_library_of(&library, None)
+                .await
+                .unwrap();
+
+            let report = world
+                .modules
+                .services
+                .apt
+                .check_apt_upgrade(player, "/lib/metaxploit.so", &[])
+                .await
+                .unwrap();
+
+            assert_eq!(report.malformed_repositories, 1, "remote={remote}");
+            assert_eq!(
+                report.result,
+                Err(AptFailure::UnknownPackage("metaxploit.so".to_owned())),
+                "remote={remote}, content={content:?}"
+            );
+        }
+    }
 }
 
 #[tokio::test]
@@ -785,7 +1156,8 @@ async fn should_refuse_to_check_an_upgrade_when_the_cached_server_fails() {
             .apt
             .check_apt_upgrade(player, local, &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Err(AptFailure::MissingLocalFile("scanlib".to_owned())),
         "the shop has the package and the computer does not"
     );
@@ -816,7 +1188,8 @@ async fn should_refuse_to_check_an_upgrade_when_the_cached_server_fails() {
             .apt
             .check_apt_upgrade(player, local, &[])
             .await
-            .unwrap(),
+            .unwrap()
+            .result,
         Err(AptFailure::MissingPackageFile("scanlib".to_owned())),
         "the server lists a package it has no file of"
     );

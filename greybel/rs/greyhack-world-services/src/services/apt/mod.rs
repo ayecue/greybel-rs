@@ -8,6 +8,14 @@ use greyhack_world_core::Result;
 
 use crate::Repository;
 
+/// `JsonConvert.DeserializeObject<T>` returns null, rather than throwing, for empty, whitespace, and null JSON.
+/// Callers that then dereference the object stop the script with an unhandled NullReferenceException.
+pub(super) fn json_deserializes_to_null(content: &str) -> bool {
+    let content = content.trim();
+
+    content.is_empty() || content == "null"
+}
+
 /// A world service with only its declared dependencies.
 pub struct Apt {
     pub(crate) repositories: std::rc::Rc<crate::storage::AptRepository>,

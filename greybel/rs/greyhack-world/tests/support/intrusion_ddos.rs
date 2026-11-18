@@ -51,6 +51,7 @@ pub async fn guild_owning(world: &mut World, address: &str) {
             investment_perks: 1,
             admin_restore_perks: 0,
             player_member: false,
+            player_owner: false,
         })
         .await
         .unwrap()

@@ -4,7 +4,7 @@ pub(crate) mod apt;
 pub(crate) mod records;
 pub(crate) mod service_config;
 
-pub use apt::{AptFailure, Package, PackageEntry, Repository};
+pub use apt::{AptFailure, AptUpgradeReport, Package, PackageEntry, Repository};
 pub use records::{
     Crime, FacePart, Grade, Offense, Record, RecordDatabase, RecordKind, Subject, Vector,
 };

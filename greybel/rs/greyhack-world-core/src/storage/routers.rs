@@ -72,6 +72,7 @@ impl FromRow for Network {
             kind: row.get_code("kind")?,
             has_plan: row.get("has_plan")?,
             disabled: row.get("disabled")?,
+            home: row.get("home")?,
             net_speed: row.get("net_speed")?,
         })
     }
@@ -128,7 +129,7 @@ impl RouterRepository {
     pub async fn network(&self, id: NetworkId) -> Result<Option<Network>> {
         Ok(fetch_opt(
             &self.db.connection(),
-            "SELECT id, kind, has_plan, disabled, net_speed FROM networks WHERE id = ?1",
+            "SELECT id, kind, has_plan, disabled, home, net_speed FROM networks WHERE id = ?1",
             params![id.0],
         )
         .await?)
@@ -153,6 +154,18 @@ impl RouterRepository {
             &self.db.connection(),
             "UPDATE networks SET disabled = ?2 WHERE id = ?1",
             params![network.0, disabled],
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    /// Sets the main router's home marker (`RouterConfigOS.isHomeNetwork`).
+    pub async fn set_home_network(&self, network: NetworkId, home: bool) -> Result<()> {
+        execute(
+            &self.db.connection(),
+            "UPDATE networks SET home = ?2 WHERE id = ?1",
+            params![network.0, home],
         )
         .await?;
 

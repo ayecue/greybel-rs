@@ -351,11 +351,13 @@ protocol TestSupport = "greyhack_test_support" {
         /// Makes the network at `public_ip` one the player rents, as renting a server does
         /// (`BankHelperServer.RentServer`): the player owns it (`NetworkLan.playerOwnerID`,
         /// `PlayerHelperServer.rentalIPs`), and the player's rental charge (`BankSubs.AddPayment` for
-        /// `BankSubs.PaymentID.RENTED`) adds `amount` and lists its address. The player needs a bank account.
+        /// `BankSubs.PaymentID.RENTED`) adds `amount` and lists its address. With `home`, it is the player's home
+        /// network for Ethernet (`PlayerConfigOS.rentalHomeIP`). The player needs a bank account.
         message RentNetworkRpc {
             request: u32,
             public_ip: string,
             amount: i64,
+            home: bool,
         }
         /// Hires (`hire`) or removes the administrator of the rented network at `public_ip` through the bank's page,
         /// which pays the first month and registers the monthly charge, or takes the charge off
@@ -693,6 +695,18 @@ struct GameEndedReply {
     computer_exists: bool,
     /// The player's monthly bank payments afterwards (`BankSubs.playerSubs`), in the order `SubscriptionSnapshot` has.
     subscriptions: list<SubscriptionSnapshot>,
+    /// Whether the network the strike came from is disabled.
+    network_disabled: bool,
+    /// Whether its main router is still marked as the player's home network.
+    network_home: bool,
+    /// The player's rented networks and whether each is their home network after the strike.
+    rentals: list<RentalStateSnapshot>,
+}
+
+/// One entry of `PlayerHelperServer.rentalIPs`.
+struct RentalStateSnapshot {
+    public_ip: string,
+    home: bool,
 }
 
 /// A computer a trace is about, by its public and LAN addresses.
@@ -718,6 +732,8 @@ struct GuildSnapshot {
     crown_shield_public_ip: string,
     /// Whether the player is one of its members (`Guild.GetMemberByPlayerID`).
     player_member: bool,
+    /// Whether that member is its owner (`Guild.Member.isOwner`).
+    player_owner: bool,
     /// Admin Restore perks it bought (`Guild.purchasedAdminRestorePerks`).
     admin_restore_perks: u32,
     /// Companies it turned Admin Restore off for (`Guild.adminRestoreDisabledCompanies`).
@@ -918,6 +934,8 @@ struct NetworkSnapshot {
     offers: list<OfferSnapshot>,
     /// True if the network is disabled for not having been paid for (`NetworkLan.disabledNetwork`).
     disabled: bool,
+    /// Whether its main router is the player's home network (`RouterConfigOS.isHomeNetwork`).
+    home: bool,
     /// Whether the hired administrator of a rented server is alive and not fired (`NetworkLan.IsSuperAdminRental`).
     rental_admin: bool,
     /// Network's connection speed (`NetworkLan.netSpeed`).
