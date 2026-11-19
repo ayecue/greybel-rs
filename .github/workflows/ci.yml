@@ -46,7 +46,7 @@ jobs:
           cargo reman impact --since "${{ steps.setup.outputs.base }}" | tee impact.txt
           has() { grep -qE "$1" impact.txt && echo true || echo false; }
           {
-            if [ "${{ github.event_name }}" = pull_request ]; then
+            if [ "${{ github.event_name }}" != workflow_dispatch ]; then
               echo "rust=$(has '^rs/')"
               echo "typescript=$(has '^ts/')"
               echo "dotnet=$(has '^dotnet/')"
@@ -81,7 +81,7 @@ jobs:
       - name: rustfmt, clippy, ESLint and Prettier, CSharpier
         run: >-
           cargo reman lint --no-fail-fast
-          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+          ${{ github.event_name != 'workflow_dispatch' && format('--since {0}', needs.changes.outputs.base) || '' }}
           --task rustfmt --task clippy --task format --task csharpier
 
   rust:
@@ -100,7 +100,7 @@ jobs:
       - name: Unit and integration tests
         run: >-
           cargo reman test unit integration --language rust --no-fail-fast
-          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+          ${{ github.event_name != 'workflow_dispatch' && format('--since {0}', needs.changes.outputs.base) || '' }}
 
   dotnet:
     needs: changes
@@ -116,7 +116,7 @@ jobs:
       - name: Unit tests
         run: >-
           cargo reman test unit --language dotnet --no-fail-fast
-          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+          ${{ github.event_name != 'workflow_dispatch' && format('--since {0}', needs.changes.outputs.base) || '' }}
 
   typescript:
     needs: changes
@@ -141,11 +141,11 @@ jobs:
       - name: Unit tests
         run: >-
           cargo reman test unit --language typescript --no-fail-fast
-          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+          ${{ github.event_name != 'workflow_dispatch' && format('--since {0}', needs.changes.outputs.base) || '' }}
       - name: greybel-vs in VS Code, desktop and web
         run: >-
           xvfb-run -a cargo reman test integration --language typescript --no-fail-fast
-          ${{ github.event_name == 'pull_request' && format('--since {0}', needs.changes.outputs.base) || '' }}
+          ${{ github.event_name != 'workflow_dispatch' && format('--since {0}', needs.changes.outputs.base) || '' }}
       # The production builds of the sites, with their .wasm URLs on Spaces (vite.config.ts, WASM_BASE_URL).
       - uses: actions/upload-artifact@v4
         with:

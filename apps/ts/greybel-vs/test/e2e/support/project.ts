@@ -27,11 +27,6 @@ export async function removeManifest(): Promise<void> {
   await vscode.workspace.fs.delete(fixture(MANIFEST)).then(undefined, () => undefined);
 }
 
-/** Waits until `condition` holds. */
-export async function until(condition: () => Promise<boolean> | boolean): Promise<void> {
-  while (!(await condition())) await new Promise((resolve) => setTimeout(resolve, 100));
-}
-
 /** The `build.obfuscation` of a greybel.json's `manifest`. */
 export function obfuscation(manifest: unknown): unknown {
   return (manifest as { build?: { obfuscation?: unknown } } | undefined)?.build?.obfuscation;

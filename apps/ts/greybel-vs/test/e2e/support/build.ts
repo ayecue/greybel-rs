@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 
+import { waitFor } from './workspace';
+
 export const ENTRY = 'project/entry.src';
 
 export const OUTPUT = 'build';
@@ -11,13 +13,18 @@ export async function editorWith(content: string): Promise<vscode.TextEditor> {
 }
 
 export async function waitForFiles(folder: vscode.Uri, count: number): Promise<string[]> {
-  for (;;) {
-    const entries = await vscode.workspace.fs.readDirectory(folder).then(
+  const read = () =>
+    vscode.workspace.fs.readDirectory(folder).then(
       (found) => found.map(([name]) => name),
       () => [] as string[]
     );
+  let entries: string[] = [];
 
-    if (entries.length >= count) return entries;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
+  await waitFor(
+    `${count} files in ${vscode.workspace.asRelativePath(folder)}`,
+    async () => (entries = await read()).length >= count,
+    () => `it holds ${entries.length === 0 ? 'nothing' : entries.join(', ')}`
+  );
+
+  return entries;
 }

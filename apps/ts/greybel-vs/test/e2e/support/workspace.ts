@@ -2,6 +2,26 @@ import * as vscode from 'vscode';
 
 export const TIMEOUT = 60_000;
 
+/** How long `waitFor` waits: below `TIMEOUT`, so a failed wait names what it waited for. */
+const WAIT = 20_000;
+
+/** Waits until `condition` holds; fails naming `description` (and `detail`'s text, if given) after 20 s. */
+export async function waitFor(
+  description: string,
+  condition: () => Promise<boolean> | boolean,
+  detail?: () => Promise<string> | string
+): Promise<void> {
+  const end = Date.now() + WAIT;
+
+  while (!(await condition())) {
+    if (Date.now() > end) {
+      throw new Error(`waited ${WAIT / 1000} s for ${description}${detail ? `; ${await detail()}` : ''}`);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
 export function fixture(path: string): vscode.Uri {
   const [folder] = vscode.workspace.workspaceFolders ?? [];
 
