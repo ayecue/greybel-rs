@@ -22,7 +22,6 @@ const RUST_TARGETS = {
   'win32-arm64': 'aarch64-pc-windows-msvc',
   'linux-x64': 'x86_64-unknown-linux-gnu',
   'linux-arm64': 'aarch64-unknown-linux-gnu',
-  'linux-armhf': 'armv7-unknown-linux-gnueabihf',
   'alpine-x64': 'x86_64-unknown-linux-musl',
   'alpine-arm64': 'aarch64-unknown-linux-musl',
   'darwin-x64': 'x86_64-apple-darwin',
