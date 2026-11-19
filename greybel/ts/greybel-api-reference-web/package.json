@@ -1,6 +1,6 @@
 {
   "name": "greybel-api-reference-web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The reference of the GreyScript API on a page, with its scripting guide: the greybel-api-reference-web crate, in a worker, gives the page every type's section ready to show and responds to its searches; the page shows them and requests an editor, if it has one, to open examples",
   "license": "MIT",
   "type": "module",

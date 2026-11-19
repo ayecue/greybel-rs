@@ -1,6 +1,6 @@
 {
   "name": "greybel-editor-web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "A light GreyScript editor on a web page: CodeMirror with greybel-lsp-web's language server (highlighting, hovers, completions, diagnostics), programs run and debugged in greybel-runtime-web, their output drawn by greyhack-terminal-web, code transformed by greybel-builder-web, the API reference of greybel-api-reference-web, and code shared by URL or saved to the editor service",
   "license": "MIT",

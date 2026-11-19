@@ -1,7 +1,7 @@
 [package]
 name = "greybel-lsp"
 description = "MiniScript, Greybel, and GreyScript language server with LSP messaging and client-hosted or native filesystem providers"
-version.workspace = true
+version = "0.1.1"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

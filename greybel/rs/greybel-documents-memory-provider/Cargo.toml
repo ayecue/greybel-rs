@@ -1,7 +1,7 @@
 [package]
 name = "greybel-documents-memory-provider"
 description = "Serves greybel-documents from files held in memory, a pseudo file system for the web and tests"
-version.workspace = true
+version = "0.1.1"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

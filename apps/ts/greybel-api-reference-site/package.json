@@ -1,6 +1,6 @@
 {
   "name": "greybel-api-reference-site",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "The GreyScript API reference with its scripting guide as a site of its own: greybel-api-reference-web on the whole page, its tab and filter in the address, built to dist/ for Netlify",
   "license": "MIT",

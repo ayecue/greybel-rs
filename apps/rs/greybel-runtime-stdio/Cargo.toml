@@ -1,7 +1,7 @@
 [package]
 name = "greybel-runtime-stdio"
 description = "Stdio greybel-runtime binary for one editor, with terminal rendering and optional shared TCP world"
-version.workspace = true
+version = "0.1.1"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

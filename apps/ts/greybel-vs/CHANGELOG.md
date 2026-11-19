@@ -2,6 +2,17 @@
 
 Releases before 3.0.0: [greybel-vs's changelog](https://github.com/ayecue/greybel-rs/blob/02aaff4745e345ea2ca0d125be2fe0883b6e4b51/apps/ts/greybel-vs/CHANGELOG.md).
 
+## 3.1.0 · 2026-11-19
+
+### Minor changes
+
+- The setup wizard is a small Rust program, `greyhack-setup` (about 5 MB, the .NET one was about 23 MB), with a window and the same command line; `greybel setup` and the VS Code command **Greybel: Set up Grey Hack** use the same steps. It installs the message hook release of its own commit, shows the Steam launch option macOS and Linux need, and removes the duplicate `libsteam_api.dylib` that crashes the game under BepInEx on macOS. An import, build or run that can't reach the game offers the setup in VS Code. `greybel update` replaces the CLI with its newest release from DigitalOcean Spaces, and commands in a terminal mention a newer version once a day.
+
+### Patch changes
+
+- ts/greybel-api-reference-web: The guide has a Documentation comments chapter (doc-comment tags, `@ignore`, diagnostic settings) and describes `#include type`, `//include` and `//import`. The web editor and the API reference site show the Greybel logo and favicon.
+- greybel-core, greybel-interpreter, greybel-transpiler, greybel-type-analyzer: Chains of `+`, `-`, `*`, `/`, `%`, `^`, `and` and `or` operations of any length, like Grey Hack: a long `"..." + char(10) + "..."` expression no longer fails with "nesting exceeds the limit of 256 levels".
+
 ## 3.0.0 · 2026-11-18
 
 ### Major changes

@@ -1,6 +1,6 @@
 {
   "name": "greybel-lsp-web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "greybel-lsp as a browser worker script (dist/worker.js), and the language server protocol's client a language client connects to it with",
   "license": "MIT",
   "type": "module",

@@ -2248,7 +2248,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-api-reference"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "futures-util",
@@ -2261,7 +2261,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-builder"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "fastrand",
@@ -2278,7 +2278,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-builder-stdio"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-driver-stdio",
  "greybel-builder",
@@ -2287,7 +2287,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-bundler"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "fastrand",
  "greybel-core",
@@ -2301,7 +2301,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "crossterm",
@@ -2337,7 +2337,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-core-macros",
  "greybel-symbols",
@@ -2359,7 +2359,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-documents"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-core",
  "rustc-hash 2.1.3",
@@ -2370,7 +2370,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-documents-fs-provider"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "globset",
  "greybel-documents",
@@ -2378,7 +2378,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-documents-host-provider"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "greybel-documents",
@@ -2386,7 +2386,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-documents-memory-provider"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-documents",
  "vscode-uri",
@@ -2394,7 +2394,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-interpreter"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-core",
  "greybel-documents",
@@ -2452,7 +2452,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-lsp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "gen-lsp-types",
  "greybel-core",
@@ -2470,7 +2470,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-lsp-stdio"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-lsp",
  "greybel-test-support",
@@ -2479,7 +2479,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-mcp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-api-reference",
  "greybel-builder",
@@ -2503,7 +2503,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-ms-intrinsics"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-interpreter",
  "greybel-symbols",
@@ -2515,7 +2515,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-project"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-builder",
  "greybel-bundler",
@@ -2531,7 +2531,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-runtime"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "duplex-driver-stdio",
@@ -2554,7 +2554,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-runtime-stdio"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "duplex-driver-stdio",
@@ -2566,7 +2566,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-runtime-world"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "futures-util",
@@ -2607,7 +2607,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-transpiler"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-core",
  "greybel-documents",
@@ -2619,7 +2619,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-type-analyzer"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-core",
  "greybel-documents",
@@ -2678,7 +2678,7 @@ dependencies = [
 
 [[package]]
 name = "greyhack-setup"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "pelite",
@@ -2692,7 +2692,7 @@ dependencies = [
 
 [[package]]
 name = "greyhack-setup-wizard"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "eframe",
@@ -3119,7 +3119,7 @@ dependencies = [
 
 [[package]]
 name = "greyscript-intrinsics"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "futures-util",

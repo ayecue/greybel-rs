@@ -1,7 +1,7 @@
 [package]
 name = "greybel-runtime-web"
 description = "Browser-worker greybel-runtime and terminal renderer with optional shared world (wasm-bindgen)"
-version.workspace = true
+version = "0.1.1"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

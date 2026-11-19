@@ -1,6 +1,6 @@
 {
   "name": "greybel-runtime-web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "greybel-runtime as a browser worker script: new Worker('greybel-runtime-web/dist/index.js'), hand it its WebAssembly (greybel-runtime-web.wasm) with wasm-host's serveWasm, then a port as duplex-driver-worker's hosts do",
   "license": "MIT",
   "type": "module",

@@ -1,7 +1,7 @@
 [package]
 name = "greybel-documents-host-provider"
 description = "Serves greybel-documents through the host running it, such as an editor extension, over a duplex protocol"
-version.workspace = true
+version = "0.1.1"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true

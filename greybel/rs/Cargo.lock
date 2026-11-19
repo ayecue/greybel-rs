@@ -1290,7 +1290,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-api-reference"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "duplex-test-support",
@@ -1307,7 +1307,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-api-reference-web"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-driver-web",
  "greybel-api-reference",
@@ -1317,7 +1317,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-builder"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "duplex-driver-stdio",
@@ -1340,7 +1340,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-builder-web"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-driver-web",
  "greybel-builder",
@@ -1350,7 +1350,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-bundler"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "fastrand",
  "greybel-core",
@@ -1366,7 +1366,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "criterion",
  "greybel-core-macros",
@@ -1393,7 +1393,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-documents"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-core",
  "greybel-documents-memory-provider",
@@ -1406,7 +1406,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-documents-fs-provider"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "globset",
  "greybel-documents",
@@ -1415,7 +1415,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-documents-host-provider"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "duplex-test-support",
@@ -1427,7 +1427,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-documents-memory-provider"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-documents",
  "vscode-uri",
@@ -1435,7 +1435,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-interpreter"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "criterion",
  "greybel-core",
@@ -1504,7 +1504,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-lsp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "gen-lsp-types",
  "greybel-core",
@@ -1523,7 +1523,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-lsp-web"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "duplex-driver-web",
@@ -1537,7 +1537,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-mcp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-api-reference",
  "greybel-builder",
@@ -1562,7 +1562,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-ms-intrinsics"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-interpreter",
  "greybel-symbols",
@@ -1576,7 +1576,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-project"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "greybel-builder",
  "greybel-bundler",
@@ -1592,7 +1592,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-runtime"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "duplex-driver-stdio",
@@ -1620,7 +1620,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-runtime-web"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "duplex-driver-web",
@@ -1633,7 +1633,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-runtime-world"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "futures-util",
@@ -1690,7 +1690,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-transpiler"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "criterion",
  "greybel-core",
@@ -1708,7 +1708,7 @@ dependencies = [
 
 [[package]]
 name = "greybel-type-analyzer"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "criterion",
  "greybel-core",
@@ -1764,7 +1764,7 @@ dependencies = [
 
 [[package]]
 name = "greyhack-setup"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "pelite",
@@ -2270,7 +2270,7 @@ dependencies = [
 
 [[package]]
 name = "greyscript-intrinsics"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "duplex-core",
  "duplex-driver-memory",

@@ -1,7 +1,7 @@
 [package]
 name = "greybel-core"
 description = "Lexer and parser for MiniScript and its Greybel and GreyScript dialects, picked at runtime"
-version.workspace = true
+version = "0.1.1"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
