@@ -1,6 +1,7 @@
 # Deploys the sites CI built and the editor service, after CI's tests pass (ci.yml). Pushes to main deploy to
 # production once approved (environments `netlify` and `digitalocean`); pull requests get Netlify previews without
-# approval (`netlify-preview`), linked in a comment. The .wasm files go to DigitalOcean Spaces.
+# approval (`netlify-preview`), linked in a comment. The .wasm files go to DigitalOcean Spaces. Run by hand, it builds
+# the sites itself and deploys without CI's tests.
 name: Deploy
 
 on:
@@ -15,6 +16,27 @@ on:
       service:
         type: boolean
         default: false
+      build:
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      editor:
+        description: Deploy the web editor
+        type: boolean
+        default: true
+      reference:
+        description: Deploy the API reference site
+        type: boolean
+        default: true
+      service:
+        description: Deploy greybel-editor-service
+        type: boolean
+        default: true
+      build:
+        description: Build the sites here (CI passes its own build)
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -27,8 +49,33 @@ env:
   NETLIFY_CLI: netlify-cli
 
 jobs:
+  # The production builds of the sites, with their .wasm URLs on Spaces, as ci.yml's typescript job makes them.
+  build:
+    if: inputs.build && (inputs.editor || inputs.reference)
+    runs-on: ubuntu-24.04
+    env:
+      WASM_BASE_URL: https://greybel-assets.fra1.digitaloceanspaces.com/wasm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          wasm: 'true'
+          node: 'true'
+      - name: Build every workspace's packages
+        run: cargo reman run build --language typescript
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sites
+          path: |
+            apps/ts/greybel-editor-web/dist
+            apps/ts/greybel-api-reference-site/dist
+          retention-days: 7
+
   sites:
-    if: inputs.editor || inputs.reference
+    needs: build
+    if: (inputs.editor || inputs.reference) && !cancelled() && needs.build.result != 'failure'
     runs-on: ubuntu-24.04
     environment: ${{ github.event_name == 'pull_request' && 'netlify-preview' || 'netlify' }}
     steps:

@@ -23,7 +23,8 @@ test game`) are not part of CI.
 
 ## Deploy (`deploy.yml`)
 
-Deploys what changed since the previous commit of `main`, or every site and the service when CI is run manually.
+CI deploys what its push reaches, or every site and the service when CI is run manually. Run by hand
+(**Actions → Deploy → Run workflow**), `deploy.yml` builds the chosen sites itself and deploys them without CI's tests.
 
 - **The `.wasm` files** of greybel-editor-web and greybel-api-reference-site go to DigitalOcean Spaces:
   `https://greybel-assets.fra1.digitaloceanspaces.com/wasm/<name>-<hash>.wasm`. CI builds the sites with
