@@ -24,8 +24,11 @@ env:
 jobs:
   changes:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
     outputs:
-      base: ${{ steps.setup.outputs.base }}
+      base: ${{ steps.base.outputs.sha }}
       rust: ${{ steps.impact.outputs.rust }}
       typescript: ${{ steps.impact.outputs.typescript }}
       dotnet: ${{ steps.impact.outputs.dotnet }}
@@ -38,12 +41,28 @@ jobs:
           fetch-depth: 0
       - id: setup
         uses: ./.github/actions/setup
+      # A push is measured from the commit of main's last successful CI run, so what a failed or cancelled run
+      # tested or deployed is tested and deployed again; without one, from the first commit, which reaches everything.
+      - id: base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          base="${{ steps.setup.outputs.base }}"
+          if [ "${{ github.event_name }}" = push ]; then
+            base=$(gh run list --repo "${{ github.repository }}" --workflow ci.yml --branch main --event push \
+              --status success --limit 1 --json headSha --jq '.[0].headSha // empty')
+            if [ -z "$base" ] || ! git merge-base --is-ancestor "$base" HEAD 2>/dev/null; then
+              base=$(git rev-list --max-parents=0 HEAD | tail -1)
+            fi
+          fi
+          echo "sha=$base" >> "$GITHUB_OUTPUT"
+          echo "measured from $base"
       - name: Change files
-        run: cargo reman check --since "${{ steps.setup.outputs.base }}"
+        run: cargo reman check --since "${{ steps.base.outputs.sha }}"
       - id: impact
         name: Projects the changes reach
         run: |
-          cargo reman impact --since "${{ steps.setup.outputs.base }}" | tee impact.txt
+          cargo reman impact --since "${{ steps.base.outputs.sha }}" | tee impact.txt
           has() { grep -qE "$1" impact.txt && echo true || echo false; }
           {
             if [ "${{ github.event_name }}" != workflow_dispatch ]; then

@@ -16,7 +16,8 @@ Runs on pull requests, on pushes to `main` and manually.
 | `typescript` | `cargo reman run build --language typescript`, the TypeScript unit tests, greybel-vs in VS Code (desktop and web, under xvfb), and the production builds of the sites as the `sites` artifact |
 | `deploy` | `deploy.yml`, once the jobs above passed |
 
-`<base>` is a pull request's base commit, or a push's previous commit. Pull requests and pushes run only the jobs and
+`<base>` is a pull request's base commit, or for a push the commit of `main`'s last successful CI run, so the changes
+of a failed or cancelled run are tested and deployed again by the next push. Pull requests and pushes run only the jobs and
 tasks of the projects their changes reach; running CI manually runs everything. Tests against the installed game (`cargo reman
 test game`) are not part of CI.
 
