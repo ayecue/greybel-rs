@@ -1,6 +1,6 @@
-# Temporary: publishes the VSIX files of an existing greybel-vs release to the Visual Studio Marketplace and Open VSX,
-# as release.yml's marketplaces job does. Remove once 3.0.0 is published.
-name: Publish to the marketplaces
+# Temporary: publishes the VSIX files of an existing greybel-vs release to Open VSX, as release.yml's marketplaces
+# job does. Remove once 3.0.0 is published.
+name: Publish to Open VSX
 
 on:
   workflow_dispatch:
@@ -28,11 +28,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release download "${{ inputs.tag }}" --repo "${{ github.repository }}" --pattern '*.vsix' --dir out/vsix
-      - name: Publish to the Visual Studio Marketplace
-        working-directory: apps/ts/greybel-vs
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: pnpm exec vsce publish --skip-duplicate --packagePath ../../../out/vsix/*.vsix
       - name: Publish to Open VSX
         working-directory: apps/ts/greybel-vs
         env:
