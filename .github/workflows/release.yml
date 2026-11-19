@@ -184,6 +184,8 @@ jobs:
     environment: marketplaces
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       # vsce and ovsx at greybel-vs's locked versions.
       - uses: ./.github/actions/setup
         with:
