@@ -5,7 +5,7 @@ use greybel_core::{BinaryOp, LiteralValue, LogicalOp, NodeId, NodeKind, UnaryOp}
 
 use super::Inference;
 use super::call::CallSite;
-use super::flow::KindSet;
+use super::flow::{Guard, KindSet};
 use super::validation::{Evaluation, Operand};
 use crate::annotation::TypeExpr;
 use crate::diagnostic::DiagnosticKind;
@@ -440,19 +440,7 @@ impl<'a> Inference<'a> {
             NodeKind::Map(_) => self.infer_map_literal(node),
             NodeKind::Slice(_) => self.infer_slice(node),
             NodeKind::Unary(_) => self.infer_unary(node),
-            NodeKind::Binary(binary) => {
-                let left = self.infer_value(binary.left);
-                let right = self.infer_value(binary.right);
-
-                self.validate_binary(
-                    node,
-                    binary.operator,
-                    (binary.left, left),
-                    (binary.right, right),
-                );
-
-                self.binary_type(binary.operator, left, right)
-            }
+            NodeKind::Binary(_) | NodeKind::Logical(_) => self.infer_operation_chain(node),
             NodeKind::Bitwise(bitwise) => {
                 let left = self.infer_value(bitwise.left);
                 let right = self.infer_value(bitwise.right);
@@ -467,24 +455,6 @@ impl<'a> Inference<'a> {
                 let result = self.numeric_result(left, right);
 
                 Self::propagate_unknown(&[left, right], result)
-            }
-            NodeKind::Logical(logical) => {
-                self.infer_value(logical.left);
-
-                let skip_state = self.flow.clone();
-                let guard = self.condition_guard(logical.left);
-
-                self.refine_flow(match logical.operator {
-                    LogicalOp::And => &guard.when_true,
-                    LogicalOp::Or => &guard.when_false,
-                });
-                self.infer_value(logical.right);
-
-                let right_state = mem::take(&mut self.flow);
-
-                self.flow = self.join_flows(skip_state, &right_state);
-
-                TypeId::NUMBER
             }
             NodeKind::Isa(isa) => {
                 self.infer_value(isa.left);
@@ -528,6 +498,63 @@ impl<'a> Inference<'a> {
         self.register_node_type(node, ty);
 
         ty
+    }
+
+    fn infer_operation_chain(&mut self, node: NodeId) -> TypeId {
+        let ast = self.ast();
+        let chain = ast.operator_chain(node);
+        let mut left = (chain.first, self.infer_value(chain.first));
+        let mut left_logical: Option<(Guard, LogicalOp, NodeId)> = None;
+
+        for &link in &chain.links {
+            let ty = match ast.kind(link) {
+                NodeKind::Binary(binary) => {
+                    let right = self.infer_value(binary.right);
+
+                    left_logical = None;
+                    self.validate_binary(link, binary.operator, left, (binary.right, right));
+
+                    self.binary_type(binary.operator, left.1, right)
+                }
+                NodeKind::Logical(logical) => {
+                    let skip_state = self.flow.clone();
+                    let guard = match left_logical.take() {
+                        Some((left_guard, operator, right)) => {
+                            let right_guard = self.condition_guard(right);
+
+                            self.logical_guard(operator, &left_guard, &right_guard)
+                        }
+                        None => self.condition_guard(left.0),
+                    };
+
+                    self.refine_flow(match logical.operator {
+                        LogicalOp::And => &guard.when_true,
+                        LogicalOp::Or => &guard.when_false,
+                    });
+                    self.infer_value(logical.right);
+
+                    let right_state = mem::take(&mut self.flow);
+
+                    self.flow = self.join_flows(skip_state, &right_state);
+                    left_logical = Some((guard, logical.operator, logical.right));
+
+                    TypeId::NUMBER
+                }
+                _ => TypeId::UNKNOWN,
+            };
+
+            if link != node {
+                self.register_node_type(link, ty);
+
+                if ty == TypeId::NEVER {
+                    self.flow.set_unreachable();
+                }
+            }
+
+            left = (link, ty);
+        }
+
+        left.1
     }
 
     fn resolve_map(&mut self, node: NodeId, origin: MapOrigin) -> MapId {

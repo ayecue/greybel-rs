@@ -2,8 +2,6 @@
 #
 #   greyhack-message-hook        BepInEx 5/6 plugin (needs GREY_HACK_PATH), and its tests against the game's assemblies
 #   greyhack-message-hook-proxy  the plugin's proxy without the game
-#   greyhack-setup-wizard        the setup wizard's steps: BepInEx 5/6, the message hook and its config (its window
-#                                and command-line tool are apps/dotnet's)
 #   greyhack-test-support        what tests need to drive the game: `game run` (headless) and `proxy`
 #   greyhack-util                the game's network contracts (../contracts) -> the duplex protocol of the
 #                                messages; its world data and terminal text assets -> the assets crates' bundles
@@ -85,7 +83,6 @@ generate:
 .PHONY: test
 test:
 	$(DOTNET) test --solution greyhack-util/GreyHackUtil.slnx
-	$(DOTNET) test --solution greyhack-setup-wizard/GreyHackSetupWizard.slnx
 	$(DOTNET) test --project greyhack-test-support/tests
 
 # The plugin against the installed game's assemblies (needs GREY_HACK_PATH): the
@@ -102,7 +99,6 @@ clean:
 	$(DOTNET) clean $(MESSAGE_HOOK) --configuration Release-BepInEx6
 	$(DOTNET) clean greyhack-util/GreyHackUtil.slnx
 	$(DOTNET) clean $(MESSAGE_HOOK_PROXY)/src
-	$(DOTNET) clean greyhack-setup-wizard/GreyHackSetupWizard.slnx
 	$(DOTNET) clean greyhack-test-support/GreyHackTestSupport.slnx
 
 .PHONY: help
@@ -116,6 +112,6 @@ help:
 	@echo "  extract                - Read $(CONTRACTS)/game.bundle from the game's Assembly-CSharp.dll"
 	@echo "  assets                 - Read the game's world data and terminal text assets into the assets crates' bundles"
 	@echo "  generate               - Write the duplex protocol of the messages from $(CONTRACTS)"
-	@echo "  test                   - greyhack-util (incl. generated files up to date), greyhack-setup-wizard and greyhack-test-support tests"
+	@echo "  test                   - greyhack-util (incl. generated files up to date) and greyhack-test-support tests"
 	@echo "  test-message-hook      - Plugin tests against the installed game's assemblies (needs GREY_HACK_PATH)"
 	@echo "  clean                  - Clean build output"

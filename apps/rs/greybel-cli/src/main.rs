@@ -2,6 +2,7 @@ mod arguments;
 mod command;
 mod report;
 mod terminal;
+mod update;
 
 use std::process::ExitCode;
 

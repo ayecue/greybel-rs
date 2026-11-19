@@ -36,6 +36,8 @@ export interface AppConfiguration extends Pick<ReferenceContextValue, 'copyLink'
   readonly onTabChange?: (tab: ReferenceTab) => void;
 
   readonly repositoryUrl?: string;
+
+  readonly logoUrl?: string;
 }
 
 export function App(props: AppConfiguration) {
@@ -211,7 +213,10 @@ export function App(props: AppConfiguration) {
     <ReferenceContext.Provider value={reference}>
       <div class="reference" ref={root}>
         <header class="overview">
-          <h1>{GUIDE.title}</h1>
+          <h1>
+            {props.logoUrl !== undefined && <img class="logo" src={props.logoUrl} alt="" />}
+            {GUIDE.title}
+          </h1>
           {props.repositoryUrl !== undefined && (
             <a
               class="star-link"

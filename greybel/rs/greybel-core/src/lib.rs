@@ -13,9 +13,10 @@ pub mod position;
 pub mod syntax;
 
 pub use ast::{
-    Ast, AstNode, Atom, AtomTable, BinaryOp, BitwiseOp, Comment, DumpContext, IdentifierKind,
-    IfClauseKind, LiteralValue, LogicalOp, Node, NodeCommentContainer, NodeFieldContainer, NodeId,
-    NodeKind, NodeStore, ScopeData, TextSpan, UnaryOp, Visitor, span_location,
+    Ast, AstNode, Atom, AtomTable, BinaryOp, BitwiseOp, Comment, DescendantIter, DumpContext,
+    IdentifierKind, IfClauseKind, LiteralValue, LogicalOp, Node, NodeCommentContainer,
+    NodeFieldContainer, NodeId, NodeKind, NodeStore, OperatorChain, ScopeData, TextSpan, UnaryOp,
+    Visitor, span_location,
 };
 pub use dialect::{Dialect, Grammar, SyntaxFeatures, Version};
 pub use error::{ErrorCode, ErrorKind, ParseError, ParseResult};

@@ -122,12 +122,14 @@ sha2 = { version = "0.10", default-features = false }
 png = "0.18"
 proc-macro2 = "1"
 pulldown-cmark = { version = "0.13", default-features = false }
+pelite = { version = "0.10", default-features = false, features = ["std"] }
 quote = "1"
 rand_core = "0.10"
 rand_xoshiro = "0.8"
 rapidhash = { version = "4", default-features = false }
 rmcp = { version = "3.8", default-features = false, features = ["server", "macros", "transport-io", "local"] }
 rustc-hash = "2"
+smallvec = "1.16"
 salsa = { version = "0.28", default-features = false, features = ["macros", "inventory", "accumulator"] }
 schemars = "1"
 serde = { version = "1", features = ["derive"] }
@@ -135,9 +137,11 @@ serde_json = "1"
 str_indices = "0.4"
 syn = "2"
 thiserror = "2"
+ureq = { version = "3.5", default-features = false, features = ["rustls", "gzip"] }
 tokio = "1"
 turso = { version = "0.8.3", default-features = false }
 unicode-general-category = "1"
+zip = { version = "9", default-features = false, features = ["deflate"] }
 uuid = { version = "1", default-features = false, features = ["serde"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"

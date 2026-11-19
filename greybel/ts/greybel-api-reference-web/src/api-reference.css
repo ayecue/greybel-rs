@@ -98,9 +98,17 @@
 }
 
 .api-reference .overview h1 {
+  display: flex;
+  gap: 0.4em;
+  align-items: center;
   margin: 0;
   font-size: 1.4em;
   font-weight: 600;
+}
+
+.api-reference .overview .logo {
+  width: 1.4em;
+  height: 1.4em;
 }
 
 .api-reference .toolbar {

@@ -66,8 +66,7 @@ impl Compiler<'_> {
                 Ok(())
             }
             NodeKind::Isa(node) => self.operation(node.left, node.right, Operator::Isa, id),
-            NodeKind::Binary(node) => self.binary(id, node.left, node.right, node.operator),
-            NodeKind::Logical(node) => self.logical(id, node.left, node.right, node.operator),
+            NodeKind::Binary(_) | NodeKind::Logical(_) => self.operation_chain(id),
             NodeKind::ComparisonGroup(node) => {
                 self.comparison_group(id, self.ast().list(node.expressions), &node.operators)
             }
@@ -174,26 +173,35 @@ impl Compiler<'_> {
         Ok(())
     }
 
-    fn binary(&mut self, id: NodeId, left: NodeId, right: NodeId, operator: BinaryOp) -> Result {
-        match self.constant_value(id) {
-            Some(value) => {
-                self.push(value, id);
+    fn operation_chain(&mut self, id: NodeId) -> Result {
+        let chain = self.ast().operator_chain(id);
+        let (constant_links, value) = self.constant_start(chain.first, &chain.links);
 
-                Ok(())
-            }
-            None => self.operation(left, right, operator.into(), id),
+        match (constant_links.checked_sub(1), value) {
+            (Some(last), Some(value)) => self.push(value, chain.links[last]),
+            _ => self.expression(chain.first)?,
         }
+
+        for &link in &chain.links[constant_links..] {
+            match self.kind(link) {
+                NodeKind::Binary(node) => {
+                    self.expression(node.right)?;
+                    self.emit(Op::binary(node.operator.into()), link);
+                }
+                NodeKind::Logical(node) => self.logical(link, node.right, node.operator)?,
+                _ => {}
+            }
+        }
+
+        Ok(())
     }
 
-    fn logical(&mut self, id: NodeId, left: NodeId, right: NodeId, operator: LogicalOp) -> Result {
+    fn logical(&mut self, id: NodeId, right: NodeId, operator: LogicalOp) -> Result {
         let skip = self.label();
         let (when, operator) = match operator {
             LogicalOp::And => (Truthy::False, Operator::And),
             LogicalOp::Or => (Truthy::True, Operator::Or),
         };
-
-        self.expression(left)?;
-
         let jump = Op::JumpIf {
             target: 0,
             when,
@@ -206,6 +214,30 @@ impl Compiler<'_> {
         self.set_label(skip);
 
         Ok(())
+    }
+
+    fn constant_start(&self, first: NodeId, links: &[NodeId]) -> (usize, Option<Value>) {
+        let Some(mut value) = self.constant_value(first) else {
+            return (0, None);
+        };
+        let mut constant_links = 0;
+
+        for &link in links {
+            let NodeKind::Binary(node) = self.kind(link) else {
+                break;
+            };
+            let Some(next) = self
+                .constant_value(node.right)
+                .and_then(|right| Value::scalar_binary(node.operator, &value, &right))
+            else {
+                break;
+            };
+
+            value = next;
+            constant_links += 1;
+        }
+
+        (constant_links, Some(value))
     }
 
     fn comparison_group(
@@ -231,11 +263,11 @@ impl Compiler<'_> {
                     _ => None,
                 }
             }
-            NodeKind::Binary(node) => {
-                let a = self.constant_value(node.left)?;
-                let b = self.constant_value(node.right)?;
+            NodeKind::Binary(_) => {
+                let chain = self.ast().operator_chain(self.unwrap(id));
+                let (constant_links, value) = self.constant_start(chain.first, &chain.links);
 
-                Value::scalar_binary(node.operator, &a, &b)
+                value.filter(|_| constant_links == chain.links.len())
             }
             _ => None,
         }

@@ -1,4 +1,4 @@
-using GreyHackSetupWizard.BepInEx;
+using GreyHackTestSupport.Setup;
 
 namespace GreyHackTestSupport.Game;
 

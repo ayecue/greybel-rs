@@ -3,8 +3,8 @@ use std::fmt;
 use std::sync::{Arc, OnceLock};
 
 use super::{
-    Atom, Comment, Node, NodeCommentContainer, NodeId, NodeKind, NodeList, NodeStore, ScopeData,
-    TextSpan, Visitor, dump, walk,
+    Atom, Comment, DescendantIter, Node, NodeCommentContainer, NodeId, NodeKind, NodeList,
+    NodeStore, OperatorChain, ScopeData, TextSpan, Visitor, dump, walk,
 };
 use crate::parser::ChunkData;
 use crate::position::{ColumnSettings, LineIndex, Span};
@@ -101,6 +101,11 @@ impl Ast {
     }
 
     #[must_use]
+    pub fn operator_chain(&self, id: NodeId) -> OperatorChain {
+        self.nodes.operator_chain(id)
+    }
+
+    #[must_use]
     pub fn kind(&self, id: NodeId) -> &NodeKind {
         &self.nodes.get(id).kind
     }
@@ -190,7 +195,21 @@ impl Ast {
     }
 
     fn push_descendant_at(&self, id: NodeId, offset: u32, path: &mut Vec<NodeId>) -> bool {
-        for child in self.nodes.children(id) {
+        let mut frames = vec![(self.nodes.children(id), 0)];
+
+        while let Some((children, next)) = frames.last_mut() {
+            let Some(&child) = children.get(*next) else {
+                frames.pop();
+
+                if !frames.is_empty() {
+                    path.pop();
+                }
+
+                continue;
+            };
+
+            *next += 1;
+
             let extent = self.extent(child);
 
             if offset < extent.start || extent.end < offset || extent.is_empty() {
@@ -201,13 +220,11 @@ impl Ast {
 
             let span = self.span(child);
 
-            if (span.start <= offset && offset <= span.end && !span.is_empty())
-                || self.push_descendant_at(child, offset, path)
-            {
+            if span.start <= offset && offset <= span.end && !span.is_empty() {
                 return true;
             }
 
-            path.pop();
+            frames.push((self.nodes.children(child), 0));
         }
 
         false
@@ -215,47 +232,26 @@ impl Ast {
 
     fn extent(&self, id: NodeId) -> Span {
         let extents = self.extents.get_or_init(|| {
-            let mut extents = vec![Span::default(); self.nodes.len()];
+            let mut collector = ExtentCollector {
+                nodes: &self.nodes,
+                extents: vec![Span::default(); self.nodes.len()],
+            };
 
-            self.collect_extent(self.root, &mut extents);
+            walk(&self.nodes, self.root, &mut collector);
 
-            extents
+            collector.extents
         });
 
         extents.get(id.index()).copied().unwrap_or_default()
     }
 
-    fn collect_extent(&self, id: NodeId, extents: &mut [Span]) -> Span {
-        let span = self.span(id);
-        let mut extent = if span.is_closed() {
-            span
-        } else {
-            Span::empty(span.start)
-        };
-
-        for child in self.nodes.children(id) {
-            let child = self.collect_extent(child, extents);
-
-            if child.is_empty() {
-                continue;
-            }
-
-            if extent.is_empty() {
-                extent = child;
-            } else {
-                extent = Span::new(extent.start.min(child.start), extent.end.max(child.end));
-            }
-        }
-
-        if let Some(slot) = extents.get_mut(id.index()) {
-            *slot = extent;
-        }
-
-        extent
-    }
-
     pub fn walk(&self, id: NodeId, visitor: &mut impl Visitor) {
         walk(&self.nodes, id, visitor);
+    }
+
+    #[must_use]
+    pub fn descendants(&self, id: NodeId) -> DescendantIter<'_> {
+        DescendantIter::new(&self.nodes, id)
     }
 
     pub fn dump(&self, id: NodeId, columns: ColumnSettings) -> String {
@@ -284,5 +280,39 @@ impl fmt::Debug for Ast {
 impl fmt::Display for Ast {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.dump(self.root, ColumnSettings::default()))
+    }
+}
+
+struct ExtentCollector<'a> {
+    nodes: &'a NodeStore,
+    extents: Vec<Span>,
+}
+
+impl Visitor for ExtentCollector<'_> {
+    fn exit(&mut self, id: NodeId, node: &Node) {
+        let span = node.span;
+        let mut extent = if span.is_closed() {
+            span
+        } else {
+            Span::empty(span.start)
+        };
+
+        self.nodes.for_each_child(id, |child| {
+            let child = self.extents.get(child.index()).copied().unwrap_or_default();
+
+            if child.is_empty() {
+                return;
+            }
+
+            extent = if extent.is_empty() {
+                child
+            } else {
+                Span::new(extent.start.min(child.start), extent.end.max(child.end))
+            };
+        });
+
+        if let Some(slot) = self.extents.get_mut(id.index()) {
+            *slot = extent;
+        }
     }
 }

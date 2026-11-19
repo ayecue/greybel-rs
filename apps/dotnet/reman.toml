@@ -1,8 +1,0 @@
-[workspace]
-language = "dotnet"
-
-# The setup wizard's window.
-[tasks.setup-wizard]
-suite = "unit"
-cwd = "greyhack-setup-wizard"
-run = "dotnet test --solution GreyHackSetupWizard.App.slnx"

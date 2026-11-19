@@ -17,10 +17,10 @@ pub use greybel_core_macros::NodeFieldContainer;
 pub use list::{NodeList, NodeListStorage};
 pub use node::{AstNode, Block, Child, ChildField, Node, NodeFieldContainer, NodeId, NodeKind};
 pub use scope::{Scope, ScopeData};
-pub use store::NodeStore;
+pub use store::{NodeStore, OperatorChain};
 pub use text_span::TextSpan;
 pub use tree::Ast;
-pub use visit::{Visitor, walk};
+pub use visit::{DescendantIter, Visitor, walk};
 
 pub use crate::syntax::greybel::BitwiseOp;
 pub use crate::syntax::{

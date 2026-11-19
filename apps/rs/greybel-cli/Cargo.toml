@@ -24,16 +24,24 @@ greybel-mcp.workspace = true
 greybel-project = { workspace = true, features = ["builder", "runtime"] }
 greybel-runtime = { workspace = true, features = ["game"] }
 greyhack-message-hook-client.workspace = true
+greyhack-setup = { workspace = true, features = ["cli"] }
 greyhack-terminal-text.workspace = true
 greybel-runtime-world.workspace = true
 greyhack-world-host.workspace = true
 greyscript-intrinsics.workspace = true
 clap.workspace = true
 crossterm.workspace = true
+flate2.workspace = true
+self-replace.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tar.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["rt", "macros", "sync"] }
+zip.workspace = true
 
 [dev-dependencies]
+sha2.workspace = true
 duplex-driver-stdio.workspace = true
 greyhack-world.workspace = true
 greyhack-world-operations.workspace = true

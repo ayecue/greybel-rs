@@ -70,35 +70,39 @@ impl<'a> InlayHintCollector<'a> {
         hints.hints
     }
 
-    fn visit(&mut self, node: NodeId) {
-        let span = self.ast.span(node);
+    fn visit(&mut self, root: NodeId) {
+        let mut nodes = self.ast.descendants(root);
 
-        if span.end < self.span.start || span.start > self.span.end {
-            return;
-        }
+        while let Some(node) = nodes.next() {
+            let span = self.ast.span(node);
 
-        if span.start >= self.span.start {
-            match self.ast.kind(node) {
-                NodeKind::Assignment(assignment) if self.options.variable_types => {
-                    self.variable_type(assignment.variable, assignment.init);
-                }
-                NodeKind::Call(call) if self.options.parameter_names => {
-                    self.parameter_names(call.base, self.ast.list(call.arguments));
-                }
-                NodeKind::Function(_) => {
-                    if self.options.parameter_types {
-                        self.parameter_types(node);
+            if span.end < self.span.start || span.start > self.span.end {
+                nodes.skip_children();
+
+                continue;
+            }
+
+            if span.start >= self.span.start {
+                match self.ast.kind(node) {
+                    NodeKind::Assignment(assignment) if self.options.variable_types => {
+                        self.variable_type(assignment.variable, assignment.init);
                     }
-
-                    if self.options.return_types {
-                        self.return_type(node);
+                    NodeKind::Call(call) if self.options.parameter_names => {
+                        self.parameter_names(call.base, self.ast.list(call.arguments));
                     }
+                    NodeKind::Function(_) => {
+                        if self.options.parameter_types {
+                            self.parameter_types(node);
+                        }
+
+                        if self.options.return_types {
+                            self.return_type(node);
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
         }
-
-        self.ast.for_each_child(node, |child| self.visit(child));
     }
 
     fn variable_type(&mut self, variable: NodeId, init: NodeId) {

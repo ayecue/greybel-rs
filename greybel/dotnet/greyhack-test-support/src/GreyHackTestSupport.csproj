@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="$(GreybelDotnet)greyhack-message-hook-proxy/src/GreyHackMessageHookProxy.csproj" />
-    <ProjectReference Include="$(GreybelDotnet)greyhack-setup-wizard/src/GreyHackSetupWizard.csproj" />
   </ItemGroup>
 
   <!-- The plugins it builds and installs into its clone of the game, and where its work folder goes by default. -->
@@ -25,6 +24,10 @@
     <AssemblyMetadata
       Include="Target"
       Value="$([System.IO.Path]::GetFullPath('$(GreybelDotnet)../../target'))"
+    />
+    <AssemblyMetadata
+      Include="AppsManifest"
+      Value="$([System.IO.Path]::GetFullPath('$(GreybelDotnet)../../apps/rs/Cargo.toml'))"
     />
   </ItemGroup>
 

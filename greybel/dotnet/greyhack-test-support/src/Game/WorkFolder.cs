@@ -1,6 +1,6 @@
-using GreyHackSetupWizard.BepInEx;
 using GreyHackTestSupport.Platform;
 using GreyHackTestSupport.Session;
+using GreyHackTestSupport.Setup;
 
 namespace GreyHackTestSupport.Game;
 

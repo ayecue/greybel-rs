@@ -18,7 +18,9 @@ impl Fold {
     pub(super) fn collect(ast: &Ast) -> Vec<Self> {
         let mut ranges = Vec::new();
 
-        Self::blocks(ast, ast.root(), &mut ranges);
+        for node in ast.descendants(ast.root()) {
+            Self::block(ast, node, &mut ranges);
+        }
         Self::comments(ast, &mut ranges);
         Self::imports(ast, &mut ranges);
         ranges.sort_by_key(|range| (range.start_line, range.end_line));
@@ -27,7 +29,7 @@ impl Fold {
         ranges
     }
 
-    fn blocks(ast: &Ast, node: NodeId, ranges: &mut Vec<Self>) {
+    fn block(ast: &Ast, node: NodeId, ranges: &mut Vec<Self>) {
         let line = |offset| ast.lines().line(offset);
         let span = ast.span(node);
         let body = match ast.kind(node) {
@@ -49,8 +51,6 @@ impl Fold {
         if let Some(end_line) = end_line {
             Self::push(ranges, line(span.start), end_line, FoldKind::Block);
         }
-
-        ast.for_each_child(node, |child| Self::blocks(ast, child, ranges));
     }
 
     fn comments(ast: &Ast, ranges: &mut Vec<Self>) {

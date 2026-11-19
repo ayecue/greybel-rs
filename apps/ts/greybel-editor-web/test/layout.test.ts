@@ -47,6 +47,19 @@ describe('the parts of the page', () => {
     expect(await link.getAttribute('target')).toBe('_blank');
   });
 
+  it('should show the Greybel logo in the toolbar and as the icon of the page', async () => {
+    const editor = await EditorPage.open('print(1)');
+    const { page } = editor;
+
+    expect(await page.locator('.toolbar h1').textContent()).toBe('Greybel Editor');
+    expect(await page.locator('.toolbar h1 img.logo').getAttribute('src')).toBe(
+      'https://greybel-assets.fra1.digitaloceanspaces.com/brand/greybel-logo.png'
+    );
+    expect(await page.locator('link[rel="icon"]').getAttribute('href')).toBe(
+      'https://greybel-assets.fra1.digitaloceanspaces.com/brand/favicon.ico'
+    );
+  });
+
   it("should fit the page's width with the API reference open", async () => {
     const editor = await EditorPage.open('print(1)');
     const { page } = editor;

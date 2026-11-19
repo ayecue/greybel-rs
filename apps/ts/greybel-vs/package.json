@@ -215,6 +215,10 @@
       ],
       "commandPalette": [
         {
+          "command": "greybel.setupGame",
+          "when": "!isWeb"
+        },
+        {
           "command": "greybel.debug.debugFileFromContext",
           "when": "resourceLangId == greyscript"
         },
@@ -337,6 +341,11 @@
         "command": "greybel.resetWorld",
         "category": "Debug",
         "title": "Greybel: Reset the mock world"
+      },
+      {
+        "command": "greybel.setupGame",
+        "category": "Utility",
+        "title": "Greybel: Set up Grey Hack"
       },
       {
         "command": "greybel.buildRootFile",

@@ -1,6 +1,3 @@
-using GreyHackSetupWizard.BepInEx;
-using GreyHackSetupWizard.Game;
-using GreyHackSetupWizard.Plugins;
 using GreyHackTestSupport.Game;
 using GreyHackTestSupport.Platform;
 
@@ -36,7 +33,36 @@ internal static class PluginBuildTable
             string assembly = plugin.GetAssemblyName(major);
             string output = Path.Combine(folder.PluginBuilds, assembly);
             Build(Path.Combine(Repository.Dotnet, project), $"Debug-BepInEx{(int)major}", output);
-            PluginInstaller.Install(game, plugin, major, Path.Combine(output, assembly + ".dll"));
+            Install(game, plugin, major, Path.Combine(output, assembly + ".dll"));
+        }
+    }
+
+    /// <summary>
+    /// Installs the message hook with greyhack-setup, and other plugins by copying the assembly and its symbols.
+    /// </summary>
+    private static void Install(
+        GameLayout game,
+        PluginBuild plugin,
+        BepInExMajor major,
+        string assembly
+    )
+    {
+        if (plugin == PluginBuild.MessageHook)
+        {
+            SetupTool.InstallHook(game, major, assembly);
+            return;
+        }
+        Directory.CreateDirectory(game.PluginsFolder);
+        foreach (string file in new[] { assembly, Path.ChangeExtension(assembly, ".pdb") })
+        {
+            if (File.Exists(file))
+            {
+                File.Copy(
+                    file,
+                    Path.Combine(game.PluginsFolder, Path.GetFileName(file)),
+                    overwrite: true
+                );
+            }
         }
     }
 

@@ -18,6 +18,7 @@ import { TransformPanel } from './transform-panel.js';
 const NOTICE_TIME = 10_000;
 
 const REPOSITORY_URL = 'https://github.com/ayecue/greybel-rs';
+const LOGO_URL = 'https://greybel-assets.fra1.digitaloceanspaces.com/brand/greybel-logo.png';
 
 const HINT =
   'This environment is a simulation and may not fully replicate every detail of the real in-game environment. ' +
@@ -102,7 +103,10 @@ export function App({ content }: AppConfiguration) {
   return (
     <div class="editor-app">
       <header class="toolbar">
-        <h1>Greybel Editor</h1>
+        <h1>
+          <img class="logo" src={LOGO_URL} alt="" />
+          Greybel Editor
+        </h1>
         <button type="button" class="share" onClick={() => setLink(storage.createShareLink(project.content))}>
           Share
         </button>

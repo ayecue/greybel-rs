@@ -118,7 +118,7 @@ test-game:
 # The setup wizard's window.
 .PHONY: setup-wizard
 setup-wizard:
-	$(DOTNET) run --project apps/dotnet/greyhack-setup-wizard/gui
+	cargo run --manifest-path apps/rs/Cargo.toml -p greyhack-setup-wizard
 
 .PHONY: help
 help:

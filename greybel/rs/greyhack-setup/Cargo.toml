@@ -1,0 +1,37 @@
+[package]
+name = "greyhack-setup"
+description = "Sets up Grey Hack for the message hook: finds the game, installs BepInEx, the message hook and its port"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+autotests = false
+
+[lib]
+doctest = false
+
+[features]
+# The `setup` command line shared by greyhack-setup and `greybel setup`.
+cli = ["dep:clap"]
+
+[dependencies]
+clap = { workspace = true, optional = true }
+pelite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2 = { workspace = true, features = ["std"] }
+thiserror.workspace = true
+ureq.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+zip.workspace = true
+
+[[test]]
+name = "main"
+path = "tests/main.rs"
+
+[lints]
+workspace = true

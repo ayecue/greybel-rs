@@ -1,6 +1,7 @@
 //! Runs the `greybel` binary in isolated temporary projects populated by each test.
 
 pub mod build;
+pub mod release;
 pub mod world;
 
 use std::io::Write;

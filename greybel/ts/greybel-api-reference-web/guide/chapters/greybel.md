@@ -26,6 +26,15 @@ module.exports = {"square": @square}
 
 The included `lib/version.src` in this example contains `VERSION = 1`. A build incorporates included and imported code into its output. For code that should remain in separate files in the game, use [import_code](#GENERAL_IMPORT_CODE) as described in [GreyScript programs](#guide-greyscript).
 
+`#include type "path"` reads only the type declarations of a file (`@type`, `@vtype`, `@typedef`, `type` statements; see [Documentation comments](#guide-documentation-comments)) for the type analyzer and editor. It writes no code and runs nothing, so a file can share types without including its values.
+
+`//include "path"` and `//import name from "path"` work like `#include` and `#import`, but read as comments to Grey Hack's editor and compiler.
+
+```
+//include "lib/version.src"
+print VERSION // 1
+```
+
 ## Environment
 
 `#envar NAME` reads a configured build or run variable as a string. An unset variable produces `null`. In the CLI, supply values with `--env-vars NAME=value` or `--env-files`.

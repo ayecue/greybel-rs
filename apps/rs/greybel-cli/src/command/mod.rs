@@ -7,6 +7,7 @@ mod mcp;
 mod options;
 mod repl;
 mod ui;
+mod update;
 mod world;
 
 use std::future::Future;
@@ -15,7 +16,7 @@ use std::process::ExitCode;
 use clap::{CommandFactory as _, Parser, Subcommand};
 use tokio::task::LocalSet;
 
-use crate::report::Failure;
+use crate::update::UpdateReminder;
 
 #[derive(Debug, Parser)]
 #[command(name = "greybel", version, about = "Tools for GreyScript")]
@@ -40,6 +41,10 @@ enum Command {
     Mcp(mcp::McpCommand),
     /// Serves or resets the simulated world shared by commands and editors on this machine.
     World(world::WorldCommand),
+    /// Sets up Grey Hack for the message hook: BepInEx, the hook plugin and its port.
+    Setup(greyhack_setup::cli::SetupCli),
+    /// Updates greybel to its newest release.
+    Update(update::UpdateCommand),
 }
 
 impl Cli {
@@ -52,20 +57,35 @@ impl Cli {
             };
         };
 
-        match command.run() {
-            Ok(()) => ExitCode::SUCCESS,
-            Err(failure) => {
-                failure.report();
+        let reminder = command
+            .reminds_of_updates()
+            .then(UpdateReminder::new)
+            .flatten();
 
-                ExitCode::FAILURE
-            }
+        if let Some(reminder) = &reminder {
+            reminder.refresh();
         }
+
+        let code = command.run();
+
+        if let Some(notice) = reminder.as_ref().and_then(UpdateReminder::notice) {
+            eprintln!("{notice}");
+        }
+
+        code
     }
 }
 
 impl Command {
-    fn run(self) -> Result<(), Failure> {
-        match self {
+    /// Whether the command reminds of a newer greybel: not `mcp`, whose output a model reads, nor `update` and the
+    /// `world` server.
+    fn reminds_of_updates(&self) -> bool {
+        !matches!(self, Self::Mcp(_) | Self::Update(_) | Self::World(_))
+    }
+
+    /// Runs the command; a failure is reported on stderr, except by `setup`, which reports its own.
+    fn run(self) -> ExitCode {
+        let result = match self {
             Self::Build(command) => command.run(),
             Self::Import(command) => command.run(),
             Self::Execute(command) => command.run(),
@@ -73,6 +93,17 @@ impl Command {
             Self::Ui(command) => command.run(),
             Self::Mcp(command) => command.run(),
             Self::World(command) => command.run(),
+            Self::Setup(arguments) => return arguments.run(),
+            Self::Update(command) => command.run(),
+        };
+
+        match result {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(failure) => {
+                failure.report();
+
+                ExitCode::FAILURE
+            }
         }
     }
 }

@@ -27,7 +27,7 @@ Rust uses Cargo workspace dependencies, TypeScript uses pnpm links, and .NET use
 | `apps/ts/greybel-vs` | Desktop and web VS Code extension. |
 | `apps/ts/greybel-editor-web` | Browser editor. |
 | `apps/ts/greybel-api-reference-site` | API reference and scripting guide. |
-| `apps/dotnet/greyhack-setup-wizard` | Graphical and command-line Grey Hack setup tools. |
+| `apps/rs/greyhack-setup-wizard` | `greyhack-setup`: Grey Hack setup in a window or on the command line. |
 
 Each application has its own version and release. Rust application binaries are built with `apps/rs/Cargo.lock`.
 
@@ -84,6 +84,7 @@ The world crates are listed in layer order: base behavior and infrastructure, co
 | `greyhack-terminal-text` | Grey Hack rich text rendered as terminal output. |
 | `greyhack-terminal-web` | Browser terminal layout, meshes, and WebGL rendering. |
 | `greyhack-message-hook-client` | Client for the Grey Hack message-hook plugin. |
+| `greyhack-setup` | Game discovery and the setup of BepInEx, the message hook and its port, with the `setup` command line. |
 | `greybel/dotnet/greyhack-message-hook` | BepInEx plugin that connects external tools to Grey Hack. |
 | `greybel/dotnet/greyhack-test-support` | Headless game and test-plugin infrastructure. |
 | `greybel/dotnet/greyhack-util` | Contract, asset, and protocol extraction and generation. |

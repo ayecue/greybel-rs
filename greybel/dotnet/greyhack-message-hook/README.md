@@ -38,7 +38,7 @@ dotnet test --solution GreyHackMessageHook.slnx
 | `Release-BepInEx5`, `Debug-BepInEx5` | `<configuration>/BepInEx5/netstandard2.1/GreyHackMessageHook5.dll` |
 | `Release-BepInEx6`, `Debug-BepInEx6` | `<configuration>/BepInEx6/netstandard2.1/GreyHackMessageHook.dll` |
 
-Install with the [setup wizard](../../../apps/dotnet/greyhack-setup-wizard/README.md),
+Install with the [setup wizard](../../../apps/rs/greyhack-setup-wizard/README.md),
 or copy only the matching DLL to `BepInEx/plugins`. Do not ship a duplicate
 Newtonsoft.Json. The BepInEx `General.Port` setting controls the listener.
 

@@ -1,7 +1,7 @@
 # Grey Hack integration
 
 Greybel talks to a running Grey Hack single-player game through the
-`greyhack-message-hook` BepInEx plugin. The setup wizard installs BepInEx and
+`greyhack-message-hook` BepInEx plugin. The setup tool installs BepInEx and
 the plugin; the message proxy carries builds, imports, script contexts and the
 debugger between the game and Greybel's CLI or editor.
 
@@ -11,56 +11,50 @@ For automated, isolated game sessions rather than your own game, see
 ## Prerequisites
 
 - Grey Hack, installed through Steam.
-- The .NET 10 SDK to run the setup wizard from this repository or build the
-  plugin.
-- The `greybel` CLI for the command examples below.
-- A plugin DLL from a Greybel release, or a locally built plugin matching the
-  BepInEx major you install.
+- One of: the VS Code extension, the `greybel` CLI, or the `greyhack-setup`
+  program from a `greyhack-setup-wizard` release.
 
-The wizard finds a game specified by `--game`, then `GREY_HACK_PATH`, then the
-Steam libraries containing app 605230. The game folder is the one containing
-`Grey Hack.app`, `Grey Hack.exe`, or the Linux executable and its data folder.
+The setup finds the game in the folder given with `--game`, then in
+`GREY_HACK_PATH`, then in the Steam libraries containing app 605230. The game
+folder is the one containing `Grey Hack.app`, `Grey Hack.exe`, or the Linux
+executable and its data folder.
 
-## Set up with the wizard
+## Set up
 
-From the repository root, open the graphical wizard:
+All three use the same steps (the `greyhack-setup` crate) and change nothing
+before you confirm:
 
-```sh
-make setup-wizard
-# Equivalent:
-dotnet run --project apps/dotnet/greyhack-setup-wizard/gui
-```
-
-Check the detected game and its status, then choose **Set up...**. The wizard
-lets you install or remove BepInEx, select the matching message-hook build,
-and set the loopback TCP port (7777 by default). Review the summary and choose
-**Apply**; downloads and file changes do not start before that confirmation.
-A port-in-use report is a warning, not a blocker.
-
-The equivalent CLI is in `apps/dotnet/greyhack-setup-wizard`. From that folder,
-a typical BepInEx 5 installation from a published plugin release is:
+- **VS Code:** run **Greybel: Set up Grey Hack**. It shows the game's setup,
+  offers to complete it (BepInEx 5, the message hook, and the port from
+  `greybel.createIngame.port`) or a single step, lists the downloads and
+  changes for review, then applies them. An import, build or run that can't
+  reach the game offers the same command.
+- **Window:** open `greyhack-setup` (`Grey Hack Setup.app` on macOS) from a
+  `greyhack-setup-wizard` release, or run `make setup-wizard` in this
+  repository. Choose BepInEx, the message hook and the port, then **Apply…**
+  and review the changes.
+- **Command line:** `greybel setup`, or `greyhack-setup` with a command:
 
 ```sh
-dotnet run --project cli -- locate --game "/path/to/Grey Hack"
-dotnet run --project cli -- bepinex install --bepinex 5 --yes --game "/path/to/Grey Hack"
-dotnet run --project cli -- plugin install --release latest --bepinex 5 --yes --game "/path/to/Grey Hack"
-dotnet run --project cli -- configure --port 7777 --game "/path/to/Grey Hack"
+greybel setup status
+greybel setup bepinex install --bepinex 5
+greybel setup hook install
+greybel setup configure --port 7777
 ```
 
-Omit `--yes` to confirm each download interactively. A non-interactive command
-does not download without `--yes`. To install a local build instead, replace
-the `plugin install` command with:
+`hook install` installs the message hook of the release built from the same
+commit as the tool, whose messages it understands; `--release latest` or
+`--release <tag>` picks another release and `--assembly <file>` a local build.
+Each download is confirmed in the terminal; `--yes` downloads without
+confirmation, and without a terminal nothing is downloaded. `--json` writes one
+JSON object per line (`progress`, then `status` or `done`, or `error`).
+`greybel setup remove-duplicate-steam-api` removes a `libsteam_api.dylib` in the
+macOS game folder, which crashes the game under BepInEx.
 
-```sh
-dotnet run --project cli -- plugin install --assembly "/path/to/GreyHackMessageHook5.dll" --bepinex 5 --game "/path/to/Grey Hack"
-```
-
-The wizard verifies pinned BepInEx downloads against their recorded SHA-256
-hashes, and release plugin downloads against GitHub's asset digest. It keeps
-`BepInEx/plugins` and `BepInEx/config` when replacing the BepInEx loader and
-core files. See the [wizard README](../apps/dotnet/greyhack-setup-wizard/README.md)
-for every command and the [setup library README](../greybel/dotnet/greyhack-setup-wizard/README.md)
-for installation details and pinned versions.
+BepInEx archives are checked against pinned SHA-256 hashes, and release plugin
+downloads against GitHub's asset digest. Replacing or removing BepInEx changes
+neither `BepInEx/plugins` nor `BepInEx/config`. `status` shows the Steam launch
+option that macOS and Linux need to start the game with BepInEx.
 
 ### Build the plugin yourself
 
@@ -74,21 +68,23 @@ make message-hook-bepinex6   # Only GreyHackMessageHook.dll
 make message-hook-debug      # Debug builds of both
 ```
 
-Install the resulting DLL with `plugin install --assembly`, or copy only that
+Install the resulting DLL with `greybel setup hook install --assembly`, or copy only that
 DLL into `BepInEx/plugins`. Do not add another `Newtonsoft.Json.dll`: the game
 already supplies it. The output paths and test commands are in the
 [message-hook README](../greybel/dotnet/greyhack-message-hook/README.md).
 
-BepInEx 5 is the stable line; the wizard currently pins 5.4.23.6. BepInEx 6 is
+BepInEx 5 is the stable line; the setup currently pins 5.4.23.6. BepInEx 6 is
 a prerelease line, currently pinned to 6.0.0-be.791. Its macOS build is x64
-only, so on Apple Silicon the wizard configures `run_bepinex.sh` to run the
+only, so on Apple Silicon the setup configures `run_bepinex.sh` to run the
 game under Rosetta.
 
 ## Start the game and connect
 
 Start Grey Hack with BepInEx enabled and enter single player. On macOS and
-Linux, run `run_bepinex.sh` with the game executable as its argument from the
-game folder, for example:
+Linux, set the game's Steam launch option (Properties, Launch Options) to the
+one `greybel setup status` shows, `"<game folder>/run_bepinex.sh" %command%`,
+or run `run_bepinex.sh` with the game executable as its argument from the game
+folder, for example:
 
 ```sh
 ./run_bepinex.sh "Grey Hack.app"       # macOS
@@ -181,8 +177,8 @@ its API and tests.
 | Connected but no player, or a build cannot open its windows | Enter single player and wait for the desktop to finish booting. Reconnect after returning to the menu. |
 | Plugin missing or immediately fails | Match `GreyHackMessageHook5.dll` to BepInEx 5 and `GreyHackMessageHook.dll` to BepInEx 6. Remove the other major's hook build and any duplicate Newtonsoft.Json copied manually. Inspect BepInEx's `LogOutput.log`. |
 | Game-version or missing-member warning | Re-extract contracts and rebuild against the installed game. Reflection/Harmony changes may also require plugin changes; run `make test-message-hook`. |
-| BepInEx 6 does not start on Apple Silicon | Use the wizard's current BepInEx 6 installation and Rosetta-capable launcher, or choose BepInEx 5. |
-| A download was declined or no terminal is available | Confirm at the prompt or pass `--yes`; alternatively use `bepinex install --zip` or `plugin install --assembly`. |
+| BepInEx 6 does not start on Apple Silicon | Install BepInEx 6 with the setup, which makes the launcher run the game under Rosetta, or choose BepInEx 5. |
+| A download was declined or no terminal is available | Confirm at the prompt or pass `--yes`; alternatively use `bepinex install --zip` or `hook install --assembly`. |
 
 After a game update, the usual regeneration sequence is `make contracts` and
 `make message-hook` in `greybel/dotnet`, followed by the C# binding regeneration

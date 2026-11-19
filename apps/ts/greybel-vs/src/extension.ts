@@ -14,6 +14,7 @@ import { ProjectReader } from './project';
 import { ProfilePicker } from './project/profile-picker';
 import { ProjectSettings } from './project/settings';
 import { Configuration } from './settings';
+import { GameSetupCommand } from './setup';
 import { ShareCommand } from './share';
 import { SnippetCommand } from './snippets';
 import { TransformCommand } from './transform';
@@ -55,6 +56,7 @@ export async function activate(context: ExtensionContext) {
   new SnippetCommand(context);
   new ShareCommand(context, projects);
   new ImportCommand(context, builderLauncher, projects);
+  new GameSetupCommand(context, new ProcessLauncher(context, 'greyhack-setup').getBinaryPath());
 }
 
 export function deactivate() {}

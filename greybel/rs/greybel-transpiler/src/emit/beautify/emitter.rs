@@ -1,10 +1,10 @@
 use greybel_core::lexer::NumericLiteral;
 use greybel_core::syntax::greybel::{Include, Inject, Switch};
 use greybel_core::syntax::{
-    Assignment, Binary, Call, CallStatement, ComparisonGroup, ElseClause, For, Function, If,
-    IfClause, Isa, List, ListItem, Literal, Logical, Map, MapEntry, Parenthesis, Slice, While,
+    Assignment, Call, CallStatement, ComparisonGroup, ElseClause, For, Function, If, IfClause, Isa,
+    List, ListItem, Literal, Map, MapEntry, Parenthesis, Slice, While,
 };
-use greybel_core::{IfClauseKind, LiteralValue, NodeId};
+use greybel_core::{IfClauseKind, LiteralValue, NodeId, NodeKind};
 use greybel_symbols::contextual_keywords::{SWITCH, TYPE};
 use greybel_symbols::delimiters::{
     ESCAPED_QUOTE, MAP_KEY_SEPARATOR, QUOTE, SLICE_SEPARATOR, STATEMENT_SEPARATOR,
@@ -565,22 +565,54 @@ impl Emitter for BeautifyEmitter {
         self.emit(s, node.right, inner)
     }
 
-    fn emit_logical(
+    fn enter_operation(
         &mut self,
         s: &mut EmitState<'_>,
-        node: &Logical,
+        id: NodeId,
+        flags: EmitFlags,
+    ) -> EmitFlags {
+        let NodeKind::Logical(node) = s.kind(id) else {
+            return EmitFlags::default();
+        };
+
+        if s.count_operations(node.right) <= MAX_INLINE_OPERATIONS {
+            return EmitFlags {
+                logical_continuation: flags.logical_continuation,
+                ..EmitFlags::default()
+            };
+        }
+
+        self.indent += usize::from(!flags.logical_continuation);
+
+        EmitFlags {
+            logical_continuation: true,
+            ..EmitFlags::default()
+        }
+    }
+
+    fn finish_operation(
+        &mut self,
+        s: &mut EmitState<'_>,
+        id: NodeId,
         flags: EmitFlags,
     ) -> Result<()> {
-        let operator = node.operator.as_str();
+        let node = match s.kind(id) {
+            NodeKind::Binary(node) => {
+                s.push_fmt(format_args!(" {} ", node.operator.as_str()));
+
+                return self.emit(s, node.right, EmitFlags::default());
+            }
+            NodeKind::Logical(node) => node,
+            _ => return Ok(()),
+        };
+
+        s.push_fmt(format_args!(" {} ", node.operator.as_str()));
 
         if s.count_operations(node.right) <= MAX_INLINE_OPERATIONS {
             let inner = EmitFlags {
                 logical_continuation: flags.logical_continuation,
                 ..EmitFlags::default()
             };
-
-            self.emit(s, node.left, inner)?;
-            s.push_fmt(format_args!(" {operator} "));
 
             return self.emit(s, node.right, inner);
         }
@@ -589,29 +621,15 @@ impl Emitter for BeautifyEmitter {
             logical_continuation: true,
             ..EmitFlags::default()
         };
-        let indent = usize::from(!flags.logical_continuation);
 
-        self.indent += indent;
+        s.eol();
+        self.push_indent(s);
 
-        let result = (|| {
-            self.emit(s, node.left, inner)?;
-            s.push_fmt(format_args!(" {operator} "));
-            s.eol();
-            self.push_indent(s);
+        let result = self.emit(s, node.right, inner);
 
-            self.emit(s, node.right, inner)
-        })();
-
-        self.indent -= indent;
+        self.indent -= usize::from(!flags.logical_continuation);
 
         result
-    }
-
-    fn emit_binary(&mut self, s: &mut EmitState<'_>, node: &Binary) -> Result<()> {
-        self.emit(s, node.left, EmitFlags::default())?;
-        s.push_fmt(format_args!(" {} ", node.operator.as_str()));
-
-        self.emit(s, node.right, EmitFlags::default())
     }
 
     fn emit_comparison_group(

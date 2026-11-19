@@ -89,12 +89,7 @@ impl Inference<'_> {
                     Constant::Null => Constant::Number(1.0),
                 })
             }
-            NodeKind::Binary(binary) => {
-                let left = self.constant_value(binary.left)?;
-                let right = self.constant_value(binary.right)?;
-
-                left.compare(binary.operator, &right)
-            }
+            NodeKind::Binary(_) | NodeKind::Logical(_) => self.constant_chain(node),
             NodeKind::ComparisonGroup(group) => {
                 let operands = ast
                     .list(group.expressions)
@@ -109,21 +104,37 @@ impl Inference<'_> {
 
                 Some(Constant::from_bool(all))
             }
-            NodeKind::Logical(logical) => {
-                let left = self.constant_value(logical.left)?;
-                let right = self.constant_value(logical.right)?;
-
-                if !left.is_boolean_like() || !right.is_boolean_like() {
-                    return None;
-                }
-
-                Some(Constant::from_bool(match logical.operator {
-                    LogicalOp::And => left.is_truthy() && right.is_truthy(),
-                    LogicalOp::Or => left.is_truthy() || right.is_truthy(),
-                }))
-            }
             _ => None,
         }
+    }
+
+    fn constant_chain(&self, node: NodeId) -> Option<Constant> {
+        let ast = self.ast();
+        let chain = ast.operator_chain(node);
+        let mut left = self.constant_value(chain.first)?;
+
+        for &link in &chain.links {
+            left = match ast.kind(link) {
+                NodeKind::Binary(binary) => {
+                    left.compare(binary.operator, &self.constant_value(binary.right)?)?
+                }
+                NodeKind::Logical(logical) => {
+                    let right = self.constant_value(logical.right)?;
+
+                    if !left.is_boolean_like() || !right.is_boolean_like() {
+                        return None;
+                    }
+
+                    Constant::from_bool(match logical.operator {
+                        LogicalOp::And => left.is_truthy() && right.is_truthy(),
+                        LogicalOp::Or => left.is_truthy() || right.is_truthy(),
+                    })
+                }
+                _ => return None,
+            };
+        }
+
+        Some(left)
     }
 
     pub(crate) fn is_always_true(&self, condition: NodeId) -> bool {

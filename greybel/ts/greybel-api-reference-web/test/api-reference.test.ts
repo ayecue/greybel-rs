@@ -245,7 +245,7 @@ describe('the API reference', () => {
 
     const chapters = page.locator('#panel-guide nav.contents > ul > li');
 
-    await expect.poll(() => chapters.count()).toBe(14);
+    await expect.poll(() => chapters.count()).toBe(15);
     expect(await chapters.first().locator('a.entry').textContent()).toBe('Syntax');
     expect(await chapters.nth(1).locator('ul a').allTextContents()).toEqual([
       'Numbers',
@@ -259,7 +259,8 @@ describe('the API reference', () => {
 
     expect(await chapters.nth(10).locator('a.entry').textContent()).toBe('Syntax features');
     expect(await chapters.nth(10).locator('ul a').allTextContents()).toContain('Classes');
-    expect(await chapters.nth(12).locator('a.entry').textContent()).toBe('Exploits');
+    expect(await chapters.nth(11).locator('a.entry').textContent()).toBe('Documentation comments');
+    expect(await chapters.nth(13).locator('a.entry').textContent()).toBe('Exploits');
 
     const lists = page.locator('#guide-values-lists');
 

@@ -251,6 +251,17 @@ node_kinds! {
     ],
 }
 
+impl NodeKind {
+    #[must_use]
+    pub fn chain_left(&self) -> Option<NodeId> {
+        match self {
+            NodeKind::Binary(node) => Some(node.left),
+            NodeKind::Logical(node) => Some(node.left),
+            _ => None,
+        }
+    }
+}
+
 impl NodeFieldContainer for NodeKind {
     fn children(&self, lists: &NodeListStorage) -> Vec<NodeId> {
         self.as_node().children(lists)

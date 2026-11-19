@@ -128,24 +128,26 @@ impl Analyzer<'_> {
             .collect()
     }
 
-    fn first_assignment_after(ast: &Ast, node: NodeId, offset: u32, next: &mut Option<NodeId>) {
-        let span = ast.span(node);
+    fn first_assignment_after(ast: &Ast, root: NodeId, offset: u32, next: &mut Option<NodeId>) {
+        let mut nodes = ast.descendants(root);
 
-        if span.end < offset {
-            return;
-        }
+        while let Some(node) = nodes.next() {
+            let span = ast.span(node);
 
-        if span.start >= offset && matches!(ast.kind(node), NodeKind::Assignment(_)) {
-            if next.is_none_or(|current| span.start < ast.span(current).start) {
-                *next = Some(node);
+            if span.end < offset {
+                nodes.skip_children();
+
+                continue;
             }
 
-            return;
-        }
+            if span.start >= offset && matches!(ast.kind(node), NodeKind::Assignment(_)) {
+                if next.is_none_or(|current| span.start < ast.span(current).start) {
+                    *next = Some(node);
+                }
 
-        ast.for_each_child(node, |child| {
-            Self::first_assignment_after(ast, child, offset, next)
-        });
+                nodes.skip_children();
+            }
+        }
     }
 }
 

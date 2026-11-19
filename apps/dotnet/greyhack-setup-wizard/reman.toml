@@ -1,4 +1,0 @@
-[project]
-kind = "app"
-# Named after its folder (its solution is GreyHackSetupWizard.App).
-tag = "greyhack-setup-wizard/v{version}"

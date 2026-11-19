@@ -67,6 +67,7 @@ Open the Command Palette with `Ctrl+Shift+P` (`Cmd+Shift+P` on macOS). Most comm
 | **Greybel: Share** | Save the active file with every file it imports and the project's `greybel.json` through the editor service, and copy the web editor link. |
 | **Greybel: Select profile** | Select the active project's build/run profile. |
 | **Greybel: Reset the mock world** | Discard the mock world, including its saved state, and generate it again. |
+| **Greybel: Set up Grey Hack** | Install BepInEx, the message hook and its port in Grey Hack; see [Grey Hack integration](greyhack-integration.md#set-up). Desktop only. |
 
 The editor's **Greybel: Transform** submenu contains **Transform**, **Uglify**, **Beautify**, and **Transform to clipboard**. **Greybel: Go to error** in the editor context menu selects the next error in the current file.
 

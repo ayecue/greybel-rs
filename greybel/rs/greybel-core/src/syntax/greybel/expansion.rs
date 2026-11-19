@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use greybel_symbols::names::{SELF, SUPER};
 use rustc_hash::{FxHashMap, FxHashSet};
 
@@ -46,6 +48,7 @@ impl ValueExpansions {
             names: FxHashMap::default(),
             scope: root,
             root,
+            has_values: RefCell::default(),
         };
 
         expander.walk(root);
@@ -53,6 +56,12 @@ impl ValueExpansions {
 
         expander.expansions
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum Collect {
+    Values(NodeId, bool),
+    Ahead(NodeId, bool),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -70,6 +79,7 @@ struct ValueExpander<'n> {
     names: FxHashMap<NodeId, Vec<usize>>,
     scope: NodeId,
     root: NodeId,
+    has_values: RefCell<FxHashMap<NodeId, bool>>,
 }
 
 impl ValueExpander<'_> {
@@ -87,17 +97,32 @@ impl ValueExpander<'_> {
         children
     }
 
-    fn walk(&mut self, node: NodeId) {
-        for statement in self.statements(node) {
-            self.temporaries = 0;
-            self.scope = self.nodes.get(statement).scope.unwrap_or(self.root);
-            self.expand_statement(statement);
+    fn walk(&mut self, root: NodeId) {
+        enum Step {
+            Enter(NodeId),
+            Exit(NodeId),
         }
 
-        for child in self.children(node) {
-            self.walk(child);
-        }
+        let mut steps = vec![Step::Enter(root)];
 
+        while let Some(step) = steps.pop() {
+            match step {
+                Step::Enter(node) => {
+                    for statement in self.statements(node) {
+                        self.temporaries = 0;
+                        self.scope = self.nodes.get(statement).scope.unwrap_or(self.root);
+                        self.expand_statement(statement);
+                    }
+
+                    steps.push(Step::Exit(node));
+                    steps.extend(self.children(node).into_iter().rev().map(Step::Enter));
+                }
+                Step::Exit(node) => self.mark_shortcut_block(node),
+            }
+        }
+    }
+
+    fn mark_shortcut_block(&mut self, node: NodeId) {
         if let NodeKind::If(statement) = self.kind(node)
             && statement.shortcut
         {
@@ -204,11 +229,40 @@ impl ValueExpander<'_> {
     }
 
     fn has_values(&self, node: NodeId) -> bool {
-        let mut values = Vec::new();
+        let mut answers = self.has_values.borrow_mut();
+        let mut steps = vec![(node, false)];
 
-        self.collect(node, false, &mut values);
+        while let Some((current, after_operands)) = steps.pop() {
+            if answers.contains_key(&current) {
+                continue;
+            }
 
-        !values.is_empty()
+            let operands = self.collected_operands(current);
+
+            if after_operands || self.is_value(current) {
+                let has_value = self.is_value(current)
+                    || operands
+                        .iter()
+                        .any(|operand| answers.get(operand) == Some(&true));
+
+                answers.insert(current, has_value);
+            } else {
+                steps.push((current, true));
+                steps.extend(operands.into_iter().map(|operand| (operand, false)));
+            }
+        }
+
+        answers[&node]
+    }
+
+    fn collected_operands(&self, node: NodeId) -> Vec<NodeId> {
+        match self.kind(node) {
+            NodeKind::Logical(logical) => vec![logical.left],
+            NodeKind::Function(_) => Vec::new(),
+            NodeKind::Parenthesis(parenthesis) => vec![parenthesis.expression],
+            NodeKind::Unary(unary) => vec![unary.argument],
+            _ => self.children(node),
+        }
     }
 
     fn while_loop(&mut self, condition: NodeId, body: NodeList) -> NodeList {
@@ -385,36 +439,7 @@ impl ValueExpander<'_> {
     }
 
     fn collect(&self, node: NodeId, plain: bool, values: &mut Vec<(NodeId, bool)>) {
-        if self.is_value(node) {
-            values.push((node, plain));
-
-            return;
-        }
-
-        match self.kind(node) {
-            NodeKind::Logical(logical) => self.collect(logical.left, false, values),
-            NodeKind::Function(_) => {}
-            NodeKind::Parenthesis(parenthesis) => {
-                self.collect(parenthesis.expression, plain, values)
-            }
-            NodeKind::Unary(unary) => {
-                self.collect(unary.argument, unary.operator == UnaryOp::AddressOf, values);
-            }
-            _ => self.collect_children(node, values),
-        }
-    }
-
-    fn collect_children(&self, node: NodeId, values: &mut Vec<(NodeId, bool)>) {
-        let kind = self.kind(node);
-        let base = Self::link_base(kind);
-        let function = matches!(kind, NodeKind::Call(_)).then_some(base).flatten();
-        let children: Vec<(NodeId, bool, bool)> = self
-            .children(node)
-            .into_iter()
-            .map(|child| (child, Some(child) == base, Some(child) != function))
-            .collect();
-
-        self.collect_in_order(&children, values);
+        self.run_collection(vec![Collect::Values(node, plain)], values);
     }
 
     fn collect_in_order(
@@ -422,29 +447,90 @@ impl ValueExpander<'_> {
         children: &[(NodeId, bool, bool)],
         values: &mut Vec<(NodeId, bool)>,
     ) {
-        let last = children
-            .iter()
-            .rposition(|&(child, ..)| self.has_values(child));
+        let mut tasks = Vec::new();
 
-        for (index, &(child, plain, ahead)) in children.iter().enumerate() {
-            if ahead && last.is_some_and(|last| index < last) && !self.has_values(child) {
-                self.collect_ahead(child, plain, values);
-            } else {
-                self.collect(child, plain, values);
+        self.push_in_order(children, &mut tasks);
+        self.run_collection(tasks, values);
+    }
+
+    fn run_collection(&self, mut tasks: Vec<Collect>, values: &mut Vec<(NodeId, bool)>) {
+        while let Some(task) = tasks.pop() {
+            match task {
+                Collect::Values(node, plain) => {
+                    self.collect_values(node, plain, values, &mut tasks)
+                }
+                Collect::Ahead(node, plain) => match self.kind(node) {
+                    NodeKind::Literal(_) | NodeKind::Function(_) => {}
+                    NodeKind::Identifier(identifier)
+                        if identifier.kind == IdentifierKind::Property => {}
+                    NodeKind::ListItem(_) | NodeKind::MapEntry(_) | NodeKind::Spread(_) => {
+                        let children = self.children(node);
+
+                        tasks.extend(
+                            children
+                                .into_iter()
+                                .rev()
+                                .map(|child| Collect::Ahead(child, false)),
+                        );
+                    }
+                    _ => values.push((node, plain)),
+                },
             }
         }
     }
 
-    fn collect_ahead(&self, node: NodeId, plain: bool, values: &mut Vec<(NodeId, bool)>) {
+    fn collect_values(
+        &self,
+        node: NodeId,
+        plain: bool,
+        values: &mut Vec<(NodeId, bool)>,
+        tasks: &mut Vec<Collect>,
+    ) {
+        if self.is_value(node) {
+            values.push((node, plain));
+
+            return;
+        }
+
         match self.kind(node) {
-            NodeKind::Literal(_) | NodeKind::Function(_) => {}
-            NodeKind::Identifier(identifier) if identifier.kind == IdentifierKind::Property => {}
-            NodeKind::ListItem(_) | NodeKind::MapEntry(_) | NodeKind::Spread(_) => {
-                for child in self.children(node) {
-                    self.collect_ahead(child, false, values);
-                }
+            NodeKind::Logical(logical) => tasks.push(Collect::Values(logical.left, false)),
+            NodeKind::Function(_) => {}
+            NodeKind::Parenthesis(parenthesis) => {
+                tasks.push(Collect::Values(parenthesis.expression, plain));
             }
-            _ => values.push((node, plain)),
+            NodeKind::Unary(unary) => {
+                tasks.push(Collect::Values(
+                    unary.argument,
+                    unary.operator == UnaryOp::AddressOf,
+                ));
+            }
+            kind => {
+                let base = Self::link_base(kind);
+                let function = matches!(kind, NodeKind::Call(_)).then_some(base).flatten();
+                let children: Vec<(NodeId, bool, bool)> = self
+                    .children(node)
+                    .into_iter()
+                    .map(|child| (child, Some(child) == base, Some(child) != function))
+                    .collect();
+
+                self.push_in_order(&children, tasks);
+            }
+        }
+    }
+
+    fn push_in_order(&self, children: &[(NodeId, bool, bool)], tasks: &mut Vec<Collect>) {
+        let last = children
+            .iter()
+            .rposition(|&(child, ..)| self.has_values(child));
+
+        for (index, &(child, plain, ahead)) in children.iter().enumerate().rev() {
+            tasks.push(
+                if ahead && last.is_some_and(|last| index < last) && !self.has_values(child) {
+                    Collect::Ahead(child, plain)
+                } else {
+                    Collect::Values(child, plain)
+                },
+            );
         }
     }
 

@@ -48,8 +48,8 @@ Runs when a push to `main` changes `.changes/release.toml`, which `cargo reman r
 
 1. **publish:** once approved (environment `github-release`), `cargo reman release publish --draft` tags each app
    whose version is not released yet and creates a draft release from its changelog section.
-2. **native:** builds `greybel`, `greybel-lsp`, `greybel-runtime`, `greyhack-world-server` and `greybel-builder`
-   for each platform. Linux uses `cargo zigbuild` against glibc 2.28 (VS Code's minimum) or musl.
+2. **native:** builds `greybel`, `greybel-lsp`, `greybel-runtime`, `greyhack-world-server`, `greybel-builder` and
+   `greyhack-setup` (without its window for the extension, with it for its own release) for each platform. Linux uses `cargo zigbuild` against glibc 2.28 (VS Code's minimum) or musl.
 3. **The apps' files:**
 
    | Release | Files |
@@ -57,14 +57,16 @@ Runs when a push to `main` changes `.changes/release.toml`, which `cargo reman r
    | greybel-vs | `greybel-vs-<platform>-<version>.vsix` for `web`, `win32-x64`, `win32-arm64`, `linux-x64`, `linux-arm64`, `alpine-x64`, `alpine-arm64`, `darwin-x64`, `darwin-arm64` |
    | greybel-cli | `greybel-<version>-<rust target>.tar.gz`, `.zip` for Windows |
    | greybel-lsp-stdio | `greybel-lsp-<version>-<rust target>.tar.gz`, `.zip` for Windows |
-   | greyhack-setup-wizard | `greyhack-setup-wizard-<version>-<runtime>.tar.gz` (`.zip` for Windows) with the window and the command-line tool, self-contained and trimmed, for `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`; on macOS the window is `Grey Hack Setup Wizard.app` |
+   | greyhack-setup-wizard | `greyhack-setup-wizard-<version>-<rust target>.tar.gz`, `.zip` for Windows, with `greyhack-setup`; on macOS in `Grey Hack Setup.app`; for musl without its window |
    | greyhack-message-hook | `GreyHackMessageHook5.dll` (BepInEx 5) and `GreyHackMessageHook.dll` (BepInEx 6) |
 
 4. **marketplaces:** once approved (environment `marketplaces`), publishes the VSIX files to the Visual Studio
    Marketplace and Open VSX.
 5. **finish:** once approved (environment `github-release`), adds `SHA256SUMS` to each release, publishes the
-   drafts and marks greyhack-message-hook's release as the latest (its `reman.toml` sets `latest = true`; the setup
-   wizard reads the latest release).
+   drafts and marks greyhack-message-hook's release as the latest (its `reman.toml` sets `latest = true`). A greybel
+   release's archives then go to Spaces as `releases/greybel/<version>/`, with `releases/greybel/latest.json` naming
+   the version and each target's archive, SHA-256 and size, which `greybel update` reads
+   (`.github/scripts/upload-cli-release.sh`).
 
 A release stays a draft while any job fails. Re-run the failed jobs, or the workflow at the same commit: publish then
 lists the apps tagged at that commit again (`is_new: false`) and the jobs rebuild them; attaching uses `--clobber`,

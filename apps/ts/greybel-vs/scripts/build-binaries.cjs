@@ -1,5 +1,5 @@
 // Builds the Rust programs the desktop extension runs into dist/bin: the language server, the runtime, the game server
-// whose world the runtimes share, and the builder.
+// whose world the runtimes share, the builder, and greyhack-setup without its window.
 // `--debug` builds them without optimizations, for tests. `--target <platform>` builds them for a VS Code platform
 // other than this machine's (see RUST_TARGETS), which needs that Rust target and its linker installed.
 const { execFileSync } = require('node:child_process');
@@ -13,7 +13,8 @@ const BINARIES = [
   { pkg: 'greybel-lsp-stdio', name: 'greybel-lsp' },
   { pkg: 'greybel-runtime-stdio', name: 'greybel-runtime' },
   { pkg: 'greyhack-world-server', name: 'greyhack-world-server' },
-  { pkg: 'greybel-builder-stdio', name: 'greybel-builder' }
+  { pkg: 'greybel-builder-stdio', name: 'greybel-builder' },
+  { pkg: 'greyhack-setup-wizard', name: 'greyhack-setup', features: ['--no-default-features'] }
 ];
 
 /** The Rust target each native VS Code platform runs. */
@@ -35,18 +36,22 @@ function buildBinaries({ debug = false, target } = {}) {
     throw new Error(`'${target}' is not a native VS Code platform: ${Object.keys(RUST_TARGETS).join(', ')}`);
   }
 
-  const packages = BINARIES.flatMap(({ pkg }) => ['--package', pkg]);
-  execFileSync(
-    'cargo',
-    [
-      'build',
-      '--locked',
-      ...(debug ? [] : ['--release']),
-      ...(rustTarget ? ['--target', rustTarget] : []),
-      ...packages
-    ],
-    { cwd: RUST_WORKSPACE, stdio: 'inherit' }
-  );
+  // Packages with their own feature flags build separately: Cargo applies --no-default-features to every named package.
+  const groups = [
+    BINARIES.filter(({ features }) => features === undefined).flatMap(({ pkg }) => ['--package', pkg]),
+    ...BINARIES.filter(({ features }) => features !== undefined).map(({ pkg, features }) => [
+      '--package',
+      pkg,
+      ...features
+    ])
+  ];
+  for (const group of groups) {
+    execFileSync(
+      'cargo',
+      ['build', '--locked', ...(debug ? [] : ['--release']), ...(rustTarget ? ['--target', rustTarget] : []), ...group],
+      { cwd: RUST_WORKSPACE, stdio: 'inherit' }
+    );
+  }
 
   copyBinaries(join(TARGET, ...(rustTarget ? [rustTarget] : []), debug ? 'debug' : 'release'), target);
 }

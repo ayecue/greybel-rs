@@ -6,9 +6,8 @@ mod statements;
 
 use greybel_core::syntax::greybel::{Include, Inject, Switch};
 use greybel_core::syntax::{
-    Assignment, Binary, Call, CallStatement, ComparisonGroup, ElseClause, For, Function,
-    Identifier, If, IfClause, Isa, List, ListItem, Literal, Logical, Map, MapEntry, Member,
-    Parenthesis, Slice, While,
+    Assignment, Call, CallStatement, ComparisonGroup, ElseClause, For, Function, Identifier, If,
+    IfClause, Isa, List, ListItem, Literal, Map, MapEntry, Member, Parenthesis, Slice, While,
 };
 use greybel_core::{IfClauseKind, NodeId, NodeKind};
 use greybel_symbols::contextual_keywords::{SWITCH, TYPE};
@@ -89,8 +88,7 @@ pub trait Emitter: Sized {
             NodeKind::Call(node) => self.emit_call(s, id, node, flags),
             NodeKind::Literal(node) => self.emit_literal(s, id, node),
             NodeKind::Unary(node) => self.emit_unary(s, node),
-            NodeKind::Binary(node) => self.emit_binary(s, node),
-            NodeKind::Logical(node) => self.emit_logical(s, node, flags),
+            NodeKind::Binary(_) | NodeKind::Logical(_) => self.emit_operation_chain(s, id, flags),
             NodeKind::Isa(node) => self.emit_isa(s, node, flags),
             NodeKind::ComparisonGroup(node) => self.emit_comparison_group(s, node),
             NodeKind::Map(node) if !s.options().dev_mode && s.has_spread(node.fields) => {
@@ -403,25 +401,74 @@ pub trait Emitter: Sized {
         Ok(())
     }
 
-    fn emit_binary(&mut self, s: &mut EmitState<'_>, node: &Binary) -> Result<()> {
-        self.emit(s, node.left, EmitFlags::default())?;
-        s.push(node.operator.as_str());
-
-        self.emit(s, node.right, EmitFlags::default())
-    }
-
-    fn emit_logical(
+    fn emit_operation_chain(
         &mut self,
         s: &mut EmitState<'_>,
-        node: &Logical,
+        id: NodeId,
+        flags: EmitFlags,
+    ) -> Result<()> {
+        let ast = s.ast();
+        let mut links = vec![(id, flags)];
+        let mut operand_flags = self.enter_operation(s, id, flags);
+        let mut operand = ast.kind(id).chain_left().unwrap_or(id);
+
+        while let Some(left) = ast.kind(operand).chain_left()
+            && !Self::emits_expansion(s, operand)
+        {
+            s.mark(operand);
+            links.push((operand, operand_flags));
+            operand_flags = self.enter_operation(s, operand, operand_flags);
+            operand = left;
+        }
+
+        self.emit(s, operand, operand_flags)?;
+
+        for &(link, flags) in links.iter().rev() {
+            self.finish_operation(s, link, flags)?;
+        }
+
+        Ok(())
+    }
+
+    fn emits_expansion(s: &EmitState<'_>, id: NodeId) -> bool {
+        let expansions = &s.ast().expansions;
+
+        !s.options().dev_mode
+            && (expansions.instead(id).is_some()
+                || expansions.value(id).is_some()
+                || expansions.before(id).is_some())
+    }
+
+    fn enter_operation(
+        &mut self,
+        _s: &mut EmitState<'_>,
+        _id: NodeId,
+        _flags: EmitFlags,
+    ) -> EmitFlags {
+        EmitFlags::default()
+    }
+
+    fn finish_operation(
+        &mut self,
+        s: &mut EmitState<'_>,
+        id: NodeId,
         _flags: EmitFlags,
     ) -> Result<()> {
-        self.emit(s, node.left, EmitFlags::default())?;
-        s.push(" ");
-        s.push(node.operator.as_str());
-        s.push(" ");
+        match s.kind(id) {
+            NodeKind::Binary(node) => {
+                s.push(node.operator.as_str());
 
-        self.emit(s, node.right, EmitFlags::default())
+                self.emit(s, node.right, EmitFlags::default())
+            }
+            NodeKind::Logical(node) => {
+                s.push(" ");
+                s.push(node.operator.as_str());
+                s.push(" ");
+
+                self.emit(s, node.right, EmitFlags::default())
+            }
+            _ => Ok(()),
+        }
     }
 
     fn emit_isa(&mut self, s: &mut EmitState<'_>, node: &Isa, _flags: EmitFlags) -> Result<()> {

@@ -36,6 +36,9 @@ export interface ApiReferenceOptions {
 
   /** Shows a "Star on GitHub" link to this address in the header. */
   readonly repositoryUrl?: string;
+
+  /** Shows the image at this address before the title in the header. */
+  readonly logoUrl?: string;
 }
 
 export interface ApiReference {
@@ -84,6 +87,7 @@ class ApiReferenceView implements ApiReference {
           tab={options.tab ?? ReferenceTab.Api}
           onTabChange={options.onTabChange}
           repositoryUrl={options.repositoryUrl}
+          logoUrl={options.logoUrl}
           onComplete={resolve}
           onFailure={reject}
           openExample={

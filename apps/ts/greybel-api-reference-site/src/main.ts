@@ -16,7 +16,8 @@ openApiReference(document.getElementById('reference')!, {
   tab: address.searchParams.get('tab') === ReferenceTab.Guide ? ReferenceTab.Guide : ReferenceTab.Api,
   anchor: address.hash === '' ? undefined : decodeURIComponent(address.hash.slice(1)),
   onTabChange: showTab,
-  repositoryUrl: 'https://github.com/ayecue/greybel-rs'
+  repositoryUrl: 'https://github.com/ayecue/greybel-rs',
+  logoUrl: 'https://greybel-assets.fra1.digitaloceanspaces.com/brand/greybel-logo.png'
 });
 
 /** Stores the selected tab in the URL: `?tab=guide` for the guide; no parameter for the default API tab. */

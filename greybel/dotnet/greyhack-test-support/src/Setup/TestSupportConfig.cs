@@ -1,5 +1,3 @@
-using GreyHackSetupWizard.Game;
-
 namespace GreyHackTestSupport.Setup;
 
 internal static class TestSupportConfig

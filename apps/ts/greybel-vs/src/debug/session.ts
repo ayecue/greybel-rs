@@ -42,6 +42,7 @@ import type { ProjectReader, Project } from '../project';
 import { RuntimeConnection } from '../runtime/connection';
 import { ErrorReporter } from '../runtime/error-message';
 import { Configuration } from '../settings';
+import { GameSetupOffer } from '../setup/offer';
 
 const THREAD = 1;
 const CONFIGURATION_TIMEOUT = 2000;
@@ -443,6 +444,12 @@ export class RuntimeDebugSession extends LoggingDebugSession {
 
     this.#connection.page.printError(`Could not start the program: ${message}`);
     if (config.get('interpreter.silenceErrorPopups')) return;
+    if (failure instanceof LaunchFailure.Unreachable) {
+      void GameSetupOffer.show(message);
+
+      return;
+    }
+
     this.#errors.show(message, location);
   }
 

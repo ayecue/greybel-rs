@@ -23,6 +23,16 @@ greybel build --help
 
 Running `greybel` without a subcommand also prints its command list.
 
+### Updates
+
+`greybel update` replaces the program with the newest release for its platform, after checking the download's SHA-256; `greybel update --check` only reports whether there is one. Releases come from `https://greybel-assets.fra1.digitaloceanspaces.com/releases/greybel/` (`GREYBEL_UPDATE_URL` names another location). When the program folder isn't writable, the message names the archive to download instead.
+
+In a terminal, commands print one line after their output when a newer version is available. They check at most once a day, on a thread of their own, so no command waits for it; `mcp`, `update` and `world` don't, and `GREYBEL_NO_UPDATE_CHECK=1` turns it off.
+
+### Grey Hack setup
+
+`greybel setup` installs BepInEx, the message hook and its port in Grey Hack, as described in [Grey Hack integration](greyhack-integration.md#set-up).
+
 ## Projects and profiles
 
 All settings are optional. When a command names a file, Greybel looks for the nearest `greybel.json` in that file's folder or a parent folder. Without a file argument, discovery starts in the current folder. Without a configuration file, defaults apply and paths are relative to the current folder.

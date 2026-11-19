@@ -307,16 +307,18 @@ impl<'w> Analyzer<'w> {
             .map(|ast| &**ast)
     }
 
-    fn collect_outside_functions(ast: &Ast, node: NodeId, nodes: &mut Vec<NodeId>) {
-        match ast.kind(node) {
-            NodeKind::Function(_) => return,
-            NodeKind::Identifier(_) | NodeKind::Member(_) | NodeKind::Index(_) => nodes.push(node),
-            _ => {}
-        }
+    fn collect_outside_functions(ast: &Ast, root: NodeId, nodes: &mut Vec<NodeId>) {
+        let mut descendants = ast.descendants(root);
 
-        ast.for_each_child(node, |child| {
-            Self::collect_outside_functions(ast, child, nodes)
-        });
+        while let Some(node) = descendants.next() {
+            match ast.kind(node) {
+                NodeKind::Function(_) => descendants.skip_children(),
+                NodeKind::Identifier(_) | NodeKind::Member(_) | NodeKind::Index(_) => {
+                    nodes.push(node);
+                }
+                _ => {}
+            }
+        }
     }
 
     fn outer_function(ast: &Ast, node: NodeId) -> Option<NodeId> {

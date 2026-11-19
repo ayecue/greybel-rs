@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using GreyHackSetupWizard.Game;
 using GreyHackTestSupport.Setup;
 
 namespace GreyHackTestSupport.Game;

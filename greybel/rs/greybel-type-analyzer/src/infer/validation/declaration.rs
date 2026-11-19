@@ -131,32 +131,36 @@ impl Inference<'_> {
         node: NodeId,
         assignments: &mut Vec<(NodeId, Option<Declaration>)>,
     ) {
-        let body = match ast.kind(node) {
-            NodeKind::Chunk(chunk) => chunk.body,
-            NodeKind::Function(function) => function.body,
-            NodeKind::IfClause(clause) => clause.body,
-            NodeKind::ElseClause(clause) => clause.body,
-            NodeKind::While(statement) => statement.body,
-            NodeKind::For(statement) => statement.body,
-            NodeKind::If(statement) => statement.clauses,
-            NodeKind::Assignment(assignment) => {
-                if matches!(ast.kind(assignment.variable), NodeKind::Identifier(_)) {
-                    assignments.push((assignment.variable, assignment.declaration));
+        let mut stack = vec![node];
+        let mut children = Vec::new();
+
+        while let Some(node) = stack.pop() {
+            let body = match ast.kind(node) {
+                NodeKind::Chunk(chunk) => chunk.body,
+                NodeKind::Function(function) => function.body,
+                NodeKind::IfClause(clause) => clause.body,
+                NodeKind::ElseClause(clause) => clause.body,
+                NodeKind::While(statement) => statement.body,
+                NodeKind::For(statement) => statement.body,
+                NodeKind::If(statement) => statement.clauses,
+                NodeKind::Assignment(assignment) => {
+                    if matches!(ast.kind(assignment.variable), NodeKind::Identifier(_)) {
+                        assignments.push((assignment.variable, assignment.declaration));
+                    }
+
+                    stack.push(assignment.init);
+
+                    continue;
                 }
+                _ => {
+                    ast.for_each_child(node, |child| children.push(child));
+                    stack.extend(children.drain(..).rev());
 
-                return Self::statement_assignments(ast, assignment.init, assignments);
-            }
-            _ => {
-                ast.for_each_child(node, |child| {
-                    Self::statement_assignments(ast, child, assignments);
-                });
+                    continue;
+                }
+            };
 
-                return;
-            }
-        };
-
-        for &statement in ast.list(body) {
-            Self::statement_assignments(ast, statement, assignments);
+            stack.extend(ast.list(body).iter().rev());
         }
     }
 }

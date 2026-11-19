@@ -1,0 +1,4 @@
+[project]
+kind = "app"
+# Named after its folder; its program is `greyhack-setup`.
+tag = "greyhack-setup-wizard/v{version}"

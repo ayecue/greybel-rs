@@ -8,9 +8,7 @@ internal static class CommandAction
         {
             return action();
         }
-        catch (Exception error)
-            when (error is TestSupportException or GreyHackSetupWizard.SetupException or IOException
-            )
+        catch (Exception error) when (error is TestSupportException or IOException)
         {
             Console.Error.WriteLine($"error: {error.Message}");
             return 1;

@@ -13,6 +13,7 @@ doctest = false
 
 [dependencies]
 rustc-hash.workspace = true
+smallvec.workspace = true
 str_indices.workspace = true
 greybel-core-macros.workspace = true
 greybel-symbols.workspace = true

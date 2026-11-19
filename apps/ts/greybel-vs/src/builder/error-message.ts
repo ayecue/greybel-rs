@@ -3,6 +3,7 @@ import { BuildFailure } from 'greybel-builder';
 import vscode from 'vscode';
 
 import { ErrorReporter } from '../runtime/error-message';
+import { GameSetupOffer } from '../setup/offer';
 
 export class BuildFailureReporter {
   readonly #errors = new ErrorReporter();
@@ -13,7 +14,7 @@ export class BuildFailureReporter {
     if (failure instanceof BuildFailure.Invalid) {
       this.#errors.show(failure.message, failure.location ?? undefined);
     } else if (failure instanceof BuildFailure.Unreachable) {
-      vscode.window.showErrorMessage(failure.message);
+      void GameSetupOffer.show(failure.message);
     } else if (failure instanceof BuildFailure.Unavailable) {
       vscode.window.showErrorMessage('Grey Hack import is not available here.');
     } else {

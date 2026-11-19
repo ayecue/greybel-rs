@@ -1,6 +1,4 @@
 using System.Runtime.InteropServices;
-using GreyHackSetupWizard.Game;
-using GreyHackSetupWizard.Plugins;
 using GreyHackTestSupport.Platform;
 using GreyHackTestSupport.Session;
 using GreyHackTestSupport.Setup;
@@ -93,16 +91,16 @@ internal sealed class GameInstance : IDisposable
     private void StartGame(GameOptions options)
     {
         var timer = new StartupTimer();
-        GameClone.Ensure(GameLocator.Require(null).Folder, folder.Clone);
+        GameClone.Ensure(SetupTool.Locate().Folder, folder.Clone);
         timer.Finish("game-clone");
-        GameLayout game = GameLayout.FromFolder(folder.Clone);
+        GameLayout game = SetupTool.Read(folder.Clone);
         BepInExSetup.Ensure(folder, game, options.Major);
         timer.Finish("bepinex-setup");
         PluginBuildTable.Install(folder, game, options.Major);
         timer.Finish("plugin-install");
         int port = LocalPort.Resolve(options.Port);
         int testPort = LocalPort.Resolve(options.TestPort);
-        PluginConfig.SetPort(game, port);
+        SetupTool.SetPort(game, port);
         TestSupportConfig.SetPorts(game, testPort, LocalPort.Resolve(0));
         Steam.Start(SteamStartTimeout);
         timer.Finish("steam-start");

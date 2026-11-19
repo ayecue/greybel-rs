@@ -1,5 +1,4 @@
 using System.CommandLine;
-using GreyHackSetupWizard.BepInEx;
 using GreyHackTestSupport.Game;
 using GreyHackTestSupport.Session;
 using GreyHackTestSupport.Setup;

@@ -312,24 +312,27 @@ impl Inference<'_> {
             NodeKind::Unary(unary) if unary.operator == UnaryOp::Not => {
                 self.condition_guard(unary.argument).negate()
             }
-            NodeKind::Logical(logical) => {
-                let left = self.condition_guard(logical.left);
-                let right = self.condition_guard(logical.right);
+            NodeKind::Logical(_) => {
+                let chain = ast.operator_chain(condition);
+                let mut guard = self.condition_guard(chain.first);
+                let mut left = chain.first;
 
-                match logical.operator {
-                    LogicalOp::And => Guard {
-                        when_true: left
-                            .when_true
-                            .intersection(&right.when_true, &mut self.types),
-                        when_false: self.union_facts(&left.when_false, &right.when_false),
-                    },
-                    LogicalOp::Or => Guard {
-                        when_true: self.union_facts(&left.when_true, &right.when_true),
-                        when_false: left
-                            .when_false
-                            .intersection(&right.when_false, &mut self.types),
-                    },
+                for &link in &chain.links {
+                    guard = match ast.kind(link) {
+                        NodeKind::Logical(logical) => {
+                            let right = self.condition_guard(logical.right);
+
+                            self.logical_guard(logical.operator, &guard, &right)
+                        }
+                        NodeKind::Binary(binary) => {
+                            self.equality_guard(binary.operator, left, binary.right)
+                        }
+                        _ => Guard::default(),
+                    };
+                    left = link;
                 }
+
+                guard
             }
             NodeKind::Isa(isa) => {
                 let Some(path) = self.access_path(isa.left) else {
@@ -377,6 +380,28 @@ impl Inference<'_> {
                 self.type_guard(path, ty)
             }
             _ => Guard::default(),
+        }
+    }
+
+    pub(crate) fn logical_guard(
+        &mut self,
+        operator: LogicalOp,
+        left: &Guard,
+        right: &Guard,
+    ) -> Guard {
+        match operator {
+            LogicalOp::And => Guard {
+                when_true: left
+                    .when_true
+                    .intersection(&right.when_true, &mut self.types),
+                when_false: self.union_facts(&left.when_false, &right.when_false),
+            },
+            LogicalOp::Or => Guard {
+                when_true: self.union_facts(&left.when_true, &right.when_true),
+                when_false: left
+                    .when_false
+                    .intersection(&right.when_false, &mut self.types),
+            },
         }
     }
 

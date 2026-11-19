@@ -1,10 +1,17 @@
 use rustc_hash::FxHashMap;
+use smallvec::SmallVec;
 
 use super::{
-    Atom, AtomTable, Child, Node, NodeCommentContainer, NodeFieldContainer, NodeId, NodeKind,
-    NodeList, NodeListStorage,
+    Atom, AtomTable, Child, DescendantIter, Node, NodeCommentContainer, NodeFieldContainer, NodeId,
+    NodeKind, NodeList, NodeListStorage,
 };
 use crate::position::Span;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OperatorChain {
+    pub first: NodeId,
+    pub links: SmallVec<[NodeId; 4]>,
+}
 
 #[derive(Debug, Clone, Default)]
 pub struct NodeStore {
@@ -84,10 +91,18 @@ impl NodeStore {
     ) -> NodeId {
         let id = NodeId::from_index(self.nodes.len());
         let kind = kind.into();
+        let chain_left = kind.chain_left();
         let mut depth = 0;
 
         kind.for_each_child(&self.lists, &mut |child| {
-            depth = depth.max(self.nodes[child.index()].depth);
+            let node = &self.nodes[child.index()];
+            let continues_chain = Some(child) == chain_left && node.kind.chain_left().is_some();
+
+            depth = depth.max(if continues_chain {
+                node.depth.saturating_sub(1)
+            } else {
+                node.depth
+            });
         });
         self.nodes.push(Node {
             kind,
@@ -97,6 +112,21 @@ impl NodeStore {
         });
 
         id
+    }
+
+    #[must_use]
+    pub fn operator_chain(&self, id: NodeId) -> OperatorChain {
+        let mut links = SmallVec::new();
+        let mut first = id;
+
+        while let Some(left) = self.get(first).kind.chain_left() {
+            links.push(first);
+            first = left;
+        }
+
+        links.reverse();
+
+        OperatorChain { first, links }
     }
 
     #[must_use]
@@ -159,29 +189,32 @@ impl NodeStore {
     }
 
     pub fn clone_subtree(&mut self, id: NodeId) -> NodeId {
-        let node = self.get(id).clone();
-        let mut kind = node.kind;
+        let nodes: Vec<NodeId> = DescendantIter::new(self, id).collect();
+        let mut copies = FxHashMap::default();
 
-        kind.map_children(&mut |child| match child {
-            Child::Node(child) => Child::Node(self.clone_subtree(child)),
-            Child::List(list) => {
-                let child_copies: Vec<NodeId> = self
-                    .list(list)
-                    .to_vec()
-                    .into_iter()
-                    .map(|child| self.clone_subtree(child))
-                    .collect();
+        for &original in nodes.iter().rev() {
+            let node = self.get(original).clone();
+            let mut kind = node.kind;
 
-                Child::List(self.push_list(&child_copies))
+            kind.map_children(&mut |child| match child {
+                Child::Node(child) => Child::Node(copies[&child]),
+                Child::List(list) => {
+                    let child_copies: Vec<NodeId> =
+                        self.list(list).iter().map(|child| copies[child]).collect();
+
+                    Child::List(self.push_list(&child_copies))
+                }
+            });
+
+            let copy = self.alloc(kind, node.span, node.scope);
+
+            if let Some(comments) = self.comments.get(&original).cloned() {
+                self.comments.insert(copy, comments);
             }
-        });
 
-        let new_id = self.alloc(kind, node.span, node.scope);
-
-        if let Some(comments) = self.comments.get(&id).cloned() {
-            self.comments.insert(new_id, comments);
+            copies.insert(original, copy);
         }
 
-        new_id
+        copies[&id]
     }
 }
