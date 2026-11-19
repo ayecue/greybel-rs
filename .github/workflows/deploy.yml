@@ -103,14 +103,21 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: |
+          # The sites are built: --no-build keeps netlify-cli from running a build (and the site's build plugins) here.
+          # pipefail and the URL check fail the step when a deploy fails.
+          set -o pipefail
           deploy() {
             local name=$1 dist=$2 site=$3
             if [ "${{ github.event_name }}" = pull_request ]; then
-              url=$(npx --yes "$NETLIFY_CLI" deploy --dir "$dist" --site "$site" \
+              url=$(npx --yes "$NETLIFY_CLI" deploy --no-build --dir "$dist" --site "$site" \
                 --alias "pr-${{ github.event.pull_request.number }}" --message "PR #${{ github.event.pull_request.number }}" --json | jq -r .deploy_url)
             else
-              url=$(npx --yes "$NETLIFY_CLI" deploy --dir "$dist" --site "$site" --prod \
+              url=$(npx --yes "$NETLIFY_CLI" deploy --no-build --dir "$dist" --site "$site" --prod \
                 --message "${{ github.sha }}" --json | jq -r .url)
+            fi
+            if [ -z "$url" ] || [ "$url" = null ]; then
+              echo "::error::$name: the Netlify deploy failed"
+              return 1
             fi
             echo "$name: $url"
             echo "- $name: $url" >> links.md
