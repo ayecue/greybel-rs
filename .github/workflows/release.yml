@@ -51,15 +51,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          cargo reman release publish --draft > publications.json
-          jq . publications.json
-          echo "publications=$(jq -c . publications.json)" >> "$GITHUB_OUTPUT"
+          # Outside the working tree: publish refuses to tag with uncommitted or untracked files.
+          cargo reman release publish --draft > "$RUNNER_TEMP/publications.json"
+          jq . "$RUNNER_TEMP/publications.json"
+          echo "publications=$(jq -c . "$RUNNER_TEMP/publications.json")" >> "$GITHUB_OUTPUT"
           for pair in vs=ts/greybel-vs cli=rs/greybel-cli lsp=rs/greybel-lsp-stdio \
             wizard=dotnet/GreyHackSetupWizard.App hook=dotnet/GreyHackMessageHook; do
             key=${pair%%=*}
             id=${pair#*=}
-            echo "$key=$(jq -r --arg id "$id" '.[] | select(.id == $id) | .tag' publications.json)" >> "$GITHUB_OUTPUT"
-            echo "$key-version=$(jq -r --arg id "$id" '.[] | select(.id == $id) | .version' publications.json)" >> "$GITHUB_OUTPUT"
+            echo "$key=$(jq -r --arg id "$id" '.[] | select(.id == $id) | .tag' "$RUNNER_TEMP/publications.json")" >> "$GITHUB_OUTPUT"
+            echo "$key-version=$(jq -r --arg id "$id" '.[] | select(.id == $id) | .version' "$RUNNER_TEMP/publications.json")" >> "$GITHUB_OUTPUT"
           done
 
   # greybel-cli, greybel-lsp and the programs greybel-vs runs, for every native VS Code platform.
