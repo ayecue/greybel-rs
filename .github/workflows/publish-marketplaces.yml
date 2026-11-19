@@ -1,0 +1,43 @@
+# Temporary: publishes the VSIX files of an existing greybel-vs release to the Visual Studio Marketplace and Open VSX,
+# as release.yml's marketplaces job does. Remove once 3.0.0 is published.
+name: Publish to the marketplaces
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The greybel-vs release whose VSIX files to publish
+        default: greybel-vs/v3.0.0
+
+permissions:
+  contents: read
+
+jobs:
+  marketplaces:
+    runs-on: ubuntu-24.04
+    environment: marketplaces
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # vsce and ovsx at greybel-vs's locked versions.
+      - uses: ./.github/actions/setup
+        with:
+          node: 'true'
+      - name: The release's VSIX files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "${{ inputs.tag }}" --repo "${{ github.repository }}" --pattern '*.vsix' --dir out/vsix
+      - name: Publish to the Visual Studio Marketplace
+        working-directory: apps/ts/greybel-vs
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: pnpm exec vsce publish --skip-duplicate --packagePath ../../../out/vsix/*.vsix
+      - name: Publish to Open VSX
+        working-directory: apps/ts/greybel-vs
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          for file in ../../../out/vsix/*.vsix; do
+            pnpm exec ovsx publish "$file" --skip-duplicate
+          done
